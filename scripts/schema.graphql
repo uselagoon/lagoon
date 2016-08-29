@@ -1,0 +1,225 @@
+schema {
+  query: QueryRoot
+  mutation: MutationRoot
+}
+
+type BasicAuth {
+  username: String
+  password: String
+}
+
+type Client implements Node {
+  # The ID of an object
+  id: ID!
+  clientName: String
+  fullJson: Json
+}
+
+# A connection to a list of items.
+type ClientsConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [ClientsEdge]
+}
+
+# An edge in a connection.
+type ClientsEdge {
+  # The item at the end of the edge
+  node: Client
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
+input CreateSiteGroupInput {
+  siteGroupName: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type CreateSiteGroupPayload {
+  siteGroup: SiteGroup
+  clientMutationId: String!
+}
+
+input CreateSiteInput {
+  siteName: String!
+  siteHost: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type CreateSitePayload {
+  site: Site
+  clientMutationId: String!
+}
+
+type Cron {
+  type: String
+  minute: String
+}
+
+scalar Json
+
+type MutationRoot {
+  createSite(input: CreateSiteInput!): CreateSitePayload
+  updateSite(input: UpdateSiteInput!): UpdateSitePayload
+  createSiteGroup(input: CreateSiteGroupInput!): CreateSiteGroupPayload
+  updateSiteGroup(input: UpdateSiteGroupInput!): UpdateSiteGroupPayload
+}
+
+# An object with an ID
+interface Node {
+  # The id of the object.
+  id: ID!
+}
+
+# Information about pagination in a connection.
+type PageInfo {
+  # When paginating forwards, are there more items?
+  hasNextPage: Boolean!
+
+  # When paginating backwards, are there more items?
+  hasPreviousPage: Boolean!
+
+  # When paginating backwards, the cursor to continue.
+  startCursor: String
+
+  # When paginating forwards, the cursor to continue.
+  endCursor: String
+}
+
+type QueryRoot {
+  # Fetches an object given its ID
+  node(
+    # The ID of an object
+    id: ID!
+  ): Node
+  viewer: Viewer
+  siteById(id: String!): Site
+  siteGroupById(id: String!): SiteGroup
+  siteGroupByName(name: String!): SiteGroup
+  clientById(id: String!): Client
+}
+
+type Site implements Node {
+  # The ID of an object
+  id: ID!
+  siteHost: String
+  siteName: String
+  siteGroup: SiteGroup
+  siteBranch: String
+  siteEnvironment: String
+  serverInfrastructure: String
+  serverIdentifier: String
+  serverNames: [String]
+  webRoot: String
+  drupalVersion: String
+  SSLCertificateType: String
+  FPMProfile: String
+  domains: [String]
+  redirectDomains: [String]
+  redirects: Json
+  uid: Int
+  dbPassword: String
+  dbUser: String
+  cron: Cron
+  customCron: Json
+  envVariables: Json
+  noPrefixenvVariables: Json
+  phpValues: Json
+  phpAdminValues: Json
+  phpFlags: Json
+  phpAdminFlags: Json
+  xdebug: String
+  nginxSitespecific: Boolean
+  nginxSiteconfig: String
+  solrEnabled: Boolean
+  redisEnabled: Boolean
+  sshKeys: Json
+  phpVersion: String
+  redirectToHttps: String
+  ensure: Json
+  upstreamURL: String
+  deployVia: String
+  apc: String
+  basicAuth: BasicAuth
+  fullJson: Json
+}
+
+type SiteGroup implements Node {
+  # The ID of an object
+  id: ID!
+  siteGroupName: String
+  client: Client
+  fullJson: Json
+  gitUrl: String
+  sites(after: String, first: Int, before: String, last: Int): SitesConnection
+}
+
+# A connection to a list of items.
+type SiteGroupsConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [SiteGroupsEdge]
+}
+
+# An edge in a connection.
+type SiteGroupsEdge {
+  # The item at the end of the edge
+  node: SiteGroup
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
+# A connection to a list of items.
+type SitesConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [SitesEdge]
+}
+
+# An edge in a connection.
+type SitesEdge {
+  # The item at the end of the edge
+  node: Site
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
+input UpdateSiteGroupInput {
+  siteGroupName: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type UpdateSiteGroupPayload {
+  siteGroup: SiteGroup
+  clientMutationId: String!
+}
+
+input UpdateSiteInput {
+  siteName: String!
+  siteHost: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type UpdateSitePayload {
+  site: Site
+  clientMutationId: String!
+}
+
+type Viewer {
+  allSites(after: String, first: Int, before: String, last: Int, environmentType: String): SitesConnection
+  allSiteGroups(after: String, first: Int, before: String, last: Int): SiteGroupsConnection
+  allClients(after: String, first: Int, before: String, last: Int): ClientsConnection
+}

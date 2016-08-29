@@ -1,0 +1,184 @@
+schema {
+  query: QueryRoot
+  mutation: MutationRoot
+}
+
+type BasicAuth {
+  username: String
+  password: String
+}
+
+type Client implements Node {
+  id: ID!
+  clientName: String
+  fullJson: Json
+}
+
+type ClientsConnection {
+  pageInfo: PageInfo!
+  edges: [ClientsEdge]
+}
+
+type ClientsEdge {
+  node: Client
+  cursor: String!
+}
+
+input CreateSiteGroupInput {
+  siteGroupName: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type CreateSiteGroupPayload {
+  siteGroup: SiteGroup
+  clientMutationId: String!
+}
+
+input CreateSiteInput {
+  siteName: String!
+  siteHost: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type CreateSitePayload {
+  site: Site
+  clientMutationId: String!
+}
+
+type Cron {
+  type: String
+  minute: String
+}
+
+scalar Json
+
+type MutationRoot {
+  createSite(input: CreateSiteInput!): CreateSitePayload
+  updateSite(input: UpdateSiteInput!): UpdateSitePayload
+  createSiteGroup(input: CreateSiteGroupInput!): CreateSiteGroupPayload
+  updateSiteGroup(input: UpdateSiteGroupInput!): UpdateSiteGroupPayload
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type QueryRoot {
+  node(id: ID!): Node
+  viewer: Viewer
+  siteById(id: String!): Site
+  siteGroupById(id: String!): SiteGroup
+  siteGroupByName(name: String!): SiteGroup
+  clientById(id: String!): Client
+}
+
+type Site implements Node {
+  id: ID!
+  siteHost: String
+  siteName: String
+  siteGroup: SiteGroup
+  siteBranch: String
+  siteEnvironment: String
+  serverInfrastructure: String
+  serverIdentifier: String
+  serverNames: [String]
+  webRoot: String
+  drupalVersion: String
+  SSLCertificateType: String
+  FPMProfile: String
+  domains: [String]
+  redirectDomains: [String]
+  redirects: Json
+  uid: Int
+  dbPassword: String
+  dbUser: String
+  cron: Cron
+  customCron: Json
+  envVariables: Json
+  noPrefixenvVariables: Json
+  phpValues: Json
+  phpAdminValues: Json
+  phpFlags: Json
+  phpAdminFlags: Json
+  xdebug: String
+  nginxSitespecific: Boolean
+  nginxSiteconfig: String
+  solrEnabled: Boolean
+  redisEnabled: Boolean
+  sshKeys: Json
+  phpVersion: String
+  redirectToHttps: String
+  ensure: Json
+  upstreamURL: String
+  deployVia: String
+  apc: String
+  basicAuth: BasicAuth
+  fullJson: Json
+}
+
+type SiteGroup implements Node {
+  id: ID!
+  siteGroupName: String
+  client: Client
+  fullJson: Json
+  gitUrl: String
+  sites(after: String, first: Int, before: String, last: Int): SitesConnection
+}
+
+type SiteGroupsConnection {
+  pageInfo: PageInfo!
+  edges: [SiteGroupsEdge]
+}
+
+type SiteGroupsEdge {
+  node: SiteGroup
+  cursor: String!
+}
+
+type SitesConnection {
+  pageInfo: PageInfo!
+  edges: [SitesEdge]
+}
+
+type SitesEdge {
+  node: Site
+  cursor: String!
+}
+
+input UpdateSiteGroupInput {
+  siteGroupName: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type UpdateSiteGroupPayload {
+  siteGroup: SiteGroup
+  clientMutationId: String!
+}
+
+input UpdateSiteInput {
+  siteName: String!
+  siteHost: String!
+  fullJson: Json!
+  clientMutationId: String!
+}
+
+type UpdateSitePayload {
+  site: Site
+  clientMutationId: String!
+}
+
+type Viewer {
+  allSites(after: String, first: Int, before: String, last: Int, environmentType: String): SitesConnection
+  allSiteGroups(after: String, first: Int, before: String, last: Int): SiteGroupsConnection
+  allClients(after: String, first: Int, before: String, last: Int): ClientsConnection
+}
