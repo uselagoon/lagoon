@@ -19,9 +19,9 @@ fetch(`${SERVER}`, {
   method: 'POST',
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify({'query': introspectionQuery}),
+  body: JSON.stringify({ query: introspectionQuery }),
 }).then(res => res.json()).then(schemaJSON => {
   fs.writeFileSync(
     `${schemaPath}.json`,

@@ -61,6 +61,7 @@ export async function runCLI(cwd: string) {
     }, yargs)
     .demand(1)
     .strict()
+    .help()
     .argv;
   }
   catch (err) {

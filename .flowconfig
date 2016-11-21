@@ -8,3 +8,6 @@ flow-typed
 
 [options]
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
+
+# Used by js-csp
+suppress_comment=\\(.\\|\n\\)*\\flow-ignore

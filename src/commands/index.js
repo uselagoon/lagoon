@@ -12,11 +12,11 @@ export type CommandModule = {
   name: string,
   description: string,
   setup?: (yargs: Object) => Object,
-  run: (argv: BaseArgs) => Promise<number>,
+  run: (argv: Object) => Promise<number>,
 };
 
-import status from './status';
+import list from './list';
 
-export { status };
+export { list };
 
-export default ([status]: Array<CommandModule>);
+export default ([list]: Array<CommandModule>);

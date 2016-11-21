@@ -1,0 +1,20 @@
+exports[`list should list all sites of given sitegroup 1`] = `
+"query myQuery($sitegroup: String!) {
+    siteGroupByName(name: $sitegroup) {
+      gitUrl
+      sites(first: 1000) {
+        edges {
+          node {
+            siteName
+            siteBranch
+            siteEnvironment
+            siteHost
+            serverInfrastructure
+            serverIdentifier
+            serverNames
+          }
+        }
+      }
+    }
+  }"
+`;

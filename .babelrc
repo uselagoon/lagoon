@@ -1,6 +1,5 @@
 {
   "plugins": [
-    "./build/babelRelayPlugin",
     "transform-flow-strip-types",
     "transform-regenerator",
     "syntax-async-functions",
