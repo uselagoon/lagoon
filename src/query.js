@@ -1,10 +1,13 @@
 // @flow
 
 import url from 'url';
-import { request } from 'https';
+import request from './request';
+import { fail } from './util/csp';
 import { chan, putAsync } from 'js-csp';
 
-type Args = {
+import typeof { Channel } from 'js-csp/es/impl/channels';
+
+type QLQueryArgs = {
   endpoint: string,
   query: string,
   variables?: Object,
@@ -12,9 +15,7 @@ type Args = {
   pretty?: boolean,
 };
 
-type Channel = any;
-
-export default function runGQLQuery(args: Args): Channel {
+export function runGQLQuery(args: QLQueryArgs): Channel {
   const {
     endpoint,
     query,
@@ -26,13 +27,20 @@ export default function runGQLQuery(args: Args): Channel {
     pretty = false,
   } = args;
 
-  const ch = chan();
-  const { hostname, path, port } = url.parse(endpoint);
+  const {
+    hostname,
+    path,
+    port,
+  } = url.parse(endpoint);
+
+  if (hostname == null) {
+    return fail('Hostname required');
+  }
 
   const options = {
     hostname,
     path,
-    port,
+    port: port || 443,
     method: 'POST',
     headers,
     rejectUnauthorized: false,
@@ -43,26 +51,7 @@ export default function runGQLQuery(args: Args): Channel {
     variables,
   }, null, (pretty ? 2 : 0));
 
-  const req = request(options, (res) => {
-    res.setEncoding('utf8');
-
-    let rawData = '';
-    res.on('data', chunk => { rawData += chunk; });
-    res.on('end', () => {
-      try {
-        let parsed = JSON.parse(rawData);
-        putAsync(ch, parsed);
-      }
-      catch (e) {
-        putAsync(ch, e);
-      }
-    });
-  });
-
-  req.write(postData);
-  req.end();
-
-  req.on('error', e => putAsync(ch, e));
-
-  return ch;
+  return request(options);
 }
+
+export default runGQLQuery;

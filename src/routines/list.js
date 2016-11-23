@@ -1,8 +1,9 @@
-// @flow
+// @noflow 
 
 import { take, put, go, chan, takeAsync, spawn } from 'js-csp'; // eslint-disable-line
 import { contains } from 'ramda';
 import gql from '../gql';
+
 
 import {
   stdoutEffect,
@@ -25,16 +26,6 @@ type ListSitesArgs = {
 export function* listSites(args: ListSitesArgs): Generator<*, *, *> {
 }
 
-function* end(input: Channel, out: Channel, code: number): Object {
-  yield put(input, stateEffect(code));
-  const state = yield take(out);
-
-  input.close();
-  out.close();
-
-  return state;
-}
-
 type CliRoutineArgs = EffectHandlerArgs & {
   routine: Generator<*, *, *>,
 };
@@ -49,6 +40,7 @@ export function* runRoutine(args: CliRoutineArgs) {
 type ListArgs = {
   input: Channel,
   out: Channel,
+  chan: Channel,
   sitegroup: string,
   target: 'sites',
 };
@@ -67,9 +59,19 @@ export default function* list(args: ListArgs): Generator<*, *, *> {
   const gqlQuery = connectPut(input, gqlEffect);
   const getState = connectPut(input, stateEffect);
 
+  const end = (code) => go(function* (){
+    yield put(input, stateEffect(code));
+    const state = yield take(out);
+
+    input.close();
+    out.close();
+
+    return state;
+  });
+
   if (!contains(target, ['sites'])) {
     yield logErr(`Unknown target '${target}'`);
-    return yield take(go(end, [input, out, 1]));
+    return end(1);
   }
 
   const query = gql`query myQuery($sitegroup: String!) {
@@ -97,11 +99,10 @@ export default function* list(args: ListArgs): Generator<*, *, *> {
   yield log(result);
 
   yield getState(0);
-  const { code, stack } = yield take(out);
+  const { code } = yield take(out);
 
   yield log(`State code: ${code}`);
   yield log(stack);
 
-  input.close();
-  return code;
+  return end(0);
 }

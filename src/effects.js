@@ -2,7 +2,7 @@
 
 /* eslint-disable no-console */
 
-import { put, putAsync, take, CLOSED } from 'js-csp';
+import { chan, go, put, putAsync, take, CLOSED } from 'js-csp';
 import { type, compose } from 'ramda';
 import runGQLQuery from './query';
 
@@ -30,8 +30,16 @@ type StateEffect = {
   code: number,
 };
 
+type CallFn = () => Channel | Generator<*, Channel, *>;
+type CallEffect = {
+  type: 'call',
+  fn: CallFn,
+  args?: any[], 
+};
+
 type Effect =
   StdoutEffect
+  | CallEffect
   | StderrEffect
   | GQLEffect
   | StateEffect;
@@ -50,6 +58,12 @@ export const gqlEffect = (query: string, variables: Object): GQLEffect => ({
   type: 'gql',
   query,
   variables,
+});
+
+export const callEffect = (fn: CallFn, ...args: any[]): CallEffect => ({
+  type: 'call',
+  fn,
+  args,
 });
 
 export const stateEffect = (code: number = 0): StateEffect => ({
@@ -75,32 +89,16 @@ const logToConsole = (target: 'log' | 'error', data: mixed): void => {
 export type EffectHandlerArgs = {
   input: Channel,
   out: Channel,
-  runGQLQueryFn?: typeof runGQLQuery,
 };
 
 export function* effectHandler(args: EffectHandlerArgs): Generator<*, *, Effect> {
   const {
     input,
     out,
-    runGQLQueryFn = runGQLQuery,
   } = args;
 
-  const log = (data) => putAsync(input, stdoutEffect(data));
-
-  const loggedGQLQuery = compose(
-    runGQLQueryFn,
-    (args) => {
-      log('Running GQL query with following args:');
-      log(args);
-      return args;
-    },
-  );
-
   let effect;
-  const stack = [];
   while ((effect = yield take(input)) !== CLOSED) {
-    stack.push(effect);
-
     switch (effect.type) {
       case 'stdout': {
         const { data } = effect;
@@ -112,28 +110,19 @@ export function* effectHandler(args: EffectHandlerArgs): Generator<*, *, Effect>
         logToConsole('error', data);
         break;
       }
-      case 'gql': {
-        log('GraphQL Effect');
-        const { query, variables } = effect;
+      case 'call': {
+        const { fn, args = [] } = effect;
 
-        const result = yield loggedGQLQuery({
-          endpoint: 'https://amazeeio-api-staging.herokuapp.com/graphql',
-          query,
-          variables,
-          pretty: true,
-        });
-
+        const result = yield fn(...args);
         yield put(out, result);
 
         break;
       }
       case 'state': {
         const { code } = effect;
-        yield put(out, {
-          stack,
-          code,
-        });
+        yield put(out, { code });
       }
     }
   }
 }
+

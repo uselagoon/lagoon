@@ -3,6 +3,7 @@
 import { take, put, go, chan, takeAsync } from 'js-csp';
 import { contains } from 'ramda';
 import gql from '../gql';
+import { resolveChannel } from '../util/csp';
 import {
   effectHandler,
   stdoutEffect,
@@ -35,26 +36,22 @@ export async function setup(yargs: Yargs) {
 }
 
 
-function resolveChannel(channel: Channel): Promise<number> {
-  return new Promise((res, rej) => {
-    takeAsync(channel, (val) => res(val));
-  });
-}
-
 type Args = BaseArgs & {
   sitegroup: ?string,
   target: string,
 };
 
 export async function run(args: Args): Promise<number> {
-  const mainArgs = {
-    sitegroup: args.sitegroup || args.config.sitegroup,
-    target: args.target,
-  };
+  const sitegroup = args.sitegroup || args.config.sitegroup;
+  const target = args.target;
 
-  const end = go(main, [mainArgs]);
+  if (!contains(target, ['sites'])) {
+    console.error(`Unknown target ${target}`);
+    return 1;
+  }
 
-  return resolveChannel(end);
+
+  return 0;
 }
 
 type MainArgs = {
@@ -62,6 +59,7 @@ type MainArgs = {
   target: string,
 };
 
+// TODO: Compare to async / await
 export function* main(args: MainArgs): Generator<*, *, *> {
   const input = chan();
   const out = chan();
