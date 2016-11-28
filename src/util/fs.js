@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 
-export async function readFile(filename: string, encOrOpts?: string | Object): Promise<string|Buffer> {
+export async function readFile(filename: string, encOrOpts?: string | Object): Promise<string | Buffer> {
   return new Promise((resolve, reject) => {
     fs.readFile(filename, encOrOpts || {}, (err, data) => {
       if (err) {

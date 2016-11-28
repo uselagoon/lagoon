@@ -3,13 +3,12 @@
 import request from '../request';
 import { Readable } from 'stream';
 import { request as httpsReq } from 'https';
-import { resolveChannel } from '../util/csp';
 
 jest.mock('https');
 
 // https.request works with low level streams, this helper will
 // mock a response stream
-const resStream = (content: string|Object): stream$Readable => {
+const resStream = (content: string | Object): stream$Readable => {
   const res = new Readable();
   let parsed = content;
 
@@ -20,7 +19,7 @@ const resStream = (content: string|Object): stream$Readable => {
   res.push(parsed);
   res.push(null);
   return res;
-}
+};
 
 // Same for request streams
 const reqStream = () => ({
@@ -30,7 +29,7 @@ const reqStream = () => ({
 });
 
 describe('request', () => {
-  it('should do POST request with body', () => {
+  it('should do POST request with body', async () => {
     // We want to check some write() calls on that
     const req = reqStream();
 
@@ -38,11 +37,11 @@ describe('request', () => {
       const res = resStream({ data: 'test' });
       cb(res);
 
-      // returns our mocked req object 
+      // returns our mocked req object
       return req;
     });
 
-    const ch = request({
+    const result = await request({
       hostname: '',
       path: '',
       method: 'POST',
@@ -50,14 +49,10 @@ describe('request', () => {
       body: 'some body',
     });
 
-    return resolveChannel(ch)
-      .then(value => {
-        expect(value).toEqual({ data: 'test' });
-        expect(req.write.mock.calls[0][0]).toEqual('some body')
-      });
+    expect(result).toEqual({ data: 'test' });
   });
 
-  it('should do GET request without body', () => {
+  it('should do GET request without body', async () => {
     // We want to check some write() calls on that
     const req = reqStream();
 
@@ -65,21 +60,18 @@ describe('request', () => {
       const res = resStream({ data: 'test' });
       cb(res);
 
-      // returns our mocked req object 
+      // returns our mocked req object
       return req;
     });
 
-    const ch = request({
+    const result = await request({
       hostname: '',
       path: '',
       method: 'GET',
       headers: { some: 'header' },
     });
 
-    return resolveChannel(ch)
-      .then(value => {
-        expect(value).toEqual({ data: 'test' });
-        expect(req.write.mock.calls).toEqual([]);
-      });
+    expect(result).toEqual({ data: 'test' });
+    expect(req.write.mock.calls).toEqual([]);
   });
 });

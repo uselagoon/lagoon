@@ -1,24 +1,22 @@
 // @flow
 
 import https from 'https';
-import { chan, putAsync } from 'js-csp';
-
-import typeof { Channel } from 'js-csp/es/impl/channels';
+import defer from './defer';
 
 export type RequestOptions = {
   hostname: string,
   path?: string,
-  port?: number|string,
+  port?: number | string,
   method: 'POST' | 'GET',
   headers?: Object,
   rejectUnauthorized?: boolean,
   body?: string,
 };
 
-export default function request(options: RequestOptions): Channel {
+export default function request(options: RequestOptions): Promise<Object> {
   const { body } = options;
 
-  const ch = chan();
+  const def = defer();
 
   const req = https.request(options, (res) => {
     res.setEncoding('utf8');
@@ -28,10 +26,10 @@ export default function request(options: RequestOptions): Channel {
     res.on('end', () => {
       try {
         let parsed = JSON.parse(rawData);
-        putAsync(ch, parsed);
+        def.resolve(parsed);
       }
       catch (e) {
-        putAsync(ch, e);
+        def.reject(e);
       }
     });
   });
@@ -42,7 +40,7 @@ export default function request(options: RequestOptions): Channel {
 
   req.end();
 
-  req.on('error', e => putAsync(ch, e));
+  req.on('error', e => def.reject(e));
 
-  return ch;
+  return def.promise;
 }

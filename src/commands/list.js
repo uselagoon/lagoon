@@ -1,19 +1,13 @@
 // @flow
 
-import { take, put, go, chan, takeAsync } from 'js-csp';
-import { contains } from 'ramda';
-import gql from '../gql';
-import { resolveChannel } from '../util/csp';
-import {
-  effectHandler,
-  stdoutEffect,
-  stderrEffect,
-  gqlEffect,
-  stateEffect,
-  connectPut,
-} from '../effects';
+/* eslint-disable no-console */
 
-import typeof { Channel } from 'js-csp/es/impl/channels';
+import { red } from 'chalk';
+import { pathOr, prop, forEach, map, compose } from 'ramda';
+
+import gql from '../gql';
+import { runGQLQuery } from '../query';
+
 import typeof { default as Yargs } from 'yargs';
 import type { BaseArgs } from './index';
 
@@ -35,86 +29,82 @@ export async function setup(yargs: Yargs) {
     .argv;
 }
 
+function errorWithMessage(message: string, code?: number = 1): number {
+  console.log(message);
+  return code;
+}
+
+type Target = 'sites';
 
 type Args = BaseArgs & {
   sitegroup: ?string,
-  target: string,
+  target: Target,
 };
 
 export async function run(args: Args): Promise<number> {
+  const [target] = args._.slice(1);
   const sitegroup = args.sitegroup || args.config.sitegroup;
-  const target = args.target;
 
-  if (!contains(target, ['sites'])) {
-    console.error(`Unknown target ${target}`);
-    return 1;
+  switch (target) {
+    case 'sites': return listSites({ sitegroup });
+    default: return errorWithMessage(`Unknown target ${target}`, 1);
   }
-
-
-  return 0;
 }
 
 type MainArgs = {
   sitegroup: string,
-  target: string,
+  clog?: typeof console.log,
 };
 
-// TODO: Compare to async / await
-export function* main(args: MainArgs): Generator<*, *, *> {
-  const input = chan();
-  const out = chan();
-
-  // Runs the effect-handler as long as input is open
-  go(effectHandler, [input, out]);
-
-  const log = connectPut(input, stdoutEffect);
-  const logErr = connectPut(input, stderrEffect);
-  const gqlQuery = connectPut(input, gqlEffect);
-  const getState = connectPut(input, stateEffect);
-
+export async function listSites(args: MainArgs): Promise<number> {
   const {
     sitegroup,
-    target,
+    clog = console.log,
   } = args;
 
-  if (!contains(target, ['sites'])) {
-    yield logErr(`Unknown target ${target}`);
-    input.close();
-    return 1;
-  }
-
-  const query = gql`query myQuery($sitegroup: String!) {
+  const query = gql`query querySites($sitegroup: String!) {
     siteGroupByName(name: $sitegroup) {
       gitUrl
       sites(first: 1000) {
         edges {
           node {
             siteName
-            siteBranch
-            siteEnvironment
-            siteHost
-            serverInfrastructure
-            serverIdentifier
-            serverNames
           }
         }
       }
     }
   }`;
 
-  yield gqlQuery(query, { sitegroup });
-  const result = yield take(out);
+  const result = await runGQLQuery({
+    endpoint: 'https://amazeeio-api-staging.herokuapp.com/graphql',
+    query,
+    variables: { sitegroup },
+  });
 
-  yield log(result);
+  if (result.errors != null) {
+    clog(red('Oops! Server sent us some errors:'));
+    forEach(({ message }) => clog(`-> ${message}`), result.errors);
+    return 1;
+  }
 
-  yield getState(0);
-  const { code, stack } = yield take(out);
+  const nodes =
+    compose(
+      map((edge) => prop('node', edge)),
+      pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
+    )(result);
 
-  yield log(`State code: ${code}`);
-  yield log(stack);
+  if (nodes.length === 0) {
+    clog(red(`No sites found for sitegroup '${sitegroup}'`));
+    return 0;
+  }
 
-  input.close();
-  return code;
+  clog(`I found following sites for sitegroup '${sitegroup}'`);
+
+  forEach((node) => {
+    clog(`|- ${node.siteName}`);
+  }, nodes);
+
+  return 0;
 }
 
 export default {
