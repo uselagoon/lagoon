@@ -4,6 +4,7 @@
 
 import { red } from 'chalk';
 import { pathOr, prop, forEach, map, compose } from 'ramda';
+import { exitNoConfig, exitError } from '../exit';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -14,24 +15,20 @@ import type { BaseArgs } from './index';
 const name = 'list';
 const description = 'Lists specific deployment information';
 
-export async function setup(yargs: Yargs) {
+export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
     .usage(`$0 ${name} [target] - ${description}`)
     .options({
       sitegroup: {
-        alias: 's',
         demand: false,
         describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        type: 'string',
       },
     })
+    .alias('s', 'sitegroup')
     .example(`$0 ${name} sites`, 'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file')
     .example(`$0 ${name} sites -s mysitegroup`, 'Lists all sites for a specific sitegroup (instead of using the config file)')
     .argv;
-}
-
-function errorWithMessage(message: string, code?: number = 1): number {
-  console.log(message);
-  return code;
 }
 
 type Target = 'sites';
@@ -42,12 +39,18 @@ type Args = BaseArgs & {
 };
 
 export async function run(args: Args): Promise<number> {
+  const { config, clog } = args;
+
+  if (config == null) {
+    return exitNoConfig(clog);
+  }
+
   const [target] = args._.slice(1);
-  const sitegroup = args.sitegroup || args.config.sitegroup;
+  const sitegroup = args.sitegroup || config.sitegroup;
 
   switch (target) {
     case 'sites': return listSites({ sitegroup });
-    default: return errorWithMessage(`Unknown target ${target}`, 1);
+    default: return exitError(clog, `Unknown target ${target} ... possible values: 'sites'`, 1);
   }
 }
 
@@ -108,6 +111,7 @@ export async function listSites(args: MainArgs): Promise<number> {
 }
 
 export default {
+  setup,
   name,
   description,
   run,

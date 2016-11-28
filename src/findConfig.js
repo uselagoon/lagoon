@@ -1,25 +1,10 @@
 // @flow
 
 import path from 'path';
-import { lstat } from './util/fs';
+import { doesFileExist } from './util/fs';
 import co from 'co';
 
 /* eslint-disable no-constant-condition */
-
-async function doesFileExist(file: string): Promise<boolean> {
-  try {
-    const stats = await lstat(file);
-
-    if (stats.isFile()) {
-      return true;
-    }
-
-    return false;
-  }
-  catch (err) {
-    return false;
-  }
-}
 
 function* walker(dir: string, filename: string, root: string): Generator<*, ?string, *> {
   let next = dir;

@@ -16,11 +16,11 @@ import type { AmazeeConfig } from './parseConfig';
 /**
  * Finds and reads the amazeeio.yml file
  */
-async function readConfig(cwd: string): Promise<AmazeeConfig> {
+async function readConfig(cwd: string): Promise<?AmazeeConfig> {
   const configPath = await findConfig('.amazeeio.yml', cwd);
 
   if (configPath == null) {
-    throw '.amazeeio.yml file not found';
+    return null;
   }
 
   const yamlContent = await readFile(configPath, 'utf8');
@@ -50,10 +50,12 @@ export async function runCLI(cwd: string) {
 
     // Chain together all the subcommands
     commands.reduce((cmdYargs, cmd) => { // eslint-disable-line no-unused-expressions
-      const { name, description } = cmd;
-      const runFn = (argv) => cmd.run({ ...argv, config })
-        .catch(errorQuit)
-        .then((code) => process.exit(code));
+      const { name, description, run } = cmd;
+      const clog = console.log;
+
+      const runFn = (args) => {
+        return run({ ...args, cwd, config, clog }).catch(errorQuit).then((code) => process.exit(code));
+      };
 
       const setupFn = (typeof cmd.setup === 'function' ? cmd.setup : (yargs) => yargs);
 

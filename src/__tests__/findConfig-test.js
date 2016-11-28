@@ -4,32 +4,25 @@
 
 import path from 'path';
 import findConfig from '../findConfig';
+import { doesFileExist } from '../util/fs';
 
-jest.mock('../util/fs', () => {
-  let _configPath: ?string;
+jest.mock('../util/fs');
 
-  return ({
-    lstat: (file) => {
-      const found = (_configPath != null && file === _configPath);
-      return Promise.resolve({ isFile: () => found });
-    },
-    _setup(configPath: string) {
-      _configPath = configPath;
-    },
-    _reset() { _configPath = null; },
-  });
-});
+const doesFileExistMock = (configPath: ?string) => {
+  return (file: string) => {
+    const found = (configPath != null && file === configPath);
+    return Promise.resolve(found);
+  };
+};
 
-// We take the risk of calling _setup / _reset without flowtype support
-const fs: any = require('../util/fs');
+function _mock(fn: any): JestMockFn {
+  return fn;
+}
 
 describe('findConfig', () => {
-  beforeEach(() => {
-    fs._reset();
-  });
-
   it('should find config several levels above cwd', async () => {
-    fs._setup('/some/project/amazeeio.yml');
+    _mock(doesFileExist).mockImplementation(doesFileExistMock('/some/project/amazeeio.yml'));
+
     const cwd = path.resolve('/some/project/level1/level2/level3');
     const result = await findConfig('amazeeio.yml', cwd);
 
@@ -37,7 +30,7 @@ describe('findConfig', () => {
   });
 
   it('should start at root, check and return null', async () => {
-    fs._setup('/some/project/amazeeio.yml');
+    _mock(doesFileExist).mockImplementation(doesFileExistMock('/some/project/amazeeio.yml'));
     const cwd = path.resolve('/');
     const result = await findConfig('amazeeio.yml', cwd);
 
@@ -45,7 +38,7 @@ describe('findConfig', () => {
   });
 
   it('should step through subfolders until root and return null', async () => {
-    fs._setup('/some/sub/project/amazeeio.yml');
+    _mock(doesFileExist).mockImplementation(doesFileExistMock('/some/sub/project/amazeeio.yml'));
     const cwd = path.resolve('/some/sub');
     const result = await findConfig('amazeeio.yml', cwd);
 
