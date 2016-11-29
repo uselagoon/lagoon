@@ -1,12 +1,14 @@
 {
   "name": "@amazeeio/amazee-io-cli",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "AmazeeIO Commandline Tool",
   "main": "./dist/cli.js",
   "bin": {
     "io": "./dist/cli.js"
   },
-  "files": [ "dist" ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "prepublish": "npm run dist",
     "preversion": "npm test",
@@ -72,6 +74,8 @@
       "git add"
     ]
   },
-  "pre-commit": [ "flow", "lint-staged" ]
-
+  "pre-commit": [
+    "flow",
+    "lint-staged"
+  ]
 }
