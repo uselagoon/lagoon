@@ -1,6 +1,6 @@
 {
   "name": "@amazeeio/amazee-io-cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "AmazeeIO Commandline Tool",
   "main": "./dist/cli.js",
   "bin": {
