@@ -6,6 +6,7 @@
   "bin": {
     "io": "./dist/cli.js"
   },
+  "files": [ "dist" ],
   "scripts": {
     "prepublish": "npm run dist",
     "preversion": "npm test",
