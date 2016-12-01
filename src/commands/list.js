@@ -3,7 +3,20 @@
 /* eslint-disable no-console */
 
 import { red } from 'chalk';
-import { pathOr, prop, forEach, map, compose } from 'ramda';
+import {
+  init,
+  last,
+  tail,
+  keys,
+  pathOr,
+  prop,
+  forEach,
+  map,
+  compose,
+  sortBy,
+  groupBy,
+  toLower,
+} from 'ramda';
 import { exitNoConfig, exitError } from '../exit';
 
 import gql from '../gql';
@@ -72,6 +85,8 @@ export async function listSites(args: MainArgs): Promise<number> {
         edges {
           node {
             siteName
+            siteBranch
+            siteEnvironment
           }
         }
       }
@@ -90,22 +105,38 @@ export async function listSites(args: MainArgs): Promise<number> {
     return 1;
   }
 
-  const nodes =
+  const sortBySite = sortBy(compose(toLower, prop('siteName')));
+
+  const nodesBySite =
     compose(
+      groupBy((node) => node.siteName),
+      sortBySite,
       map((edge) => prop('node', edge)),
       pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
     )(result);
 
-  if (nodes.length === 0) {
+  const sites = keys(nodesBySite);
+
+  if (sites.length === 0) {
     clog(red(`No sites found for sitegroup '${sitegroup}'`));
     return 0;
   }
 
-  clog(`I found following sites for sitegroup '${sitegroup}'`);
+  clog(`I found following sites for sitegroup '${sitegroup}':`);
 
-  forEach((node) => {
-    clog(`|- ${node.siteName}`);
-  }, nodes);
+  const renderSiteGroup = (site, sep: string) => {
+    const nodes = nodesBySite[site];
+    clog(`${sep} ${site}`);
+
+    const inProdMarker = (node) => node.siteEnvironment === 'production' ? '*' : '';
+    const renderSite = (node, sep) => clog(`|   ${sep} ${node.siteBranch}${inProdMarker(node)}`);
+
+    forEach((node) => renderSite(node, '├──'), init(nodes));
+    forEach((node) => renderSite(node, '└──'), tail(nodes));
+  };
+
+  forEach((site) => renderSiteGroup(site, '├─'), init(sites));
+  forEach((site) => renderSiteGroup(site, '└─'), [last(sites)]);
 
   return 0;
 }

@@ -13,10 +13,25 @@ const mockResponse = {
       sites: {
         edges: [
           {
-            node: { siteName: 'site1' },
+            node: {
+              siteName: 'site1',
+              siteBranch: 'dev',
+              siteEnvironment: 'development',
+            },
           },
           {
-            node: { siteName: 'site2' },
+            node: {
+              siteName: 'site2',
+              siteBranch: 'dev',
+              siteEnvironment: 'development',
+            },
+          },
+          {
+            node: {
+              siteName: 'site1',
+              siteBranch: 'prod',
+              siteEnvironment: 'production',
+            },
           },
         ],
       },
