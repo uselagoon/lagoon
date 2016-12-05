@@ -2,19 +2,16 @@
 
 /* eslint-disable no-console */
 
+import { table } from 'table';
 import { red } from 'chalk';
 import {
-  init,
-  last,
-  tail,
-  keys,
+  prepend,
   pathOr,
   prop,
   forEach,
   map,
   compose,
   sortBy,
-  groupBy,
   toLower,
 } from 'ramda';
 import { exitNoConfig, exitError } from '../exit';
@@ -107,36 +104,45 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const sortBySite = sortBy(compose(toLower, prop('siteName')));
 
-  const nodesBySite =
+  const nodes =
     compose(
-      groupBy((node) => node.siteName),
       sortBySite,
       map((edge) => prop('node', edge)),
       pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
     )(result);
 
-  const sites = keys(nodesBySite);
-
-  if (sites.length === 0) {
+  if (nodes.length === 0) {
     clog(red(`No sites found for sitegroup '${sitegroup}'`));
     return 0;
   }
 
   clog(`I found following sites for sitegroup '${sitegroup}':`);
 
-  const renderSiteGroup = (site, sep: string) => {
-    const nodes = nodesBySite[site];
-    clog(`${sep} ${site}`);
-
-    const inProdMarker = (node) => node.siteEnvironment === 'production' ? '*' : '';
-    const renderSite = (node, sep) => clog(`|   ${sep} ${node.siteBranch}${inProdMarker(node)}`);
-
-    forEach((node) => renderSite(node, '├──'), init(nodes));
-    forEach((node) => renderSite(node, '└──'), tail(nodes));
+  const tableConfig = {
+    columns: {
+      '0': { // eslint-disable-line quote-props
+        alignment: 'left',
+        minWidth: 15,
+      },
+      '1': { // eslint-disable-line quote-props
+        alignment: 'left',
+        minWidth: 15,
+      },
+      '2': { // eslint-disable-line quote-props
+        alignment: 'center',
+        minWidth: 15,
+      },
+    },
   };
 
-  forEach((site) => renderSiteGroup(site, '├─'), init(sites));
-  forEach((site) => renderSiteGroup(site, '└─'), [last(sites)]);
+  const tableBody = map((node) => {
+    const inProdMarker = node.siteEnvironment === 'production' ? '\u221A' : '';
+    return [node.siteName, node.siteBranch, inProdMarker];
+  }, nodes);
+
+  const tableData = prepend(['Site', 'Branch', 'Deployed?'], tableBody);
+
+  clog(table(tableData, tableConfig));
 
   return 0;
 }

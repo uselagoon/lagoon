@@ -4,16 +4,16 @@ Array [
     "I found following sites for sitegroup \'some_sitegroup\':",
   ],
   Array [
-    "├─ site1",
-  ],
-  Array [
-    "|   ├── dev",
-  ],
-  Array [
-    "|   └── prod*",
-  ],
-  Array [
-    "└─ site2",
+    "╔═══════╤════════╤═══════════╗
+║ Site  │ Branch │ Deployed? ║
+╟───────┼────────┼───────────╢
+║ site1 │ dev    │           ║
+╟───────┼────────┼───────────╢
+║ site1 │ prod   │     √     ║
+╟───────┼────────┼───────────╢
+║ site2 │ dev    │           ║
+╚═══════╧════════╧═══════════╝
+",
   ],
 ]
 `;
@@ -32,7 +32,7 @@ Array [
 exports[`listSites should show message for non-existing sites 1`] = `
 Array [
   Array [
-    "[31mNo sites found for sitegroup 'some_sitegroup'[39m",
+    "[31mNo sites found for sitegroup \'some_sitegroup\'[39m",
   ],
 ]
 `;
