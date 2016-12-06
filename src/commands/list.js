@@ -14,10 +14,10 @@ import {
   sortBy,
   toLower,
 } from 'ramda';
-import { exitNoConfig, exitError } from '../exit';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
+import { exitNoConfig, exitError } from '../exit';
 
 import typeof { default as Yargs } from 'yargs';
 import type { BaseArgs } from './index';
@@ -49,7 +49,10 @@ type Args = BaseArgs & {
 };
 
 export async function run(args: Args): Promise<number> {
-  const { config, clog } = args;
+  const {
+    config,
+    clog = console.log,
+  } = args;
 
   if (config == null) {
     return exitNoConfig(clog);

@@ -19,8 +19,9 @@ export type CommandModule = {
 };
 
 import list from './list';
+import info from './info';
 import init from './init';
 
-export { list, init };
+export { list, init, info };
 
-export default ([list, init]: Array<CommandModule>);
+export default ([list, init, info]: Array<CommandModule>);
