@@ -76,8 +76,7 @@ describe('listSites', () => {
     const clog = jest.fn();
 
     const code = await listSites({
-      sitegroup: 'some_sitegroup',
-      clog,
+      sitegroup: 'some_sitegroup', clog,
     });
 
     expect(code).toBe(0);
