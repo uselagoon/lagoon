@@ -78,6 +78,7 @@ type QueryRoot {
   siteById(id: String!): Site
   siteGroupById(id: String!): SiteGroup
   siteGroupByName(name: String!): SiteGroup
+  siteGroupByGitUrl(giturl: String!): SiteGroup
   clientById(id: String!): Client
 }
 
@@ -119,8 +120,9 @@ type Site implements Node {
   redirectToHttps: String
   ensure: Json
   upstreamURL: String
-  deployVia: String
+  deployStrategy: String
   apc: String
+  jumpHost: String
   basicAuth: BasicAuth
   fullJson: Json
 }
@@ -130,8 +132,9 @@ type SiteGroup implements Node {
   siteGroupName: String
   client: Client
   fullJson: Json
+  slack: Json
   gitUrl: String
-  sites(after: String, first: Int, before: String, last: Int): SitesConnection
+  sites(after: String, first: Int, before: String, last: Int, branch: String): SitesConnection
 }
 
 type SiteGroupsConnection {
