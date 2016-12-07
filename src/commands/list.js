@@ -8,7 +8,6 @@ import {
   prepend,
   pathOr,
   prop,
-  forEach,
   map,
   compose,
   sortBy,
@@ -17,7 +16,7 @@ import {
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { exitNoConfig, exitError } from '../exit';
+import { exitNoConfig, exitError, exitGraphQLError } from '../exit';
 
 import typeof { default as Yargs } from 'yargs';
 import type { BaseArgs } from './index';
@@ -99,10 +98,9 @@ export async function listSites(args: MainArgs): Promise<number> {
     variables: { sitegroup },
   });
 
-  if (result.errors != null) {
-    clog(red('Oops! Server sent us some errors:'));
-    forEach(({ message }) => clog(`-> ${message}`), result.errors);
-    return 1;
+  const { errors } = result;
+  if (errors != null) {
+    return exitGraphQLError(clog, errors);
   }
 
   const sortBySite = sortBy(compose(toLower, prop('siteName')));

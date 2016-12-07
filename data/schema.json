@@ -135,6 +135,33 @@
               "deprecationReason": null
             },
             {
+              "name": "siteGroupByGitUrl",
+              "description": null,
+              "args": [
+                {
+                  "name": "giturl",
+                  "description": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "OBJECT",
+                "name": "SiteGroup",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "clientById",
               "description": null,
               "args": [
@@ -1045,7 +1072,7 @@
               "deprecationReason": null
             },
             {
-              "name": "deployVia",
+              "name": "deployStrategy",
               "description": null,
               "args": [],
               "type": {
@@ -1058,6 +1085,18 @@
             },
             {
               "name": "apc",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "jumpHost",
               "description": null,
               "args": [],
               "type": {
@@ -1162,6 +1201,18 @@
               "deprecationReason": null
             },
             {
+              "name": "slack",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Json",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "gitUrl",
               "description": null,
               "args": [],
@@ -1213,6 +1264,16 @@
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "branch",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
                     "ofType": null
                   },
                   "defaultValue": null

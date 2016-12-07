@@ -17,13 +17,29 @@ import {
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { exitNoConfig } from '../exit';
+import { exitNoConfig, exitGraphQLError } from '../exit';
 
 import typeof { default as Yargs } from 'yargs';
 import type { BaseArgs } from './index';
 
+const tableConfig = {
+  columns: {
+    '0': { // eslint-disable-line quote-props
+      alignment: 'left',
+      minWidth: 15,
+    },
+    '1': { // eslint-disable-line quote-props
+      alignment: 'left',
+      minWidth: 15,
+    },
+  },
+};
+
+// Common filter
+const onlyValues = ([title, value]: [string, string]) => value != null && value !== '';
+
 const name = 'info';
-const description = 'Shows infos about given site';
+const description = 'Shows infos about sites or sitegroups';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -36,9 +52,10 @@ export async function setup(yargs: Yargs): Promise<Object> {
       },
     })
     .alias('s', 'sitegroup')
-    .example(`$0 ${name} info mysite`, 'Shows information about given site "mysite" (does only work with single branch)')
-    .example(`$0 ${name} info mysite@prod`, 'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)')
-    .example(`$0 ${name} info -s mysitegroup mysite`, 'Shows information about given site "mysite" in given sitegroup "somesitegroup"')
+    .example(`$0 ${name}`, 'Shows information about the configured sitegroup')
+    .example(`$0 ${name} mysite`, 'Shows information about given site "mysite" (does only work with single branch)')
+    .example(`$0 ${name} mysite@prod`, 'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)')
+    .example(`$0 ${name} -s mysitegroup mysite`, 'Shows information about given site "mysite" in given sitegroup "somesitegroup"')
     .argv;
 }
 
@@ -56,6 +73,10 @@ export async function run(args: Args): Promise<number> {
   const [siteAndBranch] = args._.slice(1);
   const sitegroup = args.sitegroup || config.sitegroup;
 
+  if (siteAndBranch == null) {
+    return sitegroupInfo({ sitegroup, clog });
+  }
+
   const [site, branch] = siteAndBranch.split('@');
 
   return siteInfo({
@@ -66,14 +87,98 @@ export async function run(args: Args): Promise<number> {
   });
 }
 
-type MainArgs = {
+type SiteGroupInfoArgs = {
+  sitegroup: string,
+  clog?: typeof console.log,
+};
+
+export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
+  const {
+    sitegroup,
+    clog = console.log,
+  } = args;
+
+  const query = gql`query querySites($sitegroup: String!) {
+    siteGroupByName(name: $sitegroup) {
+        gitUrl
+        siteGroupName
+        slack
+        client {
+          clientName
+        }
+        sites(first: 1000) {
+          edges {
+            node {
+              siteName
+              siteBranch
+            }
+          }
+        }
+      }
+  }`;
+
+  const result = await runGQLQuery({
+    endpoint: 'https://amazeeio-api-staging.herokuapp.com/graphql',
+    query,
+    variables: { sitegroup },
+  });
+
+  const { errors } = result;
+  if (errors != null) {
+    return exitGraphQLError(clog, errors);
+  }
+
+  const sitegroupData = path(['data', 'siteGroupByName'])(result);
+
+  if (sitegroupData == null) {
+    clog(red(`No sitegroup '${sitegroup}' found`));
+    return 1;
+  }
+
+  const sites =
+    compose(
+      map((edge) => {
+        const { siteName, siteBranch } = prop(['node'], edge);
+        return `${siteName}:${siteBranch}`;
+      }),
+      pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
+    )(result);
+
+  const formatSlack = (slack) => {
+    if (slack == null) {
+      return null;
+    }
+
+    const webhook = path(['webhook'], slack);
+    const channel = path(['channel'], slack);
+
+    return `${channel} -> ${webhook}`;
+  };
+
+  const tableBody = [
+    ['SiteGroup Name', path(['siteGroupName'], sitegroupData)],
+    ['Git Url', path(['gitUrl'], sitegroupData)],
+    ['Slack', formatSlack(path(['slack'], sitegroupData))],
+    ['Sites', join(', ', sites)],
+  ];
+
+  const tableData = filter(onlyValues)(tableBody);
+
+  clog(`I found following information for sitegroup '${sitegroup}':`);
+  clog(table(tableData, tableConfig));
+
+
+  return 0;
+}
+
+type SiteInfoArgs = {
   site: string,
   branch?: string,
   sitegroup: string,
   clog?: typeof console.log,
 };
 
-export async function siteInfo(args: MainArgs): Promise<number> {
+export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   const {
     sitegroup,
     site,
@@ -140,10 +245,9 @@ export async function siteInfo(args: MainArgs): Promise<number> {
     variables: { sitegroup },
   });
 
-  if (result.errors != null) {
-    clog(red('Oops! Server sent us some errors:'));
-    forEach(({ message }) => clog(`-> ${message}`), result.errors);
-    return 1;
+  const { errors } = result;
+  if (errors != null) {
+    return exitGraphQLError(clog, errors);
   }
 
   // There might be a case where I just have one site + branch,
@@ -178,18 +282,6 @@ export async function siteInfo(args: MainArgs): Promise<number> {
 
   clog(`I found following information for '${sitegroup} -> ${siteBranchStr}':`);
 
-  const tableConfig = {
-    columns: {
-      '0': { // eslint-disable-line quote-props
-        alignment: 'left',
-        minWidth: 15,
-      },
-      '1': { // eslint-disable-line quote-props
-        alignment: 'left',
-        minWidth: 15,
-      },
-    },
-  };
 
   // nodes only contains one element, extract it
   const [node] = nodes;
@@ -209,8 +301,6 @@ export async function siteInfo(args: MainArgs): Promise<number> {
 
     return join(', ', arr);
   };
-
-  const onlyValues = ([title, value]: [string, string]) => value != null && value !== '';
 
   // We want to list these fields from the node result
   const tableBody = [
