@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+     host: "{{ lookup('env','TEST_HOST') }}"
+     port: "{{ lookup('env','TEST_PORT') }}"
+  tasks:
+  - include: ../webhooks/github/push.yaml

@@ -1,0 +1,6 @@
+version: '2'
+services:
+  ansible:
+    image: williamyeh/ansible:centos7
+    volumes:
+      - .:/ansible
