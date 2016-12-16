@@ -6,8 +6,13 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 
 1. clone me
 2. init everything
+
 		./init.sh
+
 3. run docker things
+
 		docker-compose up
+
 4. run tests (best in another terminal)
+
 		./runtest.sh
