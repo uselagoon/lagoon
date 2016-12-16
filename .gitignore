@@ -2,6 +2,6 @@ services
 hiera
 virtual-machine
 local-git-server
-local-git-repo
+local-git-repo.git
 .DS_Store
 *.retry

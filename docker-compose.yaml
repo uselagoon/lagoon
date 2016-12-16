@@ -38,6 +38,7 @@ services:
     command: yarn run dev
     environment:
       - GIT_REPOSITORY=file:///hiera
+      - GIT_BRANCH_PULL=deploytest
     volumes:
       - ./services/api/src:/app/src
       - ./hiera:/hiera
@@ -62,6 +63,7 @@ services:
     volumes:
       - ./testing:/ansible
       - ./testing/hosts:/etc/ansible/hosts
+      - ./local-git-repo.git:/repo.git
   local-git-server:
     build: local-git-server
     environment:

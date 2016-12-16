@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose run ansible ansible-playbook /ansible/playbooks/webhooks.yaml
+docker-compose exec testing ansible-playbook /ansible/playbooks/webhooks.yaml

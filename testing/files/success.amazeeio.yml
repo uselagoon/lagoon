@@ -1,0 +1,16 @@
+sitegroup: testdeploy
+deploy_tasks:
+  development:
+    after_deploy:
+      - echo success
+    before_deploy:
+      - echo success
+  production:
+    after_deploy:
+      - echo success
+    before_deploy:
+      - echo success
+shared:
+  production:
+    - src: files
+      dst: files

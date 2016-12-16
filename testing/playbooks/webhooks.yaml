@@ -5,4 +5,6 @@
      host: "{{ lookup('env','TEST_HOST') }}"
      port: "{{ lookup('env','TEST_PORT') }}"
   tasks:
-  - include: ../webhooks/github/push.yaml
+  - include: ../tasks/git-init.yaml
+  - include: ../tasks/git-commit-success.yaml
+  - include: ../tasks/github/push.yaml
