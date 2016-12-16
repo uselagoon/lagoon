@@ -1,15 +1,3 @@
-- command: rm -rf
-  args:
-    chdir: /repo.git
-
-- command: rm -rf .git
-  args:
-    chdir: /repo.git
-
-- command: git init
-  args:
-    chdir: /repo.git
-
 - command: git checkout -b compact_production_success
   args:
     chdir: /repo.git
@@ -25,3 +13,11 @@
 - command: git commit -m "success .amazeeio.yml"
   args:
     chdir: /repo.git
+
+- command: git rev-parse HEAD
+  args:
+    chdir: /repo.git
+  register: current_head
+
+- debug:
+    var: current_head.stdout

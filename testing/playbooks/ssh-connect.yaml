@@ -1,6 +1,6 @@
 ---
-- hosts: deploytest
-  remote_user: mysite
+- hosts: deploytest1
+  remote_user: deploytest
   gather_facts: false
   tasks:
   - command: /bin/ls

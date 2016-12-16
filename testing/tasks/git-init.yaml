@@ -9,19 +9,3 @@
 - command: git init
   args:
     chdir: /repo.git
-
-- command: git checkout -b compact_production_success
-  args:
-    chdir: /repo.git
-
-- copy:
-    src: /ansible/files/success.amazeeio.yml
-    dest: /repo.git/.amazeeio.yml
-
-- command: git add .
-  args:
-    chdir: /repo.git
-
-- command: git commit -m "success .amazeeio.yml"
-  args:
-    chdir: /repo.git
