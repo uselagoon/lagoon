@@ -12,3 +12,5 @@ git clone -b deploytest git@github.com:amazeeio/api-test-hiera.git hiera
 git clone -b AmazeeDevel git@git.vshn.net:amazee/puppet-drupalhosting.git virtual-machine
 
 cd virtual-machine && vagrant up deploytest
+
+cd ..
