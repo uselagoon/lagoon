@@ -1,6 +1,0 @@
----
-- hosts: deploytest1
-  remote_user: deploytest
-  gather_facts: false
-  tasks:
-  - command: /bin/ls

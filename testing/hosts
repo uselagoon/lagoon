@@ -1,2 +1,0 @@
-localhost ansible_connection=local
-deploytest1 ansible_host=172.28.128.99

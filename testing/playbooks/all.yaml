@@ -1,3 +1,0 @@
----
-include: playbook-curl.yaml
-include: playbook-check-ssh.yaml
