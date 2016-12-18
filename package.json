@@ -27,14 +27,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AmazeeLabs/amazee-io-cli.git"
+    "url": "git+https://github.com/amazeeio/io.git"
   },
   "author": "Patrick Stapfer <patrick@amazee.io>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/AmazeeLabs/amazee-io-cli/issues"
+    "url": "https://github.com/amazeeio/io/issues"
   },
-  "homepage": "https://github.com/AmazeeLabs/amazee-io-cli#readme",
+  "homepage": "https://github.com/amazeeio/io#readme",
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-core": "^6.13.2",
