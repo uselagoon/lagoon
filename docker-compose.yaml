@@ -16,6 +16,7 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - HOSTNAME=rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -34,12 +35,61 @@ services:
       - ANSIBLE_IMAGE_LOCATION=absolute
     volumes:
       - ./services/gitpush2ansibledeploy/src:/app/src
+  openshiftremove:
+    build: services/openShiftRemove
+    command: yarn run dev
+    links:
+      - rabbitmq
+      - api
+      - jenkins
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:8080
+      - JENKINS_URL=http://admin:admin@jenkins:8080
+    volumes:
+      - ./services/openShiftRemove/src:/app/src
+  openshiftdeploy:
+    build: services/openShiftDeploy
+    command: yarn run dev
+    links:
+      - rabbitmq
+      - api
+      - jenkins
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:8080
+      - JENKINS_URL=http://admin:admin@jenkins:8080
+    volumes:
+      - ./services/openShiftDeploy/src:/app/src
+  logs2slack:
+    build: services/logs2slack
+    command: yarn run dev
+    links:
+      - rabbitmq
+      - api
+      - jenkins
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:8080
+    volumes:
+      - ./services/logs2slack/src:/app/src
+  webhooks2tasks:
+    build: services/webhooks2tasks
+    command: yarn run dev
+    links:
+      - rabbitmq
+      - api
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:8080
+    volumes:
+      - ./services/webhooks2tasks/src:/app/src
   api:
     build: services/api
     command: yarn run dev
     environment:
       - GIT_REPOSITORY=file:///hiera
-      - GIT_BRANCH_PULL=deploytest.local
+      - GIT_BRANCH_PULL=deploytest
     volumes:
       - ./services/api/src:/app/src
       - ./hiera:/hiera
@@ -47,7 +97,6 @@ services:
       - "8080:8080"
   jenkins:
     build: services/jenkins
-    user: '111111111'
     environment:
       - ADMIN_PASSWORD=admin
     ports:
@@ -83,3 +132,31 @@ services:
       - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5b9Awb6iwWRz1z+QDwLlSvtpxg/7pR7Rf+kJT3khQGiLuX4Qk2aDCrt1fKndjyUuj55ocRc8OlExrA8FPfZbpnfaNXfVh9TlybhjIWUHtLbc9giCoDuiV2TEb6ZW/esKlVtWomzfY/njwPAuXEU2i3j5YxVQuZ0y+AN4yca4V1y7y2BlUOvp5qSvz/8PcBJegaoesSSuFpQWCR788/i0sURJiaG6+tZN+bGVSnJgtbXQJvc0r45au3PL5jyMcApbHOCDQUIiWyC6ipW2EIYTUBVO80QVEjymmBZpZEQl/0DQPEzBdqCi4X4wmwhoan7hQJQ7dNdqmRL+W4L75yPNyngNgJVNTlIXOHXevpNskH//HUlwEp4WPHuT76BZT3cq1RCatn6iMsFiwpESk9xyDbEVPfxKAr77cRpFIHuJd7amDjTk7/KP0PTliO2ViCyjDudiajwNh7XmY0ZqYrhHI16ebTSESDslh0a0JlZvWlYa4xDBKtKwfINRrcrYmuYUzSF7wn7F1o45cHZ2kuftioOQhLNgx0LqztRMn3RBoeG3QHbxmv9WfO/0hHa4FdkQLErEdzEM9JR4WewRnh04dcjejX1daWKbo2X8ndaCc0BvdNDL/HpSgqfCnJ2Nlq4pM6Pomkvdp5wTWpZwCjDl08UgttAFrQwjYoBy9UpUmDQ== ansible-testing
     ports:
       - "2222:22"
+  elasticsearch:
+    build: services/elasticsearch
+    user: '1111722'
+    environment:
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+    ports:
+      - "9200:9200"
+  kibana:
+    build: services/kibana
+    user: '1111722'
+    links:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+  logstash:
+    build: services/logstash
+    user: '1111722'
+    links:
+      - elasticsearch
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
