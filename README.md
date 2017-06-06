@@ -5,17 +5,27 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 - Schema: [https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
 - Workshop Videos: [https://drive.google.com/drive/u/0/folders/0B7z7DpdobBRcY2pnS2FUVTNIVzg](https://drive.google.com/drive/u/0/folders/0B7z7DpdobBRcY2pnS2FUVTNIVzg)
 
-## How to make magic
+## Start Services
 
 1. clone me
-2. init everything
+1. init git
 
-		./init.sh
+		./initGit.sh
 
-3. run docker things
+1. start Lagoon Services
 
-		docker-compose up
+		docker-compose up -d
 
-4. run tests (best in another terminal)
+1. Follow the Services logs
 
-		./runtest.sh
+		docker-compose logs -f
+
+## Start & Test OpenShift
+
+1. start OpenShift
+
+		./startOpenShift.sh
+
+1. test Openshift Node Deployment
+
+		cd tests && docker-compose run --rm deploytest ansible-playbook /ansible/playbooks/node.yaml
