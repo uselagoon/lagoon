@@ -4,5 +4,7 @@ hiera
 virtual-machine
 local-git-server
 deploytest
+docker-executors
 .DS_Store
 *.retry
+startVagrant.sh
