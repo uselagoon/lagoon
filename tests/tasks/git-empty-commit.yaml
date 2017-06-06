@@ -1,0 +1,27 @@
+- name: commiting in git repo
+  command: git commit -m "empty commit" --allow-empty
+  args:
+    chdir: /{{git_repo_name}}
+
+- name: getting HEAD hash
+  command: git rev-parse HEAD
+  args:
+    chdir: /{{git_repo_name}}
+  register: result
+
+- name: getting current git branch
+  command: git symbolic-ref --short HEAD
+  args:
+    chdir: /{{git_repo_name}}
+  register: gitbranch
+
+- name: fore push to repo in {{ gitbranch.stdout }}
+  command: git push --force origin {{ gitbranch.stdout }}
+  args:
+    chdir: /{{git_repo_name}}
+
+- set_fact:
+    current_head: "{{ result.stdout }}"
+
+- debug:
+    msg: "Head Hash: {{ current_head }}"
