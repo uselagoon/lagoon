@@ -1,17 +1,17 @@
 ---
-#- include: node/deploy_node.yaml
-#  vars:
-#    node_version: 8
-#    git_repo_name: node.git
-#    sitegroup1: node1
-#    sitegroup2: node2
+- include: node/deploy_node.yaml
+  vars:
+    node_version: 8
+    git_repo_name: node.git
+    sitegroup1: node1
+    sitegroup2: node2
 
-#- include: node/deploy_node.yaml
-#  vars:
-#    node_version: 6_subfolder
-#    git_repo_name: node_subfolder.git
-#    sitegroup1: node_subfolder1
-#    sitegroup2: node_subfolder2
+- include: node/deploy_node.yaml
+  vars:
+    node_version: 6_subfolder
+    git_repo_name: node_subfolder.git
+    sitegroup1: node_subfolder1
+    sitegroup2: node_subfolder2
 
 - include: node/deploy_node.yaml
   vars:
