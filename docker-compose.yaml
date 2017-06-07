@@ -138,6 +138,7 @@ services:
       - "22"
   elasticsearch:
     build: services/elasticsearch
+    user: 1000
     environment:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
     ports:
