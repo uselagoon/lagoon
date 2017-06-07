@@ -28,4 +28,4 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 
 1. test Openshift Node Deployment
 
-		cd tests && docker-compose run --rm deploytest ansible-playbook /ansible/playbooks/node.yaml
+		docker-compose exec deploytest ansible-playbook /ansible/playbooks/node.yaml
