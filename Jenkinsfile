@@ -7,31 +7,39 @@ node {
      checkout scm
   }
 
-  stage ('docker-compose up') {
-    sshagent (credentials: ['lagoon-ci']) {
-      sh "./initGit.sh"
+  try {
+    stage ('docker-compose up') {
+      sshagent (credentials: ['lagoon-ci']) {
+        sh "./initGit.sh"
+      }
+    }
+
+    stage ('docker-compose up') {
+      sh "${docker_compose} up -d --force"
+    }
+
+    stage ('minishift install and start') {
+      sh './startOpenShift.sh'
+    }
+
+    stage ('run tests') {
+      sh "${docker_compose} exec tests ansible-playbook /ansible/playbooks/node.yaml"
+    }
+  } catch (e) {
+    echo "Something went wrong, trying to cleanup"
+    cleanup()
+    throw e
+  }
+
+  cleanup()
+
+  def cleanup() {
+    try {
+      sh "${docker_compose} down -v"
+      sh "./minishift/minishift delete"
+    } catch () {
+      echo "cleanup failed, ignoring this."
     }
   }
-
-  stage ('docker-compose up') {
-     sh "${docker_compose} up -d"
-  }
-
-  stage ('minishift install and start') {
-     sh './startOpenShift.sh'
-  }
-
-  stage ('run tests') {
-     sh "${docker_compose} exec tests ansible-playbook /ansible/playbooks/node.yaml"
-  }
-
-  stage ('docker-compose down') {
-     sh "${docker_compose} down -v"
-  }
-
-  stage ('docker-compose down') {
-     sh "./minishift/minishift delete"
-  }
-
 
 }
