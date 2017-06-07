@@ -8,3 +8,4 @@ docker-executors
 .DS_Store
 *.retry
 startVagrant.sh
+minishift
