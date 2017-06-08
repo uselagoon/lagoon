@@ -48,6 +48,8 @@ To make sure that our services also work in the real work (eg deployed on OpenSh
 
 For these tests we use the exact same ansible scripts like the local or the automated testing, we just push to an actual Github Repo https://github.com/amazeeio-ci-testing and send webhooks to the webhook-handler that are running OpenShift.
 
+The tests are defined in `Jenkinsfile.testing-develop` and `Jenkinsfile.testing-master`. They get their testing infrastructure (endpoints, etc.) from a docker-compose.yaml file within the `tests` folder.
+
 Beside of that it's exactly the same.
 
 The tests can be found here:
