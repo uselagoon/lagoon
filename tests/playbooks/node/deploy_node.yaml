@@ -78,3 +78,29 @@
     expected_branch: "{{ current_branch }}"
     sitegroup1: "{{ sitegroup1 }}"
     sitegroup2: "{{ sitegroup2 }}"
+
+- name: deployment node {{ node_version }} - push delete
+  hosts: localhost
+  serial: 1
+  vars:
+    git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/github/push-delete.yaml
+
+- name: deployment node {{ node_version }} - check if site not existing anymore
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.branch1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../tests/test-url-returncode.yaml
+
+- name: deployment node {{ node_version }} - check if site not existing anymore
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.branch1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../tests/test-url-returncode.yaml
