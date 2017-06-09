@@ -1,80 +1,105 @@
 
-- name: deployment node {{ node_version }} - first commit
+- name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
   serial: 1
   vars:
     git_files: "node{{ node_version }}/"
-    branch: "branch1"
   tasks:
   - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
 
-- name: deployment node {{ node_version }} - push
+- name: "{{ testname }} - webhook github push first commit hash to repo"
   hosts: localhost
   serial: 1
   vars:
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/github/push.yaml
+  - include: ../../tasks/webhook-github/push.yaml
 
 
 - include: deploy_node.test.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ current_branch }}"
+    expected_branch: "{{ branch }}"
     sitegroup1: "{{ sitegroup1 }}"
     sitegroup2: "{{ sitegroup2 }}"
 
-- name: deployment node {{ node_version }} - second commit
+- name: "{{ testname }} - second commit (empty) and git push into same git repo"
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit.yaml
+  - include: ../../tasks/git-empty-commit-push.yaml
 
-- name: deployment node {{ node_version }} - push
+- name: "{{ testname }} - webhook github push second commit hash to repo"
   hosts: localhost
   serial: 1
   vars:
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/github/push.yaml
+  - include: ../../tasks/webhook-github/push.yaml
 
 - include: deploy_node.test.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ current_branch }}"
+    expected_branch: "{{ branch }}"
     sitegroup1: "{{ sitegroup1 }}"
     sitegroup2: "{{ sitegroup2 }}"
 
-- name: deployment node {{ node_version }} - third commit
+- name: "{{ testname }} - third commit (empty) and git push into same git repo - no webhook push yet"
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit.yaml
+  - include: ../../tasks/git-empty-commit-push.yaml
   - set_fact:
       third_commit_hash: "{{ current_head }}"
 
 
-- name: deployment node {{ node_version }} - fourth commit
+- name: "{{ testname }} - fourth commit (empty)  and git push into same git repo"
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit.yaml
+  - include: ../../tasks/git-empty-commit-push.yaml
 
-- name: deployment node {{ node_version }} - push
+- name: "{{ testname }} - webhook github push for third commit (fourth commit exists but will not be deployed)"
   hosts: localhost
   serial: 1
   vars:
     git_hash_push: "{{ third_commit_hash }}"
     git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/github/push.yaml
+  - include: ../../tasks/webhook-github/push.yaml
 
 - include: deploy_node.test.yaml
   vars:
     expected_head: "{{ third_commit_hash }}"
-    expected_branch: "{{ current_branch }}"
+    expected_branch: "{{ branch }}"
     sitegroup1: "{{ sitegroup1 }}"
     sitegroup2: "{{ sitegroup2 }}"
+
+- name: "{{ testname }} - webhook github delete push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-github/push-delete.yaml
+
+- name: "{{ testname }} - check if site for sitegroup1 does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../tests/test-url-returncode.yaml
+
+- name: "{{ testname }} - check if site for sitegroup2 does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../tests/test-url-returncode.yaml

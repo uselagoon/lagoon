@@ -1,24 +1,24 @@
-- name: make sure repo folder exists
+- name: "{{ testname }} - make sure repo folder {{git_repo_name}} exists"
   file:
     path: /{{git_repo_name}}
     state: directory
 
-- name: cleaning repo
+- name: "{{ testname }} - cleaning repo folder {{git_repo_name}}"
   command: rm -rf *
   args:
     chdir: /{{git_repo_name}}
 
-- name: cleaning repo
+- name: "{{ testname }} - cleaning repo folder {{git_repo_name}}"
   command: rm -rf .git
   args:
     chdir: /{{git_repo_name}}
 
-- name: init new git repo
+- name: "{{ testname }} - init fresh git repo in {{git_repo_name}}"
   command: git init
   args:
     chdir: /{{git_repo_name}}
 
-- name: add remote
+- name: "{{ testname }} - add remote {{ lookup('env','GIT_REPO_PREFIX') }}{{git_repo_name}} to git repo in {{git_repo_name}}"
   command: git remote add origin {{ lookup('env','GIT_REPO_PREFIX') }}{{git_repo_name}}
   args:
     chdir: /{{git_repo_name}}

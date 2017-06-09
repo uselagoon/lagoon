@@ -1,35 +1,35 @@
-- name: deployment node {{ node_version }} - check if deployed with searching for the hash
+- name: "{{ testname }} - check if sitegroup1 is deployed with searching for the hash"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.branch1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_content: "{{ expected_head }}"
   tasks:
   - include: ../../tests/test-url-content.yaml
 
-- name: deployment node {{ node_version }} - check if deployed with searching for the hash
+- name: "{{ testname }} - check if sitegroup2 is deployed with searching for the hash"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.branch1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_content: "{{ expected_head }}"
   tasks:
   - include: ../../tests/test-url-content.yaml
 
-- name: deployment node {{ node_version }} - check if deployed with searching for the branch name
+- name: "{{ testname }} - check if sitegroup1 is deployed with searching for the branch name"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.branch1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_content: "{{ expected_branch }}"
   tasks:
   - include: ../../tests/test-url-content.yaml
 
-- name: deployment node {{ node_version }} - check if deployed with searching for the branch name
+- name: "{{ testname }} - check if sitegroup2 is deployed with searching for the branch name"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.branch1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_content: "{{ expected_branch }}"
   tasks:
   - include: ../../tests/test-url-content.yaml
