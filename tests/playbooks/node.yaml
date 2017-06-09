@@ -1,21 +1,36 @@
 ---
 - include: node/deploy_node.yaml
   vars:
+    testname: "node 8 with slash branch"
     node_version: 8
     git_repo_name: node.git
     sitegroup1: ci-node1
     sitegroup2: ci-node2
+    branch: slash/branch1
 
 - include: node/deploy_node.yaml
   vars:
+    testname: "node 8 regular branch"
+    node_version: 8
+    git_repo_name: node.git
+    sitegroup1: ci-node1
+    sitegroup2: ci-node2
+    branch: branch1
+
+- include: node/deploy_node.yaml
+  vars:
+    testname: "node 6 inside subfolder"
     node_version: 6_subfolder
     git_repo_name: node_subfolder.git
     sitegroup1: ci-node_subfolder1
     sitegroup2: ci-node_subfolder2
+    branch: branch1
 
 - include: node/deploy_node.yaml
   vars:
+    testname: "node 6 regular branch"
     node_version: 6
     git_repo_name: node.git
     sitegroup1: ci-node1
     sitegroup2: ci-node2
+    branch: branch1
