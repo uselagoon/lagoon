@@ -19,10 +19,11 @@ export type CommandModule = {
 };
 
 import login from './login';
+import logout from './logout';
 import list from './list';
 import info from './info';
 import init from './init';
 
-export { login, list, init, info };
+export { login, logout, list, init, info };
 
-export default ([login, list, init, info]: Array<CommandModule>);
+export default ([login, logout, list, init, info]: Array<CommandModule>);
