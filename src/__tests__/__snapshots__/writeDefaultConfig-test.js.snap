@@ -1,3 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
 exports[`writeDefaultConfig should write default config to given path 1`] = `
 "sitegroup: your_sitegroup
 deploy_tasks:

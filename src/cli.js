@@ -62,10 +62,10 @@ export async function runCLI(cwd: string) {
 
       return cmdYargs.command(name, description, setupFn, runFn);
     }, yargs)
-    .demand(1)
-    .strict()
-    .help()
-    .argv;
+      .demand(1)
+      .strict()
+      .help()
+      .argv;
   }
   catch (err) {
     errorQuit(err);

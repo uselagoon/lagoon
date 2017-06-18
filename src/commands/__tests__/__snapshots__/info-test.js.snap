@@ -1,3 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
 exports[`siteGroupInfo should display error, if GraphQL sends error messages 1`] = `
 Array [
   Array [
@@ -12,7 +14,7 @@ Array [
 exports[`siteGroupInfo should list found information for given sitegroup 1`] = `
 Array [
   Array [
-    "I found following information for sitegroup \'mysitegroup\':",
+    "I found following information for sitegroup 'mysitegroup':",
   ],
   Array [
     "╔════════════════╤════════════════════════════════════════════╗
@@ -32,7 +34,7 @@ Array [
 exports[`siteGroupInfo should show error on missing sitegroup 1`] = `
 Array [
   Array [
-    "[31mNo sitegroup \'not_existing\' found[39m",
+    "[31mNo sitegroup 'not_existing' found[39m",
   ],
 ]
 `;
@@ -65,7 +67,7 @@ Array [
 exports[`siteInfo should show table with information about sitegroup 1`] = `
 Array [
   Array [
-    "I found following information for \'some_sitegroup -> site1@dev\':",
+    "I found following information for 'some_sitegroup -> site1@dev':",
   ],
   Array [
     "╔══════════════════════╤════════════════════════╗
