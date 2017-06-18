@@ -5,7 +5,7 @@
 import os from 'os';
 import path from 'path';
 import { sshConnect, sshExec } from '../util/ssh';
-import { readFile } from '../util/fs';
+import { readFile, writeFile } from '../util/fs';
 import { exitError } from '../exit';
 
 import typeof { default as Yargs } from 'yargs';
@@ -24,7 +24,10 @@ type Args = BaseArgs;
 export async function run(args: Args): Promise<number> {
   const { clog = console.log } = args;
 
-  const privateKey = await readFile(path.join(os.homedir(), '.ssh', 'id_rsa'));
+  // TODO: We need to make the ssh path lookup smarter or request it via prompt.
+  const homeDir = os.homedir();
+  const privateKeyFilePath = path.join(homeDir, '.ssh', 'id_rsa');
+  const privateKey = await readFile(privateKeyFilePath);
   const connection = await sshConnect({
     host: 'localhost',
     port: 2020,
@@ -33,9 +36,11 @@ export async function run(args: Args): Promise<number> {
   });
 
   const output = await sshExec(connection, 'login');
+  const token = output.toString();
+  const tokenFilePath = path.join(homeDir, '.ioauth');
+  await writeFile(tokenFilePath, token);
 
-  // TODO: Instead of logging the output, save it.
-  clog(output.toString());
+  clog('Login successful');
 
   // Be responsible and close the connection after our transaction.
   connection.end();
