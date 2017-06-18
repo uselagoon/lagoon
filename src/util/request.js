@@ -18,11 +18,13 @@ export default function request(options: RequestOptions): Promise<Object> {
 
   const def = defer();
 
-  const req = https.request(options, (res) => {
+  const req = https.request(options, res => {
     res.setEncoding('utf8');
 
     let rawData = '';
-    res.on('data', chunk => { rawData += chunk; });
+    res.on('data', chunk => {
+      rawData += chunk;
+    });
     res.on('end', () => {
       try {
         let parsed = JSON.parse(rawData);

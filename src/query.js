@@ -23,20 +23,20 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
     pretty = false,
   } = args;
 
-  const {
-    hostname,
-    path,
-    port,
-  } = url.parse(endpoint);
+  const { hostname, path, port } = url.parse(endpoint);
 
   if (hostname == null) {
     throw new Error('Hostname required');
   }
 
-  const body = JSON.stringify({
-    query,
-    variables,
-  }, null, (pretty ? 2 : 0));
+  const body = JSON.stringify(
+    {
+      query,
+      variables,
+    },
+    null,
+    pretty ? 2 : 0,
+  );
 
   const options = {
     hostname,

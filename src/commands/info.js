@@ -4,16 +4,7 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import {
-  path,
-  pathOr,
-  prop,
-  forEach,
-  map,
-  join,
-  compose,
-  filter,
-} from 'ramda';
+import { path, pathOr, prop, forEach, map, join, compose, filter } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -24,11 +15,13 @@ import type { BaseArgs } from './index';
 
 const tableConfig = {
   columns: {
-    '0': { // eslint-disable-line quote-props
+    0: {
+      // eslint-disable-line quote-props
       alignment: 'left',
       minWidth: 15,
     },
-    '1': { // eslint-disable-line quote-props
+    1: {
+      // eslint-disable-line quote-props
       alignment: 'left',
       minWidth: 15,
     },
@@ -36,7 +29,8 @@ const tableConfig = {
 };
 
 // Common filter
-const onlyValues = ([title, value]: [string, string]) => value != null && value !== '';
+const onlyValues = ([title, value]: [string, string]) =>
+  value != null && value !== '';
 
 const name = 'info';
 const description = 'Shows infos about sites or sitegroups';
@@ -47,16 +41,25 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demand: false,
-        describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe:
+          'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
     .example(`$0 ${name}`, 'Shows information about the configured sitegroup')
-    .example(`$0 ${name} mysite`, 'Shows information about given site "mysite" (does only work with single branch)')
-    .example(`$0 ${name} mysite@prod`, 'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)')
-    .example(`$0 ${name} -s mysitegroup mysite`, 'Shows information about given site "mysite" in given sitegroup "somesitegroup"')
-    .argv;
+    .example(
+      `$0 ${name} mysite`,
+      'Shows information about given site "mysite" (does only work with single branch)',
+    )
+    .example(
+      `$0 ${name} mysite@prod`,
+      'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)',
+    )
+    .example(
+      `$0 ${name} -s mysitegroup mysite`,
+      'Shows information about given site "mysite" in given sitegroup "somesitegroup"',
+    ).argv;
 }
 
 type Args = BaseArgs & {
@@ -93,10 +96,7 @@ type SiteGroupInfoArgs = {
 };
 
 export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
-  const {
-    sitegroup,
-    clog = console.log,
-  } = args;
+  const { sitegroup, clog = console.log } = args;
 
   const query = gql`query querySites($sitegroup: String!) {
     siteGroupByName(name: $sitegroup) {
@@ -135,16 +135,15 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
     return 1;
   }
 
-  const sites =
-    compose(
-      map((edge) => {
-        const { siteName, siteBranch } = prop(['node'], edge);
-        return `${siteName}:${siteBranch}`;
-      }),
-      pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
-    )(result);
+  const sites = compose(
+    map(edge => {
+      const { siteName, siteBranch } = prop(['node'], edge);
+      return `${siteName}:${siteBranch}`;
+    }),
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+  )(result);
 
-  const formatSlack = (slack) => {
+  const formatSlack = slack => {
     if (slack == null) {
       return null;
     }
@@ -167,7 +166,6 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
   clog(`I found following information for sitegroup '${sitegroup}':`);
   clog(table(tableData, tableConfig));
 
-
   return 0;
 }
 
@@ -179,12 +177,7 @@ type SiteInfoArgs = {
 };
 
 export async function siteInfo(args: SiteInfoArgs): Promise<number> {
-  const {
-    sitegroup,
-    site,
-    branch,
-    clog = console.log,
-  } = args;
+  const { sitegroup, site, branch, clog = console.log } = args;
 
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
@@ -261,12 +254,11 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
     return siteName === site;
   };
 
-  const nodes =
-    compose(
-      filter(matchesSiteAndBranch),
-      map((edge) => prop('node', edge)),
-      pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
-    )(result);
+  const nodes = compose(
+    filter(matchesSiteAndBranch),
+    map(edge => prop('node', edge)),
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+  )(result);
 
   if (nodes.length === 0) {
     clog(red(`No site '${site}' found in sitegroup '${sitegroup}'`));
@@ -275,18 +267,21 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   // For the case if there was no branch name given to begin with
   if (nodes.length > 1) {
-    clog('I found multiple sites with the same name, but different branches, maybe try following parameter...');
-    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(nodes);
+    clog(
+      'I found multiple sites with the same name, but different branches, maybe try following parameter...',
+    );
+    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(
+      nodes,
+    );
     return 0;
   }
 
   clog(`I found following information for '${sitegroup} -> ${siteBranchStr}':`);
 
-
   // nodes only contains one element, extract it
   const [node] = nodes;
 
-  const formatCron = (cron) => {
+  const formatCron = cron => {
     if (cron == null) {
       return null;
     }
@@ -294,7 +289,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
     return `Type: ${cron.type} - Minute: ${cron.minute}`;
   };
 
-  const formatArray = (arr) => {
+  const formatArray = arr => {
     if (arr == null) {
       return null;
     }

@@ -50,22 +50,27 @@ export async function runCLI(cwd: string) {
     const config = await readConfig(cwd);
 
     // Chain together all the subcommands
-    commands.reduce((cmdYargs, cmd) => { // eslint-disable-line no-unused-expressions
-      const { name, description, run } = cmd;
-      const clog = console.log;
+    // eslint-disable-next-line no-unused-expressions
+    commands
+      .reduce((cmdYargs, cmd) => {
+        const { name, description, run } = cmd;
+        const clog = console.log;
 
-      const runFn = (args) => {
-        return run({ ...args, cwd, config, clog }).catch(errorQuit).then((code) => process.exit(code));
-      };
+        const runFn = args => {
+          return run({ ...args, cwd, config, clog })
+            .catch(errorQuit)
+            .then(code => process.exit(code));
+        };
 
-      const setupFn = (typeof cmd.setup === 'function' ? cmd.setup : (yargs) => yargs);
+        const setupFn = typeof cmd.setup === 'function'
+          ? cmd.setup
+          : yargs => yargs;
 
-      return cmdYargs.command(name, description, setupFn, runFn);
-    }, yargs)
+        return cmdYargs.command(name, description, setupFn, runFn);
+      }, yargs)
       .demand(1)
       .strict()
-      .help()
-      .argv;
+      .help().argv;
   }
   catch (err) {
     errorQuit(err);
@@ -84,7 +89,12 @@ if (require.main === module) {
   let lastDir = null;
   let main = runCLI;
   while (currDir !== lastDir) {
-    const localCLIPath = path.join(currDir, 'node_modules', '.bin', 'amazee-io-cli');
+    const localCLIPath = path.join(
+      currDir,
+      'node_modules',
+      '.bin',
+      'amazee-io-cli',
+    );
     try {
       if (statSync(localCLIPath).isFile()) {
         main = require.call(null, localCLIPath).runCLI;

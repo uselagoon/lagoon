@@ -41,7 +41,9 @@ const mockResponse = {
 
 describe('listSites', () => {
   it('should list sites as given by GraphQL', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse),
+    );
 
     const clog = jest.fn();
 
@@ -55,9 +57,11 @@ describe('listSites', () => {
   });
 
   it('should show error message if GraphQL returns errors', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({
-      errors: [{ message: 'Something, something missing parameter X' }],
-    }));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve({
+        errors: [{ message: 'Something, something missing parameter X' }],
+      }),
+    );
 
     const clog = jest.fn();
 
@@ -76,7 +80,8 @@ describe('listSites', () => {
     const clog = jest.fn();
 
     const code = await listSites({
-      sitegroup: 'some_sitegroup', clog,
+      sitegroup: 'some_sitegroup',
+      clog,
     });
 
     expect(code).toBe(0);

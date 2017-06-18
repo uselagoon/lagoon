@@ -4,15 +4,7 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import {
-  prepend,
-  pathOr,
-  prop,
-  map,
-  compose,
-  sortBy,
-  toLower,
-} from 'ramda';
+import { prepend, pathOr, prop, map, compose, sortBy, toLower } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -30,14 +22,20 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demand: false,
-        describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe:
+          'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
-    .example(`$0 ${name} sites`, 'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file')
-    .example(`$0 ${name} sites -s mysitegroup`, 'Lists all sites for a specific sitegroup (instead of using the config file)')
-    .argv;
+    .example(
+      `$0 ${name} sites`,
+      'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file',
+    )
+    .example(
+      `$0 ${name} sites -s mysitegroup`,
+      'Lists all sites for a specific sitegroup (instead of using the config file)',
+    ).argv;
 }
 
 type Target = 'sites';
@@ -48,10 +46,7 @@ type Args = BaseArgs & {
 };
 
 export async function run(args: Args): Promise<number> {
-  const {
-    config,
-    clog = console.log,
-  } = args;
+  const { config, clog = console.log } = args;
 
   if (config == null) {
     return exitNoConfig(clog);
@@ -61,8 +56,14 @@ export async function run(args: Args): Promise<number> {
   const sitegroup = args.sitegroup || config.sitegroup;
 
   switch (target) {
-    case 'sites': return listSites({ sitegroup });
-    default: return exitError(clog, `Unknown target ${target} ... possible values: 'sites'`, 1);
+    case 'sites':
+      return listSites({ sitegroup });
+    default:
+      return exitError(
+        clog,
+        `Unknown target ${target} ... possible values: 'sites'`,
+        1,
+      );
   }
 }
 
@@ -72,10 +73,7 @@ type MainArgs = {
 };
 
 export async function listSites(args: MainArgs): Promise<number> {
-  const {
-    sitegroup,
-    clog = console.log,
-  } = args;
+  const { sitegroup, clog = console.log } = args;
 
   const query = gql`query querySites($sitegroup: String!) {
     siteGroupByName(name: $sitegroup) {
@@ -105,12 +103,11 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const sortBySite = sortBy(compose(toLower, prop('siteName')));
 
-  const nodes =
-    compose(
-      sortBySite,
-      map((edge) => prop('node', edge)),
-      pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
-    )(result);
+  const nodes = compose(
+    sortBySite,
+    map(edge => prop('node', edge)),
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+  )(result);
 
   if (nodes.length === 0) {
     clog(red(`No sites found for sitegroup '${sitegroup}'`));
@@ -121,22 +118,25 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const tableConfig = {
     columns: {
-      '0': { // eslint-disable-line quote-props
+      0: {
+        // eslint-disable-line quote-props
         alignment: 'left',
         minWidth: 15,
       },
-      '1': { // eslint-disable-line quote-props
+      1: {
+        // eslint-disable-line quote-props
         alignment: 'left',
         minWidth: 15,
       },
-      '2': { // eslint-disable-line quote-props
+      2: {
+        // eslint-disable-line quote-props
         alignment: 'center',
         minWidth: 15,
       },
     },
   };
 
-  const tableBody = map((node) => {
+  const tableBody = map(node => {
     const inProdMarker = node.siteEnvironment === 'production' ? '\u221A' : '';
     return [node.siteName, node.siteBranch, inProdMarker];
   }, nodes);

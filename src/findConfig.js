@@ -6,7 +6,11 @@ import co from 'co';
 
 /* eslint-disable no-constant-condition */
 
-function* walker(dir: string, filename: string, root: string): Generator<*, ?string, *> {
+function* walker(
+  dir: string,
+  filename: string,
+  root: string,
+): Generator<*, ?string, *> {
   let next = dir;
 
   while (true) {
@@ -34,7 +38,10 @@ function* walker(dir: string, filename: string, root: string): Generator<*, ?str
  * If no file was found, it will return null, otherwise the path
  * of the found file.
  */
-export default async function findConfig(filename: string, cwd: string): Promise<?string> {
+export default async function findConfig(
+  filename: string,
+  cwd: string,
+): Promise<?string> {
   const start = path.join(cwd, filename);
   const { root } = path.parse(start);
 

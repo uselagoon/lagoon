@@ -22,10 +22,12 @@ describe('parseConfig', () => {
         },
       },
       shared: {
-        production: [{
-          src: 'files',
-          dst: 'sites/default/files',
-        }],
+        production: [
+          {
+            src: 'files',
+            dst: 'sites/default/files',
+          },
+        ],
       },
     };
 

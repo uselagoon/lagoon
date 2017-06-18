@@ -8,7 +8,10 @@ import fs from 'fs';
 
 import type { Stats } from 'fs';
 
-export function readFile(filename: string, encOrOpts?: string | Object): Promise<string | Buffer> {
+export function readFile(
+  filename: string,
+  encOrOpts?: string | Object,
+): Promise<string | Buffer> {
   return new Promise((resolve, reject) => {
     fs.readFile(filename, encOrOpts || {}, (err, data) => {
       if (err) {
@@ -21,9 +24,13 @@ export function readFile(filename: string, encOrOpts?: string | Object): Promise
   });
 }
 
-export function writeFile(filename: string, data: Buffer | string, options?: Object | string): Promise<void> {
+export function writeFile(
+  filename: string,
+  data: Buffer | string,
+  options?: Object | string,
+): Promise<void> {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filename, data, options, (err) => {
+    fs.writeFile(filename, data, options, err => {
       if (err) {
         reject(err);
       }

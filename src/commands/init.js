@@ -11,21 +11,17 @@ import typeof { default as Yargs } from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'init';
-const description = 'Creates a .amazeeio.yml config in the current working directory';
+const description =
+  'Creates a .amazeeio.yml config in the current working directory';
 
 export async function setup(yargs: Yargs): Promise<Object> {
-  return yargs
-    .usage(`$0 ${name} - ${description}`)
-    .argv;
+  return yargs.usage(`$0 ${name} - ${description}`).argv;
 }
 
 type Args = BaseArgs;
 
 export async function run(args: Args): Promise<number> {
-  const {
-    cwd,
-    clog = console.log,
-  } = args;
+  const { cwd, clog = console.log } = args;
 
   const filename = path.join(cwd, '.amazeeio.yml');
 

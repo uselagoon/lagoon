@@ -8,9 +8,7 @@ jest.mock('../../query');
 const _mock = (mockFn: any): JestMockFn => mockFn;
 
 const mockErrorResponse = {
-  errors: [
-    { message: 'something something error' },
-  ],
+  errors: [{ message: 'something something error' }],
 };
 
 describe('siteGroupInfo', () => {
@@ -47,7 +45,9 @@ describe('siteGroupInfo', () => {
   };
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockErrorResponse));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockErrorResponse),
+    );
 
     const clog = jest.fn();
 
@@ -75,7 +75,9 @@ describe('siteGroupInfo', () => {
   });
 
   it('should list found information for given sitegroup', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse1));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse1),
+    );
 
     const clog = jest.fn();
 
@@ -147,9 +149,10 @@ describe('siteInfo', () => {
     },
   };
 
-
   it('should detect ambiguity and propose more specific parameters', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse1));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse1),
+    );
 
     const clog = jest.fn();
 
@@ -164,7 +167,9 @@ describe('siteInfo', () => {
   });
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockErrorResponse));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockErrorResponse),
+    );
 
     const clog = jest.fn();
 
@@ -179,7 +184,9 @@ describe('siteInfo', () => {
   });
 
   it('should show table with information about sitegroup', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse2));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse2),
+    );
 
     const clog = jest.fn();
 
@@ -194,4 +201,3 @@ describe('siteInfo', () => {
     expect(clog.mock.calls).toMatchSnapshot();
   });
 });
-
