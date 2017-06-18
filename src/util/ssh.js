@@ -6,7 +6,7 @@ type Connection = {
   exec: (
     connection: Connection,
     command: string,
-    options?: ExecOptions
+    options?: ExecOptions,
   ) => Connection,
   on: (event: string, callback: Function) => Connection,
 };
@@ -39,13 +39,14 @@ type ExecOptions = {};
 export async function sshExec(
   connection: Connection,
   command: string,
-  options?: ExecOptions = {}
+  options?: ExecOptions = {},
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     connection.exec(command, options, (error, stream) => {
       if (error) {
         reject(error);
-      } else {
+      }
+      else {
         stream.on('data', data => {
           resolve(data);
         });

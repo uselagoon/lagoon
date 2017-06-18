@@ -6,7 +6,6 @@ import os from 'os';
 import path from 'path';
 import { sshConnect, sshExec } from '../util/ssh';
 import { readFile, writeFile } from '../util/fs';
-import { exitError } from '../exit';
 
 import typeof { default as Yargs } from 'yargs';
 import type { BaseArgs } from './index';
