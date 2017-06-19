@@ -1,0 +1,68 @@
+{
+  "private": true,
+  "scripts": {
+    "clean": "rimraf dist && rimraf logs && rimraf .repository",
+    "lint": "eslint src",
+    "test": "npm run lint && jest",
+    "test:watch": "jest --watch",
+    "build": "babel src -d dist",
+    "dev": "nodemon --watch src --exec 'node -r dotenv-extended/config -r babel-core/register' -- src",
+    "start": "node -r dotenv-extended/config dist",
+    "flow": "flow check"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.13.2",
+    "babel-eslint": "^6.1.2",
+    "babel-jest": "^14.1.0",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-flow-strip-types": "^6.18.0",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-plugin-transform-regenerator": "^6.11.4",
+    "babel-preset-es2015": "^6.13.2",
+    "eslint": "^3.3.1",
+    "eslint-plugin-flow-vars": "^0.5.0",
+    "eslint-plugin-flowtype": "^2.25.0",
+    "eslint-plugin-graphql": "^0.2.7",
+    "flow-bin": "^0.48.0",
+    "jest": "^18.1.0",
+    "lint-staged": "^3.2.1",
+    "nodemon": "^1.11.0",
+    "pre-commit": "^1.1.3",
+    "prettier": "^0.11.0",
+    "rimraf": "^2.5.4"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.16.0",
+    "body-parser": "^1.15.0",
+    "compression": "^1.6.1",
+    "cors": "^2.7.1",
+    "dotenv": "^4.0.0",
+    "dotenv-extended": "^1.0.4",
+    "dotenv-safe": "^4.0.3",
+    "express": "^4.13.4",
+    "express-graphql": "^0.5.1",
+    "graphql": "^0.6.2",
+    "graphql-relay": "^0.4.0",
+    "js-yaml": "^3.6.1",
+    "morgan": "^1.7.0",
+    "nodegit": "^0.16.0",
+    "ramda": "^0.23.0",
+    "redux": "^3.6.0",
+    "redux-saga": "^0.14.3",
+    "winston": "^2.3.0"
+  },
+  "jest": {
+    "rootDir": "src",
+    "testEnvironment": "node"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "pre-commit": [
+    "flow"
+  ]
+}
