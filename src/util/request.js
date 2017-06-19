@@ -1,6 +1,6 @@
 // @flow
 
-import https from 'https';
+import http from 'http';
 import defer from './defer';
 
 export type RequestOptions = {
@@ -18,7 +18,7 @@ export default function request(options: RequestOptions): Promise<Object> {
 
   const def = defer();
 
-  const req = https.request(options, res => {
+  const req = http.request(options, res => {
     res.setEncoding('utf8');
 
     let rawData = '';
@@ -27,10 +27,10 @@ export default function request(options: RequestOptions): Promise<Object> {
     });
     res.on('end', () => {
       try {
+        console.log(rawData);
         let parsed = JSON.parse(rawData);
         def.resolve(parsed);
-      }
-      catch (e) {
+      } catch (e) {
         def.reject(e);
       }
     });

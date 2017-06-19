@@ -30,11 +30,11 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name} sites`,
-      'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file',
+      'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file'
     )
     .example(
       `$0 ${name} sites -s mysitegroup`,
-      'Lists all sites for a specific sitegroup (instead of using the config file)',
+      'Lists all sites for a specific sitegroup (instead of using the config file)'
     ).argv;
 }
 
@@ -62,7 +62,7 @@ export async function run(args: Args): Promise<number> {
       return exitError(
         clog,
         `Unknown target ${target} ... possible values: 'sites'`,
-        1,
+        1
       );
   }
 }
@@ -91,7 +91,7 @@ export async function listSites(args: MainArgs): Promise<number> {
   }`;
 
   const result = await runGQLQuery({
-    endpoint: 'https://amazeeio-api-staging.herokuapp.com/graphql',
+    endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
     query,
     variables: { sitegroup },
   });
@@ -106,7 +106,7 @@ export async function listSites(args: MainArgs): Promise<number> {
   const nodes = compose(
     sortBySite,
     map(edge => prop('node', edge)),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
   )(result);
 
   if (nodes.length === 0) {
