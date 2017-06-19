@@ -50,15 +50,15 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(`$0 ${name}`, 'Shows information about the configured sitegroup')
     .example(
       `$0 ${name} mysite`,
-      'Shows information about given site "mysite" (does only work with single branch)',
+      'Shows information about given site "mysite" (does only work with single branch)'
     )
     .example(
       `$0 ${name} mysite@prod`,
-      'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)',
+      'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)'
     )
     .example(
       `$0 ${name} -s mysitegroup mysite`,
-      'Shows information about given site "mysite" in given sitegroup "somesitegroup"',
+      'Shows information about given site "mysite" in given sitegroup "somesitegroup"'
     ).argv;
 }
 
@@ -100,25 +100,25 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const query = gql`query querySites($sitegroup: String!) {
     siteGroupByName(name: $sitegroup) {
-        gitUrl
-        siteGroupName
-        slack
-        client {
-          clientName
-        }
-        sites(first: 1000) {
-          edges {
-            node {
-              siteName
-              siteBranch
-            }
+      gitUrl
+      siteGroupName
+      slack
+      client {
+        clientName
+      }
+      sites(first: 1000) {
+        edges {
+          node {
+            siteName
+            siteBranch
           }
         }
       }
+    }
   }`;
 
   const result = await runGQLQuery({
-    endpoint: 'https://amazeeio-api-staging.herokuapp.com/graphql',
+    endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
     query,
     variables: { sitegroup },
   });
@@ -140,7 +140,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
       const { siteName, siteBranch } = prop(['node'], edge);
       return `${siteName}:${siteBranch}`;
     }),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
   )(result);
 
   const formatSlack = slack => {
@@ -233,7 +233,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   }`;
 
   const result = await runGQLQuery({
-    endpoint: 'https://amazeeio-api-staging.herokuapp.com/graphql',
+    endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
     query,
     variables: { sitegroup },
   });
@@ -257,7 +257,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   const nodes = compose(
     filter(matchesSiteAndBranch),
     map(edge => prop('node', edge)),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
   )(result);
 
   if (nodes.length === 0) {
@@ -268,10 +268,10 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   // For the case if there was no branch name given to begin with
   if (nodes.length > 1) {
     clog(
-      'I found multiple sites with the same name, but different branches, maybe try following parameter...',
+      'I found multiple sites with the same name, but different branches, maybe try following parameter...'
     );
     forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(
-      nodes,
+      nodes
     );
     return 0;
   }
