@@ -24,12 +24,12 @@ database.insert(
       },
     },
   },
-  '_design/auth',
+  '_design/auth'
 );
 
 export function insert(
   doc: Object,
-  params?: string | Object | null = null,
+  params?: string | Object | null = null
 ): Promise<Object> {
   return new Promise((resolve, reject) => {
     database.insert(doc, params, (error, body) => {
@@ -69,7 +69,7 @@ export function get(id: string): Promise<Object> {
 export function view(
   design: string,
   view: string,
-  values: Object,
+  values: Object
 ): Promise<Object> {
   return new Promise((resolve, reject) => {
     database.view(design, view, values, (error, body) => {
