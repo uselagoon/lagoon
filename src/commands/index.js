@@ -18,10 +18,12 @@ export type CommandModule = {
   run: (argv: Object) => Promise<number>,
 };
 
+import login from './login';
+import logout from './logout';
 import list from './list';
 import info from './info';
 import init from './init';
 
-export { list, init, info };
+export { login, logout, list, init, info };
 
-export default ([list, init, info]: Array<CommandModule>);
+export default ([login, logout, list, init, info]: Array<CommandModule>);

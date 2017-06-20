@@ -41,6 +41,19 @@ export function writeFile(
   });
 }
 
+export function deleteFile(filename: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    fs.unlink(filename, err => {
+      if (err) {
+        reject(err);
+      }
+      else {
+        resolve();
+      }
+    });
+  });
+}
+
 export function lstat(path: string): Promise<Stats> {
   return new Promise((resolve, reject) => {
     fs.lstat(path, (err, stat) => {
