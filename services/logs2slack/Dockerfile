@@ -1,23 +1,20 @@
-FROM amazeeio/centos7-node:node6
-
-# Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps
+FROM amazeeio/centos7-node-builder:6 as builder
+ENV NODE_ENV production
 COPY package.json yarn.lock /app/
+RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
 
-# Telling yarn and node that we are gonna be production
- ENV NODE_ENV production
+FROM amazeeio/centos7-node:6
+ENV NODE_ENV production
+COPY --from=builder /app/node_modules /app/node_modules
+COPY . /app/
 
-# Now copy in our application code.
-COPY . /app
+ARG AMAZEEIO_GIT_BRANCH=undefined
 
-# run yarn install and remove the .yarn-cache as we don't need that on our image
-RUN yarn install --pure-lockfile && rm -rf $HOME/.cache/yarn
+ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BRANCH}-rabbitmq"
+ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:8080"
 
-# building our node app
 RUN yarn run build
 
-# Fixing permissions of the app folder so that the openshift user can access it with write
-RUN chmod g+rw -R /app
+RUN fix-permissions /app/
 
-CMD bash -c "yarn run start"
-
-EXPOSE 7777
+CMD ["yarn", "start"]
