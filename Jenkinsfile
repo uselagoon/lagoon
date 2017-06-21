@@ -11,12 +11,6 @@ node {
   lock('minishift') {
     try {
       ansiColor('xterm') {
-        stage ('checkout services') {
-          sshagent (credentials: ['lagoon-ci']) {
-            sh "./initGit.sh"
-          }
-        }
-
         parallel (
           'start services': {
             stage ('start services') {
