@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeioservice-template
+parameters:
+  - name: TAG
+    description: Which tag should be deployed
+    required: true
+  - name: NAME
+    description: How is the resources are called
+    required: true
+  - name: SHORT_NAME
+    description: Name of resources in max 24 chars
+    required: true
+  - name: SITEGROUP
+    description: Name of the site group
+    required: true
+  - name: OPENSHIFT_PROJECT
+    description: Name of the openshift project we are created in
+    required: true
+  - name: ELASTICSEARCH_URL
+    description: URL of elasticsearch to contact to
+  - name: RABBITMQ_HOST
+    description: host of rabbitmq to connect to
+  - name: RABBITMQ_USER
+    description: user of rabbitmq to connect to
+  - name: RABBITMQ_PASSWORD
+    description: password of rabbitmq to connect to
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+    revisionHistoryLimit: 2
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: ${NAME}
+          deploymentconfig: ${NAME}
+      spec:
+        containers:
+        - image: ${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG}
+          name: ${NAME}
+          env:
+          - name: ELASTICSEARCH_URL
+            value: ${ELASTICSEARCH_URL}
+          - name: RABBITMQ_HOST
+            value: ${RABBITMQ_HOST}
+          - name: RABBITMQ_USER
+            value: ${RABBITMQ_USER}
+          - name: RABBITMQ_PASSWORD
+            value: ${RABBITMQ_PASSWORD}
+          - name: XPACK_MONITORING_ELASTICSEARCH_URL
+            value: ${ELASTICSEARCH_URL}
+          ports:
+          - containerPort: 9600
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              memory: 1000Mi
+            requests:
+              cpu: 200m
+              memory: 300Mi
+          readinessProbe:
+            httpGet:
+              port: http
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              port: http
+            initialDelaySeconds: 120
+    test: false
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${SITEGROUP}:${TAG}

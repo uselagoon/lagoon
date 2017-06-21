@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeioservice-template
+parameters:
+  - name: TAG
+    description: Which tag should be deployed
+    required: true
+  - name: NAME
+    description: How is the resources are called
+    required: true
+  - name: SHORT_NAME
+    description: Name of resources in max 24 chars
+    required: true
+  - name: SITEGROUP
+    description: Name of the site group
+    required: true
+  - name: OPENSHIFT_PROJECT
+    description: Name of the openshift project we are created in
+    required: true
+  - name: ELASTICSEARCH_URL
+    description: URL of elasticsearch to contact to
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+    revisionHistoryLimit: 2
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: ${NAME}
+          deploymentconfig: ${NAME}
+      spec:
+        containers:
+        - image: ${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG}
+          name: ${NAME}
+          ports:
+          - containerPort: 5601
+            name: http
+            protocol: TCP
+          env:
+          - name: ELASTICSEARCH_URL
+            value: ${ELASTICSEARCH_URL}
+          resources:
+            limits:
+              cpu: 500m
+              memory: 800Mi
+            requests:
+              cpu: 200m
+              memory: 300Mi
+          readinessProbe:
+            httpGet:
+              port: http
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              port: http
+            initialDelaySeconds: 120
+    test: false
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${SITEGROUP}:${TAG}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${SHORT_NAME}
+  spec:
+    ports:
+    - name: http
+      targetPort: http
+      port: 80
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+## ## No route for production right now, until https://ticket.vshn.net/browse/AMZE-329 is figured out
+##- apiVersion: v1
+##  kind: Route
+##  metadata:
+##    creationTimestamp: null
+##    labels:
+##      app: ${NAME}
+##    name: ${NAME}
+##  spec:
+##    host: kibana.amazeeio.cloud
+##    port:
+##      targetPort: http
+##    to:
+##      kind: Service
+##      name: ${SHORT_NAME}

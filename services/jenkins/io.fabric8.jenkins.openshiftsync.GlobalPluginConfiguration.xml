@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<io.fabric8.jenkins.openshiftsync.GlobalPluginConfiguration plugin="openshift-sync@0.1.6">
+  <enabled>false</enabled>
+  <server></server>
+  <namespace>default</namespace>
+</io.fabric8.jenkins.openshiftsync.GlobalPluginConfiguration>

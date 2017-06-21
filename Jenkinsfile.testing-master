@@ -1,0 +1,16 @@
+node {
+
+  def docker_compose = "docker run -t --rm -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0"
+
+
+  stage ('Checkout') {
+    checkout scm
+  }
+
+  ansiColor('xterm') {
+    stage ('run test') {
+      sh "${docker-compose} -f tests/docker-compose.yaml run --rm tests-master ansible-playbook /ansible/playbooks/node.yaml"
+    }
+  }
+
+}

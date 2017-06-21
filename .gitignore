@@ -1,0 +1,7 @@
+node-helpers
+virtual-machine
+deploytest
+.DS_Store
+*.retry
+startVagrant.sh
+minishift

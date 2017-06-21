@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeioservice-template
+parameters:
+  - name: BRANCH
+    description: Which branch (also docker image tag) should be deployed
+    required: true
+  - name: RABBITMQ_HOST
+    description: Hostname of the RabbitMQ Server to connect to
+    required: true
+  - name: JENKINS_URL
+    description: Hostname of the Jenkins Server
+    required: true
+  - name: AMAZEEIO_API_HOST
+    description: Hostname of the API
+    required: true
+  - name: AMAZEEIO_SERVICE
+    description: How is this service called
+    required: true
+  - name: OPENSHIFT_PROJECT
+    description: Name of the openshift project we are created in
+    required: true
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${AMAZEEIO_SERVICE}-${BRANCH}
+    name: ${AMAZEEIO_SERVICE}-${BRANCH}
+  spec:
+    replicas: 1
+    selector:
+      app: ${AMAZEEIO_SERVICE}-${BRANCH}
+      deploymentconfig: ${AMAZEEIO_SERVICE}-${BRANCH}
+    revisionHistoryLimit: 2
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: ${AMAZEEIO_SERVICE}-${BRANCH}
+          deploymentconfig: ${AMAZEEIO_SERVICE}-${BRANCH}
+      spec:
+        containers:
+        - image: ${OPENSHIFT_PROJECT}/${AMAZEEIO_SERVICE}:${BRANCH}
+          name: ${AMAZEEIO_SERVICE}-${BRANCH}
+          env:
+          - name: RABBITMQ_HOST
+            value: ${RABBITMQ_HOST}
+          - name: JENKINS_URL
+            value: ${JENKINS_URL}
+          - name: AMAZEEIO_API_HOST
+            value: ${AMAZEEIO_API_HOST}
+          - name: BRANCH
+            value: ${BRANCH}
+          resources:
+            limits:
+              memory: 500Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
+    test: false
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${AMAZEEIO_SERVICE}-${BRANCH}
+        from:
+          kind: ImageStreamTag
+          name: ${AMAZEEIO_SERVICE}:${BRANCH}
+  status: {}

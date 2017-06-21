@@ -1,0 +1,147 @@
+node {
+  env.BRANCH = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-') // branch names are used for Docker images and could be uppercase or slashes, Docker doesn't like that, so we lower case them.
+  env.BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-')
+  env.IMAGE = env.BUILD_TAG // Docker image that is built for testing
+  env.OPENSHIFT_APP_YAML = "development.app.yml"
+  env.AMAZEEIO_SERVICE = "rabbitmq"
+  env.OPENSHIFT_PROJECT = "amze-amazeeio-dev"
+
+  env.JENKINS_BLUE_URL = "${env.JENKINS_URL}/blue/organizations/jenkins/amazee.io%2F${env.AMAZEEIO_SERVICE}/detail"
+
+  // on Pull Requests builds we want to test against the base branch rabbigtmq
+  // Jenkins fills the target into 'CHANGE_TARGET' env variable for pull request builds
+  // on regular branch builds this env variable is empty.
+  if (env.CHANGE_TARGET != null) {
+      env.TARGET_BRANCH = env.CHANGE_TARGET.toLowerCase().replaceAll('%2f','-')
+  } else {
+      env.TARGET_BRANCH = env.BRANCH
+  }
+
+  if (env.BRANCH == 'master') {
+    env.OPENSHIFT_APP_YAML = "production.app.yml"
+    env.OPENSHIFT_PROJECT = "amze-amazeeio-prod"
+  }
+
+  stage ('Build Info') {
+     sh 'env | sort'
+  }
+
+  stage ('Checkout') {
+     checkout scm
+  }
+
+  stage ('build image') {
+    try {
+      sh "docker build --no-cache --pull -t ${env.IMAGE} -f Dockerfile ."
+    } catch (e) {
+      error(e, 'build image')
+    }
+  }
+
+  stage ('tests') {
+    // Running Tests in parallel, for faster completion
+    parallel (
+      //test_unit: {
+      //  try {
+      //    sh "IMAGE_NAME=${env.IMAGE} test/test-unit"
+      //  } catch (e) {
+      //    error(e, 'unit test')
+      //  }
+      //},
+      // test_http: {
+      //   try {
+      //     sh "IMAGE_NAME=${env.IMAGE} test/test-http-ssr"
+      //   } catch (e) {
+      //     error(e, 'http test')
+      //   }
+      // },
+      //test_lint: {
+      //  try {
+      //    sh "IMAGE_NAME=${env.IMAGE} test/test-lint"
+      //  } catch (e) {
+      //    error(e, 'lint')
+      //  }
+      //}
+    )
+  }
+
+  // Building and Testing is done now, informing Devs about that.
+  success('Deployment started...')
+
+  // Updating the OpenShift Recources (they probably already exist, but in case we have some changes)
+  // Tagging the new image, which will cause OpenShift to trigger a new deployment
+  stage ('OpenShift: update Resources') {
+    try {
+      sh "docker run --rm -v $WORKSPACE/.openshift:/tmp -w /tmp/ -e KUBECONFIG=.kubeconfig michelesr/oc sh -c 'oc process -n ${env.OPENSHIFT_PROJECT} -f ${env.OPENSHIFT_APP_YAML} -v BRANCH=${env.BRANCH} -v AMAZEEIO_SERVICE=${env.AMAZEEIO_SERVICE} | oc apply -n ${env.OPENSHIFT_PROJECT} -f -'"
+    } catch (e) {
+      error(e, 'OpenShift: update Resources')
+    }
+  }
+
+  stage ('docker tag and push') {
+    // The Docker Registry cannot handle multiple pushes at the same time, so we make sure that multiple Jenkins Jobs are not pushing at the same time
+    lock('webhook-handler-registry') {
+      try {
+        sh "docker tag ${env.IMAGE} registry.appuio.ch/${env.OPENSHIFT_PROJECT}/${env.AMAZEEIO_SERVICE}:${env.BRANCH}"
+        sh "DOCKER_CONFIG=$WORKSPACE/.openshift docker push registry.appuio.ch/${env.OPENSHIFT_PROJECT}/${env.AMAZEEIO_SERVICE}:${env.BRANCH}"
+      } catch (e) {
+        error(e, 'tag and push image')
+      }
+    }
+  }
+
+
+
+
+
+  // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
+  stage ('OpenShift: deployment') {
+    try {
+      OPENSHIFT_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhbXplLWFtYXplZWlvIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImplbmtpbnMtdG9rZW4tN2FqNm8iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiamVua2lucyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjFiNzVhYzdjLWM2NWMtMTFlNi1iNzU1LWZhMTYzZTNlYzczYSIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDphbXplLWFtYXplZWlvOmplbmtpbnMifQ.DTJZCwpEXYgzyZJkCdqzkGGsHVAhMsBt8amri2tfPb_f96kelG9agUpnw7YFg0yi2lGFr8SSYL8Gvuxn4w01vWtsLsba289pRM9Hb_1ISatSSV539MwPGgi7fU7qzbM4g2iVb1imlBHImomJCWW2CIn5hAyUDxJwy9XvcHrj6Tb14_G6buKOriGBZz6xBi9YjNjxyy9YznV9XdSVxLsWB7EhnrRxoxIEieOWDZPqujomIAXs6tO7apag4MddYz-5Xu86VmyJ6dKNJeKvEHtWXT3O5IEj0HfvVFJyJE1JGp_-XgO88R8tX_r9f2IOO-zr1ON85nmJcL9FLdKhQ8gwQg"
+      env.SKIP_TLS = true
+      openshiftVerifyDeployment apiURL: 'https://console.appuio.ch:443', authToken: OPENSHIFT_TOKEN, depCfg: "${env.AMAZEEIO_SERVICE}-${env.BRANCH}", namespace: "${env.OPENSHIFT_PROJECT}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+    } catch (e) {
+      error(e, 'OpenShift: deployment')
+    }
+  }
+
+  deployed()
+
+  stage ('cleanup Docker Images') {
+    cleanupImage()
+  }
+
+}
+
+def error(e, step) {
+  currentBuild.result = "FAILED"
+  url = "${env.JENKINS_BLUE_URL}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/pipeline"
+  message = ":bangbang: *[${env.AMAZEEIO_SERVICE}/${env.BRANCH_NAME}] <${url}|Build #${env.BUILD_NUMBER}> failed* \nStep: ${step} "
+  sendslack('danger', message)
+  cleanupImage()
+  throw e
+}
+
+def success(message) {
+  url = "${env.JENKINS_BLUE_URL}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/pipeline"
+  message = ":white_check_mark: *[${env.AMAZEEIO_SERVICE}/${env.BRANCH_NAME}] <${url}|Build #${env.BUILD_NUMBER}> passed* \n${message} "
+  sendslack('good', message)
+}
+
+def deployed() {
+  url = "${env.JENKINS_BLUE_URL}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/pipeline"
+  message = ":new: *[${env.AMAZEEIO_SERVICE}/${env.BRANCH_NAME}] <${url}|Build #${env.BUILD_NUMBER}> deployed*"
+  sendslack('good', message)
+}
+
+def sendslack(color, message) {
+  slackSend channel: 'amazeeio-testing', color: color, message: message, teamDomain: 'amazee', token: 'xFWAhjdCiXO26K7KXMsBwGT4'
+}
+
+def cleanupImage() {
+  try {
+    sh "docker rmi -f ${env.IMAGE}"
+  } catch (e) {
+    echo "Removal of Docker image '${env.IMAGE}' failed, ignoring this."
+  }
+}

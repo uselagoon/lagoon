@@ -1,0 +1,5 @@
+.openshift/*
+.yarn*
+node_modules/*
+Jenkinsfile
+.dockerignore

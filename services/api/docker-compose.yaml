@@ -1,0 +1,36 @@
+version: '2'
+services:
+  api:
+    build: .
+    command: yarn run dev
+    environment:
+      - GIT_REPOSITORY=https://github.com/amazeeio/api-test-hiera.git
+      - GIT_BRANCH_PULL=master
+      - GIT_USERNAME=3dfc013c579f85bbcd4cd0c5d11cda325a086ec8
+      - GIT_PASSWORD=x-oauth-basic
+      - SYNC_INTERVAL=10000
+    volumes:
+      # These files and folders already exists within the docker image, but we mount it again
+      # so there is no rebuild necessary when we just change with them.
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./yarn.lock:/app/yarn.lock
+    ports:
+      - "8080:8080"
+  api-prodhiera:
+    build: .
+    command: yarn run dev
+    environment:
+      - GIT_REPOSITORY=https://git.vshn.net/amazee/amazee_hieradata.git
+      - GIT_BRANCH_PULL=master
+      - GIT_USERNAME=michael.schmid
+      - GIT_PASSWORD=4ahjnuCiMKb98nmJtr3AVNR
+      - SYNC_INTERVAL=10000
+    volumes:
+      # These files and folders already exists within the docker image, but we mount it again
+      # so there is no rebuild necessary when we just change with them.
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./yarn.lock:/app/yarn.lock
+    ports:
+      - "8888:8080"      
