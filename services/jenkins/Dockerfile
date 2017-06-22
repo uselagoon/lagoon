@@ -31,6 +31,9 @@ COPY io.fabric8.jenkins.openshiftsync.GlobalPluginConfiguration.xml /usr/share/j
 
 ENV GIT_COMMITTER_NAME=technology@amazee.io GIT_COMMITTER_EMAIL=amazeeio-jenkins
 
+ENV ADMIN_PASSWORD=fZk3bf7hsbZCQ4kYHeYkXYNitCoy6u3BbmZrm9FR
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Xmx2048m"
+
 # Changing permissions so we can run on openshift
 RUN chgrp root $JENKINS_HOME
 RUN chmod a+rw -R $JENKINS_HOME
