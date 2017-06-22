@@ -12,6 +12,8 @@ node {
          extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]],
          userRemoteConfigs: scm.userRemoteConfigs
     ])
+    // create a new branch 'ci-local' from the current HEAD, this is necessary as the api service searches for a branch 'ci-local'
+    sh "cd hiera && git branch -f ci-local HEAD && cd .."
   }
 
   lock('minishift') {
