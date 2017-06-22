@@ -1,23 +1,5 @@
 // @flow
 
-export type ClientFile = {
-  amazeeio_clients: {
-    [clientName: string]: Client,
-  },
-};
-
-export type SiteGroupFile = {
-  amazeeio_sitegroups: {
-    [siteGroupName: string]: SiteGroup,
-  },
-}
-
-export type SiteFile = {
-  drupalsites: {
-    [siteName: string]: Site,
-  },
-};
-
 type SshKeys = {
   [sshKeyName: string]: {
     key: string,
@@ -65,4 +47,33 @@ export type SiteGroup = {
     inform_start: boolean,
     inform_channel: string,
   }
+};
+
+export type ClientFile = {
+  amazeeio_clients: {
+    [clientName: string]: Client,
+  },
+};
+
+export type SiteGroupFile = {
+  [siteGroupName: string]: ?SiteGroup,
+}
+
+export type SiteFile = {
+  [siteName: string]: ?Site,
+};
+
+// process.env stuff
+export type ApiEnv = {
+  GIT_USERNAME: string,
+  GIT_PASSWORD: string,
+  GIT_REPOSITORY: string,
+  // Upstream repository to sync
+  GIT_BRANCH_PULL: string,
+  // branch to pull from
+  GIT_BRANCH_PUSH: string,
+  // branch to push to
+  GIT_PUSH_ENABLE: boolean,
+  GIT_SYNC_INTERVAL: number,
+  GIT_REPO_DIR: string
 };

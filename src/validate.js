@@ -2,19 +2,7 @@
 
 const path = require("path");
 
-type ApiEnv = {
-  GIT_USERNAME: string,
-  GIT_PASSWORD: string,
-  GIT_REPOSITORY: string,
-  // Upstream repository to sync
-  GIT_BRANCH_PULL: string,
-  // branch to pull from
-  GIT_BRANCH_PUSH: string,
-  // branch to push to
-  GIT_PUSH_ENABLE: boolean,
-  GIT_SYNC_INTERVAL: number,
-  GIT_REPO_DIR: string
-};
+import type { ApiEnv } from './types';
 
 const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
   const {

@@ -6,7 +6,6 @@ import { defer } from './util/promise';
 import app from './app';
 
 import type { ApiStore } from './createStore';
-import type { Storage } from './createStorage';
 
 const normalizePort = (value) => {
   const port = parseInt(value, 10);
@@ -18,7 +17,7 @@ const normalizePort = (value) => {
   return false;
 };
 
-export default async (store: ApiStore, storage: Storage): Promise<Server> => {
+export default async (store: ApiStore): Promise<Server> => {
   debug('Starting to boot the server.');
 
   const port = normalizePort(process.env.PORT || '80');

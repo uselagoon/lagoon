@@ -111,7 +111,7 @@ declare module 'nodegit' {
       author: Signature,
       committer: Signature,
       message: string
-    ) => Oid,
+    ) => Promise<Oid>,
     checkoutBranch: (branch: string, opts?: CheckoutOptions) => Promise<void>, 
     getRemote: (remote: string | Remote, cb?: Function) => Promise<Remote>,
     fetchAll: (fetchOptions: FetchOptions, cb?: Function) => Promise<void>,
@@ -156,5 +156,5 @@ declare module 'nodegit' {
     }
   };
 
-  declare export default NodeGit;
+  declare module.exports: NodeGit;
 }

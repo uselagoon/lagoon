@@ -1,124 +1,123 @@
 // @flow
 
-import Git from 'nodegit';
+const Git = require("nodegit");
 
 import type {
   Repository,
   Signature,
   Revparse,
   Remote,
-  CredAcquireCb as CredCb,
-} from 'nodegit';
+  CredAcquireCb as CredCb
+} from "nodegit";
 
 export type {
   Repository,
   CredAcquireCb as CredCb,
   Remote,
-  Signature,
-} from 'nodegit';
+  Signature
+} from "nodegit";
 
-export function createSignature(
+const createSignature = (
   time?: number = parseInt(Date.now() / 1000, 10),
   offset?: number = new Date().getTimezoneOffset()
-): Signature {
-  return Git.Signature.create('API', 'api@amazee.io', time, offset);
-}
+): Signature =>
+  Git.Signature.create("API", "api@amazee.io", time, offset);
 
-export function createCredentialsCb(
-  username: string,
-  password: string
-): CredCb {
-  return () => {
-    return Git.Cred.userpassPlaintextNew(username, password);
-  };
-}
+const createCredentialsCb = (username: string, password: string): CredCb =>
+  () => Git.Cred.userpassPlaintextNew(username, password);
 
-function expectDefaultState(repository: Repository): Repository {
+const expectDefaultState = (repository: Repository): Repository => {
   if (!repository.isDefaultState()) {
-    throw new Error('The repository is not in the default state.');
+    throw new Error("The repository is not in the default state.");
   }
 
   return repository;
-}
+};
 
-export async function getRepository(
+const getRepository = async (
   url: string,
   branch: string,
   destination: string,
   credCb: CredCb
-): Promise<Repository> {
-  try {
-    // Get the repository if it already exists.
-    return await Git.Repository.open(destination);
-  }
-  catch (e) {
-    // Repository doesn't exist locally yet. Clone it.
-    return await Git.Clone.clone(url, destination, {
-      checkoutBranch: branch,
-      fetchOpts: {
-        callbacks: { certificateCheck: () => 1, credentials: credCb },
-      },
-    });
-  }
-}
+): Promise<Repository> =>
+  {
+    try {
+      // Get the repository if it already exists.
+      return await Git.Repository.open(destination);
+    } catch (e) {
+      // Repository doesn't exist locally yet. Clone it.
+      return await Git.Clone.clone(url, destination, {
+        checkoutBranch: branch,
+        fetchOpts: {
+          callbacks: { certificateCheck: () => 1, credentials: credCb }
+        }
+      });
+    }
+  };
 
-export async function getRemote(
-  repository: Repository,
-  remote: string
-): Promise<Remote> {
-  return await repository.getRemote(remote);
-}
+const getRemote = (repository: Repository, remote: string): Promise<Remote> =>
+  repository.getRemote(remote);
 
-export async function remotePush(
+const remotePush = (
   remote: Remote,
   refs: Array<string>,
   credCb: CredCb
-): Promise<void> {
-  // Attempt to push any pending commits.
-  await remote.push(refs, {
-    callbacks: { certificateCheck: () => 1, credentials: credCb },
+): Promise<void> =>
+  remote.push(refs, {
+    // Attempt to push any pending commits.
+    callbacks: { certificateCheck: () => 1, credentials: credCb }
   });
-}
 
-export async function revparseSingle(
+const revparseSingle = (
   repository: Repository,
   spec: string
-): Promise<Revparse> {
-  return await Git.Revparse.single(repository, spec);
-}
+): Promise<Revparse> =>
+  Git.Revparse.single(repository, spec);
 
-export async function fetchAll(
+const fetchAll = (
   repository: Repository,
   credentialsCb: CredCb
-): Promise<void> {
-  // Fetch any changes from the remote.
-  await repository.fetchAll({
-    callbacks: { certificateCheck: () => 1, credentials: credentialsCb },
+): Promise<void> =>
+  repository.fetchAll({
+    // Fetch any changes from the remote.
+    callbacks: { certificateCheck: () => 1, credentials: credentialsCb }
   });
-}
 
 // Open the repository directory or fetch it from the remote.
-export async function ensureRepository(
+const ensureRepository = async (
   url: string,
   branch: string,
   destination: string,
   credCb: CredCb
-): Promise<Repository> {
-  const repository = await getRepository(url, branch, destination, credCb);
+): Promise<Repository> =>
+  {
+    const repository = await getRepository(url, branch, destination, credCb);
 
-  // Ensure that we are on the right branch.
-  await repository.checkoutBranch(branch);
+    // Ensure that we are on the right branch.
+    await repository.checkoutBranch(branch);
 
-  return expectDefaultState(repository);
-}
+    return expectDefaultState(repository);
+  };
 
-export async function rebase(
+const rebase = (
   repository: Repository,
   branch: string,
   upstream: string,
   onto: string,
   sig: Signature
-): Promise<void> {
-  await repository.rebaseBranches(branch, upstream, onto, sig);
-}
+): Promise<void> =>
+  repository.rebaseBranches(branch, upstream, onto, sig);
+
+module.exports = {
+  createSignature,
+  createCredentialsCb,
+  expectDefaultState,
+  getRepository,
+  getRemote,
+  remotePush,
+  revparseSingle,
+  fetchAll,
+  ensureRepository,
+  rebase
+};
 
