@@ -102,11 +102,11 @@ services:
     build: services/api
     command: yarn run dev
     environment:
-      - GIT_REPOSITORY=file:///hiera
+      - GIT_REPOSITORY=file:///lagoon/hiera
       - GIT_BRANCH_PULL=ci-local
     volumes:
       - ./services/api/src:/app/src
-      - ./hiera:/hiera
+      - .:/lagoon
     ports:
       - "8080:3333"
   jenkins:
