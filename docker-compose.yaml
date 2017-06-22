@@ -134,10 +134,10 @@ services:
       - git
     environment:
       - WEBHOOK_HOST=webhook-handler
-      - WEBHOOK_PORT=7777
+      - WEBHOOK_PORT=3000
       - WEBHOOK_PROTOCOL=http
       - REST2TASKS_HOST=rest2tasks
-      - REST2TASKS_PORT=8000
+      - REST2TASKS_PORT=3000
       - REST2TASKS_PROTOCOL=http
       - OPENSHIFT_ROUTE_SUFFIX=192.168.77.100.nip.io
       - GIT_REPO_PREFIX=git@git:/git/
