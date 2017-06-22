@@ -5,7 +5,13 @@ node {
   deleteDir()
 
   stage ('Checkout') {
-    checkout scm
+    checkout([
+         $class: 'GitSCM',
+         branches: scm.branches,
+         doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+         extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]],
+         userRemoteConfigs: scm.userRemoteConfigs
+    ])
   }
 
   lock('minishift') {
