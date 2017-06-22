@@ -9,3 +9,9 @@ COPY logstash.conf /usr/share/logstash/pipeline/logstash.conf
 COPY logstash.yml /usr/share/logstash/config/logstash.yml
 
 RUN fix-permissions /usr/share/logstash
+
+ARG AMAZEEIO_GIT_BRANCH=undefined
+ENV RABBITMQ_HOST "${AMAZEEIO_GIT_BRANCH}-rabbitmq"
+ENV RABBITMQ_USER "amazeeio"
+ENV RABBITMQ_PASSWORD "NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3"
+ENV XPACK_MONITORING_ELASTICSEARCH_URL "http://${AMAZEEIO_GIT_BRANCH}-elasticsearch:9200"
