@@ -1,0 +1,53 @@
+{
+  "name": "amazeeio-webhook-handler",
+  "version": "0.9.0",
+  "description": "amazeeio handler for webhooks",
+  "main": "index.js",
+  "engines": {
+    "node": ">=6"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "start": "node build/index.js",
+    "build": "babel src -d build",
+    "dev": "nodemon src/index.js --exec babel-node"
+  },
+  "author": "Rod Vagg <r@va.gg> (http://r.va.gg)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rvagg/github-webhook-handler.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@amazeeio/amazeeio-api": "^0.1.7",
+    "@amazeeio/amazeeio-local-logging": "^0.1.3",
+    "@amazeeio/amazeeio-logs": "^0.1.11",
+    "@amazeeio/amazeeio-tasks": "^1.0.2",
+    "amqp-connection-manager": "^1.3.5",
+    "amqp-winston": "^1.0.7",
+    "amqplib": "^0.5.1",
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.21.0",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-flow-strip-types": "^6.21.0",
+    "babel-plugin-transform-object-rest-spread": "^6.20.2",
+    "babel-plugin-transform-regenerator": "^6.21.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.18.0",
+    "bluebird": "^3.5.0",
+    "lokka": "^1.7.0",
+    "lokka-transport-http": "^1.6.1",
+    "nodemon": "^1.11.0",
+    "uuid4": "^1.0.0",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.37.4",
+    "jest": "^18.1.0"
+  },
+  "jest": {
+    "rootDir": "src",
+    "testEnvironment": "node"
+  }
+}

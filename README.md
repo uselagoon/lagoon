@@ -5,6 +5,8 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 - Schema: [https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
 - Workshop Videos: [https://drive.google.com/drive/u/0/folders/0B7z7DpdobBRcY2pnS2FUVTNIVzg](https://drive.google.com/drive/u/0/folders/0B7z7DpdobBRcY2pnS2FUVTNIVzg)
 
+Please take into account that currently, multi-stage dockerfiles only work with [Docker CE Edge](https://docs.docker.com/edge/).
+
 ## Start Services
 
 1. clone me

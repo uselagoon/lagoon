@@ -1,0 +1,151 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeio-openshift-template-node
+parameters:
+  - name: TAG
+    description: Which docker image tag should be deployed
+    required: true
+  - name: NAME
+    description: Name of the objects to create
+    required: true
+  - name: SHORT_NAME
+    description: Shorter name of the objects to create, can be max 24 chars
+    required: true
+  - name: SITEGROUP
+    description: Which sitegroup this belongs to
+    required: true
+  - name: ROUTER_URL
+    description: URL of the Router
+    required: true
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: ${NAME}
+          deploymentconfig: ${NAME}
+      spec:
+        containers:
+        - image: ' '
+          name: api
+          env:
+          - name: GIT_REPOSITORY
+            value: https://git.vshn.net/amazee/amazee_hieradata.git
+          - name: GIT_USERNAME
+            value: michael.schmid
+          - name: GIT_PASSWORD
+            value: 4ahjnuCiMKb98nmJtr3AVNR
+          ports:
+          - containerPort: 3000
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+        - image: ' '
+          name: api-testhiera
+          env:
+          - name: GIT_REPOSITORY
+            value: https://github.com/amazeeio/api-test-hiera.git
+          - name: GIT_USERNAME
+            value: 3dfc013c579f85bbcd4cd0c5d11cda325a086ec8
+          - name: GIT_PASSWORD
+            value: x-oauth-basic
+          - name: PORT
+            value: '3001'
+          ports:
+          - containerPort: 3001
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3001
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - api
+        - api-testhiera
+        from:
+          kind: ImageStreamTag
+          name: ${SITEGROUP}:${TAG}
+      type: ImageChange
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${SHORT_NAME}
+  spec:
+    ports:
+    - name: 3000-tcp
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    - name: 3001-tcp
+      port: 3001
+      protocol: TCP
+      targetPort: 3001
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    host: ${ROUTER_URL}
+    port:
+      targetPort: 3000-tcp
+    to:
+      kind: Service
+      name: ${SHORT_NAME}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}-testhiera
+  spec:
+    host: testhiera-${ROUTER_URL}
+    port:
+      targetPort: 3001-tcp
+    to:
+      kind: Service
+      name: ${SHORT_NAME}

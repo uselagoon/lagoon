@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeio-openshift-template-node
+parameters:
+  - name: TAG
+    description: Which docker image tag should be deployed
+    required: true
+  - name: NAME
+    description: Name of the objects to create
+    required: true
+  - name: SHORT_NAME
+    description: Shorter name of the objects to create, can be max 24 chars
+    required: true
+  - name: SITEGROUP
+    description: Which sitegroup this belongs to
+    required: true
+  - name: ROUTER_URL
+    description: URL of the Router
+    required: true
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: ${NAME}
+          deploymentconfig: ${NAME}
+      spec:
+        containers:
+        - image: ' '
+          name: kibana
+          ports:
+          - containerPort: 5601
+            protocol: TCP
+          readinessProbe:
+            httpGet:
+              port: 5601
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              port: 5601
+            initialDelaySeconds: 120
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - kibana
+        from:
+          kind: ImageStreamTag
+          name: ${SITEGROUP}:${TAG}
+      type: ImageChange
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${SHORT_NAME}
+  spec:
+    ports:
+    - name: 5601-tcp
+      port: 5601
+      protocol: TCP
+      targetPort: 5601
+    selector:
+      app: ${NAME}
+      deploymentconfig: ${NAME}
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    host: ${ROUTER_URL}
+    port:
+      targetPort: 5601-tcp
+    to:
+      kind: Service
+      name: ${SHORT_NAME}

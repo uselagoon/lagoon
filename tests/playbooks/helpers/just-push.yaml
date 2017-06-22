@@ -18,4 +18,4 @@
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/github/push.yaml
+  - include: ../../tasks/webhook-github/push.yaml

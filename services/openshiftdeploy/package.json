@@ -1,0 +1,42 @@
+{
+  "name": "gitpush2ansibledeploy",
+  "version": "0.9.0",
+  "description": "Git Push 2 Ansible Deployment",
+  "main": "index.js",
+  "scripts": {
+    "start": "node build/index.js",
+    "build": "babel src -d build",
+    "dev": "nodemon src/index.js --exec babel-node"
+  },
+  "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amazeeio/gitpush2ansibledeploy"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@amazeeio/amazeeio-logs": "^0.1.11",
+    "@amazeeio/amazeeio-local-logging": "^0.1.3",
+    "amqp-connection-manager": "^1.3.5",
+    "amqp-winston": "^1.0.7",
+    "amqplib": "^0.4.2",
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.21.0",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-flow-strip-types": "^6.21.0",
+    "babel-plugin-transform-object-rest-spread": "^6.20.2",
+    "babel-plugin-transform-regenerator": "^6.21.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.18.0",
+    "es7-sleep": "^1.0.0",
+    "jenkins": "^0.19.0",
+    "lokka": "^1.7.0",
+    "lokka-transport-http": "^1.4.0",
+    "nodemon": "^1.11.0",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.37.4",
+    "jest": "^18.1.0"
+  }
+}

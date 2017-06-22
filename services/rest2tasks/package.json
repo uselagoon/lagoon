@@ -1,0 +1,35 @@
+{
+  "name": "react-isomorphic-form-demo",
+  "version": "1.0.0",
+  "description": "Demo app for react-isomorphic-form",
+  "main": "index.js",
+  "scripts": {
+    "start": "node build/index.js",
+    "build": "babel src -d build",
+    "dev": "nodemon src/index.js --exec babel-node"
+  },
+  "author": "Gert Hengeveld <info@ghengeveld.nl> (https://github.com/ghengeveld)",
+  "license": "ISC",
+  "dependencies": {
+    "@amazeeio/amazeeio-local-logging": "^0.1.3",
+    "@amazeeio/amazeeio-logs": "^0.1.11",
+    "@amazeeio/amazeeio-tasks": "^1.0.2",
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.21.0",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-flow-strip-types": "^6.21.0",
+    "babel-plugin-transform-object-rest-spread": "^6.20.2",
+    "babel-plugin-transform-regenerator": "^6.21.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.18.0",
+    "body-parser": "^1.17.2",
+    "cors": "^2.8.3",
+    "express": "^4.15.3",
+    "express-validator": "^3.2.0",
+    "nodemon": "^1.11.0"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.37.4",
+    "jest": "^18.1.0"
+  }
+}

@@ -18,7 +18,7 @@
   - include: ../../tasks/webhook-github/push.yaml
 
 
-- include: deploy_node.test.yaml
+- include: check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -40,7 +40,7 @@
   tasks:
   - include: ../../tasks/webhook-github/push.yaml
 
-- include: deploy_node.test.yaml
+- include: check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -62,7 +62,7 @@
   tasks:
   - include: ../../tasks/git-empty-commit-push.yaml
 
-- name: "{{ testname }} - webhook github push for third commit (fourth commit exists but will not be deployed)"
+- name: "{{ testname }} - webhook github push for third commit (fourth commit exists but will not yet be deployed)"
   hosts: localhost
   serial: 1
   vars:
@@ -71,7 +71,7 @@
   tasks:
   - include: ../../tasks/webhook-github/push.yaml
 
-- include: deploy_node.test.yaml
+- include: check-deployed.yaml
   vars:
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"

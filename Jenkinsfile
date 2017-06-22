@@ -5,22 +5,22 @@ node {
   deleteDir()
 
   stage ('Checkout') {
-    checkout scm
+    checkout([
+         $class: 'GitSCM',
+         branches: scm.branches,
+         doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+         extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]],
+         userRemoteConfigs: scm.userRemoteConfigs
+    ])
   }
 
   lock('minishift') {
     try {
       ansiColor('xterm') {
-        stage ('checkout services') {
-          sshagent (credentials: ['lagoon-ci']) {
-            sh "./initGit.sh"
-          }
-        }
-
         parallel (
           'start services': {
             stage ('start services') {
-              sh "${docker_compose} up -d --force"
+              sh "${docker_compose} up -d --force --build"
             }
           },
           'start openshift': {
