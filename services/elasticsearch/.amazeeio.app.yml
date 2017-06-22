@@ -2,22 +2,22 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: amazeeioservice-template
+  name: amazeeio-openshift-template-node
 parameters:
   - name: TAG
-    description: Which tag should be deployed
+    description: Which docker image tag should be deployed
     required: true
   - name: NAME
-    description: How is the resources are called
+    description: Name of the objects to create
     required: true
   - name: SHORT_NAME
-    description: Name of resources in max 24 chars
+    description: Shorter name of the objects to create, can be max 24 chars
     required: true
   - name: SITEGROUP
-    description: Name of the site group
+    description: Which sitegroup this belongs to
     required: true
-  - name: OPENSHIFT_PROJECT
-    description: Name of the openshift project we are created in
+  - name: ROUTER_URL
+    description: URL of the Router
     required: true
 objects:
 - apiVersion: v1
@@ -32,7 +32,6 @@ objects:
     selector:
       app: ${NAME}
       deploymentconfig: ${NAME}
-    revisionHistoryLimit: 2
     strategy:
       resources: {}
     template:
@@ -43,49 +42,40 @@ objects:
           deploymentconfig: ${NAME}
       spec:
         containers:
-        - image: ${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG}
-          name: ${NAME}
-          env:
-          - name: ES_JAVA_OPTS
-            value: "-Xms1000m -Xmx1000m"
+        - image: ' '
+          name: elasticsearch
           ports:
           - containerPort: 9200
-            name: http
             protocol: TCP
-          - containerPort: 9300
-            name: transport
-            protocol: TCP
-          resources:
-            limits:
-              memory: 1500Mi
-            requests:
-              cpu: 200m
-              memory: 300Mi
-          volumeMounts:
-          - mountPath: /usr/share/elasticsearch/data
-            name: ${NAME}-data-volume
           readinessProbe:
             httpGet:
-              port: http
+              port: 9200
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              port: http
+              port: 9200
             initialDelaySeconds: 120
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+          - mountPath: /usr/share/elasticsearch/data
+            name: ${NAME}-data-volume
         volumes:
         - name: ${NAME}-data-volume
           emptyDir: {}
     test: false
     triggers:
     - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
+    - imageChangeParams:
         automatic: true
         containerNames:
-        - ${NAME}
+        - elasticsearch
         from:
           kind: ImageStreamTag
           name: ${SITEGROUP}:${TAG}
+      type: ImageChange
   status: {}
 - apiVersion: v1
   kind: Service

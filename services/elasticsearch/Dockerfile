@@ -8,3 +8,5 @@ RUN curl -sLo /usr/local/bin/fix-permissions https://raw.githubusercontent.com/s
 RUN fix-permissions /usr/share/elasticsearch
 
 ENV http.host=0.0.0.0 transport.host=127.0.0.1 xpack.security.enabled=false
+
+ENV ES_JAVA_OPTS "-Xms1000m -Xmx1000m"
