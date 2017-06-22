@@ -14,6 +14,8 @@ ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BR
 ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:3000"
 ENV JENKINS_URL "https://admin:fZk3bf7hsbZCQ4kYHeYkXYNitCoy6u3BbmZrm9FR@jenkins.amazeeio.cloud"
 
+ENV BRANCH ${AMAZEEIO_GIT_BRANCH}
+
 RUN yarn run build
 
 RUN fix-permissions /app/
