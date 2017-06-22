@@ -2,25 +2,23 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: amazeeioservice-template
+  name: amazeeio-openshift-template-node
 parameters:
   - name: TAG
-    description: Which tag should be deployed
+    description: Which docker image tag should be deployed
     required: true
   - name: NAME
-    description: How is the resources are called
+    description: Name of the objects to create
     required: true
   - name: SHORT_NAME
-    description: Name of resources in max 24 chars
+    description: Shorter name of the objects to create, can be max 24 chars
     required: true
   - name: SITEGROUP
-    description: Name of the site group
+    description: Which sitegroup this belongs to
     required: true
-  - name: OPENSHIFT_PROJECT
-    description: Name of the openshift project we are created in
+  - name: ROUTER_URL
+    description: URL of the Router
     required: true
-  - name: ELASTICSEARCH_URL
-    description: URL of elasticsearch to contact to
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -34,7 +32,6 @@ objects:
     selector:
       app: ${NAME}
       deploymentconfig: ${NAME}
-    revisionHistoryLimit: 2
     strategy:
       resources: {}
     template:
@@ -45,41 +42,35 @@ objects:
           deploymentconfig: ${NAME}
       spec:
         containers:
-        - image: ${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG}
-          name: ${NAME}
+        - image: ' '
+          name: kibana
           ports:
           - containerPort: 5601
-            name: http
             protocol: TCP
-          env:
-          - name: ELASTICSEARCH_URL
-            value: ${ELASTICSEARCH_URL}
-          resources:
-            limits:
-              cpu: 500m
-              memory: 800Mi
-            requests:
-              cpu: 200m
-              memory: 300Mi
           readinessProbe:
             httpGet:
-              port: http
+              port: 5601
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              port: http
+              port: 5601
             initialDelaySeconds: 120
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
     test: false
     triggers:
     - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
+    - imageChangeParams:
         automatic: true
         containerNames:
-        - ${NAME}
+        - kibana
         from:
           kind: ImageStreamTag
           name: ${SITEGROUP}:${TAG}
+      type: ImageChange
+  status: {}
 - apiVersion: v1
   kind: Service
   metadata:
@@ -89,12 +80,15 @@ objects:
     name: ${SHORT_NAME}
   spec:
     ports:
-    - name: http
-      targetPort: http
-      port: 80
+    - name: 5601-tcp
+      port: 5601
+      protocol: TCP
+      targetPort: 5601
     selector:
       app: ${NAME}
       deploymentconfig: ${NAME}
+  status:
+    loadBalancer: {}
 - apiVersion: v1
   kind: Route
   metadata:
@@ -103,9 +97,9 @@ objects:
       app: ${NAME}
     name: ${NAME}
   spec:
-    host: ${NAME}.appuio.amazeeio.review
+    host: ${ROUTER_URL}
     port:
-      targetPort: http
+      targetPort: 5601-tcp
     to:
       kind: Service
       name: ${SHORT_NAME}

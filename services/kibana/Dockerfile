@@ -8,3 +8,6 @@ RUN curl -sLo /usr/local/bin/fix-permissions https://raw.githubusercontent.com/s
 RUN fix-permissions /usr/share/kibana
 
 ENV xpack.security.enabled=false
+
+ARG AMAZEEIO_GIT_BRANCH=undefined
+ENV ELASTICSEARCH_URL "http://${AMAZEEIO_GIT_BRANCH}-elasticsearch:9200"
