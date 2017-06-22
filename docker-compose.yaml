@@ -93,6 +93,7 @@ services:
       - rabbitmq
     environment:
       - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/rest2tasks/src:/app/src
     ports:
