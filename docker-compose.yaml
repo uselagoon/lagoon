@@ -104,11 +104,53 @@ services:
     environment:
       - GIT_REPOSITORY=file:///lagoon/hiera
       - GIT_BRANCH_PULL=ci-local
+      - GIT_BRANCH_PUSH=api
+      - GIT_USERNAME=3dfc013c579f85bbcd4cd0c5d11cda325a086ec8
+      - GIT_PASSWORD=x-oauth-basic
+      - SYNC_INTERVAL=10000
     volumes:
+      # These files and folders already exists within the docker image, but we mount it again
+      # so there is no rebuild necessary when we just change with them.
       - ./services/api/src:/app/src
+      - ./services/api/package.json:/app/package.json
+      - ./services/api/yarn.lock:/app/yarn.lock
       - .:/lagoon
     ports:
-      - "8080:3333"
+      - "8080:8080"
+    links:
+      - auth-server
+  auth-ssh:
+    build: services/auth-ssh
+      # TODO:
+      # Michael, can you fix the uid (has to be root) problem when mounting
+      # the authorized-keys-command.sh file. Currently, we can't mount this
+      # as a volume because it causes sshd to consider it as "Unsafe" and
+      # therefore disregard it entirely.
+      # - ./auth/ssh/scripts/authorized-keys-command.sh:/usr/bin/authorized-keys-command.sh
+    links:
+      - api
+      - auth-server
+    ports:
+      - "2020:2020"
+    environment:
+      - AUTH_HOST=auth-server
+      - API_HOST=api
+    user: '111111111'
+  auth-server:
+    build: services/auth-server
+    command: yarn run dev
+    volumes:
+      - ./services/auth/server/src:/app/src
+      - ./services/auth/server/package.json:/app/package.json
+      - ./services/auth/server/yarn.lock:/app/yarn.lock
+    links:
+      - auth-database
+    depends_on:
+      - auth-database
+    user: '111111111'
+  auth-database:
+    build: services/auth-database
+    user: '111111111'
   jenkins:
     build: services/jenkins
     environment:
