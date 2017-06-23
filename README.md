@@ -10,9 +10,6 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 ## Start Services
 
 1. clone me
-1. init git
-
-		./initGit.sh
 
 1. start Lagoon Services
 
