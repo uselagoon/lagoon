@@ -11,10 +11,15 @@ RUN mkdir /var/run/sshd && \
     ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
     ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
 
+RUN fix-permissions /etc/ssh/ssh_host_rsa_key && \
+    fix-permissions /etc/ssh/ssh_host_ecdsa_key && \
+    fix-permissions /etc/ssh/ssh_host_ed25519_key
+
 COPY sshd_config /etc/ssh/sshd_config
 
 # This is the authorized keys command.
 COPY authorized-keys-command.sh /usr/bin/authorized-keys-command.sh
+RUN chmod 600 /usr/bin/authorized-keys-command.sh
 
 # This is the script that is run on every ssh login attempt. It
 # calls the authentication server to retrieve a token.
