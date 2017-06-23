@@ -1,24 +1,23 @@
 // @flow
 
-import "babel-polyfill";
-import path from "path";
+import 'babel-polyfill';
 import {
   ensureRepository,
   createCredentialsCb,
-  createSignature
-} from "./util/git";
-import logger from "./logger";
-import server from "./server";
-import createStore from "./createStore";
+  createSignature,
+} from './util/git';
+import logger from './logger';
+import server from './server';
+import createStore from './createStore';
 
-const { validateApiEnv } = require("./validate");
+const { validateApiEnv } = require('./validate');
 
 (async () => {
-  logger.debug("Starting to boot the application.");
+  logger.debug('Starting to boot the application.');
 
   if (!process.env.GIT_REPOSITORY || !process.env.GIT_BRANCH_PULL) {
     throw new Error(
-      "Missing repository or branch name in environment variables."
+      'Missing repository or branch name in environment variables.',
     );
   }
 
@@ -31,7 +30,7 @@ const { validateApiEnv } = require("./validate");
       GIT_BRANCH_PUSH,
       GIT_PUSH_ENABLE,
       GIT_SYNC_INTERVAL,
-      GIT_REPO_DIR
+      GIT_REPO_DIR,
     } = validateApiEnv(process.cwd(), process.env);
 
     const credCb = createCredentialsCb(GIT_USERNAME, GIT_PASSWORD);
@@ -40,7 +39,7 @@ const { validateApiEnv } = require("./validate");
       GIT_REPOSITORY,
       GIT_BRANCH_PULL,
       GIT_REPO_DIR,
-      credCb
+      credCb,
     );
 
     const signature = createSignature();
@@ -53,7 +52,7 @@ const { validateApiEnv } = require("./validate");
       credCb,
       syncInterval: GIT_SYNC_INTERVAL,
       logger,
-      pushEnabled: GIT_PUSH_ENABLE
+      pushEnabled: GIT_PUSH_ENABLE,
     };
 
     // TODO: Parse the repo and get the initial state thing
@@ -62,10 +61,9 @@ const { validateApiEnv } = require("./validate");
 
     await server(store);
 
-    logger.debug("Finished booting the application.");
+    logger.debug('Finished booting the application.');
   } catch (e) {
-    logger.error("Error occurred while starting the application");
+    logger.error('Error occurred while starting the application');
     logger.error(e.message);
   }
 })();
-

@@ -1,19 +1,19 @@
 // @flow
 
-const path = require("path");
+const path = require('path');
 
 import type { ApiEnv } from './types';
 
 const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
   const {
-    GIT_USERNAME = "",
-    GIT_PASSWORD = "",
+    GIT_USERNAME = '',
+    GIT_PASSWORD = '',
     GIT_REPOSITORY,
     GIT_BRANCH_PULL,
     GIT_BRANCH_PUSH,
-    GIT_PUSH_ENABLE = "false",
+    GIT_PUSH_ENABLE = 'false',
     GIT_SYNC_INTERVAL = 60000,
-    GIT_REPO_DIR = path.join(cwd, ".repository")
+    GIT_REPO_DIR = path.join(cwd, '.repository'),
   } = env;
 
   // TODO: Too tedious to validate it properly
@@ -23,7 +23,7 @@ const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
     GIT_REPOSITORY,
     GIT_BRANCH_PULL,
     GIT_BRANCH_PUSH,
-    GIT_PUSH_ENABLE: GIT_PUSH_ENABLE.toLowerCase() === "true",
+    GIT_PUSH_ENABLE: GIT_PUSH_ENABLE.toLowerCase() === 'true',
     GIT_SYNC_INTERVAL,
     GIT_REPO_DIR,
   }: any);

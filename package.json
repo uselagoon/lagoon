@@ -28,7 +28,6 @@
     "jest": "^20.0.4",
     "lint-staged": "^3.2.1",
     "nodemon": "^1.11.0",
-    "pre-commit": "^1.1.3",
     "prettier": "^0.11.0",
     "rimraf": "^2.5.4"
   },
@@ -58,10 +57,13 @@
     "testMatch": ["**/?(*.)(spec|test).js?(x)"]
   },
   "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ]
+    "linters": {
+      "*.js": [
+        "eslint --fix",
+        "git add"
+      ]
+    },
+    "gitDir": "../"
   },
   "pre-commit": [
     "flow"
