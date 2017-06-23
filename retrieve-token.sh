@@ -1,7 +1,10 @@
 #!/bin/bash
 
 key=$1
-server='http://auth_server:3000'
+# this will be replaced by envplate inside docker-entrypoint. We need that as during execution
+# time inside the ssh connection we don't have access to the container environment variables.
+# So we replace it during the start of the container.
+server="http://${AUTH_HOST}:3000"
 header='Content-Type: application/json'
 
 case $SSH_ORIGINAL_COMMAND in
@@ -26,7 +29,7 @@ case $SSH_ORIGINAL_COMMAND in
   'logout '*)
     # Take the first argument from the original ssh input.
     input=($SSH_ORIGINAL_COMMAND)
-    token=${input[1]}
+    token=$input[1]
 
     # Prepare the post (containing the ssh public key) as a JSON object.
     data='{"key": "'$key'", "token": "'$token'"}'
