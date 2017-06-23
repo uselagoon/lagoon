@@ -33,7 +33,6 @@
     "jest": "^20.0.4",
     "lint-staged": "^4.0.0",
     "nodemon": "^1.11.0",
-    "pre-commit": "^1.2.2",
     "prettier": "^1.4.4",
     "rimraf": "^2.6.1"
   },
@@ -42,13 +41,13 @@
     "testEnvironment": "node"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --trailing-comma all --single-quote",
-      "eslint --fix",
-      "git add"
-    ]
-  },
-  "pre-commit": [
-    "flow"
-  ]
+    "linters": {
+      "*.js": [
+        "prettier --trailing-comma all --single-quote",
+        "eslint --fix",
+        "git add"
+      ]
+    },
+    "gitDir": "../../"
+  }
 }
