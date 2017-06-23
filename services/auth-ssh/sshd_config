@@ -1,0 +1,43 @@
+Port 2020
+
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+LogLevel INFO
+
+PermitRootLogin no
+
+# The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
+# but this is overridden so installations will only check .ssh/authorized_keys
+AuthorizedKeysFile	.ssh/authorized_keys
+
+AuthorizedKeysCommand /usr/bin/authorized-keys-command.sh
+AuthorizedKeysCommandUser api
+
+RhostsRSAAuthentication no
+HostbasedAuthentication no
+
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+KerberosAuthentication no
+GSSAPIAuthentication no
+
+UsePAM yes
+
+AllowAgentForwarding no
+AllowTcpForwarding no
+GatewayPorts no
+X11Forwarding no
+
+PermitTTY no
+PrintMotd no
+PrintLastLog no
+
+UseLogin no
+UsePrivilegeSeparation sandbox		# Default for new installations.
+PermitUserEnvironment no
+ShowPatchLevel no
+#UseDNS yes
+PermitTunnel no
+Banner none
