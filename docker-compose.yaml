@@ -126,7 +126,7 @@ services:
       # the authorized-keys-command.sh file. Currently, we can't mount this
       # as a volume because it causes sshd to consider it as "Unsafe" and
       # therefore disregard it entirely.
-      # - ./auth/ssh/scripts/authorized-keys-command.sh:/usr/bin/authorized-keys-command.sh
+      # - ./auth-ssh/scripts/authorized-keys-command.sh:/usr/bin/authorized-keys-command.sh
     links:
       - api
       - auth-server
@@ -140,9 +140,9 @@ services:
     build: services/auth-server
     command: yarn run dev
     volumes:
-      - ./services/auth/server/src:/app/src
-      - ./services/auth/server/package.json:/app/package.json
-      - ./services/auth/server/yarn.lock:/app/yarn.lock
+      - ./services/auth-server/src:/app/src
+      - ./services/auth-server/package.json:/app/package.json
+      - ./services/auth-server/yarn.lock:/app/yarn.lock
     links:
       - auth-database
     depends_on:

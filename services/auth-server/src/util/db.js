@@ -5,7 +5,7 @@
 import nano from 'nano';
 import logger from '../logger';
 
-const couch = nano('http://auth_database:5984');
+const couch = nano('http://auth-database:5984');
 const database = couch.use('auth');
 
 couch.db.create('auth', error => {

@@ -1,1 +1,1 @@
-FROM amazeeio/centos-couchdb:1.6.1
+FROM amazeeio/centos7-couchdb:1.6.1
