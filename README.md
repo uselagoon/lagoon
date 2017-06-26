@@ -11,7 +11,6 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 
 1. clone me
 1. init git
-
 		git submodule init
 		git submodule update
 		( cd hiera; git checkout -b ci-local origin/ci-local )
@@ -29,6 +28,8 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 1. start OpenShift
 
 		./startOpenShift.sh
+
+1. Add `https://docker-registry-default.` to insecure registries in docker.
 
 1. test Openshift Node Deployment
 
