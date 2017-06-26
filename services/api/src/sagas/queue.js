@@ -1,4 +1,3 @@
-// @flow
 
 import { takeEvery } from 'redux-saga';
 
@@ -10,7 +9,6 @@ function* startTransaction(storage: Storage): Generator<*, *, *> {
 
 function* queueSaga(storage: Storage): Generator<*, *, *> {
   // eslint-disable-next-line no-console
-  console.log(storage);
   yield takeEvery('asdf', startTransaction);
 }
 

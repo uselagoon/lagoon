@@ -113,6 +113,7 @@ services:
       # These files and folders already exists within the docker image, but we mount it again
       # so there is no rebuild necessary when we just change with them.
       - ./services/api/src:/app/src
+      - ./services/api/jest:/app/jest
       - ./services/api/package.json:/app/package.json
       - ./services/api/yarn.lock:/app/yarn.lock
       - .:/lagoon

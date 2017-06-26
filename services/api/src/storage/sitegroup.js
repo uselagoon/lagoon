@@ -17,13 +17,13 @@ export const siteGroupToYaml = (siteGroup: SiteGroup): string =>
 export const writeSiteGroupsFile = (
   repoPath: string,
   yamlContent: string,
-): Promise<*> =>
+): Promise<void> =>
   writeFile(siteGroupsFilePath(repoPath), yamlContent, 'utf8');
 
 export const readSiteGroupsFile = (repoPath: string): Promise<string> =>
   readFile(siteGroupsFilePath(repoPath), 'utf8');
 
-export const parseSiteGroupFile = (yamlContent: string): SiteGroupFile =>
+export const parseSiteGroupsFile = (yamlContent: string): SiteGroupFile =>
   R.compose(
     R.propOr({}, 'amazeeio_sitegroups'),
     // TODO: Eventually use a schema w/ safeLoad?

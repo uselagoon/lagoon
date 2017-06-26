@@ -25,6 +25,9 @@ brew cask install docker-edge
 
 ```sh
 git submodule update --init --recursive
+
+# Make sure to check out the testing branch of hiera
+cd hiera && git checkout ci-local
 ```
 
 ## Start Services
