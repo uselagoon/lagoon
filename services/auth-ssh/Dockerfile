@@ -2,37 +2,35 @@ FROM amazeeio/centos:7
 
 RUN yum install -y openssh-server wget
 
-COPY sshd_config /etc/ssh/sshd_config
-
+# We will run the ssh daemon as 'api'.
 RUN adduser api -p '*'
 
-RUN mkdir /var/run/sshd && \
-    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' && \
-    ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
-    ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
-
-RUN fix-permissions /etc/ssh/ssh_host_rsa_key && \
-    fix-permissions /etc/ssh/ssh_host_ecdsa_key && \
-    fix-permissions /etc/ssh/ssh_host_ed25519_key
-
-COPY sshd_config /etc/ssh/sshd_config
-
-# This is the authorized keys command.
-COPY authorized-keys-command.sh /usr/bin/authorized-keys-command.sh
-RUN chmod 600 /usr/bin/authorized-keys-command.sh
+# Generate the ssh tokens for the 'api' user.
+RUN mkdir /home/api/.ssh && \
+    ssh-keygen -t rsa -f /home/api/.ssh/ssh_host_rsa_key -N '' && \
+    ssh-keygen -t ecdsa -f /home/api/.ssh/ssh_host_ecdsa_key -N '' && \
+    ssh-keygen -t ed25519 -f /home/api/.ssh/ssh_host_ed25519_key -N ''
 
 # This is the script that is run on every ssh login attempt. It
 # calls the authentication server to retrieve a token.
 COPY retrieve-token.sh /home/api/retrieve-token.sh
 
-# entrypoint file which will replace some environment variables into
+# Add the ssh config for the 'api' user.
+COPY sshd_config /home/api/.ssh/sshd_config
+
+# This is the authorized keys command.
+COPY authorized-keys-command.sh /usr/local/bin/authorized-keys-command.sh
+RUN chmod 755 /usr/local/bin/authorized-keys-command.sh
+
+# The ssh keys and the script need to be owned by the user.
+RUN chown api:api /home/api -R
+
+# Entrypoint file which will replace some environment variables into
 # hardcoded values every time the container is started
 COPY docker-entrypoint.sh /usr/bin/docker-entrypoint
 
-RUN fix-permissions /home/api/
+ENTRYPOINT ["docker-entrypoint"]
 
 EXPOSE 2020
 
-ENTRYPOINT ["docker-entrypoint"]
-
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/usr/sbin/sshd", "-D", "-f", "/home/api/.ssh/sshd_config"]

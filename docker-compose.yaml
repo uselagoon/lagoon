@@ -135,7 +135,7 @@ services:
     environment:
       - AUTH_HOST=auth-server
       - API_HOST=api
-    user: '111111111'
+    user: 'api'
   auth-server:
     build: services/auth-server
     command: yarn run dev
