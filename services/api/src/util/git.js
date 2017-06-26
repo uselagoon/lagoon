@@ -30,11 +30,11 @@ const getRepository = async (
   credCb: CredCb,
 ): Promise<Repository> => {
   try {
-      // Get the repository if it already exists.
-    return Git.Repository.open(destination);
+    // Get the repository if it already exists.
+    return await Git.Repository.open(destination);
   } catch (e) {
       // Repository doesn't exist locally yet. Clone it.
-    return Git.Clone.clone(url, destination, {
+    return await Git.Clone.clone(url, destination, {
       checkoutBranch: branch,
       fetchOpts: { callbacks: { certificateCheck: () => 1, credentials: credCb } },
     });
