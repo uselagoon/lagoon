@@ -11,7 +11,7 @@ type QLQueryArgs = {
   query: string,
   variables?: Object,
   headers?: Object,
-  pretty?: boolean,
+  pretty?: boolean
 };
 
 export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
@@ -56,8 +56,8 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
 
   const options = {
     hostname,
-    path: pathname,
-    port: port || 80,
+    path,
+    port: port || 443,
     method: 'POST',
     headers,
     body,

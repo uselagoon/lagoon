@@ -18,7 +18,7 @@ const SERVER = 'http://api-develop-testhiera.appuio.amazeeio.review/graphql';
 fetch(`${SERVER}`, {
   method: 'POST',
   headers: {
-    Accept: 'application/json',
+    'Accept': 'application/json',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({ query: introspectionQuery }),

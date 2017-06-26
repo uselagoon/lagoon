@@ -1,6 +1,5 @@
 // @flow
 
-import http from 'http';
 import defer from './defer';
 
 export type RequestOptions = {
@@ -10,15 +9,17 @@ export type RequestOptions = {
   method: 'POST' | 'GET',
   headers?: Object,
   rejectUnauthorized?: boolean,
-  body?: string,
+  body?: string
 };
 
 export default function request(options: RequestOptions): Promise<Object> {
-  const { body } = options;
+  const { body, port = 443 } = options;
 
   const def = defer();
 
-  const req = http.request(options, res => {
+  const thing = Number(port) === 80 ? require('http') : require('https');
+
+  const req = thing.request(options, res => {
     res.setEncoding('utf8');
 
     let rawData = '';
@@ -27,10 +28,10 @@ export default function request(options: RequestOptions): Promise<Object> {
     });
     res.on('end', () => {
       try {
-        console.log(rawData);
         let parsed = JSON.parse(rawData);
         def.resolve(parsed);
-      } catch (e) {
+      }
+      catch (e) {
         def.reject(e);
       }
     });

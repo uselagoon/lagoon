@@ -3,7 +3,7 @@
 type Defer<R> = {
   promise: Promise<R>,
   resolve: (result: Promise<R> | R) => void,
-  reject: (error: any) => void,
+  reject: (error: any) => void
 };
 
 /**
@@ -16,7 +16,7 @@ export default function defer(label?: string): Defer<*> {
   deferred.promise = new Promise(function (resolve, reject) {
     deferred.resolve = resolve;
     deferred.reject = reject;
-  }, label);
+  });
 
   return deferred;
 }

@@ -53,7 +53,7 @@ export async function runCLI(cwd: string) {
     // eslint-disable-next-line no-unused-expressions
     commands
       .reduce((cmdYargs, cmd) => {
-        const { name, description, run } = cmd;
+        const { name, description, run, setup } = cmd;
         const clog = console.log;
 
         const runFn = args => {
@@ -62,13 +62,11 @@ export async function runCLI(cwd: string) {
             .then(code => process.exit(code));
         };
 
-        const setupFn = typeof cmd.setup === 'function'
-          ? cmd.setup
-          : yargs => yargs;
+        const setupFn = typeof setup === 'function' ? setup : yargs => yargs;
 
         return cmdYargs.command(name, description, setupFn, runFn);
       }, yargs)
-      .demand(1)
+      .demandCommand(1)
       .strict()
       .help().argv;
   }
@@ -82,7 +80,6 @@ export async function runCLI(cwd: string) {
  * has a amazeeio CLI `npm install`ed, use that version instead of the global
  * version of the CLI.
  */
-// $FlowIssue: Need to teach Flow about `require.main`
 if (require.main === module) {
   const cwd = process.cwd();
   let currDir = cwd;
@@ -93,7 +90,7 @@ if (require.main === module) {
       currDir,
       'node_modules',
       '.bin',
-      'amazee-io-cli',
+      'amazee-io-cli'
     );
     try {
       if (statSync(localCLIPath).isFile()) {

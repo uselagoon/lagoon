@@ -15,11 +15,13 @@ import type { BaseArgs } from './index';
 
 const tableConfig = {
   columns: {
+    // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
     0: {
       // eslint-disable-line quote-props
       alignment: 'left',
       minWidth: 15,
     },
+    // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
     1: {
       // eslint-disable-line quote-props
       alignment: 'left',
@@ -40,7 +42,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .usage(`$0 ${name} [site@branch] - ${description}`)
     .options({
       sitegroup: {
-        demand: false,
+        demandOption: false,
         describe:
           'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
@@ -63,7 +65,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
 }
 
 type Args = BaseArgs & {
-  sitegroup: ?string,
+  sitegroup: ?string
 };
 
 export async function run(args: Args): Promise<number> {
@@ -92,7 +94,7 @@ export async function run(args: Args): Promise<number> {
 
 type SiteGroupInfoArgs = {
   sitegroup: string,
-  clog?: typeof console.log,
+  clog?: typeof console.log
 };
 
 export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
@@ -119,6 +121,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const result = await runGQLQuery({
     endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
+    port: 80,
     query,
     variables: { sitegroup },
   });
@@ -145,7 +148,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const formatSlack = slack => {
     if (slack == null) {
-      return null;
+      return '';
     }
 
     const webhook = path(['webhook'], slack);
@@ -173,7 +176,7 @@ type SiteInfoArgs = {
   site: string,
   branch?: string,
   sitegroup: string,
-  clog?: typeof console.log,
+  clog?: typeof console.log
 };
 
 export async function siteInfo(args: SiteInfoArgs): Promise<number> {
@@ -234,6 +237,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   const result = await runGQLQuery({
     endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
+    port: 80,
     query,
     variables: { sitegroup },
   });
@@ -283,7 +287,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   const formatCron = cron => {
     if (cron == null) {
-      return null;
+      return '';
     }
 
     return `Type: ${cron.type} - Minute: ${cron.minute}`;
@@ -291,7 +295,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   const formatArray = arr => {
     if (arr == null) {
-      return null;
+      return '';
     }
 
     return join(', ', arr);

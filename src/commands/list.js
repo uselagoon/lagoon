@@ -4,7 +4,17 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import { prepend, pathOr, prop, map, compose, sortBy, toLower } from 'ramda';
+import {
+  prepend,
+  pathOr,
+  prop,
+  propOr,
+  map,
+  compose,
+  // $FlowIssue: sortBy is not yet working: https://github.com/flowtype/flow-typed/blob/a9e64f62729fa4ecec82648f0a3f47afeff77574/definitions/npm/ramda_v0.x.x/flow_v0.34.x-/ramda_v0.x.x.js#L460-L462
+  sortBy,
+  toLower,
+} from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -21,7 +31,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .usage(`$0 ${name} [target] - ${description}`)
     .options({
       sitegroup: {
-        demand: false,
+        demandOption: false,
         describe:
           'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
@@ -42,7 +52,7 @@ type Target = 'sites';
 
 type Args = BaseArgs & {
   sitegroup: ?string,
-  target: Target,
+  target: Target
 };
 
 export async function run(args: Args): Promise<number> {
@@ -69,7 +79,7 @@ export async function run(args: Args): Promise<number> {
 
 type MainArgs = {
   sitegroup: string,
-  clog?: typeof console.log,
+  clog?: typeof console.log
 };
 
 export async function listSites(args: MainArgs): Promise<number> {
@@ -92,6 +102,7 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const result = await runGQLQuery({
     endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
+    port: 80,
     query,
     variables: { sitegroup },
   });
@@ -101,7 +112,7 @@ export async function listSites(args: MainArgs): Promise<number> {
     return exitGraphQLError(clog, errors);
   }
 
-  const sortBySite = sortBy(compose(toLower, prop('siteName')));
+  const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
 
   const nodes = compose(
     sortBySite,
@@ -118,16 +129,19 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const tableConfig = {
     columns: {
+      // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
       0: {
         // eslint-disable-line quote-props
         alignment: 'left',
         minWidth: 15,
       },
+      // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
       1: {
         // eslint-disable-line quote-props
         alignment: 'left',
         minWidth: 15,
       },
+      // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
       2: {
         // eslint-disable-line quote-props
         alignment: 'center',
