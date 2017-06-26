@@ -30,9 +30,7 @@ export default (store: ApiStore): express$Application => {
   app.use(bodyParser.json());
 
   // Add custom configured logger (morgan through winston).
-  app.use(
-    morgan('combined', { stream: { write: message => logger.info(message) } }),
-  );
+  app.use(morgan('combined', { stream: { write: message => logger.info(message) } }));
 
   const router = createRouter(store);
 

@@ -2,20 +2,9 @@
 
 const Git = require('nodegit');
 
-import type {
-  Repository,
-  Signature,
-  Revparse,
-  Remote,
-  CredAcquireCb as CredCb,
-} from 'nodegit';
+import type { Repository, Signature, Revparse, Remote, CredAcquireCb as CredCb } from 'nodegit';
 
-export type {
-  Repository,
-  CredAcquireCb as CredCb,
-  Remote,
-  Signature,
-} from 'nodegit';
+export type { Repository, CredAcquireCb as CredCb, Remote, Signature } from 'nodegit';
 
 const createSignature = (
   time?: number = parseInt(Date.now() / 1000, 10),
@@ -39,45 +28,32 @@ const getRepository = async (
   branch: string,
   destination: string,
   credCb: CredCb,
-): Promise<Repository> =>
-  {
-    try {
+): Promise<Repository> => {
+  try {
       // Get the repository if it already exists.
-      return await Git.Repository.open(destination);
-    } catch (e) {
+    return Git.Repository.open(destination);
+  } catch (e) {
       // Repository doesn't exist locally yet. Clone it.
-      return await Git.Clone.clone(url, destination, {
-        checkoutBranch: branch,
-        fetchOpts: {
-          callbacks: { certificateCheck: () => 1, credentials: credCb },
-        },
-      });
-    }
-  };
+    return Git.Clone.clone(url, destination, {
+      checkoutBranch: branch,
+      fetchOpts: { callbacks: { certificateCheck: () => 1, credentials: credCb } },
+    });
+  }
+};
 
 const getRemote = (repository: Repository, remote: string): Promise<Remote> =>
   repository.getRemote(remote);
 
-const remotePush = (
-  remote: Remote,
-  refs: Array<string>,
-  credCb: CredCb,
-): Promise<void> =>
+const remotePush = (remote: Remote, refs: Array<string>, credCb: CredCb): Promise<void> =>
   remote.push(refs, {
     // Attempt to push any pending commits.
     callbacks: { certificateCheck: () => 1, credentials: credCb },
   });
 
-const revparseSingle = (
-  repository: Repository,
-  spec: string,
-): Promise<Revparse> =>
+const revparseSingle = (repository: Repository, spec: string): Promise<Revparse> =>
   Git.Revparse.single(repository, spec);
 
-const fetchAll = (
-  repository: Repository,
-  credentialsCb: CredCb,
-): Promise<void> =>
+const fetchAll = (repository: Repository, credentialsCb: CredCb): Promise<void> =>
   repository.fetchAll({
     // Fetch any changes from the remote.
     callbacks: { certificateCheck: () => 1, credentials: credentialsCb },
@@ -89,15 +65,14 @@ const ensureRepository = async (
   branch: string,
   destination: string,
   credCb: CredCb,
-): Promise<Repository> =>
-  {
-    const repository = await getRepository(url, branch, destination, credCb);
+): Promise<Repository> => {
+  const repository = await getRepository(url, branch, destination, credCb);
 
     // Ensure that we are on the right branch.
-    await repository.checkoutBranch(branch);
+  await repository.checkoutBranch(branch);
 
-    return expectDefaultState(repository);
-  };
+  return expectDefaultState(repository);
+};
 
 const rebase = (
   repository: Repository,

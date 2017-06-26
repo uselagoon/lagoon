@@ -1,6 +1,6 @@
 // @flow
 
-require("babel-polyfill");
+require('babel-polyfill');
 
 import amqp from 'amqp-connection-manager';
 
@@ -17,7 +17,7 @@ initLogger();
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqhost = process.env.RABBITMQ_HOST || 'localhost';
 const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
 
 connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { action: 'connected', url }));
@@ -25,11 +25,9 @@ connection.on('disconnect', params => logger.error('Not connected, error: %s', p
 
 // Cast any to ChannelWrapper to get type-safetiness through our own code
 const channelWrapper: ChannelWrapper = connection.createChannel({
-	setup: channel => {
-		return Promise.all([
-			channel.assertQueue('amazeeio-webhooks', {durable: true}),
-			channel.prefetch(1),
-			channel.consume('amazeeio-webhooks', msg => processWebhook(msg, channelWrapper), {noAck: false}),
-		]);
-	}
+  setup: channel => Promise.all([
+    channel.assertQueue('amazeeio-webhooks', { durable: true }),
+    channel.prefetch(1),
+    channel.consume('amazeeio-webhooks', msg => processWebhook(msg, channelWrapper), { noAck: false }),
+  ]),
 });

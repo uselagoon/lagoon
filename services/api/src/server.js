@@ -35,9 +35,7 @@ export default async (store: ApiStore): Promise<Server> => {
 
   await deferred.promise;
 
-  logger.debug(
-    `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
-  );
+  logger.debug(`Finished booting the server. The server is reachable at Port ${port.toString()}.`);
 
   // eslint-disable-line
   return server;

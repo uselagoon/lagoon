@@ -2,9 +2,7 @@
 
 /* eslint-disable no-undef */
 
-const { readSiteGroupsFile, parseSiteGroupFile } = require(
-  '../../storage/sitegroup',
-);
+const { readSiteGroupsFile, parseSiteGroupFile } = require('../../storage/sitegroup');
 
 describe('readSiteGroupsFile', () => {
   test('should return the string content for api-test-hiera', async () => {
@@ -19,6 +17,7 @@ describe('parseSiteGroupFile', () => {
 
     const obj = parseSiteGroupFile(content);
 
+    // eslint-disable-next-line no-console
     console.log(typeof obj);
   });
 });

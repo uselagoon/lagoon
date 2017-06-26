@@ -120,6 +120,8 @@ services:
       - "8080:8080"
     links:
       - auth-server
+    depends_on:
+      - auth-server
   auth-ssh:
     build: services/auth-ssh
       # TODO:

@@ -2,6 +2,20 @@
 # yarn lockfile v1
 
 
+"@amazeeio/amazeeio-local-logging@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-local-logging/-/amazeeio-local-logging-0.1.3.tgz#a7b83f4c95e3723ff5baafa01a2c376b9054410c"
+  dependencies:
+    babel-cli "^6.18.0"
+    babel-core "^6.21.0"
+    babel-plugin-syntax-async-functions "^6.13.0"
+    babel-plugin-transform-flow-strip-types "^6.21.0"
+    babel-plugin-transform-object-rest-spread "^6.20.2"
+    babel-plugin-transform-regenerator "^6.21.0"
+    babel-polyfill "^6.23.0"
+    babel-preset-es2015 "^6.18.0"
+    winston "^2.2.0"
+
 "@amazeeio/amazeeio-logs@^0.1.11":
   version "0.1.11"
   resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-logs/-/amazeeio-logs-0.1.11.tgz#36ff8db6e9f1f83f65ad1906f338b4363d43d854"

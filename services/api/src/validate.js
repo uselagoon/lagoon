@@ -13,7 +13,7 @@ const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
     GIT_BRANCH_PUSH,
     GIT_PUSH_ENABLE = 'false',
     GIT_SYNC_INTERVAL = 60000,
-    GIT_REPO_DIR = path.join(cwd, '.repository'),
+    GIT_REPO_DIR = path.join('/hiera'),
   } = env;
 
   // TODO: Too tedious to validate it properly
