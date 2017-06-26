@@ -39,20 +39,21 @@ const getRepository = async (
   branch: string,
   destination: string,
   credCb: CredCb,
-): Promise<Repository> => {
-  try {
+): Promise<Repository> =>
+  {
+    try {
       // Get the repository if it already exists.
-    return Git.Repository.open(destination);
-  } catch (e) {
+      return await Git.Repository.open(destination);
+    } catch (e) {
       // Repository doesn't exist locally yet. Clone it.
-    return Git.Clone.clone(url, destination, {
-      checkoutBranch: branch,
-      fetchOpts: {
-        callbacks: { certificateCheck: () => 1, credentials: credCb },
-      },
-    });
-  }
-};
+      return await Git.Clone.clone(url, destination, {
+        checkoutBranch: branch,
+        fetchOpts: {
+          callbacks: { certificateCheck: () => 1, credentials: credCb },
+        },
+      });
+    }
+  };
 
 const getRemote = (repository: Repository, remote: string): Promise<Remote> =>
   repository.getRemote(remote);
@@ -88,14 +89,15 @@ const ensureRepository = async (
   branch: string,
   destination: string,
   credCb: CredCb,
-): Promise<Repository> => {
-  const repository = await getRepository(url, branch, destination, credCb);
+): Promise<Repository> =>
+  {
+    const repository = await getRepository(url, branch, destination, credCb);
 
     // Ensure that we are on the right branch.
-  await repository.checkoutBranch(branch);
+    await repository.checkoutBranch(branch);
 
-  return expectDefaultState(repository);
-};
+    return expectDefaultState(repository);
+  };
 
 const rebase = (
   repository: Repository,
