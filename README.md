@@ -10,14 +10,11 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 ## Start Services
 
 1. clone me
-<<<<<<< HEAD
 1. init git
 
 		git submodule init
 		git submodule update
 		( cd hiera; git checkout -b ci-local origin/ci-local )
-=======
->>>>>>> bf697db2316fbca3cdd61f5dee4469fa81034bb1
 
 1. start Lagoon Services
 
