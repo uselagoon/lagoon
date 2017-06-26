@@ -6,7 +6,9 @@
  * testing.
  */
 
-const { validateApiEnv } = require('../../validate');
+require("dotenv-extended").load();
+
+const { validateApiEnv } = require("../../validate");
 
 const {
   ensureRepository,
@@ -27,7 +29,19 @@ const {
 
 const credCb = createCredentialsCb(GIT_USERNAME, GIT_PASSWORD);
 
-const getRepository = (): Promise<*> =>
-  ensureRepository(GIT_REPOSITORY, GIT_BRANCH_PULL, GIT_REPO_DIR, credCb);
+// Cache
+let repo;
 
-module.exports = { getRepository };
+const getSetupRepo = async (): Promise<*> => {
+  if (repo == null) {
+    repo = await ensureRepository(
+      GIT_REPOSITORY,
+      GIT_BRANCH_PULL,
+      GIT_REPO_DIR,
+      credCb
+    );
+  }
+  return repo;
+};
+
+module.exports = { getSetupRepo };

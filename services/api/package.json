@@ -57,7 +57,10 @@
   "jest": {
     "rootDir": ".",
     "testEnvironment": "node",
-    "testMatch": ["**/?(*.)(spec|test).js?(x)"]
+    "testMatch": ["**/?(*.)(spec|test).js?(x)"],
+    "setupFiles": [
+      "./jest/setup.js"
+    ]
   },
   "lint-staged": {
     "linters": {
