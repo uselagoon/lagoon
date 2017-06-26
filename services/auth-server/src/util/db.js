@@ -68,11 +68,11 @@ export function get(id: string): Promise<Object> {
 
 export function view(
   design: string,
-  view: string,
+  name: string,
   values: Object
 ): Promise<Object> {
   return new Promise((resolve, reject) => {
-    database.view(design, view, values, (error, body) => {
+    database.view(design, name, values, (error, body) => {
       if (error) {
         reject(error);
       } else {
