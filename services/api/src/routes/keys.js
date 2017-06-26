@@ -1,7 +1,7 @@
 // @flow
 
 import path from 'path';
-import fs from 'fs';
+import { readFile } from '../util/fs';
 import { debug } from '../logger';
 
 import type { $Request, $Response } from 'express';
@@ -17,11 +17,11 @@ export const keysAccessMiddleware = (
   next();
 };
 
-export default (req: $Request, res: $Response) => {
+export default async (req: $Request, res: $Response) => {
   debug('Collecting client keys.');
 
   // TODO:
   // This should actually fetch ssh keys from the store.
-  const keys = fs.readFileSync(path.resolve(__dirname, 'keys.txt'));
+  const keys = await readFile(path.resolve(__dirname, 'keys.txt'), 'utf8');
   res.send(keys);
 };
