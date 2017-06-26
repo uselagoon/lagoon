@@ -7,24 +7,52 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 
 Please take into account that currently, multi-stage dockerfiles only work with [Docker CE Edge](https://docs.docker.com/edge/).
 
+
+## Install Docker
+
+We need docker version  >= 17.05 !
+
+### Via brew & cask
+
+```
+brew tap caskroom/cask
+brew tap caskroom/versions
+
+brew cask install docker-edge
+```
+
+## Install Submodules
+
+```
+git submodules update init --recursive
+```
+
 ## Start Services
 
 1. clone me
 
 1. start Lagoon Services
 
-		docker-compose up -d
+```
+docker-compose up -d
+```
 
 1. Follow the Services logs
 
-		docker-compose logs -f
+```
+docker-compose logs -f
+```
 
 ## Start & Test OpenShift
 
 1. start OpenShift
 
-		./startOpenShift.sh
+```
+./startOpenShift.sh
+```
 
 1. test Openshift Node Deployment
 
-		docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+```
+docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+```
