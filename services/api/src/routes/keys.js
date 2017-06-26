@@ -11,9 +11,9 @@ export const keysAccessMiddleware = (
   res: $Response,
   next: Function,
 ) => {
-  // TODO:
-  // This should restrict access for all requests except those
-  // from the local network (from the ssh agent service).
+    // TODO:
+    // This should restrict access for all requests except those
+    // from the local network (from the ssh agent service).
   next();
 };
 

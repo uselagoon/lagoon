@@ -1,32 +1,17 @@
-import {
-  GraphQLString,
-  GraphQLNonNull,
-} from 'graphql';
+import { GraphQLString, GraphQLNonNull } from 'graphql';
 
 import { mutationWithClientMutationId } from 'graphql-relay';
 
-import {
-  createSite,
-  updateSite,
-} from '../models/site';
+import { createSite, updateSite } from '../models/site';
 
 import siteType from '../types/site';
 
 const createOrUpdateSiteFields = {
   inputFields: {
-    siteName: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    siteHost: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
+    siteName: { type: new GraphQLNonNull(GraphQLString) },
+    siteHost: { type: new GraphQLNonNull(GraphQLString) },
   },
-  outputFields: {
-    site: {
-      type: siteType,
-      resolve: site => site,
-    },
-  },
+  outputFields: { site: { type: siteType, resolve: site => site } },
 };
 
 export const createSiteMutation = mutationWithClientMutationId({

@@ -7,7 +7,7 @@ import app from './app';
 
 import type { ApiStore } from './createStore';
 
-const normalizePort = value => {
+const normalizePort = (value) => {
   const port = parseInt(value, 10);
 
   if (!isNaN(port) && port > 0) {
@@ -25,7 +25,7 @@ export default async (store: ApiStore): Promise<Server> => {
 
   const deferred = defer();
 
-  server.listen(port, err => {
+  server.listen(port, (err) => {
     if (err) {
       deferred.reject(err);
       return;

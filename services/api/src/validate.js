@@ -38,4 +38,3 @@ const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
 };
 
 module.exports = { validateApiEnv };
-

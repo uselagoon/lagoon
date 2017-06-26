@@ -52,9 +52,16 @@ export default function createStorage(repository: Repository): Storage {
       const signature = createSignature();
 
       // Create the commit with the passed message.
-      await repository.createCommitOnHead([filename], signature, signature, message);
+      await repository.createCommitOnHead(
+        [filename],
+        signature,
+        signature,
+        message,
+      );
     },
     listYamlFiles: (): Promise<Array<string>> =>
-      glob.sync(`${repoPath}/**/*.yaml`).map(filePath => path.relative(repoPath, filePath)),
+      glob
+        .sync(`${repoPath}/**/*.yaml`)
+        .map(filePath => path.relative(repoPath, filePath)),
   };
 }

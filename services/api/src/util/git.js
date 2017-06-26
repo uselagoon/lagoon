@@ -2,9 +2,20 @@
 
 const Git = require('nodegit');
 
-import type { Repository, Signature, Revparse, Remote, CredAcquireCb as CredCb } from 'nodegit';
+import type {
+  Repository,
+  Signature,
+  Revparse,
+  Remote,
+  CredAcquireCb as CredCb,
+} from 'nodegit';
 
-export type { Repository, CredAcquireCb as CredCb, Remote, Signature } from 'nodegit';
+export type {
+  Repository,
+  CredAcquireCb as CredCb,
+  Remote,
+  Signature,
+} from 'nodegit';
 
 const createSignature = (
   time?: number = parseInt(Date.now() / 1000, 10),
@@ -36,7 +47,9 @@ const getRepository = async (
       // Repository doesn't exist locally yet. Clone it.
     return Git.Clone.clone(url, destination, {
       checkoutBranch: branch,
-      fetchOpts: { callbacks: { certificateCheck: () => 1, credentials: credCb } },
+      fetchOpts: {
+        callbacks: { certificateCheck: () => 1, credentials: credCb },
+      },
     });
   }
 };
@@ -44,16 +57,26 @@ const getRepository = async (
 const getRemote = (repository: Repository, remote: string): Promise<Remote> =>
   repository.getRemote(remote);
 
-const remotePush = (remote: Remote, refs: Array<string>, credCb: CredCb): Promise<void> =>
+const remotePush = (
+  remote: Remote,
+  refs: Array<string>,
+  credCb: CredCb,
+): Promise<void> =>
   remote.push(refs, {
     // Attempt to push any pending commits.
     callbacks: { certificateCheck: () => 1, credentials: credCb },
   });
 
-const revparseSingle = (repository: Repository, spec: string): Promise<Revparse> =>
+const revparseSingle = (
+  repository: Repository,
+  spec: string,
+): Promise<Revparse> =>
   Git.Revparse.single(repository, spec);
 
-const fetchAll = (repository: Repository, credentialsCb: CredCb): Promise<void> =>
+const fetchAll = (
+  repository: Repository,
+  credentialsCb: CredCb,
+): Promise<void> =>
   repository.fetchAll({
     // Fetch any changes from the remote.
     callbacks: { certificateCheck: () => 1, credentials: credentialsCb },

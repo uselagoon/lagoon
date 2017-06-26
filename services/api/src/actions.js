@@ -7,7 +7,7 @@ type Cb<R> = (err?: Error, res: R) => void;
 type Noop = { type: 'NOOP' };
 export type Actions = Noop;
 
-export type CreateSiteAction= {
+export type CreateSiteAction = {
   type: 'CREATE_SITE',
   file: string,
   cb: Cb<Site>,

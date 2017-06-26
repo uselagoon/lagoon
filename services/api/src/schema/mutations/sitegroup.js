@@ -1,28 +1,15 @@
-import {
-  GraphQLString,
-  GraphQLNonNull,
-} from 'graphql';
+import { GraphQLString, GraphQLNonNull } from 'graphql';
 
 import { mutationWithClientMutationId } from 'graphql-relay';
 
-import {
-  createSiteGroup,
-  updateSiteGroup,
-} from '../models/sitegroup';
+import { createSiteGroup, updateSiteGroup } from '../models/sitegroup';
 
 import siteGroupType from '../types/sitegroup';
 
 const createOrUpdateSiteGroupFields = {
-  inputFields: {
-    siteGroupName: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-  },
+  inputFields: { siteGroupName: { type: new GraphQLNonNull(GraphQLString) } },
   outputFields: {
-    siteGroup: {
-      type: siteGroupType,
-      resolve: siteGroup => siteGroup,
-    },
+    siteGroup: { type: siteGroupType, resolve: siteGroup => siteGroup },
   },
 };
 
