@@ -10,20 +10,20 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 
 ## Install Docker
 
-We need docker version  >= 17.05 !
+Lagoon requires Docker version >= 17.05.
 
-### Via brew & cask
+### Via Homebrew
 
-```
-brew tap caskroom/cask
+```sh
+# Allow installation of other Cask versions
 brew tap caskroom/versions
-
+# Install Docker for Mac Edge
 brew cask install docker-edge
 ```
 
 ## Install Submodules
 
-```
+```sh
 git submodules update init --recursive
 ```
 
@@ -33,13 +33,13 @@ git submodules update init --recursive
 
 1. start Lagoon Services
 
-```
+```sh
 docker-compose up -d
 ```
 
 1. Follow the Services logs
 
-```
+```sh
 docker-compose logs -f
 ```
 
@@ -47,12 +47,12 @@ docker-compose logs -f
 
 1. start OpenShift
 
-```
+```sh
 ./startOpenShift.sh
 ```
 
 1. test Openshift Node Deployment
 
-```
+```sh
 docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
 ```
