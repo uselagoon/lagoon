@@ -1,4 +1,6 @@
 [ignore]
+.*node_modules/fbjs.*
+.*node_modules/node-uuid.*
 
 [include]
 
