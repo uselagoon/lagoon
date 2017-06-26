@@ -9,32 +9,31 @@ import * as fs from './util/fs';
 import type { Repository } from 'nodegit';
 
 export type Storage = {
-  existsFile: (filename: string) => Promise<boolean>,
-  accessFile: (filename: string) => Promise<boolean>,
-  readFile: <R>(filename: string) => Promise<R>,
-  writeFile: (filename: string, data: Object) => Promise<void>,
-  commitFile: (filename: string, message: string) => Promise<void>,
-  listYamlFiles: () => Promise<Array<string>>,
+  existsFile(filename: string): Promise<boolean>,
+  accessFile(filename: string): Promise<boolean>,
+  readFile<R>(filename: string): Promise<R>,
+  writeFile(filename: string, data: Object): Promise<void>,
+  commitFile(filename: string, message: string): Promise<void>,
+  listYamlFiles(): Promise<Array<string>>,
 };
 
 export default function createStorage(repository: Repository): Storage {
   const repoPath = repository.workdir();
-  const getFilePath = (filename) => path.join(repoPath, filename);
+  const getFilePath = filename => path.join(repoPath, filename);
 
   return {
     existsFile: async (filename) => {
       const filePath = getFilePath(filename);
-      return await fs.doesFileExist(filePath);
+      return fs.doesFileExist(filePath);
     },
     accessFile: async (filename) => {
       const filePath = getFilePath(filename);
 
       try {
-				// Invert the return value (in the callback version, there is an 'error'
-				// argument in case access is denied).
+        // Invert the return value (in the callback version, there is an 'error'
+        // argument in case access is denied).
         return !(await fs.accessFile(filePath));
-      }
-      catch (error) {
+      } catch (error) {
         return false;
       }
     },
@@ -55,10 +54,7 @@ export default function createStorage(repository: Repository): Storage {
       // Create the commit with the passed message.
       await repository.createCommitOnHead([filename], signature, signature, message);
     },
-    listYamlFiles: (): Promise<Array<string>> => {
-      return glob
-        .sync(`${repoPath}/**/*.yaml`)
-        .map((filePath) => path.relative(repoPath, filePath));
-    },
+    listYamlFiles: (): Promise<Array<string>> =>
+      glob.sync(`${repoPath}/**/*.yaml`).map(filePath => path.relative(repoPath, filePath)),
   };
 }

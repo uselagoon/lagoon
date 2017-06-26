@@ -14,7 +14,7 @@ export function defer(): Defer<*> {
   const deferred = {};
 
   // $FlowExpectedError: Not sure how to make this work, but it doesn't matter anyways
-  deferred.promise = new Promise(function (resolve, reject) {
+  deferred.promise = new Promise((resolve, reject) => {
     deferred.resolve = resolve;
     deferred.reject = reject;
   });

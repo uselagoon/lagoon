@@ -24,7 +24,7 @@ const createOrUpdateSiteFields = {
   outputFields: {
     site: {
       type: siteType,
-      resolve: (site) => site,
+      resolve: site => site,
     },
   },
 };

@@ -7,7 +7,7 @@ import type { $Request, $Response } from 'express';
 export function validateKey(
   req: $Request,
   res: $Response,
-  next: Function
+  next: Function,
 ): void {
   const key = (req.body && req.body.key) || '';
 

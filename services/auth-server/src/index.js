@@ -16,7 +16,7 @@ app.use(
     stream: {
       write: message => logger.info(message),
     },
-  })
+  }),
 );
 
 app.post('/login', ...loginRoute);
@@ -24,7 +24,7 @@ app.post('/logout', ...logoutRoute);
 app.get('/authenticate/:token', ...authenticateRoute);
 
 // $FlowIgnore
-app.use((err: Error, req: $Request, res: $Response, next: Function) => {
+app.use((err: Error, req: $Request, res: $Response) => {
   logger.error(err.toString());
 
   res.status(500);

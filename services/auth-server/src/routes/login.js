@@ -2,7 +2,11 @@
 
 import jwt from 'jsonwebtoken';
 import { get, insert } from '../util/db';
-import { validateKey, parseJson, createErrorMiddleware } from '../util/routing';
+import {
+  validateKey,
+  parseJson,
+  // createErrorMiddleware
+} from '../util/routing';
 import type { $Request, $Response } from 'express';
 
 // TODO:
@@ -24,7 +28,7 @@ function getOrCreateToken(key: string): Promise<string> {
 
 function loginRoute(req: $Request, res: $Response, next: Function) {
   const key = req.body.key;
-  const success = token => {
+  const success = (token) => {
     res.send(token);
   };
 

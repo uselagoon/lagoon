@@ -41,5 +41,5 @@ export const { nodeInterface, nodeField } = nodeDefinitions(
     }
 
     return null;
-  }
+  },
 );

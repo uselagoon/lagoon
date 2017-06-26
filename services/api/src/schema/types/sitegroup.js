@@ -1,7 +1,4 @@
-import {
-  GraphQLString,
-  GraphQLObjectType,
-} from 'graphql';
+import { GraphQLString, GraphQLObjectType } from 'graphql';
 
 import {
   globalIdField,
@@ -20,31 +17,20 @@ const siteGroupType = new GraphQLObjectType({
   name: 'SiteGroup',
   fields: () => ({
     id: globalIdField('SiteGroup'),
-    siteGroupName: {
-      type: GraphQLString,
-    },
+    siteGroupName: { type: GraphQLString },
     client: {
       type: clientType,
-      resolve: (siteGroup) => siteGroup.clientName && getClientByName(siteGroup.clientName),
+      resolve: siteGroup => siteGroup.clientName && getClientByName(siteGroup.clientName),
     },
-    slack: {
-      type: GraphQLString,
-    },
-    gitUrl: {
-      type: GraphQLString,
-    },
+    slack: { type: GraphQLString },
+    gitUrl: { type: GraphQLString },
     sites: {
       type: siteConnection,
-      args: {
-        ...connectionArgs,
-        branch: {
-          type: GraphQLString,
-        },
-      },
+      args: { ...connectionArgs, branch: { type: GraphQLString } },
       resolve: async (siteGroup, { branch, ...args }) => {
         const sites = (await getAllSites())
-          .filter((site) => site.siteGroup === siteGroup.siteGroupName)
-          .filter((site) => branch && site.siteBranch === branch || true);
+          .filter(site => site.siteGroup === siteGroup.siteGroupName)
+          .filter(site => branch && site.siteBranch === branch || true);
 
         return connectionFromArray(sites, args);
       },

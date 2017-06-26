@@ -21,7 +21,7 @@ const createOrUpdateSiteGroupFields = {
   outputFields: {
     siteGroup: {
       type: siteGroupType,
-      resolve: (siteGroup) => siteGroup,
+      resolve: siteGroup => siteGroup,
     },
   },
 };

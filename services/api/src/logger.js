@@ -42,7 +42,4 @@ const logger: Logger = new winston.Logger({
   ],
 });
 
-export const debug = logger.debug;
-
 export default logger;
-

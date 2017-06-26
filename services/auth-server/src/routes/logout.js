@@ -5,7 +5,7 @@ import { validateKey, parseJson } from '../util/routing';
 import type { $Request, $Response } from 'express';
 
 function destroyToken(key: string): Promise<Object> {
-  return get(key).then(doc => {
+  return get(key).then((doc) => {
     destroy(doc._id, doc._rev);
   });
 }

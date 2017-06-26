@@ -75,8 +75,7 @@ export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
   try {
     // Attempt to push any pending commits.
     yield call(remotePush, remote, refs, credCb);
-  }
-  catch (e) {
+  } catch (e) {
     yield call(error, e.message);
   }
 }
