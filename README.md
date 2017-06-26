@@ -24,7 +24,7 @@ brew cask install docker-edge
 ## Install Submodules
 
 ```sh
-git submodules update init --recursive
+git submodule update --init --recursive
 ```
 
 ## Start Services
