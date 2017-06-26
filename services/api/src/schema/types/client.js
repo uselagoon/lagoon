@@ -1,12 +1,6 @@
-import {
-  GraphQLString,
-  GraphQLObjectType,
-} from 'graphql';
+import { GraphQLString, GraphQLObjectType } from 'graphql';
 
-import {
-  globalIdField,
-  connectionDefinitions,
-} from 'graphql-relay';
+import { globalIdField, connectionDefinitions } from 'graphql-relay';
 
 import { nodeInterface } from '../node';
 
@@ -14,12 +8,8 @@ const clientType = new GraphQLObjectType({
   name: 'Client',
   fields: () => ({
     id: globalIdField('Client'),
-    clientName: {
-      type: GraphQLString,
-    },
-    deployPrivateKey: {
-      type: GraphQLString,
-    },
+    clientName: { type: GraphQLString },
+    deployPrivateKey: { type: GraphQLString },
   }),
   interfaces: [nodeInterface],
 });

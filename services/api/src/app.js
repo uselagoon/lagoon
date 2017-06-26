@@ -12,10 +12,12 @@ import type { ApiStore } from './createStore';
 // flow needs this explicitly annotated to correctly type the express
 // interface
 function route404(req: express$Request, res: express$Response) {
-  return res.status(404).json({
-    status: 'error',
-    message: `No endpoint exists at ${req.originalUrl} (method: ${req.method})`,
-  });
+  return res
+    .status(404)
+    .json({
+      status: 'error',
+      message: `No endpoint exists at ${req.originalUrl} (method: ${req.method})`,
+    });
 }
 
 export default (store: ApiStore): express$Application => {
@@ -28,11 +30,7 @@ export default (store: ApiStore): express$Application => {
   app.use(bodyParser.json());
 
   // Add custom configured logger (morgan through winston).
-  app.use(morgan('combined', {
-    stream: {
-      write: message => logger.info(message),
-    },
-  }));
+  app.use(morgan('combined', { stream: { write: message => logger.info(message) } }));
 
   const router = createRouter(store);
 

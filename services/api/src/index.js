@@ -1,24 +1,18 @@
 // @flow
 
-import "babel-polyfill";
-import {
-  ensureRepository,
-  createCredentialsCb,
-  createSignature,
-} from "./util/git";
-import logger from "./logger";
-import server from "./server";
-import createStore from "./createStore";
+import 'babel-polyfill';
+import { ensureRepository, createCredentialsCb, createSignature } from './util/git';
+import logger from './logger';
+import server from './server';
+import createStore from './createStore';
 
-const { validateApiEnv } = require("./validate");
+const { validateApiEnv } = require('./validate');
 
 (async () => {
-  logger.debug("Starting to boot the application.");
+  logger.debug('Starting to boot the application.');
 
   if (!process.env.GIT_REPOSITORY || !process.env.GIT_BRANCH_PULL) {
-    throw new Error(
-      "Missing repository or branch name in environment variables.",
-    );
+    throw new Error('Missing repository or branch name in environment variables.');
   }
 
   try {
@@ -58,12 +52,11 @@ const { validateApiEnv } = require("./validate");
     // TODO: Parse the repo and get the initial state thing
     const initialState = await {};
     const store = createStore(initialState, sagaArgs);
-
     await server(store);
 
-    logger.debug("Finished booting the application.");
+    logger.debug('Finished booting the application.');
   } catch (e) {
-    logger.error("Error occurred while starting the application");
+    logger.error('Error occurred while starting the application');
     logger.error(e.message);
   }
 })();

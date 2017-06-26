@@ -8,7 +8,7 @@ import logger from '../logger';
 const couch = nano('http://auth-database:5984');
 const database = couch.use('auth');
 
-couch.db.create('auth', error => {
+couch.db.create('auth', (error) => {
   if (!error) {
     logger.debug('Authentication database created.');
   } else {
@@ -24,13 +24,10 @@ database.insert(
       },
     },
   },
-  '_design/auth'
+  '_design/auth',
 );
 
-export function insert(
-  doc: Object,
-  params?: string | Object | null = null
-): Promise<Object> {
+export function insert(doc: Object, params?: string | Object | null = null): Promise<Object> {
   return new Promise((resolve, reject) => {
     database.insert(doc, params, (error, body) => {
       if (error) {
@@ -66,13 +63,9 @@ export function get(id: string): Promise<Object> {
   });
 }
 
-export function view(
-  design: string,
-  view: string,
-  values: Object
-): Promise<Object> {
+export function view(design: string, name: string, values: Object): Promise<Object> {
   return new Promise((resolve, reject) => {
-    database.view(design, view, values, (error, body) => {
+    database.view(design, name, values, (error, body) => {
       if (error) {
         reject(error);
       } else {

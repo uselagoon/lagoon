@@ -2,8 +2,8 @@
 
 type Defer<R> = {
   promise: Promise<R>,
-  resolve: (result: Promise<R> | R) => void,
-  reject: (error: any) => void,
+  resolve(result: Promise<R> | R): void,
+  reject(error: any): void,
 };
 
 /**

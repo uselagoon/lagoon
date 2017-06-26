@@ -8,7 +8,8 @@
     "build": "babel src -d dist",
     "dev": "nodemon --watch src --exec 'node -r dotenv-extended/config -r babel-core/register' -- src",
     "start": "node -r dotenv-extended/config dist",
-    "flow": "flow check"
+    "flow": "flow check",
+    "format": "prettier --trailing-comma all --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -57,7 +58,9 @@
   "jest": {
     "rootDir": ".",
     "testEnvironment": "node",
-    "testMatch": ["**/?(*.)(spec|test).js?(x)"],
+    "testMatch": [
+      "**/?(*.)(spec|test).js?(x)"
+    ],
     "setupFiles": [
       "./jest/setup.js"
     ]
@@ -65,13 +68,11 @@
   "lint-staged": {
     "linters": {
       "*.js": [
+        "prettier --trailing-comma all --single-quote",
         "eslint --fix",
         "git add"
       ]
     },
-    "gitDir": "../"
-  },
-  "pre-commit": [
-    "flow"
-  ]
+    "gitDir": "../../"
+  }
 }

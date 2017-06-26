@@ -6,9 +6,9 @@
  * testing.
  */
 
-require("dotenv-extended").load();
+require('dotenv-extended').load();
 
-const { validateApiEnv } = require("../../validate");
+const { validateApiEnv } = require('../../validate');
 
 const {
   ensureRepository,
@@ -38,7 +38,7 @@ const getSetupRepo = async (): Promise<*> => {
       GIT_REPOSITORY,
       GIT_BRANCH_PULL,
       GIT_REPO_DIR,
-      credCb
+      credCb,
     );
   }
   return repo;

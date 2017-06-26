@@ -1,14 +1,8 @@
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-} from 'graphql';
+import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
 import { nodeField } from './node';
 
-import {
-  siteByNameField,
-  allSitesField,
-} from './queries/site';
+import { siteByNameField, allSitesField } from './queries/site';
 
 import {
   siteGroupByNameField,
@@ -16,15 +10,9 @@ import {
   allSiteGroupsField,
 } from './queries/sitegroup';
 
-import {
-  clientByNameField,
-  allClientsField,
-} from './queries/client';
+import { clientByNameField, allClientsField } from './queries/client';
 
-import {
-  createSiteMutation,
-  updateSiteMutation,
-} from './mutations/site';
+import { createSiteMutation, updateSiteMutation } from './mutations/site';
 
 import {
   createSiteGroupMutation,
@@ -72,7 +60,4 @@ const mutation = new GraphQLObjectType({
   }),
 });
 
-export default new GraphQLSchema({
-  query,
-  mutation,
-});
+export default new GraphQLSchema({ query, mutation });

@@ -1,9 +1,6 @@
 /* eslint-disable global-require */
 
-import {
-  fromGlobalId,
-  nodeDefinitions,
-} from 'graphql-relay';
+import { fromGlobalId, nodeDefinitions } from 'graphql-relay';
 
 import Site, { getSiteByName } from './models/site';
 import SiteGroup, { getSiteGroupByName } from './models/sitegroup';

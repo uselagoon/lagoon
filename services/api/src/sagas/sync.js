@@ -36,32 +36,25 @@ export type RebaseSagaArgs = {
 };
 
 export function* rebaseSaga(args: RebaseSagaArgs): Generator<IOEffect, *, *> {
-  const {
-    repository,
-    branch,
-    signature,
-    credCb,
-  } = args;
+  const { repository, branch, signature, credCb } = args;
 
   yield call(fetchAll, repository, credCb);
   yield call(rebase, repository, branch, `origin/${branch}`, branch, signature);
 }
 
 export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
-  const {
-    repository,
-    pullBranch,
-    pushBranch,
-    credCb,
-    logger,
-  } = args;
+  const { repository, pullBranch, pushBranch, credCb, logger } = args;
 
   const { debug, error } = logger;
 
   yield call(fetchAll, repository, credCb);
 
   const localRevision = yield call(revparseSingle, repository, pullBranch);
-  const originRevision = yield call(revparseSingle, repository, `origin/${pushBranch}`);
+  const originRevision = yield call(
+    revparseSingle,
+    repository,
+    `origin/${pushBranch}`,
+  );
 
   // Check if the current local and remote revision are identical.
   if (localRevision.id().toString() === originRevision.id().toString()) {
@@ -81,14 +74,10 @@ export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 }
 
 export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
-  const {
-    pullBranch,
-    syncInterval,
-    pushEnabled = false,
-    logger,
-  } = args;
+  const { pullBranch, syncInterval, pushEnabled = false, logger } = args;
 
-  while (true) { // eslint-disable-line
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
     yield call(logger.info, 'Rebasing repository');
     yield call(rebaseSaga, { ...args, branch: pullBranch });
 

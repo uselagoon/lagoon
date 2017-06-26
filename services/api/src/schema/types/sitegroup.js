@@ -20,7 +20,8 @@ const siteGroupType = new GraphQLObjectType({
     siteGroupName: { type: GraphQLString },
     client: {
       type: clientType,
-      resolve: siteGroup => siteGroup.clientName && getClientByName(siteGroup.clientName),
+      resolve: siteGroup =>
+        siteGroup.clientName && getClientByName(siteGroup.clientName),
     },
     slack: { type: GraphQLString },
     gitUrl: { type: GraphQLString },

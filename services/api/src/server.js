@@ -1,7 +1,7 @@
 // @flow
 
 import http from 'http';
-import { debug } from './logger';
+import logger from './logger';
 import { defer } from './util/promise';
 import app from './app';
 
@@ -18,7 +18,7 @@ const normalizePort = (value) => {
 };
 
 export default async (store: ApiStore): Promise<Server> => {
-  debug('Starting to boot the server.');
+  logger.debug('Starting to boot the server.');
 
   const port = normalizePort(process.env.PORT || '80');
   const server = http.createServer(app(store));
@@ -35,7 +35,8 @@ export default async (store: ApiStore): Promise<Server> => {
 
   await deferred.promise;
 
-  debug(`Finished booting the server. The server is reachable at Port ${port.toString()}.`); // eslint-disable-line
+  logger.debug(`Finished booting the server. The server is reachable at Port ${port.toString()}.`);
 
+  // eslint-disable-line
   return server;
 };

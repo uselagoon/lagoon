@@ -1,10 +1,10 @@
 // @flow
 
-import { debug } from '../logger';
+import logger from '../logger';
 import type { $Request, $Response } from 'express';
 
 export default (req: $Request, res: $Response) => {
-  debug('Fetching status.');
+  logger.debug('Fetching status.');
 
   // @todo Add logic to fetch the status.
   const status = {};
