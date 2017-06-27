@@ -1,30 +1,42 @@
-import { GraphQLString, GraphQLNonNull } from 'graphql';
+// @flow-weak
 
-import { connectionArgs, connectionFromPromisedArray } from 'graphql-relay';
+import { GraphQLString, GraphQLNonNull } from "graphql";
 
-import siteGroupType, { siteGroupConnection } from '../types/sitegroup';
+import { connectionArgs, connectionFromArray } from "graphql-relay";
+
+import siteGroupType, { siteGroupConnection } from "../types/sitegroup";
 
 import {
   getAllSiteGroups,
   getSiteGroupByName,
-  getSiteGroupByGitUrl,
-} from '../models/sitegroup';
+  getSiteGroupByGitUrl
+} from "../models/sitegroup";
+
+import type { Context } from "";
 
 export const siteGroupByNameField = {
   type: siteGroupType,
   args: { name: { type: new GraphQLNonNull(GraphQLString) } },
-  resolve: async (_, { name }) => getSiteGroupByName(name),
+  resolve: async (_, { name }) => getSiteGroupByName(name)
 };
 
 export const siteGroupByGitUrlField = {
   type: siteGroupType,
   args: { url: { type: new GraphQLNonNull(GraphQLString) } },
-  resolve: async (_, { url }) => getSiteGroupByGitUrl(url),
+  resolve: async (_, { url }) => getSiteGroupByGitUrl(url)
 };
 
 export const allSiteGroupsField = {
   type: siteGroupConnection,
   args: connectionArgs,
-  resolve: async (_, args) =>
-    connectionFromPromisedArray(getAllSiteGroups(), args),
+  resolve: (_, args, ctx) => {
+    const { getState } = ctx;
+    const { getAllSiteGroups } = ctx.selectors;
+
+    const ret = getAllSiteGroups(getState());
+    console.log(ret);
+
+    return connectionFromArray(ret, args);
+  }
 };
+

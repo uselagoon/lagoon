@@ -7,7 +7,7 @@
     "test:watch": "jest --watch",
     "test:container": "docker-compose exec api sh -c 'yarn run test:watch'",
     "build": "babel src -d dist",
-    "dev": "nodemon --watch src --exec 'node -r dotenv-extended/config -r babel-core/register' -- src",
+    "dev": "NODE_ENV=development; nodemon --watch src --exec 'node -r dotenv-extended/config -r babel-core/register' -- src",
     "start": "node -r dotenv-extended/config dist",
     "flow": "flow check",
     "format": "prettier --trailing-comma all --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"

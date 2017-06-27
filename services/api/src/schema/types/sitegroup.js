@@ -1,29 +1,39 @@
-import { GraphQLString, GraphQLObjectType } from 'graphql';
+import { GraphQLString, GraphQLObjectType, GraphQLBoolean } from "graphql";
 
 import {
   globalIdField,
   connectionDefinitions,
   connectionArgs,
-  connectionFromArray,
-} from 'graphql-relay';
+  connectionFromArray
+} from "graphql-relay";
 
-import { nodeInterface } from '../node';
-import { getClientByName } from '../models/client';
-import { getAllSites } from '../models/site';
-import { siteConnection } from './site';
-import clientType from './client';
+import { nodeInterface } from "../node";
+import { getClientByName } from "../models/client";
+import { getAllSites } from "../models/site";
+import { siteConnection } from "./site";
+import clientType from "./client";
+
+const slackType = new GraphQLObjectType({
+  name: "Slack",
+  fields: () => ({
+    webhook: {type: GraphQLString},
+    channel: {type: GraphQLString},
+    inform_start: {type: GraphQLBoolean},
+    inform_channel: {type: GraphQLString}
+  })
+});
 
 const siteGroupType = new GraphQLObjectType({
-  name: 'SiteGroup',
+  name: "SiteGroup",
   fields: () => ({
-    id: globalIdField('SiteGroup'),
+    id: globalIdField("SiteGroup"),
     siteGroupName: { type: GraphQLString },
     client: {
       type: clientType,
       resolve: siteGroup =>
-        siteGroup.clientName && getClientByName(siteGroup.clientName),
+        siteGroup.clientName && getClientByName(siteGroup.clientName)
     },
-    slack: { type: GraphQLString },
+    slack: { type: slackType },
     gitUrl: { type: GraphQLString },
     sites: {
       type: siteConnection,
@@ -34,15 +44,16 @@ const siteGroupType = new GraphQLObjectType({
           .filter(site => branch && site.siteBranch === branch || true);
 
         return connectionFromArray(sites, args);
-      },
-    },
+      }
+    }
   }),
-  interfaces: [nodeInterface],
+  interfaces: [ nodeInterface ]
 });
 
 export const { connectionType: siteGroupConnection } = connectionDefinitions({
-  name: 'SiteGroups',
-  nodeType: siteGroupType,
+  name: "SiteGroups",
+  nodeType: siteGroupType
 });
 
 export default siteGroupType;
+

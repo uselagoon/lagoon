@@ -1,7 +1,7 @@
 // @flow
 
 import { delay } from "redux-saga";
-import { call, put } from "redux-saga/effects";
+import { call, put, select } from "redux-saga/effects";
 
 import type { IOEffect } from "redux-saga/effects";
 import type { Repository, CredCb, Remote, Signature } from "../util/git";
@@ -99,13 +99,13 @@ export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 
     yield call(logger.debug, "Finished synchronization");
 
-    // Wait some time before re-doing the sync again
-    yield call(delay, syncInterval);
-
     const siteGroupsYaml = yield call(readSiteGroupsFile, repoDir);
     const siteGroups = yield call(parseSiteGroupsFile, siteGroupsYaml);
 
     yield put(setSiteGroups(siteGroups));
+    
+    // Wait some time before re-doing the sync again
+    yield call(delay, syncInterval);
   }
 }
 

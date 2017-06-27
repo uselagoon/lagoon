@@ -5,7 +5,7 @@ import type { SiteGroupFile } from "./types";
 
 export type State = { siteGroups?: SiteGroupFile };
 
-const reducer = (state: State, action: Action): State => {
+const reducer = (state: State = {}, action: Action): State => {
   switch (action.type) {
     case "SET_SITE_GROUPS": {
       const { siteGroups } = action;
@@ -17,3 +17,5 @@ const reducer = (state: State, action: Action): State => {
 };
 
 module.exports = reducer; 
+
+
