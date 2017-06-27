@@ -36,6 +36,12 @@ export default function createRouter(store: ApiStore): express$Router {
     }),
   );
 
+  // Make the context available to all routes.
+  router.use((req: $Request, res: $Response, next: Function) => {
+    req.context = context;
+    next();
+  });
+
   // Redirect GET requests on "/" to the status route.
   router.get('/', (req: $Request, res: $Response) => res.redirect('/status'));
   router.get('/status', statusController);

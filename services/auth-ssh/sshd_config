@@ -23,7 +23,7 @@ ChallengeResponseAuthentication no
 KerberosAuthentication no
 GSSAPIAuthentication no
 
-UsePAM no
+UsePAM yes
 
 AllowAgentForwarding no
 AllowTcpForwarding no

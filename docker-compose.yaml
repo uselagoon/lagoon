@@ -104,8 +104,8 @@ services:
     environment:
       - GIT_REPOSITORY=file:///lagoon/hiera
       - GIT_REPO_DIR=/app/.repository
-      - GIT_BRANCH_PULL=ci-local
-      - GIT_BRANCH_PUSH=ci-local
+      - GIT_BRANCH_PULL=api
+      - GIT_BRANCH_PUSH=api
       - GIT_USERNAME=3dfc013c579f85bbcd4cd0c5d11cda325a086ec8
       - GIT_PASSWORD=x-oauth-basic
       - SYNC_INTERVAL=10000
