@@ -1,11 +1,20 @@
 // @flow
 
+/* eslint-disable */
+
 const Yaml = require('js-yaml');
 // const { readFile } = require('../util/fs');
 const { listYamlFiles, readYamlFile } = require('.');
 
 class Site {
-  constructor(siteName, serverInfrastructure, serverIdentifier, serverNames, jumpHost, fullJson) {
+  constructor(
+    siteName,
+    serverInfrastructure,
+    serverIdentifier,
+    serverNames,
+    jumpHost,
+    fullJson,
+  ) {
     this.id = `${serverIdentifier}.${serverInfrastructure}/${siteName}`;
     this.siteHost = `${serverIdentifier}.${serverInfrastructure}`;
     this.created = fullJson.created;
@@ -27,8 +36,8 @@ class Site {
     this.dbPassword = fullJson.db_password;
     this.dbUser = fullJson.db_user;
     this.cron = {};
-    this.cron.type = fullJson.cron && fullJson.cron.type || null;
-    this.cron.minute = fullJson.cron && fullJson.cron.minute || null;
+    this.cron.type = (fullJson.cron && fullJson.cron.type) || null;
+    this.cron.minute = (fullJson.cron && fullJson.cron.minute) || null;
     this.customCron = fullJson.custom_cron;
     this.envVariables = fullJson.env_variables;
     this.noPrefixenvVariables = fullJson.no_prefix_env_variables;
@@ -50,8 +59,10 @@ class Site {
     this.apc = fullJson.apc;
     this.comment = fullJson.comment;
     this.basicAuth = {};
-    this.basicAuth.username = fullJson.basic_auth && fullJson.basic_auth.username || null;
-    this.basicAuth.password = fullJson.basic_auth && fullJson.basic_auth.password || null;
+    this.basicAuth.username =
+      (fullJson.basic_auth && fullJson.basic_auth.username) || null;
+    this.basicAuth.password =
+      (fullJson.basic_auth && fullJson.basic_auth.password) || null;
     this.jumpHost = jumpHost;
     this.monitoringLevel = fullJson.monitoring_level || null;
     this.uptimeMonitoringUri = fullJson.monitoring_uri || null;
@@ -84,12 +95,18 @@ export const getAllSites = async (repoPath: string) => {
       let serverNames;
       let jumpHost;
       // @todo Is it correct to hard-code this?
-      const clusterMemberKey = 'drupalhosting::profiles::nginx_backend::cluster_member';
+      const clusterMemberKey =
+        'drupalhosting::profiles::nginx_backend::cluster_member';
 
       const jumphostKey = 'amazeeio::jumphost';
 
-      if (serverInfrastructure === 'cluster' && yaml.hasOwnProperty(clusterMemberKey)) {
-        serverNames = Object.keys(yaml[clusterMemberKey]).map(key => `${key}.${siteHost}`);
+      if (
+        serverInfrastructure === 'cluster' &&
+        yaml.hasOwnProperty(clusterMemberKey)
+      ) {
+        serverNames = Object.keys(yaml[clusterMemberKey]).map(
+          key => `${key}.${siteHost}`,
+        );
       } else if (serverInfrastructure === 'single') {
         serverNames = [`backend.${siteHost}`];
       } else {
@@ -102,18 +119,20 @@ export const getAllSites = async (repoPath: string) => {
         jumpHost = null;
       }
 
-      Object.keys(yaml.drupalsites).forEach((siteName) => {
+      Object.keys(yaml.drupalsites).forEach(siteName => {
         if (!yaml.drupalsites.hasOwnProperty(siteName)) {
           return;
         }
-        sites.push(new Site(
-          siteName,
-          serverInfrastructure,
-          serverIdentifier,
-          serverNames,
-          jumpHost,
-          yaml.drupalsites[siteName],
-        ));
+        sites.push(
+          new Site(
+            siteName,
+            serverInfrastructure,
+            serverIdentifier,
+            serverNames,
+            jumpHost,
+            yaml.drupalsites[siteName],
+          ),
+        );
       });
     }
   }

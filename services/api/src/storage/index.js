@@ -39,8 +39,7 @@ export function commitFile(
 export const repoPath = (
   repository: Repository,
   ...paths: Array<string>
-): string =>
-  path.join(repository.workdir(), ...paths);
+): string => path.join(repository.workdir(), ...paths);
 
 export function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
@@ -49,8 +48,8 @@ export function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
         reject(err);
         return;
       }
-      const ret = matches.map(
-        filePath => path.relative(listRepoPath, filePath),
+      const ret = matches.map(filePath =>
+        path.relative(listRepoPath, filePath),
       );
       resolve(ret);
     });

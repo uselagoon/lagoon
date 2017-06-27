@@ -1,12 +1,18 @@
 // @flow
 
 import { delay } from 'redux-saga';
-import { call, put, select } from 'redux-saga/effects';
+import { call, put } from 'redux-saga/effects';
 
 import type { IOEffect } from 'redux-saga/effects';
 import type { Repository, CredCb, Remote, Signature } from '../util/git';
 
-import { fetchAll, revparseSingle, getRemote, remotePush, rebase } from '../util/git';
+import {
+  fetchAll,
+  revparseSingle,
+  getRemote,
+  remotePush,
+  rebase,
+} from '../util/git';
 
 import type { Logger } from '../logger';
 
@@ -48,7 +54,11 @@ export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
   yield call(fetchAll, repository, credCb);
 
   const localRevision = yield call(revparseSingle, repository, pullBranch);
-  const originRevision = yield call(revparseSingle, repository, `origin/${pushBranch}`);
+  const originRevision = yield call(
+    revparseSingle,
+    repository,
+    `origin/${pushBranch}`,
+  );
 
   // Check if the current local and remote revision are identical.
   if (localRevision.id().toString() === originRevision.id().toString()) {
@@ -68,7 +78,13 @@ export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 }
 
 export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
-  const { repository, pullBranch, syncInterval, pushEnabled = false, logger } = args;
+  const {
+    repository,
+    pullBranch,
+    syncInterval,
+    pushEnabled = false,
+    logger,
+  } = args;
 
   // Read sitegroups and store them in the state
   const repoDir = repository.workdir();
@@ -91,8 +107,6 @@ export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 
     const sites = yield call(getAllSites, repoDir);
     yield put(setSites(sites));
-    const s = select();
-    console.log(sites);
 
     // Wait some time before re-doing the sync again
     yield call(delay, syncInterval);

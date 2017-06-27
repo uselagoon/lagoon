@@ -1,8 +1,6 @@
-import type { State } from './reducer';
+// @flow
 
 const R = require('ramda');
-
-const mapIndexed = R.addIndex(R.map);
 
 const getAllSiteGroups = R.compose(
   R.map(([id, siteGroup]) => ({ ...siteGroup, id, siteGroupName: id })),
@@ -13,7 +11,8 @@ const getAllSiteGroups = R.compose(
 const getAllSites = () => [];
 
 const // console.log(state);
-getSiteByName = (state, name) => R.find(site => site.siteName === name)(state.sites);
+  getSiteByName = (state, name) =>
+    R.find(site => site.siteName === name)(state.sites);
 
 // R.find(site => site.siteName === name)(state);
 module.exports = { getAllSiteGroups, getSiteByName, getAllSites };

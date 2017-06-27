@@ -12,16 +12,28 @@ import type { Action } from '../actions';
 import type { $Request, $Response } from 'express';
 import type { ApiStore } from '../createStore';
 
-export type Context = { selectors: typeof selectors, dispatch(action: Action): void };
+export type Context = {
+  selectors: typeof selectors,
+  dispatch(action: Action): void,
+};
 
 export default function createRouter(store: ApiStore): express$Router {
   const router = new express.Router();
-  const context = { selectors, dispatch: store.dispatch, getState: store.getState };
+  const context = {
+    selectors,
+    dispatch: store.dispatch,
+    getState: store.getState,
+  };
 
   // Add the GraphQL server.
   router.use(
     '/graphql',
-    graphQL({ graphiql: process.env.NODE_ENV === 'development', pretty: true, schema, context }),
+    graphQL({
+      graphiql: process.env.NODE_ENV === 'development',
+      pretty: true,
+      schema,
+      context,
+    }),
   );
 
   // Redirect GET requests on "/" to the status route.

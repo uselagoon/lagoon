@@ -32,7 +32,7 @@ export default function createStorage(repository: Repository): Storage {
       try {
         // Invert the return value (in the callback version, there is an 'error'
         // argument in case access is denied).
-        return !(await fs.accessFile(filePath));
+        return !await fs.accessFile(filePath);
       } catch (error) {
         return false;
       }

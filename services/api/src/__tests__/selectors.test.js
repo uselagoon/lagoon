@@ -1,8 +1,6 @@
 // @flow
 
-
-const { getAllSiteGroups } = require('../selectors'); 
-
+const { getAllSiteGroups } = require('../selectors');
 
 describe('getAllSiteGroups', () => {
   test('should return a list of getAllSiteGroups', () => {
