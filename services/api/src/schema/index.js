@@ -8,6 +8,7 @@ const typeDefs = `
     site_group_name: String
     git_url: String
     slack: Slack
+    client: Client
   }
 
   type Site {
@@ -66,11 +67,19 @@ const resolvers = {
     },
   },
   Client: {
-    site_groups: (client, __, ctx) => {
+    site_groups: (client, _, ctx) => {
       const { getState } = ctx;
       const { getSiteGroupsByClient } = ctx.selectors;
 
       return getSiteGroupsByClient(getState(), client);
+    },
+  },
+  SiteGroup: {
+    client: (siteGroup, _, ctx) => {
+      const { getState } = ctx;
+      const { getClientByName } = ctx.selectors;
+
+      return getClientByName(getState(), siteGroup.client);
     },
   },
 };

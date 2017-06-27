@@ -19,12 +19,22 @@ const getAllClients = R.compose(
   R.propOr({}, 'clients'),
 );
 
-const getSiteGroupsByClient = () => [];
+const getClientByName = (state, name) =>
+  R.compose(R.find(client => client.client_name === name), getAllClients)(
+    state,
+  );
+
+const getSiteGroupsByClient = (state, client) =>
+  R.compose(
+    R.filter(siteGroup => siteGroup.client === client.client_name),
+    getAllSiteGroups,
+  )(state);
 
 module.exports = {
   getAllSiteGroups,
   getSiteByName,
   getAllSites,
   getAllClients,
+  getClientByName,
   getSiteGroupsByClient,
 };
