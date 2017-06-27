@@ -309,11 +309,17 @@ node {
   }
 
   let jenkinsJobID = await getJenkinsJobID(jenkinsJobBuildResponse)
+  let logMessage
+  if (gitSha) {
+    logMessage = `\`${branchName}\` (${buildName})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
 
   logger.verbose(`Running job build: ${jobname}, job id: ${jenkinsJobID}`)
 
   sendToAmazeeioLogs('start', siteGroupName, "", "task:deploy-openshift:start", {},
-    `Start: Deploying \`${openshiftRessourceAppName}\``
+    `*[${siteGroupName}]* ${logMessage}`
   )
 
   let log = jenkins.build.logStream(jobname, jenkinsJobID)
@@ -325,7 +331,7 @@ node {
 
     log.on('error', error =>  {
       sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
-  `ERROR: Deploying \`${openshiftRessourceAppName}\`:
+  `*[${siteGroupName}]* ${logMessage} ERROR:
   \`\`\`
   ${error}
   \`\`\``
@@ -338,11 +344,11 @@ node {
       const result = await jenkins.build.get(jobname, jenkinsJobID)
       if (result.result === "SUCCESS") {
         sendToAmazeeioLogs('success', siteGroupName, "", "task:deploy-openshift:finished",  {},
-          `Finished: \`${openshiftRessourceAppName}\` ${openshiftRessourceRouterUrl}`
+          `*[${siteGroupName}]* ${logMessage} ${openshiftRessourceRouterUrl}`
         )
         logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
       } else {
-        sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {}, `ERROR: Deploying \`${openshiftRessourceAppName}\``)
+        sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {}, `*[${siteGroupName}]* ${logMessage} ERROR`)
         logger.error(`Finished FAILURE job build: ${jobname}, job id: ${jenkinsJobID}`)
       }
       resolve()
