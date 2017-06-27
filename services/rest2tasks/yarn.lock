@@ -48,9 +48,9 @@
     babel-preset-es2015 "^6.18.0"
     winston "^2.2.0"
 
-"@amazeeio/amazeeio-tasks@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-tasks/-/amazeeio-tasks-1.0.2.tgz#96f3d28ca54e2dc9e845854fa0e167547cf4675a"
+"@amazeeio/amazeeio-tasks@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-tasks/-/amazeeio-tasks-1.0.3.tgz#49c16a4d29ec180128d681a69d172803d22f2744"
   dependencies:
     "@amazeeio/amazeeio-api" "^1.0.0"
     "@amazeeio/amazeeio-local-logging" "^0.1.3"
