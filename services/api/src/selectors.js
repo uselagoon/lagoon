@@ -3,14 +3,28 @@
 const R = require('ramda');
 
 const getAllSiteGroups = R.compose(
-  R.map(([id, siteGroup]) => ({ ...siteGroup, id, siteGroupName: id })),
-  sitegroups => Object.entries(sitegroups),
+  R.map(([ id, siteGroup ]) => ({ ...siteGroup, id, site_group_name: id })),
+  Object.entries,
   R.propOr({}, 'siteGroups'),
 );
 
 const getAllSites = () => [];
 
-const getSiteByName = (state, name) => R.find(site => site.siteName === name)(state.sites);
+const getSiteByName = (state, name) =>
+  R.find(site => site.siteName === name)(state.sites);
 
-// R.find(site => site.siteName === name)(state);
-module.exports = { getAllSiteGroups, getSiteByName, getAllSites };
+const getAllClients = R.compose(
+  R.map(([ id, client ]) => ({ ...client, id, client_name: id })),
+  Object.entries,
+  R.propOr({}, 'clients'),
+);
+
+const getSiteGroupsByClient = () => [];
+
+module.exports = {
+  getAllSiteGroups,
+  getSiteByName,
+  getAllSites,
+  getAllClients,
+  getSiteGroupsByClient,
+};

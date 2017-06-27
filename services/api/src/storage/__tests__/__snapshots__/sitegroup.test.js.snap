@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`parseSiteGroupFile should return a parsed sitegroup YAML as JS object 1`] = `
+exports[`parseSiteGroupsFile should return a parsed sitegroup YAML as JS object 1`] = `
 Object {
   "ci-node1": Object {
     "active_systems": Object {

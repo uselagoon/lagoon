@@ -5,14 +5,22 @@ import { makeExecutableSchema } from 'graphql-tools';
 const typeDefs = `
   type SiteGroup {
     id: String!
-    siteGroupName: String
-    gitUrl: String
+    site_group_name: String
+    git_url: String
     slack: Slack
   }
 
   type Site {
     id: String
     site_branch: String
+  }
+
+  type Client {
+    client_name: String
+    deploy_private_key: String
+    created:String
+    comment: String
+    site_groups: [SiteGroup]
   }
 
   type Slack {
@@ -26,6 +34,7 @@ const typeDefs = `
     allSiteGroups: [SiteGroup]
     allSites(environmentType: String!): [Site]
     siteByName(name: String!): Site
+    allClients: [Client]
   }
 `;
 
@@ -48,6 +57,20 @@ const resolvers = {
       const { getSiteByName } = ctx.selectors;
 
       return getSiteByName(getState(), args.name);
+    },
+    allClients: (_, __, ctx) => {
+      const { getState } = ctx;
+      const { getAllClients } = ctx.selectors;
+
+      return getAllClients(getState());
+    },
+  },
+  Client: {
+    site_groups: (client, __, ctx) => {
+      const { getState } = ctx;
+      const { getSiteGroupsByClient } = ctx.selectors;
+
+      return getSiteGroupsByClient(getState(), client);
     },
   },
 };

@@ -11,7 +11,6 @@ export const getAllSites = async (repoPath: string) => {
   const sites = [];
 
   // const yamlFiles = await listYamlFiles(repoPath);
-  // console.log(yamlFiles);
   // return;
   for (const fileName of await listYamlFiles(repoPath)) {
     // Extract infrastructure and identifier from file name.
@@ -20,7 +19,6 @@ export const getAllSites = async (repoPath: string) => {
       .split('/');
 
     const yaml = await readYamlFile(`${repoPath}${fileName}`, 'utf8');
-    console.log('filename!', fileName);
     if (yaml.hasOwnProperty('drupalsites')) {
       const serverNameOverwriteKey = 'amazeeio::servername';
 
@@ -76,7 +74,7 @@ export const getAllSites = async (repoPath: string) => {
 // const R = require('ramda');
 // const { readFile, writeFile } = require('../util/fs');
 //
-// import type { SiteGroupFile, SiteGroup } from '../types';
+// import type { SiteGroupsFile, SiteGroup } from '../types';
 //
 // export const siteGroupsFilePath = (repoPath: string) =>
 //   path.join(repoPath, 'amazeeio', 'sitegroups.yaml');
@@ -90,7 +88,7 @@ export const getAllSites = async (repoPath: string) => {
 // export const readSiteGroupsFile = (repoPath: string): Promise<string> =>
 //   readFile(siteGroupsFilePath(repoPath), 'utf8');
 //
-// export const parseSiteGroupsFile = (yamlContent: string): SiteGroupFile => R.compose(
+// export const parseSiteGroupsFile = (yamlContent: string): SiteGroupsFile => R.compose(
 //   R.propOr({}, 'amazeeio_sitegroups'),
 //   // TODO: Maybe use a schema w/ safeLoad?
 //   Yaml.safeLoad,

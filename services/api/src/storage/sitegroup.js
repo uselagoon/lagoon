@@ -5,7 +5,7 @@ const path = require('path');
 const R = require('ramda');
 const { readFile, writeFile } = require('../util/fs');
 
-import type { SiteGroupFile, SiteGroup } from '../types';
+import type { SiteGroupsFile, SiteGroup } from '../types';
 
 export const siteGroupsFilePath = (repoPath: string) =>
   path.join(repoPath, 'amazeeio', 'sitegroups.yaml');
@@ -23,7 +23,7 @@ export const writeSiteGroupsFile = (
 export const readSiteGroupsFile = (repoPath: string): Promise<string> =>
   readFile(siteGroupsFilePath(repoPath), 'utf8');
 
-export const parseSiteGroupsFile = (yamlContent: string): SiteGroupFile =>
+export const parseSiteGroupsFile = (yamlContent: string): SiteGroupsFile =>
   R.compose(
     R.propOr({}, 'amazeeio_sitegroups'),
     // TODO: Maybe use a schema w/ safeLoad?

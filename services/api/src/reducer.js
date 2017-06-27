@@ -1,9 +1,13 @@
 // @flow
 
 import type { Action } from './actions';
-import type { SiteGroupFile, Site } from './types';
+import type { SiteGroupsFile, ClientsFile, Site } from './types';
 
-export type State = { siteGroups?: SiteGroupFile, sites?: Array<Site> };
+export type State = {
+  siteGroups?: SiteGroupsFile,
+  clients?: ClientsFile,
+  sites?: Array<Site>,
+};
 
 const reducer = (state: State = {}, action: Action): State => {
   switch (action.type) {
@@ -11,9 +15,12 @@ const reducer = (state: State = {}, action: Action): State => {
       const { siteGroups } = action;
       return { ...state, siteGroups };
     }
+    case 'SET_CLIENTS': {
+      const { clients } = action;
+      return { ...state, clients };
+    }
     case 'SET_SITES': {
       const { sites } = action;
-      console.log('SET_SITES', sites);
       return { ...state, sites };
     }
     default:

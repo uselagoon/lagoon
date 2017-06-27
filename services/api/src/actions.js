@@ -1,6 +1,6 @@
 // @flow
 
-import type { Site, SiteGroupFile } from './types';
+import type { Site, SiteGroupsFile, ClientsFile } from './types';
 
 type Cb<R> = (err?: Error, res: R) => void;
 
@@ -18,18 +18,22 @@ export type UpdateFileAction = {
   content: string,
 };
 
-export type SetSiteGroupAction = {
+export type SetSiteGroupsAction = {
   type: 'SET_SITE_GROUPS',
-  siteGroups: SiteGroupFile,
+  siteGroups: SiteGroupsFile,
 };
 
 export const setSiteGroups = (
-  siteGroups: SiteGroupFile,
-): SetSiteGroupAction => ({
-  type: 'SET_SITE_GROUPS',
-  siteGroups,
+  siteGroups: SiteGroupsFile,
+): SetSiteGroupsAction => ({ type: 'SET_SITE_GROUPS', siteGroups });
+
+export type SetClientsAction = { type: 'SET_CLIENTS', siteGroups: ClientsFile };
+
+export const setClients = (clients: ClientsFile): SetClientsAction => ({
+  type: 'SET_CLIENTS',
+  clients,
 });
 
 export const setSites = sites => ({ type: 'SET_SITES', sites });
 
-export type Action = SetSiteGroupAction | Noop;
+export type Action = SetSiteGroupsAction | SetClientsAction | Noop;

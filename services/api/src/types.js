@@ -36,9 +36,9 @@ export type SiteGroup = {
   },
 };
 
-export type ClientFile = { amazeeio_clients: { [clientName: string]: Client } };
+export type ClientFile = { [clientName: string]: ?Client };
 
-export type SiteGroupFile = { [siteGroupName: string]: ?SiteGroup };
+export type SiteGroupsFile = { [siteGroupName: string]: ?SiteGroup };
 
 export type SiteFile = { [siteName: string]: ?Site };
 
