@@ -9,7 +9,6 @@ RUN usermod -G root -a jenkins && \
 
 # We don't need a setup, we're automated
 ENV JAVA_OPTS=-Djenkins.install.runSetupWizard=false\ -Xmx512m
-ENV JENKINS_UC_DOWNLOAD http://archives.jenkins-ci.org
 
 # Installing our plugins
 RUN /usr/local/bin/install-plugins.sh ansicolor blueocean rebuild greenballs openshift-pipeline pipeline-stage-view slack lockable-resources monitoring
