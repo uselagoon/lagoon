@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@amazee/persistgraphql": "^0.3.2",
+    "@amazee/react-scripts": "0.0.63",
     "apollo-client": "^1.2.2",
     "compression": "^1.6.2",
     "ejs": "^2.5.6",
@@ -61,7 +62,6 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "@amazee/react-scripts": "0.0.63",
     "flow-bin": "^0.46.0",
     "jssha": "^2.3.0",
     "lint-staged": "^3.4.2",
