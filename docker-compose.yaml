@@ -178,3 +178,13 @@ services:
       - RABBITMQ_PASSWORD=guest
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
+  hacky-rest2tasks-ui:
+    build: services/hacky-rest2tasks-ui
+    command: yarn run dev
+    environment:
+      - API=http://api:3000
+      - REST2TASKS_URL=http://rest2tasks:3000
+    links:
+      - rest2tasks
+    ports:
+      - "8090:3000"
