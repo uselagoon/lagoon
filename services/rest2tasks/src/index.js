@@ -70,7 +70,8 @@ app.post('/deploy', async (req, res) => {
   const data = {
     siteGroupName: req.body.siteGroupName,
     branchName: req.body.branchName,
-    sha: req.body.sha
+    sha: req.body.sha,
+    type: 'branch'
   }
 
   try {

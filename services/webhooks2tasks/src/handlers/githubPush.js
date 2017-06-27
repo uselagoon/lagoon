@@ -30,6 +30,7 @@ export default async function githubPush(webhook: WebhookRequestData, siteGroup:
 
     const data: deployData = {
       siteGroupName: siteGroup.siteGroupName,
+      type: 'branch',
       branchName: branchName,
       sha: sha
     }

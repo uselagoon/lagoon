@@ -97,7 +97,7 @@ services:
     volumes:
       - ./services/rest2tasks/src:/app/src
     ports:
-      - "5555:8000"
+      - "5555:3000"
   api:
     build: services/api
     command: yarn run dev
@@ -108,7 +108,7 @@ services:
       - ./services/api/src:/app/src
       - .:/lagoon
     ports:
-      - "8080:3333"
+      - "8080:3000"
   jenkins:
     build: services/jenkins
     environment:
@@ -178,3 +178,13 @@ services:
       - RABBITMQ_PASSWORD=guest
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
+  hacky-rest2tasks-ui:
+    build: services/hacky-rest2tasks-ui
+    command: yarn run dev
+    environment:
+      - API=http://api:3000
+      - REST2TASKS_URL=http://rest2tasks:3000
+    links:
+      - rest2tasks
+    ports:
+      - "8090:3000"
