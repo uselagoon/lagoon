@@ -12,6 +12,7 @@ const typeDefs = `
 
   type Site {
     id: String
+    site_branch: String
   }
 
   type Slack {

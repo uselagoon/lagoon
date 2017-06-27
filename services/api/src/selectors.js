@@ -10,9 +10,7 @@ const getAllSiteGroups = R.compose(
 
 const getAllSites = () => [];
 
-const // console.log(state);
-  getSiteByName = (state, name) =>
-    R.find(site => site.siteName === name)(state.sites);
+const getSiteByName = (state, name) => R.find(site => site.siteName === name)(state.sites);
 
 // R.find(site => site.siteName === name)(state);
 module.exports = { getAllSiteGroups, getSiteByName, getAllSites };
