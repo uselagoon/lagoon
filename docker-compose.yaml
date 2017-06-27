@@ -184,6 +184,8 @@ services:
     environment:
       - API=http://api:3000
       - REST2TASKS_URL=http://rest2tasks:3000
+    volumes:
+      - ./services/hacky-rest2tasks-ui/app:/app/app
     links:
       - rest2tasks
     ports:
