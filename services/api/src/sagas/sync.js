@@ -1,23 +1,18 @@
 // @flow
 
-import { delay } from "redux-saga";
-import { call, put, select } from "redux-saga/effects";
+import { delay } from 'redux-saga';
+import { call, put, select } from 'redux-saga/effects';
 
-import type { IOEffect } from "redux-saga/effects";
-import type { Repository, CredCb, Remote, Signature } from "../util/git";
+import type { IOEffect } from 'redux-saga/effects';
+import type { Repository, CredCb, Remote, Signature } from '../util/git';
 
-import {
-  fetchAll,
-  revparseSingle,
-  getRemote,
-  remotePush,
-  rebase
-} from "../util/git";
+import { fetchAll, revparseSingle, getRemote, remotePush, rebase } from '../util/git';
 
-import type { Logger } from "../logger";
+import type { Logger } from '../logger';
 
-import { readSiteGroupsFile, parseSiteGroupsFile } from "../storage/sitegroup";
-import { setSiteGroups } from "../actions";
+import { readSiteGroupsFile, parseSiteGroupsFile } from '../storage/sitegroup';
+import { getAllSites } from '../storage/site';
+import { setSiteGroups, setSites } from '../actions';
 
 export type SyncSagaArgs = {
   syncInterval: number,
@@ -27,7 +22,7 @@ export type SyncSagaArgs = {
   pushBranch: string,
   credCb: CredCb,
   signature: Signature,
-  logger: Logger
+  logger: Logger,
 };
 
 export type RebaseSagaArgs = {
@@ -35,7 +30,7 @@ export type RebaseSagaArgs = {
   branch: string,
   credCb: CredCb,
   signature: Signature,
-  logger: Logger
+  logger: Logger,
 };
 
 export function* rebaseSaga(args: RebaseSagaArgs): Generator<IOEffect, *, *> {
@@ -53,20 +48,16 @@ export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
   yield call(fetchAll, repository, credCb);
 
   const localRevision = yield call(revparseSingle, repository, pullBranch);
-  const originRevision = yield call(
-    revparseSingle,
-    repository,
-    `origin/${pushBranch}`
-  );
+  const originRevision = yield call(revparseSingle, repository, `origin/${pushBranch}`);
 
   // Check if the current local and remote revision are identical.
   if (localRevision.id().toString() === originRevision.id().toString()) {
-    yield call(debug, "Local and remote revision are identicial.");
+    yield call(debug, 'Local and remote revision are identicial.');
     return;
   }
 
-  const refs = [ `refs/heads/${pullBranch}:refs/heads/${pushBranch}` ];
-  const remote: Remote = yield call(getRemote, repository, "origin");
+  const refs = [`refs/heads/${pullBranch}:refs/heads/${pushBranch}`];
+  const remote: Remote = yield call(getRemote, repository, 'origin');
 
   try {
     // Attempt to push any pending commits.
@@ -77,35 +68,33 @@ export function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 }
 
 export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
-  const {
-    repository,
-    pullBranch,
-    syncInterval,
-    pushEnabled = false,
-    logger
-  } = args;
+  const { repository, pullBranch, syncInterval, pushEnabled = false, logger } = args;
 
   // Read sitegroups and store them in the state
   const repoDir = repository.workdir();
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    yield call(logger.info, "Rebasing repository");
+    yield call(logger.info, 'Rebasing repository');
     yield call(rebaseSaga, { ...args, branch: pullBranch });
 
     if (pushEnabled) {
       yield call(pushSaga, args);
     }
 
-    yield call(logger.debug, "Finished synchronization");
+    yield call(logger.debug, 'Finished synchronization');
 
     const siteGroupsYaml = yield call(readSiteGroupsFile, repoDir);
     const siteGroups = yield call(parseSiteGroupsFile, siteGroupsYaml);
 
     yield put(setSiteGroups(siteGroups));
-    
+
+    const sites = yield call(getAllSites, repoDir);
+    yield put(setSites(sites));
+    const s = select();
+    console.log(sites);
+
     // Wait some time before re-doing the sync again
     yield call(delay, syncInterval);
   }
 }
-

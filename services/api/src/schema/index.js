@@ -10,6 +10,10 @@ const typeDefs = `
     slack: Slack
   }
 
+  type Site {
+    id: String
+  }
+
   type Slack {
     webhook: String
     channel: String
@@ -19,6 +23,8 @@ const typeDefs = `
 
   type Query {
     allSiteGroups: [SiteGroup]
+    allSites(environmentType: String!): [Site]
+    siteByName(name: String!): Site
   }
 `;
 
@@ -29,6 +35,18 @@ const resolvers = {
       const { getAllSiteGroups } = ctx.selectors;
 
       return getAllSiteGroups(getState());
+    },
+    allSites: (_, args, ctx) => {
+      const { getState } = ctx;
+      const { getAllSites } = ctx.selectors;
+
+      return getAllSites(getState(), args.environmentType);
+    },
+    siteByName: (_, args, ctx) => {
+      const { getState } = ctx;
+      const { getSiteByName } = ctx.selectors;
+
+      return getSiteByName(getState(), args.name);
     },
   },
 };
