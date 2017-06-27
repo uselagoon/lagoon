@@ -1,63 +1,36 @@
-import { GraphQLSchema, GraphQLObjectType } from 'graphql';
+// @flow
 
-import { nodeField } from './node';
+import { makeExecutableSchema } from 'graphql-tools';
 
-import { siteByNameField, allSitesField } from './queries/site';
+const typeDefs = `
+  type SiteGroup {
+    id: String!
+    siteGroupName: String
+    gitUrl: String
+    slack: Slack
+  }
 
-import {
-  siteGroupByNameField,
-  siteGroupByGitUrlField,
-  allSiteGroupsField,
-} from './queries/sitegroup';
+  type Slack {
+    webhook: String
+    channel: String
+    inform_start: Boolean
+    inform_channel: String
+  }
 
-import { clientByNameField, allClientsField } from './queries/client';
+  type Query {
+    allSiteGroups: [SiteGroup]
+  }
+`;
 
-import { createSiteMutation, updateSiteMutation } from './mutations/site';
+const resolvers = {
+  Query: {
+    allSiteGroups: (_, __, ctx) => {
+      const { getState } = ctx;
+      const { getAllSiteGroups } = ctx.selectors;
 
-import {
-  createSiteGroupMutation,
-  updateSiteGroupMutation,
-} from './mutations/sitegroup';
-
-const viewerField = {
-  resolve: () => true,
-  type: new GraphQLObjectType({
-    name: 'Viewer',
-    fields: () => ({
-      allSites: allSitesField,
-      allSiteGroups: allSiteGroupsField,
-      allClients: allClientsField,
-      siteByName: siteByNameField,
-      siteGroupByName: siteGroupByNameField,
-      siteGroupByGitUrl: siteGroupByGitUrlField,
-      clientByName: clientByNameField,
-    }),
-  }),
+      return getAllSiteGroups(getState());
+    },
+  },
 };
 
-const query = new GraphQLObjectType({
-  name: 'QueryRoot',
-  fields: () => ({
-    node: nodeField,
-    viewer: viewerField,
-    allSites: allSitesField,
-    allSiteGroups: allSiteGroupsField,
-    allClients: allClientsField,
-    siteByName: siteByNameField,
-    siteGroupByName: siteGroupByNameField,
-    siteGroupByGitUrl: siteGroupByGitUrlField,
-    clientByName: clientByNameField,
-  }),
-});
-
-const mutation = new GraphQLObjectType({
-  name: 'MutationRoot',
-  fields: () => ({
-    createSite: createSiteMutation,
-    updateSite: updateSiteMutation,
-    createSiteGroup: createSiteGroupMutation,
-    updateSiteGroup: updateSiteGroupMutation,
-  }),
-});
-
-export default new GraphQLSchema({ query, mutation });
+export default makeExecutableSchema({ typeDefs, resolvers });
