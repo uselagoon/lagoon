@@ -1,6 +1,5 @@
 #!/bin/bash
 
-user=$1
 server="http://$API_HOST:8080"
 keys=$(wget $server/keys --content-on-error -q -O -)
 
