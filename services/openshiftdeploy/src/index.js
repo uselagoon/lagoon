@@ -197,7 +197,7 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", namespace: "${openshiftRessourceAppName}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
   }
 
 }`
