@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`run should bail on already existing config file 1`] = `
+Array [
+  Array [
+    "File 'some/path/.amazeeio.yml' does already exist!",
+  ],
+]
+`;
+
+exports[`run should write default yaml to given cwd + .amazeeio.yml 1`] = `
+Array [
+  Array [
+    "Creating file 'some/path/.amazeeio.yml'...",
+  ],
+  Array [
+    "Writing Successful",
+  ],
+]
+`;

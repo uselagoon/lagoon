@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`listSites should list sites as given by GraphQL 1`] = `
+Array [
+  Array [
+    "I found following sites for sitegroup 'some_sitegroup':",
+  ],
+  Array [
+    "╔═══════╤════════╤═══════════╗
+║ Site  │ Branch │ Deployed? ║
+╟───────┼────────┼───────────╢
+║ site1 │ dev    │           ║
+╟───────┼────────┼───────────╢
+║ site1 │ prod   │     √     ║
+╟───────┼────────┼───────────╢
+║ site2 │ dev    │           ║
+╚═══════╧════════╧═══════════╝
+",
+  ],
+]
+`;
+
+exports[`listSites should show error message if GraphQL returns errors 1`] = `
+Array [
+  Array [
+    "[31mOops! Server sent us some errors:[39m",
+  ],
+  Array [
+    "-> Something, something missing parameter X",
+  ],
+]
+`;
+
+exports[`listSites should show message for non-existing sites 1`] = `
+Array [
+  Array [
+    "[31mNo sites found for sitegroup 'some_sitegroup'[39m",
+  ],
+]
+`;
