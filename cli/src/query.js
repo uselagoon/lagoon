@@ -11,12 +11,12 @@ type QLQueryArgs = {
   query: string,
   variables?: Object,
   headers?: Object,
-  pretty?: boolean
+  pretty?: boolean,
 };
 
 export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
   const {
-    endpoint,
+    endpoint = process.env.API_URL || 'https://api.amazee.io/graphql',
     query,
     variables,
     headers: customHeaders = {},
@@ -24,7 +24,7 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
   } = args;
 
   const headers = {
-    Accept: 'application/json',
+    'Accept': 'application/json',
     'Content-Type': 'application/json',
     ...customHeaders,
   };
@@ -51,13 +51,13 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
       variables,
     },
     null,
-    pretty ? 2 : 0
+    pretty ? 2 : 0,
   );
 
   const options = {
     hostname,
-    path,
-    port: port || 443,
+    path: pathname,
+    port: port || 80,
     method: 'POST',
     headers,
     body,

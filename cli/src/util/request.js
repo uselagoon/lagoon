@@ -9,7 +9,7 @@ export type RequestOptions = {
   method: 'POST' | 'GET',
   headers?: Object,
   rejectUnauthorized?: boolean,
-  body?: string
+  body?: string,
 };
 
 export default function request(options: RequestOptions): Promise<Object> {

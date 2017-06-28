@@ -90,7 +90,7 @@ if (require.main === module) {
       currDir,
       'node_modules',
       '.bin',
-      'amazee-io-cli'
+      'amazee-io-cli',
     );
     try {
       if (statSync(localCLIPath).isFile()) {
