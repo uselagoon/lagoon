@@ -4,6 +4,7 @@ import R from 'ramda';
 import { makeExecutableSchema } from 'graphql-tools';
 
 const extractSshKeys = R.compose(
+  R.ifElse(R.isEmpty, () => null, (value) => value),
   R.map(([owner, value]) => ({ ...value, owner: owner })),
   Object.entries,
   R.propOr({}, 'ssh_keys'),
