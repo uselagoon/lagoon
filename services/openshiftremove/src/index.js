@@ -103,7 +103,7 @@ const messageConsumer = async function(msg) {
 
     stage ('oc delete') {
       sh """
-        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete all -l app=${openshiftRessourceAppName}  -n ${openshiftProject}
+        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete project ${openshiftRessourceAppName}
       """
     }
   }

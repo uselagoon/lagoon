@@ -22,9 +22,8 @@ elif [ -f "/openshift-templates/${OPENSHIFT_TEMPLATE}" ]; then
   OPENSHIFT_TEMPLATE="/openshift-templates/${OPENSHIFT_TEMPLATE}"
 fi
 
-#OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
-
-#oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
+OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
+oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
 
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \

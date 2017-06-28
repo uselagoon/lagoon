@@ -178,7 +178,7 @@ node {
     -e OPENSHIFT_CONSOLE="${openshiftConsole}" \\
     -e OPENSHIFT_REGISTRY="${openshiftRegistry}" \\
     -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" \\
-    -e OPENSHIFT_PROJECT="${openshiftProject}" \\
+    -e OPENSHIFT_PROJECT="${openshiftRessourceAppName}" \\
     -e OPENSHIFT_ROUTER_URL="${openshiftRessourceRouterUrl}" \\
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
@@ -197,7 +197,7 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
   }
 
 }`
