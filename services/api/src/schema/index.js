@@ -3,7 +3,7 @@
 import R from 'ramda';
 import { makeExecutableSchema } from 'graphql-tools';
 
-const getSshKeysFromClient = R.compose(
+const extractSshKeys = R.compose(
   R.map(([owner, value]) => ({ ...value, owner: owner })),
   Object.entries,
   R.propOr({}, 'ssh_keys'),
@@ -16,6 +16,7 @@ const typeDefs = `
     git_url: String
     slack: Slack
     client: Client
+    ssh_keys: [SshKey]
   }
 
   type Site {
@@ -87,7 +88,7 @@ const resolvers = {
 
       return getSiteGroupsByClient(getState(), client);
     },
-    ssh_keys: (client, _, ctx) => getSshKeysFromClient(client),
+    ssh_keys: (client, _, ctx) => extractSshKeys(client),
   },
   SiteGroup: {
     client: (siteGroup, _, ctx) => {
@@ -96,6 +97,7 @@ const resolvers = {
 
       return getClientByName(getState(), siteGroup.client);
     },
+    ssh_keys: (client, _, ctx) => extractSshKeys(client),
   },
 };
 
