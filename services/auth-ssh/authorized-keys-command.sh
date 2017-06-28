@@ -2,6 +2,8 @@
 
 server="http://$API_HOST:8080"
 keys=$(wget $server/keys --content-on-error -q -O -)
+options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
+command="/bin/bash ~/retrieve-token.sh"
 
 ##### START ACTUAL IMPLEMENTATION
 
@@ -26,7 +28,7 @@ keys=$(wget $server/keys --content-on-error -q -O -)
 :> /home/api/keys
 
 while read -r key; do
-  printf '%s\n' "command=\"/bin/bash ~/retrieve-token.sh '${key}'\" ${key}" >> /home/api/keys
+  printf '%s\n' "$options,command=\"$command '$key'\" $key" >> /home/api/keys
 done <<< "$keys"
 
 cat /home/api/keys
