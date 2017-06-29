@@ -49,8 +49,14 @@ const messageConsumer = async msg => {
 
   let jenkinsUrl
 
+const ocsafety= function(s) {
+  return s.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+}
+
+
   try {
-    var safeBranchname = branchName.replace('/\//g','-')
+    var safeBranchName = ocsafety(branchName)
+    var safeSiteGroupName = ocsafety(siteGroupName)
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
@@ -60,12 +66,12 @@ const messageConsumer = async msg => {
     var openshiftTemplate = siteGroupOpenShift.siteGroup.openshift.template
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
     var openshiftNamingPullRequests = typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined' ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}" || "${sitegroup}-${branch}"
-    var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupOpenShift.siteGroup.siteGroupName
-    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('/_/g','-')
+    var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || safeSitegroup + '-' + safeBranchName;
+    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchName).replace('${sitegroup}', safeSiteGroupName);
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
-    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('/_/g','-')
+    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName)
 
     if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
       jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
@@ -156,7 +162,7 @@ const messageConsumer = async msg => {
     `
   }
 
-  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace('/_/g','-')
+  var shortName = `${safeBranchName}-${safeSiteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '')
   var buildName = gitSha ? gitSha.substring(0, 7) : branchName
   // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
   var gitRef = gitSha ? gitSha : `origin/${branchName}`
@@ -183,7 +189,7 @@ node {
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
     -e SSH_PRIVATE_KEY="${deployPrivateKey}" \\
-    -e TAG="${safeBranchname}" \\
+    -e TAG="${safeBranchName}" \\
     -e BRANCH="${branchName}" \\
     -e IMAGE=\${env.IMAGE} \\
     -e NAME="${openshiftRessourceAppName}" \\
