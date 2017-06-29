@@ -5,13 +5,12 @@ node {
   deleteDir()
 
   stage ('Checkout') {
-    checkout([
-         $class: 'GitSCM',
-         branches: scm.branches,
-         doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-         extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]],
-         userRemoteConfigs: scm.userRemoteConfigs
-    ])
+    checkout scm
+
+    sshagent (credentials: ['api-test-hiera_deploykey']) {
+      sh 'git submodule update --init'
+    }
+    
     // create a new branch 'ci-local' from the current HEAD, this is necessary as the api service searches for a branch 'ci-local'
     sh "cd hiera && git branch -f ci-local HEAD && cd .."
   }
