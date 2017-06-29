@@ -60,8 +60,7 @@ const getAllFilesWithContent = async (repoPath: string) => {
 };
 
 const getAllSites = async (repoPath: string) => {
-  const yamlFiles = await listYamlFiles(repoPath);
-  const allFiles = await getAllFilesWithContent(repoPath, yamlFiles);
+  const allFiles = await getAllFilesWithContent(repoPath);
   return Object
     .entries(allFiles)
     .reduce(
