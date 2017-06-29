@@ -10,8 +10,9 @@ import { fetchAll, revparseSingle, getRemote, remotePush, rebase } from '../util
 
 import type { Logger } from '../logger';
 
+import { listYamlFiles } from '../storage';
 import { readSiteGroupsFile, parseSiteGroupsFile } from '../storage/sitegroup';
-import { getAllFilesWithContent } from '../storage/site';
+import { getSiteFiles } from '../storage/site';
 import { setSiteGroups, setSiteFiles } from '../actions';
 
 export type SyncSagaArgs = {
@@ -89,7 +90,8 @@ export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 
     yield put(setSiteGroups(siteGroups));
 
-    const siteFiles = yield call(getAllFilesWithContent, repoDir);
+    const siteFilePaths = yield call(listYamlFiles, repoDir);
+    const siteFiles = yield call(getSiteFiles, siteFilePaths);
     yield put(setSiteFiles(siteFiles));
 
     // Wait some time before re-doing the sync again

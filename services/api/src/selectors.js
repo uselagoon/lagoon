@@ -1,8 +1,7 @@
 // @flow
 
 const R = require('ramda');
-const getAllFilesWithContent = require('./storage/site');
-
+// const getSiteFiles = require('./storage/site');
 const getAllSiteGroups = R.compose(
   R.map(([id, siteGroup]) => ({ ...siteGroup, id, siteGroupName: id })),
   sitegroups => Object.entries(sitegroups),
@@ -11,8 +10,7 @@ const getAllSiteGroups = R.compose(
 
 const getAllSites = () => [];
 
-const getSiteNameById = id => getAllFilesWithContent(repoPath);
-
+// const getSiteNameById = id => getSiteFiles(repoPath);
 const getSiteByName = (state, name) =>
   Object
     .values(state.siteFiles)

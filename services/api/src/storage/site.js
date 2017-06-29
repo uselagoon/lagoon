@@ -44,23 +44,15 @@ function maybeAddJumphostKey(site) {
   return { ...site, jumpHost: R.prop('amazeeio::jumphost') };
 }
 
-const getAllFilesWithContent = async (repoPath: string) => {
-  const yamlFiles = await listYamlFiles(repoPath);
+const getSiteFiles = async (siteFilePaths: Array<string>) =>
+  R.reduce(
+    async (acc, filePath) => ({ ...(await acc), [filePath]: await readYamlFile(filePath) }),
+    {},
+    siteFilePaths,
+  );
 
-  return R.compose(
-    R.reduce(
-      async (acc, [filePath, content]) => {
-        const contentResolved = await content;
-        return { ...acc, [filePath]: contentResolved };
-      },
-      {},
-    ),
-    R.map(filePath => [filePath, readYamlFile(`${repoPath}${filePath}`)]),
-  )(yamlFiles);
-};
-
-const getAllSites = async (repoPath: string) => {
-  const allFiles = await getAllFilesWithContent(repoPath);
+const getAllSites = async (siteFilePaths: Array<string>) => {
+  const allFiles = await getSiteFiles(siteFilePaths);
   return Object
     .entries(allFiles)
     .reduce(
@@ -72,4 +64,4 @@ const getAllSites = async (repoPath: string) => {
     );
 };
 
-module.exports = { getServerInfoFromFilename, getAllFilesWithContent, getAllSites };
+module.exports = { getServerInfoFromFilename, getSiteFiles, getAllSites };

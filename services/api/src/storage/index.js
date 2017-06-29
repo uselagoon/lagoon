@@ -13,10 +13,7 @@ export async function readYamlFile(filepath: string): Promise<*> {
   return Yaml.safeLoad(contents);
 }
 
-export async function writeYamlFile(
-  filepath: string,
-  data: Object,
-): Promise<void> {
+export async function writeYamlFile(filepath: string, data: Object): Promise<void> {
   const contents = Yaml.safeDump(data);
   return fs.writeFile(filepath, contents, 'utf-8');
 }
@@ -28,18 +25,11 @@ export function commitFile(
   message: string,
 ): Promise<Oid> {
   // Create the commit with the passed message.
-  return repository.createCommitOnHead(
-    [relFilepath],
-    signature,
-    signature,
-    message,
-  );
+  return repository.createCommitOnHead([relFilepath], signature, signature, message);
 }
 
-export const repoPath = (
-  repository: Repository,
-  ...paths: Array<string>
-): string => path.join(repository.workdir(), ...paths);
+export const repoPath = (repository: Repository, ...paths: Array<string>): string =>
+  path.join(repository.workdir(), ...paths);
 
 export function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
@@ -48,10 +38,7 @@ export function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
         reject(err);
         return;
       }
-      const ret = matches.map(filePath =>
-        path.relative(listRepoPath, filePath),
-      );
-      resolve(ret);
+      resolve(matches);
     });
   });
 }
