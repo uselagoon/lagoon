@@ -67,9 +67,9 @@ const resolvers = {
     allSites: (_, args, req) => {
       const context = req.app.get('context');
       const { getState } = context.store;
-      const { getAllSites } = context.selectors;
+      const { getAllSitesByEnv } = context.selectors;
 
-      return getAllSites(getState(), args.environmentType);
+      return getAllSitesByEnv(getState(), args.environmentType);
     },
     siteByName: (_, args, req) => {
       const context = req.app.get('context');

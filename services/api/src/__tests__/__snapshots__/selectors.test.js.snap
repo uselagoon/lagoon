@@ -1,16 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getAllSiteGroups should return a list of getAllSiteGroups 1`] = `
+exports[`getAllSiteGroups should return a complete list of siteGroups 1`] = `
 Array [
   Object {
-    "git_url": "git://sg1",
+    "gitUrl": "git://sg1",
     "id": "sg1",
     "site_group_name": "sg1",
   },
   Object {
-    "git_url": "git://sg2",
+    "gitUrl": "git://sg2",
     "id": "sg2",
     "site_group_name": "sg2",
+  },
+]
+`;
+
+exports[`getAllSitesByEnv should return a complete list of sites 1`] = `
+Array [
+  Object {
+    "siteName": "deploytest_branch1",
+    "site_branch": "branch1",
+    "sitegroup": "deploytest",
+    "uid": 3201,
+  },
+  Object {
+    "siteName": "deploytest_branch1",
+    "site_branch": "branch2",
+    "sitegroup": "deploytest",
+    "uid": 3201,
   },
 ]
 `;

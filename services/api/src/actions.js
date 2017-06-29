@@ -6,26 +6,16 @@ type Cb<R> = (err?: Error, res: R) => void;
 
 type Noop = { type: 'NOOP' };
 
-export type CreateSiteAction = {
-  type: 'CREATE_SITE',
-  file: string,
-  cb: Cb<Site>,
-};
+export type CreateSiteAction = { type: 'CREATE_SITE', file: string, cb: Cb<Site> };
 
-export type UpdateFileAction = {
-  type: 'UPDATE_FILE',
-  file: string,
-  content: string,
-};
+export type UpdateFileAction = { type: 'UPDATE_FILE', file: string, content: string };
 
-export type SetSiteGroupsAction = {
+export type SetSiteGroupsAction = { type: 'SET_SITE_GROUPS', siteGroups: SiteGroupsFile };
+
+export const setSiteGroups = (siteGroups: SiteGroupsFile): SetSiteGroupsAction => ({
   type: 'SET_SITE_GROUPS',
-  siteGroups: SiteGroupsFile,
-};
-
-export const setSiteGroups = (
-  siteGroups: SiteGroupsFile,
-): SetSiteGroupsAction => ({ type: 'SET_SITE_GROUPS', siteGroups });
+  siteGroups,
+});
 
 export type SetClientsAction = { type: 'SET_CLIENTS', clients: ClientsFile };
 
@@ -34,6 +24,6 @@ export const setClients = (clients: ClientsFile): SetClientsAction => ({
   clients,
 });
 
-export const setSites = sites => ({ type: 'SET_SITES', sites });
+export const setSiteFiles = siteFiles => ({ type: 'SET_SITE_FILES', siteFiles });
 
 export type Action = SetSiteGroupsAction | SetClientsAction | Noop;
