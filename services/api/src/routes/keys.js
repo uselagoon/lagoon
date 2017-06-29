@@ -5,7 +5,7 @@ import logger from '../logger';
 
 import type { $Request, $Response } from 'express';
 
-export const keysAccessMiddleware = (
+const keysAccessMiddleware = (
   req: $Request,
   res: $Response,
   next: Function,
@@ -17,7 +17,7 @@ export const keysAccessMiddleware = (
 };
 
 const getSshKeysFromClient = R.compose(
-  R.map((value) => `${value.type || 'ssh-rsa'} ${value.key}`),
+  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
   R.values,
   R.propOr({}, 'ssh_keys'),
 );
@@ -27,15 +27,17 @@ const getSshKeysFromClients = R.compose(
   R.map(getSshKeysFromClient),
 );
 
-export default async (req: $Request, res: $Response) => {
+const keysRoute = (req: $Request, res: $Response) => {
   logger.debug('Collecting client keys.');
 
-  const { getState } = req.context;
-  const { getAllClients } = req.context.selectors;
+  const context = req.app.get('context');
+  const { getState } = context.store;
+  const { getAllClients } = context.selectors;
 
   const clients = getAllClients(getState());
   const keys = getSshKeysFromClients(clients);
 
-  res.set('Content-Type', 'text/plain; charset=UTF-8');
   res.send(keys.join('\n'));
 };
+
+export default [keysAccessMiddleware, keysRoute];

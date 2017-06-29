@@ -36,7 +36,7 @@ export type SiteGroup = {
   },
 };
 
-export type ClientFile = { [clientName: string]: ?Client };
+export type ClientsFile = { [clientName: string]: ?Client };
 
 export type SiteGroupsFile = { [siteGroupName: string]: ?SiteGroup };
 

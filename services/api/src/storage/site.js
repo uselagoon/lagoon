@@ -14,7 +14,7 @@ export const getAllSites = async (repoPath: string) => {
   // return;
   for (const fileName of await listYamlFiles(repoPath)) {
     // Extract infrastructure and identifier from file name.
-    const [ serverInfrastructure, serverIdentifier ] = fileName
+    const [serverInfrastructure, serverIdentifier] = fileName
       .substr(0, fileName.lastIndexOf('.'))
       .split('/');
 
@@ -29,16 +29,22 @@ export const getAllSites = async (repoPath: string) => {
       let serverNames;
       let jumpHost;
       // @todo Is it correct to hard-code this?
-      const clusterMemberKey = 'drupalhosting::profiles::nginx_backend::cluster_member';
+      const clusterMemberKey =
+        'drupalhosting::profiles::nginx_backend::cluster_member';
 
       const jumphostKey = 'amazeeio::jumphost';
 
-      if (serverInfrastructure === 'cluster' && yaml.hasOwnProperty(clusterMemberKey)) {
-        serverNames = Object.keys(yaml[clusterMemberKey]).map(key => `${key}.${siteHost}`);
+      if (
+        serverInfrastructure === 'cluster' &&
+        yaml.hasOwnProperty(clusterMemberKey)
+      ) {
+        serverNames = Object.keys(yaml[clusterMemberKey]).map(
+          key => `${key}.${siteHost}`,
+        );
       } else if (serverInfrastructure === 'single') {
-        serverNames = [ `backend.${siteHost}` ];
+        serverNames = [`backend.${siteHost}`];
       } else {
-        serverNames = siteHost instanceof Array ? siteHost : [ siteHost ];
+        serverNames = siteHost instanceof Array ? siteHost : [siteHost];
       }
 
       if (yaml.hasOwnProperty(jumphostKey)) {

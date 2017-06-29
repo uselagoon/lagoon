@@ -5,7 +5,7 @@ const path = require('path');
 const R = require('ramda');
 const { readFile, writeFile } = require('../util/fs');
 
-import type { ClientFile, Client } from '../types';
+import type { ClientsFile, Client } from '../types';
 
 export const clientsFilePath = (repoPath: string) =>
   path.join(repoPath, 'amazeeio', 'clients.yaml');
@@ -22,7 +22,7 @@ export const writeClientsFile = (
 export const readClientsFile = (repoPath: string): Promise<string> =>
   readFile(clientsFilePath(repoPath), 'utf8');
 
-export const parseClientsFile = (yamlContent: string): ClientFile =>
+export const parseClientsFile = (yamlContent: string): ClientsFile =>
   R.compose(
     R.propOr({}, 'amazeeio_clients'),
     // TODO: Maybe use a schema w/ safeLoad?

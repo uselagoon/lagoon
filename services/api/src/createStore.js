@@ -16,9 +16,8 @@ export type ApiStore = Store<State, Action>;
 
 export default (initialState: State, sagaArgs: RootSagaArgs): ApiStore => {
   const sagaMiddleware = createSagaMiddleware();
-
   const store = createStore(reducer, applyMiddleware(sagaMiddleware));
-
   sagaMiddleware.run(rootSaga, sagaArgs);
+
   return store;
 };

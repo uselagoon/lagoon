@@ -27,7 +27,7 @@ export const setSiteGroups = (
   siteGroups: SiteGroupsFile,
 ): SetSiteGroupsAction => ({ type: 'SET_SITE_GROUPS', siteGroups });
 
-export type SetClientsAction = { type: 'SET_CLIENTS', siteGroups: ClientsFile };
+export type SetClientsAction = { type: 'SET_CLIENTS', clients: ClientsFile };
 
 export const setClients = (clients: ClientsFile): SetClientsAction => ({
   type: 'SET_CLIENTS',
