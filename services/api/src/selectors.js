@@ -8,12 +8,23 @@ const getAllSiteGroups = R.compose(
   R.propOr({}, 'siteGroups'),
 );
 
-const getAllSites = () => [];
+const getAllSitesByEnv = ({ siteFiles }) =>
+  Object
+    .entries(siteFiles)
+    .reduce(
+      (acc, [name, file]) => [
+        ...acc,
+        ...Object
+          .entries(file.drupalsites || [])
+          .map(([name, site]) => ({ ...site, siteName: name })),
+      ],
+      [],
+    );
 
 // const getSiteNameById = id => getSiteFiles(repoPath);
-const getSiteByName = (state, name) =>
+const getSiteByName = ({ siteFiles }, name) =>
   Object
-    .values(state.siteFiles)
+    .values(siteFiles)
     .map(
       file =>
         Object
@@ -22,4 +33,4 @@ const getSiteByName = (state, name) =>
     )[0];
 // const getSiteByName = (state, name) => R.find(site => site.siteName === name)(state.siteFiles);
 // R.find(site => site.siteName === name)(state);
-module.exports = { getAllSiteGroups, getSiteByName, getAllSites };
+module.exports = { getAllSiteGroups, getSiteByName, getAllSitesByEnv };

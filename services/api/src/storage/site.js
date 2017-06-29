@@ -51,7 +51,7 @@ const getSiteFiles = async (siteFilePaths: Array<string>) =>
     siteFilePaths,
   );
 
-const getAllSites = async (siteFilePaths: Array<string>) => {
+const getAllSitesByEnv = async (siteFilePaths: Array<string>) => {
   const allFiles = await getSiteFiles(siteFilePaths);
   return Object
     .entries(allFiles)
@@ -64,4 +64,4 @@ const getAllSites = async (siteFilePaths: Array<string>) => {
     );
 };
 
-module.exports = { getServerInfoFromFilename, getSiteFiles, getAllSites };
+module.exports = { getServerInfoFromFilename, getSiteFiles, getAllSitesByEnv };

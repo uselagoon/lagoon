@@ -1,6 +1,6 @@
 // @flow
 
-const { getServerInfoFromFilename, getSiteFiles, getAllSites } = require('../../storage/site');
+const { getServerInfoFromFilename, getSiteFiles, getAllSitesByEnv } = require('../../storage/site');
 
 jest.mock('../../storage', () => ({
   readYamlFile: jest.fn(async filename => ({
@@ -39,9 +39,9 @@ describe('getSiteFiles', () => {
   });
 });
 
-describe('getAllSites', () => {
+describe('getAllSitesByEnv', () => {
   test('returns a list of sites', async () => {
-    const ret = await getAllSites(['compact/site1.yaml', 'compact/site2.yaml']);
+    const ret = await getAllSitesByEnv(['compact/site1.yaml', 'compact/site2.yaml']);
     expect(
       ret,
     ).toEqual([{ siteName: 'deploytest_branch1', site_branch: 'branch1', uid: 3201, sitegroup: 'deploytest' }, { siteName: 'deploytest_branch1', site_branch: 'branch1', uid: 3201, sitegroup: 'deploytest' }]);

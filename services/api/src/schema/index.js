@@ -39,9 +39,8 @@ const resolvers = {
     },
     allSites: (_, args, ctx) => {
       const { getState } = ctx;
-      const { getAllSites } = ctx.selectors;
-
-      return getAllSites(getState(), args.environmentType);
+      const { getAllSitesByEnv } = ctx.selectors;
+      return getAllSitesByEnv(getState(), args.environmentType);
     },
     siteByName: (_, args, ctx) => {
       const { getState } = ctx;
