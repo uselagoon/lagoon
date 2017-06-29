@@ -16,23 +16,13 @@ const keysAccessMiddleware = (
   next();
 };
 
-const getSshKeysFromClient = R.compose(
-  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
-  R.values,
-  R.propOr({}, 'ssh_keys'),
-);
-
-const getSshKeysFromClients = R.compose(
-  R.apply(R.concat),
-  R.map(getSshKeysFromClient),
-);
 
 const keysRoute = (req: $Request, res: $Response) => {
   logger.debug('Collecting client keys.');
 
   const context = req.app.get('context');
   const { getState } = context.store;
-  const { getAllClients } = context.selectors;
+  const { getAllClients, getSshKeysFromClients } = context.selectors;
 
   const clients = getAllClients(getState());
   const keys = getSshKeysFromClients(clients);
