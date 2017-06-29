@@ -1,6 +1,11 @@
 // @flow
 
-const { getServerInfoFromFilename } = require('../../storage/site');
+const { getServerInfoFromFilename, getSiteFiles, getAllSites } = require('../../storage/site');
+
+jest.mock('../../storage', () => ({
+  readYamlFile: jest.fn(async filename => filename),
+  listYamlFiles: jest.fn(async () => ['compact/site1.yaml', 'compact/site2.yaml']),
+}));
 
 describe('getServerInfoFromFilename', () => {
   test('should return server information', () => {
