@@ -52,20 +52,20 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(`$0 ${name}`, 'Shows information about the configured sitegroup')
     .example(
       `$0 ${name} mysite`,
-      'Shows information about given site "mysite" (does only work with single branch)'
+      'Shows information about given site "mysite" (does only work with single branch)',
     )
     .example(
       `$0 ${name} mysite@prod`,
-      'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)'
+      'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)',
     )
     .example(
       `$0 ${name} -s mysitegroup mysite`,
-      'Shows information about given site "mysite" in given sitegroup "somesitegroup"'
+      'Shows information about given site "mysite" in given sitegroup "somesitegroup"',
     ).argv;
 }
 
 type Args = BaseArgs & {
-  sitegroup: ?string
+  sitegroup: ?string,
 };
 
 export async function run(args: Args): Promise<number> {
@@ -94,34 +94,34 @@ export async function run(args: Args): Promise<number> {
 
 type SiteGroupInfoArgs = {
   sitegroup: string,
-  clog?: typeof console.log
+  clog?: typeof console.log,
 };
 
 export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
   const { sitegroup, clog = console.log } = args;
 
-  const query = gql`query querySites($sitegroup: String!) {
-    siteGroupByName(name: $sitegroup) {
-      gitUrl
-      siteGroupName
-      slack
-      client {
-        clientName
-      }
-      sites(first: 1000) {
-        edges {
-          node {
-            siteName
-            siteBranch
+  const query = gql`
+    query querySites($sitegroup: String!) {
+      siteGroupByName(name: $sitegroup) {
+        gitUrl
+        siteGroupName
+        slack
+        client {
+          clientName
+        }
+        sites(first: 1000) {
+          edges {
+            node {
+              siteName
+              siteBranch
+            }
           }
         }
       }
     }
-  }`;
+  `;
 
   const result = await runGQLQuery({
-    endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
-    port: 80,
     query,
     variables: { sitegroup },
   });
@@ -143,7 +143,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
       const { siteName, siteBranch } = prop(['node'], edge);
       return `${siteName}:${siteBranch}`;
     }),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
   )(result);
 
   const formatSlack = slack => {
@@ -176,7 +176,7 @@ type SiteInfoArgs = {
   site: string,
   branch?: string,
   sitegroup: string,
-  clog?: typeof console.log
+  clog?: typeof console.log,
 };
 
 export async function siteInfo(args: SiteInfoArgs): Promise<number> {
@@ -185,55 +185,60 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
 
-  const query = gql`query querySites($sitegroup: String!) {
-    siteGroupByName(name: $sitegroup) {
-      gitUrl
-      sites(first: 1000) {
-        edges {
-          node {
-            id
-            siteHost
-            siteName
-            siteBranch
-            siteEnvironment
-            serverInfrastructure
-            serverIdentifier
-            serverNames
-            webRoot
-            drupalVersion
-            SSLCertificateType
-            FPMProfile
-            domains
-            redirectDomains
-            redirects
-            uid
-            dbUser
-            cron { type minute }
-            customCron
-            envVariables
-            noPrefixenvVariables
-            phpValues
-            phpAdminFlags
-            xdebug
-            nginxSitespecific
-            nginxSiteconfig
-            solrEnabled
-            redisEnabled
-            sshKeys
-            phpVersion
-            redirectToHttps
-            ensure
-            upstreamURL
-            apc
-            basicAuth {
-              username
+  const query = gql`
+    query querySites($sitegroup: String!) {
+      siteGroupByName(name: $sitegroup) {
+        gitUrl
+        sites(first: 1000) {
+          edges {
+            node {
+              id
+              siteHost
+              siteName
+              siteBranch
+              siteEnvironment
+              serverInfrastructure
+              serverIdentifier
+              serverNames
+              webRoot
+              drupalVersion
+              SSLCertificateType
+              FPMProfile
+              domains
+              redirectDomains
+              redirects
+              uid
+              dbUser
+              cron {
+                type
+                minute
+              }
+              customCron
+              envVariables
+              noPrefixenvVariables
+              phpValues
+              phpAdminFlags
+              xdebug
+              nginxSitespecific
+              nginxSiteconfig
+              solrEnabled
+              redisEnabled
+              sshKeys
+              phpVersion
+              redirectToHttps
+              ensure
+              upstreamURL
+              apc
+              basicAuth {
+                username
+              }
+              fullJson
             }
-            fullJson
           }
         }
       }
     }
-  }`;
+  `;
 
   const result = await runGQLQuery({
     endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
@@ -261,7 +266,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   const nodes = compose(
     filter(matchesSiteAndBranch),
     map(edge => prop('node', edge)),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
   )(result);
 
   if (nodes.length === 0) {
@@ -272,10 +277,10 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   // For the case if there was no branch name given to begin with
   if (nodes.length > 1) {
     clog(
-      'I found multiple sites with the same name, but different branches, maybe try following parameter...'
+      'I found multiple sites with the same name, but different branches, maybe try following parameter...',
     );
     forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(
-      nodes
+      nodes,
     );
     return 0;
   }

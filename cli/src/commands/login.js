@@ -23,14 +23,14 @@ type Args = BaseArgs;
 export async function run(args: Args): Promise<number> {
   const { clog = console.log } = args;
 
-  // TODO: We need to make the ssh path lookup smarter or request it via prompt.
+  // TODO: We need to make the ssh key path lookup smarter or request it via prompt.
   const homeDir = os.homedir();
   const privateKeyFilePath = path.join(homeDir, '.ssh', 'id_rsa');
   const privateKey = await readFile(privateKeyFilePath);
   const connection = await sshConnect({
-    host: 'localhost',
-    port: 2020,
-    username: 'api',
+    host: process.env.SSH_AUTH_HOST || 'auth.amazee.io',
+    port: process.env.SSH_AUTH_PORT || 2020,
+    username: process.env.SSH_AUTH_USER || 'api',
     privateKey,
   });
 

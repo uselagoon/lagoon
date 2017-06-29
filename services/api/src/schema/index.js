@@ -1,6 +1,14 @@
 // @flow
 
+import R from 'ramda';
 import { makeExecutableSchema } from 'graphql-tools';
+
+const extractSshKeys = R.compose(
+  R.ifElse(R.isEmpty, () => null, (value) => value),
+  R.map(([owner, value]) => ({ ...value, owner: owner })),
+  Object.entries,
+  R.propOr({}, 'ssh_keys'),
+);
 
 const typeDefs = `
   type SiteGroup {
@@ -9,6 +17,7 @@ const typeDefs = `
     git_url: String
     slack: Slack
     client: Client
+    ssh_keys: [SshKey]
   }
 
   type Site {
@@ -22,6 +31,13 @@ const typeDefs = `
     created:String
     comment: String
     site_groups: [SiteGroup]
+    ssh_keys: [SshKey]
+  }
+
+  type SshKey {
+    owner: String
+    key: String
+    type: String
   }
 
   type Slack {
@@ -73,6 +89,7 @@ const resolvers = {
 
       return getSiteGroupsByClient(getState(), client);
     },
+    ssh_keys: (client, _, ctx) => extractSshKeys(client),
   },
   SiteGroup: {
     client: (siteGroup, _, ctx) => {
@@ -81,6 +98,7 @@ const resolvers = {
 
       return getClientByName(getState(), siteGroup.client);
     },
+    ssh_keys: (client, _, ctx) => extractSshKeys(client),
   },
 };
 

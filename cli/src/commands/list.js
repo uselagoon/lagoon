@@ -40,11 +40,11 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name} sites`,
-      'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file'
+      'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file',
     )
     .example(
       `$0 ${name} sites -s mysitegroup`,
-      'Lists all sites for a specific sitegroup (instead of using the config file)'
+      'Lists all sites for a specific sitegroup (instead of using the config file)',
     ).argv;
 }
 
@@ -52,7 +52,7 @@ type Target = 'sites';
 
 type Args = BaseArgs & {
   sitegroup: ?string,
-  target: Target
+  target: Target,
 };
 
 export async function run(args: Args): Promise<number> {
@@ -72,37 +72,37 @@ export async function run(args: Args): Promise<number> {
       return exitError(
         clog,
         `Unknown target ${target} ... possible values: 'sites'`,
-        1
+        1,
       );
   }
 }
 
 type MainArgs = {
   sitegroup: string,
-  clog?: typeof console.log
+  clog?: typeof console.log,
 };
 
 export async function listSites(args: MainArgs): Promise<number> {
   const { sitegroup, clog = console.log } = args;
 
-  const query = gql`query querySites($sitegroup: String!) {
-    siteGroupByName(name: $sitegroup) {
-      gitUrl
-      sites(first: 1000) {
-        edges {
-          node {
-            siteName
-            siteBranch
-            siteEnvironment
+  const query = gql`
+    query querySites($sitegroup: String!) {
+      siteGroupByName(name: $sitegroup) {
+        gitUrl
+        sites(first: 1000) {
+          edges {
+            node {
+              siteName
+              siteBranch
+              siteEnvironment
+            }
           }
         }
       }
     }
-  }`;
+  `;
 
   const result = await runGQLQuery({
-    endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
-    port: 80,
     query,
     variables: { sitegroup },
   });
@@ -117,7 +117,7 @@ export async function listSites(args: MainArgs): Promise<number> {
   const nodes = compose(
     sortBySite,
     map(edge => prop('node', edge)),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges'])
+    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
   )(result);
 
   if (nodes.length === 0) {
