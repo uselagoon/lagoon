@@ -1,7 +1,6 @@
 #!/bin/bash
 
-server="http://$API_HOST:8080"
-keys=$(wget $server/keys --content-on-error -q -O -)
+keys=$(wget $AMAZEEIO_API_HOST/keys --content-on-error -q -O -)
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
 command="/bin/bash ~/retrieve-token.sh"
 
