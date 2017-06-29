@@ -6,8 +6,8 @@ describe('getAllSiteGroups', () => {
   test('should return a list of getAllSiteGroups', () => {
     const state = {
       siteGroups: {
-        sg1: { gitUrl: 'git://sg1' },
-        sg2: { gitUrl: 'git://sg2' },
+        sg1: { git_url: 'git://sg1' },
+        sg2: { git_url: 'git://sg2' },
       },
     };
 

@@ -3,14 +3,14 @@
 exports[`getAllSiteGroups should return a list of getAllSiteGroups 1`] = `
 Array [
   Object {
-    "gitUrl": "git://sg1",
+    "git_url": "git://sg1",
     "id": "sg1",
-    "siteGroupName": "sg1",
+    "site_group_name": "sg1",
   },
   Object {
-    "gitUrl": "git://sg2",
+    "git_url": "git://sg2",
     "id": "sg2",
-    "siteGroupName": "sg2",
+    "site_group_name": "sg2",
   },
 ]
 `;

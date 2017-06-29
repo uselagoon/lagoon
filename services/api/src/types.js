@@ -36,11 +36,11 @@ export type SiteGroup = {
   },
 };
 
-export type ClientsFile = { [clientName: string]: ?Client };
+export type ClientsFile = { [client_name: string]: ?Client };
 
-export type SiteGroupsFile = { [siteGroupName: string]: ?SiteGroup };
+export type SiteGroupsFile = { [site_group_name: string]: ?SiteGroup };
 
-export type SiteFile = { [siteName: string]: ?Site };
+export type SiteFile = { [site_name: string]: ?Site };
 
 // process.env stuff
 export type ApiEnv = {
