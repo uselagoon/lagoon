@@ -11,9 +11,12 @@ const reducer = (state: State = {}, action: Action): State => {
       const { siteGroups } = action;
       return { ...state, siteGroups };
     }
+    case 'SET_SITE_FILES': {
+      const { siteFiles } = action;
+      return { ...state, siteFiles };
+    }
     case 'SET_SITES': {
       const { sites } = action;
-      console.log('SET_SITES', sites);
       return { ...state, sites };
     }
     default:

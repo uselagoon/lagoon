@@ -46,7 +46,6 @@ const resolvers = {
     siteByName: (_, args, ctx) => {
       const { getState } = ctx;
       const { getSiteByName } = ctx.selectors;
-
       return getSiteByName(getState(), args.name);
     },
   },
