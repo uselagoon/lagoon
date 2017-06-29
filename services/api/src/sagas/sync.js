@@ -12,8 +12,9 @@ import type { Logger } from '../logger';
 
 import { listYamlFiles } from '../storage';
 import { readSiteGroupsFile, parseSiteGroupsFile } from '../storage/sitegroup';
+import { readClientsFile, parseClientsFile } from '../storage/client';
 import { getSiteFiles } from '../storage/site';
-import { setSiteGroups, setSiteFiles } from '../actions';
+import { setSiteGroups, setSiteFiles, setClients } from '../actions';
 
 export type SyncSagaArgs = {
   syncInterval: number,
@@ -87,12 +88,15 @@ export function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 
     const siteGroupsYaml = yield call(readSiteGroupsFile, repoDir);
     const siteGroups = yield call(parseSiteGroupsFile, siteGroupsYaml);
-
     yield put(setSiteGroups(siteGroups));
 
     const siteFilePaths = yield call(listYamlFiles, repoDir);
     const siteFiles = yield call(getSiteFiles, siteFilePaths);
     yield put(setSiteFiles(siteFiles));
+
+    const clientsYaml = yield call(readClientsFile, repoDir);
+    const clients = yield call(parseClientsFile, clientsYaml);
+    yield put(setClients(clients));
 
     // Wait some time before re-doing the sync again
     yield call(delay, syncInterval);

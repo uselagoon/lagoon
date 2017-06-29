@@ -51,6 +51,7 @@
     "js-yaml": "^3.6.1",
     "morgan": "^1.7.0",
     "nodegit": "^0.16.0",
+    "normalizr": "^3.2.3",
     "ramda": "^0.24.1",
     "redux": "^3.7.1",
     "redux-saga": "^0.15.4",

@@ -1,9 +1,36 @@
 #!/bin/bash
 
-user=$1
 server="http://$API_HOST:8080"
 keys=$(wget $server/keys --content-on-error -q -O -)
+options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
+command="/bin/bash ~/retrieve-token.sh"
+
+##### START ACTUAL IMPLEMENTATION
+
+# TODO: This is a super dirty hack. Directly printing the output into
+# stdout, however, doesn't work. I have no fucking clue and this is
+# super weird.
+#
+# Even with the solution below (the hack) we get random login failures
+# here and there. Someone with better bash and debugging skills than me
+# needs to take a look.
+#
+# The following code does not work:
+
+# while read -r key; do
+#   printf "$key\n"
+# done <<< "$keys"
+
+##### END ACTUAL IMPLEMENTATION
+##### START HACKY TEMPORARY SOLUTION
+
+# Empty the keys file or create it.
+:> /home/api/keys
 
 while read -r key; do
-  echo "command=\"/bin/bash ~$user/retrieve-token.sh '"$key"'\" $key"
+  printf '%s\n' "$options,command=\"$command '$key'\" $key" >> /home/api/keys
 done <<< "$keys"
+
+cat /home/api/keys
+
+##### END HACKY TEMPORARY SOLUTION

@@ -3,8 +3,8 @@
 const R = require('ramda');
 // const getSiteFiles = require('./storage/site');
 const getAllSiteGroups = R.compose(
-  R.map(([id, siteGroup]) => ({ ...siteGroup, id, siteGroupName: id })),
-  sitegroups => Object.entries(sitegroups),
+  R.map(([id, siteGroup]) => ({ ...siteGroup, id, site_group_name: id })),
+  Object.entries,
   R.propOr({}, 'siteGroups'),
 );
 
@@ -17,17 +17,6 @@ const getAllSitesByEnv = ({ siteFiles }, env) =>
     R.values,
   )(siteFiles);
 
-// Object.entries(siteFiles).reduce((
-//   acc,
-//   [name, file],
-// ) => [
-//   ...acc,
-//   ...Object
-//     .entries(file.drupalsites || [])
-//     .map(([name, site]) => ({ ...site, siteName: name }))
-//     .filter(site => site.site_environment === env),
-// ], []);
-// const getSiteNameById = id => getSiteFiles(repoPath);
 const getSiteByName = ({ siteFiles }, name) =>
   Object
     .values(siteFiles)
@@ -37,6 +26,26 @@ const getSiteByName = ({ siteFiles }, name) =>
           .entries(file.drupalsites)
           .find(([siteName, site]) => siteName === name ? site : null)[1],
     )[0];
-// const getSiteByName = (state, name) => R.find(site => site.siteName === name)(state.siteFiles);
-// R.find(site => site.siteName === name)(state);
-module.exports = { getAllSiteGroups, getSiteByName, getAllSitesByEnv };
+
+const getAllClients = R.compose(
+  R.map(([id, client]) => ({ ...client, id, client_name: id })),
+  Object.entries,
+  R.propOr({}, 'clients'),
+);
+
+const getClientByName = (state, name) =>
+  R.compose(R.find(client => client.client_name === name), getAllClients)(state);
+
+const getSiteGroupsByClient = (state, client) =>
+  R.compose(R.filter(siteGroup => siteGroup.client === client.client_name), getAllSiteGroups)(
+    state,
+  );
+
+module.exports = {
+  getAllSiteGroups,
+  getSiteByName,
+  getAllSitesByEnv,
+  getAllClients,
+  getClientByName,
+  getSiteGroupsByClient,
+};

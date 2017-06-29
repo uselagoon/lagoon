@@ -58,6 +58,7 @@ const { validateApiEnv } = require('./validate');
     // TODO: Parse the repo and get the initial state thing
     const initialState = await {};
     const store = createStore(initialState, sagaArgs);
+
     await server(store);
 
     logger.debug('Finished booting the application.');

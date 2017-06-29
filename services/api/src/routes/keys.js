@@ -1,12 +1,11 @@
 // @flow
 
-import path from 'path';
+import R from 'ramda';
 import logger from '../logger';
-import { readFile } from '../util/fs';
 
 import type { $Request, $Response } from 'express';
 
-export const keysAccessMiddleware = (
+const keysAccessMiddleware = (
   req: $Request,
   res: $Response,
   next: Function,
@@ -17,11 +16,28 @@ export const keysAccessMiddleware = (
   next();
 };
 
-export default async (req: $Request, res: $Response) => {
+const getSshKeysFromClient = R.compose(
+  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
+  R.values,
+  R.propOr({}, 'ssh_keys'),
+);
+
+const getSshKeysFromClients = R.compose(
+  R.apply(R.concat),
+  R.map(getSshKeysFromClient),
+);
+
+const keysRoute = (req: $Request, res: $Response) => {
   logger.debug('Collecting client keys.');
 
-  // TODO:
-  // This should actually fetch ssh keys from the store.
-  const keys = await readFile(path.resolve(__dirname, 'keys.txt'), 'utf8');
-  res.send(keys);
+  const context = req.app.get('context');
+  const { getState } = context.store;
+  const { getAllClients } = context.selectors;
+
+  const clients = getAllClients(getState());
+  const keys = getSshKeysFromClients(clients);
+
+  res.send(keys.join('\n'));
 };
+
+export default [keysAccessMiddleware, keysRoute];
