@@ -8,19 +8,25 @@ const getAllSiteGroups = R.compose(
   R.propOr({}, 'siteGroups'),
 );
 
-const getAllSitesByEnv = ({ siteFiles }) =>
-  Object
-    .entries(siteFiles)
-    .reduce(
-      (acc, [name, file]) => [
-        ...acc,
-        ...Object
-          .entries(file.drupalsites || [])
-          .map(([name, site]) => ({ ...site, siteName: name })),
-      ],
-      [],
-    );
+const getAllSitesByEnv = ({ siteFiles }, env) =>
+  R.compose(
+    R.map(([siteName, site]) => ({ ...site, siteName })),
+    R.filter(([, site]) => site.site_environment === env),
+    R.reduce((acc, curr) => [...acc, ...curr], []),
+    R.map(file => R.toPairs(file.drupalsites)),
+    R.values,
+  )(siteFiles);
 
+// Object.entries(siteFiles).reduce((
+//   acc,
+//   [name, file],
+// ) => [
+//   ...acc,
+//   ...Object
+//     .entries(file.drupalsites || [])
+//     .map(([name, site]) => ({ ...site, siteName: name }))
+//     .filter(site => site.site_environment === env),
+// ], []);
 // const getSiteNameById = id => getSiteFiles(repoPath);
 const getSiteByName = ({ siteFiles }, name) =>
   Object
