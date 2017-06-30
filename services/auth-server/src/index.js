@@ -10,11 +10,6 @@ import authenticateRoute from './routes/authenticate';
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use((req, res, next) => {
-  console.log('asdasdad');
-  next();
-});
-
 // Add custom configured logger (morgan through winston).
 app.use(
   morgan('combined', {
