@@ -13,14 +13,14 @@ RUN mkdir /home/api/.ssh && \
 
 # This is the script that is run on every ssh login attempt. It
 # calls the authentication server to retrieve a token.
-COPY retrieve-token.sh /home/api/retrieve-token.sh
+COPY command.sh /home/api/command.sh
 
 # Add the ssh config for the 'api' user.
 COPY sshd_config /home/api/.ssh/sshd_config
 
 # This is the authorized keys command.
-COPY authorized-keys-command.sh /usr/local/bin/authorized-keys-command.sh
-RUN chmod 755 /usr/local/bin/authorized-keys-command.sh
+COPY authorize.sh /usr/local/bin/authorize.sh
+RUN chmod 755 /usr/local/bin/authorize.sh
 
 # The ssh keys and the script need to be owned by the user.
 RUN chown api:api /home/api -R
