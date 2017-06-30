@@ -18,14 +18,38 @@ Array [
 exports[`getAllSitesByEnv should return a complete list of sites 1`] = `
 Array [
   Object {
-    "siteName": "deploytest_branch1",
+    "computed": Object {
+      "fileName": "compact/deploytest1.yaml",
+      "id": "deploytest1.compact/deploytest_branch1",
+      "jumpHost": undefined,
+      "serverIdentifier": "deploytest1",
+      "serverInfrastructure": "compact",
+      "serverNames": Array [
+        "deploytest1.compact",
+      ],
+      "siteHost": "deploytest1.compact",
+      "siteName": "deploytest_branch1",
+    },
     "site_branch": "branch1",
+    "site_environment": "development",
     "sitegroup": "deploytest",
     "uid": 3201,
   },
   Object {
-    "siteName": "deploytest_branch1",
+    "computed": Object {
+      "fileName": "compact/deploytest2.yaml",
+      "id": "deploytest2.compact/deploytest_branch1",
+      "jumpHost": undefined,
+      "serverIdentifier": "deploytest2",
+      "serverInfrastructure": "compact",
+      "serverNames": Array [
+        "deploytest2.compact",
+      ],
+      "siteHost": "deploytest2.compact",
+      "siteName": "deploytest_branch1",
+    },
     "site_branch": "branch2",
+    "site_environment": "development",
     "sitegroup": "deploytest",
     "uid": 3201,
   },

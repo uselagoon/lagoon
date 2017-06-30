@@ -1,6 +1,6 @@
 // @flow
 
-const { getAllSiteGroups, getAllSitesByEnv, getServerInfoFromFilename, getSiteByName } = require(
+const { getAllSiteGroups, getAllSitesByEnv, addServerInfo, getSiteByName } = require(
   '../selectors',
 );
 
@@ -13,45 +13,53 @@ describe('getAllSiteGroups', () => {
     expect(ret).toMatchSnapshot();
   });
 });
-describe('getServerInfoFromFilename', () => {
-  test('should return server information', () => {
-    const serverInfo = getServerInfoFromFilename('compact/deploytest1.yaml');
-    expect(
-      serverInfo,
-    ).toEqual({ fileName: 'compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' });
-  });
-
-  test('should not break on deeper directory hierarchies', () => {
-    const serverInfo = getServerInfoFromFilename('deep/deeper/compact/deploytest1.yaml');
-    expect(
-      serverInfo,
-    ).toEqual({ fileName: 'deep/deeper/compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' });
-  });
-  test('should return null with an invalid path', () => {
-    const serverInfo = getServerInfoFromFilename('invalid/path');
-    expect(serverInfo).toEqual(null);
-  });
-});
-
+// describe('addServerInfo', () => {
+//   test('should return server information', () => {
+//     const serverInfo = addServerInfo('compact/deploytest1.yaml');
+//     expect(
+//       serverInfo,
+//     ).toEqual({ fileName: 'compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' });
+//   });
+//
+//   test('should not break on deeper directory hierarchies', () => {
+//     const serverInfo = addServerInfo('deep/deeper/compact/deploytest1.yaml');
+//     expect(
+//       serverInfo,
+//     ).toEqual({ fileName: 'deep/deeper/compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' });
+//   });
+//   test('should return null with an invalid path', () => {
+//     const serverInfo = addServerInfo('invalid/path');
+//     expect(serverInfo).toEqual(null);
+//   });
+// });
 describe('getAllSitesByEnv', () => {
   test('should return a complete list of sites', () => {
     const state = {
       siteFiles: {
         'compact/deploytest1.yaml': {
           drupalsites: {
-            deploytest_branch1: { site_branch: 'branch1', uid: 3201, sitegroup: 'deploytest' },
+            deploytest_branch1: {
+              site_environment: 'development',
+              site_branch: 'branch1',
+              uid: 3201,
+              sitegroup: 'deploytest',
+            },
           },
         },
         'compact/deploytest2.yaml': {
           drupalsites: {
-            deploytest_branch1: { site_branch: 'branch2', uid: 3201, sitegroup: 'deploytest' },
+            deploytest_branch1: {
+              site_environment: 'development',
+              site_branch: 'branch2',
+              uid: 3201,
+              sitegroup: 'deploytest',
+            },
           },
         },
       },
     };
 
-    const ret = getAllSitesByEnv(state);
-
+    const ret = getAllSitesByEnv(state, 'development');
     expect(ret).toMatchSnapshot();
   });
 });
