@@ -13,7 +13,7 @@ import type { Logger } from '../logger';
 import { listYamlFiles } from '../storage';
 import { readSiteGroupsFile, parseSiteGroupsFile } from '../storage/sitegroup';
 import { readClientsFile, parseClientsFile } from '../storage/client';
-import { getSiteFiles } from '../storage/site';
+import { getSiteFiles } from '../storage/sitefiles';
 import { setSiteGroups, setSiteFiles, setClients } from '../actions';
 
 export type SyncSagaArgs = {

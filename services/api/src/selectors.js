@@ -1,8 +1,42 @@
 // @flow
 
 const R = require('ramda');
-// const getSiteFiles = require('./storage/site');
 
+function getServerInfoFromFilename(
+  fileName: string,
+): ?{ fileName: string, serverInfrastructure: string, serverIdentifier: string } {
+  const matches = fileName.match(/([^/]+)\/([^/.]+)\.[^/.]+$/);
+  return matches
+    ? { fileName, serverInfrastructure: matches[1], serverIdentifier: matches[2] }
+    : null;
+}
+//
+// function addSiteHost(site) {
+//   const siteHost = R.propOr(
+//     `${site.serverIdentifier}.${site.serverInfrastructure}`,
+//     'amazeeio::servername',
+//   )(site.yaml);
+//   return { ...site, siteHost };
+// }
+//
+// function addServerNames(site) {
+//   let serverNames;
+//   const CLUSTER_MEMBER_KEY = 'drupalhosting::profiles::nginx_backend::cluster_member';
+//   if (site.serverInfrastructure === 'cluster' && site.yaml[CLUSTER_MEMBER_KEY]) {
+//     serverNames = Object
+//       .keys(site.yaml[CLUSTER_MEMBER_KEY])
+//       .map(memberKey => `${memberKey}.${site.siteHost}`);
+//   } else if (site.serverInfrastructure === 'single') {
+//     serverNames = [`backend.${site.siteHost}`];
+//   } else {
+//     serverNames = site.siteHost instanceof Array ? site.siteHost : [site.siteHost];
+//   }
+//   return { ...site, serverNames };
+// }
+//
+// function maybeAddJumphostKey(site) {
+//   return { ...site, jumpHost: R.prop('amazeeio::jumphost') };
+// }
 const extractSshKeyDefinitions = R.compose(
   R.ifElse(R.isEmpty, R.always([]), R.values),
   R.map(([owner, value]) => ({ ...value, owner })),
@@ -37,11 +71,12 @@ const getAllSitesByEnv = ({ siteFiles }, env) =>
 const getSiteByName = ({ siteFiles }, name) =>
   Object
     .values(siteFiles)
-    .map(file =>
-      Object
-        .entries(file.drupalsites)
-        .find(([siteName, site]) => siteName === name ? site : null)[1],
-  )[0];
+    .map(
+      file =>
+        Object
+          .entries(file.drupalsites)
+          .find(([siteName, site]) => siteName === name ? site : null)[1],
+    )[0];
 
 const getAllClients = R.compose(
   R.map(([id, client]) => ({ ...client, id, client_name: id })),
@@ -63,6 +98,7 @@ module.exports = {
   getAllSitesByEnv,
   getAllClients,
   getClientByName,
+  getServerInfoFromFilename,
   getSiteGroupsByClient,
   getSshKeysFromClients,
   extractSshKeys,
