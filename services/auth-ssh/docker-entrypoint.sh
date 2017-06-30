@@ -1,5 +1,5 @@
 #!/bin/bash
 
-ep /home/api/retrieve-token.sh
+ep /home/api/command.sh
 
 exec "$@"

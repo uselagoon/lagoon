@@ -20,7 +20,7 @@ const normalizePort = (value) => {
 export default async (store: ApiStore): Promise<Server> => {
   logger.debug('Starting to boot the server.');
 
-  const port = normalizePort(process.env.PORT || '80');
+  const port = normalizePort(process.env.PORT || '8080');
   const server = http.createServer(app(store));
 
   const deferred = defer();

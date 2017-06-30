@@ -1,8 +1,9 @@
 #!/bin/bash
 
-keys=$(wget $AMAZEEIO_API_HOST/keys --content-on-error -q -O -)
+api=${AMAZEEIO_API_HOST}
+keys=$(wget $api/keys --content-on-error -q -O -)
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
-command="/bin/bash ~/retrieve-token.sh"
+command="/bin/bash ~/command.sh"
 
 ##### START ACTUAL IMPLEMENTATION
 

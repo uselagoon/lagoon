@@ -37,21 +37,25 @@ function getServerInfoFromFilename(
 // function maybeAddJumphostKey(site) {
 //   return { ...site, jumpHost: R.prop('amazeeio::jumphost') };
 // }
+
 const extractSshKeyDefinitions = R.compose(
-  R.ifElse(R.isEmpty, R.always([]), R.values),
+  R.ifElse(R.isEmpty, R.always([]), R.identity),
   R.map(([owner, value]) => ({ ...value, owner })),
   Object.entries,
   R.propOr({}, 'ssh_keys'),
 );
 
 const extractSshKeys = R.compose(
-  R.ifElse(R.isEmpty, R.always([]), R.flatten),
+  R.ifElse(R.isEmpty, R.always([]), R.identity),
   R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
   R.filter(value => !!value.key),
   extractSshKeyDefinitions,
 );
 
-const getSshKeysFromClients = R.map(extractSshKeys);
+const getSshKeysFromClients = R.compose(
+  R.flatten,
+  R.map(extractSshKeys),
+);
 
 const getAllSiteGroups = R.compose(
   R.map(([id, siteGroup]) => ({ ...siteGroup, id, site_group_name: id })),
@@ -72,11 +76,11 @@ const getSiteByName = ({ siteFiles }, name) =>
   Object
     .values(siteFiles)
     .map(
-      file =>
-        Object
-          .entries(file.drupalsites)
-          .find(([siteName, site]) => siteName === name ? site : null)[1],
-    )[0];
+    file =>
+      Object
+        .entries(file.drupalsites)
+        .find(([siteName, site]) => siteName === name ? site : null)[1],
+  )[0];
 
 const getAllClients = R.compose(
   R.map(([id, client]) => ({ ...client, id, client_name: id })),

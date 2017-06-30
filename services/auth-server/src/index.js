@@ -24,9 +24,8 @@ app.post('/logout', ...logoutRoute);
 app.get('/authenticate/:token', ...authenticateRoute);
 
 // $FlowIgnore
-app.use((err: Error, req: $Request, res: $Response) => {
+app.use((err: Error, req: $Request, res: $Response, next: Function) => {
   logger.error(err.toString());
-
   res.status(500);
   res.send(`Request failed: ${err.toString()}`);
 });

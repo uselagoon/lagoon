@@ -16,7 +16,6 @@ const keysAccessMiddleware = (
   next();
 };
 
-
 const keysRoute = (req: $Request, res: $Response) => {
   logger.debug('Collecting client keys.');
 
@@ -26,7 +25,6 @@ const keysRoute = (req: $Request, res: $Response) => {
 
   const clients = getAllClients(getState());
   const keys = getSshKeysFromClients(clients);
-
   res.send(keys.join('\n'));
 };
 
