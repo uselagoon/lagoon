@@ -1,29 +1,67 @@
 // @flow
 
-import type { Site, SiteGroupsFile, ClientsFile } from './types';
+// ===== ACTION TYPES
+
+import type { Site, SiteGroupsFile, ClientsFile, SiteFiles } from './types';
 
 type Cb<R> = (err?: Error, res: R) => void;
 
 type Noop = { type: 'NOOP' };
 
-export type CreateSiteAction = { type: 'CREATE_SITE', file: string, cb: Cb<Site> };
+export type SetSiteFilesAction = {
+  type: 'SET_SITE_FILES',
+  siteFiles: SiteFiles,
+};
 
-export type UpdateFileAction = { type: 'UPDATE_FILE', file: string, content: string };
+export type CreateSiteAction = {
+  type: 'CREATE_SITE',
+  file: string,
+  cb: Cb<Site>,
+};
 
-export type SetSiteGroupsAction = { type: 'SET_SITE_GROUPS', siteGroups: SiteGroupsFile };
+export type UpdateFileAction = {
+  type: 'UPDATE_FILE',
+  file: string,
+  content: string,
+};
 
-export const setSiteGroups = (siteGroups: SiteGroupsFile): SetSiteGroupsAction => ({
-  type: 'SET_SITE_GROUPS',
-  siteGroups,
+export type SetSiteGroupsFileAction = {
+  type: 'SET_SITE_GROUPS_FILE',
+  siteGroupsFile: SiteGroupsFile,
+};
+
+export type SetClientsFileAction = {
+  type: 'SET_CLIENTS_FILE',
+  clientsFile: ClientsFile,
+};
+
+export type Action =
+  | SetSiteFilesAction
+  | SetSiteGroupsFileAction
+  | SetClientsFileAction
+  | Noop;
+
+// ===== ACTION CREATORS
+
+const setSiteGroupsFile = (
+  siteGroupsFile: SiteGroupsFile,
+): SetSiteGroupsFileAction => ({
+  type: 'SET_SITE_GROUPS_FILE',
+  siteGroupsFile,
 });
 
-export type SetClientsAction = { type: 'SET_CLIENTS', clients: ClientsFile };
-
-export const setClients = (clients: ClientsFile): SetClientsAction => ({
-  type: 'SET_CLIENTS',
-  clients,
+const setClientsFile = (clientsFile: ClientsFile): SetClientsFileAction => ({
+  type: 'SET_CLIENTS_FILE',
+  clientsFile,
 });
 
-export const setSiteFiles = siteFiles => ({ type: 'SET_SITE_FILES', siteFiles });
+const setSiteFiles = (siteFiles: SiteFiles): SetSiteFilesAction => ({
+  type: 'SET_SITE_FILES',
+  siteFiles,
+});
 
-export type Action = SetSiteGroupsAction | SetClientsAction | Noop;
+module.exports = {
+  setSiteGroupsFile,
+  setClientsFile,
+  setSiteFiles,
+};

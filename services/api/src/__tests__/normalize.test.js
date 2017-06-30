@@ -5,11 +5,11 @@ const {
 } = require('../normalize');
 const R = require('ramda');
 
-describe('normalizeClient', () => {
+describe.skip('normalizeClient', () => {
   test('should normalize sitegroup in client', () => {});
 });
 
-describe('normalizeSiteGroups', () => {
+describe.skip('normalizeSiteGroups', () => {
   test('should normalize client in sitegroup', () => {
     const sitegroups = {
       sg1: {
@@ -44,7 +44,7 @@ describe('normalizeSiteGroups', () => {
 //   });
 // });
 
-describe('normalizeSiteGroupObj', () => {
+describe.skip('normalizeSiteGroupObj', () => {
   test('should normalize sshKeys in siteGroup', () => {
     const data = {
       sg1: {
@@ -63,7 +63,6 @@ describe('normalizeSiteGroupObj', () => {
 
     const ret = normalizeSiteGroupObj(data);
 
-    console.log(JSON.stringify(ret, null, 2));
     return;
     expect(ret).toEqual({
       entities: {

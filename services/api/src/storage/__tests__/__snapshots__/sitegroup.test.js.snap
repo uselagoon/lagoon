@@ -1,168 +1,94 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`parseSiteGroupsFile should return a parsed sitegroup YAML as JS object 1`] = `
+exports[`readSiteGroupsFile should return the string content for api-test-hiera 1`] = `
 Object {
-  "ci-node1": Object {
-    "active_systems": Object {
-      "deploy": "lagoon_openshift",
-      "remove": "lagoon_openshift",
+  "amazeeio_sitegroups": Object {
+    "ci-node1": Object {
+      "active_systems": Object {
+        "deploy": "lagoon_openshift",
+        "remove": "lagoon_openshift",
+      },
+      "client": "deploytestclient",
+      "git_url": "git@git:/git/node.git",
+      "openshift": Object {
+        "console": "https://192.168.77.100:8443/",
+        "password": "developer",
+        "project": "myproject",
+        "registry": "docker-registry-default.192.168.77.100.nip.io:443",
+        "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
+        "template": "node.yml",
+        "username": "developer",
+      },
+      "slack": Object {
+        "channel": "amazeeio-testing",
+        "webhook": "https://hooks.slack.com/services/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",
+      },
     },
-    "client": "deploytestclient",
-    "git_url": "git@git:/git/node.git",
-    "openshift": Object {
-      "console": "https://192.168.77.100:8443/",
-      "password": "developer",
-      "project": "myproject",
-      "registry": "docker-registry-default.192.168.77.100.nip.io:443",
-      "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
-      "template": "node.yml",
-      "username": "developer",
+    "ci-node2": Object {
+      "active_systems": Object {
+        "deploy": "lagoon_openshift",
+        "remove": "lagoon_openshift",
+      },
+      "client": "deploytestclient",
+      "git_url": "git@git:/git/node.git",
+      "openshift": Object {
+        "console": "https://192.168.77.100:8443/",
+        "password": "developer",
+        "project": "myproject",
+        "registry": "docker-registry-default.192.168.77.100.nip.io:443",
+        "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
+        "template": "node.yml",
+        "username": "developer",
+      },
+      "slack": Object {
+        "channel": "amazeeio-testing",
+        "webhook": "https://hooks.slack.com/services/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",
+      },
     },
-    "slack": Object {
-      "channel": "amazeeio-testing",
-      "webhook": "https://hooks.slack.com/services/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",
+    "ci-node_subfolder1": Object {
+      "active_systems": Object {
+        "deploy": "lagoon_openshift",
+        "remove": "lagoon_openshift",
+      },
+      "client": "deploytestclient",
+      "git_url": "git@git:/git/node_subfolder.git",
+      "openshift": Object {
+        "console": "https://192.168.77.100:8443/",
+        "folder": "subfolder",
+        "password": "developer",
+        "project": "myproject",
+        "registry": "docker-registry-default.192.168.77.100.nip.io:443",
+        "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
+        "template": "node.yml",
+        "username": "developer",
+      },
+      "slack": Object {
+        "channel": "amazeeio-testing",
+        "webhook": "https://hooks.slack.com/services/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",
+      },
     },
-  },
-  "ci-node2": Object {
-    "active_systems": Object {
-      "deploy": "lagoon_openshift",
-      "remove": "lagoon_openshift",
-    },
-    "client": "deploytestclient",
-    "git_url": "git@git:/git/node.git",
-    "openshift": Object {
-      "console": "https://192.168.77.100:8443/",
-      "password": "developer",
-      "project": "myproject",
-      "registry": "docker-registry-default.192.168.77.100.nip.io:443",
-      "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
-      "template": "node.yml",
-      "username": "developer",
-    },
-    "slack": Object {
-      "channel": "amazeeio-testing",
-      "webhook": "https://hooks.slack.com/services/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",
-    },
-  },
-  "ci-node_subfolder1": Object {
-    "active_systems": Object {
-      "deploy": "lagoon_openshift",
-      "remove": "lagoon_openshift",
-    },
-    "client": "deploytestclient",
-    "git_url": "git@git:/git/node_subfolder.git",
-    "openshift": Object {
-      "console": "https://192.168.77.100:8443/",
-      "folder": "subfolder",
-      "password": "developer",
-      "project": "myproject",
-      "registry": "docker-registry-default.192.168.77.100.nip.io:443",
-      "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
-      "template": "node.yml",
-      "username": "developer",
-    },
-    "slack": Object {
-      "channel": "amazeeio-testing",
-      "webhook": "https://hooks.slack.com/services/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",
-    },
-  },
-  "ci-node_subfolder2": Object {
-    "active_systems": Object {
-      "deploy": "lagoon_openshift",
-      "remove": "lagoon_openshift",
-    },
-    "client": "deploytestclient",
-    "git_url": "git@git:/git/node_subfolder.git",
-    "openshift": Object {
-      "console": "https://192.168.77.100:8443/",
-      "folder": "subfolder",
-      "password": "developer",
-      "project": "myproject",
-      "registry": "docker-registry-default.192.168.77.100.nip.io:443",
-      "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
-      "template": "node.yml",
-      "username": "developer",
-    },
-    "slack": Object {
-      "channel": "amazeeio-testing",
-      "webhook": "https://hooks.slack.com/services/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",
+    "ci-node_subfolder2": Object {
+      "active_systems": Object {
+        "deploy": "lagoon_openshift",
+        "remove": "lagoon_openshift",
+      },
+      "client": "deploytestclient",
+      "git_url": "git@git:/git/node_subfolder.git",
+      "openshift": Object {
+        "console": "https://192.168.77.100:8443/",
+        "folder": "subfolder",
+        "password": "developer",
+        "project": "myproject",
+        "registry": "docker-registry-default.192.168.77.100.nip.io:443",
+        "router_pattern": "\${sitegroup}.\${branch}.192.168.77.100.nip.io",
+        "template": "node.yml",
+        "username": "developer",
+      },
+      "slack": Object {
+        "channel": "amazeeio-testing",
+        "webhook": "https://hooks.slack.com/services/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",
+      },
     },
   },
 }
-`;
-
-exports[`readSiteGroupsFile should return the string content for api-test-hiera 1`] = `
-"---
-amazeeio_sitegroups:
-  ci-node_subfolder1:
-    client: deploytestclient
-    git_url: 'git@git:/git/node_subfolder.git'
-    slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
-    openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
-      username: developer
-      password: developer
-      project: myproject
-      template: node.yml
-      router_pattern: \${sitegroup}.\${branch}.192.168.77.100.nip.io
-      folder: subfolder
-    active_systems:
-      deploy: lagoon_openshift
-      remove: lagoon_openshift
-  ci-node1:
-    client: deploytestclient
-    git_url: 'git@git:/git/node.git'
-    slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
-    openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
-      username: developer
-      password: developer
-      project: myproject
-      template: node.yml
-      router_pattern: \${sitegroup}.\${branch}.192.168.77.100.nip.io
-    active_systems:
-      deploy: lagoon_openshift
-      remove: lagoon_openshift
-  ci-node_subfolder2:
-    client: deploytestclient
-    git_url: 'git@git:/git/node_subfolder.git'
-    slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
-    openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
-      username: developer
-      password: developer
-      project: myproject
-      template: node.yml
-      router_pattern: \${sitegroup}.\${branch}.192.168.77.100.nip.io
-      folder: subfolder
-    active_systems:
-      deploy: lagoon_openshift
-      remove: lagoon_openshift
-  ci-node2:
-    client: deploytestclient
-    git_url: 'git@git:/git/node.git'
-    slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
-    openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
-      username: developer
-      password: developer
-      project: myproject
-      template: node.yml
-      router_pattern: \${sitegroup}.\${branch}.192.168.77.100.nip.io
-    active_systems:
-      deploy: lagoon_openshift
-      remove: lagoon_openshift
-"
 `;

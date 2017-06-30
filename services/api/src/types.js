@@ -2,7 +2,7 @@
 
 export type SshKey = {
   key: string,
-}
+};
 
 export type SshKeys = { [sshKeyName: string]: SshKey };
 
@@ -40,11 +40,29 @@ export type SiteGroup = {
   },
 };
 
-export type ClientsFile = { [client_name: string]: ?Client };
+export type ClientsFile = {
+  amazeeio_clients: {
+    [client_name: string]: ?Client,
+  },
+};
 
 export type SiteGroupsFile = { [site_group_name: string]: ?SiteGroup };
 
-export type SiteFile = { [site_name: string]: ?Site };
+export type SiteFile = {
+  drupalsites: {
+    [site_name: string]: Site,
+  },
+  classes: any,
+  stack_environment: Object,
+  'drupalhosting::profiles::client::ipv4_address': string,
+  'profile_monitoring::profiles::client::ipv4_address': string,
+  'profile_monitoring::client::commands:': Object,
+  'profile_icinga2::host::hiera_vars': Object,
+};
+
+export type SiteFiles = {
+  [site_path: string]: SiteFile,
+};
 
 // process.env stuff
 export type ApiEnv = {

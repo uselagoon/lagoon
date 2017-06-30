@@ -7,24 +7,28 @@ const { readFile, writeFile } = require('../util/fs');
 
 import type { ClientsFile, Client } from '../types';
 
-export const clientsFilePath = (repoPath: string) =>
+const clientsFilePath = (repoPath: string) =>
   path.join(repoPath, 'amazeeio', 'clients.yaml');
 
-export const clientToYaml = (client: Client): string =>
+const clientsToYaml = (client: Client): string =>
   // TODO: Maybe use a schema?
   Yaml.safeDump(client);
 
-export const writeClientsFile = (
+const writeClientsFile = (
   repoPath: string,
   yamlContent: string,
 ): Promise<void> => writeFile(clientsFilePath(repoPath), yamlContent, 'utf8');
 
-export const readClientsFile = (repoPath: string): Promise<string> =>
-  readFile(clientsFilePath(repoPath), 'utf8');
+const readClientsFile = async (repoPath: string): Promise<ClientsFile> => {
+  const yaml = await readFile(clientsFilePath(repoPath), 'utf8');
 
-export const parseClientsFile = (yamlContent: string): ClientsFile =>
-  R.compose(
-    R.propOr({}, 'amazeeio_clients'),
-    // TODO: Maybe use a schema w/ safeLoad?
-    Yaml.safeLoad,
-  )(yamlContent);
+  // TODO: Maybe use a schema w/ safeLoad?
+  return Yaml.safeLoad(yaml);
+};
+
+module.exports = {
+  clientsFilePath,
+  clientsToYaml,
+  writeClientsFile,
+  readClientsFile,
+};
