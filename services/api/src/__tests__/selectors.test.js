@@ -13,25 +13,27 @@ describe('getAllSiteGroups', () => {
     expect(ret).toMatchSnapshot();
   });
 });
-// describe('addServerInfo', () => {
-//   test('should return server information', () => {
-//     const serverInfo = addServerInfo('compact/deploytest1.yaml');
-//     expect(
-//       serverInfo,
-//     ).toEqual({ fileName: 'compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' });
-//   });
-//
-//   test('should not break on deeper directory hierarchies', () => {
-//     const serverInfo = addServerInfo('deep/deeper/compact/deploytest1.yaml');
-//     expect(
-//       serverInfo,
-//     ).toEqual({ fileName: 'deep/deeper/compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' });
-//   });
-//   test('should return null with an invalid path', () => {
-//     const serverInfo = addServerInfo('invalid/path');
-//     expect(serverInfo).toEqual(null);
-//   });
-// });
+describe('addServerInfo', () => {
+  test('should return server information', () => {
+    const serverInfo = addServerInfo({ computed: { fileName: 'compact/deploytest1.yaml' } });
+    expect(
+      serverInfo,
+    ).toEqual({ computed: { fileName: 'compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' } });
+  });
+
+  test('should not break on deeper directory hierarchies', () => {
+    const serverInfo = addServerInfo({
+      computed: { fileName: 'deep/deeper/compact/deploytest1.yaml' },
+    });
+    expect(
+      serverInfo,
+    ).toEqual({ computed: { fileName: 'deep/deeper/compact/deploytest1.yaml', serverInfrastructure: 'compact', serverIdentifier: 'deploytest1' } });
+  });
+  test('should return null with an invalid path', () => {
+    const serverInfo = addServerInfo({ computed: { filename: 'invalid/path' } });
+    expect(serverInfo).toEqual(null);
+  });
+});
 describe('getAllSitesByEnv', () => {
   test('should return a complete list of sites', () => {
     const state = {
