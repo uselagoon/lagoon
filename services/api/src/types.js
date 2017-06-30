@@ -1,6 +1,10 @@
 // @flow
 
-type SshKeys = { [sshKeyName: string]: { key: string } };
+export type SshKey = {
+  key: string,
+}
+
+export type SshKeys = { [sshKeyName: string]: SshKey };
 
 export type Client = {
   deploy_private_key?: string,

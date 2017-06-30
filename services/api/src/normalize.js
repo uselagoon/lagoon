@@ -1,5 +1,7 @@
 // @flow
 
+import type { SshKey, SshKeys } from './types';
+
 const R = require('ramda');
 const { denormalize, normalize, schema } = require('normalizr');
 
@@ -9,41 +11,66 @@ const sshKey = new schema.Entity(
   'sshKeys',
   {},
   {
-    idAttribute: (value, parent, key) => {
-      console.log(parent);
+    processStrategy: value => {
+      // Ssh-Keys are context dependent (e.g. sshKey in sitegroup | site)
+      // but we need to stay consistent with the yaml structure, so we
+      // need to eliminate the `id` attribute again
+      return R.omit(['id'], value);
     },
   },
 );
 
-const siteGroup = new schema.Entity(
+const renameSshKeys = (relName: string, sshKeys: SshKeys): SshKeys =>
+  R.compose(
+    R.fromPairs,
+    R.map(([personName, sshKey]) => [`${relName}/${personName}`, sshKey]),
+    R.toPairs,
+  )(sshKeys);
+
+const addSshKeyId = (
+  ctx: 'site' | 'sitegroup' | 'client',
+  relName: string,
+  sshKeys: SshKeys,
+): SshKeys =>
+  R.mapObjIndexed((sshKey, personName) => ({
+    ...sshKey,
+    id: [ctx, relName, personName].join('/'),
+  }))(sshKeys);
+
+const siteGroupObj = new schema.Entity(
   'siteGroups',
   {
     client,
-    ssh_keys: new schema.Values(sshKey),
+    ssh_keys: [sshKey],
   },
   {
-    processStrategy: (value, parent, key) => {
-      console.log(value);
+    idAttribute: (value, parent, sgName) => sgName,
+    processStrategy: (value, parent, sgName) => {
+      // We need to add a computed `id` attribute to the sshKey,
+      // so we know the context of the key itself
+      // e.g sitegroup = 'deploytest1' & sshKey = 'pat' => 'deploytest1/pat'
+      // To maintain consistency with the yaml file content, we need to omit
+      // the id attribute in the ssh key normalization process (see sshKey schema)
+      const ssh_keys = addSshKeyId('sitegroup', sgName, value.ssh_keys);
 
-      return R.reduce((acc, sg) => {
-        return acc;
-      }, {})(values);
+      return { ...value, ssh_keys };
     },
   },
 );
 
-const siteGroupSchema = new schema.Values(siteGroup);
+const siteGroupObjSchema = new schema.Values(siteGroupObj);
+
 const clientSchema = { ssh_keys: sshKey };
 
-const normalizeClient = (data: Object): Object => ({});
+// const normalizeClient = (data: Object): Object => ({});
 
-const normalizeSiteGroup = (data: Object): Object =>
-  normalize(data, siteGroupSchema);
+const normalizeSiteGroupObj = (data: Object): Object =>
+  normalize(data, siteGroupObjSchema);
 
-const denormalizeSiteGroup = (entities: Object, data: Object): Object =>
-  denormalize(data, siteGroupSchema, entities);
+// const denormalizeSiteGroup = (entities: Object, data: Object): Object =>
+//   denormalize(data, siteGroupFileSchema, entities);
 
 module.exports = {
-  denormalizeSiteGroup,
-  normalizeSiteGroup,
+  // denormalizeSiteGroup,
+  normalizeSiteGroupObj,
 };
