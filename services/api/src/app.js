@@ -8,13 +8,17 @@ import selectors from './selectors';
 import logger from './logger';
 import createRouter from './routes';
 
-import type { $Application } from 'express';
+import type { $Application, $Request } from 'express';
 import type { ApiStore } from './createStore';
 
 export type Context = {
   selectors: typeof selectors,
   store: ApiStore,
 };
+
+export const getContext = (req: $Request): Context => {
+  return (req.app.get('context'): any);
+}
 
 export default (store: ApiStore): $Application => {
   const app = express();

@@ -5,9 +5,9 @@ import statusRoute from './status';
 import keysRoute from './keys';
 import graphqlRoute from './graphql';
 
-import type { $Request, $Response, $Router } from 'express';
+import type { $Request, $Response, Router } from 'express';
 
-export default function createRouter(): $Router {
+export default function createRouter(): Router {
   const router = new express.Router();
 
   // Redirect GET requests on "/" to the status route.

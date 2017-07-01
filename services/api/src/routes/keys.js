@@ -3,6 +3,8 @@
 import R from 'ramda';
 import logger from '../logger';
 
+import { getContext } from '../app';
+
 import type { $Request, $Response } from 'express';
 
 const keysAccessMiddleware = (
@@ -19,7 +21,8 @@ const keysAccessMiddleware = (
 const keysRoute = (req: $Request, res: $Response) => {
   logger.debug('Collecting client keys.');
 
-  const context = req.app.get('context');
+  const context = getContext(req);
+
   const { getState } = context.store;
   const { getAllClients, getSshKeysFromClients } = context.selectors;
 

@@ -63,7 +63,6 @@ describe.skip('normalizeSiteGroupObj', () => {
 
     const ret = normalizeSiteGroupObj(data);
 
-    return;
     expect(ret).toEqual({
       entities: {
         sshKeys: {
