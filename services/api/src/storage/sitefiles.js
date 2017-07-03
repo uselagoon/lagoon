@@ -7,7 +7,10 @@ const { readYamlFile } = require('.');
 
 const getSiteFiles = async (siteFilePaths: Array<string>): SiteFiles =>
   R.reduce(
-    async (acc, filePath) => ({ ...(await acc), [filePath]: await readYamlFile(filePath) }),
+    async (acc, filePath) => ({
+      ...(await acc),
+      [filePath]: await readYamlFile(filePath),
+    }),
     {},
     siteFilePaths,
   );

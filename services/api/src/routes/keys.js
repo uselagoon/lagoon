@@ -1,6 +1,5 @@
 // @flow
 
-import R from 'ramda';
 import logger from '../logger';
 
 import { getContext } from '../app';

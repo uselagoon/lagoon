@@ -1,6 +1,5 @@
 // @flow
 
-
 /**
 * Note: We use the Covariant modifier (+) for almost all properties
 *       of all domain types.

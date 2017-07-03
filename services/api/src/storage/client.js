@@ -2,7 +2,6 @@
 
 const Yaml = require('js-yaml');
 const path = require('path');
-const R = require('ramda');
 const { readFile, writeFile } = require('../util/fs');
 
 import type { ClientsFile, Client } from '../types';

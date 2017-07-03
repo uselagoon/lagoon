@@ -1,7 +1,7 @@
 // @flow
 
 import type { Action } from './actions';
-import type { SiteGroupsFile, ClientsFile, Site, SiteFiles } from './types';
+import type { SiteGroupsFile, ClientsFile, SiteFiles } from './types';
 
 export type State = {
   siteGroupsFile?: SiteGroupsFile,

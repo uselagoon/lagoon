@@ -16,9 +16,8 @@ export type Context = {
   store: ApiStore,
 };
 
-export const getContext = (req: $Request): Context => {
-  return (req.app.get('context'): any);
-}
+export const getContext = (req: $Request): Context =>
+  (req.app.get('context'): any);
 
 export default (store: ApiStore): $Application => {
   const app = express();

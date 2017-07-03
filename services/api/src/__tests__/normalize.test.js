@@ -1,23 +1,20 @@
 // @flow
 
-const {
-  normalizeSiteGroupObj,
-} = require('../normalize');
-const R = require('ramda');
+const { normalizeSiteGroupObj } = require('../normalize');
 
 describe.skip('normalizeClient', () => {
   test('should normalize sitegroup in client', () => {});
 });
 
-describe.skip('normalizeSiteGroups', () => {
-  test('should normalize client in sitegroup', () => {
-    const sitegroups = {
-      sg1: {
-        client: 'c1',
-      },
-    };
-  });
-});
+// describe.skip('normalizeSiteGroups', () => {
+//   test('should normalize client in sitegroup', () => {
+//     const sitegroups = {
+//       sg1: {
+//         client: 'c1',
+//       },
+//     };
+//   });
+// });
 
 // describe('denormalizeSiteGroup', () => {
 //   test('should contain denormalized client information in sitegroup', () => {

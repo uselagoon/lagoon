@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+
 // @flow
 
-/* eslint-disable no-console, no-process-exit */
+/* eslint-disable no-console, no-process-exit, flowtype/no-types-missing-file-annotation */
 
 import 'babel-polyfill';
 import path from 'path';
