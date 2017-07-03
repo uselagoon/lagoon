@@ -20,19 +20,20 @@ brew tap caskroom/versions
 # Install Docker for Mac Edge
 brew cask install docker-edge
 ```
-
-## Install Submodules
-
-```sh
-git submodule update --init --recursive
-
-# Make sure to check out the testing branch of hiera
-cd hiera && git checkout ci-local
-```
-
 ## Start Services
 
 1. clone me
+
+```sh
+git clone git@github.com:amazeeio/lagoon.git
+cd lagoon
+git submodule update --init --recursive
+
+# Make sure to check out the testing branch of hiera
+cd hiera
+git checkout api
+cd ..
+```
 
 1. start Lagoon Services
 
