@@ -29,10 +29,8 @@ git clone git@github.com:amazeeio/lagoon.git
 cd lagoon
 git submodule update --init --recursive
 
-# Make sure to check out the testing branch of hiera
-cd hiera
-git checkout api
-cd ..
+# Make sure to check out the branches of hiera that we need locally
+./initHiera.sh
 ```
 
 1. start Lagoon Services
