@@ -20,4 +20,4 @@ export SSH_AUTH_PORT="2020"
 export SSH_AUTH_USER="api"
 export API_URL="http://localhost:8080/graphql"
 
-cd cli && yarn run execute "$@"
+cd "$(dirname "${BASH_SOURCE[0]}")/cli" && yarn run execute "$@"
