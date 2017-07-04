@@ -1,7 +1,5 @@
 // @flow
 
-/* eslint-disable no-console */
-
 import os from 'os';
 import path from 'path';
 import inquirer from 'inquirer';
@@ -23,6 +21,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
 type Args = BaseArgs;
 
 export async function run(args: Args): Promise<number> {
+  // eslint-disable-next-line no-console
   const { clog = console.log } = args;
 
   // TODO: We need to make the ssh key path lookup smarter or request it via prompt.
