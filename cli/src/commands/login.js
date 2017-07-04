@@ -6,6 +6,7 @@ import os from 'os';
 import path from 'path';
 import inquirer from 'inquirer';
 import { utils } from 'ssh2-streams';
+import untildify from 'untildify';
 import { sshConnect, sshExec } from '../util/ssh';
 import { readFile, writeFile } from '../util/fs';
 
@@ -34,7 +35,7 @@ export async function run(args: Args): Promise<number> {
       default: path.join(homeDir, '.ssh', 'id_rsa'),
     },
   ]);
-  const privateKey = await readFile(privateKeyFilePath);
+  const privateKey = await readFile(untildify(privateKeyFilePath));
   let passphrase = '';
   if (utils.parseKey(privateKey).encryption) {
     const promptReturn = await inquirer.prompt([
