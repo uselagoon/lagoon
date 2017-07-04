@@ -24,7 +24,6 @@ type Args = BaseArgs;
 export async function run(args: Args): Promise<number> {
   const { clog = console.log } = args;
 
-  console.log('w00t');
   // TODO: We need to make the ssh key path lookup smarter or request it via prompt.
   const homeDir = os.homedir();
   const { privateKeyFilePath } = await inquirer.prompt([
