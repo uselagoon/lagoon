@@ -3,11 +3,7 @@
 import { Client } from 'ssh2';
 
 type Connection = {
-  exec: (
-    connection: Connection,
-    command: string,
-    options?: ExecOptions,
-  ) => Connection,
+  exec: (connection: Connection, command: string, options?: ExecOptions) => Connection,
   on: (event: string, callback: Function) => Connection,
 };
 
@@ -15,7 +11,8 @@ type ConnectArgs = {
   host: string,
   port: number,
   username: string,
-  privateKey: string,
+  privateKey: string | Buffer,
+  passphrase?: string,
 };
 
 export async function sshConnect(args: ConnectArgs): Promise<Connection> {
@@ -26,7 +23,7 @@ export async function sshConnect(args: ConnectArgs): Promise<Connection> {
       resolve(connection);
     });
 
-    connection.on('error', error => {
+    connection.on('error', (error) => {
       reject(error);
     });
 
@@ -45,13 +42,12 @@ export async function sshExec(
     connection.exec(command, options, (error, stream) => {
       if (error) {
         reject(error);
-      }
-      else {
-        stream.on('data', data => {
+      } else {
+        stream.on('data', (data) => {
           resolve(data);
         });
 
-        stream.stderr.on('data', data => {
+        stream.stderr.on('data', (data) => {
           reject(new Error(data));
         });
       }
