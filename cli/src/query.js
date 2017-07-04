@@ -7,7 +7,7 @@ import { readFile, doesFileExist } from './util/fs';
 import request from './util/request';
 
 type QLQueryArgs = {
-  endpoint: string,
+  endpoint?: string,
   query: string,
   variables?: Object,
   headers?: Object,

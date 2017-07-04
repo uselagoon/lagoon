@@ -25,7 +25,7 @@ async function readConfig(cwd: string): Promise<?AmazeeConfig> {
     return null;
   }
 
-  const yamlContent = await readFile(configPath, 'utf8');
+  const yamlContent = await readFile(configPath);
   return parseConfig(yamlContent.toString());
 }
 

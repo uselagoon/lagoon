@@ -5,8 +5,9 @@ import { Client } from 'ssh2';
 type ExecOptions = {};
 
 type Connection = {
-  exec: (connection: Connection, command: string, options?: ExecOptions) => Connection,
+  exec: (command: string, options?: ExecOptions, callback: Function) => Connection,
   on: (event: string, callback: Function) => Connection,
+  end: () => Connection,
 };
 
 type ConnectArgs = {

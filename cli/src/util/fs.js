@@ -8,10 +8,7 @@ import fs from 'fs';
 
 import type { Stats } from 'fs';
 
-export function readFile(
-  filename: string,
-  enc?: string,
-): Promise<string | Buffer> {
+export function readFile(filename: string, enc?: string): Promise<string> {
   return new Promise((resolve, reject) => {
     fs.readFile(filename, enc || 'utf8', (err, data) => {
       if (err) {

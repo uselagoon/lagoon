@@ -28,7 +28,7 @@ export async function run(args: Args): Promise<number> {
   const privateKey = await readFile(privateKeyFilePath);
   const connection = await sshConnect({
     host: process.env.SSH_AUTH_HOST || 'auth.amazee.io',
-    port: process.env.SSH_AUTH_PORT || 2020,
+    port: Number(process.env.SSH_AUTH_PORT) || 2020,
     username: process.env.SSH_AUTH_USER || 'api',
     privateKey,
   });
