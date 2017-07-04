@@ -57,7 +57,7 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
   const options = {
     hostname,
     path: pathname,
-    port: port || 80,
+    port: Number(port) || 443,
     method: 'POST',
     headers,
     body,

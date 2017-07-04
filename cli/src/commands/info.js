@@ -93,6 +93,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const result = await runGQLQuery({
     query,
+    port: 80,
     variables: { sitegroup },
   });
 

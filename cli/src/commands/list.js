@@ -74,6 +74,7 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const result = await runGQLQuery({
     query,
+    port: 80,
     variables: { sitegroup },
   });
 

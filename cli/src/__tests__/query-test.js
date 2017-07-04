@@ -6,6 +6,11 @@ import { runGQLQuery } from '../query';
 
 jest.mock('../util/request');
 
+jest.mock('../util/fs', () => ({
+  doesFileExist: jest.fn(async () => true),
+  readFile: jest.fn(async () => 'TOKEN'),
+}));
+
 // Flow does not know which objects are actual mocks
 // this function casts given paramter to JestMockFn
 const _mock = (mockFn: any): JestMockFn => mockFn;
@@ -27,9 +32,7 @@ describe('runGQLQuery', () => {
   });
 
   it('should do a POST request ala GraphQL', async () => {
-    _mock(request).mockImplementationOnce(() =>
-      Promise.resolve({ data: 'data' }),
-    );
+    _mock(request).mockImplementationOnce(() => Promise.resolve({ data: 'data' }));
 
     const result = await runGQLQuery({
       endpoint: 'https://url.com/api',
@@ -47,6 +50,7 @@ describe('runGQLQuery', () => {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        Authorization: 'Bearer TOKEN',
       },
       body: '{"query":"test"}',
       rejectUnauthorized: false,

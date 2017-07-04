@@ -5,7 +5,7 @@ import defer from './defer';
 export type RequestOptions = {
   hostname: string,
   path?: string,
-  port?: number | string,
+  port?: number,
   method: 'POST' | 'GET',
   headers?: Object,
   rejectUnauthorized?: boolean,
@@ -18,9 +18,9 @@ export default function request(options: RequestOptions): Promise<Object> {
   const def = defer();
 
   // eslint-disable-next-line global-require
-  const thing = Number(port) === 80 ? require('http') : require('https');
+  const protocolModule = port === 80 ? require('http') : require('https');
 
-  const req = thing.request(options, (res) => {
+  const req = protocolModule.request(options, (res) => {
     res.setEncoding('utf8');
 
     let rawData = '';
