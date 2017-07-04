@@ -35,11 +35,9 @@ async function readConfig(cwd: string): Promise<?AmazeeConfig> {
 function errorQuit(err: Error | Object | string) {
   if (err.stack) {
     console.error('UNCAUGHT ERROR: %s', err.stack);
-  }
-  else if (typeof err === 'object' && err !== null) {
+  } else if (typeof err === 'object' && err !== null) {
     console.error('UNCAUGHT ERROR: %s', JSON.stringify(err, null, 2));
-  }
-  else {
+  } else {
     console.error('UNCAUGHT ERROR:', err);
   }
 
@@ -57,21 +55,17 @@ export async function runCLI(cwd: string) {
         const { name, description, run, setup } = cmd;
         const clog = console.log;
 
-        const runFn = args => {
-          return run({ ...args, cwd, config, clog })
-            .catch(errorQuit)
-            .then(code => process.exit(code));
-        };
+        const runFn = args =>
+          run({ ...args, cwd, config, clog }).catch(errorQuit).then(code => process.exit(code));
 
-        const setupFn = typeof setup === 'function' ? setup : yargs => yargs;
+        const setupFn = typeof setup === 'function' ? setup : setupYargs => setupYargs;
 
         return cmdYargs.command(name, description, setupFn, runFn);
       }, yargs)
       .demandCommand(1)
       .strict()
       .help().argv;
-  }
-  catch (err) {
+  } catch (err) {
     errorQuit(err);
   }
 }
@@ -87,19 +81,13 @@ if (require.main === module) {
   let lastDir = null;
   let main = runCLI;
   while (currDir !== lastDir) {
-    const localCLIPath = path.join(
-      currDir,
-      'node_modules',
-      '.bin',
-      'amazee-io-cli',
-    );
+    const localCLIPath = path.join(currDir, 'node_modules', '.bin', 'amazee-io-cli');
     try {
       if (statSync(localCLIPath).isFile()) {
         main = require.call(null, localCLIPath).runCLI;
         break;
       }
-    }
-    catch (e) {
+    } catch (e) {
       // File doesn't exist, move up a dir...
     }
     lastDir = currDir;

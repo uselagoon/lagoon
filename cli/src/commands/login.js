@@ -9,12 +9,11 @@ import { utils } from 'ssh2-streams';
 import { sshConnect, sshExec } from '../util/ssh';
 import { readFile, writeFile } from '../util/fs';
 
-import typeof { default as Yargs } from 'yargs';
+import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'login';
-const description =
-  'Uses your SSH key to authenticate you with the amazee.io API';
+const description = 'Uses your SSH key to authenticate you with the amazee.io API';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs.usage(`$0 ${name} - ${description}`).argv;

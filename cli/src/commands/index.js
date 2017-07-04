@@ -1,7 +1,7 @@
 // @flow
 
 import type { AmazeeConfig } from '../parseConfig';
-import typeof { default as Yargs } from 'yargs';
+import typeof Yargs from 'yargs';
 
 export type BaseArgs = {
   _: Array<string>,

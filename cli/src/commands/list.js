@@ -20,7 +20,7 @@ import gql from '../gql';
 import { runGQLQuery } from '../query';
 import { exitNoConfig, exitError, exitGraphQLError } from '../exit';
 
-import typeof { default as Yargs } from 'yargs';
+import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'list';
@@ -32,8 +32,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe:
-          'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
@@ -46,35 +45,6 @@ export async function setup(yargs: Yargs): Promise<Object> {
       `$0 ${name} sites -s mysitegroup`,
       'Lists all sites for a specific sitegroup (instead of using the config file)',
     ).argv;
-}
-
-type Target = 'sites';
-
-type Args = BaseArgs & {
-  sitegroup: ?string,
-  target: Target,
-};
-
-export async function run(args: Args): Promise<number> {
-  const { config, clog = console.log } = args;
-
-  if (config == null) {
-    return exitNoConfig(clog);
-  }
-
-  const [target] = args._.slice(1);
-  const sitegroup = args.sitegroup || config.sitegroup;
-
-  switch (target) {
-    case 'sites':
-      return listSites({ sitegroup });
-    default:
-      return exitError(
-        clog,
-        `Unknown target ${target} ... possible values: 'sites'`,
-        1,
-      );
-  }
 }
 
 type MainArgs = {
@@ -150,7 +120,7 @@ export async function listSites(args: MainArgs): Promise<number> {
     },
   };
 
-  const tableBody = map(node => {
+  const tableBody = map((node) => {
     const inProdMarker = node.siteEnvironment === 'production' ? '\u221A' : '';
     return [node.siteName, node.siteBranch, inProdMarker];
   }, nodes);
@@ -160,6 +130,31 @@ export async function listSites(args: MainArgs): Promise<number> {
   clog(table(tableData, tableConfig));
 
   return 0;
+}
+
+type Target = 'sites';
+
+type Args = BaseArgs & {
+  sitegroup: ?string,
+  target: Target,
+};
+
+export async function run(args: Args): Promise<number> {
+  const { config, clog = console.log } = args;
+
+  if (config == null) {
+    return exitNoConfig(clog);
+  }
+
+  const [target] = args._.slice(1);
+  const sitegroup = args.sitegroup || config.sitegroup;
+
+  switch (target) {
+    case 'sites':
+      return listSites({ sitegroup });
+    default:
+      return exitError(clog, `Unknown target ${target} ... possible values: 'sites'`, 1);
+  }
 }
 
 export default {

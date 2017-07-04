@@ -19,8 +19,7 @@ function* walker(
 
     if (exists) {
       return full;
-    }
-    else if (next === root) {
+    } else if (next === root) {
       // ${root}/${filename} does not exist, quit
       return null;
     }

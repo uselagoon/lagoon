@@ -2,6 +2,8 @@
 
 import { Client } from 'ssh2';
 
+type ExecOptions = {};
+
 type Connection = {
   exec: (connection: Connection, command: string, options?: ExecOptions) => Connection,
   on: (event: string, callback: Function) => Connection,
@@ -30,8 +32,6 @@ export async function sshConnect(args: ConnectArgs): Promise<Connection> {
     connection.connect(args);
   });
 }
-
-type ExecOptions = {};
 
 export async function sshExec(
   connection: Connection,

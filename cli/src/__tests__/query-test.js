@@ -8,9 +8,7 @@ jest.mock('../util/request');
 
 // Flow does not know which objects are actual mocks
 // this function casts given paramter to JestMockFn
-const _mock = (mockFn: any): JestMockFn => {
-  return mockFn;
-};
+const _mock = (mockFn: any): JestMockFn => mockFn;
 
 describe('runGQLQuery', () => {
   it('Should reject because of missing hostname', async () => {
@@ -19,8 +17,7 @@ describe('runGQLQuery', () => {
         endpoint: '',
         query: '',
       });
-    }
-    catch (err) {
+    } catch (err) {
       // request should not be called in that case
       const call = _mock(request).mock.calls;
       expect(call).toEqual([]);
@@ -48,7 +45,7 @@ describe('runGQLQuery', () => {
       port: 443,
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: '{"query":"test"}',

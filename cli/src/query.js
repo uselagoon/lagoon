@@ -24,7 +24,7 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
   } = args;
 
   const headers = {
-    'Accept': 'application/json',
+    Accept: 'application/json',
     'Content-Type': 'application/json',
     ...customHeaders,
   };

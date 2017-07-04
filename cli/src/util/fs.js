@@ -16,8 +16,7 @@ export function readFile(
     fs.readFile(filename, enc || 'utf8', (err, data) => {
       if (err) {
         reject(err);
-      }
-      else {
+      } else {
         resolve(data);
       }
     });
@@ -30,11 +29,10 @@ export function writeFile(
   options?: Object | string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filename, data, options, err => {
+    fs.writeFile(filename, data, options, (err) => {
       if (err) {
         reject(err);
-      }
-      else {
+      } else {
         resolve();
       }
     });
@@ -43,11 +41,10 @@ export function writeFile(
 
 export function deleteFile(filename: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    fs.unlink(filename, err => {
+    fs.unlink(filename, (err) => {
       if (err) {
         reject(err);
-      }
-      else {
+      } else {
         resolve();
       }
     });
@@ -59,8 +56,7 @@ export function lstat(path: string): Promise<Stats> {
     fs.lstat(path, (err, stat) => {
       if (err) {
         reject(err);
-      }
-      else {
+      } else {
         resolve(stat);
       }
     });
@@ -76,8 +72,7 @@ export async function doesFileExist(file: string): Promise<boolean> {
     }
 
     return false;
-  }
-  catch (err) {
+  } catch (err) {
     return false;
   }
 }

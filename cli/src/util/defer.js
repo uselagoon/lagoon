@@ -10,10 +10,10 @@ type Defer<R> = {
  * Creates a defer object, which is useful to combine
  * Promises with nodelike callback interfaces
  */
-export default function defer(label?: string): Defer<*> {
+export default function defer(): Defer<*> {
   const deferred = {};
 
-  deferred.promise = new Promise(function (resolve, reject) {
+  deferred.promise = new Promise((resolve, reject) => {
     deferred.resolve = resolve;
     deferred.reject = reject;
   });

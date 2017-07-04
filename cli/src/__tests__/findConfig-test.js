@@ -8,11 +8,9 @@ import { doesFileExist } from '../util/fs';
 
 jest.mock('../util/fs');
 
-const doesFileExistMock = (configPath: ?string) => {
-  return (file: string) => {
-    const found = configPath != null && file === configPath;
-    return Promise.resolve(found);
-  };
+const doesFileExistMock = (configPath: ?string) => (file: string) => {
+  const found = configPath != null && file === configPath;
+  return Promise.resolve(found);
 };
 
 function _mock(fn: any): JestMockFn {

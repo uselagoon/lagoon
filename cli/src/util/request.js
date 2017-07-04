@@ -17,21 +17,21 @@ export default function request(options: RequestOptions): Promise<Object> {
 
   const def = defer();
 
+  // eslint-disable-next-line global-require
   const thing = Number(port) === 80 ? require('http') : require('https');
 
-  const req = thing.request(options, res => {
+  const req = thing.request(options, (res) => {
     res.setEncoding('utf8');
 
     let rawData = '';
-    res.on('data', chunk => {
+    res.on('data', (chunk) => {
       rawData += chunk;
     });
     res.on('end', () => {
       try {
-        let parsed = JSON.parse(rawData);
+        const parsed = JSON.parse(rawData);
         def.resolve(parsed);
-      }
-      catch (e) {
+      } catch (e) {
         def.reject(e);
       }
     });

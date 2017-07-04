@@ -10,7 +10,7 @@ import gql from '../gql';
 import { runGQLQuery } from '../query';
 import { exitNoConfig, exitGraphQLError } from '../exit';
 
-import typeof { default as Yargs } from 'yargs';
+import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const tableConfig = {
@@ -31,8 +31,7 @@ const tableConfig = {
 };
 
 // Common filter
-const onlyValues = ([title, value]: [string, string]) =>
-  value != null && value !== '';
+const onlyValues = ([, value]: [string, string]) => value != null && value !== '';
 
 const name = 'info';
 const description = 'Shows infos about sites or sitegroups';
@@ -43,8 +42,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe:
-          'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
@@ -62,34 +60,6 @@ export async function setup(yargs: Yargs): Promise<Object> {
       `$0 ${name} -s mysitegroup mysite`,
       'Shows information about given site "mysite" in given sitegroup "somesitegroup"',
     ).argv;
-}
-
-type Args = BaseArgs & {
-  sitegroup: ?string,
-};
-
-export async function run(args: Args): Promise<number> {
-  const { config, clog = console.log } = args;
-
-  if (config == null) {
-    return exitNoConfig(clog);
-  }
-
-  const [siteAndBranch] = args._.slice(1);
-  const sitegroup = args.sitegroup || config.sitegroup;
-
-  if (siteAndBranch == null) {
-    return sitegroupInfo({ sitegroup, clog });
-  }
-
-  const [site, branch] = siteAndBranch.split('@');
-
-  return siteInfo({
-    site,
-    branch,
-    sitegroup,
-    clog,
-  });
 }
 
 type SiteGroupInfoArgs = {
@@ -139,14 +109,14 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
   }
 
   const sites = compose(
-    map(edge => {
+    map((edge) => {
       const { siteName, siteBranch } = prop(['node'], edge);
       return `${siteName}:${siteBranch}`;
     }),
     pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
   )(result);
 
-  const formatSlack = slack => {
+  const formatSlack = (slack) => {
     if (slack == null) {
       return '';
     }
@@ -279,9 +249,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
     clog(
       'I found multiple sites with the same name, but different branches, maybe try following parameter...',
     );
-    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(
-      nodes,
-    );
+    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(nodes);
     return 0;
   }
 
@@ -290,7 +258,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   // nodes only contains one element, extract it
   const [node] = nodes;
 
-  const formatCron = cron => {
+  const formatCron = (cron) => {
     if (cron == null) {
       return '';
     }
@@ -298,7 +266,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
     return `Type: ${cron.type} - Minute: ${cron.minute}`;
   };
 
-  const formatArray = arr => {
+  const formatArray = (arr) => {
     if (arr == null) {
       return '';
     }
@@ -327,6 +295,34 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   clog(table(tableData, tableConfig));
 
   return 0;
+}
+
+type Args = BaseArgs & {
+  sitegroup: ?string,
+};
+
+export async function run(args: Args): Promise<number> {
+  const { config, clog = console.log } = args;
+
+  if (config == null) {
+    return exitNoConfig(clog);
+  }
+
+  const [siteAndBranch] = args._.slice(1);
+  const sitegroup = args.sitegroup || config.sitegroup;
+
+  if (siteAndBranch == null) {
+    return sitegroupInfo({ sitegroup, clog });
+  }
+
+  const [site, branch] = siteAndBranch.split('@');
+
+  return siteInfo({
+    site,
+    branch,
+    sitegroup,
+    clog,
+  });
 }
 
 export default {

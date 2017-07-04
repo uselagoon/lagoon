@@ -7,7 +7,7 @@ import path from 'path';
 import { sshConnect, sshExec } from '../util/ssh';
 import { readFile, deleteFile, doesFileExist } from '../util/fs';
 
-import typeof { default as Yargs } from 'yargs';
+import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'logout';
