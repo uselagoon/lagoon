@@ -2,17 +2,56 @@
 
 require("babel-polyfill");
 
+import amqp from 'amqp-connection-manager';
+import jenkinsLib from 'jenkins'
 import bodyParser from 'body-parser'
 import expressValidator from 'express-validator'
 import express from 'express'
 import cors from 'cors'
 import util from 'util'
+import Transport from 'lokka-transport-http';
+import Lokka from 'lokka';
 
-import { createDeployTask, createRemoveTask, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 
+let myhash = {};
+
 initLogger();
-initSendToAmazeeioTasks();
+
+const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
+const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const connection = amqp.connect([`amqp://${rabbitmqhost}`], {json: true});
+
+const amazeeioAPI = new Lokka({
+  transport: new Transport(`${amazeeioapihost}/graphql`)
+});
+
+connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url));
+connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { reason: params }));
+
+const channelWrapper = connection.createChannel({
+    setup: function(channel) {
+        return Promise.all([
+            channel.assertQueue('amazeeio:jobwatch', {durable: true}),
+            channel.prefetch(1),
+            channel.consume('amazeeio:jobwatch', watch, {noAck: true}),
+        ])
+    }
+});
+
+// const CW: ChannelWrapper = connection.createChannel();
+var mypush = async (payload): Promise<void> => {
+    const buffer = new Buffer(JSON.stringify(payload));
+await channelWrapper.sendToQueue('amazeeio:jobwatch', buffer, { persistent: true })
+}
+
+
+var watch = async function(message) {
+  var payload = JSON.parse(message.content.toString())
+  console.log('watch: got payload', payload)
+
+}
+
 
 const app = express()
 const server = app.listen(process.env.PORT || 3000, () => {
@@ -24,102 +63,70 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(expressValidator());
 
+
+
+
 app.get('/', (req, res) => {
   return res.status(200).send('welcome to jobwatch')
 })
 
 app.post('/job', async (req, res) => {
 
-  req.checkBody({
-    'siteGroupName': {
-      notEmpty: true,
-      matches: {
-        options: [/^[a-zA-Z0-9-_]+$/],
-        errorMessage: 'siteGroupName must be defined and must only contain alphanumeric, dashes and underline'
-      },
-    },
-    'branchName': {
-      notEmpty: true,
-      matches: {
-        options: [/^[a-zA-Z0-9-_\/]+$/],
-        errorMessage: 'branchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
-      },
-    },
+  var sitegroupname =  req.body.sitegroupname
+  var branchname = req.body.branchname
+  var jobevent =  req.body.jobevent
+
+  const siteGroupOpenShift = await amazeeioAPI.query(`
+    {
+      siteGroup:siteGroupByName(name: "${sitegroupname}"){
+        openshift
+        client {
+          deployPrivateKey
+        }
+        gitUrl
+      }
+    }
+    `)
+
+
+
+  var d = new Date();
+  mypush( {
+    'event' : jobevent,
+    'when' :  d
   });
 
-  const result = await req.getValidationResult()
+  let jenkinsUrl
 
-  if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
-    return;
+  if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
+    jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
+  } else {
+    jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
   }
 
-  const data = {
-    siteGroupName: req.body.siteGroupName,
-    branchName: req.body.branchName,
-    jobevent: req.body.jobevent,
-    type: 'branch'
-  }
 
-  console.log(`got a ${data.jobevent} event on ${data.siteGroupName}.`)
+  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
 
+//   jenkins.job.list(function(err, data) {
+//     if (err) throw err;
+//
+//     console.log('jobs', data);
+//     for (var i in data) {
+//       console.log(data[i].name)
+//     }
+//   });
+console.log('------')
+jenkins.job.get('ci-node_subfolder1', function(err, data) {
+  if (err) throw err;
+
+  //  console.log('job', data);
+  console.log(data.jobs[0]);
+});
 
   try {
     res.status(200).type('json').send({"ok":"true"})
     // const taskResult = await createDeployTask(data);
     // res.status(200).type('json').send({ "ok": "true", "message": taskResult})
-    return;
-  } catch (error) {
-    switch (error.name) {
-      case "SiteGroupNotFound":
-      case "ActiveSystemsNotFound":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
-          return;
-        break;
-
-      default:
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
-          return;
-        break;
-    }
-  }
-
-})
-
-app.post('/remove', async (req, res) => {
-
-//  req.checkBody({
-//    'siteGroupName': {
-//      notEmpty: true,
-//      matches: {
-//        options: [/^[a-zA-Z0-9-_]+$/],
-//        errorMessage: 'siteGroupName must be defined and must only contain alphanumeric, dashes and underline'
-//      },
-//    },
-//    'openshiftRessourceAppName': {
-//      notEmpty: true,
-//      matches: {
-//        options: [/^[a-zA-Z0-9-]+$/],
-//        errorMessage: 'openshiftRessourceAppName must be defined and must only contain alphanumeric and dashes'
-//      },
-//    }
-//  });
-//
-//  const result = await req.getValidationResult()
-//
-  if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
-    return;
-  }
-
-  const data = {
-    siteGroupName: req.body.siteGroupName,
-    openshiftRessourceAppName: req.body.openshiftRessourceAppName
-  }
-
-  try {
-    const taskResult = await createRemoveTask(data);
-    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
   } catch (error) {
     switch (error.name) {
