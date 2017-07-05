@@ -26,6 +26,8 @@ fi
 
 #oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
 
+curl -X POST -d siteGroupName=$SITEGROUP -d branchName=$BRANCH -d project=${OPENSHIFT_PROJECT} -d jobevent=create_project jobwatch:3000/job
+
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
@@ -40,4 +42,3 @@ docker tag ${IMAGE} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TA
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
 for i in {1..2}; do docker push ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG} && break || sleep 5; done
-
