@@ -63,6 +63,7 @@ services:
       - DOCKER_RUN_PARARM=--network=lagoon_default
     volumes:
       - ./services/openshiftdeploy/src:/app/src
+      - ./node-packages:/node-packages
   logs2slack:
     build: services/logs2slack
     command: yarn run dev
@@ -96,6 +97,7 @@ services:
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/rest2tasks/src:/app/src
+      - ./node-packages:/node-packages
     ports:
       - "5555:3000"
   api:
