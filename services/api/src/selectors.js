@@ -1,127 +1,257 @@
 // @flow
 
+import type {
+  SiteFile,
+  SiteGroup,
+  State,
+  SiteFiles,
+  Site,
+  Client,
+  SshKeys,
+  SshKey,
+} from './types';
+
 const R = require('ramda');
 
-function addServerInfo(site) {
-  if (!site.computed.fileName) return null;
-  const matches = site.computed.fileName.match(/([^/]+)\/([^/.]+)\.[^/.]+$/);
-  return matches
-    ? {
-      ...site,
-      computed: {
-        ...site.computed,
-        fileName: site.computed.fileName,
+// ==== View Types
+
+/**
+* View Types only used as return types for selectors.
+* Most of the time they are only extending specific domain
+* types (types representing yaml related content) w/ extra
+* computanional values
+**/
+
+export type ClientView = {
+  ...Client,
+  client_name: string,
+};
+
+export type SiteGroupView = {
+  ...SiteGroup,
+  site_group_name: string,
+};
+
+export type SiteView = {
+  ...Site,
+  id: string,
+  jumpHost: string,
+  siteHost: string,
+  fileName: string,
+  serverInfrastructure: string,
+  serverIdentifier: string,
+  serverNames: Array<string>,
+};
+
+// ==== Selectors
+const serverNamesLens = R.lensProp('serverNames');
+const jumpHostLens = R.lensProp('jumpHost');
+const fileNameLens = R.lensProp('fileName');
+const serverInfraLens = R.lensProp('serverInfraLens');
+const serverIdLens = R.lensProp('serverIdentifier');
+
+const parseServerInfo = (
+  fileName: string,
+): {
+  fileName: string,
+  serverInfrastructure: string,
+  serverIdentifier: string,
+} =>
+  R.compose(
+    R.ifElse(
+      R.isEmpty,
+      () => null,
+      matches => ({
+        fileName: fileName,
         serverInfrastructure: matches[1],
         serverIdentifier: matches[2],
+      }),
+    ),
+    R.match(/([^/]+)\/([^/.]+)\.[^/.]+$/),
+    R.defaultTo(''),
+  )(fileName);
+
+const addServerInfo /*:
+  <T: {
+    fileName: string
+  }> (T) => T & {
+    serverInfrastructure?: string,
+    serverIdentifier?: string,
+  } */ = obj =>
+  R.compose(
+    R.ifElse(R.isNil, () => obj, R.merge(obj)),
+    R.compose(parseServerInfo, R.prop('fileName')),
+  )(obj);
+
+const addSiteHost /*:
+   <T: {
+    serverIdentifier: string,
+    serverInfrastructure: string}
+    >(T) => T */ = R.compose(
+  obj =>
+    R.ifElse(
+      R.and(R.has('serverIdentifier'), R.has('serverInfrastructure')),
+      R.set(R.lensProp('siteHost'), toSiteHostStr(obj)),
+      R.identity(),
+    )(obj),
+);
+
+// TODO: For now, if not all parameters are provided, the 
+//       function will return an empty string... not sure if
+//       this is a good behavior
+const toSiteHostStr /*:
+   <T: {
+    serverIdentifier: string,
+    serverInfrastructure: string}
+    >(T) => T */ = R.compose(
+  R.ifElse(
+    R.compose(
+      // (val) => val.length > 1,
+      R.lt(1),
+      R.length,
+    ),
+    R.join('.'),
+    R.compose(R.always('')),
+  ),
+  R.values,
+  R.pick(['serverIdentifier', 'serverInfrastructure']),
+);
+
+const CLUSTER_MEMBER_KEY =
+  'drupalhosting::profiles::nginx_backend::cluster_member';
+
+const clusterServerNames = (
+  siteHost: string,
+  clusterMember: { [string]: string },
+) =>
+  R.compose(R.map(([key]) => `${key}.${siteHost}`), R.toPairs)(clusterMember);
+
+const addServerNames /*: 
+    <T: {
+      serverInfrastructure?: string,
+      siteHost: string | Array<string>,
+      'drupalhosting::profiles::nginx_backend::cluster_member'?: {
+        [string]: string,
       },
-    }
-    : null;
-}
+      'amazeeio::servername'?: string | Array<string>
+      }> (T) => {...T, serverNames: Array<string>} */ = R.cond(
+  [
+    // Case 1 - If obj represents cluster information
+    [
+      obj => R.equals('cluster', obj.serverInfrastructure),
+      obj =>
+        R.set(
+          serverNamesLens,
+          clusterServerNames(obj.siteHost, obj[CLUSTER_MEMBER_KEY]),
+          obj,
+        ),
+    ],
 
-function addSiteHost(site) {
-  const siteHost = R.propOr(
-    `${site.computed.serverIdentifier}.${site.computed.serverInfrastructure}`,
-    'amazeeio::servername',
-  )(site);
-  return { ...site, computed: { ...site.computed, siteHost } };
-}
+    // Case 2 - If obj represents single instances
+    [
+      obj => R.equals('single', obj.serverInfrastructure),
+      obj => R.set(serverNamesLens, [`backend.${obj.siteHost}`], obj),
+    ],
 
-function addServerNames(site) {
-  let serverNames;
-  const CLUSTER_MEMBER_KEY =
-    'drupalhosting::profiles::nginx_backend::cluster_member';
-  if (
-    site.computed.serverInfrastructure === 'cluster' &&
-    site[CLUSTER_MEMBER_KEY]
-  ) {
-    serverNames = Object.keys(site[CLUSTER_MEMBER_KEY]).map(
-      memberKey => `${memberKey}.${site.computed.siteHost}`,
-    );
-  } else if (site.computed.serverInfrastructure === 'single') {
-    serverNames = [`backend.${site.computed.siteHost}`];
-  } else {
-    serverNames = site.computed.siteHost instanceof Array
-      ? site.computed.siteHost
-      : [site.computed.siteHost];
-  }
-  return { ...site, computed: { ...site.computed, serverNames } };
-}
+    // Case 3 - use siteHost as serverNames instead
+    [
+      R.T,
+      obj =>
+        R.compose(
+          serverNames => R.set(serverNamesLens, serverNames, obj),
+          R.ifElse(
+            R.compose(R.is(Array), R.prop('siteHost')),
+            R.prop('siteHost'),
+            R.compose(R.of, R.prop('siteHost')),
+          ),
+        )(obj),
+    ],
+  ],
+);
 
-function maybeAddJumphostKey(site) {
-  return {
-    ...site,
-    computed: {
-      ...site.computed,
-      jumpHost: R.prop('amazeeio::jumphost', site),
-    },
-  };
-}
+const maybeAddJumpHostKey = (jumpHost?: string, obj: Object): Object =>
+  R.ifElse(
+    () => R.isNil(jumpHost),
+    () => R.identity(obj),
+    () => R.set(R.lensProp('jumpHost'), jumpHost, obj),
+  )(obj);
 
-const extractSshKeyDefinitions = R.compose(
+const extractSshKeys /*: <T: { +ssh_keys?: SshKeys}>(T) => Array<SshKey> */ = R.compose(
   R.ifElse(R.isEmpty, R.always([]), R.identity),
-  R.map(([owner, value]) => ({ ...value, owner })),
+  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
+  R.filter(value => R.has('key', value)),
+  // -> Array<SshKey>
+  R.map(R.prop(1)),
   Object.entries,
   R.propOr({}, 'ssh_keys'),
 );
 
-const extractSshKeys = R.compose(
-  R.ifElse(R.isEmpty, R.always([]), R.identity),
-  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
-  R.filter(value => !!value.key),
-  extractSshKeyDefinitions,
+const getSshKeysFromClients /* State => Array<string> */ = R.compose(
+  R.flatten,
+  R.map(extractSshKeys),
 );
 
-const getSshKeysFromClients = R.compose(R.flatten, R.map(extractSshKeys));
-
-const getAllSiteGroups = R.compose(
-  R.map(([id, siteGroup]) => ({ ...siteGroup, id, site_group_name: id })),
+const getAllSiteGroups /*: (State) => Array<SiteGroupView> */ = R.compose(
+  R.map(([id, siteGroup]) => ({ ...siteGroup, site_group_name: id })),
   Object.entries,
   R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups']),
 );
 
-const getAllSitesByEnv = (state, env) =>
+const getAllSites /*: (State) => Array<SiteView> */ = R.identity();
+
+const groupSitesBySiteFileName /*: (State) => SiteFile */ = R.compose(
+  R.identity(),
+);
+
+// TODO: MAKE THIS WORK!
+const siteFileToSiteViews = (
+  fileName: string,
+  siteFile: SiteFile,
+): Array<SiteView> =>
   R.compose(
-    // Add `jumpHost` to site computed properties if key exists in yaml content
-    R.map(maybeAddJumphostKey),
-    // Add `serverNames` to site computed properties
     R.map(addServerNames),
-    // Add `siteHost` to site computed properties
     R.map(addSiteHost),
-    // Add `id` to site computed properties
-    R.map(site => ({
-      ...site,
-      computed: {
-        ...site.computed,
-        id: `${site.computed.serverIdentifier}.${site.computed
-          .serverInfrastructure}/${site.computed.siteName}`,
-      },
-    })),
-    // Add `serverInfrastructure` and `serverIdentifier` to site computed properties
-    R.map(addServerInfo),
-    // Add `siteName` to site computed properties
-    R.map(([siteName, site]) => ({
-      ...site,
-      computed: { ...site.computed, siteName },
-    })),
-    // Filter out sites that don't match the passed environment
-    R.filter(([, site]) => site.site_environment === env),
-    // Remove a level of nesting
-    R.unnest,
-    // Move fileName to the site object
-    R.map(([fileName, sitePairs]) =>
-      R.map(sitePair => [
-        sitePair[0],
-        { ...sitePair[1], computed: { fileName } },
-      ])(sitePairs),
+    R.map(site =>
+      R.assoc(
+        'id',
+        `${site.serverIdentifier}.${site.serverInfrastructure}/${site.siteName}`,
+        site,
+      ),
     ),
-    // Get all sites data from `drupalsites` key
-    R.map(([fileName, file]) => [fileName, R.toPairs(file.drupalsites)]),
+    R.map(addServerInfo),
+    R.map(site =>
+      R.apply(maybeAddJumpHostKey, [
+        R.prop('amazeeio::jumphost', siteFile),
+        site,
+      ]),
+    ),
+    // -> Array<SiteView>
+    // Add siteFile related information in each site object
+    R.map(([siteName, site]) =>
+      R.merge(site, {
+        fileName,
+        siteName,
+      }),
+    ),
+    R.toPairs,
+    R.prop('drupalsites'),
+  )(siteFile);
+
+// TODO: VERIFY TESTS
+const getAllSitesByEnv = (state: State, env: string): Array<SiteView> =>
+  R.compose(
+    // Filter sites that don't match the passed environment
+    R.filter(site => site.site_environment === env),
+    // Flatten the Array<Array<SiteView>> -> Array<SiteView>
+    R.flatten,
+    // Create SiteView objects from all siteFiles w/ it's fileName
+    R.map(([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)),
     // Get all names and yaml contents of all files
     R.toPairs,
     R.propOr({}, 'siteFiles'),
   )(state);
 
-const getSiteByName = (state, name) =>
+const getSiteByName = (state: State, name: string): ?Site =>
   R.compose(
     R.head,
     R.reduce(
@@ -139,20 +269,23 @@ const getSiteByName = (state, name) =>
     R.propOr({}, 'siteFiles'),
   )(state);
 
-const getAllClients = R.compose(
-  R.map(([id, client]) => ({ ...client, id, client_name: id })),
+const getAllClients /*: (State) => Array<ClientView> */ = R.compose(
+  R.map(([id, client]) => ({ ...client, client_name: id })),
   Object.entries,
   R.pathOr({}, ['clientsFile', 'amazeeio_clients']),
 );
 
-const getClientByName = (state, name) =>
+const getClientByName = (state: State, name: string): ClientView =>
   R.compose(R.find(client => client.client_name === name), getAllClients)(
     state,
   );
 
-const getSiteGroupsByClient = (state, client) =>
+const getSiteGroupsByClient = (
+  state: State,
+  clientName: string,
+): Array<ClientView> =>
   R.compose(
-    R.filter(siteGroup => siteGroup.client === client.client_name),
+    R.filter(siteGroup => siteGroup.client === clientName),
     getAllSiteGroups,
   )(state);
 
@@ -162,9 +295,14 @@ module.exports = {
   getAllSitesByEnv,
   getAllClients,
   getClientByName,
-  addServerInfo,
   getSiteGroupsByClient,
   getSshKeysFromClients,
+  getAllSites,
   extractSshKeys,
-  extractSshKeyDefinitions,
+  maybeAddJumpHostKey,
+  addServerInfo,
+  addServerNames,
+  addSiteHost,
+  siteFileToSiteViews,
+  toSiteHostStr,
 };

@@ -1,6 +1,9 @@
 // @flow
 
 import { makeExecutableSchema } from 'graphql-tools';
+import { getContext } from '../app';
+
+import type { Client, SiteGroup } from '../types';
 
 const typeDefs = `
   type SiteGroup {
@@ -13,7 +16,14 @@ const typeDefs = `
   }
 
   type Site {
+    id: String
     site_branch: String
+    uid: String
+    siteHost: String
+    fileName: String
+    serverInfrastructure: String
+    serverIdentifier: String
+    serverNames: [String]
   }
 
   type Client {
@@ -49,28 +59,28 @@ const typeDefs = `
 const resolvers = {
   Query: {
     allSiteGroups: (_, __, req) => {
-      const context = req.app.get('context');
+      const context = getContext(req);
       const { getState } = context.store;
       const { getAllSiteGroups } = context.selectors;
 
       return getAllSiteGroups(getState());
     },
     allSites: (_, args, req) => {
-      const context = req.app.get('context');
+      const context = getContext(req);
       const { getState } = context.store;
       const { getAllSitesByEnv } = context.selectors;
 
       return getAllSitesByEnv(getState(), args.environmentType);
     },
     siteByName: (_, args, req) => {
-      const context = req.app.get('context');
+      const context = getContext(req);
       const { getState } = context.store;
       const { getSiteByName } = context.selectors;
 
       return getSiteByName(getState(), args.name);
     },
     allClients: (_, __, req) => {
-      const context = req.app.get('context');
+      const context = getContext(req);
       const { getState } = context.store;
       const { getAllClients } = context.selectors;
 
@@ -79,32 +89,32 @@ const resolvers = {
   },
   Client: {
     site_groups: (client, _, req) => {
-      const context = req.app.get('context');
+      const context = getContext(req);
       const { getState } = context.store;
       const { getSiteGroupsByClient } = context.selectors;
 
-      return getSiteGroupsByClient(getState(), client);
+      return getSiteGroupsByClient(getState(), client.client_name);
     },
     ssh_keys: (client, _, req) => {
-      const context = req.app.get('context');
-      const { extractSshKeyDefinitions } = context.selectors;
+      const context = getContext(req);
+      const { extractSshKeys } = context.selectors;
 
-      return extractSshKeyDefinitions(client);
+      return extractSshKeys(client);
     },
   },
   SiteGroup: {
     client: (siteGroup, _, req) => {
-      const context = req.app.get('context');
+      const context = getContext(req);
       const { getState } = context.store;
       const { getClientByName } = context.selectors;
 
       return getClientByName(getState(), siteGroup.client);
     },
-    ssh_keys: (client, _, req) => {
-      const context = req.app.get('context');
-      const { extractSshKeyDefinitions } = context.selectors;
+    ssh_keys: (client: Client, _, req) => {
+      const context = getContext(req);
+      const { extractSshKeys } = context.selectors;
 
-      return extractSshKeyDefinitions(client);
+      return extractSshKeys(client);
     },
   },
 };

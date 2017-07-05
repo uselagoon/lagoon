@@ -71,6 +71,11 @@ export type SiteFile = {
   +'profile_monitoring::profiles::client::ipv4_address': string,
   +'profile_monitoring::client::commands:': Object,
   +'profile_icinga2::host::hiera_vars': Object,
+  +'amazeeio::servername': string | Array<string>,
+  +'amazeeio::jumphost': string,
+  +'drupalhosting::profiles::nginx_backend::cluster_member'?: {
+    [string]: string,
+  },
 };
 
 export type SiteFiles = {
