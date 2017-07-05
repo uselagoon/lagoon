@@ -203,7 +203,6 @@ const groupSitesBySiteFileName /*: (State) => SiteFile */ = R.compose(
   R.identity(),
 );
 
-// TODO: MAKE THIS WORK!
 const siteFileToSiteViews = (
   fileName: string,
   siteFile: SiteFile,
@@ -237,7 +236,6 @@ const siteFileToSiteViews = (
     R.prop('drupalsites'),
   )(siteFile);
 
-// TODO: VERIFY TESTS
 const getAllSitesByEnv = (state: State, env: string): Array<SiteView> =>
   R.compose(
     // Filter sites that don't match the passed environment
