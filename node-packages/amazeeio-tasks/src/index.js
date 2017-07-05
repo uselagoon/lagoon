@@ -1,5 +1,6 @@
 // @flow
 
+
 import amqp from 'amqp-connection-manager';
 import { logger } from '@amazeeio/amazeeio-local-logging';
 
@@ -9,6 +10,7 @@ import { getActiveSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 
 
 export let sendToAmazeeioTasks = () => {};
+export let connection = () => {};
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 
 
@@ -27,22 +29,44 @@ export class NoNeedToDeployBranch extends Error {
 }
 
 export function initSendToAmazeeioTasks() {
-	const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
+	connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
 
 	connection.on('connect', ({ url }) => logger.verbose('amazeeio-tasks: Connected to %s', url, { action: 'connected', url }));
 	connection.on('disconnect', params => logger.error('amazeeio-tasks: Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));
 
-	// Cast any to ChannelWrapper to get type-safetiness through our own code
-	const channelWrapper: ChannelWrapper = connection.createChannel();
+	const channelWrapper: ChannelWrapper = connection.createChannel({
+		setup(channel) {
+			return Promise.all([
+
+				// Our main Exchange for all amazeeio-tasks
+				channel.assertExchange('amazeeio-tasks', 'direct', { durable: true }),
+
+				// Queue for messages with `deploy-openshift` routing key
+				channel.assertQueue('amazeeio-tasks:deploy-openshift', { durable: true }),
+				channel.bindQueue('amazeeio-tasks:deploy-openshift', 'amazeeio-tasks', 'deploy-openshift'),
+
+				// Queue for messages with `remove-openshift-resources` routing key
+				channel.assertQueue('amazeeio-tasks:remove-openshift-resources', { durable: true }),
+				channel.bindQueue('amazeeio-tasks:remove-openshift-resources', 'amazeeio-tasks', 'remove-openshift-resources'),
+
+				// wait queues for handling retries
+				channel.assertExchange('amazeeio-tasks-wait', 'direct', { durable: true }),
+				channel.assertQueue('amazeeio-tasks:wait-queue', { durable: true, arguments: { 'x-dead-letter-exchange': 'amazeeio-tasks' } }),
+				channel.bindQueue('amazeeio-tasks:wait-queue', 'amazeeio-tasks-wait', 'deploy-openshift'),
+				channel.bindQueue('amazeeio-tasks:wait-queue', 'amazeeio-tasks-wait', 'remove-openshift-resources'),
+			]);
+		},
+	});
+
 	sendToAmazeeioTasks = async (task, payload): Promise<void> => {
 
 		try {
 			const buffer = new Buffer(JSON.stringify(payload));
-			await channelWrapper.sendToQueue(`amazeeio-tasks:${task}`, buffer, { persistent: true })
+			await channelWrapper.publish(`amazeeio-tasks`, task, buffer, { persistent: true })
 			logger.verbose(`amazeeio-tasks: Successfully created task '${task}'`, payload);
       return `amazeeio-tasks: Successfully created task '${task}': ${JSON.stringify(payload)}`
 		} catch(error) {
-			logger.error(`amazeeio-tasks: Error send to amazeeio-task queue`, {
+			logger.error(`amazeeio-tasks: Error send to amazeeio-task exchange`, {
 				payload,
 				error,
 			});
@@ -136,4 +160,58 @@ export async function createRemoveTask(removeData) {
 		default:
       throw new UnknownActiveSystem(`Unknown active system '${activeRemoveSystem}' for task 'remove' in for sitegroup ${siteGroupName}`)
 	}
+}
+
+export async function consumeTasks(taskQueueName, messageConsumer, deathHandler) {
+
+
+	const  onMessage = async msg => {
+		try {
+			await messageConsumer(msg)
+		} catch (error) {
+
+			// We land here if the messageConsumer has an error that it did not itslef handle.
+			// This is how the consumer informs us that we it would like to retry the message in a couple of seconds
+
+			const failCount = (msg.properties.headers["x-death"] && msg.properties.headers["x-death"][0]['count']) ? msg.properties.headers["x-death"][0]['count'] : 1
+
+			if (failCount > 3) {
+				channelWrapper.ack(msg)
+				deathHandler(msg, error)
+				return
+			}
+
+			const retryMsgExpiration = 1000 * failCount;
+			console.log(`amazeeio-tasks: error from messageConsumer retrying message in ${retryMsgExpiration/1000} secs, failcounter: (${failCount}/3)`)
+
+			// copying options from the original message
+			const retryMsgOptions = {
+				appId: msg.properties.appId,
+				timestamp: msg.properties.timestamp,
+				contentType: msg.properties.contentType,
+				deliveryMode: msg.properties.deliveryMode,
+				headers: msg.properties.headers,
+				expiration: retryMsgExpiration,
+				persistent: true,
+			};
+			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-wait` exchange,
+			// which will send the message into the original exchange `amazeeio-tasks`after waiting the expiration time.
+			channelWrapper.publish(`amazeeio-tasks-wait`, msg.fields.routingKey, msg.content, retryMsgOptions)
+
+			// acknologing the existing message, we cloned it and is not necessary anymore
+			channelWrapper.ack(msg)
+		}
+		channelWrapper.ack(msg)
+	}
+
+	const channelWrapper = connection.createChannel({
+		setup(channel) {
+			return Promise.all([
+				channel.prefetch(2),
+				channel.consume(`amazeeio-tasks:${taskQueueName}`, onMessage, { noAck: false }),
+			]);
+		},
+	});
+
+
 }
