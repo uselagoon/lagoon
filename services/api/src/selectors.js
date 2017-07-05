@@ -45,10 +45,6 @@ export type SiteView = {
 
 // ==== Selectors
 const serverNamesLens = R.lensProp('serverNames');
-const jumpHostLens = R.lensProp('jumpHost');
-const fileNameLens = R.lensProp('fileName');
-const serverInfraLens = R.lensProp('serverInfraLens');
-const serverIdLens = R.lensProp('serverIdentifier');
 
 const parseServerInfo = (
   fileName: string,
