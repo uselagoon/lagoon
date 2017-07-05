@@ -6,50 +6,35 @@ import sleep from "es7-sleep";
 import Lokka from 'lokka';
 import Transport from 'lokka-transport-http';
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import amqp from 'amqp-connection-manager';
 import jenkinsLib from 'jenkins'
 import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-
+import { consumeTasks, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
 
 // Initialize the logging mechanism
 initLogger();
 initSendToAmazeeioLogs();
+initSendToAmazeeioTasks();
 
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ocBuildDeployBranch = process.env.BRANCH || "master"
 
-const connection = amqp.connect([`amqp://${rabbitmqhost}`], {json: true});
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)
 });
 
-connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url));
-connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { reason: params }));
-
-const channelWrapper = connection.createChannel({
-    setup: function(channel) {
-        return Promise.all([
-            channel.assertQueue('amazeeio-tasks:deploy-openshift', {durable: true}),
-            channel.prefetch(2),
-            channel.consume('amazeeio-tasks:deploy-openshift', onMessage, {noAck: false}),
-        ])
-    }
-});
 
 
-var onMessage = async function(msg) {
-  var payload = JSON.parse(msg.content.toString())
 
+const messageConsumer = async msg => {
   const {
     siteGroupName,
     branchName,
     sha
-  } = payload
+  } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received DeployOpenshift task for sitegroup ${siteGroupName}, branch ${branchName}`);
 
@@ -91,30 +76,20 @@ var onMessage = async function(msg) {
       jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
     }
 
-  } catch(err) {
-    logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${err}`)
-    channelWrapper.ack(msg)
-    return
+  } catch(error) {
+    logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${error}`)
+    throw(error)
   }
 
-  logger.info(`Will deploy OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
 
   try {
     await deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha, openshiftRessourceAppName, openshiftRessourceRouterUrl, openshiftConsole, openshiftRegistry, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject, openshiftTemplate, openshiftFolder, deployPrivateKey, gitUrl, jenkinsUrl)
   }
   catch(error) {
-    logger.error(`Error deploying OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}. The error was: ${error}`)
-    sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
-`ERROR: Deploying with label \`${openshiftRessourceAppName}\`:
-\`\`\`
-${error}
-\`\`\``
-    )
-    channelWrapper.ack(msg)
-    return
+    logger.warn(`Error deploying OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}. The error was: ${error}`)
+    throw(error)
   }
   logger.info(`Deployed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
-  channelWrapper.ack(msg)
 }
 
 async function deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha, openshiftRessourceAppName, openshiftRessourceRouterUrl, openshiftConsole, openshiftRegistry, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject, openshiftTemplate, openshiftFolder, deployPrivateKey, gitUrl, jenkinsUrl) {
@@ -309,7 +284,7 @@ node {
   }
 
   let jenkinsJobID = await getJenkinsJobID(jenkinsJobBuildResponse)
-  let logMessage
+  let logMessage = ''
   if (gitSha) {
     logMessage = `\`${branchName}\` (${buildName})`
   } else {
@@ -330,12 +305,6 @@ node {
     });
 
     log.on('error', error =>  {
-      sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
-  `*[${siteGroupName}]* ${logMessage} ERROR:
-  \`\`\`
-  ${error}
-  \`\`\``
-      )
       logger.error(error)
       throw error
     });
@@ -355,3 +324,29 @@ node {
     });
   })
 }
+
+const deathHandler = async (msg, lastError) => {
+
+  const {
+    siteGroupName,
+    branchName,
+    sha
+  } = JSON.parse(msg.content.toString())
+
+  let logMessage = ''
+  if (sha) {
+    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
+
+  sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
+`*[${siteGroupName}]* ${logMessage} ERROR:
+\`\`\`
+${lastError}
+\`\`\``
+  )
+
+}
+
+consumeTasks('deploy-openshift', messageConsumer, deathHandler)
