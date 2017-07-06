@@ -75,7 +75,12 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
       siteGroupByName(name: $sitegroup) {
         gitUrl
         siteGroupName
-        slack
+        slack {
+          webhook
+          channel
+          informStart
+          informChannel
+        }
         client {
           clientName
         }
