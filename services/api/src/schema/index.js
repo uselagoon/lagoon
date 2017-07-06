@@ -22,6 +22,7 @@ const typeDefs = `
     siteName: String
     fileName: String
     serverInfrastructure: String
+    siteEnvironment: String,
     serverIdentifier: String
     serverNames: [String]
   }
@@ -49,7 +50,7 @@ const typeDefs = `
   }
 
   type Query {
-    siteGroupByName(name: String!): [SiteGroup]
+    siteGroupByName(name: String!): SiteGroup
     allSiteGroups: [SiteGroup]
     allSites(environmentType: String!): [Site]
     siteByName(name: String!): Site

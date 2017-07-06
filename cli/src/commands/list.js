@@ -7,7 +7,6 @@ import { red } from 'chalk';
 import {
   prepend,
   pathOr,
-  prop,
   propOr,
   map,
   compose,
@@ -59,14 +58,10 @@ export async function listSites(args: MainArgs): Promise<number> {
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
         gitUrl
-        sites(first: 1000) {
-          edges {
-            node {
-              siteName
-              siteBranch
-              siteEnvironment
-            }
-          }
+        sites {
+          siteName
+          siteBranch
+          siteEnvironment
         }
       }
     }
@@ -85,11 +80,7 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
 
-  const nodes = compose(
-    sortBySite,
-    map(edge => prop('node', edge)),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
-  )(result);
+  const nodes = compose(sortBySite, pathOr([], ['data', 'siteGroupByName', 'sites']))(result);
 
   if (nodes.length === 0) {
     clog(red(`No sites found for sitegroup '${sitegroup}'`));
