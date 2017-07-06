@@ -1,6 +1,6 @@
 {
   "name": "@amazeeio/amazeeio-logs",
-  "version": "0.1.11",
+  "version": "1.0.0",
   "description": "amazeeio logs sdk",
   "main": "./dist/index.js",
   "engines": {
