@@ -214,8 +214,4 @@ services:
     build: node-packages
     command: bash -c "lerna bootstrap && lerna run --parallel watch"
     volumes:
-<<<<<<< HEAD
-      - .:/app
-=======
       - .:/app:delegated
->>>>>>> origin/develop
