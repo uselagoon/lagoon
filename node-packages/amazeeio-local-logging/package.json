@@ -1,6 +1,6 @@
 {
   "name": "@amazeeio/amazeeio-local-logging",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "helper for local logging",
   "main": "./dist/index.js",
   "engines": {
