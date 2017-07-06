@@ -10,9 +10,11 @@ import util from 'util'
 
 import { createDeployTask, createRemoveTask, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
+import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
 
 initLogger();
 initSendToAmazeeioTasks();
+initSendToAmazeeioLogs();
 
 const app = express()
 const server = app.listen(process.env.PORT || 3000, () => {
@@ -76,6 +78,17 @@ app.post('/deploy', async (req, res) => {
 
   try {
     const taskResult = await createDeployTask(data);
+
+    let logMessage = ''
+    if (data.sha) {
+      logMessage = `\`${data.branchName}\` (${data.sha.substring(0, 7)})`
+    } else {
+      logMessage = `\`${data.branchName}\``
+    }
+
+    sendToAmazeeioLogs('info', data.siteGroupName, '', `rest:deploy:receive`, {},
+      `*[${data.siteGroupName}]* REST deploy trigger ${logMessage}`
+    )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
   } catch (error) {
@@ -128,6 +141,9 @@ app.post('/remove', async (req, res) => {
 
   try {
     const taskResult = await createRemoveTask(data);
+    sendToAmazeeioLogs('info', data.siteGroupName, '', `rest:remove:receive`, {},
+      `*[${data.siteGroupName}]* REST deploy trigger \`${data.openshiftRessourceAppName}\``
+    )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
   } catch (error) {
