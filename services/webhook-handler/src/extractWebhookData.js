@@ -51,6 +51,8 @@ export default function extractWebhookData(req: Req, body?: string): WebhookRequ
     } else if ('x-gitlab-event' in req.headers) {
       webhooktype = 'gitlab'
       event = req.headers['x-gitlab-event']
+      uuid = bodyObj.checkout_sha
+      giturl = bodyObj.project.git_ssh_url
     } else if ('x-event-key' in req.headers) {
       webhooktype = 'bitbucket'
       event = req.headers['x-event-key']
