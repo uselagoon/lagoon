@@ -1,7 +1,7 @@
 // @flow
 
 import amqp from 'amqp-connection-manager';
-import { logger } from '@amazeeio/amazeeio-local-logging';
+import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 
 import type { ChannelWrapper } from './types';
 
@@ -11,6 +11,7 @@ import { getActiveSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 export let sendToAmazeeioTasks = () => {};
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 
+initLogger();
 
 export class UnknownActiveSystem extends Error {
   constructor(message: string) {
