@@ -9,44 +9,29 @@ import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 import amqp from 'amqp-connection-manager';
 import jenkinsLib from 'jenkins'
 import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-
+import { consumeTasks, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
 
 // Initialize the logging mechanism
 initLogger();
 initSendToAmazeeioLogs();
+initSendToAmazeeioTasks();
 
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 const jenkinsurl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
 
-const connection = amqp.connect([`amqp://${rabbitmqhost}`], {json: true});
 const jenkins = jenkinsLib({ baseUrl: `${jenkinsurl}`, promisify: true});
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)
 });
 
-connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url));
-connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { reason: params }));
-
-const channelWrapper = connection.createChannel({
-    setup: function(channel) {
-        return Promise.all([
-            channel.assertQueue('amazeeio-tasks:remove-openshift-resources', {durable: true}),
-            channel.prefetch(2),
-            channel.consume('amazeeio-tasks:remove-openshift-resources', onMessage, {noAck: false}),
-        ])
-    }
-});
-
-
-var onMessage = async function(msg) {
-  var payload = JSON.parse(msg.content.toString())
+const messageConsumer = async function(msg) {
 
   const {
     siteGroupName,
     openshiftRessourceAppName,
-  } = payload
+  } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received RemoveOpenshiftResources task for sitegroup ${siteGroupName}, app name ${openshiftRessourceAppName}`);
 
@@ -64,35 +49,13 @@ var onMessage = async function(msg) {
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupName
-  } catch(err) {
+  } catch(error) {
     logger.warn(`Cannot find openshift token and console information for sitegroup ${siteGroupName}`)
-    channelWrapper.ack(msg)
-    return
+    throw(error)
   }
 
   logger.info(`Will remove OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
 
-
-
-  try {
-    await deleteOpenShiftRessources(siteGroupName, openshiftRessourceAppName, openshiftConsole, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject)
-  }
-  catch(error) {
-    logger.error(`Error removing OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}. The error was: ${error}`)
-    sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
-`ERROR: removing ${openshiftRessourceAppName} on ${openshiftConsole}:
-\`\`\`
-${error}
-\`\`\``
-    )
-    channelWrapper.ack(msg)
-    return
-  }
-  logger.info(`Removed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
-  channelWrapper.ack(msg)
-}
-
-async function deleteOpenShiftRessources(siteGroupName, openshiftRessourceAppName, openshiftConsole, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject) {
   var folderxml =
   `<?xml version='1.0' encoding='UTF-8'?>
   <com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder@5.13">
@@ -228,29 +191,63 @@ async function deleteOpenShiftRessources(siteGroupName, openshiftRessourceAppNam
     });
 
     log.on('error', error =>  {
-      sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
-  `ERROR: removing ${amazeeioLogsText}:
-  \`\`\`
-  ${error}
-  \`\`\``
-      )
       logger.error(error)
-      throw error
+      reject(error)
     });
 
     log.on('end', async () => {
-      const result = await jenkins.build.get(jobname, jenkinsJobID)
+      try {
+        const result = await jenkins.build.get(jobname, jenkinsJobID)
 
-      if (result.result === "SUCCESS") {
-        sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift-resources:finished",  {},
-          `Finished: remove ${amazeeioLogsText}`
-        )
-        logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
-      } else {
-        sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `ERROR: Removing \`${openshiftRessourceAppName}\``)
-        logger.error(`Finished FAILURE job removal: ${jobname}, job id: ${jenkinsJobID}`)
+        if (result.result === "SUCCESS") {
+          sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift-resources:finished",  {},
+            `Finished: remove ${amazeeioLogsText}`
+          )
+          logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
+        } else {
+          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `ERROR: Removing \`${openshiftRessourceAppName}\``)
+          logger.error(`Finished FAILURE job removal: ${jobname}, job id: ${jenkinsJobID}`)
+        }
+        resolve()
+      } catch(error) {
+        reject(error)
       }
-      resolve()
     });
   })
+
+  logger.info(`Removed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
 }
+
+const deathHandler = async (msg, lastError) => {
+
+  const {
+    siteGroupName,
+    openshiftRessourceAppName,
+  } = JSON.parse(msg.content.toString())
+
+  sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
+`*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR:
+\`\`\`
+${lastError}
+\`\`\``
+  )
+
+}
+
+const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
+
+  const {
+    siteGroupName,
+    openshiftRessourceAppName,
+  } = JSON.parse(msg.content.toString())
+
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift-resources:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+`*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR:
+\`\`\`
+${error}
+\`\`\`
+Retrying in ${retryExpirationSecs} secs`
+  )
+}
+
+consumeTasks('remove-openshift-resources', messageConsumer, retryHandler, deathHandler)
