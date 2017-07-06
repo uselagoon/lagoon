@@ -22,9 +22,9 @@
   "license": "MIT",
   "dependencies": {
     "@amazeeio/amazeeio-api": "file:../../node-packages/amazeeio-api",
-    "@amazeeio/amazeeio-local-logging": "file:../../node-packages/amazeeio-api",
-    "@amazeeio/amazeeio-logs": "file:../../node-packages/amazeeio-api",
-    "@amazeeio/amazeeio-tasks": "file:../../node-packages/amazeeio-api",
+    "@amazeeio/amazeeio-local-logging": "file:../../node-packages/amazeeio-local-logging",
+    "@amazeeio/amazeeio-logs": "file:../../node-packages/amazeeio-logs",
+    "@amazeeio/amazeeio-tasks": "file:../../node-packages/amazeeio-tasks",
     "amqp-connection-manager": "^1.3.5",
     "amqp-winston": "^1.0.7",
     "amqplib": "^0.5.1",
