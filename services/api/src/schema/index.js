@@ -2,24 +2,24 @@
 
 import { makeExecutableSchema } from 'graphql-tools';
 import { getContext } from '../app';
-
-import type { Client, SiteGroup } from '../types';
+import type { ClientView, SiteGroupView, SiteView } from '../selectors';
 
 const typeDefs = `
   type SiteGroup {
-    id: String!
-    site_group_name: String
-    git_url: String
+    siteGroupName: String
+    gitUrl: String
     slack: Slack
     client: Client
-    ssh_keys: [SshKey]
+    sshKeys: [SshKey]
+    sites: [Site]
   }
 
   type Site {
     id: String
-    site_branch: String
+    siteBranch: String
     uid: String
     siteHost: String
+    siteName: String
     fileName: String
     serverInfrastructure: String
     serverIdentifier: String
@@ -32,7 +32,7 @@ const typeDefs = `
     created:String
     comment: String
     site_groups: [SiteGroup]
-    ssh_keys: [SshKey]
+    sshKeys: [SshKey]
   }
 
   type SshKey {
@@ -49,6 +49,7 @@ const typeDefs = `
   }
 
   type Query {
+    siteGroupByName(name: String!): [SiteGroup]
     allSiteGroups: [SiteGroup]
     allSites(environmentType: String!): [Site]
     siteByName(name: String!): Site
@@ -58,6 +59,13 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
+    siteGroupByName: (_, args, req) => {
+      const context = getContext(req);
+      const { getState } = context.store;
+      const { getSiteGroupByName } = context.selectors;
+
+      return getSiteGroupByName(getState(), args.name);
+    },
     allSiteGroups: (_, __, req) => {
       const context = getContext(req);
       const { getState } = context.store;
@@ -88,14 +96,14 @@ const resolvers = {
     },
   },
   Client: {
-    site_groups: (client, _, req) => {
+    site_groups: (client: ClientView, _, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { getSiteGroupsByClient } = context.selectors;
 
-      return getSiteGroupsByClient(getState(), client.client_name);
+      return getSiteGroupsByClient(getState(), client.clientName);
     },
-    ssh_keys: (client, _, req) => {
+    sshKeys: (client: ClientView, _, req) => {
       const context = getContext(req);
       const { extractSshKeys } = context.selectors;
 
@@ -103,19 +111,30 @@ const resolvers = {
     },
   },
   SiteGroup: {
-    client: (siteGroup, _, req) => {
+    client: (siteGroup: SiteGroupView, _, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { getClientByName } = context.selectors;
 
       return getClientByName(getState(), siteGroup.client);
     },
-    ssh_keys: (client: Client, _, req) => {
+    sites: (siteGroup: SiteGroupView, _, req) => {
+      const context = getContext(req);
+      const { getState } = context.store;
+      const { getAllSitesBySiteGroup } = context.selectors;
+
+      return getAllSitesBySiteGroup(getState(), siteGroup.siteGroupName);
+    },
+    gitUrl: (siteGroup: SiteGroupView) => siteGroup.git_url,
+    sshKeys: (siteGroup: SiteGroupView, _, req) => {
       const context = getContext(req);
       const { extractSshKeys } = context.selectors;
 
-      return extractSshKeys(client);
+      return extractSshKeys(siteGroup);
     },
+  },
+  Site: {
+    siteBranch: (site: SiteView) => site.site_branch,
   },
 };
 

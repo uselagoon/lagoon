@@ -70,12 +70,12 @@ Array [
   Object {
     "client": "c1",
     "gitUrl": "git://sg1",
-    "site_group_name": "sg1",
+    "siteGroupName": "sg1",
   },
   Object {
     "client": "c2",
     "gitUrl": "git://sg2",
-    "site_group_name": "sg2",
+    "siteGroupName": "sg2",
   },
 ]
 `;
@@ -85,7 +85,7 @@ Array [
   Object {
     "client": "c1",
     "gitUrl": "git://sg1",
-    "site_group_name": "sg1",
+    "siteGroupName": "sg1",
   },
 ]
 `;

@@ -279,7 +279,7 @@ describe('Client based Selectors', () => {
     test('should find existing client', () => {
       const ret = getClientByName(state, 'amazeeio');
       expect(ret).toEqual({
-        client_name: 'amazeeio',
+        clientName: 'amazeeio',
         deploy_private_key: 'privatekey',
       });
     });

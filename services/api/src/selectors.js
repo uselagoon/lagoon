@@ -22,20 +22,20 @@ const R = require('ramda');
 * computanional values
 **/
 
-export type ClientView = {
-  ...Client,
-  client_name: string,
+// TODO: Type spread is broken for autocompletion for some reason >:(
+export type ClientView = Client & {
+  clientName: string,
 };
 
-export type SiteGroupView = {
-  ...SiteGroup,
-  site_group_name: string,
+export type SiteGroupView = SiteGroup & {
+  siteGroupName: string,
 };
 
 export type SiteView = {
   ...Site,
   id: string,
   jumpHost: string,
+  siteName: string,
   siteHost: string,
   fileName: string,
   serverInfrastructure: string,
@@ -92,7 +92,7 @@ const addSiteHost /*:
     )(obj),
 );
 
-// TODO: For now, if not all parameters are provided, the 
+// TODO: For now, if not all parameters are provided, the
 //       function will return an empty string... not sure if
 //       this is a good behavior
 const toSiteHostStr /*:
@@ -188,17 +188,12 @@ const getSshKeysFromClients /* State => Array<string> */ = R.compose(
 );
 
 const getAllSiteGroups /*: (State) => Array<SiteGroupView> */ = R.compose(
-  R.map(([id, siteGroup]) => ({ ...siteGroup, site_group_name: id })),
+  R.map(([id, siteGroup]) => ({ ...siteGroup, siteGroupName: id })),
   Object.entries,
   R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups']),
 );
 
-const getAllSites /*: (State) => Array<SiteView> */ = R.identity();
-
-const groupSitesBySiteFileName /*: (State) => SiteFile */ = R.compose(
-  R.identity(),
-);
-
+// Utility for converting actual siteFile content w/ fileName to a SiteView object
 const siteFileToSiteViews = (
   fileName: string,
   siteFile: SiteFile,
@@ -232,18 +227,30 @@ const siteFileToSiteViews = (
     R.prop('drupalsites'),
   )(siteFile);
 
+// TODO: ADD TESTS?
+const getAllSites /*: (State) => Array<SiteView> */ = R.compose(
+  R.flatten,
+  // Create SiteView objects from all siteFiles w/ it's fileName
+  R.map(([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)),
+  // Get all names and yaml contents of all files
+  R.toPairs,
+  R.propOr({}, 'siteFiles'),
+);
+
 const getAllSitesByEnv = (state: State, env: string): Array<SiteView> =>
   R.compose(
     // Filter sites that don't match the passed environment
-    R.filter(site => site.site_environment === env),
-    // Flatten the Array<Array<SiteView>> -> Array<SiteView>
-    R.flatten,
-    // Create SiteView objects from all siteFiles w/ it's fileName
-    R.map(([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)),
-    // Get all names and yaml contents of all files
-    R.toPairs,
-    R.propOr({}, 'siteFiles'),
+    R.filter(siteV => siteV.site_environment === env),
+    getAllSites,
   )(state);
+
+const getAllSitesBySiteGroup = (
+  state: State,
+  siteGroupName: string,
+): Array<SiteView> =>
+  R.compose(R.filter(siteV => siteV.sitegroup === siteGroupName), getAllSites)(
+    state,
+  );
 
 const getSiteByName = (state: State, name: string): ?Site =>
   R.compose(
@@ -264,15 +271,13 @@ const getSiteByName = (state: State, name: string): ?Site =>
   )(state);
 
 const getAllClients /*: (State) => Array<ClientView> */ = R.compose(
-  R.map(([id, client]) => ({ ...client, client_name: id })),
+  R.map(([id, client]) => ({ ...client, clientName: id })),
   Object.entries,
   R.pathOr({}, ['clientsFile', 'amazeeio_clients']),
 );
 
 const getClientByName = (state: State, name: string): ClientView =>
-  R.compose(R.find(client => client.client_name === name), getAllClients)(
-    state,
-  );
+  R.compose(R.find(client => client.clientName === name), getAllClients)(state);
 
 const getSiteGroupsByClient = (
   state: State,
@@ -280,6 +285,16 @@ const getSiteGroupsByClient = (
 ): Array<ClientView> =>
   R.compose(
     R.filter(siteGroup => siteGroup.client === clientName),
+    getAllSiteGroups,
+  )(state);
+
+// TODO: ADD TESTS FOR THIS
+const getSiteGroupByName = (
+  state: State,
+  siteGroupName: string,
+): Array<SiteGroupView> =>
+  R.compose(
+    R.filter(siteGroup => siteGroup.siteGroupName === siteGroupName),
     getAllSiteGroups,
   )(state);
 
@@ -299,4 +314,7 @@ module.exports = {
   addSiteHost,
   siteFileToSiteViews,
   toSiteHostStr,
+  getSiteGroupByName,
+  getAllSites,
+  getAllSitesBySiteGroup,
 };
