@@ -34,7 +34,7 @@ export default async function githubBranchDeleted(webhook: WebhookRequestData, s
     }
 
     sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
-      `Branch \`${meta.origBranch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
+      `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
     )
 
     try {
