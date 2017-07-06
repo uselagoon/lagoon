@@ -4,7 +4,7 @@ services:
     build: services/webhook-handler
     command: bash -c "yarn run link-node-packages && yarn run dev"
     ports:
-      - "7777:7777"
+      - "7777:3000"
     links:
       - rabbitmq
     environment:

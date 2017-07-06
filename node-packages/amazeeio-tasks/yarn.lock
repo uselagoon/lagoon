@@ -2,8 +2,9 @@
 # yarn lockfile v1
 
 
-"@amazeeio/amazeeio-api@file:../amazeeio-api":
-  version "1.0.0"
+"@amazeeio/amazeeio-api@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-api/-/amazeeio-api-3.0.1.tgz#4baf527641bcb846b629dcee3d936f88cc5ff9e2"
   dependencies:
     babel-cli "^6.18.0"
     babel-core "^6.21.0"
@@ -17,8 +18,9 @@
     lokka-transport-http "^1.6.1"
     winston "^2.2.0"
 
-"@amazeeio/amazeeio-local-logging@file:../amazeeio-local-logging":
-  version "0.1.3"
+"@amazeeio/amazeeio-local-logging@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-local-logging/-/amazeeio-local-logging-3.0.1.tgz#bb6fb4db7d3966d8b770d0c34944e80de15b6b09"
   dependencies:
     babel-cli "^6.18.0"
     babel-core "^6.21.0"
