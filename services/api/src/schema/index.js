@@ -28,11 +28,11 @@ const typeDefs = `
   }
 
   type Client {
-    client_name: String
-    deploy_private_key: String
+    clientName: String
+    deployPrivateKey: String
     created:String
     comment: String
-    site_groups: [SiteGroup]
+    siteGroups: [SiteGroup]
     sshKeys: [SshKey]
   }
 
@@ -45,8 +45,8 @@ const typeDefs = `
   type Slack {
     webhook: String
     channel: String
-    inform_start: Boolean
-    inform_channel: String
+    informStart: Boolean
+    informChannel: String
   }
 
   type Query {
@@ -97,7 +97,7 @@ const resolvers = {
     },
   },
   Client: {
-    site_groups: (client: ClientView, _, req) => {
+    siteGroups: (client: ClientView, _, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { getSiteGroupsByClient } = context.selectors;

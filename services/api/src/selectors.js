@@ -1,8 +1,9 @@
 // @flow
 
-import type { SiteFile, SiteGroup, State, Site, Client } from './types';
+import type { Client, Site, SiteFile, SiteGroup, SshKey, SshKeys, State } from './types';
 
 const R = require('ramda');
+const camelcaseKeys = require('camelcase-keys');
 
 // ==== View Types
 
@@ -20,6 +21,12 @@ export type ClientView = Client & {
 
 export type SiteGroupView = SiteGroup & {
   siteGroupName: string,
+  slack: {
+    webhook: string,
+    channel: string,
+    informStart: boolean,
+    informChannel: string,
+  },
 };
 
 export type SiteView = {
@@ -28,6 +35,7 @@ export type SiteView = {
   jumpHost: string,
   siteName: string,
   siteHost: string,
+  siteEnvironment: string,
   fileName: string,
   serverInfrastructure: string,
   serverIdentifier: string,
@@ -154,7 +162,7 @@ const maybeAddJumpHostKey = (jumpHost?: string, obj: Object): Object =>
     () => R.set(R.lensProp('jumpHost'), jumpHost, obj),
   )(obj);
 
-const extractSshKeys /* : <T: { +ssh_keys?: SshKeys}>(T) => Array<SshKey> */ = R.compose(
+const extractSshKeys: ({ +ssh_keys?: SshKeys }) => Array<SshKey> = R.compose(
   R.ifElse(R.isEmpty, R.always([]), R.identity),
   R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
   R.filter(value => R.has('key', value)),
@@ -250,6 +258,10 @@ const getSiteGroupsByClient = (state: State, clientName: string): Array<ClientVi
 const getSiteGroupByName = (state: State, siteGroupName: string): SiteGroupView =>
   R.compose(
     R.head,
+    R.map(siteGroup => ({
+      ...siteGroup,
+      slack: siteGroup.slack && camelcaseKeys(siteGroup.slack),
+    })),
     R.filter(siteGroup => siteGroup.siteGroupName === siteGroupName),
     getAllSiteGroups,
   )(state);

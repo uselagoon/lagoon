@@ -79,13 +79,9 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
         client {
           clientName
         }
-        sites(first: 1000) {
-          edges {
-            node {
-              siteName
-              siteBranch
-            }
-          }
+        sites {
+          siteName
+          siteBranch
         }
       }
     }
