@@ -1,9 +1,7 @@
 // @flow
 
 import amqp from 'amqp-connection-manager';
-import { logger, initLogger } from './logging';
-
-import hostname from 'os';
+import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 
 import type { ChannelWrapper } from './types';
 
@@ -35,24 +33,12 @@ export function initSendToAmazeeioLogs() {
 			const buffer = new Buffer(JSON.stringify(payload));
 			const options = {
 				persistent: true,
-				headers: {
-					hostname: hostname()
-				},
-
 			}
 			await channelWrapper.publish(`amazeeio-logs`, '', buffer, options );
 
-			logger.verbose(`amazeeio-logs: Successfully send to amazeeio-logs: ${message}`);
+			logger.log(severity, `amazeeio-logs: Send to amazeeio-logs: ${message}`);
 		} catch(error) {
-			logger.error(`amazeeio-logs: Error send to amazeeio-logs queuing`, {
-				severity,
-				sitegroup,
-				uuid,
-				event,
-				meta,
-				message,
-				error,
-			});
+			logger.error(`amazeeio-logs: Error send to rabbitmq amazeeio-logs exchange, error: ${error}`);
 		}
 	}
 
