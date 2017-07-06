@@ -1,6 +1,6 @@
 {
   "name": "@amazeeio/amazeeio-tasks",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "amazeeio task sdk",
   "main": "./dist/index.js",
   "engines": {
@@ -23,9 +23,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@amazeeio/amazeeio-api": "file:../amazeeio-api",
-    "@amazeeio/amazeeio-local-logging": "file:../amazeeio-local-logging",
-    "@amazeeio/amazeeio-logs": "file:../amazeeio-logs",
+    "@amazeeio/amazeeio-api": "^3.0.1",
+    "@amazeeio/amazeeio-local-logging": "^3.0.1",
     "amqp-connection-manager": "^1.3.5",
     "amqplib": "^0.5.1",
     "babel-cli": "^6.18.0",
