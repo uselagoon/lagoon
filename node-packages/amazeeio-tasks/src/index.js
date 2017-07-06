@@ -14,7 +14,6 @@ export let connection = () => {};
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 
 initLogger();
-initSendToAmazeeioLogs();
 
 export class UnknownActiveSystem extends Error {
   constructor(message: string) {
