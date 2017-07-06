@@ -11,7 +11,7 @@ RUN usermod -G root -a jenkins && \
 ENV JAVA_OPTS=-Djenkins.install.runSetupWizard=false\ -Xmx512m
 
 # Installing our plugins
-RUN /usr/local/bin/install-plugins.sh ansicolor blueocean rebuild greenballs openshift-pipeline pipeline-stage-view slack lockable-resources monitoring
+RUN /usr/local/bin/install-plugins.sh ansicolor blueocean rebuild greenballs openshift-pipeline pipeline-stage-view slack lockable-resources monitoring http_request
 
 # Setting up an Admin User
 COPY adminuser.groovy /usr/share/jenkins/ref/init.groovy.d/adminuser.groovy
