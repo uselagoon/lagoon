@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node build/index.js",
     "build": "babel src -d build",
-    "dev": "nodemon src/index.js --exec babel-node"
+    "dev": "nodemon --watch . --watch ../../node-packages src/index.js --exec babel-node",
+    "link-node-packages": "for D in ../../node-packages/*/; do cd \"${D}\" && yarn link && package=${PWD##*/} && cd \"${OLDPWD}\" && yarn link @amazeeio/$package; done"
   },
   "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
   "repository": {
@@ -15,8 +16,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@amazeeio/amazeeio-logs": "^0.1.11",
-    "@amazeeio/amazeeio-local-logging": "^0.1.3",
+    "@amazeeio/amazeeio-logs": "file:../../node-packages/amazeeio-logs",
+    "@amazeeio/amazeeio-local-logging": "file:../../node-packages/amazeeio-local-logging",
     "amqp-connection-manager": "^1.3.5",
     "amqp-winston": "^1.0.7",
     "amqplib": "^0.4.2",

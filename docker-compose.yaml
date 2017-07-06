@@ -2,7 +2,7 @@ version: '2'
 services:
   webhook-handler:
     build: services/webhook-handler
-    command: yarn run dev
+    command: bash -c "yarn run link-node-packages && yarn run dev"
     ports:
       - "7777:7777"
     links:
@@ -10,7 +10,8 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
     volumes:
-      - ./services/webhook-handler/src:/app/src
+      - ./services/webhook-handler/src:/app/services/webhook-handler/src
+      - ./node-packages:/node-packages
   rabbitmq:
     build: services/rabbitmq
     environment:
@@ -37,7 +38,7 @@ services:
 #      - ./services/gitpush2ansibledeploy/src:/app/src
   openshiftremove:
     build: services/openshiftremove
-    command: yarn run dev
+    command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
@@ -47,10 +48,11 @@ services:
       - AMAZEEIO_API_HOST=http://api:3000
       - JENKINS_URL=http://admin:admin@jenkins:8080
     volumes:
-      - ./services/openshiftremove/src:/app/src
+      - ./services/openshiftremove/src:/app/services/openshiftremove/src
+      - ./node-packages:/node-packages
   openshiftdeploy:
     build: services/openshiftdeploy
-    command: yarn run dev
+    command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
@@ -62,11 +64,11 @@ services:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
     volumes:
-      - ./services/openshiftdeploy/src:/app/src
-      - ./node-packages:/node-packages
+      - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
+      - ./node-packages:/app/node-packages
   logs2slack:
     build: services/logs2slack
-    command: yarn run dev
+    command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
@@ -76,9 +78,10 @@ services:
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/logs2slack/src:/app/src
+      - ./node-packages:/node-packages
   webhooks2tasks:
     build: services/webhooks2tasks
-    command: yarn run dev
+    command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
@@ -86,17 +89,18 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
-      - ./services/webhooks2tasks/src:/app/src
+      - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
+      - ./node-packages:/node-packages
   rest2tasks:
     build: services/rest2tasks
-    command: yarn run dev
+    command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
     environment:
       - RABBITMQ_HOST=rabbitmq
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
-      - ./services/rest2tasks/src:/app/src
+      - ./services/rest2tasks/src:/app/services/rest2tasks/src
       - ./node-packages:/node-packages
     ports:
       - "5555:3000"
@@ -192,3 +196,8 @@ services:
       - rest2tasks
     ports:
       - "8090:3000"
+  node-packages-lerna:
+    build: node-packages
+    command: lerna run --parallel watch
+    volumes:
+      - .:/app
