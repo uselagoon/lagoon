@@ -55,6 +55,7 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
       break;
 
     case "task:deploy-openshift:retry":
+    case "task:remove-openshift-resources:retry":
       sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapper, msg)
       break;
 
