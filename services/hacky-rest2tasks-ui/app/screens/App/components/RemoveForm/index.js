@@ -7,20 +7,17 @@ import withState from 'recompose/withState';
 import styled from 'styled-components';
 import Subtitle from 'Subtitle';
 
-type DeployFormProps = {
+type RemoveFormProps = {
   siteGroup: string,
   setSiteGroup: Function,
-  branch: string,
-  setBranch: Function,
-  sha: string,
-  setSha: Function,
+  openshiftRessourceAppName: string,
+  setOpenshiftRessourceAppName: Function,
   doSubmitDeployRequest: Function,
   response: string,
 };
 
 const withSiteGroupState = withState('siteGroup', 'setSiteGroup', '');
-const withBranchState = withState('branch', 'setBranch', '');
-const withShaState = withState('sha', 'setSha', '');
+const withOpenshiftRessourceAppNameState = withState('openshiftRessourceAppName', 'setOpenshiftRessourceAppName', '');
 const withResponseState = withState('response', 'setResponse', '');
 
 const Input = styled.input`
@@ -30,22 +27,19 @@ const Input = styled.input`
 
 const withFormHandlers = withHandlers({
   setSiteGroup: props => event => props.setSiteGroup(event.target.value),
-  setBranch: props => event => props.setBranch(event.target.value),
-  setSha: props => event => props.setSha(event.target.value),
-  doSubmitDeployRequest: props => async (siteGroup, branch, sha) => {
+  setOpenshiftRessourceAppName: props => event => props.setOpenshiftRessourceAppName(event.target.value),
+  doSubmitDeployRequest: props => async (siteGroup, openshiftRessourceAppName) => {
     const data = {
       siteGroupName: siteGroup,
-      branchName: branch,
-      sha: sha || false,
+      openshiftRessourceAppName: openshiftRessourceAppName,
     };
-
-    const response = await global.fetch(`${process.env.REST2TASKS_URL}/deploy`, {
+    const response = await global.fetch(`${process.env.REST2TASKS_URL}/remove`, {
       method: 'POST',
       body: JSON.stringify(data),
       headers: new global.Headers({
         'Content-Type': 'application/json',
       }),
-    });
+    })
     if (response.ok) {
       const json = await response.json()
       props.setResponse(json.message);
@@ -55,22 +49,20 @@ const withFormHandlers = withHandlers({
   },
 });
 
-const DeployForm = ({
+const RemoveForm = ({
   siteGroup,
   setSiteGroup,
-  branch,
-  setBranch,
-  sha,
-  setSha,
+  openshiftRessourceAppName,
+  setOpenshiftRessourceAppName,
   response,
   doSubmitDeployRequest,
-}: DeployFormProps): React.Element<any> => (
+}: RemoveFormProps): React.Element<any> => (
   <div>
-    <Subtitle>Deploy</Subtitle>
+    <Subtitle>Remove</Subtitle>
     <form
       onSubmit={e => {
         e.preventDefault();
-        doSubmitDeployRequest(siteGroup, branch, sha);
+        doSubmitDeployRequest(siteGroup, openshiftRessourceAppName);
       }}
     >
       <label name="siteGroup" htmlFor="siteGroup">Sitegroup Name:</label>
@@ -82,17 +74,15 @@ const DeployForm = ({
         onChange={setSiteGroup}
         required
       />
-      <label name="branch" htmlFor="branch">Branch Name:</label>
+      <label name="openshiftRessourceAppName" htmlFor="openshiftRessourceAppName">OpenshiftRessourceAppName:</label>
       <Input
         type="text"
-        name="branch"
-        id="branch"
-        value={branch}
-        onChange={setBranch}
+        name="openshiftRessourceAppName"
+        id="openshiftRessourceAppName"
+        value={openshiftRessourceAppName}
+        onChange={setOpenshiftRessourceAppName}
         required
       />
-      <label name="sha" htmlFor="sha">SHA:</label>
-      <Input type="text" name="sha" id="sha" value={sha} onChange={setSha} />
       <Input type="submit" value="Go" />
       <pre>
         {response}
@@ -103,8 +93,7 @@ const DeployForm = ({
 
 export default compose(
   withSiteGroupState,
-  withBranchState,
-  withShaState,
+  withOpenshiftRessourceAppNameState,
   withResponseState,
   withFormHandlers,
-)(DeployForm);
+)(RemoveForm);
