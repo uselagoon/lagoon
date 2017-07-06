@@ -26,9 +26,6 @@ const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)
 });
 
-
-
-
 const messageConsumer = async msg => {
   const {
     siteGroupName,
@@ -36,7 +33,7 @@ const messageConsumer = async msg => {
     sha
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received DeployOpenshift task for sitegroup ${siteGroupName}, branch ${branchName}`);
+  logger.verbose(`Received DeployOpenshift task for sitegroup: ${siteGroupName}, branch: ${branchName}, sha: ${sha}`);
 
   const siteGroupOpenShift = await amazeeioAPI.query(`
     {
@@ -81,38 +78,26 @@ const messageConsumer = async msg => {
     throw(error)
   }
 
-
-  try {
-    await deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha, openshiftRessourceAppName, openshiftRessourceRouterUrl, openshiftConsole, openshiftRegistry, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject, openshiftTemplate, openshiftFolder, deployPrivateKey, gitUrl, jenkinsUrl)
-  }
-  catch(error) {
-    logger.warn(`Error deploying OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}. The error was: ${error}`)
-    throw(error)
-  }
-  logger.info(`Deployed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
-}
-
-async function deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha, openshiftRessourceAppName, openshiftRessourceRouterUrl, openshiftConsole, openshiftRegistry, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject, openshiftTemplate, openshiftFolder, deployPrivateKey, gitUrl, jenkinsUrl) {
   var folderxml =
-  `<?xml version='1.0' encoding='UTF-8'?>
-  <com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder@5.13">
-    <actions/>
-    <description></description>
-    <properties/>
-    <views>
-      <hudson.model.AllView>
-        <owner class="com.cloudbees.hudson.plugins.folder.Folder" reference="../../.."/>
-        <name>All</name>
-        <filterExecutors>false</filterExecutors>
-        <filterQueue>false</filterQueue>
-        <properties class="hudson.model.View$PropertyList"/>
-      </hudson.model.AllView>
-    </views>
-    <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
-    <healthMetrics/>
-    <icon class="com.cloudbees.hudson.plugins.folder.icons.StockFolderIcon"/>
-  </com.cloudbees.hudson.plugins.folder.Folder>
-  `
+    `<?xml version='1.0' encoding='UTF-8'?>
+    <com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder@5.13">
+      <actions/>
+      <description></description>
+      <properties/>
+      <views>
+        <hudson.model.AllView>
+          <owner class="com.cloudbees.hudson.plugins.folder.Folder" reference="../../.."/>
+          <name>All</name>
+          <filterExecutors>false</filterExecutors>
+          <filterQueue>false</filterQueue>
+          <properties class="hudson.model.View$PropertyList"/>
+        </hudson.model.AllView>
+      </views>
+      <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+      <healthMetrics/>
+      <icon class="com.cloudbees.hudson.plugins.folder.icons.StockFolderIcon"/>
+    </com.cloudbees.hudson.plugins.folder.Folder>
+    `
 
   let ocBuildDeploystage
   let ocBuildDeployImageName
@@ -215,9 +200,7 @@ node {
     openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
   }
 
-}
-
-  `
+}`
 
   var jobxml =
   `<?xml version='1.0' encoding='UTF-8'?>
@@ -306,21 +289,25 @@ node {
 
     log.on('error', error =>  {
       logger.error(error)
-      throw error
+      reject(error)
     });
 
     log.on('end', async () => {
-      const result = await jenkins.build.get(jobname, jenkinsJobID)
-      if (result.result === "SUCCESS") {
-        sendToAmazeeioLogs('success', siteGroupName, "", "task:deploy-openshift:finished",  {},
-          `*[${siteGroupName}]* ${logMessage} ${openshiftRessourceRouterUrl}`
-        )
-        logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
-      } else {
-        sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {}, `*[${siteGroupName}]* ${logMessage} ERROR`)
-        logger.error(`Finished FAILURE job build: ${jobname}, job id: ${jenkinsJobID}`)
+      try {
+        const result = await jenkins.build.get(jobname, jenkinsJobID)
+        if (result.result === "SUCCESS") {
+          sendToAmazeeioLogs('success', siteGroupName, "", "task:deploy-openshift:finished",  {},
+            `*[${siteGroupName}]* ${logMessage} ${openshiftRessourceRouterUrl}`
+          )
+          logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
+        } else {
+          sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {}, `*[${siteGroupName}]* ${logMessage} ERROR`)
+          logger.error(`Finished FAILURE job build: ${jobname}, job id: ${jenkinsJobID}`)
+        }
+        resolve()
+      } catch(error) {
+        reject(error)
       }
-      resolve()
     });
   })
 }
@@ -349,4 +336,28 @@ ${lastError}
 
 }
 
-consumeTasks('deploy-openshift', messageConsumer, deathHandler)
+const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
+
+  const {
+    siteGroupName,
+    branchName,
+    sha
+  } = JSON.parse(msg.content.toString())
+
+  let logMessage = ''
+  if (sha) {
+    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
+
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+`*[${siteGroupName}]* ${logMessage} ERROR:
+\`\`\`
+${error}
+\`\`\`
+Retrying deployment in ${retryExpirationSecs} secs`
+  )
+}
+
+consumeTasks('deploy-openshift', messageConsumer, retryHandler, deathHandler)
