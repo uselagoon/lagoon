@@ -177,10 +177,9 @@ const messageConsumer = async function(msg) {
 
   logger.verbose(`Running job build: ${jobname}, job id: ${jenkinsJobID}`)
 
-  const amazeeioLogsText = `resources with label \`${openshiftRessourceAppName}\` on \`${openshiftConsole}\` in \`${openshiftProject}\``
 
   sendToAmazeeioLogs('start', siteGroupName, "", "task:remove-openshift-resources:start", {},
-    `Start: remove ${amazeeioLogsText}`
+    `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\``
   )
 
   let log = jenkins.build.logStream(jobname, jenkinsJobID)
@@ -201,11 +200,11 @@ const messageConsumer = async function(msg) {
 
         if (result.result === "SUCCESS") {
           sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift-resources:finished",  {},
-            `Finished: remove ${amazeeioLogsText}`
+            `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\``
           )
           logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
         } else {
-          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `ERROR: Removing \`${openshiftRessourceAppName}\``)
+          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR`)
           logger.error(`Finished FAILURE job removal: ${jobname}, job id: ${jenkinsJobID}`)
         }
         resolve()

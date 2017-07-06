@@ -35,8 +35,15 @@ export default async function githubPush(webhook: WebhookRequestData, siteGroup:
       sha: sha
     }
 
+    let logMessage = ''
+    if (sha) {
+      logMessage = `\`${meta.branch}\` (${sha.substring(0, 7)})`
+    } else {
+      logMessage = `\`${meta.branch}\``
+    }
+
     sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
-      `Branch \`${meta.branch}\` pushed in <${body.repository.html_url}|${body.repository.full_name}>`
+      `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}>`
     )
 
     try {

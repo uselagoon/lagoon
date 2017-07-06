@@ -142,7 +142,7 @@ app.post('/remove', async (req, res) => {
   try {
     const taskResult = await createRemoveTask(data);
     sendToAmazeeioLogs('info', data.siteGroupName, '', `rest:remove:receive`, {},
-      `*[${data.siteGroupName}]* REST deploy trigger \`${data.openshiftRessourceAppName}\``
+      `*[${data.siteGroupName}]* REST remove trigger \`${data.openshiftRessourceAppName}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
