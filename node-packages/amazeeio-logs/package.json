@@ -1,6 +1,6 @@
 {
   "name": "@amazeeio/amazeeio-logs",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "amazeeio logs sdk",
   "main": "./dist/index.js",
   "engines": {
@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@amazeeio/amazeeio-local-logging": "^3.0.1",
+    "@amazeeio/amazeeio-local-logging": "^3.0.2",
     "amqp-connection-manager": "^1.3.5",
     "amqplib": "^0.5.1",
     "babel-cli": "^6.18.0",
