@@ -1,7 +1,5 @@
 // @flow
 
-import type { State } from '../types';
-
 const {
   getSiteGroupsByClient,
   getAllSiteGroups,

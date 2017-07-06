@@ -1,6 +1,6 @@
 // @flow
 
-import type { SiteFile, SiteGroup, State, SiteFiles, Site, Client, SshKeys, SshKey } from './types';
+import type { SiteFile, SiteGroup, State, Site, Client } from './types';
 
 const R = require('ramda');
 
@@ -70,27 +70,14 @@ const addServerInfo /* :
     R.compose(parseServerInfo, R.prop('fileName')),
   )(obj);
 
-const addSiteHost /* :
-   <T: {
-    serverIdentifier: string,
-    serverInfrastructure: string}
-    >(T) => T */ = R.compose(
-  obj =>
-    R.ifElse(
-      R.and(R.has('serverIdentifier'), R.has('serverInfrastructure')),
-      R.set(R.lensProp('siteHost'), toSiteHostStr(obj)),
-      R.identity(),
-    )(obj),
-);
-
 // TODO: For now, if not all parameters are provided, the
 //       function will return an empty string... not sure if
 //       this is a good behavior
 const toSiteHostStr /* :
-   <T: {
-    serverIdentifier: string,
-    serverInfrastructure: string}
-    >(T) => T */ = R.compose(
+  <T: {
+  serverIdentifier: string,
+  serverInfrastructure: string}
+  >(T) => T */ = R.compose(
   R.ifElse(
     R.compose(
       // (val) => val.length > 1,
@@ -102,6 +89,19 @@ const toSiteHostStr /* :
   ),
   R.values,
   R.pick(['serverIdentifier', 'serverInfrastructure']),
+);
+
+const addSiteHost /* :
+   <T: {
+    serverIdentifier: string,
+    serverInfrastructure: string}
+    >(T) => T */ = R.compose(
+  obj =>
+    R.ifElse(
+      R.and(R.has('serverIdentifier'), R.has('serverInfrastructure')),
+      R.set(R.lensProp('siteHost'), toSiteHostStr(obj)),
+      R.identity(),
+    )(obj),
 );
 
 const CLUSTER_MEMBER_KEY = 'drupalhosting::profiles::nginx_backend::cluster_member';
@@ -262,7 +262,6 @@ module.exports = {
   getClientByName,
   getSiteGroupsByClient,
   getSshKeysFromClients,
-  getAllSites,
   extractSshKeys,
   maybeAddJumpHostKey,
   addServerInfo,
