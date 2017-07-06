@@ -168,12 +168,13 @@ export async function consumeTasks(taskQueueName, messageConsumer, deathHandler)
 	const  onMessage = async msg => {
 		try {
 			await messageConsumer(msg)
+			channelWrapper.ack(msg)
 		} catch (error) {
 
 			// We land here if the messageConsumer has an error that it did not itslef handle.
 			// This is how the consumer informs us that we it would like to retry the message in a couple of seconds
 
-			const failCount = (msg.properties.headers["x-death"] && msg.properties.headers["x-death"][0]['count']) ? msg.properties.headers["x-death"][0]['count'] : 1
+			const failCount = (msg.properties.headers["x-death"] && msg.properties.headers["x-death"][0]['count']) ? (msg.properties.headers["x-death"][0]['count'] + 1) : 1
 
 			if (failCount > 3) {
 				channelWrapper.ack(msg)
@@ -182,7 +183,7 @@ export async function consumeTasks(taskQueueName, messageConsumer, deathHandler)
 			}
 
 			const retryMsgExpiration = 1000 * failCount;
-			console.log(`amazeeio-tasks: error from messageConsumer retrying message in ${retryMsgExpiration/1000} secs, failcounter: (${failCount}/3)`)
+			logger.info(`amazeeio-tasks: error from messageConsumer retrying message in ${retryMsgExpiration/1000} secs, failcounter: (${failCount}/3)`)
 
 			// copying options from the original message
 			const retryMsgOptions = {
@@ -201,7 +202,6 @@ export async function consumeTasks(taskQueueName, messageConsumer, deathHandler)
 			// acknologing the existing message, we cloned it and is not necessary anymore
 			channelWrapper.ack(msg)
 		}
-		channelWrapper.ack(msg)
 	}
 
 	const channelWrapper = connection.createChannel({
