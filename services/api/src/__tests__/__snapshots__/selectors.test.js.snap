@@ -38,6 +38,15 @@ Array [
 
 exports[`Site related selectors getSiteByName should return site given a name 1`] = `
 Object {
+  "fileName": "compact/deploytest1.yaml",
+  "id": "deploytest1.compact/deploytest_branch1",
+  "serverIdentifier": "deploytest1",
+  "serverInfrastructure": "compact",
+  "serverNames": Array [
+    "deploytest1.compact",
+  ],
+  "siteHost": "deploytest1.compact",
+  "siteName": "deploytest_branch1",
   "site_branch": "branch1",
   "sitegroup": "deploytest",
   "uid": 3201,

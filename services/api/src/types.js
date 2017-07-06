@@ -21,10 +21,18 @@ export type Client = {
   +ssh_keys?: SshKeys,
 };
 
+export type Slack = {
+  +webhook: string,
+  +channel: string,
+  +inform_start: boolean,
+  +inform_channel: string,
+};
+
 export type Site = {
   +sitegroup: string,
   +uid: number,
   +site_branch: string,
+  +webroot?: string,
   +site_environment: string,
   +domains: Array<string>,
   +sslcerttype: string,
@@ -33,6 +41,7 @@ export type Site = {
   +php_flags: { [name: string]: mixed },
   +xdebug: string,
   +php_admin_values: { [key: string]: string },
+  +solr_enabled?: boolean,
 };
 
 export type SiteGroup = {
@@ -41,12 +50,7 @@ export type SiteGroup = {
   +php_values?: { [key: string]: mixed },
   +production_url?: string,
   +git_url?: string,
-  +slack?: {
-    +webhook: string,
-    +channel: string,
-    +inform_start: boolean,
-    +inform_channel: string,
-  },
+  +slack?: Slack,
 };
 
 export type ClientsFile = {

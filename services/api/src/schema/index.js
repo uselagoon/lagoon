@@ -2,6 +2,7 @@
 
 import { makeExecutableSchema } from 'graphql-tools';
 import { getContext } from '../app';
+import type { Slack } from '../types';
 import type { ClientView, SiteGroupView, SiteView } from '../selectors';
 
 const typeDefs = `
@@ -14,6 +15,11 @@ const typeDefs = `
     sites: [Site]
   }
 
+  type Cron {
+    type: String
+    minute: String
+  }
+
   type Site {
     id: String
     siteBranch: String
@@ -21,10 +27,15 @@ const typeDefs = `
     siteHost: String
     siteName: String
     fileName: String
+    siteEnvironment: String
     serverInfrastructure: String
     siteEnvironment: String,
     serverIdentifier: String
     serverNames: [String]
+    webRoot: String
+    SSLCertificateType: String
+    cron: Cron
+    solrEnabled: Boolean
   }
 
   type Client {
@@ -136,6 +147,14 @@ const resolvers = {
   },
   Site: {
     siteBranch: (site: SiteView) => site.site_branch,
+    siteEnvironment: (site: SiteView) => site.site_environment,
+    webRoot: (site: SiteView) => site.webroot,
+    solrEnabled: (site: SiteView) => site.solr_enabled,
+    SSLCertificateType: (site: SiteView) => site.sslcerttype,
+  },
+  Slack: {
+    informStart: (slack: Slack) => slack.inform_start,
+    informChannel: (slack: Slack) => slack.inform_channel,
   },
 };
 

@@ -38,7 +38,6 @@
   "dependencies": {
     "babel-polyfill": "^6.16.0",
     "body-parser": "^1.15.0",
-    "camelcase-keys": "^4.1.0",
     "compression": "^1.6.1",
     "cors": "^2.7.1",
     "dotenv": "^4.0.0",

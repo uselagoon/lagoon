@@ -3,7 +3,6 @@
 import type { Client, Site, SiteFile, SiteGroup, SshKey, SshKeys, State } from './types';
 
 const R = require('ramda');
-const camelcaseKeys = require('camelcase-keys');
 
 // ==== View Types
 
@@ -29,13 +28,11 @@ export type SiteGroupView = SiteGroup & {
   },
 };
 
-export type SiteView = {
-  ...Site,
+export type SiteView = Site & {
   id: string,
   jumpHost: string,
   siteName: string,
   siteHost: string,
-  siteEnvironment: string,
   fileName: string,
   serverInfrastructure: string,
   serverIdentifier: string,
@@ -187,7 +184,6 @@ const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
 const siteFileToSiteViews = (fileName: string, siteFile: SiteFile): Array<SiteView> =>
   R.compose(
     R.map(addServerNames),
-    R.map(site => R.assoc('siteEnvironment', site.site_environment, site)),
     R.map(addSiteHost),
     R.map(site =>
       R.assoc('id', `${site.serverIdentifier}.${site.serverInfrastructure}/${site.siteName}`, site),
@@ -206,8 +202,8 @@ const siteFileToSiteViews = (fileName: string, siteFile: SiteFile): Array<SiteVi
     R.prop('drupalsites'),
   )(siteFile);
 
-// TODO: ADD TESTS?
-const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
+// TODO: ADD TESTS
+const getAllSites /*: (State) => Array<SiteView> */ = R.compose(
   R.flatten,
   // Create SiteView objects from all siteFiles w/ it's fileName
   R.map(([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)),
@@ -219,28 +215,19 @@ const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
 const getAllSitesByEnv = (state: State, env: string): Array<SiteView> =>
   R.compose(
     // Filter sites that don't match the passed environment
-    R.filter(siteV => siteV.siteEnvironment === env),
+    R.filter(siteV => siteV.site_environment === env),
     getAllSites,
   )(state);
 
-const getAllSitesBySiteGroup = (state: State, siteGroupName: string): Array<SiteView> =>
-  R.compose(R.filter(siteV => siteV.sitegroup === siteGroupName), getAllSites)(state);
+const getAllSitesBySiteGroup = (
+  state: State,
+  siteGroupName: string,
+): Array<SiteView> =>
+  R.compose(R.filter(R.propEq('sitegroup', siteGroupName)), getAllSites)(state);
 
+// TODO: ADD TESTS
 const getSiteByName = (state: State, name: string): ?Site =>
-  R.compose(
-    R.head,
-    R.reduce(
-      (acc, curr) => [
-        ...acc,
-        R.compose(R.last, R.find(([siteName, site]) => (siteName === name ? site : [])), R.toPairs)(
-          curr.drupalsites,
-        ),
-      ],
-      [],
-    ),
-    R.values,
-    R.propOr({}, 'siteFiles'),
-  )(state);
+  R.compose(R.find(R.propEq('siteName', name)), getAllSites)(state);
 
 const getAllClients /* : (State) => Array<ClientView> */ = R.compose(
   R.map(([id, client]) => ({ ...client, clientName: id })),
@@ -258,10 +245,6 @@ const getSiteGroupsByClient = (state: State, clientName: string): Array<ClientVi
 const getSiteGroupByName = (state: State, siteGroupName: string): SiteGroupView =>
   R.compose(
     R.head,
-    R.map(siteGroup => ({
-      ...siteGroup,
-      slack: siteGroup.slack && camelcaseKeys(siteGroup.slack),
-    })),
     R.filter(siteGroup => siteGroup.siteGroupName === siteGroupName),
     getAllSiteGroups,
   )(state);
