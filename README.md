@@ -29,7 +29,7 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 
 		./startOpenShift.sh
 
-1. Add `https://docker-registry-default.` to insecure registries in docker.
+1. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
 
 1. test Openshift Node Deployment
 
