@@ -11,7 +11,7 @@ services:
       - RABBITMQ_HOST=rabbitmq
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
-      - ./node-packages:/node-packages
+      - ./node-packages:/app/node-packages
   rabbitmq:
     build: services/rabbitmq
     environment:
@@ -49,7 +49,7 @@ services:
       - JENKINS_URL=http://admin:admin@jenkins:8080
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
-      - ./node-packages:/node-packages
+      - ./node-packages:/app/node-packages
   openshiftdeploy:
     build: services/openshiftdeploy
     command: bash -c "yarn run link-node-packages && yarn run dev"
@@ -77,8 +77,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
-      - ./services/logs2slack/src:/app/src
-      - ./node-packages:/node-packages
+      - ./services/logs2slack/src:/app/services/logs2slack/src
+      - ./node-packages:/app/node-packages
   webhooks2tasks:
     build: services/webhooks2tasks
     command: bash -c "yarn run link-node-packages && yarn run dev"
@@ -90,7 +90,7 @@ services:
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
-      - ./node-packages:/node-packages
+      - ./node-packages:/app/node-packages
   rest2tasks:
     build: services/rest2tasks
     command: bash -c "yarn run link-node-packages && yarn run dev"
@@ -101,7 +101,7 @@ services:
       - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
-      - ./node-packages:/node-packages
+      - ./node-packages:/app/node-packages
     ports:
       - "5555:3000"
   api:
