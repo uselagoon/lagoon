@@ -11,6 +11,7 @@ const identity: Logger = {
   verbose: () => {},
   debug: () => {},
   silly: () => {},
+  log: () => {},
 };
 
 export let logger: Logger = identity;
