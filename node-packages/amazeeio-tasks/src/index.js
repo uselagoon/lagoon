@@ -2,7 +2,7 @@
 
 
 import amqp from 'amqp-connection-manager';
-import { logger } from '@amazeeio/amazeeio-local-logging';
+import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 
 import type { ChannelWrapper } from './types';
 
@@ -13,6 +13,8 @@ export let sendToAmazeeioTasks = () => {};
 export let connection = () => {};
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 
+initLogger();
+initSendToAmazeeioLogs();
 
 export class UnknownActiveSystem extends Error {
   constructor(message: string) {
@@ -50,10 +52,10 @@ export function initSendToAmazeeioTasks() {
 				channel.bindQueue('amazeeio-tasks:remove-openshift-resources', 'amazeeio-tasks', 'remove-openshift-resources'),
 
 				// wait queues for handling retries
-				channel.assertExchange('amazeeio-tasks-wait', 'direct', { durable: true }),
-				channel.assertQueue('amazeeio-tasks:wait-queue', { durable: true, arguments: { 'x-dead-letter-exchange': 'amazeeio-tasks' } }),
-				channel.bindQueue('amazeeio-tasks:wait-queue', 'amazeeio-tasks-wait', 'deploy-openshift'),
-				channel.bindQueue('amazeeio-tasks:wait-queue', 'amazeeio-tasks-wait', 'remove-openshift-resources'),
+				channel.assertExchange('amazeeio-tasks-retry', 'direct', { durable: true }),
+				channel.assertQueue('amazeeio-tasks:retry-queue', { durable: true, arguments: { 'x-dead-letter-exchange': 'amazeeio-tasks' } }),
+				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'deploy-openshift'),
+				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'remove-openshift-resources'),
 			]);
 		},
 	});
@@ -162,7 +164,7 @@ export async function createRemoveTask(removeData) {
 	}
 }
 
-export async function consumeTasks(taskQueueName, messageConsumer, deathHandler) {
+export async function consumeTasks(taskQueueName, messageConsumer, retryHandler, deathHandler) {
 
 
 	const  onMessage = async msg => {
@@ -182,8 +184,14 @@ export async function consumeTasks(taskQueueName, messageConsumer, deathHandler)
 				return
 			}
 
-			const retryMsgExpiration = 1000 * failCount;
-			logger.info(`amazeeio-tasks: error from messageConsumer retrying message in ${retryMsgExpiration/1000} secs, failcounter: (${failCount}/3)`)
+			const retryExpirationSecs = Math.pow(10, failCount);
+			const retryExpirationMilisecs = retryExpirationSecs * 1000;
+
+			try {
+				retryHandler(msg, error, failCount, retryExpirationSecs)
+			} catch (error) {
+				// intentionally empty as we don't want to fail and not requeue our message just becase the retryHandler fails
+			}
 
 			// copying options from the original message
 			const retryMsgOptions = {
@@ -192,12 +200,12 @@ export async function consumeTasks(taskQueueName, messageConsumer, deathHandler)
 				contentType: msg.properties.contentType,
 				deliveryMode: msg.properties.deliveryMode,
 				headers: msg.properties.headers,
-				expiration: retryMsgExpiration,
+				expiration: retryExpirationMilisecs,
 				persistent: true,
 			};
 			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-wait` exchange,
 			// which will send the message into the original exchange `amazeeio-tasks`after waiting the expiration time.
-			channelWrapper.publish(`amazeeio-tasks-wait`, msg.fields.routingKey, msg.content, retryMsgOptions)
+			channelWrapper.publish(`amazeeio-tasks-retry`, msg.fields.routingKey, msg.content, retryMsgOptions)
 
 			// acknologing the existing message, we cloned it and is not necessary anymore
 			channelWrapper.ack(msg)
