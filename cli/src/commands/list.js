@@ -1,7 +1,5 @@
 // @flow
 
-/* eslint-disable no-console */
-
 import { table } from 'table';
 import { red } from 'chalk';
 import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
@@ -43,6 +41,7 @@ type MainArgs = {
 };
 
 export async function listSites(args: MainArgs): Promise<number> {
+  // eslint-disable-next-line no-console
   const { sitegroup, clog = console.log } = args;
 
   const query = gql`
@@ -122,6 +121,7 @@ type Args = BaseArgs & {
 };
 
 export async function run(args: Args): Promise<number> {
+  // eslint-disable-next-line no-console
   const { config, clog = console.log } = args;
 
   if (config == null) {
