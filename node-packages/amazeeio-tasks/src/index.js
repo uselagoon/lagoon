@@ -64,7 +64,7 @@ export function initSendToAmazeeioTasks() {
 		try {
 			const buffer = new Buffer(JSON.stringify(payload));
 			await channelWrapper.publish(`amazeeio-tasks`, task, buffer, { persistent: true })
-			logger.verbose(`amazeeio-tasks: Successfully created task '${task}'`, payload);
+			logger.debug(`amazeeio-tasks: Successfully created task '${task}'`, payload);
       return `amazeeio-tasks: Successfully created task '${task}': ${JSON.stringify(payload)}`
 		} catch(error) {
 			logger.error(`amazeeio-tasks: Error send to amazeeio-task exchange`, {
@@ -107,22 +107,22 @@ export async function createDeployTask(deployData) {
 			if (type === 'branch') {
 				switch (deploySystemConfig.branches) {
 					case undefined:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToAmazeeioTasks('deploy-openshift', deployData);
 					case true:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
 						return sendToAmazeeioTasks('deploy-openshift', deployData);
 					case false:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
 						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
 					default:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
 						let branchRegex = new RegExp(deploySystemConfig.branches);
 						if (branchRegex.test(branchName)) {
-							logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
 							return sendToAmazeeioTasks('deploy-openshift', deployData);
 						} else {
-							logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
 							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
 						}
 				}
