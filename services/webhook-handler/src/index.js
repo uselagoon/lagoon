@@ -26,7 +26,7 @@ connection.on('disconnect', params => logger.error('Not connected, error: %s', p
 const channelWrapper: ChannelWrapper = connection.createChannel({
 	setup: channel => {
 		return Promise.all([
-			channel.assertQueue('amazeeio-webhooks', {durable: true}),
+			channel.assertExchange('amazeeio-webhooks', 'direct', { durable: true }),
 		]);
 	}
 });
