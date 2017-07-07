@@ -203,7 +203,7 @@ const siteFileToSiteViews = (fileName: string, siteFile: SiteFile): Array<SiteVi
   )(siteFile);
 
 // TODO: ADD TESTS
-const getAllSites /*: (State) => Array<SiteView> */ = R.compose(
+const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
   R.flatten,
   // Create SiteView objects from all siteFiles w/ it's fileName
   R.map(([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)),
@@ -219,10 +219,7 @@ const getAllSitesByEnv = (state: State, env: string): Array<SiteView> =>
     getAllSites,
   )(state);
 
-const getAllSitesBySiteGroup = (
-  state: State,
-  siteGroupName: string,
-): Array<SiteView> =>
+const getAllSitesBySiteGroup = (state: State, siteGroupName: string): Array<SiteView> =>
   R.compose(R.filter(R.propEq('sitegroup', siteGroupName)), getAllSites)(state);
 
 // TODO: ADD TESTS
