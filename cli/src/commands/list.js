@@ -4,16 +4,7 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import {
-  prepend,
-  pathOr,
-  propOr,
-  map,
-  compose,
-  // $FlowIssue: sortBy is not yet working: https://github.com/flowtype/flow-typed/blob/a9e64f62729fa4ecec82648f0a3f47afeff77574/definitions/npm/ramda_v0.x.x/flow_v0.34.x-/ramda_v0.x.x.js#L460-L462
-  sortBy,
-  toLower,
-} from 'ramda';
+import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
