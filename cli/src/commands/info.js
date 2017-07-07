@@ -94,7 +94,6 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const result = await runGQLQuery({
     query,
-    port: 80,
     variables: { sitegroup },
   });
 
@@ -213,8 +212,6 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
   `;
 
   const result = await runGQLQuery({
-    endpoint: 'http://api-develop-testhiera.appuio.amazeeio.review/graphql',
-    port: 80,
     query,
     variables: { sitegroup },
   });

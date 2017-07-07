@@ -3,6 +3,7 @@
 import path from 'path';
 import os from 'os';
 import url from 'url';
+import R from 'ramda';
 import { readFile, doesFileExist } from './util/fs';
 import request from './util/request';
 
@@ -39,7 +40,7 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
     }
   }
 
-  const { hostname, path: pathname, port } = url.parse(endpoint);
+  const { hostname, path: pathname, port: urlPort, protocol = 'https:' } = url.parse(endpoint);
 
   if (hostname == null) {
     throw new Error('Hostname required');
@@ -54,10 +55,15 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
     pretty ? 2 : 0,
   );
 
+  const protocolPorts = {
+    'https:': 443,
+    'http:': 80,
+  };
+
   const options = {
     hostname,
     path: pathname,
-    port: Number(port) || 443,
+    port: urlPort === null ? R.propOr(443, protocol)(protocolPorts) : Number(urlPort),
     method: 'POST',
     headers,
     body,
