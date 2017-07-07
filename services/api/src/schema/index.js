@@ -4,6 +4,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { getContext } from '../app';
 import type { Slack } from '../types';
 import type { ClientView, SiteGroupView, SiteView } from '../selectors';
+import GraphQLJSON from 'graphql-type-json';
 
 const typeDefs = `
   type SiteGroup {
@@ -19,6 +20,12 @@ const typeDefs = `
     type: String
     minute: String
   }
+
+  type BasicAuth {
+    username: String
+  }
+
+  scalar JSON
 
   type Site {
     id: String
@@ -36,6 +43,28 @@ const typeDefs = `
     SSLCertificateType: String
     cron: Cron
     solrEnabled: Boolean
+    drupalVersion: String
+    FPMProfile: String
+    domains: [String]
+    redirectDomains: [String]
+    redirects: JSON
+    dbUser: String
+    customCron: JSON
+    envVariables: JSON
+    noPrefixenvVariables: JSON
+    phpValues: JSON
+    phpAdminFlags: JSON
+    xdebug: String
+    nginxSitespecific: Boolean
+    nginxSiteconfig: String
+    redisEnabled: Boolean
+    sshKeys: JSON
+    phpVersion: String
+    redirectToHttps: String
+    ensure: JSON
+    upstreamURL: String
+    apc: String
+    basicAuth: BasicAuth
   }
 
   type Client {
@@ -70,6 +99,7 @@ const typeDefs = `
 `;
 
 const resolvers = {
+  JSON: GraphQLJSON,
   Query: {
     siteGroupByName: (_, args, req) => {
       const context = getContext(req);
@@ -149,8 +179,25 @@ const resolvers = {
     siteBranch: (site: SiteView) => site.site_branch,
     siteEnvironment: (site: SiteView) => site.site_environment,
     webRoot: (site: SiteView) => site.webroot,
-    solrEnabled: (site: SiteView) => site.solr_enabled,
     SSLCertificateType: (site: SiteView) => site.sslcerttype,
+    solrEnabled: (site: SiteView) => site.solr_enabled,
+    drupalVersion: (site: SiteView) => site.drupal_version,
+    FPMProfile: (site: SiteView) => site.fpm_profile,
+    redirectDomains: (site: SiteView) => site.redirect_domains,
+    dbUser: (site: SiteView) => site.db_user,
+    customCron: (site: SiteView) => site.custom_cron,
+    envVariables: (site: SiteView) => site.env_variables,
+    noPrefixenvVariables: (site: SiteView) => site.no_prefixenv_variables,
+    phpValues: (site: SiteView) => site.php_values,
+    phpAdminFlags: (site: SiteView) => site.php_admin_flags,
+    nginxSitespecific: (site: SiteView) => site.nginx_sitespecific,
+    nginxSiteconfig: (site: SiteView) => site.nginx_siteconfig,
+    redisEnabled: (site: SiteView) => site.redis_enabled,
+    sshKeys: (site: SiteView) => site.ssh_keys,
+    phpVersion: (site: SiteView) => site.php_version,
+    redirectToHttps: (site: SiteView) => site.redirect_to_https,
+    upstreamURL: (site: SiteView) => site.upstream_url,
+    basicAuth: (site: SiteView) => site.basic_auth,
   },
   Slack: {
     informStart: (slack: Slack) => slack.inform_start,

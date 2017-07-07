@@ -28,6 +28,10 @@ export type Slack = {
   +inform_channel: string,
 };
 
+export type BasicAuth = {
+  +username: string,
+};
+
 export type Site = {
   +sitegroup: string,
   +uid: number,
@@ -36,12 +40,29 @@ export type Site = {
   +site_environment: string,
   +domains: Array<string>,
   +sslcerttype: string,
-  +fpm_profile: string,
   +cron?: { type: string, minute: string },
   +php_flags: { [name: string]: mixed },
   +xdebug: string,
   +php_admin_values: { [key: string]: string },
   +solr_enabled?: boolean,
+  +drupal_version?: string,
+  +fpm_profile: string,
+  +redirect_domains: Array<string>,
+  +redirects: Array<string>,
+  +db_user: String,
+  +custom_cron: Object,
+  +env_variables: Object,
+  +no_prefixenv_variables: Object,
+  +php_values: Object,
+  +php_admin_flags: Object,
+  +nginx_sitespecific: Boolean,
+  +nginx_siteconfig: String,
+  +redis_enabled: Boolean,
+  +ssh_keys: Object,
+  +php_version: String,
+  +redirect_to_https: String,
+  +upstream_url: String,
+  +basic_auth: BasicAuth,
 };
 
 export type SiteGroup = {

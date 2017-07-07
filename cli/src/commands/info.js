@@ -160,51 +160,46 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
         gitUrl
-        sites(first: 1000) {
-          edges {
-            node {
-              id
-              siteHost
-              siteName
-              siteBranch
-              siteEnvironment
-              serverInfrastructure
-              serverIdentifier
-              serverNames
-              webRoot
-              drupalVersion
-              SSLCertificateType
-              FPMProfile
-              domains
-              redirectDomains
-              redirects
-              uid
-              dbUser
-              cron {
-                type
-                minute
-              }
-              customCron
-              envVariables
-              noPrefixenvVariables
-              phpValues
-              phpAdminFlags
-              xdebug
-              nginxSitespecific
-              nginxSiteconfig
-              solrEnabled
-              redisEnabled
-              sshKeys
-              phpVersion
-              redirectToHttps
-              ensure
-              upstreamURL
-              apc
-              basicAuth {
-                username
-              }
-              fullJson
-            }
+        sites {
+          id
+          siteHost
+          siteName
+          siteBranch
+          siteEnvironment
+          serverInfrastructure
+          serverIdentifier
+          serverNames
+          webRoot
+          drupalVersion
+          SSLCertificateType
+          FPMProfile
+          domains
+          redirectDomains
+          redirects
+          uid
+          dbUser
+          cron {
+            type
+            minute
+          }
+          customCron
+          envVariables
+          noPrefixenvVariables
+          phpValues
+          phpAdminFlags
+          xdebug
+          nginxSitespecific
+          nginxSiteconfig
+          solrEnabled
+          redisEnabled
+          sshKeys
+          phpVersion
+          redirectToHttps
+          ensure
+          upstreamURL
+          apc
+          basicAuth {
+            username
           }
         }
       }
@@ -234,8 +229,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   const nodes = compose(
     filter(matchesSiteAndBranch),
-    map(edge => prop('node', edge)),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+    pathOr([], ['data', 'siteGroupByName', 'sites']),
   )(result);
 
   if (nodes.length === 0) {
