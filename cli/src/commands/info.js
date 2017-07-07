@@ -110,11 +110,8 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
   }
 
   const sites = compose(
-    map((edge) => {
-      const { siteName, siteBranch } = prop(['node'], edge);
-      return `${siteName}:${siteBranch}`;
-    }),
-    pathOr([], ['data', 'siteGroupByName', 'sites', 'edges']),
+    map(({ siteName, siteBranch }) => `${siteName}:${siteBranch}`),
+    pathOr([], ['data', 'siteGroupByName', 'sites']),
   )(result);
 
   const formatSlack = (slack) => {

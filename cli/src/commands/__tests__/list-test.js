@@ -10,40 +10,30 @@ const _mock = (mockFn: any): JestMockFn => mockFn;
 const mockResponse = {
   data: {
     siteGroupByName: {
-      sites: {
-        edges: [
-          {
-            node: {
-              siteName: 'site1',
-              siteBranch: 'dev',
-              siteEnvironment: 'development',
-            },
-          },
-          {
-            node: {
-              siteName: 'site2',
-              siteBranch: 'dev',
-              siteEnvironment: 'development',
-            },
-          },
-          {
-            node: {
-              siteName: 'site1',
-              siteBranch: 'prod',
-              siteEnvironment: 'production',
-            },
-          },
-        ],
-      },
+      sites: [
+        {
+          siteName: 'site1',
+          siteBranch: 'dev',
+          siteEnvironment: 'development',
+        },
+        {
+          siteName: 'site2',
+          siteBranch: 'dev',
+          siteEnvironment: 'development',
+        },
+        {
+          siteName: 'site1',
+          siteBranch: 'prod',
+          siteEnvironment: 'production',
+        },
+      ],
     },
   },
 };
 
 describe('listSites', () => {
   it('should list sites as given by GraphQL', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const clog = jest.fn();
 
