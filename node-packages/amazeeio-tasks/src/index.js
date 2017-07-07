@@ -1,8 +1,8 @@
 // @flow
 
-
 import amqp from 'amqp-connection-manager';
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
+
 
 import type { ChannelWrapper } from './types';
 
