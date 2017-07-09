@@ -15,7 +15,7 @@ import type { ChannelWrapper } from './types';
 // Initialize the logging mechanism
 initLogger();
 
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqHost = process.env.RABBITMQ_HOST || "localhost"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 const port = process.env.PORT || 3000

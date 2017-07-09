@@ -17,7 +17,6 @@ initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
 
 const jenkins = jenkinsLib({ baseUrl: `${jenkinsurl}`, promisify: true});

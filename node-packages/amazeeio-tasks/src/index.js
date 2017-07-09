@@ -11,7 +11,7 @@ import { getActiveSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 
 export let sendToAmazeeioTasks = () => {};
 export let connection = () => {};
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqHost = process.env.RABBITMQ_HOST || "localhost"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 
