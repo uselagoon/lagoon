@@ -26,9 +26,8 @@ WORKDIR /app/services/openshiftremove/
 
 ARG AMAZEEIO_GIT_BRANCH=undefined
 
-ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BRANCH}-rabbitmq"
+ENV RABBITMQ_HOST "${AMAZEEIO_GIT_BRANCH}-rabbitmq"
 ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:3000"
-ENV JENKINS_URL "https://admin:fZk3bf7hsbZCQ4kYHeYkXYNitCoy6u3BbmZrm9FR@jenkins.amazeeio.cloud"
 
 RUN yarn run build
 

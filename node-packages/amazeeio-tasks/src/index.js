@@ -12,6 +12,8 @@ import { getActiveSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 export let sendToAmazeeioTasks = () => {};
 export let connection = () => {};
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 
 initLogger();
 
@@ -30,7 +32,7 @@ export class NoNeedToDeployBranch extends Error {
 }
 
 export function initSendToAmazeeioTasks() {
-	connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
+	const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
 
 	connection.on('connect', ({ url }) => logger.verbose('amazeeio-tasks: Connected to %s', url, { action: 'connected', url }));
 	connection.on('disconnect', params => logger.error('amazeeio-tasks: Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));

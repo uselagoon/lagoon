@@ -70,7 +70,7 @@ const messageConsumer = async msg => {
     if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
       jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
     } else {
-      jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+      jenkinsUrl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
     }
 
   } catch(error) {

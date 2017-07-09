@@ -16,8 +16,10 @@ import type { ChannelWrapper } from './types';
 initLogger();
 
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 const port = process.env.PORT || 3000
-const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
+const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
 
 connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { action: 'connected', url }));
 connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));

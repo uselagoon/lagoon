@@ -25,7 +25,7 @@ COPY . /app/services/rest2tasks/
 WORKDIR /app/services/rest2tasks/
 
 ARG AMAZEEIO_GIT_BRANCH=undefined
-ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BRANCH}-rabbitmq"
+ENV RABBITMQ_HOST "${AMAZEEIO_GIT_BRANCH}-rabbitmq"
 
 ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:3000"
 

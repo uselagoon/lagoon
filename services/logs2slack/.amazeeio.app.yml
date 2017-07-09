@@ -49,11 +49,16 @@ objects:
               cpu: 100m
               memory: 100Mi
           env:
-            - name: RABBITMQ_CREDENTIALS
+            - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
-                  key: RABBITMQ_CREDENTIALS
+                  name: secret-environment
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: RABBITMQ_PASSWORD
     test: false
     triggers:
     - type: ConfigChange

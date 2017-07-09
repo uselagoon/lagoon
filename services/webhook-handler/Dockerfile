@@ -25,7 +25,7 @@ COPY . /app/services/webhook-handler/
 WORKDIR /app/services/webhook-handler/
 
 ARG AMAZEEIO_GIT_BRANCH=undefined
-ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BRANCH}-rabbitmq"
+ENV RABBITMQ_HOST "${AMAZEEIO_GIT_BRANCH}-rabbitmq"
 
 RUN yarn run build
 
