@@ -12,8 +12,9 @@ import type { ChannelWrapper } from './types';
 // Initialize the logging mechanism
 initLogger();
 
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
-const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
+const rabbitmqHost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqCredentials = process.env.RABBITMQ_CREDENTIALS || "guest:guest"
+const connection = amqp.connect([`amqp://${rabbitmqCredentials}@${rabbitmqHost}`], { json: true });
 
 connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { action: 'connected', url }));
 connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));

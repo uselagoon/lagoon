@@ -48,6 +48,12 @@ objects:
             requests:
               cpu: 100m
               memory: 100Mi
+          env:
+            - name: RABBITMQ_CREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: RABBITMQ_CREDENTIALS
     test: false
     triggers:
     - type: ConfigChange
