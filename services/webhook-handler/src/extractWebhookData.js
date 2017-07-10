@@ -50,7 +50,7 @@ export default function extractWebhookData(req: Req, body?: string): WebhookRequ
       giturl = bodyObj.repository.ssh_url
     } else if ('x-gitlab-event' in req.headers) {
       webhooktype = 'gitlab'
-      event = req.headers['x-gitlab-event'].replace(/\s+/g, '_').toLowerCase()
+      event = bodyObj.object_kind
       uuid = bodyObj.checkout_sha
       giturl = bodyObj.project.git_ssh_url
     } else if ('x-event-key' in req.headers) {
