@@ -1,0 +1,18 @@
+{
+    "adminUids": [
+        "technology@amazee.io"
+    ],
+    "created": CREATED,
+    "customerId": "amazee",
+    "editorUids": [
+        "system:serviceaccount:amze-amazeeio-prod:jenkins",
+        "system:serviceaccount:amze-amazeeio:jenkins"
+    ],
+    "id": "PROJECTID",
+    "name": "PROJECTNAME",
+    "nodeSelector": "customer=amazee",
+    "productId": "unlimited:v1",
+    "requesterUid": "technology@amazee.io",
+    "type": "CUSTOMER",
+    "url": "https://console.appuio.ch/console/project/PROJECTID"
+}

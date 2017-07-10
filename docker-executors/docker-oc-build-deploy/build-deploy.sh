@@ -22,8 +22,15 @@ elif [ -f "/openshift-templates/${OPENSHIFT_TEMPLATE}" ]; then
   OPENSHIFT_TEMPLATE="/openshift-templates/${OPENSHIFT_TEMPLATE}"
 fi
 
-OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
-oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
+if [ "$OPENSHIFT_CONSOLE" == https://console.appuio.ch ] ; then
+  APPUIO_TOKEN=2DWwgzKSdwtHS6dH4Ft30kPS32ACBytU
+  CREATED=`date +%s`000
+  cat appuio.json | sed "s/CREATED/$CREATED/" | sed "s/PROJECTID/$OPENSHIFT_PROJECT" | sed "s/PROJECTNAME/"${SITEGROUP} / ${BRANCH}"  | \
+    curl -X POST -H "X-AccessToken: ${APPUIO_TOKEN}"   -H https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/
+else
+  OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
+  oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
+fi
 
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
