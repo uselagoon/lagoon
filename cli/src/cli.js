@@ -2,11 +2,10 @@
 
 // @flow
 
-/* eslint-disable no-console, no-process-exit, flowtype/no-types-missing-file-annotation */
-
 import 'babel-polyfill';
 import path from 'path';
 import yargs from 'yargs';
+import R from 'ramda';
 import { statSync, readFile } from './util/fs';
 import findConfig from './findConfig';
 import parseConfig from './parseConfig';
@@ -33,13 +32,16 @@ async function readConfig(cwd: string): Promise<?AmazeeConfig> {
  * Used for logging unexpected errors raised by subcommands
  */
 function errorQuit(err: Error | Object | string) {
-  if (err.stack) {
-    console.error('UNCAUGHT ERROR: %s', err.stack);
-  } else if (typeof err === 'object' && err !== null) {
-    console.error('UNCAUGHT ERROR: %s', JSON.stringify(err, null, 2));
-  } else {
-    console.error('UNCAUGHT ERROR:', err);
-  }
+  const stack = R.prop('stack', err);
+
+  const errorMessageArgs = R.cond([
+    [stack, ['UNCAUGHT ERROR: %s', stack]],
+    [typeof err === 'object' && err !== null, ['UNCAUGHT ERROR: %s', JSON.stringify(err, null, 2)]],
+    [R.T, ['UNCAUGHT ERROR:', err]],
+  ]);
+
+  // eslint-disable-next-line no-console
+  console.error(...errorMessageArgs);
 
   process.exit(1);
 }
@@ -53,6 +55,7 @@ export async function runCLI(cwd: string) {
     commands
       .reduce((cmdYargs, cmd) => {
         const { name, description, run, setup } = cmd;
+        // eslint-disable-next-line no-console
         const clog = console.log;
 
         const runFn = args =>
