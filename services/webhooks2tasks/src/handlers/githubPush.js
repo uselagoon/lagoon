@@ -35,11 +35,10 @@ export default async function githubPush(webhook: WebhookRequestData, siteGroup:
       sha: sha
     }
 
-    let logMessage = ''
+    let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
-      logMessage = `\`${meta.branch}\` (${sha.substring(0, 7)})`
-    } else {
-      logMessage = `\`${meta.branch}\``
+      const shortSha: string = sha.substring(0, 7)
+      logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
     }
 
     try {
