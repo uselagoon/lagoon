@@ -50,7 +50,7 @@ const messageConsumer = async msg => {
   let jenkinsUrl
 
   try {
-    var safeBranchname = branchName.replace('/','-')
+    var safeBranchname = branchName.replace('/\//g','-')
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
@@ -61,11 +61,11 @@ const messageConsumer = async msg => {
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
     var openshiftNamingPullRequests = typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined' ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}" || "${sitegroup}-${branch}"
     var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupOpenShift.siteGroup.siteGroupName
-    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('_','-')
+    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('/_/g','-')
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
-    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('_','-')
+    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('/_/g','-')
 
     if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
       jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
@@ -156,7 +156,7 @@ const messageConsumer = async msg => {
     `
   }
 
-  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace('_','-')
+  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace('/_/g','-')
   var buildName = gitSha ? gitSha.substring(0, 7) : branchName
   // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
   var gitRef = gitSha ? gitSha : `origin/${branchName}`

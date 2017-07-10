@@ -18,10 +18,10 @@ export default async function githubBranchDeleted(webhook: WebhookRequestData, s
       body,
     } = webhook;
 
-    const saveBranchname = body.ref.toLowerCase().replace('refs/heads/','').replace('/','-')
+    const saveBranchname = body.ref.toLowerCase().replace('refs/heads/','').replace('/\//g','-')
 
     const openshiftNamingPullRequests = (typeof siteGroup.openshift.naming !== 'undefined') ? siteGroup.openshift.naming.branch : "${sitegroup}-${branch}"
-    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', saveBranchname).replace('${sitegroup}', siteGroup.siteGroupName).replace('_','-')
+    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', saveBranchname).replace('${sitegroup}', siteGroup.siteGroupName).replace('/_/g','-')
 
     const meta = {
       branch: saveBranchname,
