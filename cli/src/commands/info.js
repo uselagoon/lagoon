@@ -4,7 +4,7 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import { path, pathOr, prop, forEach, map, join, compose, filter } from 'ramda';
+import { path, pathOr, forEach, map, join, compose, filter } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';

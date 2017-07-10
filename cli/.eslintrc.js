@@ -13,6 +13,6 @@ module.exports = {
     // Rule to restrict usage of confusing code style with mixed boolean operators. We disable this because Prettier removes "unnecessary parentheses" here and breaks this.
     'no-mixed-operators': 'off',
     // Rule to prevent prefixing of underscores on variable names. We disable this because we use some underscore prefixes in our code.
-    'no-underscore-dangle': 'off'
-  }
+    'no-underscore-dangle': 'off',
+  },
 };
