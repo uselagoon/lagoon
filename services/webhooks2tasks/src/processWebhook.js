@@ -91,6 +91,15 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
 
         break;
 
+      case "gitlab:push":
+        if (body.after == '0000000000000000000000000000000000000000' ) {
+          handle(gitlabBranchDeleted, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`)
+        } else {
+          handle(gitlabPush, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`)
+        }
+
+        break;
+
       default:
         unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`)
         break;
