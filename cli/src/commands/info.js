@@ -15,13 +15,11 @@ const tableConfig = {
   columns: {
     // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
     0: {
-      // eslint-disable-line quote-props
       alignment: 'left',
       minWidth: 15,
     },
     // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
     1: {
-      // eslint-disable-line quote-props
       alignment: 'left',
       minWidth: 15,
     },
