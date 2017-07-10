@@ -2,7 +2,6 @@
   uri:
     url: "{{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
     headers:
-      User-Agent: GitHub-Hookshot/eb03e36
       X-GitLab-Event: "Push Hook"
       content-type: application/json
     method: POST
