@@ -8,6 +8,8 @@ import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
 import githubPullRequestClosed from './handlers/githubPullRequestClosed';
 import githubBranchDeleted from './handlers/githubBranchDeleted';
 import githubPush from './handlers/githubPush';
+import gitlabBranchDeleted from './handlers/gitlabBranchDeleted';
+import gitlabPush from './handlers/gitlabPush';
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
