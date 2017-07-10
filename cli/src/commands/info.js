@@ -1,7 +1,5 @@
 // @flow
 
-/* eslint-disable no-console */
-
 import { table } from 'table';
 import { red } from 'chalk';
 import { path, pathOr, forEach, map, join, compose, filter } from 'ramda';
@@ -68,6 +66,7 @@ type SiteGroupInfoArgs = {
 };
 
 export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
+  // eslint-disable-next-line no-console
   const { sitegroup, clog = console.log } = args;
 
   const query = gql`
@@ -148,6 +147,7 @@ type SiteInfoArgs = {
 };
 
 export async function siteInfo(args: SiteInfoArgs): Promise<number> {
+  // eslint-disable-next-line no-console
   const { sitegroup, site, branch, clog = console.log } = args;
 
   // site[@branch]
@@ -292,6 +292,7 @@ type Args = BaseArgs & {
 };
 
 export async function run(args: Args): Promise<number> {
+  // eslint-disable-next-line no-console
   const { config, clog = console.log } = args;
 
   if (config == null) {
