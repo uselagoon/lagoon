@@ -211,6 +211,13 @@ node {
   ${getTokenStage}
 
   stage ('Deploy') {
+    println( [[name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]] )
+
+    def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
+    println("Status: "+response.status)
+    println("Content: "+response.content)
+    println("after")
+
     sh """docker run --rm \\
     ${dockerRunParam} \\
     -e GIT_REPO="${gitUrl}" \\

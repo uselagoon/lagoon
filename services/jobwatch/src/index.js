@@ -14,7 +14,7 @@ import Lokka from 'lokka';
 
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 
-let myhash = {};
+var jobdata = Object();
 
 initLogger();
 
@@ -49,9 +49,12 @@ await channelWrapper.sendToQueue('amazeeio:jobwatch', buffer, { persistent: true
 var watch = async function(message) {
   var payload = JSON.parse(message.content.toString())
   console.log('watch: got payload', payload)
-
 }
 
+
+var update_job = function( name, data ) {
+  jobdata[name] = data;
+}
 
 const app = express()
 const server = app.listen(process.env.PORT || 3000, () => {
@@ -63,84 +66,86 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(expressValidator());
 
-
-
-
 app.get('/', (req, res) => {
   return res.status(200).send('welcome to jobwatch')
 })
 
+// this function takes headers as it's easier for jenkins to send items that way.
 app.post('/job', async (req, res) => {
+  let jobname;
+  let buildnumber;
+  let jobevent;
+  let jenkinsUrl;
 
-  var sitegroupname =  req.body.sitegroupname
-  var branchname = req.body.branchname
-  var jobevent =  req.body.jobevent
-
-  const siteGroupOpenShift = await amazeeioAPI.query(`
-    {
-      siteGroup:siteGroupByName(name: "${sitegroupname}"){
-        openshift
-        client {
-          deployPrivateKey
-        }
-        gitUrl
-      }
-    }
-    `)
+  jobname = req.headers.jobname
+  buildnumber = req.headers.buildnumber
+  jobevent    = req.headers.jobevent || "ok"
 
 
-
-  var d = new Date();
-  mypush( {
+  update_job( jobname, {
     'event' : jobevent,
-    'when' :  d
+    'when' :  new Date(),
+    'buildnumber': buildnumber
   });
 
-  let jenkinsUrl
-
-  if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
-    jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
-  } else {
-    jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
-  }
 
 
-  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
+//  var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+//  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
 
-//   jenkins.job.list(function(err, data) {
-//     if (err) throw err;
-//
-//     console.log('jobs', data);
-//     for (var i in data) {
-//       console.log(data[i].name)
-//     }
-//   });
-console.log('------')
-jenkins.job.get('ci-node_subfolder1', function(err, data) {
-  if (err) throw err;
+   // jenkins.job.get(jobname, function(err, data) { console.log('job', data); });
 
-  //  console.log('job', data);
-  console.log(data.jobs[0]);
+//  jenkins.build.log(jobname, buildnumber, function(err, data) {
+//   if (err) {
+//     console.log('buildlog error', err) }
+//      else {
+//         console.log('build', data);  }
+//  });
+
+
+  res.status(200).type('json').send({"ok":"true"})
+
+
+//  if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
+//    jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
+//  } else {
+//    jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+//  }
+
+
+  // var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
+
 });
 
-  try {
-    res.status(200).type('json').send({"ok":"true"})
-    // const taskResult = await createDeployTask(data);
-    // res.status(200).type('json').send({ "ok": "true", "message": taskResult})
-    return;
-  } catch (error) {
-    switch (error.name) {
-      case "SiteGroupNotFound":
-      case "ActiveSystemsNotFound":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
-          return;
-        break;
 
-      default:
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
-          return;
-        break;
+var jobcheck = function() {
+  console.log('jobcheck:')
+  var d = new Date()
+  for (let build in jobdata) {
+    let job = jobdata[build]
+    let w = job['when']
+    let diff = (d - w) / 1000
+    if (diff > 10) {
+      console.log(" last update " + diff + " seconds ago.")
+      console.log("build:", build)
+      console.log(job)
+
+      var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+      var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
+
+
+      jenkins.build.log(build, job.buildnumber, function(err, data) {
+       if (err) {
+         console.log('buildlog error', err) }
+          else {
+             console.log('build', data);  }
+      });
+
     }
+
   }
 
-})
+}
+
+
+setInterval(jobcheck, 2000);
