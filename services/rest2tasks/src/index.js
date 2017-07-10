@@ -99,6 +99,11 @@ app.post('/deploy', async (req, res) => {
           return;
         break;
 
+      case "NoNeedToDeployBranch":
+          res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          return;
+        break;
+
       default:
           res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
           return;
