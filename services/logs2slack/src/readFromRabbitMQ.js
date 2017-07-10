@@ -66,14 +66,11 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
       sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg)
       break;
 
-    case "task:remove-openshift-resources:start":
-    case "task:deploy-openshift:start":
-      sendToSlack(sitegroup, message, '#E8E8E8', ':clock1:', channelWrapper, msg)
-      break;
-
     case "unresolvedSitegroup:webhooks2tasks":
     case "unhandledWebhook":
     case "webhooks:receive":
+    case "task:remove-openshift-resources:start":
+    case "task:deploy-openshift:start":
       // known logs entries that should never go to slack
       channelWrapper.ack(msg)
       break;
