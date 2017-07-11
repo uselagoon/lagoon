@@ -59,7 +59,7 @@ export function lstat(path: string): Promise<Stats> {
   });
 }
 
-export async function doesFileExist(file: string): Promise<boolean> {
+export async function fileExists(file: string): Promise<boolean> {
   try {
     const stats = await lstat(file);
 

@@ -1,6 +1,6 @@
 // @flow
 
-import { doesFileExist } from '../../util/fs';
+import { fileExists } from '../../util/fs';
 import { run } from '../init';
 
 jest.mock('fs');
@@ -13,7 +13,7 @@ function _mock(fn: any): JestMockFn {
 
 describe('run', () => {
   it('should bail on already existing config file', async () => {
-    _mock(doesFileExist).mockImplementationOnce(() => Promise.resolve(true));
+    _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
 
     const clog = jest.fn();
     const cwd = 'some/path';
@@ -31,7 +31,7 @@ describe('run', () => {
   });
 
   it('should write default yaml to given cwd + .amazeeio.yml', async () => {
-    _mock(doesFileExist).mockImplementationOnce(() => Promise.resolve(false));
+    _mock(fileExists).mockImplementationOnce(() => Promise.resolve(false));
 
     const clog = jest.fn();
     const cwd = 'some/path';

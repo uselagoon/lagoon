@@ -5,7 +5,7 @@
 import os from 'os';
 import path from 'path';
 import { sshConnect, sshExec } from '../util/ssh';
-import { readFile, deleteFile, doesFileExist } from '../util/fs';
+import { fileExists, readFile, unlink } from '../util/fs';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -35,8 +35,8 @@ export async function run(args: Args): Promise<number> {
 
   await sshExec(connection, 'logout');
   const tokenFilePath = path.join(homeDir, '.ioauth');
-  if (await doesFileExist(tokenFilePath)) {
-    await deleteFile(tokenFilePath);
+  if (await fileExists(tokenFilePath)) {
+    await unlink(tokenFilePath);
   }
 
   clog('Logout successful');

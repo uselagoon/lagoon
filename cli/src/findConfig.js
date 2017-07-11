@@ -1,7 +1,7 @@
 // @flow
 
 import path from 'path';
-import { doesFileExist } from './util/fs';
+import { fileExists } from './util/fs';
 import co from 'co';
 
 /* eslint-disable no-constant-condition */
@@ -15,7 +15,7 @@ function* walker(
 
   while (true) {
     const full = path.join(next, filename);
-    const exists = yield doesFileExist(full);
+    const exists = yield fileExists(full);
 
     if (exists) {
       return full;

@@ -7,7 +7,7 @@ import { runGQLQuery } from '../query';
 jest.mock('../util/request');
 
 jest.mock('../util/fs', () => ({
-  doesFileExist: jest.fn(async () => true),
+  fileExists: jest.fn(async () => true),
   readFile: jest.fn(async () => 'TOKEN'),
 }));
 

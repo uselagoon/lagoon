@@ -4,7 +4,7 @@
 
 import path from 'path';
 import writeDefaultConfig from '../writeDefaultConfig';
-import { doesFileExist } from '../util/fs';
+import { fileExists } from '../util/fs';
 import { exitError } from '../exit';
 
 import typeof Yargs from 'yargs';
@@ -24,8 +24,8 @@ export async function run(args: Args): Promise<number> {
 
   const filename = path.join(cwd, '.amazeeio.yml');
 
-  if (await doesFileExist(filename)) {
-    return exitError(clog, `File '${filename}' does already exist!`, 1);
+  if (await fileExists(filename)) {
+    return exitError(clog, `File '${filename}' already exist!`, 1);
   }
 
   try {

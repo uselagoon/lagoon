@@ -4,7 +4,7 @@ import path from 'path';
 import os from 'os';
 import url from 'url';
 import R from 'ramda';
-import { readFile, doesFileExist } from './util/fs';
+import { fileExists, readFile } from './util/fs';
 import request from './util/request';
 
 type QLQueryArgs = {
@@ -32,7 +32,7 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
 
   if (!headers.Authorization) {
     const tokenFile = path.join(os.homedir(), '.ioauth');
-    const tokenFileExists = await doesFileExist(tokenFile);
+    const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {
       const token = await readFile(tokenFile);

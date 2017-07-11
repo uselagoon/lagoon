@@ -4,11 +4,11 @@
 
 import path from 'path';
 import findConfig from '../findConfig';
-import { doesFileExist } from '../util/fs';
+import { fileExists } from '../util/fs';
 
 jest.mock('../util/fs');
 
-const doesFileExistMock = (configPath: ?string) => (file: string) => {
+const fileExistsMock = (configPath: ?string) => (file: string) => {
   const found = configPath != null && file === configPath;
   return Promise.resolve(found);
 };
@@ -19,8 +19,8 @@ function _mock(fn: any): JestMockFn {
 
 describe('findConfig', () => {
   it('should find config several levels above cwd', async () => {
-    _mock(doesFileExist).mockImplementation(
-      doesFileExistMock('/some/project/amazeeio.yml'),
+    _mock(fileExists).mockImplementation(
+      fileExistsMock('/some/project/amazeeio.yml'),
     );
 
     const cwd = path.resolve('/some/project/level1/level2/level3');
@@ -30,8 +30,8 @@ describe('findConfig', () => {
   });
 
   it('should start at root, check and return null', async () => {
-    _mock(doesFileExist).mockImplementation(
-      doesFileExistMock('/some/project/amazeeio.yml'),
+    _mock(fileExists).mockImplementation(
+      fileExistsMock('/some/project/amazeeio.yml'),
     );
     const cwd = path.resolve('/');
     const result = await findConfig('amazeeio.yml', cwd);
@@ -40,8 +40,8 @@ describe('findConfig', () => {
   });
 
   it('should step through subfolders until root and return null', async () => {
-    _mock(doesFileExist).mockImplementation(
-      doesFileExistMock('/some/sub/project/amazeeio.yml'),
+    _mock(fileExists).mockImplementation(
+      fileExistsMock('/some/sub/project/amazeeio.yml'),
     );
     const cwd = path.resolve('/some/sub');
     const result = await findConfig('amazeeio.yml', cwd);
