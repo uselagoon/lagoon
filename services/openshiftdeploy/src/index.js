@@ -184,12 +184,14 @@ node {
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
     -e SSH_PRIVATE_KEY="${deployPrivateKey}" \\
+    -e SAFE_BRANCH="${safeBranchName}" \\
     -e BRANCH="${branchName}" \\
     -e IMAGE=\${env.IMAGE} \\
+    -e SAFE_SITEGROUP="${safeSiteGroupName}" \\
     -e SITEGROUP="${siteGroupName}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
-    ${ocBuildDeployImageName} build-deploy-legacy"""
+    ${ocBuildDeployImageName}"""
   }
 
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
@@ -349,7 +351,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${siteGroupName}]* ${logMessage} ERROR:
 \`\`\`
 ${error}
