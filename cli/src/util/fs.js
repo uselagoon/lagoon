@@ -5,65 +5,27 @@
  */
 
 import fs from 'fs';
+// Polyfill for Node 8's util.promisify
+import promisify from 'util.promisify';
 
 import type { Stats } from 'fs';
 
-export function readFile(filename: string, enc?: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filename, enc || 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-}
-
-export function writeFile(
+type ReadFileFn = (filename: string, enc?: string) => Promise<string>;
+type WriteFileFn = (
   filename: string,
   data: Buffer | string,
   options?: Object | string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(filename, data, options, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
+) => Promise<void>;
+type UnlinkFn = (filename: string) => Promise<void>;
 
-export function deleteFile(filename: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    fs.unlink(filename, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-export function lstat(path: string): Promise<Stats> {
-  return new Promise((resolve, reject) => {
-    fs.lstat(path, (err, stat) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(stat);
-      }
-    });
-  });
-}
+export const readFile: ReadFileFn = promisify(fs.readFile);
+export const writeFile: WriteFileFn = promisify(fs.writeFile);
+export const unlink: UnlinkFn = promisify(fs.unlink);
 
 // TODO: @ryyppy Can we use something simpler like promisify(fs.access)?
 export async function fileExists(file: string): Promise<boolean> {
   try {
-    const stats = await lstat(file);
+    const stats: Stats = await promisify(fs.lstat)(file);
 
     if (stats.isFile()) {
       return true;

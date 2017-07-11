@@ -75,6 +75,7 @@
     "ssh2-streams": "^0.1.19",
     "table": "^4.0.1",
     "untildify": "^3.0.2",
+    "util.promisify": "^1.0.0",
     "yargs": "^8.0.2"
   },
   "jest": {
