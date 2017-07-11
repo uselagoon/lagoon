@@ -33,19 +33,19 @@ if [ "$OPENSHIFT_CONSOLE" == https://console.appuio.ch ] ; then
   cat appuio.json | sed "s/CREATED/$CREATED/" | sed "s/PROJECTID/$OPENSHIFT_PROJECT/" | sed "s/PROJECTNAME/${SITEGROUP} - ${BRANCH}/"  | \
     curl -d @- -X POST -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/"
 else
-  oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
+  oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="[${SITEGROUP}] ${BRANCH}"
 fi
 
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
-  -v BRANCH=${BRANCH} \
-  -v SITEGROUP=${SITEGROUP} \
+  -v BRANCH=${SAFE_BRANCH} \
+  -v SITEGROUP=${SAFE_SITEGROUP} \
   -v ROUTER_URL=${OPENSHIFT_ROUTER_URL} \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
-docker tag ${IMAGE} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:latest
+docker tag ${IMAGE} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/app:latest
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
-for i in {1..2}; do docker push ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG} && break || sleep 5; done
+for i in {1..2}; do docker push ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/app:latest && break || sleep 5; done
 
