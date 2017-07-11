@@ -39,7 +39,7 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
     await writeDefaultConfig(filepath);
     clog(green('Configuration file created!'));
   } catch (e) {
-    printErrors(clog, `Error occurred while writing to ${filepath}:`, e);
+    return printErrors(clog, `Error occurred while writing to ${filepath}:`, e);
   }
 
   return 0;
