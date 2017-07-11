@@ -21,7 +21,7 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
   const filename = path.join(cwd, '.amazeeio.yml');
 
   if (await fileExists(filename)) {
-    return exitError(clog, `File '${filename}' already exist!`);
+    return exitError(clog, `File '${filename}' already exists!`);
   }
 
   try {

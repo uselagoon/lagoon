@@ -3,7 +3,7 @@
 exports[`run should bail on already existing config file 1`] = `
 Array [
   Array [
-    "File 'some/path/.amazeeio.yml' does already exist!",
+    "File 'some/path/.amazeeio.yml' already exists!",
   ],
 ]
 `;
