@@ -23,9 +23,9 @@ export const writeFile: WriteFileFn = promisify(fs.writeFile);
 export const unlink: UnlinkFn = promisify(fs.unlink);
 
 // TODO: @ryyppy Can we use something simpler like promisify(fs.access)?
-export async function fileExists(file: string): Promise<boolean> {
+export async function fileExists(path: string): Promise<boolean> {
   try {
-    const stats: Stats = await promisify(fs.lstat)(file);
+    const stats: Stats = await promisify(fs.lstat)(path);
 
     if (stats.isFile()) {
       return true;

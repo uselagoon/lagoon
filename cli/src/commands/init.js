@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 
 import path from 'path';
+import inquirer from 'inquirer';
 import writeDefaultConfig from '../writeDefaultConfig';
 import { fileExists } from '../util/fs';
 import { exitError } from '../exit';
@@ -18,18 +19,18 @@ export async function setup(yargs: Yargs): Promise<Object> {
 }
 
 export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number> {
-  const filename = path.join(cwd, '.amazeeio.yml');
+  const filepath = path.join(cwd, '.amazeeio.yml');
 
-  if (await fileExists(filename)) {
-    return exitError(clog, `File '${filename}' already exists!`);
+  if (await fileExists(filepath)) {
+    return exitError(clog, `File '${filepath}' already exists!`);
   }
 
   try {
-    clog(`Creating file '${filename}'...`);
-    await writeDefaultConfig(filename);
+    clog(`Creating file '${filepath}'...`);
+    await writeDefaultConfig(filepath);
     clog('Writing Successful');
   } catch (e) {
-    clog(`Error occurred while writing to ${filename}:`);
+    clog(`Error occurred while writing to ${filepath}:`);
     clog(e.message);
     return 1;
   }
