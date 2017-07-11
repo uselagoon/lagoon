@@ -23,12 +23,13 @@ elif [ -f "/openshift-templates/${OPENSHIFT_TEMPLATE}" ]; then
 fi
 
 
-OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
-
 if [ "$OPENSHIFT_CONSOLE" == https://console.appuio.ch ] ; then
   APPUIO_TOKEN=2DWwgzKSdwtHS6dH4Ft30kPS32ACBytU
   CREATED=`date +%s`000
   APPUIO_ID="appuio public"
+
+  # check first if the project exists, if not try to create it
+  curl -f -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/${OPENSHIFT_PROJECT}" || \
   cat appuio.json | sed "s/CREATED/$CREATED/" | sed "s/PROJECTID/$OPENSHIFT_PROJECT/" | sed "s/PROJECTNAME/${SITEGROUP} - ${BRANCH}/"  | \
     curl -d @- -X POST -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/"
 else
@@ -40,7 +41,6 @@ oc process --insecure-skip-tls-verify \
   -f ${OPENSHIFT_TEMPLATE} \
   -v TAG=${TAG} \
   -v NAME=${NAME} \
-  -v SHORT_NAME=${SHORT_NAME} \
   -v SITEGROUP=${SITEGROUP} \
   -v ROUTER_URL=${OPENSHIFT_ROUTER_URL} \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
