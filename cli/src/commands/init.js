@@ -7,7 +7,7 @@ import { green } from 'chalk';
 import inquirer from 'inquirer';
 import writeDefaultConfig from '../writeDefaultConfig';
 import { fileExists } from '../util/fs';
-import { exitError } from '../exit';
+import { printErrors } from '../exit';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -31,7 +31,7 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
         default: false,
       },
     ]);
-    if (!replace) return exitError(clog, `Not replacing existing file '${filepath}'.`);
+    if (!replace) return printErrors(clog, `Not replacing existing file '${filepath}'.`);
   }
 
   try {
@@ -39,7 +39,7 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
     await writeDefaultConfig(filepath);
     clog(green('Configuration file created!'));
   } catch (e) {
-    exitError(clog, `Error occurred while writing to ${filepath}:`, e);
+    printErrors(clog, `Error occurred while writing to ${filepath}:`, e);
   }
 
   return 0;

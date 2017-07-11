@@ -6,7 +6,7 @@ import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { exitNoConfig, exitError, exitGraphQLError } from '../exit';
+import { printNoConfigError, printErrors, printGraphQLErrors } from '../exit';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -64,7 +64,7 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const { errors } = result;
   if (errors != null) {
-    return exitGraphQLError(clog, errors);
+    return printGraphQLErrors(clog, ...errors);
   }
 
   const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
@@ -125,7 +125,7 @@ export async function run(args: Args): Promise<number> {
   const { config, clog = console.log } = args;
 
   if (config == null) {
-    return exitNoConfig(clog);
+    return printNoConfigError(clog);
   }
 
   const [target] = args._.slice(1);
@@ -135,7 +135,7 @@ export async function run(args: Args): Promise<number> {
     case 'sites':
       return listSites({ sitegroup });
     default:
-      return exitError(clog, `Unknown target ${target} ... possible values: 'sites'`);
+      return printErrors(clog, `Unknown target ${target} ... possible values: 'sites'`);
   }
 }
 

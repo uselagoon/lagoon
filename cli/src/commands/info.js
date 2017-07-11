@@ -6,7 +6,7 @@ import { path, pathOr, forEach, map, join, compose, filter } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { exitNoConfig, exitGraphQLError } from '../exit';
+import { printNoConfigError, printGraphQLErrors } from '../exit';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -96,7 +96,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const { errors } = result;
   if (errors != null) {
-    return exitGraphQLError(clog, errors);
+    return printGraphQLErrors(clog, ...errors);
   }
 
   const sitegroupData = path(['data', 'siteGroupByName'])(result);
@@ -208,7 +208,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   const { errors } = result;
   if (errors != null) {
-    return exitGraphQLError(clog, errors);
+    return printGraphQLErrors(clog, ...errors);
   }
 
   // There might be a case where I just have one site + branch,
@@ -294,7 +294,7 @@ export async function run(args: Args): Promise<number> {
   const { config, clog = console.log } = args;
 
   if (config == null) {
-    return exitNoConfig(clog);
+    return printNoConfigError(clog);
   }
 
   const [siteAndBranch] = args._.slice(1);
