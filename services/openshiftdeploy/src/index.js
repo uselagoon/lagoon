@@ -189,7 +189,7 @@ node {
     -e SITEGROUP="${siteGroupName}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
-    ${ocBuildDeployImageName}"""
+    ${ocBuildDeployImageName} build-deploy-legacy"""
   }
 
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
