@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 
 import path from 'path';
+// import inquirer from 'inquirer';
 import writeDefaultConfig from '../writeDefaultConfig';
 import { fileExists } from '../util/fs';
 import { exitError } from '../exit';

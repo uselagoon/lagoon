@@ -36,7 +36,7 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
 
     if (tokenFileExists) {
       const token = await readFile(tokenFile);
-      headers.Authorization = `Bearer ${encodeURIComponent(token)}`;
+      headers.Authorization = `Bearer ${encodeURIComponent(token.toString())}`;
     }
   }
 
