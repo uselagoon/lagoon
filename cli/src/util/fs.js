@@ -10,7 +10,7 @@ import promisify from 'util.promisify';
 
 import type { Stats } from 'fs';
 
-type ReadFileFn = (filename: string, enc?: string) => Promise<string>;
+type ReadFileFn = (filename: string, enc?: string) => Promise<Buffer | string>;
 type WriteFileFn = (
   filename: string,
   data: Buffer | string,
