@@ -248,4 +248,4 @@ Retrying in ${retryExpirationSecs} secs`
   )
 }
 
-consumeTasks('remove-openshift-resources', messageConsumer, retryHandler, deathHandler)
+consumeTasks('remove-openshift-resources-legacy', messageConsumer, retryHandler, deathHandler)
