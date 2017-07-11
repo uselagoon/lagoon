@@ -21,7 +21,7 @@ export function exitGraphQLError(
   errors: Array<GraphQLError>,
   code?: number = 1,
 ): number {
-  clog(red('Oops! Server sent us some errors:'));
+  clog(red('Oops! The server returned errors:'));
   forEach(({ message }) => clog(`-> ${message}`), errors);
   return code;
 }
