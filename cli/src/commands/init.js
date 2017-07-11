@@ -34,9 +34,18 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
     if (!overwrite) return printErrors(clog, `Not overwriting existing file '${filepath}'.`);
   }
 
+  const configInput = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'sitegroup',
+      message: 'Enter the name of the sitegroup to configure.',
+      validate: input => (input ? Boolean(input) : 'Please enter a sitegroup.'),
+    },
+  ]);
+
   try {
     clog(`Creating file '${filepath}'...`);
-    await writeDefaultConfig(filepath);
+    await createConfig(filepath, configInput);
     clog(green('Configuration file created!'));
   } catch (e) {
     return printErrors(clog, `Error occurred while writing to ${filepath}:`, e);
