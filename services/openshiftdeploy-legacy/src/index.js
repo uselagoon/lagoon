@@ -50,7 +50,8 @@ const messageConsumer = async msg => {
   let jenkinsUrl
 
   try {
-    var safeBranchname = branchName.replace('/\//g','-')
+
+    var safeBranchname = branchName.replace(/\//g,'-')
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
@@ -61,11 +62,11 @@ const messageConsumer = async msg => {
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
     var openshiftNamingPullRequests = typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined' ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}" || "${sitegroup}-${branch}"
     var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupOpenShift.siteGroup.siteGroupName
-    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('/_/g','-')
+    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
-    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('/_/g','-')
+    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
 
     if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
       jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
@@ -156,7 +157,7 @@ const messageConsumer = async msg => {
     `
   }
 
-  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace('/_/g','-')
+  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace(/_/g,'-')
   var buildName = gitSha ? gitSha.substring(0, 7) : branchName
   // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
   var gitRef = gitSha ? gitSha : `origin/${branchName}`
@@ -191,7 +192,7 @@ node {
     -e SITEGROUP="${siteGroupName}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
-    ${ocBuildDeployImageName}"""
+    ${ocBuildDeployImageName} build-deploy-legacy"""
   }
 
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
@@ -351,7 +352,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${siteGroupName}]* ${logMessage} ERROR:
 \`\`\`
 ${error}
@@ -360,4 +361,4 @@ Retrying deployment in ${retryExpirationSecs} secs`
   )
 }
 
-consumeTasks('deploy-openshift', messageConsumer, retryHandler, deathHandler)
+consumeTasks('deploy-openshift-legacy', messageConsumer, retryHandler, deathHandler)
