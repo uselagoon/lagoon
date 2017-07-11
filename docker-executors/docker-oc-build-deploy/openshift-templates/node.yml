@@ -60,7 +60,7 @@ objects:
         - nodejs
         from:
           kind: ImageStreamTag
-          name: nodejs:latest
+          name: app:latest
       type: ImageChange
   status: {}
 - apiVersion: v1
