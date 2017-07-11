@@ -57,6 +57,7 @@ const messageConsumer = async msg => {
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
+    var appuioToken = siteGroupOpenShift.siteGroup.openshift.appuiotoken || ""
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
@@ -178,6 +179,7 @@ node {
     -e GIT_REF="${gitRef}" \\
     -e OPENSHIFT_CONSOLE="${openshiftConsole}" \\
     -e OPENSHIFT_REGISTRY="${openshiftRegistry}" \\
+    -e APPUIO_TOKEN="${appuioToken}" \\
     -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" \\
     -e OPENSHIFT_PROJECT="${openshiftProject}" \\
     -e OPENSHIFT_ROUTER_URL="${openshiftRessourceRouterUrl}" \\
