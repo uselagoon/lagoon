@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 
 import path from 'path';
+import { green } from 'chalk';
 import inquirer from 'inquirer';
 import writeDefaultConfig from '../writeDefaultConfig';
 import { fileExists } from '../util/fs';
@@ -36,7 +37,7 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
   try {
     clog(`Creating file '${filepath}'...`);
     await writeDefaultConfig(filepath);
-    clog('Writing Successful');
+    clog(green('Configuration file created!'));
   } catch (e) {
     exitError(clog, `Error occurred while writing to ${filepath}:`, e);
   }
