@@ -141,7 +141,7 @@ export async function createDeployTask(deployData) {
 				}
 			}
 		case 'lagoon_openshiftDeploy':
-			const deploySystemConfig = activeSystems.deploy['lagoon_openshift']
+			const deploySystemConfig = activeSystems.deploy['lagoon_openshiftDeploy']
 			if (type === 'branch') {
 				switch (deploySystemConfig.branches) {
 					case undefined:
