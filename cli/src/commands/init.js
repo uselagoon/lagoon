@@ -7,7 +7,7 @@ import { green } from 'chalk';
 import inquirer from 'inquirer';
 import writeDefaultConfig from '../writeDefaultConfig';
 import { fileExists } from '../util/fs';
-import { printErrors } from '../exit';
+import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';

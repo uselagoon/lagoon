@@ -6,7 +6,7 @@ import { path, pathOr, forEach, map, join, compose, filter } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { printNoConfigError, printGraphQLErrors } from '../exit';
+import { printNoConfigError, printGraphQLErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -293,6 +293,7 @@ export async function run(args: Args): Promise<number> {
   // eslint-disable-next-line no-console
   const { config, clog = console.log } = args;
 
+  // FIXME: doesn't handle empty config file case correctly
   if (config == null) {
     return printNoConfigError(clog);
   }
