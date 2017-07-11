@@ -7,7 +7,7 @@ type Clog = typeof console.log;
 type GraphQLError = { message: string };
 
 // FIXME: Improve naming
-export function exitError(clog: Clog, ...errors: Array<string>): number {
+export function exitError(clog: Clog, ...errors: Array<string | Error | GraphQLError>): number {
   R.compose(
     R.apply(clog),
     R.tail,
@@ -22,11 +22,5 @@ export function exitNoConfig(clog: Clog): number {
 }
 
 export function exitGraphQLError(clog: Clog, errors: Array<GraphQLError>): number {
-  R.compose(
-    R.apply(clog),
-    R.tail,
-    R.chain(err => ['\n', red(err)]),
-    R.prepend(red('Oops! The server returned errors:')),
-  )(errors);
-  return 1;
+  return exitError(clog, 'Oops! The server returned errors:', ...errors);
 }
