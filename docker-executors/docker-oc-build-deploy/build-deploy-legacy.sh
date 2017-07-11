@@ -18,8 +18,8 @@ docker build --build-arg AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA --build-arg AMAZEEIO
 if [ -f ".amazeeio.app.yml" ]; then
   OPENSHIFT_TEMPLATE=".amazeeio.app.yml"
 # If the given OpenShift Template exists, in our template folder, we use that, if not we assume it's an URL to download from
-elif [ -f "/openshift-templates/${OPENSHIFT_TEMPLATE}" ]; then
-  OPENSHIFT_TEMPLATE="/openshift-templates/${OPENSHIFT_TEMPLATE}"
+elif [ -f "/openshift-templates/legacy/${OPENSHIFT_TEMPLATE}" ]; then
+  OPENSHIFT_TEMPLATE="/openshift-templates/legacy/${OPENSHIFT_TEMPLATE}"
 fi
 
 #OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
