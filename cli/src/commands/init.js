@@ -16,13 +16,28 @@ const name = 'init';
 const description = 'Creates a .amazeeio.yml config in the current working directory';
 
 export async function setup(yargs: Yargs): Promise<Object> {
-  return yargs.usage(`$0 ${name} - ${description}`).argv;
+  return yargs.usage(`$0 ${name} - ${description}`).options({
+    overwrite: { describe: 'Overwrite the configuration file if it exists', default: false },
+    sitegroup: { describe: 'Name of sitegroup to configure', type: 'string', alias: 's' },
+  }).argv;
 }
 
-export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number> {
+type Args = BaseArgs & {
+  overwrite: ?boolean,
+  sitegroup: ?string,
+};
+
+export async function run({
+  cwd,
+  overwrite: overwriteOption,
+  sitegroup,
+  clog = console.log,
+}: Args): Promise<number> {
   const filepath = path.join(cwd, '.amazeeio.yml');
 
-  if (await fileExists(filepath)) {
+  const exists = await fileExists(filepath);
+
+  if (!overwriteOption && exists) {
     const { overwrite } = await inquirer.prompt([
       {
         type: 'confirm',
@@ -34,14 +49,16 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
     if (!overwrite) return printErrors(clog, `Not overwriting existing file '${filepath}'.`);
   }
 
-  const configInput = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'sitegroup',
-      message: 'Enter the name of the sitegroup to configure.',
-      validate: input => (input ? Boolean(input) : 'Please enter a sitegroup.'),
-    },
-  ]);
+  const configInput = sitegroup
+    ? { sitegroup }
+    : await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'sitegroup',
+        message: 'Enter the name of the sitegroup to configure.',
+        validate: input => (input ? Boolean(input) : 'Please enter a sitegroup.'),
+      },
+    ]);
 
   try {
     clog(`Creating file '${filepath}'...`);

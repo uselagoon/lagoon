@@ -23,10 +23,12 @@ Array [
 exports[`listSites should show error message if GraphQL returns errors 1`] = `
 Array [
   Array [
-    "[31mOops! The server returned errors:[39m",
+    "[31mOops! The amazee.io API returned an error:[39m",
   ],
   Array [
-    "-> Something, something missing parameter X",
+    "[31m{
+  \\"message\\": \\"Something, something missing parameter X\\"
+}[39m",
   ],
 ]
 `;

@@ -12,7 +12,8 @@ function _mock(fn: any): JestMockFn {
 }
 
 describe('run', () => {
-  it('should bail on already existing config file', async () => {
+  // TODO: Also write a test where it bails
+  it('should overwrite existing config file if overwrite option passed as true', async () => {
     _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
 
     const clog = jest.fn();
@@ -24,9 +25,11 @@ describe('run', () => {
       $0: '',
       cwd,
       clog,
+      overwrite: true,
+      sitegroup: 'test',
     });
 
-    expect(code).toBe(1);
+    expect(code).toBe(0);
     expect(clog.mock.calls).toMatchSnapshot();
   });
 
@@ -42,6 +45,8 @@ describe('run', () => {
       $0: '',
       cwd,
       clog,
+      overwrite: false,
+      sitegroup: 'test',
     });
 
     expect(code).toBe(0);

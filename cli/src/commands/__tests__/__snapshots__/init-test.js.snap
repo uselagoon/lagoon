@@ -1,9 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`run should bail on already existing config file 1`] = `
+exports[`run should overwrite existing config file if overwrite option passed as true 1`] = `
 Array [
   Array [
-    "File 'some/path/.amazeeio.yml' already exists!",
+    "Creating file 'some/path/.amazeeio.yml'...",
+  ],
+  Array [
+    "[32mConfiguration file created![39m",
   ],
 ]
 `;
@@ -14,7 +17,7 @@ Array [
     "Creating file 'some/path/.amazeeio.yml'...",
   ],
   Array [
-    "Writing Successful",
+    "[32mConfiguration file created![39m",
   ],
 ]
 `;
