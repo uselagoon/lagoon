@@ -44,7 +44,7 @@ oc process --insecure-skip-tls-verify \
   -v ROUTER_URL=${OPENSHIFT_ROUTER_URL} \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
-docker tag ${IMAGE} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG}
+docker tag ${IMAGE} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:latest
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
 for i in {1..2}; do docker push ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG} && break || sleep 5; done
