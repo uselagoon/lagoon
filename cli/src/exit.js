@@ -1,7 +1,7 @@
 // @flow
 
 import { red } from 'chalk';
-import { forEach } from 'ramda';
+import R from 'ramda';
 
 type Clog = typeof console.log;
 type GraphQLError = { message: string };
@@ -11,9 +11,15 @@ export function exitNoConfig(clog: Clog): number {
   return 1;
 }
 
-export function exitError(clog: Clog, message: string, code?: number = 1): number {
-  clog(message);
-  return code;
+export function exitError(clog: Clog, ...errors: Array<string>): number {
+  R.compose(
+    R.apply(clog),
+    R.tail,
+    R.flatten,
+    R.map(err => ['\n', err]),
+    R.map(err => (err.stack ? red(err.stack) : red(err))),
+  )(errors);
+  return 1;
 }
 
 export function exitGraphQLError(
@@ -22,6 +28,6 @@ export function exitGraphQLError(
   code?: number = 1,
 ): number {
   clog(red('Oops! The server returned errors:'));
-  forEach(({ message }) => clog(`-> ${message}`), errors);
+  R.forEach(err => clog('\n', err), errors);
   return code;
 }
