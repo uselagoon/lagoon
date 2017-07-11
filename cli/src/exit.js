@@ -6,28 +6,27 @@ import R from 'ramda';
 type Clog = typeof console.log;
 type GraphQLError = { message: string };
 
-export function exitNoConfig(clog: Clog): number {
-  clog('Could not find .amazeeio.yml config file');
-  return 1;
-}
-
+// FIXME: Improve naming
 export function exitError(clog: Clog, ...errors: Array<string>): number {
   R.compose(
     R.apply(clog),
     R.tail,
-    R.flatten,
-    R.map(err => ['\n', err]),
+    R.chain(err => ['\n', err]),
     R.map(err => (err.stack ? red(err.stack) : red(err))),
   )(errors);
   return 1;
 }
 
-export function exitGraphQLError(
-  clog: Clog,
-  errors: Array<GraphQLError>,
-  code?: number = 1,
-): number {
-  clog(red('Oops! The server returned errors:'));
-  R.forEach(err => clog('\n', err), errors);
-  return code;
+export function exitNoConfig(clog: Clog): number {
+  return exitError(clog, '.amazeeio.yml config file not found.');
+}
+
+export function exitGraphQLError(clog: Clog, errors: Array<GraphQLError>): number {
+  R.compose(
+    R.apply(clog),
+    R.tail,
+    R.chain(err => ['\n', red(err)]),
+    R.prepend(red('Oops! The server returned errors:')),
+  )(errors);
+  return 1;
 }
