@@ -1,6 +1,6 @@
 // @flow
 
-import writeDefaultConfig from '../writeDefaultConfig';
+import createConfig from '../createConfig';
 import { writeFile } from '../util/fs';
 
 jest.mock('../util/fs');
@@ -9,9 +9,9 @@ function _mock(fn: any): JestMockFn {
   return fn;
 }
 
-describe('writeDefaultConfig', () => {
+describe('createConfig', () => {
   it('should write default config to given path', async () => {
-    writeDefaultConfig('amazeeio.yml');
+    createConfig('amazeeio.yml', { sitegroup: 'your_sitegroup' });
 
     const [filename, data] = _mock(writeFile).mock.calls[0];
 

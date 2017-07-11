@@ -15,6 +15,6 @@ const DEFAULT_CONFIG: AmazeeConfig = {
 };
 
 export default function writeDefaultConfig(filepath: string): Promise<void> {
-  const yamlConfig = yaml.safeDump(DEFAULT_CONFIG);
-  return writeFile(filepath, yamlConfig);
+  const str = yaml.safeDump(DEFAULT_CONFIG);
+  return writeFile(filepath, str);
 }

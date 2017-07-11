@@ -5,7 +5,7 @@
 import path from 'path';
 import { green } from 'chalk';
 import inquirer from 'inquirer';
-import writeDefaultConfig from '../writeDefaultConfig';
+import createConfig from '../createConfig';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 
