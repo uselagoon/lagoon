@@ -19,7 +19,7 @@ export function printGraphQLErrors(clog: Clog, ...errors: Array<GraphQLError>): 
   const prettyErrors = R.map(error => JSON.stringify(error, null, 2), errors);
   const errorMessage =
     R.length(errors) === 1
-      ? 'Oops! The server returned an error:'
-      : 'Oops! The server returned errors:';
+      ? 'Oops! The amazee.io API returned an error:'
+      : 'Oops! The amazee.io API returned errors:';
   return printErrors(clog, errorMessage, ...prettyErrors);
 }
