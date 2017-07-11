@@ -77,6 +77,9 @@ services:
       - JENKINS_URL=http://admin:admin@jenkins:8080
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
+    volumes:
+      - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
+      - ./node-packages:/app/node-packages
   openshiftdeploy-legacy:
     build: services/openshiftdeploy-legacy
     command: bash -c "yarn run link-node-packages && yarn run dev"
