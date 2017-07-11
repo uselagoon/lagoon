@@ -23,15 +23,15 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
   const filepath = path.join(cwd, '.amazeeio.yml');
 
   if (await fileExists(filepath)) {
-    const { replace } = await inquirer.prompt([
+    const { overwrite } = await inquirer.prompt([
       {
         type: 'confirm',
-        name: 'replace',
-        message: `File '${filepath}' already exists! Replace?`,
+        name: 'overwrite',
+        message: `File '${filepath}' already exists! Overwrite?`,
         default: false,
       },
     ]);
-    if (!replace) return printErrors(clog, `Not replacing existing file '${filepath}'.`);
+    if (!overwrite) return printErrors(clog, `Not overwriting existing file '${filepath}'.`);
   }
 
   try {
