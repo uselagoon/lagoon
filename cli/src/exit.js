@@ -8,12 +8,7 @@ type GraphQLError = { message: string };
 
 // FIXME: Improve naming
 export function exitError(clog: Clog, ...errors: Array<string | Error | GraphQLError>): number {
-  R.compose(
-    R.apply(clog),
-    R.tail,
-    R.chain(err => ['\n', err]),
-    R.map(err => (err.stack ? red(err.stack) : red(err))),
-  )(errors);
+  R.compose(R.forEach(clog), R.map(err => (err.stack ? red(err.stack) : red(err))))(errors);
   return 1;
 }
 
