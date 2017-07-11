@@ -17,11 +17,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
   return yargs.usage(`$0 ${name} - ${description}`).argv;
 }
 
-type Args = BaseArgs;
-
-export async function run(args: Args): Promise<number> {
-  const { cwd, clog = console.log } = args;
-
+export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number> {
   const filename = path.join(cwd, '.amazeeio.yml');
 
   if (await fileExists(filename)) {
