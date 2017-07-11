@@ -24,6 +24,7 @@ fi
 
 
 if [ "$OPENSHIFT_CONSOLE" == https://console.appuio.ch ] ; then
+  OPENSHIFT_PROJECT="amze-${OPENSHIFT_PROJECT}"
   APPUIO_TOKEN=2DWwgzKSdwtHS6dH4Ft30kPS32ACBytU
   CREATED=`date +%s`000
   APPUIO_ID="appuio public"
