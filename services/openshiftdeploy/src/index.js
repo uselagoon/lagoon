@@ -49,10 +49,7 @@ const messageConsumer = async msg => {
 
   let jenkinsUrl
 
-const ocsafety= function(s) {
-  return s.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
-}
-
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
   try {
     var safeBranchName = ocsafety(branchName)
@@ -65,9 +62,7 @@ const ocsafety= function(s) {
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftTemplate = siteGroupOpenShift.siteGroup.openshift.template
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
-    var openshiftNamingPullRequests = typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined' ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}" || "${sitegroup}-${branch}"
-    var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || safeSitegroup + '-' + safeBranchName;
-    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchName).replace('${sitegroup}', safeSiteGroupName);
+    var openshiftProject = `${safeSiteGroupName}-${safeBranchName}`
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
@@ -189,11 +184,8 @@ node {
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
     -e SSH_PRIVATE_KEY="${deployPrivateKey}" \\
-    -e TAG="${safeBranchName}" \\
     -e BRANCH="${branchName}" \\
     -e IMAGE=\${env.IMAGE} \\
-    -e NAME="${openshiftRessourceAppName}" \\
-    -e SHORT_NAME="${shortName}" \\
     -e SITEGROUP="${siteGroupName}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
@@ -203,7 +195,7 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", namespace: "${openshiftRessourceAppName}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "app", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
   }
 
 }`
@@ -212,7 +204,7 @@ node {
   `<?xml version='1.0' encoding='UTF-8'?>
   <flow-definition plugin="workflow-job@2.7">
     <actions/>
-    <description>${openshiftRessourceAppName}</description>
+    <description>${safeBranchName}</description>
     <keepDependencies>false</keepDependencies>
     <properties>
       <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -228,7 +220,7 @@ node {
 
   var foldername = `${siteGroupName}`
 
-  var jobname = `${foldername}/deploy-${openshiftRessourceAppName}`
+  var jobname = `${foldername}/deploy-${safeBranchName}`
 
   const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true});
 

@@ -39,8 +39,7 @@ fi
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
-  -v TAG=${TAG} \
-  -v NAME=${NAME} \
+  -v BRANCH=${BRANCH} \
   -v SITEGROUP=${SITEGROUP} \
   -v ROUTER_URL=${OPENSHIFT_ROUTER_URL} \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
