@@ -48,15 +48,24 @@ export function initSendToAmazeeioTasks() {
 				channel.assertQueue('amazeeio-tasks:deploy-openshift', { durable: true }),
 				channel.bindQueue('amazeeio-tasks:deploy-openshift', 'amazeeio-tasks', 'deploy-openshift'),
 
+				channel.assertQueue('amazeeio-tasks:deploy-openshift-legacy', { durable: true }),
+				channel.bindQueue('amazeeio-tasks:deploy-openshift-legacy', 'amazeeio-tasks', 'deploy-openshift-legacy'),
+
 				// Queue for messages with `remove-openshift-resources` routing key
 				channel.assertQueue('amazeeio-tasks:remove-openshift-resources', { durable: true }),
 				channel.bindQueue('amazeeio-tasks:remove-openshift-resources', 'amazeeio-tasks', 'remove-openshift-resources'),
+
+
+				channel.assertQueue('amazeeio-tasks:remove-openshift-resources-legacy', { durable: true }),
+				channel.bindQueue('amazeeio-tasks:remove-openshift-resources-legacy', 'amazeeio-tasks', 'remove-openshift-resources-legacy'),
 
 				// wait queues for handling retries
 				channel.assertExchange('amazeeio-tasks-retry', 'direct', { durable: true }),
 				channel.assertQueue('amazeeio-tasks:retry-queue', { durable: true, arguments: { 'x-dead-letter-exchange': 'amazeeio-tasks' } }),
 				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'deploy-openshift'),
 				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'remove-openshift-resources'),
+				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'deploy-openshift-legacy'),
+				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'remove-openshift-resources-legacy),
 			]);
 		},
 	});
@@ -105,6 +114,33 @@ export async function createDeployTask(deployData) {
 
 	switch (activeDeploySystem) {
 		case 'lagoon_openshift':
+		case 'lagoon_openshiftLegacy':
+			// this is the old legacy system which does not create projects
+			const deploySystemConfig = activeSystems.deploy['lagoon_openshift']
+			if (type === 'branch') {
+				switch (deploySystemConfig.branches) {
+					case undefined:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
+						return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
+					case true:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
+						return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
+					case false:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
+						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
+					default:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
+						let branchRegex = new RegExp(deploySystemConfig.branches);
+						if (branchRegex.test(branchName)) {
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
+							return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
+						} else {
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
+							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
+						}
+				}
+			}
+		case 'lagoon_openshiftDeploy':
 			const deploySystemConfig = activeSystems.deploy['lagoon_openshift']
 			if (type === 'branch') {
 				switch (deploySystemConfig.branches) {
@@ -157,7 +193,12 @@ export async function createRemoveTask(removeData) {
 	const activeRemoveSystem = Object.keys(activeSystems.remove)[0]
 
 	switch (activeRemoveSystem) {
+		case 'lagoon_openshiftLegacy':
 		case 'lagoon_openshift':
+			// this is the old legacy system that tries to remove resources within one shared project
+			return sendToAmazeeioTasks('remove-openshift-resources-legacy', removeData);
+
+		case 'lagoon_openshiftRemove':
 			return sendToAmazeeioTasks('remove-openshift-resources', removeData);
 
 		default:
