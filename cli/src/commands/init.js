@@ -38,9 +38,7 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
     await writeDefaultConfig(filepath);
     clog('Writing Successful');
   } catch (e) {
-    clog(`Error occurred while writing to ${filepath}:`);
-    clog(e.message);
-    return 1;
+    exitError(clog, `Error occurred while writing to ${filepath}:`, e);
   }
 
   return 0;
