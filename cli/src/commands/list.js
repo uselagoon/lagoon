@@ -135,7 +135,7 @@ export async function run(args: Args): Promise<number> {
     case 'sites':
       return listSites({ sitegroup });
     default:
-      return exitError(clog, `Unknown target ${target} ... possible values: 'sites'`, 1);
+      return exitError(clog, `Unknown target ${target} ... possible values: 'sites'`);
   }
 }
 
