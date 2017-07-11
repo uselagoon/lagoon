@@ -22,7 +22,15 @@ export async function run({ cwd, clog = console.log }: BaseArgs): Promise<number
   const filepath = path.join(cwd, '.amazeeio.yml');
 
   if (await fileExists(filepath)) {
-    return exitError(clog, `File '${filepath}' already exists!`);
+    const { replace } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'replace',
+        message: `File '${filepath}' already exists! Replace?`,
+        default: false,
+      },
+    ]);
+    if (!replace) return exitError(clog, `Not replacing existing file '${filepath}'.`);
   }
 
   try {
