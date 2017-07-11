@@ -17,5 +17,10 @@ export function exitNoConfig(clog: Clog): number {
 }
 
 export function exitGraphQLError(clog: Clog, errors: Array<GraphQLError>): number {
-  return exitError(clog, 'Oops! The server returned errors:', ...errors);
+  const prettyErrors = R.map(error => JSON.stringify(error, null, 2), errors);
+  const errorMessage =
+    R.length(errors) === 1
+      ? 'Oops! The server returned an error:'
+      : 'Oops! The server returned errors:';
+  return exitError(clog, errorMessage, ...prettyErrors);
 }
