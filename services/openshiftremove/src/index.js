@@ -44,10 +44,11 @@ const messageConsumer = async function(msg) {
 
   try {
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
+    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
-    var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupName
+    var openshiftProject = openshiftIsAppuio ? `amze-${openshiftRessourceAppName}` : `${openshiftRessourceAppName}`
   } catch(error) {
     logger.warn(`Cannot find openshift token and console information for sitegroup ${siteGroupName}`)
     throw(error)
@@ -103,7 +104,7 @@ const messageConsumer = async function(msg) {
 
     stage ('oc delete') {
       sh """
-        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete project ${openshiftRessourceAppName}
+        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete project ${openshiftProject}
       """
     }
   }
