@@ -50,6 +50,20 @@ services:
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages
+  openshiftremove-legacy:
+    build: services/openshiftremove-legacy
+    command: bash -c "yarn run link-node-packages && yarn run dev"
+    links:
+      - rabbitmq
+      - api
+      - jenkins
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:3000
+      - JENKINS_URL=http://admin:admin@jenkins:8080
+    volumes:
+      - ./services/openshiftremove-legacy/src:/app/services/openshiftremove/src
+      - ./node-packages:/app/node-packages
   openshiftdeploy:
     build: services/openshiftdeploy
     command: bash -c "yarn run link-node-packages && yarn run dev"
@@ -65,6 +79,22 @@ services:
       - DOCKER_RUN_PARARM=--network=lagoon_default
     volumes:
       - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
+      - ./node-packages:/app/node-packages
+  openshiftdeploy-legacy:
+    build: services/openshiftdeploy-legacy
+    command: bash -c "yarn run link-node-packages && yarn run dev"
+    links:
+      - rabbitmq
+      - api
+      - jenkins
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - AMAZEEIO_API_HOST=http://api:3000
+      - JENKINS_URL=http://admin:admin@jenkins:8080
+      - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
+      - DOCKER_RUN_PARARM=--network=lagoon_default
+    volumes:
+      - ./services/openshiftdeploy-legacy/src:/app/services/openshiftdeploy/src
       - ./node-packages:/app/node-packages
   logs2slack:
     build: services/logs2slack
@@ -118,7 +148,7 @@ services:
   jenkins:
     build: services/jenkins
     environment:
-      - ADMIN_PASSWORD=admin
+      - JENKINS_ADMIN_PASSWORD=admin
     ports:
       - "8888:8080"
   jenkins-slave:

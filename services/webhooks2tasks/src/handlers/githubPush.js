@@ -10,7 +10,7 @@ import { getEnabledSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 
 import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
 
-export default async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper) {
+export default async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -35,28 +35,28 @@ export default async function githubPush(webhook: WebhookRequestData, siteGroup:
       sha: sha
     }
 
-    let logMessage = ''
+    let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
-      logMessage = `\`${meta.branch}\` (${sha.substring(0, 7)})`
-    } else {
-      logMessage = `\`${meta.branch}\``
+      const shortSha: string = sha.substring(0, 7)
+      logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
     }
-
-    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
-      `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}>`
-    )
 
     try {
       const taskResult = await createDeployTask(data);
-      logger.verbose(taskResult)
+      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}>`
+      )
       return;
     } catch (error) {
       switch (error.name) {
         case "SiteGroupNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
-          // These are not real errors and also they will happen many times. We just log them locally but will ack the message
-          logger.verbose(error)
+        case "NoNeedToDeployBranch":
+          // These are not real errors and also they will happen many times. We just log them locally but not throw an error
+          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${siteGroup.siteGroupName}]* ${logMessage}. No deploy task created, reason: ${error}`
+          )
           return;
 
         default:

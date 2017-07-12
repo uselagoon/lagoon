@@ -8,7 +8,7 @@ import { createRemoveTask } from '@amazeeio/amazeeio-tasks';
 
 import type { WebhookRequestData, removeOpenshiftResourcesData, ChannelWrapper, SiteGroup } from '../types';
 
-export default async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper) {
+export default async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -19,7 +19,7 @@ export default async function githubPullRequestClosed(webhook: WebhookRequestDat
     } = webhook;
 
     const openshiftNamingPullRequests = (typeof siteGroup.openshift.naming !== 'undefined') ? siteGroup.openshift.naming.pullrequest : "${sitegroup}-pr-${number}"
-    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', body.number).replace('${sitegroup}', siteGroup.siteGroupName)
+    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', body.number).replace('${sitegroup}', siteGroup.siteGroupName).replace(/_/g,'-')
 
     const meta = {
       prNumber: body.number
@@ -30,21 +30,21 @@ export default async function githubPullRequestClosed(webhook: WebhookRequestDat
       openshiftRessourceAppName: openshiftRessourceAppName
     }
 
-    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:closed:receive`, meta,
-      `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
-    )
-
     try {
       const taskResult = await createRemoveTask(data);
-      logger.verbose(taskResult)
+      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:closed:handled`, meta,
+        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
+      )
       return;
     } catch (error) {
       switch (error.name) {
         case "SiteGroupNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
-          // These are not real errors and also they will happen many times. We just log them locally but will ack the message
-          logger.verbose(error)
+          // These are not real errors and also they will happen many times. We just log them locally but not throw an error
+          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${siteGroup.siteGroupName}]* PR ${body.number} closed. No remove task created, reason: ${error}`
+          )
           return;
 
         default:

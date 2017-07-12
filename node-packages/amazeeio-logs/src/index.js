@@ -8,10 +8,12 @@ import type { ChannelWrapper } from './types';
 initLogger();
 
 export let sendToAmazeeioLogs = () => {};
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqHost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 
 export function initSendToAmazeeioLogs() {
-	const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
+	const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
 
 	connection.on('connect', ({ url }) => logger.verbose('amazeeio-logs: Connected to %s', url, { action: 'connected', url }));
 	connection.on('disconnect', params => logger.error('amazeeio-logs: Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));

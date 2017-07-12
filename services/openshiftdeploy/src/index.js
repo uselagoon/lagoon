@@ -49,28 +49,31 @@ const messageConsumer = async msg => {
 
   let jenkinsUrl
 
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+
   try {
-    var safeBranchname = branchName.replace('/','-')
+    var safeBranchName = ocsafety(branchName)
+    var safeSiteGroupName = ocsafety(siteGroupName)
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
+    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
+    var appuioToken = siteGroupOpenShift.siteGroup.openshift.appuiotoken || ""
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftTemplate = siteGroupOpenShift.siteGroup.openshift.template
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
-    var openshiftNamingPullRequests = typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined' ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}" || "${sitegroup}-${branch}"
-    var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupOpenShift.siteGroup.siteGroupName
-    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('_','-')
+    var openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
-    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('_','-')
+    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName)
 
     if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
       jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
     } else {
-      jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+      jenkinsUrl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
     }
 
   } catch(error) {
@@ -156,7 +159,7 @@ const messageConsumer = async msg => {
     `
   }
 
-  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace('_','-')
+  var shortName = `${safeBranchName}-${safeSiteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '')
   var buildName = gitSha ? gitSha.substring(0, 7) : branchName
   // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
   var gitRef = gitSha ? gitSha : `origin/${branchName}`
@@ -177,17 +180,17 @@ node {
     -e GIT_REF="${gitRef}" \\
     -e OPENSHIFT_CONSOLE="${openshiftConsole}" \\
     -e OPENSHIFT_REGISTRY="${openshiftRegistry}" \\
+    -e APPUIO_TOKEN="${appuioToken}" \\
     -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" \\
     -e OPENSHIFT_PROJECT="${openshiftProject}" \\
     -e OPENSHIFT_ROUTER_URL="${openshiftRessourceRouterUrl}" \\
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
     -e SSH_PRIVATE_KEY="${deployPrivateKey}" \\
-    -e TAG="${safeBranchname}" \\
+    -e SAFE_BRANCH="${safeBranchName}" \\
     -e BRANCH="${branchName}" \\
     -e IMAGE=\${env.IMAGE} \\
-    -e NAME="${openshiftRessourceAppName}" \\
-    -e SHORT_NAME="${shortName}" \\
+    -e SAFE_SITEGROUP="${safeSiteGroupName}" \\
     -e SITEGROUP="${siteGroupName}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
@@ -197,7 +200,7 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "app", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
   }
 
 }`
@@ -206,7 +209,7 @@ node {
   `<?xml version='1.0' encoding='UTF-8'?>
   <flow-definition plugin="workflow-job@2.7">
     <actions/>
-    <description>${openshiftRessourceAppName}</description>
+    <description>${safeBranchName}</description>
     <keepDependencies>false</keepDependencies>
     <properties>
       <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -222,7 +225,7 @@ node {
 
   var foldername = `${siteGroupName}`
 
-  var jobname = `${foldername}/deploy-${openshiftRessourceAppName}`
+  var jobname = `${foldername}/deploy-${safeBranchName}`
 
   const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true});
 
@@ -351,7 +354,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${siteGroupName}]* ${logMessage} ERROR:
 \`\`\`
 ${error}
