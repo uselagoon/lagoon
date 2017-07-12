@@ -56,6 +56,7 @@ const messageConsumer = async msg => {
     var safeSiteGroupName = ocsafety(siteGroupName)
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
+    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
     var appuioToken = siteGroupOpenShift.siteGroup.openshift.appuiotoken || ""
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
@@ -63,7 +64,7 @@ const messageConsumer = async msg => {
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftTemplate = siteGroupOpenShift.siteGroup.openshift.template
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
-    var openshiftProject = `${safeSiteGroupName}-${safeBranchName}`
+    var openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
