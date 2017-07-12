@@ -9,7 +9,8 @@
         "system:serviceaccount:amze-amazeeio:jenkins"
     ],
     "id": "PROJECTID",
-    "name": "PROJECTNAME",
+    "name": "PROJECTID",
+    "description": "PROJECTDESCRIPTION",
     "nodeSelector": "customer=amazee",
     "productId": "unlimited:v1",
     "requesterUid": "technology@amazee.io",

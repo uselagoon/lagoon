@@ -1,5 +1,7 @@
 #!/bin/bash -xe
 
+set -o pipefail
+
 git-checkout-pull $GIT_REPO $GIT_REF
 
 pushd $OPENSHIFT_FOLDER
@@ -24,14 +26,13 @@ fi
 
 
 if [ "$OPENSHIFT_CONSOLE" == https://console.appuio.ch ] ; then
-  OPENSHIFT_PROJECT="amze-${OPENSHIFT_PROJECT}"
   CREATED=`date +%s`000
   APPUIO_ID="appuio public"
 
   # check first if the project exists, if not try to create it
-  curl -f -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/${OPENSHIFT_PROJECT}" || \
-  cat appuio.json | sed "s/CREATED/$CREATED/" | sed "s/PROJECTID/$OPENSHIFT_PROJECT/" | sed "s/PROJECTNAME/${SITEGROUP} - ${BRANCH}/"  | \
-    curl -d @- -X POST -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/"
+  curl -s -f -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/${OPENSHIFT_PROJECT}" || \
+  cat /appuio/appuio.json | sed "s/CREATED/$CREATED/" | sed "s/PROJECTID/$OPENSHIFT_PROJECT/" | sed "s/PROJECTDESCRIPTION/[${SITEGROUP//\//\\/}] ${BRANCH//\//\\/}/"  | \
+    curl -s -d @- -X POST -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/"
 else
   oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="[${SITEGROUP}] ${BRANCH}"
 fi
