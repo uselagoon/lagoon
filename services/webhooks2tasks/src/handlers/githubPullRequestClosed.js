@@ -19,7 +19,7 @@ export default async function githubPullRequestClosed(webhook: WebhookRequestDat
     } = webhook;
 
     const openshiftNamingPullRequests = (typeof siteGroup.openshift.naming !== 'undefined') ? siteGroup.openshift.naming.pullrequest : "${sitegroup}-pr-${number}"
-    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', body.number).replace('${sitegroup}', siteGroup.siteGroupName)
+    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', body.number).replace('${sitegroup}', siteGroup.siteGroupName).replace(/_/g,'-')
 
     const meta = {
       prNumber: body.number
