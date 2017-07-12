@@ -41,7 +41,7 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
     } else {
       // we have an error that we don't know about, let's retry this message a little later
 
-      const retryCount = (rabbitMsg.properties.headers["x-death"] && rabbitMsg.properties.headers["x-death"][0]['count']) ? (rabbitMsg.properties.headers["x-death"][0]['count'] + 1) : 1
+			const retryCount = rabbitMsg.properties.headers["x-retry"] ? (rabbitMsg.properties.headers["x-retry"] + 1) : 1
 
 			if (retryCount > 3) {
         sendToAmazeeioLogs('error', '', uuid, "webhooks2tasks:resolveSitegroup:fail", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading sitegroup for GitURL '${giturl}', bailing after 3 retries, error was: ${error}`)
@@ -49,10 +49,10 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
 				return
 			}
 
-			const retryExpirationSecs = Math.pow(10, retryCount);
-			const retryExpirationMilisecs = retryExpirationSecs * 1000;
+			const retryDelaySecs = Math.pow(10, retryCount);
+			const retryDelayMilisecs = retryDelaySecs * 1000;
 
-      sendToAmazeeioLogs('warn', '', uuid, "webhooks2tasks:resolveSitegroup:retry", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading sitegroup for GitURL '${giturl}', will try again in ${retryExpirationSecs} secs, error was: ${error}`)
+      sendToAmazeeioLogs('warn', '', uuid, "webhooks2tasks:resolveSitegroup:retry", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading sitegroup for GitURL '${giturl}', will try again in ${retryDelaySecs} secs, error was: ${error}`)
 
 			// copying options from the original message
 			const retryMsgOptions = {
@@ -60,13 +60,12 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
 				timestamp: rabbitMsg.properties.timestamp,
 				contentType: rabbitMsg.properties.contentType,
 				deliveryMode: rabbitMsg.properties.deliveryMode,
-				headers: rabbitMsg.properties.headers,
-				expiration: retryExpirationMilisecs,
+				headers: { ...rabbitMsg.properties.headers, 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount},
 				persistent: true,
 			};
-			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-wait` exchange,
-			// which will send the message into the original exchange `amazeeio-tasks`after waiting the expiration time.
-			channelWrapper.publish(`amazeeio-webhooks-retry`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
+			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
+			// which will send the message into the original exchange `amazeeio-tasks` after x-delay time.
+			channelWrapper.publish(`amazeeio-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
 
 			// acknologing the existing message, we cloned it and is not necessary anymore
 			channelWrapper.ack(rabbitMsg)

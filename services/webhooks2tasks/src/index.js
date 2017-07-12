@@ -37,10 +37,9 @@ const channelWrapper: ChannelWrapper = connection.createChannel({
 			channel.assertQueue('amazeeio-webhooks:queue', { durable: true }),
 			channel.bindQueue('amazeeio-webhooks:queue', 'amazeeio-webhooks', ''),
 
-			// wait queues for handling retries
-			channel.assertExchange('amazeeio-webhooks-retry', 'direct', { durable: true }),
-			channel.assertQueue('amazeeio-webhooks:retry-queue', { durable: true, arguments: { 'x-dead-letter-exchange': 'amazeeio-webhooks' } }),
-			channel.bindQueue('amazeeio-webhooks:retry-queue', 'amazeeio-webhooks-retry', ''),
+			// delay exchnage
+			channel.assertExchange('amazeeio-webhooks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
+			channel.bindExchange('amazeeio-webhooks', 'amazeeio-webhooks-delay', ''),
 
 			channel.prefetch(1),
 			channel.consume('amazeeio-webhooks:queue', msg => processWebhook(msg, channelWrapper), {noAck: false}),

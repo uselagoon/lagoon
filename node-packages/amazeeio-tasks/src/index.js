@@ -42,7 +42,7 @@ export function initSendToAmazeeioTasks() {
 			return Promise.all([
 
 				// Our main Exchange for all amazeeio-tasks
-				channel.assertExchange('amazeeio-tasks', 'direct', { durable: true }),
+				channel.assertExchange('amazeeio-tasks', 'direct', { durable: true}),
 
 				// Queue for messages with `deploy-openshift` routing key
 				channel.assertQueue('amazeeio-tasks:deploy-openshift', { durable: true }),
@@ -55,17 +55,13 @@ export function initSendToAmazeeioTasks() {
 				channel.assertQueue('amazeeio-tasks:remove-openshift-resources', { durable: true }),
 				channel.bindQueue('amazeeio-tasks:remove-openshift-resources', 'amazeeio-tasks', 'remove-openshift-resources'),
 
-
 				channel.assertQueue('amazeeio-tasks:remove-openshift-resources-legacy', { durable: true }),
 				channel.bindQueue('amazeeio-tasks:remove-openshift-resources-legacy', 'amazeeio-tasks', 'remove-openshift-resources-legacy'),
 
-				// wait queues for handling retries
-				channel.assertExchange('amazeeio-tasks-retry', 'direct', { durable: true }),
-				channel.assertQueue('amazeeio-tasks:retry-queue', { durable: true, arguments: { 'x-dead-letter-exchange': 'amazeeio-tasks' } }),
-				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'deploy-openshift'),
-				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'remove-openshift-resources'),
-				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'deploy-openshift-legacy'),
-				channel.bindQueue('amazeeio-tasks:retry-queue', 'amazeeio-tasks-retry', 'remove-openshift-resources-legacy'),
+				channel.assertExchange('amazeeio-tasks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
+				channel.bindExchange('amazeeio-tasks', 'amazeeio-tasks-delay', ''),
+
+
 			]);
 		},
 	});
@@ -214,23 +210,22 @@ export async function consumeTasks(taskQueueName, messageConsumer, retryHandler,
 			await messageConsumer(msg)
 			channelWrapper.ack(msg)
 		} catch (error) {
-
 			// We land here if the messageConsumer has an error that it did not itslef handle.
 			// This is how the consumer informs us that we it would like to retry the message in a couple of seconds
 
-			const failCount = (msg.properties.headers["x-death"] && msg.properties.headers["x-death"][0]['count']) ? (msg.properties.headers["x-death"][0]['count'] + 1) : 1
+			const retryCount = msg.properties.headers["x-retry"] ? (msg.properties.headers["x-retry"] + 1) : 1
 
-			if (failCount > 3) {
+			if (retryCount > 3) {
 				channelWrapper.ack(msg)
 				deathHandler(msg, error)
 				return
 			}
 
-			const retryExpirationSecs = Math.pow(10, failCount);
-			const retryExpirationMilisecs = retryExpirationSecs * 1000;
+			const retryDelaySecs = Math.pow(10, retryCount);
+			const retryDelayMilisecs = retryDelaySecs * 1000;
 
 			try {
-				retryHandler(msg, error, failCount, retryExpirationSecs)
+				retryHandler(msg, error, failCount, retryDelaySecs)
 			} catch (error) {
 				// intentionally empty as we don't want to fail and not requeue our message just becase the retryHandler fails
 			}
@@ -241,13 +236,13 @@ export async function consumeTasks(taskQueueName, messageConsumer, retryHandler,
 				timestamp: msg.properties.timestamp,
 				contentType: msg.properties.contentType,
 				deliveryMode: msg.properties.deliveryMode,
-				headers: msg.properties.headers,
-				expiration: retryExpirationMilisecs,
+				headers: { ...msg.properties.headers, 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount},
 				persistent: true,
 			};
-			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-wait` exchange,
-			// which will send the message into the original exchange `amazeeio-tasks`after waiting the expiration time.
-			channelWrapper.publish(`amazeeio-tasks-retry`, msg.fields.routingKey, msg.content, retryMsgOptions)
+
+			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
+			// which will send the message into the original exchange `amazeeio-tasks` after waiting the x-delay time.
+			channelWrapper.publish(`amazeeio-tasks-delay`, msg.fields.routingKey, msg.content, retryMsgOptions)
 
 			// acknologing the existing message, we cloned it and is not necessary anymore
 			channelWrapper.ack(msg)
