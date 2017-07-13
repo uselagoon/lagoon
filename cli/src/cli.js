@@ -59,9 +59,12 @@ export async function runCLI(cwd: string) {
         const clog = console.log;
 
         const runFn = args =>
-          run({ ...args, cwd, config, clog }).catch(errorQuit).then(code => process.exit(code));
+          run({ ...args, cwd, config, clog })
+            .catch(errorQuit)
+            .then(code => process.exit(code));
 
-        const setupFn = typeof setup === 'function' ? setup : setupYargs => setupYargs;
+        const setupFn =
+          typeof setup === 'function' ? setup : setupYargs => setupYargs;
 
         return cmdYargs.command(name, description, setupFn, runFn);
       }, yargs)
@@ -84,7 +87,12 @@ if (require.main === module) {
   let lastDir = null;
   let main = runCLI;
   while (currDir !== lastDir) {
-    const localCLIPath = path.join(currDir, 'node_modules', '.bin', 'amazee-io-cli');
+    const localCLIPath = path.join(
+      currDir,
+      'node_modules',
+      '.bin',
+      'amazee-io-cli',
+    );
     try {
       if (statSync(localCLIPath).isFile()) {
         main = require.call(null, localCLIPath).runCLI;
