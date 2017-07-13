@@ -4,6 +4,7 @@
 
 import path from 'path';
 import { green } from 'chalk';
+import R from 'ramda';
 import inquirer from 'inquirer';
 import createConfig from '../createConfig';
 import { fileExists } from '../util/fs';
@@ -13,12 +14,58 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'init';
-const description = 'Creates a .amazeeio.yml config in the current working directory';
+const description =
+  'Creates a .amazeeio.yml config in the current working directory';
+
+type GetOverwriteOptionArgs = {
+  exists: boolean,
+  filepath: string,
+  overwriteOption?: boolean,
+};
+
+const getOverwriteOption = async (
+  args: GetOverwriteOptionArgs,
+): Promise<boolean> =>
+  R.cond([
+    // If the file doesn't exist, the file doesn't need to be overwritten
+    [R.propEq('exists', false), R.F],
+    // If the overwrite option for the command has been specified, use the value of that
+    [
+      R.propSatisfies(
+        // Option is not null or undefined
+        overwriteOption => overwriteOption != null,
+        'overwriteOption',
+      ),
+      R.prop('overwriteOption'),
+    ],
+    // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
+    [
+      R.T,
+      async ({ filepath }) => {
+        const { overwrite } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'overwrite',
+            message: `File '${filepath}' already exists! Overwrite?`,
+            default: false,
+          },
+        ]);
+        return overwrite;
+      },
+    ],
+  ])(args);
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs.usage(`$0 ${name} - ${description}`).options({
-    overwrite: { describe: 'Overwrite the configuration file if it exists', default: false },
-    sitegroup: { describe: 'Name of sitegroup to configure', type: 'string', alias: 's' },
+    overwrite: {
+      describe: 'Overwrite the configuration file if it exists',
+      type: 'boolean',
+    },
+    sitegroup: {
+      describe: 'Name of sitegroup to configure',
+      type: 'string',
+      alias: 's',
+    },
   }).argv;
 }
 
@@ -37,16 +84,14 @@ export async function run({
 
   const exists = await fileExists(filepath);
 
-  if (!overwriteOption && exists) {
-    const { overwrite } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'overwrite',
-        message: `File '${filepath}' already exists! Overwrite?`,
-        default: false,
-      },
-    ]);
-    if (!overwrite) return printErrors(clog, `Not overwriting existing file '${filepath}'.`);
+  const overwrite = await getOverwriteOption({
+    exists,
+    filepath,
+    overwriteOption,
+  });
+
+  if (exists && !overwrite) {
+    return printErrors(clog, `Not overwriting existing file '${filepath}'.`);
   }
 
   const configInput = sitegroup
@@ -56,7 +101,8 @@ export async function run({
         type: 'input',
         name: 'sitegroup',
         message: 'Enter the name of the sitegroup to configure.',
-        validate: input => (input ? Boolean(input) : 'Please enter a sitegroup.'),
+        validate: input =>
+            input ? Boolean(input) : 'Please enter a sitegroup.',
       },
     ]);
 
