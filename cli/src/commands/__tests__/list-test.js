@@ -33,13 +33,17 @@ const mockResponse = {
 
 describe('listSites', () => {
   it('should list sites as given by GraphQL', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse),
+    );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await listSites({
       sitegroup: 'some_sitegroup',
       clog,
+      cerr,
     });
 
     expect(code).toBe(0);
@@ -54,24 +58,28 @@ describe('listSites', () => {
     );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await listSites({
       sitegroup: 'some_sitegroup',
       clog,
+      cerr,
     });
 
     expect(code).toBe(1);
-    expect(clog.mock.calls).toMatchSnapshot();
+    expect(cerr.mock.calls).toMatchSnapshot();
   });
 
   it('should show message for non-existing sites', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await listSites({
       sitegroup: 'some_sitegroup',
       clog,
+      cerr,
     });
 
     expect(code).toBe(0);

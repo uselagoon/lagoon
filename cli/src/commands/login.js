@@ -12,7 +12,8 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'login';
-const description = 'Uses your SSH key to authenticate you with the amazee.io API';
+const description =
+  'Uses your SSH key to authenticate you with the amazee.io API';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs.usage(`$0 ${name} - ${description}`).argv;
@@ -20,10 +21,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
 
 type Args = BaseArgs;
 
-export async function run(args: Args): Promise<number> {
-  // eslint-disable-next-line no-console
-  const { clog = console.log } = args;
-
+export async function run({ clog }: Args): Promise<number> {
   // TODO: We need to make the ssh key path lookup smarter or request it via prompt.
   const homeDir = os.homedir();
   const { privateKeyFilePath } = await inquirer.prompt([

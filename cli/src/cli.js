@@ -32,9 +32,12 @@ async function readConfig(cwd: string): Promise<?AmazeeConfig> {
  * Used for logging unexpected errors raised by subcommands
  */
 function errorQuit(err: Error | Object | string) {
-  // TODO: Use console.error instead of console.log everywhere that printErrors is used
-  // eslint-disable-next-line no-console
-  const exitCode = printErrors(console.log, 'Uncaught error in command:', err);
+  const exitCode = printErrors(
+    // eslint-disable-next-line no-console
+    console.error,
+    'Uncaught error in command:',
+    err,
+  );
   process.exit(exitCode);
 }
 
@@ -47,11 +50,10 @@ export async function runCLI(cwd: string) {
     commands
       .reduce((cmdYargs, cmd) => {
         const { name, description, run, setup } = cmd;
-        // eslint-disable-next-line no-console
-        const clog = console.log;
 
         const runFn = args =>
-          run({ ...args, cwd, config, clog })
+          // eslint-disable-next-line no-console
+          run({ ...args, cwd, config, clog: console.log, cerr: console.error })
             .catch(errorQuit)
             .then(code => process.exit(code));
 

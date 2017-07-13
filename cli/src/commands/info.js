@@ -27,7 +27,8 @@ const tableConfig = {
 };
 
 // Common filter
-const onlyValues = ([, value]: [string, string]) => value != null && value !== '';
+const onlyValues = ([, value]: [string, string]) =>
+  value != null && value !== '';
 
 const name = 'info';
 const description = 'Shows infos about sites or sitegroups';
@@ -38,7 +39,8 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe:
+          'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
@@ -60,13 +62,15 @@ export async function setup(yargs: Yargs): Promise<Object> {
 
 type SiteGroupInfoArgs = {
   sitegroup: string,
-  clog?: typeof console.log,
+  clog: typeof console.log,
+  cerr: typeof console.error,
 };
 
-export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
-  // eslint-disable-next-line no-console
-  const { sitegroup, clog = console.log } = args;
-
+export async function sitegroupInfo({
+  sitegroup,
+  clog,
+  cerr,
+}: SiteGroupInfoArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
@@ -96,7 +100,7 @@ export async function sitegroupInfo(args: SiteGroupInfoArgs): Promise<number> {
 
   const { errors } = result;
   if (errors != null) {
-    return printGraphQLErrors(clog, ...errors);
+    return printGraphQLErrors(cerr, ...errors);
   }
 
   const sitegroupData = path(['data', 'siteGroupByName'])(result);
@@ -141,13 +145,17 @@ type SiteInfoArgs = {
   site: string,
   branch?: string,
   sitegroup: string,
-  clog?: typeof console.log,
+  clog: typeof console.log,
+  cerr: typeof console.error,
 };
 
-export async function siteInfo(args: SiteInfoArgs): Promise<number> {
-  // eslint-disable-next-line no-console
-  const { sitegroup, site, branch, clog = console.log } = args;
-
+export async function siteInfo({
+  sitegroup,
+  site,
+  branch,
+  clog,
+  cerr,
+}: SiteInfoArgs): Promise<number> {
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
 
@@ -208,7 +216,7 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
 
   const { errors } = result;
   if (errors != null) {
-    return printGraphQLErrors(clog, ...errors);
+    return printGraphQLErrors(cerr, ...errors);
   }
 
   // There might be a case where I just have one site + branch,
@@ -237,7 +245,9 @@ export async function siteInfo(args: SiteInfoArgs): Promise<number> {
     clog(
       'I found multiple sites with the same name, but different branches, maybe try following parameter...',
     );
-    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(nodes);
+    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(
+      nodes,
+    );
     return 0;
   }
 
@@ -290,19 +300,18 @@ type Args = BaseArgs & {
 };
 
 export async function run(args: Args): Promise<number> {
-  // eslint-disable-next-line no-console
-  const { config, clog = console.log } = args;
+  const { config, clog, cerr } = args;
 
   // FIXME: doesn't handle empty config file case correctly
   if (config == null) {
-    return printNoConfigError(clog);
+    return printNoConfigError(cerr);
   }
 
   const [siteAndBranch] = args._.slice(1);
   const sitegroup = args.sitegroup || config.sitegroup;
 
   if (siteAndBranch == null) {
-    return sitegroupInfo({ sitegroup, clog });
+    return sitegroupInfo({ sitegroup, clog, cerr });
   }
 
   const [site, branch] = siteAndBranch.split('@');
@@ -312,6 +321,7 @@ export async function run(args: Args): Promise<number> {
     branch,
     sitegroup,
     clog,
+    cerr,
   });
 }
 

@@ -42,13 +42,15 @@ export async function setup(yargs: Yargs): Promise<Object> {
 
 type MainArgs = {
   sitegroup: string,
-  clog?: typeof console.log,
+  clog: typeof console.log,
+  cerr: typeof console.error,
 };
 
-export async function listSites(args: MainArgs): Promise<number> {
-  // eslint-disable-next-line no-console
-  const { sitegroup, clog = console.log } = args;
-
+export async function listSites({
+  sitegroup,
+  clog,
+  cerr,
+}: MainArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
@@ -69,7 +71,7 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const { errors } = result;
   if (errors != null) {
-    return printGraphQLErrors(clog, ...errors);
+    return printGraphQLErrors(cerr, ...errors);
   }
 
   const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
@@ -126,15 +128,17 @@ type Target = 'sites';
 type Args = BaseArgs & {
   sitegroup: ?string,
   target: Target,
+  clog: typeof console.log,
+  cerr: typeof console.error,
 };
 
 export async function run(args: Args): Promise<number> {
   // eslint-disable-next-line no-console
-  const { config, clog = console.log } = args;
+  const { config, clog, cerr } = args;
 
   // FIXME: doesn't handle empty config file case correctly
   if (config == null) {
-    return printNoConfigError(clog);
+    return printNoConfigError(cerr);
   }
 
   const [target] = args._.slice(1);
@@ -142,10 +146,10 @@ export async function run(args: Args): Promise<number> {
 
   switch (target) {
     case 'sites':
-      return listSites({ sitegroup });
+      return listSites({ sitegroup, clog, cerr });
     default:
       return printErrors(
-        clog,
+        cerr,
         `Unknown target ${target} ... possible values: 'sites'`,
       );
   }

@@ -8,7 +8,8 @@ export type BaseArgs = {
   $0: string,
   config: ?AmazeeConfig,
   cwd: string,
-  clog?: typeof console.log,
+  clog: typeof console.log,
+  cerr: typeof console.error,
 };
 
 export type CommandModule = {

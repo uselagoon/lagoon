@@ -17,6 +17,7 @@ describe('run', () => {
     _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
 
     const clog = jest.fn();
+    const cerr = jest.fn();
     const cwd = 'some/path';
 
     const code = await run({
@@ -25,6 +26,7 @@ describe('run', () => {
       $0: '',
       cwd,
       clog,
+      cerr,
       overwrite: true,
       sitegroup: 'test',
     });
@@ -37,6 +39,7 @@ describe('run', () => {
     _mock(fileExists).mockImplementationOnce(() => Promise.resolve(false));
 
     const clog = jest.fn();
+    const cerr = jest.fn();
     const cwd = 'some/path';
 
     const code = await run({
@@ -45,6 +48,7 @@ describe('run', () => {
       $0: '',
       cwd,
       clog,
+      cerr,
       overwrite: false,
       sitegroup: 'test',
     });

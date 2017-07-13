@@ -77,7 +77,8 @@ export async function run({
   overwrite: overwriteOption,
   sitegroup,
   // eslint-disable-next-line no-console
-  clog = console.log,
+  clog,
+  cerr,
 }: Args): Promise<number> {
   const filepath = path.join(cwd, '.amazeeio.yml');
 
@@ -90,7 +91,7 @@ export async function run({
   });
 
   if (exists && !overwrite) {
-    return printErrors(clog, `Not overwriting existing file '${filepath}'.`);
+    return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
   }
 
   const configInput = sitegroup
@@ -110,7 +111,7 @@ export async function run({
     await createConfig(filepath, configInput);
     clog(green('Configuration file created!'));
   } catch (e) {
-    return printErrors(clog, `Error occurred while writing to ${filepath}:`, e);
+    return printErrors(cerr, `Error occurred while writing to ${filepath}:`, e);
   }
 
   return 0;

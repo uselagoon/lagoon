@@ -39,27 +39,33 @@ describe('siteGroupInfo', () => {
   };
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockErrorResponse));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockErrorResponse),
+    );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await sitegroupInfo({
       sitegroup: 'some_sitegroup',
       clog,
+      cerr,
     });
 
     expect(code).toBe(1);
-    expect(clog.mock.calls).toMatchSnapshot();
+    expect(cerr.mock.calls).toMatchSnapshot();
   });
 
   it('should show error on missing sitegroup', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await sitegroupInfo({
       sitegroup: 'not_existing',
       clog,
+      cerr,
     });
 
     expect(code).toBe(1);
@@ -67,13 +73,17 @@ describe('siteGroupInfo', () => {
   });
 
   it('should list found information for given sitegroup', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse1));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse1),
+    );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await sitegroupInfo({
       sitegroup: 'mysitegroup',
       clog,
+      cerr,
     });
 
     expect(code).toBe(0);
@@ -128,14 +138,18 @@ describe('siteInfo', () => {
   };
 
   it('should detect ambiguity and propose more specific parameters', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse1));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse1),
+    );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await siteInfo({
       sitegroup: 'some_sitegroup',
       site: 'site1',
       clog,
+      cerr,
     });
 
     expect(code).toBe(0);
@@ -143,30 +157,38 @@ describe('siteInfo', () => {
   });
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockErrorResponse));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockErrorResponse),
+    );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await siteInfo({
       sitegroup: 'some_sitegroup',
       site: 'not_existing',
       clog,
+      cerr,
     });
 
     expect(code).toBe(1);
-    expect(clog.mock.calls).toMatchSnapshot();
+    expect(cerr.mock.calls).toMatchSnapshot();
   });
 
   it('should show table with information about sitegroup', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve(mockResponse2));
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve(mockResponse2),
+    );
 
     const clog = jest.fn();
+    const cerr = jest.fn();
 
     const code = await siteInfo({
       sitegroup: 'some_sitegroup',
       site: 'site1',
       branch: 'dev',
       clog,
+      cerr,
     });
 
     expect(code).toBe(0);
