@@ -58,6 +58,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     overwrite: {
       describe: 'Overwrite the configuration file if it exists',
       type: 'boolean',
+      default: undefined,
     },
     sitegroup: {
       describe: 'Name of sitegroup to configure',
