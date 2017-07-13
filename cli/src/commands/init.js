@@ -1,7 +1,5 @@
 // @flow
 
-/* eslint-disable no-console */
-
 import path from 'path';
 import { green } from 'chalk';
 import R from 'ramda';
@@ -78,6 +76,7 @@ export async function run({
   cwd,
   overwrite: overwriteOption,
   sitegroup,
+  // eslint-disable-next-line no-console
   clog = console.log,
 }: Args): Promise<number> {
   const filepath = path.join(cwd, '.amazeeio.yml');
