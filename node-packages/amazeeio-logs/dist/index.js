@@ -41,7 +41,7 @@ function initSendToAmazeeioLogs() {
 		}
 	});
 	exports.sendToAmazeeioLogs = sendToAmazeeioLogs = function _callee(severity, sitegroup, uuid, event, meta, message) {
-		var payload, buffer, options;
+		var payload, buffer, packageName, options;
 		return regeneratorRuntime.async(function _callee$(_context) {
 			while (1) {
 				switch (_context.prev = _context.next) {
@@ -49,29 +49,31 @@ function initSendToAmazeeioLogs() {
 						payload = { severity: severity, sitegroup: sitegroup, uuid: uuid, event: event, meta: meta, message: message };
 						_context.prev = 1;
 						buffer = new Buffer(JSON.stringify(payload));
+						packageName = process.env.npm_package_name || "";
 						options = {
-							persistent: true
+							persistent: true,
+							appId: packageName
 						};
-						_context.next = 6;
+						_context.next = 7;
 						return regeneratorRuntime.awrap(channelWrapper.publish('amazeeio-logs', '', buffer, options));
 
-					case 6:
+					case 7:
 
 						_amazeeioLocalLogging.logger.log(severity, 'amazeeio-logs: Send to amazeeio-logs: ' + message);
-						_context.next = 12;
+						_context.next = 13;
 						break;
 
-					case 9:
-						_context.prev = 9;
+					case 10:
+						_context.prev = 10;
 						_context.t0 = _context['catch'](1);
 
 						_amazeeioLocalLogging.logger.error('amazeeio-logs: Error send to rabbitmq amazeeio-logs exchange, error: ' + _context.t0);
 
-					case 12:
+					case 13:
 					case 'end':
 						return _context.stop();
 				}
 			}
-		}, null, _this, [[1, 9]]);
+		}, null, _this, [[1, 10]]);
 	};
 }

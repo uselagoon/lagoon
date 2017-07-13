@@ -39,6 +39,8 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
     message
   } = logMessage
 
+  const appId = msg.properties.appId || ""
+
  logger.verbose(`received ${event}`, logMessage)
 
   switch (event) {
@@ -48,22 +50,22 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
     case "github:push:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
-      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapper, msg)
+      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapper, msg, appId)
       break;
 
     case "task:remove-openshift-resources:finished":
     case "task:deploy-openshift:finished":
-      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapper, msg)
+      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapper, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift-resources:retry":
-      sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapper, msg)
+      sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapper, msg, appId)
       break;
 
     case "task:remove-openshift-resources:error":
     case "task:deploy-openshift:error":
-      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg)
+      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg, appId)
       break;
 
     case "unresolvedSitegroup:webhooks2tasks":
@@ -82,7 +84,7 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
 
 }
 
-const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg) => {
+const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg, appId) => {
 
   let sitegroupSlack;
   try {
@@ -99,7 +101,8 @@ const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg
     attachments: [{
       text: `${emoji} ${message}`,
       color: color,
-      "mrkdwn_in": ["pretext", "text", "fields"]
+      "mrkdwn_in": ["pretext", "text", "fields"],
+      footer: appId
     }]
   });
   channelWrapper.ack(msg)
