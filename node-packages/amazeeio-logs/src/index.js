@@ -33,8 +33,10 @@ export function initSendToAmazeeioLogs() {
 
 		try {
 			const buffer = new Buffer(JSON.stringify(payload));
+			const packageName = process.env.npm_package_name || ""
 			const options = {
 				persistent: true,
+				appId: packageName,
 			}
 			await channelWrapper.publish(`amazeeio-logs`, '', buffer, options );
 
