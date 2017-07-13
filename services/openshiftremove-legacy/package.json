@@ -1,5 +1,5 @@
 {
-  "name": "gitpush2ansibledeploy",
+  "name": "openshiftremove-legacy",
   "version": "0.9.0",
   "description": "Git Push 2 Ansible Deployment",
   "main": "index.js",

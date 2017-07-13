@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@amazeeio/amazeeio-api@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-api/-/amazeeio-api-3.0.1.tgz#4baf527641bcb846b629dcee3d936f88cc5ff9e2"
+"@amazeeio/amazeeio-api@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@amazeeio/amazeeio-api/-/amazeeio-api-3.0.2.tgz#acca2fe13b09f31b6c10bd2059d017443e5ae18b"
   dependencies:
     babel-cli "^6.18.0"
     babel-core "^6.21.0"
@@ -12,14 +12,12 @@
     babel-plugin-transform-flow-strip-types "^6.21.0"
     babel-plugin-transform-object-rest-spread "^6.20.2"
     babel-plugin-transform-regenerator "^6.21.0"
-    babel-polyfill "^6.23.0"
     babel-preset-es2015 "^6.18.0"
     lokka "^1.7.0"
     lokka-transport-http "^1.6.1"
-    winston "^2.2.0"
 
-"@amazeeio/amazeeio-local-logging@^3.0.1":
-  version "3.0.1"
+"@amazeeio/amazeeio-local-logging@^3.0.2":
+  version "3.0.2"
   dependencies:
     babel-cli "^6.18.0"
     babel-core "^6.21.0"
@@ -31,7 +29,7 @@
     winston "^2.2.0"
 
 "@amazeeio/amazeeio-local-logging@file:../../node-packages/amazeeio-local-logging":
-  version "3.0.1"
+  version "3.0.2"
   dependencies:
     babel-cli "^6.18.0"
     babel-core "^6.21.0"
@@ -43,9 +41,9 @@
     winston "^2.2.0"
 
 "@amazeeio/amazeeio-logs@file:../../node-packages/amazeeio-logs":
-  version "3.0.1"
+  version "3.0.2"
   dependencies:
-    "@amazeeio/amazeeio-local-logging" "^3.0.1"
+    "@amazeeio/amazeeio-local-logging" "^3.0.2"
     amqp-connection-manager "^1.3.5"
     amqplib "^0.5.1"
     babel-cli "^6.18.0"
@@ -58,10 +56,10 @@
     winston "^2.2.0"
 
 "@amazeeio/amazeeio-tasks@file:../../node-packages/amazeeio-tasks":
-  version "3.0.1"
+  version "3.0.2"
   dependencies:
-    "@amazeeio/amazeeio-api" "^3.0.1"
-    "@amazeeio/amazeeio-local-logging" "^3.0.1"
+    "@amazeeio/amazeeio-api" "^3.0.2"
+    "@amazeeio/amazeeio-local-logging" "^3.0.2"
     amqp-connection-manager "^1.3.5"
     amqplib "^0.5.1"
     babel-cli "^6.18.0"

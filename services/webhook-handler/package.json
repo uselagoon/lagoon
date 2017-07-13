@@ -1,5 +1,5 @@
 {
-  "name": "amazeeio-webhook-handler",
+  "name": "webhook-handler",
   "version": "0.9.0",
   "description": "amazeeio handler for webhooks",
   "main": "index.js",
