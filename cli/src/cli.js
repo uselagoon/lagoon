@@ -5,7 +5,6 @@
 import 'babel-polyfill';
 import path from 'path';
 import yargs from 'yargs';
-import R from 'ramda';
 import { statSync, readFile } from './util/fs';
 import findConfig from './findConfig';
 import parseConfig from './parseConfig';
