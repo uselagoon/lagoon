@@ -76,7 +76,6 @@ export async function run({
   cwd,
   overwrite: overwriteOption,
   sitegroup,
-  // eslint-disable-next-line no-console
   clog,
   cerr,
 }: Args): Promise<number> {
