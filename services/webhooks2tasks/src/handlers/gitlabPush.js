@@ -42,8 +42,8 @@ export default async function gitlabPush(webhook: WebhookRequestData, siteGroup:
       logMessage = `\`${meta.branch}\``
     }
 
-    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
-      `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}>`
+    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
+      `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.project.http_url}|${body.project.name}>`
     )
 
     try {
@@ -55,8 +55,11 @@ export default async function gitlabPush(webhook: WebhookRequestData, siteGroup:
         case "SiteGroupNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
-          // These are not real errors and also they will happen many times. We just log them locally but will ack the message
-          logger.verbose(error)
+        case "NoNeedToDeployBranch":
+          // These are not real errors and also they will happen many times. We just log them locally but not throw an error
+          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${siteGroup.siteGroupName}]* ${logMessage}. No deploy task created, reason: ${error}`
+          )
           return;
 
         default:

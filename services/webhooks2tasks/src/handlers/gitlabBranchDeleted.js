@@ -33,8 +33,8 @@ export default async function gitlabBranchDeleted(webhook: WebhookRequestData, s
       openshiftRessourceAppName: openshiftRessourceAppName,
     }
 
-    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
-      `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
+    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
+      `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted in <${body.project.http_url}|${body.project.name}>`
     )
 
     try {
@@ -46,8 +46,10 @@ export default async function gitlabBranchDeleted(webhook: WebhookRequestData, s
         case "SiteGroupNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
-          // These are not real errors and also they will happen many times. We just log them locally but will ack the message
-          logger.verbose(error)
+          // These are not real errors and also they will happen many times. We just log them locally but not throw an error
+          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted. No remove task created, reason: ${error}`
+          )
           return;
 
         default:
