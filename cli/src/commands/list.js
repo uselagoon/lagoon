@@ -6,7 +6,11 @@ import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { printNoConfigError, printErrors, printGraphQLErrors } from '../printErrors';
+import {
+  printNoConfigError,
+  printErrors,
+  printGraphQLErrors,
+} from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -20,7 +24,8 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe:
+          'Overrides the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
@@ -69,7 +74,10 @@ export async function listSites(args: MainArgs): Promise<number> {
 
   const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
 
-  const nodes = compose(sortBySite, pathOr([], ['data', 'siteGroupByName', 'sites']))(result);
+  const nodes = compose(
+    sortBySite,
+    pathOr([], ['data', 'siteGroupByName', 'sites']),
+  )(result);
 
   if (nodes.length === 0) {
     clog(red(`No sites found for sitegroup '${sitegroup}'`));
@@ -136,7 +144,10 @@ export async function run(args: Args): Promise<number> {
     case 'sites':
       return listSites({ sitegroup });
     default:
-      return printErrors(clog, `Unknown target ${target} ... possible values: 'sites'`);
+      return printErrors(
+        clog,
+        `Unknown target ${target} ... possible values: 'sites'`,
+      );
   }
 }
 

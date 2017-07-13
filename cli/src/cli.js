@@ -9,26 +9,11 @@ import R from 'ramda';
 import { statSync, readFile } from './util/fs';
 import findConfig from './findConfig';
 import parseConfig from './parseConfig';
+import { printErrors } from './printErrors';
 
 import commands from './commands';
 
 import type { AmazeeConfig } from './parseConfig';
-
-const getErrorMessageArgs = err =>
-  R.cond([
-    // If a `stack` property exists on the error object, use that
-    [R.prop('stack'), ({ stack }) => ['UNCAUGHT ERROR: %s', stack]],
-    // If the error is an object without a `stack` property and isn't null, stringify it
-    [
-      R.allPass(R.is(Object), !R.equals(null)),
-      errWithoutStack => [
-        'UNCAUGHT ERROR: %s',
-        JSON.stringify(errWithoutStack, null, 2),
-      ],
-    ],
-    // Otherwise, just blindly print it
-    [R.T, nonObjectErr => ['UNCAUGHT ERROR:', nonObjectErr]],
-  ])(err);
 
 /**
  * Finds and reads the amazeeio.yml file
@@ -48,9 +33,10 @@ async function readConfig(cwd: string): Promise<?AmazeeConfig> {
  * Used for logging unexpected errors raised by subcommands
  */
 function errorQuit(err: Error | Object | string) {
+  // TODO: Use console.error instead of console.log everywhere that printErrors is used
   // eslint-disable-next-line no-console
-  console.error(...getErrorMessageArgs(err));
-  process.exit(1);
+  const exitCode = printErrors(console.log, 'Uncaught error in command:', err);
+  process.exit(exitCode);
 }
 
 export async function runCLI(cwd: string) {
