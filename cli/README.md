@@ -65,6 +65,8 @@ Examples:
                                             user).
 ```
 
+#### Example
+
 ### `io sites`
 
 ```sh
@@ -72,6 +74,8 @@ Examples:
 io list sites
 io list sites -s my_sitegroup
 ```
+
+#### Example
 
 ## Development
 
