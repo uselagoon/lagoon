@@ -4,14 +4,8 @@ metadata:
   creationTimestamp: null
   name: amazeeio-openshift-template-node
 parameters:
-  - name: TAG
-    description: Which docker image tag should be deployed
-    required: true
-  - name: NAME
-    description: Name of the objects to create
-    required: true
-  - name: SHORT_NAME
-    description: Shorter name of the objects to create, can be max 24 chars
+  - name: BRANCH
+    description: Which branch this belongs to
     required: true
   - name: SITEGROUP
     description: Which sitegroup this belongs to
@@ -25,21 +19,22 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}
+      branch: ${BRANCH}
+      sitegroup: ${SITEGROUP}
+    name: app
   spec:
     replicas: 1
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      app: nodejs
     strategy:
       resources: {}
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: ${NAME}
-          deploymentconfig: ${NAME}
+          app: nodejs
+          branch: ${BRANCH}
+          sitegroup: ${SITEGROUP}
       spec:
         containers:
         - image: ' '
@@ -65,7 +60,7 @@ objects:
         - nodejs
         from:
           kind: ImageStreamTag
-          name: ${SITEGROUP}:${TAG}
+          name: app:latest
       type: ImageChange
   status: {}
 - apiVersion: v1
@@ -73,8 +68,10 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${SHORT_NAME}
+      app: nodejs
+      branch: ${BRANCH}
+      sitegroup: ${SITEGROUP}
+    name: nodejs
   spec:
     ports:
     - name: 3000-tcp
@@ -82,8 +79,7 @@ objects:
       protocol: TCP
       targetPort: 3000
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      app: nodejs
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -91,12 +87,14 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}
+      app: nodejs
+      branch: ${BRANCH}
+      sitegroup: ${SITEGROUP}
+    name: nodejs
   spec:
     host: ${ROUTER_URL}
     port:
       targetPort: 3000-tcp
     to:
       kind: Service
-      name: ${SHORT_NAME}
+      name: nodejs

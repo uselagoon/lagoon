@@ -1,13 +1,13 @@
 {
-  "name": "react-isomorphic-form-demo",
+  "name": "rest2tasks",
   "version": "1.0.0",
   "description": "Demo app for react-isomorphic-form",
   "main": "index.js",
   "scripts": {
     "start": "node build/index.js",
     "build": "babel src -d build",
-    "dev": "nodemon src/index.js --exec babel-node",
-    "link-node-packages": "for D in ../../node-packages/*/; do cd \"${D}\" && yarn link && package=${PWD##*/} && cd \"${OLDPWD}\" && yarn link @amazeeio/$package; done"
+    "dev": "yarn run link-node-packages && nodemon src/index.js --exec babel-node",
+    "link-node-packages": "if [ ! -d ../../node-packages ]; then exit 0; fi; for D in ../../node-packages/*/; do cd \"${D}\" && yarn link && package=${PWD##*/} && cd \"${OLDPWD}\" && yarn link @amazeeio/$package; done"
   },
   "author": "Gert Hengeveld <info@ghengeveld.nl> (https://github.com/ghengeveld)",
   "license": "ISC",
