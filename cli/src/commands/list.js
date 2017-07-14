@@ -16,7 +16,7 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'list';
-const description = 'Lists specific deployment information';
+const description = 'List specific deployment information';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -24,19 +24,18 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe:
-          'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Override the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name} sites`,
-      'Lists all sites for the specific sitegroup configured in your .amazeeio.yml config file',
+      'List all sites for the specific sitegroup configured in your .amazeeio.yml config file',
     )
     .example(
       `$0 ${name} sites -s mysitegroup`,
-      'Lists all sites for a specific sitegroup (instead of using the config file)',
+      'List all sites for a specific sitegroup (instead of using the config file)',
     ).argv;
 }
 

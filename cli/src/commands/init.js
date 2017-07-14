@@ -13,7 +13,7 @@ import type { BaseArgs } from './index';
 
 const name = 'init';
 const description =
-  'Creates a .amazeeio.yml config in the current working directory';
+  'Create a .amazeeio.yml config file in the current working directory';
 
 type GetOverwriteOptionArgs = {
   exists: boolean,

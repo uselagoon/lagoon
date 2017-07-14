@@ -11,7 +11,8 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'logout';
-const description = 'Invalidate and remove your authentication token';
+const description =
+  'Invalidate the authentication token in $HOME/.ioauth and delete the file';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs.usage(`$0 ${name} - ${description}`).argv;

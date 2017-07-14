@@ -12,8 +12,7 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'login';
-const description =
-  'Uses your SSH key to authenticate you with the amazee.io API';
+const description = 'Authenticate with the amazee.io API via given SSH key';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs.usage(`$0 ${name} - ${description}`).argv;

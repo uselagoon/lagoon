@@ -35,7 +35,7 @@ const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
 const name = 'info';
-const description = 'Shows infos about sites or sitegroups';
+const description = 'Show info about sites or sitegroups';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -43,24 +43,26 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe:
-          'Overrides the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Override the currently configured sitegroup (.amazeeio.yml)',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
-    .example(`$0 ${name}`, 'Shows information about the configured sitegroup')
+    .example(
+      `$0 ${name}`,
+      'Show information about sitegroup in the .amazeeio.yml config file',
+    )
     .example(
       `$0 ${name} mysite`,
-      'Shows information about given site "mysite" (does only work with single branch)',
+      'Show information about site "mysite" (only works if the site only has a single branch) (sitegroup as stated by config)',
     )
     .example(
       `$0 ${name} mysite@prod`,
-      'Shows information about given site "mysite" with branch "prod" (sitegroup as stated by config)',
+      'Show information about branch "prod" of site "mysite" (sitegroup as stated by config)',
     )
     .example(
       `$0 ${name} -s mysitegroup mysite`,
-      'Shows information about given site "mysite" in given sitegroup "somesitegroup"',
+      'Show information about site "mysite" in sitegroup "somesitegroup"',
     ).argv;
 }
 
