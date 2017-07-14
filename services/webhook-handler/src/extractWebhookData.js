@@ -55,7 +55,6 @@ export default function extractWebhookData(req: Req, body?: string): WebhookRequ
       webhooktype = 'bitbucket'
       event = req.headers['x-event-key']
       uuid = req.headers['x-request-uuid']
-      giturl = 'git@bitbucket.org/' + bodyObj.repository.full_name.toLowerCase() + '.git'
     } else {
       throw new Error('No supported event header found on POST request')
     }
