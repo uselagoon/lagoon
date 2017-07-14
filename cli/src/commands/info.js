@@ -6,7 +6,11 @@ import R from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { printNoConfigError, printGraphQLErrors } from '../printErrors';
+import {
+  printErrors,
+  printNoConfigError,
+  printGraphQLErrors,
+} from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
@@ -106,8 +110,7 @@ export async function sitegroupInfo({
   const sitegroupData = R.path(['data', 'siteGroupByName'])(result);
 
   if (sitegroupData == null) {
-    clog(red(`No sitegroup '${sitegroup}' found`));
-    return 1;
+    return printErrors(clog, `No sitegroup '${sitegroup}' found`);
   }
 
   const sites = R.compose(
