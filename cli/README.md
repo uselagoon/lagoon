@@ -27,7 +27,7 @@ For more options, see the [`io init` documentation](#io-init).
 
 ### `io init`
 
-```sh
+```text
 $ io init --help
 io init - Create a .amazeeio.yml config file in the current working
 directory
