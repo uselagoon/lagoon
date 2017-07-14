@@ -35,6 +35,28 @@ describe('run', () => {
     expect(clog.mock.calls).toMatchSnapshot();
   });
 
+  it('should not overwrite config file when `overwrite` option set to false', async () => {
+    _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+    const cwd = 'some/path';
+
+    const code = await run({
+      config: null,
+      _: [],
+      $0: '',
+      cwd,
+      clog,
+      cerr,
+      overwrite: false,
+      sitegroup: 'test',
+    });
+
+    expect(code).toBe(1);
+    expect(cerr.mock.calls).toMatchSnapshot();
+  });
+
   it('should write default yaml to given cwd + .amazeeio.yml', async () => {
     _mock(fileExists).mockImplementationOnce(() => Promise.resolve(false));
 

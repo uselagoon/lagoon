@@ -1,5 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`run should not overwrite config file when \`overwrite\` option set to false 1`] = `
+Array [
+  Array [
+    "[31mNot overwriting existing fil 'some/path/.amazeeio.yml'.[39m",
+  ],
+]
+`;
+
 exports[`run should overwrite existing config file if overwrite option passed as true 1`] = `
 Array [
   Array [
