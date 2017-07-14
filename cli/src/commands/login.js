@@ -22,8 +22,8 @@ export async function setup(yargs: Yargs): Promise<Object> {
 type Args = BaseArgs;
 
 export async function run({ clog }: Args): Promise<number> {
-  // TODO: We need to make the ssh key path lookup smarter or request it via prompt.
   const homeDir = os.homedir();
+
   const { privateKeyFilePath } = await inquirer.prompt([
     {
       type: 'input',
