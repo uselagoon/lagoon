@@ -39,17 +39,17 @@ const getPrivateKeyPath = async (
 ): Promise<string> =>
   R.cond([
     // If the identity option for the command has been specified, use the value of that
-    [
-      // TODO: Ramdaify / FPify?
-      // TODO: Improve error message here. Right now it just throws with ENOENT
-      // Uncaught error in command:
-      // Error: ENOENT: no such file or directory, open '/Users/k/.ssh/id_drsa'
-      // error Command failed with exit code 1.
-      // Maybe because of the async? Maybe this is returning a Promise?
-      async ({ identityOption }) =>
-        identityOption != null && fileExists(identityOption),
-      R.prop('identityOption'),
-    ],
+    // [
+    //   // TODO: Ramdaify / FPify?
+    //   // TODO: Improve error message here. Right now it just throws with ENOENT
+    //   // Uncaught error in command:
+    //   // Error: ENOENT: no such file or directory, open '/Users/k/.ssh/id_drsa'
+    //   // error Command failed with exit code 1.
+    //   // Maybe because of the async? Maybe this is returning a Promise?
+    //   async ({ identityOption }) =>
+    //     identityOption != null && fileExists(identityOption),
+    //   R.prop('identityOption'),
+    // ],
     // If a file exists at the default private key path, use that
     [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
     // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
