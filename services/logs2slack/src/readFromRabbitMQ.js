@@ -48,6 +48,7 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
     case "github:pull_request:closed:handled":
     case "github:delete:handled":
     case "github:push:handled":
+    case "bitbucket:push:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
       sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapper, msg, appId)
