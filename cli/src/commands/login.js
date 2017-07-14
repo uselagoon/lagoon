@@ -38,18 +38,15 @@ const getPrivateKeyPath = async (
   args: GetPrivateKeyPathArgs,
 ): Promise<string> =>
   R.cond([
-    // If the identity option for the command has been specified, use the value of that
-    // [
-    //   // TODO: Ramdaify / FPify?
-    //   // TODO: Improve error message here. Right now it just throws with ENOENT
-    //   // Uncaught error in command:
-    //   // Error: ENOENT: no such file or directory, open '/Users/k/.ssh/id_drsa'
-    //   // error Command failed with exit code 1.
-    //   // Maybe because of the async? Maybe this is returning a Promise?
-    //   async ({ identityOption }) =>
-    //     identityOption != null && fileExists(identityOption),
-    //   R.prop('identityOption'),
-    // ],
+    // If the identity option for the command has been specified and the file at the path exists, use the value of that
+    [
+      R.propSatisfies(
+        // Option is not null or undefined
+        R.complement(R.isNil),
+        'identityOption',
+      ),
+      R.prop('identityOption'),
+    ],
     // If a file exists at the default private key path, use that
     [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
     // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
@@ -112,6 +109,10 @@ export async function run({
   cerr,
   identity: identityOption,
 }: Args): Promise<number> {
+  if (identityOption != null && !await fileExists(identityOption)) {
+    return printErrors(cerr, 'File does not exist at identity option path!');
+  }
+
   const homeDir = os.homedir();
   const defaultPrivateKeyPath = path.join(homeDir, '.ssh', 'id_rsa');
   const fileExistsAtDefaultPath = await fileExists(defaultPrivateKeyPath);
