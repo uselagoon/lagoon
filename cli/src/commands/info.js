@@ -125,16 +125,16 @@ export async function sitegroupInfo({
       return '';
     }
 
-    const webhook = R.path(['webhook'], slack);
-    const channel = R.path(['channel'], slack);
+    const webhook = R.prop('webhook', slack);
+    const channel = R.prop('channel', slack);
 
     return `${channel} -> ${webhook}`;
   };
 
   const tableBody = [
-    ['SiteGroup Name', R.path(['siteGroupName'], sitegroupData)],
-    ['Git Url', R.path(['gitUrl'], sitegroupData)],
-    ['Slack', formatSlack(R.path(['slack'], sitegroupData))],
+    ['SiteGroup Name', R.prop('siteGroupName', sitegroupData)],
+    ['Git Url', R.prop('gitUrl', sitegroupData)],
+    ['Slack', formatSlack(R.prop('slack', sitegroupData))],
     ['Sites', R.join(', ', sites)],
   ];
 
@@ -279,18 +279,18 @@ export async function siteInfo({
 
   // We want to list these fields from the node result
   const tableBody = [
-    ['ID', R.path(['id'], node)],
-    ['Site Name', R.path(['siteName'], node)],
-    ['Site Branch', R.path(['siteBranch'], node)],
-    ['Site Env', R.path(['siteEnvironment'], node)],
-    ['User Id', R.path(['uid'], node)],
-    ['Server Names', R.path(['serverNames'], node)],
-    ['Webroot', R.path(['webRoot'], node)],
-    ['Domains', formatArray(R.path(['domains'], node))],
-    ['Redirect Domains', formatArray(R.path(['redirectDomains'], node))],
-    ['SSL Certificate Type', R.path(['SSLCertificateType'], node)],
-    ['Cron', formatCron(R.path(['cron'], node))],
-    ['Solr Enabled', R.path(['solrEnabled'], node)],
+    ['ID', R.prop('id', node)],
+    ['Site Name', R.prop('siteName', node)],
+    ['Site Branch', R.prop('siteBranch', node)],
+    ['Site Env', R.prop('siteEnvironment', node)],
+    ['User Id', R.prop('uid', node)],
+    ['Server Names', R.prop('serverNames', node)],
+    ['Webroot', R.prop('webRoot', node)],
+    ['Domains', formatArray(R.prop('domains', node))],
+    ['Redirect Domains', formatArray(R.prop('redirectDomains', node))],
+    ['SSL Certificate Type', R.prop('SSLCertificateType', node)],
+    ['Cron', formatCron(R.prop('cron', node))],
+    ['Solr Enabled', R.prop('solrEnabled', node)],
   ];
 
   const tableData = R.filter(onlyValues)(tableBody);
