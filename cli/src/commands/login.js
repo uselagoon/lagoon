@@ -38,18 +38,20 @@ const getPrivateKeyPath = async (
   args: GetPrivateKeyPathArgs,
 ): Promise<string> =>
   R.cond([
-    // If a file exists at the default private key path, use that
-    [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
     // If the identity option for the command has been specified, use the value of that
     [
-      R.propSatisfies(
-        // Option is not null or undefined and a file exists at that path
-        async identityOption =>
-          R.complement(R.isNil)(identityOption) && fileExists(identityOption),
-        'identityOption',
-      ),
+      // TODO: Ramdaify / FPify?
+      // TODO: Improve error message here. Right now it just throws with ENOENT
+      // Uncaught error in command:
+      // Error: ENOENT: no such file or directory, open '/Users/k/.ssh/id_drsa'
+      // error Command failed with exit code 1.
+      // Maybe because of the async? Maybe this is returning a Promise?
+      async ({ identityOption }) =>
+        identityOption != null && fileExists(identityOption),
       R.prop('identityOption'),
     ],
+    // If a file exists at the default private key path, use that
+    [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
     // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
     [
       R.T,
