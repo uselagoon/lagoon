@@ -2,6 +2,7 @@
 
 import os from 'os';
 import path from 'path';
+import { green } from 'chalk';
 import inquirer from 'inquirer';
 import { utils } from 'ssh2-streams';
 import untildify from 'untildify';
@@ -57,7 +58,7 @@ export async function run({ clog }: Args): Promise<number> {
   const tokenFilePath = path.join(homeDir, '.ioauth');
   await writeFile(tokenFilePath, token);
 
-  clog('Login successful');
+  clog(green('Login successful'));
 
   // Be responsible and close the connection after our transaction.
   connection.end();
