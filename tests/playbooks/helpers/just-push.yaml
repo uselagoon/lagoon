@@ -19,3 +19,4 @@
     git_repo_ssh_url: "{{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-github/push.yaml
+  - include: ../../tasks/webhook-bitbucket/push.yaml
