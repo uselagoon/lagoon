@@ -65,7 +65,23 @@ Examples:
                                             user).
 ```
 
-#### Example
+#### `io init` Example
+
+```sh
+$ io init
+? File '/Users/Claudine/Projects/my-awesome-project/.amazeeio.yml' already exists! Overwrite? (y/N) y
+? Enter the name of the sitegroup to configure. my_sitegroup
+Creating file '/Users/Claudine/Projects/my-awesome-project/.amazeeio.yml'...
+Configuration file created!
+Done in 28.56s.
+$
+$ cat .amazeeio.yml
+sitegroup: my_sitegroup
+deploy_tasks:
+  task1:
+    before_deploy: []
+    after_deploy: []
+```
 
 ### `io sites`
 
@@ -75,7 +91,7 @@ io list sites
 io list sites -s my_sitegroup
 ```
 
-#### Example
+#### `io sites` Example
 
 ## Development
 
