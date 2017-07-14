@@ -31,7 +31,7 @@ const getOverwriteOption = async (
     [
       R.propSatisfies(
         // Option is not null or undefined
-        overwriteOption => overwriteOption != null,
+        R.complement(R.isNil),
         'overwriteOption',
       ),
       R.prop('overwriteOption'),
