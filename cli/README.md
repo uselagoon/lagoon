@@ -33,6 +33,22 @@ io list sites -s my_sitegroup
 
 ## Development
 
+The `runCli.sh` script injects the necessary environment variables such as `process.env.API_URL`.
+
+```sh
+../runCli.sh -- <commands>
+```
+
+For example:
+
+```sh
+../runCli.sh -- init --overwrite false --sitegroup my_sitegroup
+```
+
+### Old development instructions
+
+The instructions below were how we previously built (before `runCli.sh`), but they will not inject the necessary environment variables (for example, `process.env.API_URL`).
+
 ```sh
 npm install      # Install dependencies
 npm run build    # Build files to the `dist` folder
