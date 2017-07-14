@@ -74,7 +74,11 @@ $ io init
 Creating file '/Users/Claudine/Projects/developermentify/.amazeeio.yml'...
 Configuration file created!
 Done in 28.56s.
-$
+```
+
+This will generate the following file:
+
+```sh
 $ cat .amazeeio.yml
 sitegroup: my_sitegroup
 deploy_tasks:
