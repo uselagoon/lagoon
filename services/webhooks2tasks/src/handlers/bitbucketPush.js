@@ -20,8 +20,8 @@ export default async function bitbucketPush(webhook: WebhookRequestData, siteGro
       body,
     } = webhook;
 
-    const branchName = body.ref.toLowerCase().replace('refs/heads/','')
-    const sha = body.after
+    const branchName = body.push.changes.new.name.toLowerCase()
+    const sha = body.push.changes.commits.hash
 
     const meta = {
       branch: branchName,
@@ -35,16 +35,16 @@ export default async function bitbucketPush(webhook: WebhookRequestData, siteGro
       sha: sha
     }
 
-    let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
+    let logMessage = `\`<${body.push.changes.new.links.html.href}>\``
     if (sha) {
       const shortSha: string = sha.substring(0, 7)
-      logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
+      logMessage = `${logMessage} (<${body.push.changes.new.target.links.html.href}|${shortSha}>)`
     }
 
     try {
       const taskResult = await createDeployTask(data);
       sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}>`
+        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.links.html.href}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
