@@ -73,7 +73,7 @@ $ io init
 ? Enter the name of the sitegroup to configure. my_sitegroup
 Creating file '/Users/Claudine/Projects/developermentify/.amazeeio.yml'...
 Configuration file created!
-Done in 28.56s.
+Done in 10.56s.
 ```
 
 This will generate the following file:
