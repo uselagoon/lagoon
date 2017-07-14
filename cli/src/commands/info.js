@@ -2,7 +2,7 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import { path, pathOr, forEach, map, join, compose, filter } from 'ramda';
+import R from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -103,16 +103,16 @@ export async function sitegroupInfo({
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const sitegroupData = path(['data', 'siteGroupByName'])(result);
+  const sitegroupData = R.path(['data', 'siteGroupByName'])(result);
 
   if (sitegroupData == null) {
     clog(red(`No sitegroup '${sitegroup}' found`));
     return 1;
   }
 
-  const sites = compose(
-    map(({ siteName, siteBranch }) => `${siteName}:${siteBranch}`),
-    pathOr([], ['data', 'siteGroupByName', 'sites']),
+  const sites = R.compose(
+    R.map(({ siteName, siteBranch }) => `${siteName}:${siteBranch}`),
+    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
   )(result);
 
   const formatSlack = (slack) => {
@@ -120,20 +120,20 @@ export async function sitegroupInfo({
       return '';
     }
 
-    const webhook = path(['webhook'], slack);
-    const channel = path(['channel'], slack);
+    const webhook = R.path(['webhook'], slack);
+    const channel = R.path(['channel'], slack);
 
     return `${channel} -> ${webhook}`;
   };
 
   const tableBody = [
-    ['SiteGroup Name', path(['siteGroupName'], sitegroupData)],
-    ['Git Url', path(['gitUrl'], sitegroupData)],
-    ['Slack', formatSlack(path(['slack'], sitegroupData))],
-    ['Sites', join(', ', sites)],
+    ['SiteGroup Name', R.path(['siteGroupName'], sitegroupData)],
+    ['Git Url', R.path(['gitUrl'], sitegroupData)],
+    ['Slack', formatSlack(R.path(['slack'], sitegroupData))],
+    ['Sites', R.join(', ', sites)],
   ];
 
-  const tableData = filter(onlyValues)(tableBody);
+  const tableData = R.filter(onlyValues)(tableBody);
 
   clog(`I found following information for sitegroup '${sitegroup}':`);
   clog(table(tableData, tableConfig));
@@ -230,9 +230,9 @@ export async function siteInfo({
     return siteName === site;
   };
 
-  const nodes = compose(
-    filter(matchesSiteAndBranch),
-    pathOr([], ['data', 'siteGroupByName', 'sites']),
+  const nodes = R.compose(
+    R.filter(matchesSiteAndBranch),
+    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
   )(result);
 
   if (nodes.length === 0) {
@@ -245,9 +245,9 @@ export async function siteInfo({
     clog(
       'I found multiple sites with the same name, but different branches, maybe try following parameter...',
     );
-    forEach(({ siteName, siteBranch }) => clog(`-> ${siteName}@${siteBranch}`))(
-      nodes,
-    );
+    R.forEach(({ siteName, siteBranch }) =>
+      clog(`-> ${siteName}@${siteBranch}`),
+    )(nodes);
     return 0;
   }
 
@@ -269,26 +269,26 @@ export async function siteInfo({
       return '';
     }
 
-    return join(', ', arr);
+    return R.join(', ', arr);
   };
 
   // We want to list these fields from the node result
   const tableBody = [
-    ['ID', path(['id'], node)],
-    ['Site Name', path(['siteName'], node)],
-    ['Site Branch', path(['siteBranch'], node)],
-    ['Site Env', path(['siteEnvironment'], node)],
-    ['User Id', path(['uid'], node)],
-    ['Server Names', path(['serverNames'], node)],
-    ['Webroot', path(['webRoot'], node)],
-    ['Domains', formatArray(path(['domains'], node))],
-    ['Redirect Domains', formatArray(path(['redirectDomains'], node))],
-    ['SSL Certificate Type', path(['SSLCertificateType'], node)],
-    ['Cron', formatCron(path(['cron'], node))],
-    ['Solr Enabled', path(['solrEnabled'], node)],
+    ['ID', R.path(['id'], node)],
+    ['Site Name', R.path(['siteName'], node)],
+    ['Site Branch', R.path(['siteBranch'], node)],
+    ['Site Env', R.path(['siteEnvironment'], node)],
+    ['User Id', R.path(['uid'], node)],
+    ['Server Names', R.path(['serverNames'], node)],
+    ['Webroot', R.path(['webRoot'], node)],
+    ['Domains', formatArray(R.path(['domains'], node))],
+    ['Redirect Domains', formatArray(R.path(['redirectDomains'], node))],
+    ['SSL Certificate Type', R.path(['SSLCertificateType'], node)],
+    ['Cron', formatCron(R.path(['cron'], node))],
+    ['Solr Enabled', R.path(['solrEnabled'], node)],
   ];
 
-  const tableData = filter(onlyValues)(tableBody);
+  const tableData = R.filter(onlyValues)(tableBody);
 
   clog(table(tableData, tableConfig));
 
