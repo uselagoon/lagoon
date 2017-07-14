@@ -54,18 +54,44 @@ const getOverwriteOption = async (
   ])(args);
 
 export async function setup(yargs: Yargs): Promise<Object> {
-  return yargs.usage(`$0 ${name} - ${description}`).options({
-    overwrite: {
-      describe: 'Overwrite the configuration file if it exists',
-      type: 'boolean',
-      default: undefined,
-    },
-    sitegroup: {
-      describe: 'Name of sitegroup to configure',
-      type: 'string',
-      alias: 's',
-    },
-  }).argv;
+  return yargs
+    .usage(`$0 ${name} - ${description}`)
+    .options({
+      overwrite: {
+        describe: 'Overwrite the configuration file if it exists',
+        type: 'boolean',
+        default: undefined,
+      },
+      sitegroup: {
+        describe: 'Name of sitegroup to configure',
+        type: 'string',
+        alias: 's',
+      },
+    })
+    .example(
+      `$0 ${name}`,
+      'Create a config file at ./.amazeeio.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a sitegroup name to add to the config.\n',
+    )
+    .example(
+      `$0 ${name} --overwrite`,
+      'Overwrite existing config file (do not confirm with the user).\n',
+    )
+    .example(
+      `$0 ${name} --overwrite false`,
+      'Prevent overwriting of existing config file (do not confirm with user).\n',
+    )
+    .example(
+      `$0 ${name} --sitegroup my_sitegroup`,
+      'Set sitegroup to "my_sitegroup" (do not prompt the user).\n',
+    )
+    .example(
+      `$0 ${name} -s my_sitegroup`,
+      'Short form for setting sitegroup to "my_sitegroup" (do not prompt the user).\n',
+    )
+    .example(
+      `$0 ${name} --overwrite --sitegroup my_sitegroup`,
+      'Overwrite existing config files and set sitegroup to "my_sitegroup" (do not confirm with or prompt the user).',
+    ).argv;
 }
 
 type Args = BaseArgs & {
