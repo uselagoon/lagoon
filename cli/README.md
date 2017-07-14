@@ -69,9 +69,9 @@ Examples:
 
 ```sh
 $ io init
-? File '/Users/Claudine/Projects/my-awesome-project/.amazeeio.yml' already exists! Overwrite? (y/N) y
+? File '/Users/Claudine/Projects/developermentify/.amazeeio.yml' already exists! Overwrite? (y/N) y
 ? Enter the name of the sitegroup to configure. my_sitegroup
-Creating file '/Users/Claudine/Projects/my-awesome-project/.amazeeio.yml'...
+Creating file '/Users/Claudine/Projects/developermentify/.amazeeio.yml'...
 Configuration file created!
 Done in 28.56s.
 $
