@@ -4,23 +4,42 @@ metadata:
   creationTimestamp: null
   name: amazeeio-openshift-template-node
 parameters:
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    required: true
+  - name: SAFE_SITEGROUP
+    description: Which sitegroup this belongs to, special chars replaced with dashes
+    required: true
   - name: BRANCH
-    description: Which branch this belongs to
+    description: Which branch this belongs to, original value
     required: true
   - name: SITEGROUP
-    description: Which sitegroup this belongs to
+    description: Which sitegroup this belongs to, original value
+    required: true
+  - name: AMAZEEIO_GIT_SHA
+    description: git hash sha of the current deployment
     required: true
   - name: ROUTER_URL
     description: URL of the Router
     required: true
 objects:
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: amazeeio-env
+  data:
+    AMAZEEIO_GIT_SAFE_BRANCH: ${SAFE_BRANCH}
+    AMAZEEIO_GIT_BRANCH: ${BRANCH}
+    AMAZEEIO_SAFE_SITEGROUP: ${SAFE_SITEGROUP}
+    AMAZEEIO_GIT_SHA: ${AMAZEEIO_GIT_SHA}
+    AMAZEEIO_SITEGROUP: ${SITEGROUP}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     creationTimestamp: null
     labels:
-      branch: ${BRANCH}
-      sitegroup: ${SITEGROUP}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
     name: app
   spec:
     replicas: 1
@@ -33,8 +52,8 @@ objects:
         creationTimestamp: null
         labels:
           app: nodejs
-          branch: ${BRANCH}
-          sitegroup: ${SITEGROUP}
+          branch: ${SAFE_BRANCH}
+          sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
         - image: ' '
@@ -47,6 +66,27 @@ objects:
               port: 3000
             initialDelaySeconds: 15
             timeoutSeconds: 1
+          env:
+            - name: AMAZEEIO_GIT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_BRANCH
+            - name: AMAZEEIO_GIT_SAFE_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SAFE_BRANCH
+            - name: AMAZEEIO_GIT_SHA
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SHA
+            - name: AMAZEEIO_SITEGROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_SITEGROUP
           resources:
             requests:
               cpu: 100m
@@ -69,8 +109,8 @@ objects:
     creationTimestamp: null
     labels:
       app: nodejs
-      branch: ${BRANCH}
-      sitegroup: ${SITEGROUP}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
     name: nodejs
   spec:
     ports:
@@ -88,8 +128,8 @@ objects:
     creationTimestamp: null
     labels:
       app: nodejs
-      branch: ${BRANCH}
-      sitegroup: ${SITEGROUP}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
     name: nodejs
   spec:
     host: ${ROUTER_URL}
