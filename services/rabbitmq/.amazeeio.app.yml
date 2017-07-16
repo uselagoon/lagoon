@@ -95,21 +95,16 @@ objects:
                 configMapKeyRef:
                   name: amazeeio-env
                   key: AMAZEEIO_SITEGROUP
-            - name: RABBITMQ_USERNAME
+            - name: RABBITMQ_DEFAULT_USER
               valueFrom:
                 secretKeyRef:
                   name: secret-environment
                   key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
+            - name: RABBITMQ_DEFAULT_PASS
               valueFrom:
                 secretKeyRef:
                   name: secret-environment
                   key: RABBITMQ_PASSWORD
-            - name: JENKINS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: secret-environment
-                  key: JENKINS_URL
           resources:
             requests:
               cpu: 100m
