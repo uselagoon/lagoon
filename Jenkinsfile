@@ -20,6 +20,9 @@ node {
       try {
         parallel (
           'start services': {
+            stage ('build base images') {
+              sh "./docker-images/buildall.sh"
+            }
             stage ('start services') {
               sh "${docker_compose} build --pull"
               sh "${docker_compose} up -d --force"

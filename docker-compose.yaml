@@ -77,6 +77,7 @@ services:
       - JENKINS_URL=http://admin:admin@jenkins:8080
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
+      - CI_OVERRIDE_IMAGE_REPO=laggon-local-dev
     volumes:
       - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
       - ./node-packages:/app/node-packages
