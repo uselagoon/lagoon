@@ -9,5 +9,4 @@ RUN fix-permissions /usr/share/kibana
 
 ENV xpack.security.enabled=false
 
-ARG AMAZEEIO_GIT_BRANCH=undefined
-ENV ELASTICSEARCH_URL "http://${AMAZEEIO_GIT_BRANCH}-elasticsearch:9200"
+ENV ELASTICSEARCH_URL "http://elasticsearch:9200"

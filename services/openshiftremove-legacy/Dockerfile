@@ -1,33 +1,15 @@
-FROM amazeeio/centos7-node-builder:6 as node-packages
-
-# A bit an ugly hack to get files from the root directory of lagoon: Checking out the
-# Git repo again with the same SHA as we are currently building so we can copy it
-# This is necessary as with the current docker context we can't reach files from top level directories.
-
-# if GIT_SHA is not set (like we are locally, we fall back to the develop branch)
-ARG AMAZEEIO_GIT_SHA=origin/develop
-RUN git init . && \
-    git config remote.origin.url https://d3b4ce2e61fc43cbc6eaa96dfe72a92c480c813d@github.com/amazeeio/lagoon.git && \
-    git fetch https://d3b4ce2e61fc43cbc6eaa96dfe72a92c480c813d@github.com/amazeeio/lagoon.git +refs/heads/*:refs/remotes/origin/* && \
-    git checkout --force ${AMAZEEIO_GIT_SHA}
-
 FROM amazeeio/centos7-node-builder:6 as builder
 ENV NODE_ENV production
-COPY package.json yarn.lock /app/services/openshiftremove/
-COPY --from=node-packages /app/node-packages /app/node-packages
-RUN cd /app/services/openshiftremove && BUILD_ONLY=true yarn install --pure-lockfile
+COPY services/openshiftremove-legacy/package.json services/openshiftremove-legacy/yarn.lock /app/services/openshiftremove-legacy/
+COPY node-packages /app/node-packages
+RUN cd /app/services/openshiftremove-legacy && BUILD_ONLY=true yarn install --pure-lockfile
 
 FROM amazeeio/centos7-node:6
 ENV NODE_ENV production
-COPY --from=builder /app/services/openshiftremove/node_modules /app/services/openshiftremove/node_modules
-COPY . /app/services/openshiftremove/
+COPY --from=builder /app/services/openshiftremove-legacy/node_modules /app/services/openshiftremove-legacy/node_modules
+COPY services/openshiftremove-legacy /app/services/openshiftremove-legacy
 
-WORKDIR /app/services/openshiftremove/
-
-ARG AMAZEEIO_GIT_BRANCH=undefined
-
-ENV RABBITMQ_HOST "${AMAZEEIO_GIT_BRANCH}-rabbitmq"
-ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:3000"
+WORKDIR /app/services/openshiftremove-legacy/
 
 RUN yarn run build
 

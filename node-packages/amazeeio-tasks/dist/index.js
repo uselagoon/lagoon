@@ -30,7 +30,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var sendToAmazeeioTasks = exports.sendToAmazeeioTasks = function sendToAmazeeioTasks() {};
 var connection = exports.connection = function connection() {};
-var rabbitmqHost = process.env.RABBITMQ_HOST || "localhost";
+var rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq";
 var rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest";
 var rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest";
 

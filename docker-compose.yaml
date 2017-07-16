@@ -1,80 +1,58 @@
 version: '2'
 services:
   webhook-handler:
-    build: services/webhook-handler
+    build:
+      context: .
+      dockerfile: services/webhook-handler/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     ports:
       - "7777:3000"
     links:
       - rabbitmq
-    environment:
-      - RABBITMQ_HOST=rabbitmq
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages
   rabbitmq:
-    build: services/rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-      - HOSTNAME=rabbitmq
+    build:
+      context: .
+      dockerfile: services/rabbitmq/Dockerfile
     ports:
       - "15672:15672"
       - "5672:5672"
-#  gitpush2ansibledeploy:
-#    build: services/gitpush2ansibledeploy
-#    command: yarn run dev
-#    links:
-#      - rabbitmq
-#      - api
-#      - jenkins
-#    environment:
-#      - RABBITMQ_HOST=rabbitmq
-#      - AMAZEEIO_API_HOST=http://api:8080
-#      - JENKINS_URL=http://admin:admin@jenkins:8080
-#      - DOCKER_RUN_PARAM=--add-host deploytest1.compact.amazee.io:172.28.128.99
-#      - ANSIBLE_IMAGE_LOCATION=absolute
-#    volumes:
-#      - ./services/gitpush2ansibledeploy/src:/app/src
   openshiftremove:
-    build: services/openshiftremove
+    build:
+      context: .
+      dockerfile: services/openshiftremove/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
       - jenkins
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
-      - JENKINS_URL=http://admin:admin@jenkins:8080
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages
   openshiftremove-legacy:
-    build: services/openshiftremove-legacy
+    build:
+      context: .
+      dockerfile: services/openshiftremove-legacy/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
       - jenkins
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
-      - JENKINS_URL=http://admin:admin@jenkins:8080
     volumes:
       - ./services/openshiftremove-legacy/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages
   openshiftdeploy:
-    build: services/openshiftdeploy
+    build:
+      context: .
+      dockerfile: services/openshiftdeploy/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
       - jenkins
     environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
-      - JENKINS_URL=http://admin:admin@jenkins:8080
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
       - CI_OVERRIDE_IMAGE_REPO=laggon-local-dev
@@ -82,61 +60,59 @@ services:
       - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
       - ./node-packages:/app/node-packages
   openshiftdeploy-legacy:
-    build: services/openshiftdeploy-legacy
+    build:
+      context: .
+      dockerfile: services/openshiftdeploy-legacy/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
       - jenkins
     environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
-      - JENKINS_URL=http://admin:admin@jenkins:8080
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
     volumes:
       - ./services/openshiftdeploy-legacy/src:/app/services/openshiftdeploy/src
       - ./node-packages:/app/node-packages
   logs2slack:
-    build: services/logs2slack
+    build:
+      context: .
+      dockerfile: services/logs2slack/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
       - jenkins
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
       - ./node-packages:/app/node-packages
   webhooks2tasks:
-    build: services/webhooks2tasks
+    build:
+      context: .
+      dockerfile: services/webhooks2tasks/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
       - api
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages
   rest2tasks:
-    build: services/rest2tasks
+    build:
+      context: .
+      dockerfile: services/rest2tasks/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
     links:
       - rabbitmq
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - AMAZEEIO_API_HOST=http://api:3000
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
       - ./node-packages:/app/node-packages
     ports:
       - "5555:3000"
   api:
-    build: services/api
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
     command: yarn run dev
     environment:
       - GIT_REPOSITORY=file:///lagoon/hiera
@@ -147,13 +123,17 @@ services:
     ports:
       - "8080:3000"
   jenkins:
-    build: services/jenkins
+    build:
+      context: .
+      dockerfile: services/jenkins/Dockerfile
     environment:
       - JENKINS_ADMIN_PASSWORD=admin
     ports:
       - "8888:8080"
   jenkins-slave:
-    build: services/jenkins-slave
+    build:
+      context: .
+      dockerfile: services/jenkins-slave/Dockerfile
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -161,10 +141,6 @@ services:
       - ./docker-executors/docker-oc-build-deploy:/docker-oc-build-deploy
     links:
       - jenkins
-    environment:
-      - JENKINS_MASTER_CREDENTIALS=admin:admin
-      - JENKINS_MASTER_URL=http://jenkins:8080
-      - JENKINS_SLAVE_NAME=alpha
   tests:
     build: tests
     links:
@@ -196,27 +172,25 @@ services:
     ports:
       - "9200:9200"
   kibana:
-    build: services/kibana
+    build:
+      context: .
+      dockerfile: services/kibana/Dockerfile
     links:
       - elasticsearch
-    environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
     ports:
       - "5601:5601"
   logstash:
-    build: services/logstash
+    build:
+      context: .
+      dockerfile: services/logstash/Dockerfile
     user: '1111722'
     links:
       - elasticsearch
       - rabbitmq
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
   hacky-rest2tasks-ui:
-    build: services/hacky-rest2tasks-ui
+    build:
+      context: .
+      dockerfile: services/hacky-rest2tasks-ui/Dockerfile
     command: yarn run dev
     environment:
       - API=http://api:3000

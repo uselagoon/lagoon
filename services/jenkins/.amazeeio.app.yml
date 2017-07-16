@@ -4,17 +4,23 @@ metadata:
   creationTimestamp: null
   name: amazeeio-openshift-template-node
 parameters:
-  - name: TAG
-    description: Which docker image tag should be deployed
+  - name: SERVICE_NAME
+    description: Name of this service
     required: true
-  - name: NAME
-    description: Name of the objects to create
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
     required: true
-  - name: SHORT_NAME
-    description: Shorter name of the objects to create, can be max 24 chars
+  - name: SAFE_SITEGROUP
+    description: Which sitegroup this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
     required: true
   - name: SITEGROUP
-    description: Which sitegroup this belongs to
+    description: Which sitegroup this belongs to, original value
+    required: true
+  - name: AMAZEEIO_GIT_SHA
+    description: git hash sha of the current deployment
     required: true
   - name: ROUTER_URL
     description: URL of the Router
@@ -23,7 +29,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${NAME}-home
+    name: ${SERVICE_NAME}-home
   spec:
     accessModes:
       - ReadWriteMany
@@ -35,33 +41,26 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
   spec:
     replicas: 1
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      service: ${SERVICE_NAME}
     strategy:
       resources: {}
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: ${NAME}
-          deploymentconfig: ${NAME}
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
         - image: ' '
-          name: jenkins
-          env:
-          - name: JENKINS_SLAVE_AGENT_PORT
-            value: '31243'
-          - name: JENKINS_ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: secret-environment
-                key: JENKINS_ADMIN_PASSWORD
+          name: ${SERVICE_NAME}
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -78,27 +77,55 @@ objects:
             initialDelaySeconds: 420
             timeoutSeconds: 3
             failureThreshold: 30
+          env:
+            - name: JENKINS_SLAVE_AGENT_PORT
+              value: '31243'
+            - name: JENKINS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: JENKINS_ADMIN_PASSWORD
+            - name: AMAZEEIO_GIT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_BRANCH
+            - name: AMAZEEIO_GIT_SAFE_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SAFE_BRANCH
+            - name: AMAZEEIO_GIT_SHA
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SHA
+            - name: AMAZEEIO_SITEGROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_SITEGROUP
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
           volumeMounts:
           - mountPath: /var/jenkins_home
-            name: ${NAME}-home
+            name: ${SERVICE_NAME}-home
         volumes:
-        - name: ${NAME}-home
+        - name: ${SERVICE_NAME}-home
           persistentVolumeClaim:
-            claimName: ${NAME}-home
+            claimName: ${SERVICE_NAME}-home
     test: false
     triggers:
     - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
-        - jenkins
+        - ${SERVICE_NAME}
         from:
           kind: ImageStreamTag
-          name: ${SITEGROUP}:${TAG}
+          name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
 - apiVersion: v1
@@ -106,8 +133,10 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${SHORT_NAME}
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
   spec:
     ports:
     - name: 8080-tcp
@@ -115,8 +144,7 @@ objects:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -124,8 +152,10 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}-jnlp2
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}-jnlp2
   spec:
     ports:
     - name: jnlp2
@@ -136,8 +166,7 @@ objects:
     type: LoadBalancer
     externalIPs: []
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -145,12 +174,14 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
   spec:
     host: ${ROUTER_URL}
     port:
       targetPort: 8080-tcp
     to:
       kind: Service
-      name: ${SHORT_NAME}
+      name: ${SERVICE_NAME}
