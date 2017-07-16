@@ -48,7 +48,6 @@ for SERVICE in "${SERVICES[@]}"
 do
   SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.type custom)
   OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.Dockerfile false)
-  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.template false)
 
   if [ $OVERRIDE_DOCKERFILE == "false" ]; then
     DOCKERFILE="/openshift-templates/${SERVICE_TYPE}/Dockerfile"
@@ -62,6 +61,14 @@ do
     fi
   fi
 
+  . /usr/sbin/exec-build
+done
+
+for SERVICE in "${SERVICES[@]}"
+do
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.type custom)
+  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.template false)
+
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
@@ -74,7 +81,10 @@ do
     fi
   fi
 
-  . /usr/sbin/exec-build-deploy
+  . /usr/sbin/exec-openshift-resources
 done
 
-
+for SERVICE in "${SERVICES[@]}"
+do
+  . /usr/sbin/exec-push
+done
