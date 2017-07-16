@@ -21,7 +21,8 @@ node {
         parallel (
           'start services': {
             stage ('start services') {
-              sh "${docker_compose} up -d --force --build"
+              sh "${docker_compose} build --pull"
+              sh "${docker_compose} up -d --force"
             }
           },
           'start openshift': {
