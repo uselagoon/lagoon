@@ -51,14 +51,6 @@ objects:
         containers:
         - image: ' '
           name: ${SERVICE_NAME}
-          ports:
-          - containerPort: 3000
-            protocol: TCP
-          readinessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
           env:
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
