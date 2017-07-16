@@ -1,0 +1,7 @@
+services:
+  node:
+    type: node:8
+    Dockerfile: .amazeeio.Dockerfile
+  node-test:
+    type: node:8
+    Dockerfile: .amazeeio.Dockerfile

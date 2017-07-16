@@ -202,7 +202,17 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "app", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+
+    def services = sh(returnStdout: true, script: "docker run --rm -v $WORKSPACE:/git ${ocBuildDeployImageName} cat .amazeeio.services").split(',')
+    def verifyDeployments = [:]
+
+    for ( int i = 0; i &lt; services.size(); i++ ) {
+      def service = services[i]
+      verifyDeployments[service] = {
+        openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: service, namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+      }
+    }
+    parallel verifyDeployments
   }
 
 }`
