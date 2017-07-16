@@ -84,13 +84,7 @@ function initSendToAmazeeioTasks() {
 			return Promise.all([
 
 			// Our main Exchange for all amazeeio-tasks
-			channel.assertExchange('amazeeio-tasks', 'direct', { durable: true }),
-
-			// Queue for messages with `deploy-openshift` routing key
-			channel.assertQueue('amazeeio-tasks:deploy-openshift', { durable: true }), channel.bindQueue('amazeeio-tasks:deploy-openshift', 'amazeeio-tasks', 'deploy-openshift'), channel.assertQueue('amazeeio-tasks:deploy-openshift-legacy', { durable: true }), channel.bindQueue('amazeeio-tasks:deploy-openshift-legacy', 'amazeeio-tasks', 'deploy-openshift-legacy'),
-
-			// Queue for messages with `remove-openshift-resources` routing key
-			channel.assertQueue('amazeeio-tasks:remove-openshift-resources', { durable: true }), channel.bindQueue('amazeeio-tasks:remove-openshift-resources', 'amazeeio-tasks', 'remove-openshift-resources'), channel.assertQueue('amazeeio-tasks:remove-openshift-resources-legacy', { durable: true }), channel.bindQueue('amazeeio-tasks:remove-openshift-resources-legacy', 'amazeeio-tasks', 'remove-openshift-resources-legacy'), channel.assertExchange('amazeeio-tasks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' } }), channel.bindExchange('amazeeio-tasks', 'amazeeio-tasks-delay', '')]);
+			channel.assertExchange('amazeeio-tasks', 'direct', { durable: true }), channel.assertExchange('amazeeio-tasks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' } }), channel.bindExchange('amazeeio-tasks', 'amazeeio-tasks-delay', '')]);
 		}
 	});
 
@@ -390,7 +384,7 @@ function consumeTasks(taskQueueName, messageConsumer, retryHandler, deathHandler
 
 					channelWrapper = connection.createChannel({
 						setup: function setup(channel) {
-							return Promise.all([channel.prefetch(2), channel.consume('amazeeio-tasks:' + taskQueueName, onMessage, { noAck: false })]);
+							return Promise.all([channel.assertQueue('amazeeio-tasks:' + taskQueueName, { durable: true }), channel.bindQueue('amazeeio-tasks:' + taskQueueName, 'amazeeio-tasks', taskQueueName), channel.prefetch(2), channel.consume('amazeeio-tasks:' + taskQueueName, onMessage, { noAck: false })]);
 						}
 					});
 
