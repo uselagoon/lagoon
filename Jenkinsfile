@@ -21,7 +21,7 @@ node {
         parallel (
           'start services': {
             stage ('build base images') {
-              sh "./docker-images/buildall.sh"
+              sh "cd docker-images && ./buildall.sh"
             }
             stage ('start services') {
               sh "${docker_compose} build --pull"
