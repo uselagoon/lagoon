@@ -161,7 +161,7 @@ objects:
       sitegroup: ${SAFE_SITEGROUP}
     name: ${SERVICE_NAME}
   spec:
-    host: ${ROUTER_URL}
+    host: ${SERVICE_NAME}.${ROUTER_URL}
     port:
       targetPort: 15672-tcp
     to:
