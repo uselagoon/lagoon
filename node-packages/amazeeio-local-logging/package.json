@@ -1,6 +1,6 @@
 {
   "name": "@amazeeio/amazeeio-local-logging",
-  "version": "0.1.3",
+  "version": "3.0.2",
   "description": "helper for local logging",
   "main": "./dist/index.js",
   "engines": {
@@ -12,7 +12,9 @@
     "start": "node dist/index.js",
     "build": "babel src -d dist",
     "prepublish": "yarn run build",
-    "dev": "nodemon src/index.js --exec babel-node"
+    "postinstall": "yarn run build",
+    "dev": "nodemon src/index.js --exec babel-node",
+    "watch": "nodemon --ignore dist --exec 'yarn run build'"
   },
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "repository": {
@@ -27,7 +29,6 @@
     "babel-plugin-transform-flow-strip-types": "^6.21.0",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "babel-plugin-transform-regenerator": "^6.21.0",
-    "babel-polyfill": "^6.23.0",
     "babel-preset-es2015": "^6.18.0",
     "winston": "^2.2.0"
   },

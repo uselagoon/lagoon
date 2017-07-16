@@ -5,3 +5,4 @@ deploytest
 *.retry
 startVagrant.sh
 minishift
+**/v8-*

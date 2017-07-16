@@ -68,6 +68,17 @@ objects:
             requests:
               cpu: 100m
               memory: 100Mi
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: RABBITMQ_PASSWORD
           volumeMounts:
           - mountPath: /var/lib/rabbitmq
             name: ${NAME}-volume

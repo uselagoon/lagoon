@@ -6,52 +6,35 @@ import sleep from "es7-sleep";
 import Lokka from 'lokka';
 import Transport from 'lokka-transport-http';
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import amqp from 'amqp-connection-manager';
 import jenkinsLib from 'jenkins'
 import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-
+import { consumeTasks, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
 
 // Initialize the logging mechanism
 initLogger();
 initSendToAmazeeioLogs();
+initSendToAmazeeioTasks();
 
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ocBuildDeployBranch = process.env.BRANCH || "master"
+const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
 
-const connection = amqp.connect([`amqp://${rabbitmqhost}`], {json: true});
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)
 });
 
-connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url));
-connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { reason: params }));
-
-const channelWrapper = connection.createChannel({
-    setup: function(channel) {
-        return Promise.all([
-            channel.assertQueue('amazeeio-tasks:deploy-openshift', {durable: true}),
-            channel.prefetch(2),
-            channel.consume('amazeeio-tasks:deploy-openshift', onMessage, {noAck: false}),
-        ])
-    }
-});
-
-
-var onMessage = async function(msg) {
-  var payload = JSON.parse(msg.content.toString())
-
+const messageConsumer = async msg => {
   const {
     siteGroupName,
     branchName,
     sha
-  } = payload
+  } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received DeployOpenshift task for sitegroup ${siteGroupName}, branch ${branchName}`);
+  logger.verbose(`Received DeployOpenshift task for sitegroup: ${siteGroupName}, branch: ${branchName}, sha: ${sha}`);
 
   const siteGroupOpenShift = await amazeeioAPI.query(`
     {
@@ -67,77 +50,58 @@ var onMessage = async function(msg) {
 
   let jenkinsUrl
 
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+
   try {
-    var safeBranchname = branchName.replace('/','-')
+    var safeBranchName = ocsafety(branchName)
+    var safeSiteGroupName = ocsafety(siteGroupName)
     var gitSha = sha
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
+    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
     var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
+    var appuioToken = siteGroupOpenShift.siteGroup.openshift.appuiotoken || ""
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftTemplate = siteGroupOpenShift.siteGroup.openshift.template
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
-    var openshiftNamingPullRequests = typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined' ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}" || "${sitegroup}-${branch}"
-    var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupOpenShift.siteGroup.siteGroupName
-    var openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('_','-')
+    var openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
-    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}', safeBranchname).replace('${sitegroup}', siteGroupName).replace('_','-')
+    var openshiftRessourceRouterUrl = routerPattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName)
 
     if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
       jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
     } else {
-      jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+      jenkinsUrl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
     }
 
-  } catch(err) {
-    logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${err}`)
-    channelWrapper.ack(msg)
-    return
+  } catch(error) {
+    logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${error}`)
+    throw(error)
   }
 
-  logger.info(`Will deploy OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
-
-  try {
-    await deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha, openshiftRessourceAppName, openshiftRessourceRouterUrl, openshiftConsole, openshiftRegistry, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject, openshiftTemplate, openshiftFolder, deployPrivateKey, gitUrl, jenkinsUrl)
-  }
-  catch(error) {
-    logger.error(`Error deploying OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}. The error was: ${error}`)
-    sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
-`ERROR: Deploying with label \`${openshiftRessourceAppName}\`:
-\`\`\`
-${error}
-\`\`\``
-    )
-    channelWrapper.ack(msg)
-    return
-  }
-  logger.info(`Deployed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
-  channelWrapper.ack(msg)
-}
-
-async function deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha, openshiftRessourceAppName, openshiftRessourceRouterUrl, openshiftConsole, openshiftRegistry, openshiftToken, openshiftUsername, openshiftPassword, openshiftProject, openshiftTemplate, openshiftFolder, deployPrivateKey, gitUrl, jenkinsUrl) {
   var folderxml =
-  `<?xml version='1.0' encoding='UTF-8'?>
-  <com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder@5.13">
-    <actions/>
-    <description></description>
-    <properties/>
-    <views>
-      <hudson.model.AllView>
-        <owner class="com.cloudbees.hudson.plugins.folder.Folder" reference="../../.."/>
-        <name>All</name>
-        <filterExecutors>false</filterExecutors>
-        <filterQueue>false</filterQueue>
-        <properties class="hudson.model.View$PropertyList"/>
-      </hudson.model.AllView>
-    </views>
-    <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
-    <healthMetrics/>
-    <icon class="com.cloudbees.hudson.plugins.folder.icons.StockFolderIcon"/>
-  </com.cloudbees.hudson.plugins.folder.Folder>
-  `
+    `<?xml version='1.0' encoding='UTF-8'?>
+    <com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder@5.13">
+      <actions/>
+      <description></description>
+      <properties/>
+      <views>
+        <hudson.model.AllView>
+          <owner class="com.cloudbees.hudson.plugins.folder.Folder" reference="../../.."/>
+          <name>All</name>
+          <filterExecutors>false</filterExecutors>
+          <filterQueue>false</filterQueue>
+          <properties class="hudson.model.View$PropertyList"/>
+        </hudson.model.AllView>
+      </views>
+      <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+      <healthMetrics/>
+      <icon class="com.cloudbees.hudson.plugins.folder.icons.StockFolderIcon"/>
+    </com.cloudbees.hudson.plugins.folder.Folder>
+    `
 
   let ocBuildDeploystage
   let ocBuildDeployImageName
@@ -196,7 +160,7 @@ async function deployOpenShift(siteGroupName, branchName, safeBranchname, gitSha
     `
   }
 
-  var shortName = `${safeBranchname}-${siteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '').replace('_','-')
+  var shortName = `${safeBranchName}-${safeSiteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '')
   var buildName = gitSha ? gitSha.substring(0, 7) : branchName
   // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
   var gitRef = gitSha ? gitSha : `origin/${branchName}`
@@ -217,18 +181,19 @@ node {
     -e GIT_REF="${gitRef}" \\
     -e OPENSHIFT_CONSOLE="${openshiftConsole}" \\
     -e OPENSHIFT_REGISTRY="${openshiftRegistry}" \\
+    -e APPUIO_TOKEN="${appuioToken}" \\
     -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" \\
     -e OPENSHIFT_PROJECT="${openshiftProject}" \\
     -e OPENSHIFT_ROUTER_URL="${openshiftRessourceRouterUrl}" \\
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
     -e SSH_PRIVATE_KEY="${deployPrivateKey}" \\
-    -e TAG="${safeBranchname}" \\
+    -e SAFE_BRANCH="${safeBranchName}" \\
     -e BRANCH="${branchName}" \\
     -e IMAGE=\${env.IMAGE} \\
-    -e NAME="${openshiftRessourceAppName}" \\
-    -e SHORT_NAME="${shortName}" \\
+    -e SAFE_SITEGROUP="${safeSiteGroupName}" \\
     -e SITEGROUP="${siteGroupName}" \\
+    -e CI_OVERRIDE_IMAGE_REPO="${ciOverrideImageRepo}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     ${ocBuildDeployImageName}"""
@@ -237,18 +202,26 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "${openshiftRessourceAppName}", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+
+    def services = sh(returnStdout: true, script: "docker run --rm -v $WORKSPACE:/git ${ocBuildDeployImageName} cat .amazeeio.services").split(',')
+    def verifyDeployments = [:]
+
+    for ( int i = 0; i &lt; services.size(); i++ ) {
+      def service = services[i]
+      verifyDeployments[service] = {
+        openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: service, namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+      }
+    }
+    parallel verifyDeployments
   }
 
-}
-
-  `
+}`
 
   var jobxml =
   `<?xml version='1.0' encoding='UTF-8'?>
   <flow-definition plugin="workflow-job@2.7">
     <actions/>
-    <description>${openshiftRessourceAppName}</description>
+    <description>${safeBranchName}</description>
     <keepDependencies>false</keepDependencies>
     <properties>
       <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -264,7 +237,7 @@ node {
 
   var foldername = `${siteGroupName}`
 
-  var jobname = `${foldername}/deploy-${openshiftRessourceAppName}`
+  var jobname = `${foldername}/deploy-${safeBranchName}`
 
   const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true});
 
@@ -309,7 +282,7 @@ node {
   }
 
   let jenkinsJobID = await getJenkinsJobID(jenkinsJobBuildResponse)
-  let logMessage
+  let logMessage = ''
   if (gitSha) {
     logMessage = `\`${branchName}\` (${buildName})`
   } else {
@@ -330,28 +303,76 @@ node {
     });
 
     log.on('error', error =>  {
-      sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
-  `*[${siteGroupName}]* ${logMessage} ERROR:
-  \`\`\`
-  ${error}
-  \`\`\``
-      )
       logger.error(error)
-      throw error
+      reject(error)
     });
 
     log.on('end', async () => {
-      const result = await jenkins.build.get(jobname, jenkinsJobID)
-      if (result.result === "SUCCESS") {
-        sendToAmazeeioLogs('success', siteGroupName, "", "task:deploy-openshift:finished",  {},
-          `*[${siteGroupName}]* ${logMessage} ${openshiftRessourceRouterUrl}`
-        )
-        logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
-      } else {
-        sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {}, `*[${siteGroupName}]* ${logMessage} ERROR`)
-        logger.error(`Finished FAILURE job build: ${jobname}, job id: ${jenkinsJobID}`)
+      try {
+        const result = await jenkins.build.get(jobname, jenkinsJobID)
+        if (result.result === "SUCCESS") {
+          sendToAmazeeioLogs('success', siteGroupName, "", "task:deploy-openshift:finished",  {},
+            `*[${siteGroupName}]* ${logMessage} ${openshiftRessourceRouterUrl}`
+          )
+          logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
+        } else {
+          sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {}, `*[${siteGroupName}]* ${logMessage} ERROR`)
+          logger.error(`Finished FAILURE job build: ${jobname}, job id: ${jenkinsJobID}`)
+        }
+        resolve()
+      } catch(error) {
+        reject(error)
       }
-      resolve()
     });
   })
 }
+
+const deathHandler = async (msg, lastError) => {
+
+  const {
+    siteGroupName,
+    branchName,
+    sha
+  } = JSON.parse(msg.content.toString())
+
+  let logMessage = ''
+  if (sha) {
+    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
+
+  sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
+`*[${siteGroupName}]* ${logMessage} ERROR:
+\`\`\`
+${lastError}
+\`\`\``
+  )
+
+}
+
+const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
+
+  const {
+    siteGroupName,
+    branchName,
+    sha
+  } = JSON.parse(msg.content.toString())
+
+  let logMessage = ''
+  if (sha) {
+    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
+
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+`*[${siteGroupName}]* ${logMessage} ERROR:
+\`\`\`
+${error}
+\`\`\`
+Retrying deployment in ${retryExpirationSecs} secs`
+  )
+}
+
+consumeTasks('deploy-openshift', messageConsumer, retryHandler, deathHandler)

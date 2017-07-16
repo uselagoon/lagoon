@@ -1,7 +1,8 @@
 // @flow
 
 import amqp from 'amqp-connection-manager';
-import { logger } from '@amazeeio/amazeeio-local-logging';
+import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
+
 
 import type { ChannelWrapper } from './types';
 
@@ -9,8 +10,12 @@ import { getActiveSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 
 
 export let sendToAmazeeioTasks = () => {};
-const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
+export let connection = () => {};
+const rabbitmqHost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 
+initLogger();
 
 export class UnknownActiveSystem extends Error {
   constructor(message: string) {
@@ -27,22 +32,35 @@ export class NoNeedToDeployBranch extends Error {
 }
 
 export function initSendToAmazeeioTasks() {
-	const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
+	connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
 
 	connection.on('connect', ({ url }) => logger.verbose('amazeeio-tasks: Connected to %s', url, { action: 'connected', url }));
 	connection.on('disconnect', params => logger.error('amazeeio-tasks: Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));
 
-	// Cast any to ChannelWrapper to get type-safetiness through our own code
-	const channelWrapper: ChannelWrapper = connection.createChannel();
+	const channelWrapper: ChannelWrapper = connection.createChannel({
+		setup(channel) {
+			return Promise.all([
+
+				// Our main Exchange for all amazeeio-tasks
+				channel.assertExchange('amazeeio-tasks', 'direct', { durable: true}),
+
+				channel.assertExchange('amazeeio-tasks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
+				channel.bindExchange('amazeeio-tasks', 'amazeeio-tasks-delay', ''),
+
+
+			]);
+		},
+	});
+
 	sendToAmazeeioTasks = async (task, payload): Promise<void> => {
 
 		try {
 			const buffer = new Buffer(JSON.stringify(payload));
-			await channelWrapper.sendToQueue(`amazeeio-tasks:${task}`, buffer, { persistent: true })
-			logger.verbose(`amazeeio-tasks: Successfully created task '${task}'`, payload);
+			await channelWrapper.publish(`amazeeio-tasks`, task, buffer, { persistent: true })
+			logger.debug(`amazeeio-tasks: Successfully created task '${task}'`, payload);
       return `amazeeio-tasks: Successfully created task '${task}': ${JSON.stringify(payload)}`
 		} catch(error) {
-			logger.error(`amazeeio-tasks: Error send to amazeeio-task queue`, {
+			logger.error(`amazeeio-tasks: Error send to amazeeio-task exchange`, {
 				payload,
 				error,
 			});
@@ -78,26 +96,53 @@ export async function createDeployTask(deployData) {
 
 	switch (activeDeploySystem) {
 		case 'lagoon_openshift':
-			const deploySystemConfig = activeSystems.deploy['lagoon_openshift']
+		case 'lagoon_openshiftLegacy':
+			// this is the old legacy system which does not create projects
+			const legacyDeploySystemConfig = activeSystems.deploy['lagoon_openshift']
+			if (type === 'branch') {
+				switch (legacyDeploySystemConfig.branches) {
+					case undefined:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
+						return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
+					case true:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
+						return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
+					case false:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
+						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
+					default:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${legacyDeploySystemConfig.branches}, testing if it matches`)
+						let branchRegex = new RegExp(legacyDeploySystemConfig.branches);
+						if (branchRegex.test(branchName)) {
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${legacyDeploySystemConfig.branches} matched branchname, starting deploy`)
+							return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
+						} else {
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${legacyDeploySystemConfig.branches} did not match branchname, not deploying`)
+							throw new NoNeedToDeployBranch(`configured regex '${legacyDeploySystemConfig.branches}' does not match branchname '${branchName}'`)
+						}
+				}
+			}
+		case 'lagoon_openshiftDeploy':
+			const deploySystemConfig = activeSystems.deploy['lagoon_openshiftDeploy']
 			if (type === 'branch') {
 				switch (deploySystemConfig.branches) {
 					case undefined:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToAmazeeioTasks('deploy-openshift', deployData);
 					case true:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
 						return sendToAmazeeioTasks('deploy-openshift', deployData);
 					case false:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
 						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
 					default:
-						logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
 						let branchRegex = new RegExp(deploySystemConfig.branches);
 						if (branchRegex.test(branchName)) {
-							logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
 							return sendToAmazeeioTasks('deploy-openshift', deployData);
 						} else {
-							logger.verbose(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
 							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
 						}
 				}
@@ -130,10 +175,76 @@ export async function createRemoveTask(removeData) {
 	const activeRemoveSystem = Object.keys(activeSystems.remove)[0]
 
 	switch (activeRemoveSystem) {
+		case 'lagoon_openshiftLegacy':
 		case 'lagoon_openshift':
+			// this is the old legacy system that tries to remove resources within one shared project
+			return sendToAmazeeioTasks('remove-openshift-resources-legacy', removeData);
+
+		case 'lagoon_openshiftRemove':
 			return sendToAmazeeioTasks('remove-openshift-resources', removeData);
 
 		default:
       throw new UnknownActiveSystem(`Unknown active system '${activeRemoveSystem}' for task 'remove' in for sitegroup ${siteGroupName}`)
 	}
+}
+
+export async function consumeTasks(taskQueueName, messageConsumer, retryHandler, deathHandler) {
+
+
+	const  onMessage = async msg => {
+		try {
+			await messageConsumer(msg)
+			channelWrapper.ack(msg)
+		} catch (error) {
+			// We land here if the messageConsumer has an error that it did not itslef handle.
+			// This is how the consumer informs us that we it would like to retry the message in a couple of seconds
+
+			const retryCount = msg.properties.headers["x-retry"] ? (msg.properties.headers["x-retry"] + 1) : 1
+
+			if (retryCount > 3) {
+				channelWrapper.ack(msg)
+				deathHandler(msg, error)
+				return
+			}
+
+			const retryDelaySecs = Math.pow(10, retryCount);
+			const retryDelayMilisecs = retryDelaySecs * 1000;
+
+			try {
+				retryHandler(msg, error, failCount, retryDelaySecs)
+			} catch (error) {
+				// intentionally empty as we don't want to fail and not requeue our message just becase the retryHandler fails
+			}
+
+			// copying options from the original message
+			const retryMsgOptions = {
+				appId: msg.properties.appId,
+				timestamp: msg.properties.timestamp,
+				contentType: msg.properties.contentType,
+				deliveryMode: msg.properties.deliveryMode,
+				headers: { ...msg.properties.headers, 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount},
+				persistent: true,
+			};
+
+			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
+			// which will send the message into the original exchange `amazeeio-tasks` after waiting the x-delay time.
+			channelWrapper.publish(`amazeeio-tasks-delay`, msg.fields.routingKey, msg.content, retryMsgOptions)
+
+			// acknologing the existing message, we cloned it and is not necessary anymore
+			channelWrapper.ack(msg)
+		}
+	}
+
+	const channelWrapper = connection.createChannel({
+		setup(channel) {
+			return Promise.all([
+				channel.assertQueue(`amazeeio-tasks:${taskQueueName}`, { durable: true }),
+				channel.bindQueue(`amazeeio-tasks:${taskQueueName}`, 'amazeeio-tasks', taskQueueName),
+				channel.prefetch(2),
+				channel.consume(`amazeeio-tasks:${taskQueueName}`, onMessage, { noAck: false }),
+			]);
+		},
+	});
+
+
 }

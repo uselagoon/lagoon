@@ -1,5 +1,5 @@
 {
-  "name": "amazeeio-webhook-handler",
+  "name": "webhooks2tasks",
   "version": "0.9.0",
   "description": "amazeeio handler for webhooks",
   "main": "index.js",
@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "start": "node build/index.js",
     "build": "babel src -d build",
-    "dev": "nodemon src/index.js --exec babel-node"
+    "dev": "yarn run link-node-packages && nodemon --watch . --watch ../../node-packages src/index.js --exec babel-node",
+    "link-node-packages": "if [ ! -d ../../node-packages ]; then exit 0; fi; for D in ../../node-packages/*/; do cd \"${D}\" && yarn link && package=${PWD##*/} && cd \"${OLDPWD}\" && yarn link @amazeeio/$package; done"
   },
   "author": "Rod Vagg <r@va.gg> (http://r.va.gg)",
   "repository": {
@@ -20,10 +21,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@amazeeio/amazeeio-api": "^0.1.7",
-    "@amazeeio/amazeeio-local-logging": "^0.1.3",
-    "@amazeeio/amazeeio-logs": "^0.1.11",
-    "@amazeeio/amazeeio-tasks": "^1.0.5",
+    "@amazeeio/amazeeio-api": "file:../../node-packages/amazeeio-api",
+    "@amazeeio/amazeeio-local-logging": "file:../../node-packages/amazeeio-local-logging",
+    "@amazeeio/amazeeio-logs": "file:../../node-packages/amazeeio-logs",
+    "@amazeeio/amazeeio-tasks": "file:../../node-packages/amazeeio-tasks",
     "amqp-connection-manager": "^1.3.5",
     "amqp-winston": "^1.0.7",
     "amqplib": "^0.5.1",

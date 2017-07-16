@@ -39,34 +39,40 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
     message
   } = logMessage
 
+  const appId = msg.properties.appId || ""
+
  logger.verbose(`received ${event}`, logMessage)
 
   switch (event) {
 
-    case "github:pull_request:closed:receive":
-    case "github:delete:receive":
-    case "github:push:receive":
-      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapper, msg)
+    case "github:pull_request:closed:handled":
+    case "github:delete:handled":
+    case "github:push:handled":
+    case "rest:deploy:receive":
+    case "rest:remove:receive":
+      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapper, msg, appId)
       break;
 
     case "task:remove-openshift-resources:finished":
     case "task:deploy-openshift:finished":
-      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapper, msg)
+      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapper, msg, appId)
+      break;
+
+    case "task:deploy-openshift:retry":
+    case "task:remove-openshift-resources:retry":
+      sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapper, msg, appId)
       break;
 
     case "task:remove-openshift-resources:error":
     case "task:deploy-openshift:error":
-      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg)
-      break;
-
-    case "task:remove-openshift-resources:start":
-    case "task:deploy-openshift:start":
-      sendToSlack(sitegroup, message, '#E8E8E8', ':clock1:', channelWrapper, msg)
+      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg, appId)
       break;
 
     case "unresolvedSitegroup:webhooks2tasks":
     case "unhandledWebhook":
     case "webhooks:receive":
+    case "task:remove-openshift-resources:start":
+    case "task:deploy-openshift:start":
       // known logs entries that should never go to slack
       channelWrapper.ack(msg)
       break;
@@ -78,7 +84,7 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
 
 }
 
-const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg) => {
+const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg, appId) => {
 
   let sitegroupSlack;
   try {
@@ -95,7 +101,8 @@ const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg
     attachments: [{
       text: `${emoji} ${message}`,
       color: color,
-      "mrkdwn_in": ["pretext", "text", "fields"]
+      "mrkdwn_in": ["pretext", "text", "fields"],
+      footer: appId
     }]
   });
   channelWrapper.ack(msg)

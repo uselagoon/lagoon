@@ -57,6 +57,11 @@ objects:
           env:
           - name: JENKINS_SLAVE_AGENT_PORT
             value: '31243'
+          - name: JENKINS_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: secret-environment
+                key: JENKINS_ADMIN_PASSWORD
           ports:
           - containerPort: 8080
             protocol: TCP

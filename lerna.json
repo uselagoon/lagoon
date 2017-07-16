@@ -1,0 +1,11 @@
+{
+  "lerna": "2.0.0-rc.5",
+  "packages": [
+    "node-packages/*"
+  ],
+  "version": "independent",
+  "npmClient": "yarn",
+  "npmClientArgs": [
+    "--no-optional"
+  ]
+}
