@@ -20,6 +20,7 @@ const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.c
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ocBuildDeployBranch = process.env.BRANCH || "master"
+const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO
 
 
 const amazeeioAPI = new Lokka({
@@ -192,6 +193,7 @@ node {
     -e IMAGE=\${env.IMAGE} \\
     -e SAFE_SITEGROUP="${safeSiteGroupName}" \\
     -e SITEGROUP="${siteGroupName}" \\
+    -e CI_OVERRIDE_IMAGE_REPO="${ciOverrideImageRepo}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     ${ocBuildDeployImageName}"""
