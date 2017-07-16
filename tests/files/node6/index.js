@@ -4,7 +4,7 @@ const app = express()
 app.get('/', function (req, res) {
   let result = []
   Object.keys(process.env).map(key => {
-    result.push(`${key}: ${process.env[key]}`)
+    result.push(`${key}=${process.env[key]}`)
   })
   result.sort()
 
