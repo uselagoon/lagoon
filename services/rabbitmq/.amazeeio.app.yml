@@ -29,7 +29,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${NAME}-volume
+    name: ${SERVICE_NAME}-volume
   spec:
     accessModes:
       - ReadWriteOnce
@@ -116,11 +116,11 @@ objects:
               memory: 100Mi
           volumeMounts:
           - mountPath: /var/lib/rabbitmq
-            name: ${NAME}-volume
+            name: ${SERVICE_NAME}-volume
         volumes:
-        - name: ${NAME}-volume
+        - name: ${SERVICE_NAME}-volume
           persistentVolumeClaim:
-            claimName: ${NAME}-volume
+            claimName: ${SERVICE_NAME}-volume
     test: false
     triggers:
     - type: ConfigChange
