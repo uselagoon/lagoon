@@ -3,7 +3,7 @@
 exports[`run should not overwrite config file when \`overwrite\` option set to false 1`] = `
 Array [
   Array [
-    "[31mNot overwriting existing fil 'some/path/.amazeeio.yml'.[39m",
+    "[31mNot overwriting existing file 'some/path/.amazeeio.yml'.[39m",
   ],
 ]
 `;
