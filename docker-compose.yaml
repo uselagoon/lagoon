@@ -7,8 +7,6 @@ services:
     command: bash -c "yarn run link-node-packages && yarn run dev"
     ports:
       - "7777:3000"
-    links:
-      - rabbitmq
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages
@@ -24,10 +22,6 @@ services:
       context: .
       dockerfile: services/openshiftremove/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
-      - api
-      - jenkins
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages
@@ -36,10 +30,6 @@ services:
       context: .
       dockerfile: services/openshiftremove-legacy/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
-      - api
-      - jenkins
     volumes:
       - ./services/openshiftremove-legacy/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages
@@ -48,10 +38,6 @@ services:
       context: .
       dockerfile: services/openshiftdeploy/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
-      - api
-      - jenkins
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
@@ -64,10 +50,6 @@ services:
       context: .
       dockerfile: services/openshiftdeploy-legacy/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
-      - api
-      - jenkins
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
@@ -79,10 +61,6 @@ services:
       context: .
       dockerfile: services/logs2slack/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
-      - api
-      - jenkins
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
       - ./node-packages:/app/node-packages
@@ -91,9 +69,6 @@ services:
       context: .
       dockerfile: services/webhooks2tasks/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
-      - api
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages
@@ -102,8 +77,6 @@ services:
       context: .
       dockerfile: services/rest2tasks/Dockerfile
     command: bash -c "yarn run link-node-packages && yarn run dev"
-    links:
-      - rabbitmq
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
       - ./node-packages:/app/node-packages
@@ -139,13 +112,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./docker-executors/ansible-drupal-deploy:/ansible-drupal-deploy
       - ./docker-executors/docker-oc-build-deploy:/docker-oc-build-deploy
-    links:
-      - jenkins
   tests:
     build: tests
-    links:
-      - webhook-handler
-      - git
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
@@ -175,8 +143,6 @@ services:
     build:
       context: .
       dockerfile: services/kibana/Dockerfile
-    links:
-      - elasticsearch
     ports:
       - "5601:5601"
   logstash:
@@ -184,9 +150,6 @@ services:
       context: .
       dockerfile: services/logstash/Dockerfile
     user: '1111722'
-    links:
-      - elasticsearch
-      - rabbitmq
   hacky-rest2tasks-ui:
     build:
       context: .
@@ -197,8 +160,6 @@ services:
       - REST2TASKS_URL=http://rest2tasks:3000
     volumes:
       - ./services/hacky-rest2tasks-ui/app:/app/app
-    links:
-      - rest2tasks
     ports:
       - "8090:3000"
   node-packages-lerna:
