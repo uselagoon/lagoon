@@ -65,7 +65,7 @@ Examples:
                                             user).
 ```
 
-#### `io init` Example
+#### `io init` Examples
 
 ```text
 $ io init
@@ -91,7 +91,7 @@ deploy_tasks:
 
 ```text
 $ io login --help
-io login - Authenticate with the amazee.io API via given SSH key
+io login - Authenticate with amazee.io via an SSH key
 
 Options:
   --help          Show help                                            [boolean]
@@ -100,13 +100,40 @@ Options:
 Done in 1.86s.
 ```
 
-#### `io login` Example
+#### `io login` Examples
+
+By default, the login command uses the SSH private key at `$HOME/.ssh/id_rsa`.
 
 ```text
-$ io login -i ~/.ssh/id_rsa
+$ io login
+Login successful
+Done in 1.28s.
+```
+
+If that file does not exist, the user will be prompted for the path:
+
+```text
+$ io login
+? Path to private key file /path/to/id_rsa
+Login successful
+Done in 3.42s.
+```
+
+The path to the key can be also passed in via the `--identity` option (short form `-i`):
+
+```text
+$ io login -i /path/to/id_rsa
+Login successful
+Done in 1.70s.
+```
+
+If the private key has a password, the user will be prompted to enter it. The password will never be saved.
+
+```text
+$ io login -i /path/to/id_rsa
 ? Private key password (never saved) [hidden]
 Login successful
-Done in 2.30s.
+Done in 4.15s.
 ```
 
 ### `io sites`
@@ -117,7 +144,7 @@ io list sites
 io list sites -s my_sitegroup
 ```
 
-#### `io sites` Example
+#### `io sites` Examples
 
 ## Development
 
