@@ -4,17 +4,23 @@ metadata:
   creationTimestamp: null
   name: amazeeio-openshift-template-node
 parameters:
-  - name: TAG
-    description: Which docker image tag should be deployed
+  - name: SERVICE_NAME
+    description: Name of this service
     required: true
-  - name: NAME
-    description: Name of the objects to create
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
     required: true
-  - name: SHORT_NAME
-    description: Shorter name of the objects to create, can be max 24 chars
+  - name: SAFE_SITEGROUP
+    description: Which sitegroup this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
     required: true
   - name: SITEGROUP
-    description: Which sitegroup this belongs to
+    description: Which sitegroup this belongs to, original value
+    required: true
+  - name: AMAZEEIO_GIT_SHA
+    description: git hash sha of the current deployment
     required: true
   - name: ROUTER_URL
     description: URL of the Router
@@ -25,25 +31,26 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
   spec:
     replicas: 1
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      service: ${SERVICE_NAME}
     strategy:
       resources: {}
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: ${NAME}
-          deploymentconfig: ${NAME}
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
         - image: ' '
-          name: kibana
+          name: ${SERVICE_NAME}
           ports:
           - containerPort: 5601
             protocol: TCP
@@ -55,6 +62,27 @@ objects:
             httpGet:
               port: 5601
             initialDelaySeconds: 120
+          env:
+            - name: AMAZEEIO_GIT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_BRANCH
+            - name: AMAZEEIO_GIT_SAFE_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SAFE_BRANCH
+            - name: AMAZEEIO_GIT_SHA
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SHA
+            - name: AMAZEEIO_SITEGROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_SITEGROUP
           resources:
             requests:
               cpu: 100m
@@ -65,10 +93,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - kibana
+        - ${SERVICE_NAME}
         from:
           kind: ImageStreamTag
-          name: ${SITEGROUP}:${TAG}
+          name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
 - apiVersion: v1
@@ -76,8 +104,10 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${SHORT_NAME}
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
   spec:
     ports:
     - name: 5601-tcp
@@ -85,8 +115,7 @@ objects:
       protocol: TCP
       targetPort: 5601
     selector:
-      app: ${NAME}
-      deploymentconfig: ${NAME}
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -94,12 +123,14 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: ${NAME}
-    name: ${NAME}
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
   spec:
-    host: ${ROUTER_URL}
+    host: ${SERVICE_NAME}.${ROUTER_URL}
     port:
       targetPort: 5601-tcp
     to:
       kind: Service
-      name: ${SHORT_NAME}
+      name: ${SERVICE_NAME}

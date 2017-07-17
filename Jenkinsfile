@@ -1,5 +1,5 @@
 node {
-  def docker_compose = "docker run -t --rm -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
+  def docker_compose = "docker run -t --rm -e BUILD_TAG=\$BUILD_TAG -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
 
 
   deleteDir()
@@ -20,8 +20,12 @@ node {
       try {
         parallel (
           'start services': {
+            stage ('build base images') {
+              sh "cd docker-images && ./buildall.sh"
+            }
             stage ('start services') {
-              sh "${docker_compose} up -d --force --build"
+              sh "${docker_compose} build --pull"
+              sh "${docker_compose} up -d --force"
             }
           },
           'start openshift': {
