@@ -46,32 +46,32 @@ await channelWrapper.sendToQueue('amazeeio:jobwatch', buffer, { persistent: true
 }
 
 var upload_logs = async function(build,log) {
-var accesskeyid =  process.env.AWS_KEY_ID
-var secretaccesskey =  process.env.AWS_SECRET_ACCESS_KEY
-var region = process.env.AWS_REGION || 'us-east-2'
-var bucket = process.env.AWS_BUCKET || 'jobs.amazeeio.services'
+  var accesskeyid =  process.env.AWS_KEY_ID
+  var secretaccesskey =  process.env.AWS_SECRET_ACCESS_KEY
+  var region = process.env.AWS_REGION || 'us-east-2'
+  var bucket = process.env.AWS_BUCKET || 'jobs.amazeeio.services'
 
 
-if ( !accesskeyid || !secretaccesskey) {
-  console.log('s3 credentials not set.')
-}
+  if ( !accesskeyid || !secretaccesskey) {
+    console.log('s3 credentials not set.')
+  }
 
-var AWS = require('aws-sdk');
-AWS.config.update({accessKeyId: accesskeyid, secretAccessKey: secretaccesskey, region: region});
-var s3 = new AWS.S3();
+  var AWS = require('aws-sdk');
+  AWS.config.update({accessKeyId: accesskeyid, secretAccessKey: secretaccesskey, region: region});
+  var s3 = new AWS.S3();
 
-var stream = 'hello.'
+  var stream = 'hello.'
 
-var params = {
-  Bucket: 'bucket',
-  Key: 'key',
-  Body: stream,
-  'ACL': 'public-read',
-};
+  var params = {
+    Bucket: 'bucket',
+    Key: 'key',
+    Body: stream,
+    'ACL': 'public-read',
+  };
 
-s3.upload(params, function(err, data) {
-  console.log(err, data);
-});
+  s3.upload(params, function(err, data) {
+    console.log(err, data);
+  });
 
 };
 
@@ -84,6 +84,7 @@ var watch = async function(message) {
 
 var update_job = function( name, data ) {
   jobdata[name] = data;
+  console.log( "adding ", name, " to array with ", data)
 }
 
 const app = express()
@@ -118,32 +119,7 @@ app.post('/job', async (req, res) => {
     'buildnumber': buildnumber
   });
 
-
-
-//  var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
-//  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
-
-   // jenkins.job.get(jobname, function(err, data) { console.log('job', data); });
-
-//  jenkins.build.log(jobname, buildnumber, function(err, data) {
-//   if (err) {
-//     console.log('buildlog error', err) }
-//      else {
-//         console.log('build', data);  }
-//  });
-
-
   res.status(200).type('json').send({"ok":"true"})
-
-
-//  if (siteGroupOpenShift.siteGroup.openshift.jenkins) {
-//    jenkinsUrl = siteGroupOpenShift.siteGroup.openshift.jenkins
-//  } else {
-//    jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
-//  }
-
-
-  // var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
 
 });
 
@@ -165,21 +141,25 @@ var jobcheck = function() {
 
       if (job.buildnumber) {
         jenkins.build.log(build, job.buildnumber, function(err, data) {
-       if (err) {
-         console.log('buildlog error', err) }
-          else {
-             console.log('build', data);  }
-      });
-    } else {
-            console.log("build is undefined for job", job)
+          jobdata[build]['when'] = new Date()
+        });
+      } else {
+        console.log("build is undefined for job", job)
+      }
 
     }
 
+    if (diff > 600) {
+      // job appears stuck or missing for 10 minutes:
+      upload_logs(build, "build died after " + diff + " seconds." )
+
+      delete jobdata[build]
     }
+
 
   }
 
 }
 
 
-setInterval(jobcheck, 2000);
+setInterval(jobcheck, 10000);

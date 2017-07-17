@@ -109,6 +109,10 @@ const messageConsumer = async msg => {
     ocBuildDeploystage =
     `
       stage ('oc-build-deploy docker pull') {
+        def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobevent', value: "builddeploy"], name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
+        println("Status: "+response.status)
+        println("Content: "+response.content)
+        println("after")
         sh '''
           docker pull ${ocBuildDeployImageName}
         '''
