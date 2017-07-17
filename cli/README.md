@@ -67,7 +67,7 @@ Examples:
 
 #### `io init` Example
 
-```sh
+```text
 $ io init
 ? File '/Users/Claudine/Projects/developermentify/.amazeeio.yml' already exists! Overwrite? (y/N) y
 ? Enter the name of the sitegroup to configure. my_sitegroup
@@ -78,13 +78,35 @@ Done in 10.56s.
 
 This will generate the following file:
 
-```sh
+```text
 $ cat .amazeeio.yml
 sitegroup: my_sitegroup
 deploy_tasks:
   task1:
     before_deploy: []
     after_deploy: []
+```
+
+### `io login`
+
+```text
+$ io login --help
+io login - Authenticate with the amazee.io API via given SSH key
+
+Options:
+  --help          Show help                                            [boolean]
+  --identity, -i  Path to identity (private key)                        [string]
+
+Done in 1.86s.
+```
+
+#### `io login` Example
+
+```text
+$ io login -i ~/.ssh/id_rsa
+? Private key password (never saved) [hidden]
+Login successful
+Done in 2.30s.
 ```
 
 ### `io sites`
