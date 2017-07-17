@@ -5,7 +5,7 @@ import type { SiteGroup } from './types';
 import Lokka from 'lokka';
 import Transport from 'lokka-transport-http';
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
+const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 
 const graphqlapi = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)

@@ -1,5 +1,0 @@
-.openshift/*
-.cache/*
-node_modules/*
-Jenkinsfile
-.dockerignore
