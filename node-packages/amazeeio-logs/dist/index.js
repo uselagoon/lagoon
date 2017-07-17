@@ -17,7 +17,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 (0, _amazeeioLocalLogging.initLogger)();
 
 var sendToAmazeeioLogs = exports.sendToAmazeeioLogs = function sendToAmazeeioLogs() {};
-var rabbitmqHost = process.env.RABBITMQ_HOST || "localhost";
+var rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq";
 var rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest";
 var rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest";
 

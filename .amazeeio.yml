@@ -1,0 +1,53 @@
+services:
+  api:
+    type: custom
+    template: services/api/.amazeeio.app.yml
+    Dockerfile: services/api/Dockerfile
+  elasticsearch:
+    type: custom
+    template: services/elasticsearch/.amazeeio.app.yml
+    Dockerfile: services/elasticsearch/Dockerfile
+  kibana:
+    type: custom
+    template: services/kibana/.amazeeio.app.yml
+    Dockerfile: services/kibana/Dockerfile
+  logs2slack:
+    type: custom
+    template: services/logs2slack/.amazeeio.app.yml
+    Dockerfile: services/logs2slack/Dockerfile
+  logstash:
+    type: custom
+    template: services/logstash/.amazeeio.app.yml
+    Dockerfile: services/logstash/Dockerfile
+  openshiftdeploy:
+    type: custom
+    template: services/openshiftdeploy/.amazeeio.app.yml
+    Dockerfile: services/openshiftdeploy/Dockerfile
+  openshiftdeploy-legacy:
+    type: custom
+    template: services/openshiftdeploy-legacy/.amazeeio.app.yml
+    Dockerfile: services/openshiftdeploy-legacy/Dockerfile
+  openshiftremove:
+    type: custom
+    template: services/openshiftremove/.amazeeio.app.yml
+    Dockerfile: services/openshiftremove/Dockerfile
+  openshiftremove-legacy:
+    type: custom
+    template: services/openshiftremove-legacy/.amazeeio.app.yml
+    Dockerfile: services/openshiftremove-legacy/Dockerfile
+  rabbitmq:
+    type: custom
+    template: services/rabbitmq/.amazeeio.app.yml
+    Dockerfile: services/rabbitmq/Dockerfile
+  rest2tasks:
+    type: custom
+    template: services/rest2tasks/.amazeeio.app.yml
+    Dockerfile: services/rest2tasks/Dockerfile
+  webhook-handler:
+    type: custom
+    template: services/webhook-handler/.amazeeio.app.yml
+    Dockerfile: services/webhook-handler/Dockerfile
+  webhooks2tasks:
+    type: custom
+    template: services/webhooks2tasks/.amazeeio.app.yml
+    Dockerfile: services/webhooks2tasks/Dockerfile

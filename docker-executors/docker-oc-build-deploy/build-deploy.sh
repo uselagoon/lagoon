@@ -46,8 +46,8 @@ cat .amazeeio.yml | shyaml keys services | tr '\n' ',' | sed 's/,$//' > .amazeei
 
 for SERVICE in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.type custom)
-  OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.Dockerfile false)
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type 2> /dev/null || cat .amazeeio.yml | shyaml get-value services.$SERVICE.type custom)
+  OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.dockerfile 2> /dev/null || cat .amazeeio.yml | shyaml get-value services.$SERVICE.Dockerfile false)
 
   if [ $OVERRIDE_DOCKERFILE == "false" ]; then
     DOCKERFILE="/openshift-templates/${SERVICE_TYPE}/Dockerfile"
@@ -66,8 +66,8 @@ done
 
 for SERVICE in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.type custom)
-  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.template false)
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type 2> /dev/null || cat .amazeeio.yml | shyaml get-value services.$SERVICE.type custom)
+  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.template 2> /dev/null || cat .amazeeio.yml | shyaml get-value services.$SERVICE.template false)
 
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
