@@ -17,7 +17,7 @@ initLogger();
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const rabbitmqHost = process.env.RABBITMQ_HOST || "localhost"
+const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });

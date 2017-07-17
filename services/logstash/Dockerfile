@@ -5,12 +5,11 @@ USER root
 RUN curl -sLo /usr/local/bin/fix-permissions https://raw.githubusercontent.com/sclorg/s2i-base-container/master/core/root/usr/bin/fix-permissions && \
     chmod +x /usr/local/bin/fix-permissions
 
-COPY logstash.conf /usr/share/logstash/pipeline/logstash.conf
-COPY logstash.yml /usr/share/logstash/config/logstash.yml
+COPY services/logstash/logstash.conf /usr/share/logstash/pipeline/logstash.conf
+COPY services/logstash/logstash.yml /usr/share/logstash/config/logstash.yml
 
 RUN fix-permissions /usr/share/logstash
 
-ARG AMAZEEIO_GIT_BRANCH=undefined
-ENV RABBITMQ_HOST "${AMAZEEIO_GIT_BRANCH}-rabbitmq"
-ENV XPACK_MONITORING_ELASTICSEARCH_URL "http://${AMAZEEIO_GIT_BRANCH}-elasticsearch:9200"
-ENV ELASTICSEARCH_URL "http://${AMAZEEIO_GIT_BRANCH}-elasticsearch:9200"
+ENV RABBITMQ_HOST "rabbitmq"
+ENV XPACK_MONITORING_ELASTICSEARCH_URL "http://elasticsearch:9200"
+ENV ELASTICSEARCH_URL "http://elasticsearch:9200"

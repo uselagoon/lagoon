@@ -4,14 +4,14 @@
     state: directory
 
 - name: "{{ testname }} - cleaning repo folder {{git_repo_name}}"
-  command: rm -rf *
+  command: rm -rf {{git_repo_name}}
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /
 
-- name: "{{ testname }} - cleaning repo folder {{git_repo_name}}"
-  command: rm -rf .git
-  args:
-    chdir: /{{git_repo_name}}
+- name: "{{ testname }} - make sure repo folder {{git_repo_name}} exists"
+  file:
+    path: /{{git_repo_name}}
+    state: directory
 
 - name: "{{ testname }} - init fresh git repo in {{git_repo_name}}"
   command: git init

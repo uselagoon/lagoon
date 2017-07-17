@@ -15,11 +15,12 @@ initLogger();
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
+const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
-const ocBuildDeployBranch = process.env.BRANCH || "master"
+const ocBuildDeployBranch = process.env.AMAZEEIO_GIT_BRANCH || "master"
+const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
 
 
 const amazeeioAPI = new Lokka({
@@ -192,6 +193,7 @@ node {
     -e IMAGE=\${env.IMAGE} \\
     -e SAFE_SITEGROUP="${safeSiteGroupName}" \\
     -e SITEGROUP="${siteGroupName}" \\
+    -e CI_OVERRIDE_IMAGE_REPO="${ciOverrideImageRepo}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     ${ocBuildDeployImageName}"""
@@ -200,7 +202,17 @@ node {
   // Using openshiftVerifyDeployment which will monitor the current deployment and only continue when it is done.
   stage ('OpenShift: deployment') {
     env.SKIP_TLS = true
-    openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: "app", namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+
+    def services = sh(returnStdout: true, script: "docker run --rm -v $WORKSPACE:/git ${ocBuildDeployImageName} cat .amazeeio.services").split(',')
+    def verifyDeployments = [:]
+
+    for ( int i = 0; i &lt; services.size(); i++ ) {
+      def service = services[i]
+      verifyDeployments[service] = {
+        openshiftVerifyDeployment apiURL: "${openshiftConsole}", authToken: env.OPENSHIFT_TOKEN, depCfg: service, namespace: "${openshiftProject}", replicaCount: '', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15', waitUnit: 'min', SKIP_TLS: true
+      }
+    }
+    parallel verifyDeployments
   }
 
 }`
