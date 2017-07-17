@@ -1,7 +1,11 @@
 services:
   node:
-    type: node:6
-    Dockerfile: .amazeeio.Dockerfile
+    build:
+      dockerfile: .amazeeio.Dockerfile
+    amazeeio:
+      type: node:6
   node-test:
-    type: node:6
-    Dockerfile: .amazeeio.Dockerfile
+    build:
+      dockerfile: .amazeeio.Dockerfile
+    amazeeio:
+      type: node:6
