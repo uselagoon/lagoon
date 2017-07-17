@@ -1,0 +1,13 @@
+services:
+  node:
+    amazeeio:
+      type: node:6
+    build:
+      dockerfile: subfolder/.amazeeio.Dockerfile
+      context: subfolder
+  node-test:
+    amazeeio:
+      type: node:6
+    build:
+      dockerfile: subfolder/.amazeeio.Dockerfile
+      context: subfolder
