@@ -1,17 +1,15 @@
 FROM amazeeio/centos7-node-builder:6 as builder
 ENV NODE_ENV production
-COPY package.json yarn.lock /app/
-RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
+COPY services/rest2tasks/package.json services/rest2tasks/yarn.lock /app/services/rest2tasks/
+COPY node-packages /app/node-packages
+RUN cd /app/services/rest2tasks && BUILD_ONLY=true yarn install --pure-lockfile
 
 FROM amazeeio/centos7-node:6
 ENV NODE_ENV production
-COPY --from=builder /app/node_modules /app/node_modules
-COPY . /app/
+COPY --from=builder /app/services/rest2tasks/node_modules /app/services/rest2tasks/node_modules
+COPY services/rest2tasks /app/services/rest2tasks
 
-ARG AMAZEEIO_GIT_BRANCH=undefined
-ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BRANCH}-rabbitmq"
-
-ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:3000"
+WORKDIR /app/services/rest2tasks/
 
 RUN yarn run build
 

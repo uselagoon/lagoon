@@ -23,6 +23,10 @@ brew cask install docker-edge
 ## Start Services
 
 1. clone me
+1. init git submodules and hiera
+
+		git submodule update --init
+		cd hiera; git checkout -b ci-local
 
 ```sh
 git clone git@github.com:amazeeio/lagoon.git
@@ -52,6 +56,8 @@ docker-compose logs -f
 ```sh
 ./startOpenShift.sh
 ```
+
+1. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
 
 1. test Openshift Node Deployment
 

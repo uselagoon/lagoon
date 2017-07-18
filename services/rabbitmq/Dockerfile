@@ -1,5 +1,9 @@
 FROM rabbitmq:3-management
 
-ENV RABBITMQ_DEFAULT_USER=amazeeio \
-    RABBITMQ_DEFAULT_PASS="NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3" \
+COPY services/rabbitmq/rabbitmq_delayed_message_exchange-0.0.1.ez /plugins
+
+RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange
+
+ENV RABBITMQ_DEFAULT_USER=guest \
+    RABBITMQ_DEFAULT_PASS="guest" \
     NODENAME="rabbitmq@localhost"

@@ -19,7 +19,7 @@ export default async function sendToAmazeeioWebhooks (args: WebhookRequestData, 
 
   try {
     const buffer = new Buffer(JSON.stringify(args));
-    await channelWrapper.sendToQueue(`amazeeio-webhooks`, buffer, { persistent: true });
+    await channelWrapper.publish(`amazeeio-webhooks`, '', buffer, { persistent: true });
 
     logger.verbose(`Success send to amazeeio-webhooks ${webhooktype}:${event}`, {
       webhooktype,
@@ -27,12 +27,6 @@ export default async function sendToAmazeeioWebhooks (args: WebhookRequestData, 
       uuid,
     });
   } catch(error) {
-    logger.error(`Error queuing amazeeio-webhooks ${webhooktype}:${event}`, {
-      webhooktype,
-      event,
-      uuid,
-      body,
-      error,
-    });
+    logger.error(`Error queuing amazeeio-webhooks ${webhooktype}:${event}, error: ${error}`);
   }
 }
