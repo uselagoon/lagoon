@@ -66,6 +66,7 @@ const messageConsumer = async msg => {
     var openshiftTemplate = siteGroupOpenShift.siteGroup.openshift.template
     var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
     var openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
+    var openshiftProjectUser = siteGroupOpenShift.siteGroup.openshift.project_user || ""
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || "${sitegroup}.${branch}.appuio.amazee.io"
@@ -184,6 +185,7 @@ node {
     -e APPUIO_TOKEN="${appuioToken}" \\
     -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" \\
     -e OPENSHIFT_PROJECT="${openshiftProject}" \\
+    -e OPENSHIFT_PROJECT_USER="${openshiftProjectUser}" \\
     -e OPENSHIFT_ROUTER_URL="${openshiftRessourceRouterUrl}" \\
     -e OPENSHIFT_TEMPLATE="${openshiftTemplate}" \\
     -e OPENSHIFT_FOLDER="${openshiftFolder}" \\
