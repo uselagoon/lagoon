@@ -20,12 +20,6 @@ export type ClientView = Client & {
 
 export type SiteGroupView = SiteGroup & {
   siteGroupName: string,
-  slack: {
-    webhook: string,
-    channel: string,
-    informStart: boolean,
-    informChannel: string,
-  },
 };
 
 export type SiteView = Site & {

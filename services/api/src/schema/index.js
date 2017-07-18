@@ -57,7 +57,9 @@ const typeDefs = `
     xdebug: String
     nginxSitespecific: Boolean
     nginxSiteconfig: String
+    jumpHost: String
     redisEnabled: Boolean
+    deployStrategy: String
     sshKeys: JSON
     phpVersion: String
     redirectToHttps: String
@@ -198,6 +200,7 @@ const resolvers = {
     redirectToHttps: (site: SiteView) => site.redirect_to_https,
     upstreamURL: (site: SiteView) => site.upstream_url,
     basicAuth: (site: SiteView) => site.basic_auth,
+    deployStrategy: (site: SiteView) => site.deploy_strategy,
   },
   Slack: {
     informStart: (slack: Slack) => slack.inform_start,
