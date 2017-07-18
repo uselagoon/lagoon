@@ -16,7 +16,7 @@ initLogger();
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:8080"
+const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
 
 const jenkins = jenkinsLib({ baseUrl: `${jenkinsurl}`, promisify: true});

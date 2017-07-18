@@ -15,7 +15,7 @@ initLogger();
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:8080"
+const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""

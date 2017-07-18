@@ -124,7 +124,7 @@ services:
       - "2020:2020"
     environment:
       - AMAZEEIO_AUTH_HOST=http://auth-server:3000
-      - AMAZEEIO_API_HOST=http://api:8080
+      - AMAZEEIO_API_HOST=http://api:3000
     user: 'api'
   auth-server:
     build: services/auth-server
