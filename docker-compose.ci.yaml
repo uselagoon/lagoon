@@ -121,7 +121,7 @@ services:
     build: services/hacky-rest2tasks-ui
     command: yarn run dev
     environment:
-      - API=http://api:3000
+      - API=http://api:8080
       - REST2TASKS_URL=http://rest2tasks:3000
     volumes:
       - ./services/hacky-rest2tasks-ui/app:/app/app
