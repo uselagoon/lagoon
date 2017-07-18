@@ -8,7 +8,7 @@ services:
   elasticsearch:
     amazeeio:
       type: custom
-    template: services/elasticsearch/.amazeeio.app.yml
+      template: services/elasticsearch/.amazeeio.app.yml
     build:
       dockerfile: services/elasticsearch/Dockerfile
   kibana:
