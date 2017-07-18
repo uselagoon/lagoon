@@ -56,7 +56,7 @@ export default function extractWebhookData(req: Req, body?: string): WebhookRequ
       event = req.headers['x-event-key']
       uuid = req.headers['x-request-uuid']
       var full_name = bodyObj.repository.full_name.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
-      var pat =  new RegExp("https?:\/\/([a-z0-9-_.\/]*)\/" + full_name + "$","i")
+      var pat =  new RegExp("https?:\/\/([a-z0-9-_.]*).*" + full_name + "$","i")
       var repoPath = bodyObj.repository.links.html.href.match(pat)
       giturl = "git@" + repoPath[1] + ":" + bodyObj.repository.full_name + ".git"
     } else {
