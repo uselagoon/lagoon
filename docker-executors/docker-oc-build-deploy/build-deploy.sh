@@ -27,6 +27,11 @@ else
   oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="[${SITEGROUP}] ${BRANCH}"
 fi
 
+# If we have a project user set, give that user access to the created project
+if [ ! -z "$OPENSHIFT_PROJECT_USER" ]; then
+  oc policy add-role-to-user edit $OPENSHIFT_PROJECT_USER -n $OPENSHIFT_PROJECT
+fi
+
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
 oc process --insecure-skip-tls-verify \
