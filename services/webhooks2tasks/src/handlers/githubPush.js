@@ -8,10 +8,11 @@ import { createDeployTask } from '@amazeeio/amazeeio-tasks';
 
 import { getEnabledSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
 
-import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup } from '../types';
+import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
 
 export default async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper) {
-  const {
+
+    const {
       webhooktype,
       event,
       giturl,
@@ -19,40 +20,41 @@ export default async function githubPush(webhook: WebhookRequestData, siteGroup:
       body,
     } = webhook;
 
-  const branchName = body.ref.toLowerCase().replace('refs/heads/', '');
-  const sha = body.after;
+    const branchName = body.ref.toLowerCase().replace('refs/heads/','')
+    const sha = body.after
 
-  const meta = {
-    branch: branchName,
-    sha,
-  };
-
-  const data: deployData = {
-    siteGroupName: siteGroup.siteGroupName,
-    branchName,
-    sha,
-  };
-
-  sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
-      `Branch \`${meta.branch}\` pushed in <${body.repository.html_url}|${body.repository.full_name}>`,
-    );
-
-  try {
-    const taskResult = await createDeployTask(data);
-    logger.verbose(taskResult);
-    return;
-  } catch (error) {
-    switch (error.name) {
-      case 'SiteGroupNotFound':
-      case 'NoActiveSystemsDefined':
-      case 'UnknownActiveSystem':
-          // These are not real errors and also they will happen many times. We just log them locally but will ack the message
-        logger.verbose(error);
-        return;
-
-      default:
-          // Other messages are real errors and should reschedule the message in RabbitMQ in order to try again
-        throw error;
+    const meta = {
+      branch: branchName,
+      sha: sha
     }
-  }
+
+    const data: deployData = {
+      siteGroupName: siteGroup.siteGroupName,
+      branchName: branchName,
+      sha: sha
+    }
+
+    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:receive`, meta,
+      `Branch \`${meta.branch}\` pushed in <${body.repository.html_url}|${body.repository.full_name}>`
+    )
+
+    try {
+      const taskResult = await createDeployTask(data);
+      logger.verbose(taskResult)
+      return;
+    } catch (error) {
+      switch (error.name) {
+        case "SiteGroupNotFound":
+        case "NoActiveSystemsDefined":
+        case "UnknownActiveSystem":
+          // These are not real errors and also they will happen many times. We just log them locally but will ack the message
+          logger.verbose(error)
+          return;
+
+        default:
+          // Other messages are real errors and should reschedule the message in RabbitMQ in order to try again
+          throw error
+      }
+    }
+
 }

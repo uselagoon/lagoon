@@ -12,16 +12,16 @@ import githubPush from './handlers/githubPush';
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
 
-export default async function processWebhook(rabbitMsg: RabbitMQMsg, channelWrapper: ChannelWrapper): Promise<void> {
+export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapper: ChannelWrapper): Promise<void> {
   const {
     content,
     fields,
     properties,
   } = rabbitMsg;
 
-  const webhook: WebhookRequestData = JSON.parse(content.toString());
+  const webhook: WebhookRequestData = JSON.parse(content.toString())
 
-  let siteGroups: SiteGroup[];
+  let siteGroups: SiteGroup[]
 
   const {
     webhooktype,
@@ -32,69 +32,72 @@ export default async function processWebhook(rabbitMsg: RabbitMQMsg, channelWrap
   } = webhook;
 
   try {
-    siteGroups = await getSiteGroupsByGitUrl(giturl);
-  } catch (error) {
+    siteGroups = await getSiteGroupsByGitUrl(giturl)
+  }
+  catch (error) {
     if (error.name == 'SiteGroupNotFound') {
-      logger.warn(`Could not resolve sitegroup for ${giturl} while handling webook ${webhooktype}:${event} ${JSON.stringify(webhook)}`);
+      logger.warn(`Could not resolve sitegroup for ${giturl} while handling webook ${webhooktype}:${event} ${JSON.stringify(webhook)}`)
       const meta = {
-        event: `${webhooktype}:${event}`,
-      };
-      sendToAmazeeioLogs('info', 'unresolved', uuid, 'unresolvedSitegroup:webhooks2tasks', meta,
-        `Unresolved sitegroup \`${giturl}\` while handling ${webhooktype}:${event}`,
-      );
-      channelWrapper.ack(rabbitMsg);
+        event: `${webhooktype}:${event}`
+      }
+      sendToAmazeeioLogs('info', 'unresolved', uuid, `unresolvedSitegroup:webhooks2tasks`, meta,
+        `Unresolved sitegroup \`${giturl}\` while handling ${webhooktype}:${event}`
+      )
+      channelWrapper.ack(rabbitMsg)
     } else {
-      logger.error(error);
-      channelWrapper.ack(rabbitMsg);
+      logger.error(error)
+      channelWrapper.ack(rabbitMsg)
     }
-    return;
+    return
   }
 
   siteGroups.forEach((siteGroup) => {
+
     switch (`${webhooktype}:${event}`) {
-      case 'github:pull_request':
+      case "github:pull_request":
 
         switch (body.action) {
           case 'closed':
-            handle(githubPullRequestClosed, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.action}`);
+            handle(githubPullRequestClosed, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.action}`)
             break;
 
           default:
-            unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.action}`);
+            unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.action}`)
             break;
         }
         break;
 
-      case 'github:delete':
+      case "github:delete":
         switch (body.ref_type) {
-          case 'branch':
+          case "branch":
             // We do not handle branch deletes via github delete push event, as github also sends a regular push event with 'deleted=true'. It's handled there (see below inside "github:push")
-            unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.ref_type}`);
+            unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.ref_type}`)
             break;
 
           default:
-            unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.ref_type}`);
+            unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}:${body.ref_type}`)
             break;
         }
         break;
 
-      case 'github:push':
+      case "github:push":
         if (body.deleted === true) {
-          handle(githubBranchDeleted, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`);
+          handle(githubBranchDeleted, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`)
         } else {
-          handle(githubPush, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`);
+          handle(githubPush, webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`)
         }
 
         break;
 
       default:
-        unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`);
+        unhandled(webhook, siteGroup, channelWrapper, rabbitMsg, `${webhooktype}:${event}`)
         break;
     }
+
   });
 }
 
-async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper, rabbitMsg: RabbitMQMsg, fullEvent: string) {
+async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper, rabbitMsg: RabbitMQMsg, fullEvent: string){
   const {
     webhooktype,
     event,
@@ -106,11 +109,11 @@ async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup
   logger.info(`Handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName} `, { uuid, giturl });
 
   try {
-    await handler(webhook, siteGroup, channelWrapper);
-    channelWrapper.ack(rabbitMsg);
-  } catch (error) {
-    logger.error(`Error handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName} ${error}`, { webhooktype, event, giturl });
-    channelWrapper.ack(rabbitMsg);
+    await handler(webhook, siteGroup, channelWrapper)
+    channelWrapper.ack(rabbitMsg)
+  } catch(error) {
+    logger.error(`Error handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName} ${error}`, { webhooktype, event, giturl});
+    channelWrapper.ack(rabbitMsg)
   }
 }
 
@@ -124,13 +127,14 @@ async function unhandled(webhook: WebhookRequestData, siteGroup: SiteGroup, chan
     body,
   } = webhook;
 
-  logger.warn(`unhandled webhook ${fullEvent} for sitegroup ${siteGroup.siteGroupName} ${JSON.stringify(webhook)}`);
+  logger.warn(`unhandled webhook ${fullEvent} for sitegroup ${siteGroup.siteGroupName} ${JSON.stringify(webhook)}`)
   const meta = {
-    fullEvent,
-  };
-  sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, 'unhandledWebhook', meta,
-    `Unhandled Webhook \`${fullEvent}\` for \`${siteGroup.siteGroupName}\``,
-  );
+    fullEvent: fullEvent
+  }
+  sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `unhandledWebhook`, meta,
+    `Unhandled Webhook \`${fullEvent}\` for \`${siteGroup.siteGroupName}\``
+  )
 
-  channelWrapper.ack(rabbitMsg);
+  channelWrapper.ack(rabbitMsg)
+  return
 }

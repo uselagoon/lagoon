@@ -36,27 +36,30 @@ export default function extractWebhookData(req: Req, body?: string): WebhookRequ
   let giturl;
 
   if (method === 'POST') {
+
     try {
       bodyObj = (body == null || body === '') ? {} : JSON.parse(body);
-    } catch (e) {
+    } catch(e) {
       throw new Error(`request body is not parsable as JSON: ${e}`);
     }
 
     if ('x-github-event' in req.headers) {
-      webhooktype = 'github';
-      event = req.headers['x-github-event'];
-      uuid = req.headers['x-github-delivery'];
-      giturl = bodyObj.repository.ssh_url;
+      webhooktype = 'github'
+      event = req.headers['x-github-event']
+      uuid = req.headers['x-github-delivery']
+      giturl = bodyObj.repository.ssh_url
     } else if ('x-gitlab-event' in req.headers) {
-      webhooktype = 'gitlab';
-      event = req.headers['x-gitlab-event'];
+      webhooktype = 'gitlab'
+      event = req.headers['x-gitlab-event']
     } else if ('x-event-key' in req.headers) {
-      webhooktype = 'bitbucket';
-      event = req.headers['x-event-key'];
+      webhooktype = 'bitbucket'
+      event = req.headers['x-event-key']
     } else {
-      throw new Error('No supported event header found on POST request');
+      throw new Error('No supported event header found on POST request')
     }
-  } else if (method === 'GET') {
+
+
+   } else if (method === 'GET') {
     try {
       webhooktype = 'custom';
       event = 'push';
@@ -83,14 +86,15 @@ export default function extractWebhookData(req: Req, body?: string): WebhookRequ
     } catch (e) {
       throw new Error(`Error in handling GET request: ${e.message}`);
     }
-  } else {
+  }
+  else {
     throw new Error(`Unsupported request method: ${method}`);
   }
 
   const ret: WebhookRequestData = {
-    webhooktype,
-    event,
-    giturl,
+    webhooktype: webhooktype,
+    event: event,
+    giturl: giturl,
     body: bodyObj,
   };
 

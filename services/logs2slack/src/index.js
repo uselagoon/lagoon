@@ -1,6 +1,6 @@
 // @flow
 
-require('babel-polyfill');
+require("babel-polyfill");
 
 import amqp from 'amqp-connection-manager';
 
@@ -12,7 +12,7 @@ import type { ChannelWrapper } from './types';
 // Initialize the logging mechanism
 initLogger();
 
-const rabbitmqhost = process.env.RABBITMQ_HOST || 'localhost';
+const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 const connection = amqp.connect([`amqp://${rabbitmqhost}`], { json: true });
 
 connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { action: 'connected', url }));
@@ -20,11 +20,13 @@ connection.on('disconnect', params => logger.error('Not connected, error: %s', p
 
 // Cast any to ChannelWrapper to get type-safetiness through our own code
 const channelWrapper: ChannelWrapper = connection.createChannel({
-  setup: channel => Promise.all([
-    channel.assertExchange('amazeeio-logs', 'direct', { durable: true }),
-    channel.assertQueue('amazeeio-logs:slack', { durable: true }),
-    channel.bindQueue('amazeeio-logs:slack', 'amazeeio-logs', ''),
-    channel.prefetch(1),
-    channel.consume('amazeeio-logs:slack', msg => readFromRabbitMQ(msg, channelWrapper), { noAck: false }),
-  ]),
+	setup: channel => {
+		return Promise.all([
+			channel.assertExchange('amazeeio-logs', 'direct', {durable: true}),
+			channel.assertQueue('amazeeio-logs:slack', {durable: true}),
+			channel.bindQueue('amazeeio-logs:slack', 'amazeeio-logs', ''),
+			channel.prefetch(1),
+			channel.consume('amazeeio-logs:slack', msg => readFromRabbitMQ(msg, channelWrapper), {noAck: false}),
+		]);
+	}
 });
