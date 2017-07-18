@@ -57,7 +57,7 @@ do
     fi
   else
     DOCKERFILE=$OVERRIDE_DOCKERFILE
-    if [ ! -f $DOCKERFILE ]; then
+    if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
       echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
     fi
   fi
