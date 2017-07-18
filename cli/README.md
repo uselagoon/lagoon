@@ -38,31 +38,31 @@ Options:
   --sitegroup, -s  Name of sitegroup to configure                       [string]
 
 Examples:
-  src/cli.js init                           Create a config file at
-                                            ./.amazeeio.yml. This will confirm
-                                            with the user whether to overwrite
-                                            the config if it already exists and
-                                            also prompt for a sitegroup name to
-                                            add to the config.
+  io init                           Create a config file at
+                                    ./.amazeeio.yml. This will confirm
+                                    with the user whether to overwrite
+                                    the config if it already exists and
+                                    also prompt for a sitegroup name to
+                                    add to the config.
 
-  src/cli.js init --overwrite               Overwrite existing config file (do
-                                            not confirm with the user).
+  io init --overwrite               Overwrite existing config file (do
+                                    not confirm with the user).
 
-  src/cli.js init --overwrite false         Prevent overwriting of existing
-                                            config file (do not confirm with
-                                            user).
+  io init --overwrite false         Prevent overwriting of existing
+                                    config file (do not confirm with
+                                    user).
 
-  src/cli.js init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do
-                                            not prompt the user).
+  io init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do
+                                    not prompt the user).
 
-  src/cli.js init -s my_sitegroup           Short form for setting sitegroup to
-                                            "my_sitegroup" (do not prompt the
-                                            user).
+  io init -s my_sitegroup           Short form for setting sitegroup to
+                                    "my_sitegroup" (do not prompt the
+                                    user).
 
-  src/cli.js init --overwrite --sitegroup   Overwrite existing config files and
-  my_sitegroup                              set sitegroup to "my_sitegroup" (do
-                                            not confirm with or prompt the
-                                            user).
+  io init --overwrite --sitegroup   Overwrite existing config files and
+  my_sitegroup                      set sitegroup to "my_sitegroup" (do
+                                    not confirm with or prompt the
+                                    user).
 ```
 
 #### `io init` Examples
