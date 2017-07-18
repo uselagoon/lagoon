@@ -108,6 +108,7 @@ services:
       - GIT_BRANCH_PUSH=api
       - GIT_USERNAME=3dfc013c579f85bbcd4cd0c5d11cda325a086ec8
       - GIT_PASSWORD=x-oauth-basic
+      - REMOTE_DEV_SERVER=true
       - SYNC_INTERVAL=10000
     volumes:
       # These files and folders already exists within the docker image, but we mount it again
@@ -120,8 +121,6 @@ services:
     ports:
       - "8080:8080"
     links:
-      - auth-server
-    depends_on:
       - auth-server
   auth-ssh:
     build: services/auth-ssh
@@ -226,3 +225,11 @@ services:
       - RABBITMQ_PASSWORD=guest
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
+  remotedev:
+    image: jhen0409/remotedev-server
+    command: node main.js
+    environment:
+      - ADAPTER=
+      - PORT=9090
+    ports:
+      - "9090:9090"

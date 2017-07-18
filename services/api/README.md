@@ -69,6 +69,33 @@ yarn run start
 
 Similar results can be achieved with the other services.
 
+### How to use Redux Dev Tools
+
+To be able to successfully use redux-dev-tools, we are required to
+forward all redux events to a `remotedev-server`, which acts as a
+proxy between the Chrome redux-dev-tools plugin and the api redux
+store.
+
+Since there is extra overhead on the startup, the connection to the
+remotedev-server is turned off by default.
+
+Make sure to set the environment variable `REMOTE_DEV_SERVER=true` for
+the api service in your `docker-compose.yaml` and also make sure to
+run the `remotedev` docker service:
+
+```
+docker-compose up api auth-ssh auth-server auth-database remotedev
+```
+
+Next, make sure to have the [Chrome redux-devtools-extension](https://github.com/zalmoxisus/redux-devtools-extension)
+installed.
+
+As soon all services are running and all extensions are installed, execute following steps:
+
+1. Open Chrome, enter `localhost:9090`, this will open the redux-dev-tools connected to `remotedev:9090`
+2. Make a change to the api source code, so the server restarts, this will make sure the connection is established
+3. Now you should be able to use redux-dev-tools and see a list of actions & the current state tree
+
 ## Local Development without Docker (node and yarn installed on your machine)
 
 ### Installation
