@@ -3,7 +3,9 @@
 import extractWebhookData from '../extractWebhookData';
 
 // prevent uuid side-effects
-jest.mock('uuid4', () => () => 'uuid');
+jest.mock('uuid4', () => {
+  return () => 'uuid';
+});
 
 it('should return github related webhook data', () => {
   const req = {
@@ -72,7 +74,7 @@ it('should throw an error on missing webhook header data', () => {
   const req = {
     method: 'POST',
     headers: {},
-    url: 'url',
+    url: 'url'
   };
 
   expect(() => extractWebhookData(req)).toThrow('No supported event header found on POST request');
@@ -166,7 +168,7 @@ it('should throw on missing url / branch query param on GET', () => {
     headers: {},
     url: 'url?branch=btest',
   };
-
+  
   const req2 = {
     method: 'GET',
     headers: {},
@@ -183,7 +185,7 @@ it('should throw on empty url / branch query parameter on GET', () => {
     headers: {},
     url: 'url?url=&branch=test',
   };
-
+  
   const req2 = {
     method: 'GET',
     headers: {},

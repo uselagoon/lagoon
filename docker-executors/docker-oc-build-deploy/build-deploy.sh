@@ -1,43 +1,96 @@
 #!/bin/bash -xe
 
+set -o pipefail
+
 git-checkout-pull $GIT_REPO $GIT_REF
-
-pushd $OPENSHIFT_FOLDER
-
-if [ -f .amazeeio.Dockerfile ]; then
-  DOCKERFILE=".amazeeio.Dockerfile"
-else
-  DOCKERFILE="Dockerfile"
-fi
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 
-docker build --build-arg AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA --build-arg AMAZEEIO_GIT_BRANCH=$BRANCH -t $IMAGE -f $DOCKERFILE .
+# CI_OVERRIDE_IMAGE_REPO can contain uppercase letters, which docker doesn't like, lowercasing them
+CI_OVERRIDE_IMAGE_REPO=$(echo "$CI_OVERRIDE_IMAGE_REPO" | tr '[:upper:]' '[:lower:]')
 
-# If the given OpenShift Template exists from within the Git Repo
-if [ -f ".amazeeio.app.yml" ]; then
-  OPENSHIFT_TEMPLATE=".amazeeio.app.yml"
-# If the given OpenShift Template exists, in our template folder, we use that, if not we assume it's an URL to download from
-elif [ -f "/openshift-templates/${OPENSHIFT_TEMPLATE}" ]; then
-  OPENSHIFT_TEMPLATE="/openshift-templates/${OPENSHIFT_TEMPLATE}"
+pushd $OPENSHIFT_FOLDER
+
+if [ ! -f .amazeeio.yml ]; then
+  echo "no .amazeeio.yml file found"; exit 1;
 fi
 
-#OPENSHIFT_PROJECT=`os-project ${SITEGROUP}-${BRANCH}`
+if [ "$OPENSHIFT_CONSOLE" == https://console.appuio.ch ] ; then
+  CREATED=`date +%s`000
+  APPUIO_ID="appuio public"
 
-#oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="${SITEGROUP} / ${BRANCH}"
+  # check first if the project exists, if not try to create it
+  curl -s -f -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/${OPENSHIFT_PROJECT}" || \
+  cat /appuio/appuio.json | sed "s/CREATED/$CREATED/" | sed "s/PROJECTID/$OPENSHIFT_PROJECT/" | sed "s/PROJECTDESCRIPTION/[${SITEGROUP//\//\\/}] ${BRANCH//\//\\/}/"  | \
+    curl -s -d @- -X POST -H "X-AccessToken: ${APPUIO_TOKEN}" "https://control.vshn.net/api/openshift/1/${APPUIO_ID}/projects/"
+else
+  oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="[${SITEGROUP}] ${BRANCH}"
+fi
+
+# If we have a project user set, give that user access to the created project
+if [ ! -z "$OPENSHIFT_PROJECT_USER" ]; then
+  oc policy add-role-to-user edit $OPENSHIFT_PROJECT_USER -n $OPENSHIFT_PROJECT
+fi
+
+docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
-  -f ${OPENSHIFT_TEMPLATE} \
-  -v TAG=${TAG} \
-  -v NAME=${NAME} \
-  -v SHORT_NAME=${SHORT_NAME} \
-  -v SITEGROUP=${SITEGROUP} \
-  -v ROUTER_URL=${OPENSHIFT_ROUTER_URL} \
+  -f /openshift-templates/configmap.yml \
+  -v SAFE_BRANCH="${SAFE_BRANCH}" \
+  -v SAFE_SITEGROUP="${SAFE_SITEGROUP}" \
+  -v BRANCH="${BRANCH}" \
+  -v SITEGROUP="${SITEGROUP}" \
+  -v AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
-docker tag ${IMAGE} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG}
-docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
+SERVICES=($(cat .amazeeio.yml | shyaml keys services))
 
-for i in {1..2}; do docker push ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${SITEGROUP}:${TAG} && break || sleep 5; done
+# export the services so Jenkins can load them afterwards to check the deployments
+cat .amazeeio.yml | shyaml keys services | tr '\n' ',' | sed 's/,$//' > .amazeeio.services
 
+for SERVICE in "${SERVICES[@]}"
+do
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type custom)
+  OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.dockerfile false)
+  BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.context .)
+
+  if [ $OVERRIDE_DOCKERFILE == "false" ]; then
+    DOCKERFILE="/openshift-templates/${SERVICE_TYPE}/Dockerfile"
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "No Dockerfile for service type ${SERVICE_TYPE} found"; exit 1;
+    fi
+  else
+    DOCKERFILE=$OVERRIDE_DOCKERFILE
+    if [ ! -f $DOCKERFILE ]; then
+      echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
+    fi
+  fi
+
+  . /usr/sbin/exec-build
+done
+
+for SERVICE in "${SERVICES[@]}"
+do
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type custom)
+  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.template false)
+
+  if [ $OVERRIDE_TEMPLATE == "false" ]; then
+    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
+    fi
+  else
+    OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE not found"; exit 1;
+    fi
+  fi
+
+  . /usr/sbin/exec-openshift-resources
+done
+
+for SERVICE in "${SERVICES[@]}"
+do
+  . /usr/sbin/exec-push
+done

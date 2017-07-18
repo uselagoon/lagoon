@@ -35,7 +35,7 @@ export default function createReqHandler(options: Options): Handler {
    * Parses given request for webhook related data and will forward
    * it to given EventEmitter for further computation
    */
-  function handler(req, res, logger, cb) {
+  function handler (req, res, logger, cb) {
     if (req.url.split('?').shift() !== path) {
       return cb();
     }
@@ -66,32 +66,33 @@ export default function createReqHandler(options: Options): Handler {
         } = webhookData;
 
         const meta = {
-          webhooktype,
-          event,
-          giturl,
+          webhooktype: webhooktype,
+          event: event,
+          giturl: giturl,
           rawbody: data.toString(),
-        };
+        }
 
-        logger.debug('RAW Request data', {
+        logger.debug("RAW Request data", {
           event: 'raw-request-data',
           uuid,
           data: data.toString(),
         });
 
-        sendToAmazeeioLogs('info', '', uuid, 'webhooks:receive', meta,
-          `Received new ${webhooktype} webhook,  event: ${event}, giturl: ${giturl}`,
-        );
+        sendToAmazeeioLogs('info', "", uuid, "webhooks:receive",  meta,
+          `Received new ${webhooktype} webhook,  event: ${event}, giturl: ${giturl}`
+        )
 
         sendToAmazeeioWebhooks(webhookData, channelWrapper);
 
         res.writeHead(200, { 'content-type': 'application/json' });
 
-        const responseData = JSON.stringify({ data: webhookData }, null, 2);
+        const responseData = JSON.stringify({ data: webhookData }, null, 2)
         res.end(responseData);
-      } catch (e) {
+      }
+      catch(e) {
         return endWithError(e.message);
       }
-    }));
+    }))
   }
 
   return handler;

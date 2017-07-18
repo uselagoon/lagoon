@@ -1,17 +1,15 @@
 FROM amazeeio/centos7-node-builder:6 as builder
 ENV NODE_ENV production
-COPY package.json yarn.lock /app/
-RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
+COPY services/webhooks2tasks/package.json services/webhooks2tasks/yarn.lock /app/services/webhooks2tasks/
+COPY node-packages /app/node-packages
+RUN cd /app/services/webhooks2tasks && BUILD_ONLY=true yarn install --pure-lockfile
 
 FROM amazeeio/centos7-node:6
 ENV NODE_ENV production
-COPY --from=builder /app/node_modules /app/node_modules
-COPY . /app/
+COPY --from=builder /app/services/webhooks2tasks/node_modules /app/services/webhooks2tasks/node_modules
+COPY services/webhooks2tasks /app/services/webhooks2tasks
 
-ARG AMAZEEIO_GIT_BRANCH=undefined
-ENV RABBITMQ_HOST "amazeeio:NYTVU4jdRMjRMmbRcC3JubDH8M34MrWeT3@${AMAZEEIO_GIT_BRANCH}-rabbitmq"
-
-ENV AMAZEEIO_API_HOST "http://${AMAZEEIO_GIT_BRANCH}-api:3000"
+WORKDIR /app/services/webhooks2tasks
 
 RUN yarn run build
 

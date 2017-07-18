@@ -5,11 +5,11 @@ services:
     volumes:
       - .:/ansible
     environment:
-      - WEBHOOK_HOST=webhook-handler.develop.appuio.amazee.io
+      - WEBHOOK_HOST=webhook-handler.lagoon.develop.appuio.amazee.io
       - WEBHOOK_PORT=80
       - WEBHOOK_PROTOCOL=http
       - OPENSHIFT_ROUTE_SUFFIX=appuio.amazee.io
-      - REST2TASKS_HOST=rest2tasks.develop.appuio.amazee.io
+      - REST2TASKS_HOST=rest2tasks.lagoon.develop.appuio.amazee.io
       - REST2TASKS_PORT=80
       - REST2TASKS_PROTOCOL=http
       - GIT_REPO_PREFIX=git@github.com:amazeeio-ci-testing/
