@@ -38,31 +38,27 @@ Options:
   --sitegroup, -s  Name of sitegroup to configure                       [string]
 
 Examples:
-  io init                           Create a config file at
-                                    ./.amazeeio.yml. This will confirm
-                                    with the user whether to overwrite
-                                    the config if it already exists and
-                                    also prompt for a sitegroup name to
-                                    add to the config.
+  io init                           Create a config file at ./.amazeeio.yml.
+                                    This will confirm with the user whether to
+                                    overwrite the config if it already exists
+                                    and also prompt for a sitegroup name to add
+                                    to the config.
 
-  io init --overwrite               Overwrite existing config file (do
-                                    not confirm with the user).
+  io init --overwrite               Overwrite existing config file (do not
+                                    confirm with the user).
 
-  io init --overwrite false         Prevent overwriting of existing
-                                    config file (do not confirm with
-                                    user).
+  io init --overwrite false         Prevent overwriting of existing config file
+                                    (do not confirm with user).
 
-  io init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do
-                                    not prompt the user).
+  io init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do not
+                                    prompt the user).
 
   io init -s my_sitegroup           Short form for setting sitegroup to
-                                    "my_sitegroup" (do not prompt the
-                                    user).
+                                    "my_sitegroup" (do not prompt the user).
 
-  io init --overwrite --sitegroup   Overwrite existing config files and
-  my_sitegroup                      set sitegroup to "my_sitegroup" (do
-                                    not confirm with or prompt the
-                                    user).
+  io init --overwrite --sitegroup   Overwrite existing config files and set
+  my_sitegroup                      sitegroup to "my_sitegroup" (do not confirm
+                                    with or prompt the user).
 ```
 
 #### `io init` Examples
