@@ -93,7 +93,8 @@ const typeDefs = `
 
   type Query {
     siteGroupByName(name: String!): SiteGroup
-    allSiteGroups: [SiteGroup]
+    siteGroupByGitUrl(gitUrl: String!): SiteGroup
+    allSiteGroups(gitUrl: String): [SiteGroup]
     allSites(environmentType: String!): [Site]
     siteByName(name: String!): Site
     allClients: [Client]
@@ -110,10 +111,21 @@ const resolvers = {
 
       return getSiteGroupByName(getState(), args.name);
     },
-    allSiteGroups: (_, __, req) => {
+    siteGroupByGitUrl: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
-      const { getAllSiteGroups } = context.selectors;
+      const { getSiteGroupByGitUrl } = context.selectors;
+
+      return getSiteGroupByGitUrl(getState(), args.gitUrl);
+    },
+    allSiteGroups: (_, args, req) => {
+      const context = getContext(req);
+      const { getState } = context.store;
+      const { getAllSiteGroups, getSiteGroupsByGitUrl } = context.selectors;
+
+      if (typeof args.gitUrl !== 'undefined') {
+        return getSiteGroupsByGitUrl(getState(), args.gitUrl);
+      }
 
       return getAllSiteGroups(getState());
     },

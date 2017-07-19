@@ -174,6 +174,12 @@ const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
   R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups']),
 );
 
+const getSiteGroupsByGitUrl = (state: State, gitUrl: string): Array<SiteGroupView> =>
+  R.compose(R.filter(R.propEq('git_url', gitUrl)), getAllSiteGroups)(state);
+
+const getSiteGroupByGitUrl = (state: State, gitUrl: string): ?SiteGroupView =>
+  R.compose(R.find(R.propEq('git_url', gitUrl)), getAllSiteGroups)(state);
+
 // Utility for converting actual siteFile content w/ fileName to a SiteView object
 const siteFileToSiteViews = (fileName: string, siteFile: SiteFile): Array<SiteView> =>
   R.compose(
@@ -247,6 +253,7 @@ module.exports = {
   getAllClients,
   getClientByName,
   getSiteGroupsByClient,
+  getSiteGroupsByGitUrl,
   getSshKeysFromClients,
   extractSshKeys,
   maybeAddJumpHostKey,
@@ -256,6 +263,7 @@ module.exports = {
   siteFileToSiteViews,
   toSiteHostStr,
   getSiteGroupByName,
+  getSiteGroupByGitUrl,
   getAllSites,
   getAllSitesBySiteGroup,
 };
