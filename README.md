@@ -7,6 +7,19 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 
 Please take into account that currently, multi-stage dockerfiles only work with [Docker CE Edge](https://docs.docker.com/edge/).
 
+
+## Install Docker
+
+Lagoon requires Docker version >= 17.05.
+
+### Via Homebrew
+
+```sh
+# Allow installation of other Cask versions
+brew tap caskroom/versions
+# Install Docker for Mac Edge
+brew cask install docker-edge
+```
 ## Start Services
 
 1. clone me
@@ -15,22 +28,39 @@ Please take into account that currently, multi-stage dockerfiles only work with 
 		git submodule update --init
 		cd hiera; git checkout -b ci-local
 
+```sh
+git clone git@github.com:amazeeio/lagoon.git
+cd lagoon
+git submodule update --init --recursive
+
+# Make sure to check out the branches of hiera that we need locally
+./initHiera.sh
+```
+
 1. start Lagoon Services
 
-		docker-compose up -d
+```sh
+docker-compose up -d
+```
 
 1. Follow the Services logs
 
-		docker-compose logs -f
+```sh
+docker-compose logs -f
+```
 
 ## Start & Test OpenShift
 
 1. start OpenShift
 
-		./startOpenShift.sh
+```sh
+./startOpenShift.sh
+```
 
 1. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
 
 1. test Openshift Node Deployment
 
-		docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+```sh
+docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+```

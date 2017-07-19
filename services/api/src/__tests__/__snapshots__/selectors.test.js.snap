@@ -1,0 +1,139 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Site related selectors getAllSitesByEnv should return a complete list of sites 1`] = `
+Array [
+  Object {
+    "fileName": "compact/deploytest1.yaml",
+    "id": "deploytest1.compact/deploytest_branch1",
+    "jumpHost": "jumpy",
+    "serverIdentifier": "deploytest1",
+    "serverInfrastructure": "compact",
+    "serverNames": Array [
+      "deploytest1.compact",
+    ],
+    "siteHost": "deploytest1.compact",
+    "siteName": "deploytest_branch1",
+    "site_branch": "branch1",
+    "site_environment": "development",
+    "sitegroup": "deploytest",
+    "uid": 3201,
+  },
+  Object {
+    "fileName": "compact/deploytest2.yaml",
+    "id": "deploytest2.compact/deploytest_branch1",
+    "serverIdentifier": "deploytest2",
+    "serverInfrastructure": "compact",
+    "serverNames": Array [
+      "deploytest2.compact",
+    ],
+    "siteHost": "deploytest2.compact",
+    "siteName": "deploytest_branch1",
+    "site_branch": "branch2",
+    "site_environment": "development",
+    "sitegroup": "deploytest",
+    "uid": 3201,
+  },
+]
+`;
+
+exports[`Site related selectors getSiteByName should return site given a name 1`] = `
+Object {
+  "fileName": "compact/deploytest1.yaml",
+  "id": "deploytest1.compact/deploytest_branch1",
+  "serverIdentifier": "deploytest1",
+  "serverInfrastructure": "compact",
+  "serverNames": Array [
+    "deploytest1.compact",
+  ],
+  "siteHost": "deploytest1.compact",
+  "siteName": "deploytest_branch1",
+  "site_branch": "branch1",
+  "sitegroup": "deploytest",
+  "uid": 3201,
+}
+`;
+
+exports[`Site related selectors siteFileToSiteViews should transform a SiteFile Yaml content to a list of SiteView objects 1`] = `
+Array [
+  Object {
+    "fileName": "compact/sitefile1.yaml",
+    "id": "sitefile1.compact/deploytest_branch1",
+    "jumpHost": "jumpy",
+    "serverIdentifier": "sitefile1",
+    "serverInfrastructure": "compact",
+    "serverNames": Array [
+      "sitefile1.compact",
+    ],
+    "siteHost": "sitefile1.compact",
+    "siteName": "deploytest_branch1",
+    "site_branch": "branch1",
+    "site_environment": "development",
+    "sitegroup": "deploytest",
+    "uid": 3201,
+  },
+]
+`;
+
+exports[`SiteGroups related selectors getAllSiteGroups should return a complete list of siteGroups 1`] = `
+Array [
+  Object {
+    "client": "c1",
+    "gitUrl": "git://sg1",
+    "siteGroupName": "sg1",
+  },
+  Object {
+    "client": "c2",
+    "gitUrl": "git://sg2",
+    "siteGroupName": "sg2",
+  },
+]
+`;
+
+exports[`SiteGroups related selectors getSiteGroupsByClient should find existing sitegroups by client 1`] = `
+Array [
+  Object {
+    "client": "c1",
+    "gitUrl": "git://sg1",
+    "siteGroupName": "sg1",
+  },
+]
+`;
+
+exports[`Util selectors addServerNames should calculate serverNames from cluster sites (case 1) 1`] = `
+Object {
+  "drupalhosting::profiles::nginx_backend::cluster_member": Object {
+    "cluster1": "127.0.0.1",
+  },
+  "serverInfrastructure": "cluster",
+  "serverNames": Array [
+    "cluster1.sitehost",
+  ],
+  "siteHost": "sitehost",
+}
+`;
+
+exports[`Util selectors addServerNames should calculate serverNames from single sites (case 2) 1`] = `
+Object {
+  "serverInfrastructure": "single",
+  "serverNames": Array [
+    "backend.sitehost",
+  ],
+  "siteHost": "sitehost",
+}
+`;
+
+exports[`Util selectors addSiteHost should add the siteHost attribute based on serverInfrastructure & serverIdentifier 1`] = `
+Object {
+  "other": "other",
+  "serverIdentifier": "deploytest",
+  "serverInfrastructure": "compact",
+  "siteHost": "deploytest.compact",
+}
+`;
+
+exports[`Util selectors extractSshKeys should extract the ssh_keys field of given entity 1`] = `
+Array [
+  "ssh-rsa k1key",
+  "ssh-rsa k2key",
+]
+`;

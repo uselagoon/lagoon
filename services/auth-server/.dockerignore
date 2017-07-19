@@ -1,0 +1,4 @@
+.dockerignore
+.yarn*
+logs
+node_modules/*
