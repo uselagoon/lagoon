@@ -45,7 +45,7 @@ var mypush = async (payload): Promise<void> => {
 await channelWrapper.sendToQueue('amazeeio:jobwatch', buffer, { persistent: true })
 }
 
-var upload_logs = async function(build,log) {
+var upload_logs = async function(path, log) {
   var accesskeyid =  process.env.AWS_KEY_ID
   var secretaccesskey =  process.env.AWS_SECRET_ACCESS_KEY
   var region = process.env.AWS_REGION || 'us-east-2'
@@ -60,13 +60,11 @@ var upload_logs = async function(build,log) {
   AWS.config.update({accessKeyId: accesskeyid, secretAccessKey: secretaccesskey, region: region});
   var s3 = new AWS.S3();
 
-  var stream = 'hello.'
-
   var params = {
-    Bucket: 'bucket',
-    Key: 'key',
-    Body: stream,
-    'ACL': 'public-read',
+    Bucket: bucket,
+    Key:    path,
+    Body:   log,
+    ACL:    'public-read',
   };
 
   s3.upload(params, function(err, data) {
