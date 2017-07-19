@@ -7,7 +7,7 @@ RUN cd /app/services/openshiftremove && BUILD_ONLY=true yarn install --pure-lock
 FROM amazeeio/centos7-node:6
 ENV NODE_ENV production
 COPY --from=builder /app/services/openshiftremove/node_modules /app/services/openshiftremove/node_modules
-COPY services/openShiftRemove /app/services/openshiftremove
+COPY services/openshiftremove /app/services/openshiftremove
 
 WORKDIR /app/services/openshiftremove/
 
