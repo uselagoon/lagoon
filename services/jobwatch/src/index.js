@@ -18,6 +18,7 @@ var jobdata = Object();
 
 initLogger();
 
+const crypto = require('crypto');
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "https://api.amazeeio.cloud"
 const rabbitmqhost = process.env.RABBITMQ_HOST || "localhost"
 const connection = amqp.connect([`amqp://${rabbitmqhost}`], {json: true});
@@ -112,13 +113,15 @@ app.post('/job', async (req, res) => {
   jobevent    = req.headers.jobevent || "ok"
   path        = req.headers.path
 
-
+if (parseInt(buildnumber) > 0 ) {
   update_job( jobname, {
     'event' : jobevent,
-    'when' :  new Date(),
+    'path':  path,
+    'created' :  new Date(),
+    'updated' : 0,
     'buildnumber': buildnumber
   });
-
+  }
   res.status(200).type('json').send({"ok":"true"})
 
 });
@@ -128,20 +131,28 @@ var jobcheck = function() {
   console.log('jobcheck:')
   var d = new Date()
   for (let build in jobdata) {
+    if (build == undefined ){
+      continue;
+    }
     let job = jobdata[build]
-    let w = job['when']
+    let w = job['created']
     let diff = (d - w) / 1000
     if (diff > 10) {
-      console.log(" last update " + diff + " seconds ago.")
+      // console.log(" last update " + diff + " seconds ago.")
       console.log("build:", build)
-      console.log(job)
+      // console.log(job)
 
       var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
       var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
 
       if (job.buildnumber) {
         jenkins.build.log(build, job.buildnumber, function(err, data) {
-          jobdata[build]['when'] = new Date()
+          if (  jobdata[build]) {
+            jobdata[build]['when'] = new Date()
+          } else {
+            console.log(jobdata[build] )
+            console.log(" can't update 0-----------")
+          }
         });
       } else {
         console.log("build is undefined for job", job)
@@ -149,11 +160,23 @@ var jobcheck = function() {
 
     }
 
-    if (diff > 600) {
+    if (diff > 300) {
       // job appears stuck or missing for 10 minutes:
-      upload_logs(build, "build died after " + diff + " seconds." )
 
-      delete jobdata[build]
+
+      jenkins.build.log(build, job.buildnumber, function(err, data) {
+
+        const entropy = job.buildnumber +  job.created + job.path
+        const hash = crypto.createHash('sha256', entropy).digest('hex');
+
+        let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
+        upload_logs(log_path, "build died after " + diff + " seconds.\n" + data )
+
+        delete jobdata[build]
+
+
+        });
+
     }
 
 
