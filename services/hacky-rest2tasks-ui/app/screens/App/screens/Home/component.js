@@ -8,7 +8,7 @@ import RemoveForm from 'RemoveForm';
 
 const Home = (): React.Element<any> => (
   <div>
-    <Helmet title="laggon Hacky UI" />
+    <Helmet title="lagoon Hacky UI" />
     <Title>lagoon Hacky UI</Title>
     <DeployForm />
     <RemoveForm />
