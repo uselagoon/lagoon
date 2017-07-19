@@ -1,92 +1,81 @@
 version: '2'
 services:
   webhook-handler:
-    build: services/webhook-handler
+    build:
+      context: .
+      dockerfile: services/webhook-handler/Dockerfile
     command: yarn run dev
-    ports:
-      - "7777:3000"
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-    volumes:
-      - ./services/webhook-handler/src:/app/services/webhook-handler/src
   rabbitmq:
-    build: services/rabbitmq
-    ports:
-      - "15672:15672"
-      - "5672:5672"
+    build:
+      context: .
+      dockerfile: services/rabbitmq/Dockerfile
   openshiftremove:
-    build: services/openshiftremove
+    build:
+      context: .
+      dockerfile: services/openshiftremove/Dockerfile
     command: yarn run dev
-    volumes:
-      - ./services/openshiftremove/src:/app/services/openshiftremove/src
   openshiftremove-legacy:
-    build: services/openshiftremove-legacy
+    build:
+      context: .
+      dockerfile: services/openshiftremove-legacy/Dockerfile
     command: yarn run dev
-    volumes:
-      - ./services/openshiftremove-legacy/src:/app/services/openshiftremove/src
   openshiftdeploy:
-    build: services/openshiftdeploy
+    build:
+      context: .
+      dockerfile: services/openshiftdeploy/Dockerfile
     command: yarn run dev
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
       - CI_OVERRIDE_IMAGE_REPO=${BUILD_TAG}
-    volumes:
-      - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
   openshiftdeploy-legacy:
-    build: services/openshiftdeploy-legacy
+    build:
+      context: .
+      dockerfile: services/openshiftdeploy-legacy/Dockerfile
     command: yarn run dev
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
       - CI_OVERRIDE_IMAGE_REPO=${BUILD_TAG}
-    volumes:
-      - ./services/openshiftdeploy-legacy/src:/app/services/openshiftdeploy/src
   logs2slack:
-    build: services/logs2slack
+    build:
+      context: .
+      dockerfile: services/logs2slack/Dockerfile
     command: yarn run dev
-    volumes:
-      - ./services/logs2slack/src:/app/services/logs2slack/src
   webhooks2tasks:
-    build: services/webhooks2tasks
+    build:
+      context: .
+      dockerfile: services/webhooks2tasks/Dockerfile
     command: yarn run dev
-    volumes:
-      - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
   rest2tasks:
-    build: services/rest2tasks
+    build:
+      context: .
+      dockerfile: services/rest2tasks/Dockerfile
     command: yarn run dev
-    volumes:
-      - ./services/rest2tasks/src:/app/services/rest2tasks/src
-    ports:
-      - "5555:3000"
   api-new:
-    build: services/api
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
     command: yarn run dev
     environment:
       - GIT_REPOSITORY=file:///lagoon/hiera
       - GIT_BRANCH_PULL=ci-local
     volumes:
-      - ./services/api/src:/app/src
       - .:/lagoon
-    ports:
-      - "8080:3000"
   api:
-    build: services/api-legacy
+    build:
+      context: .
+      dockerfile: services/api-legacy/Dockerfile
     command: yarn run dev
     environment:
       - GIT_REPOSITORY=file:///lagoon/hiera
       - GIT_BRANCH_PULL=ci-local
     volumes:
       - ./services/api-legacy/src:/app/src
-      - .:/lagoon
-    ports:
-      - "8081:3000"
   jenkins:
     build: services/jenkins
     environment:
       - JENKINS_ADMIN_PASSWORD=admin
-    ports:
-      - "8888:8080"
   jenkins-slave:
     build: services/jenkins-slave
     user: root
@@ -112,29 +101,24 @@ services:
     build: local-git-server
     environment:
       - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5b9Awb6iwWRz1z+QDwLlSvtpxg/7pR7Rf+kJT3khQGiLuX4Qk2aDCrt1fKndjyUuj55ocRc8OlExrA8FPfZbpnfaNXfVh9TlybhjIWUHtLbc9giCoDuiV2TEb6ZW/esKlVtWomzfY/njwPAuXEU2i3j5YxVQuZ0y+AN4yca4V1y7y2BlUOvp5qSvz/8PcBJegaoesSSuFpQWCR788/i0sURJiaG6+tZN+bGVSnJgtbXQJvc0r45au3PL5jyMcApbHOCDQUIiWyC6ipW2EIYTUBVO80QVEjymmBZpZEQl/0DQPEzBdqCi4X4wmwhoan7hQJQ7dNdqmRL+W4L75yPNyngNgJVNTlIXOHXevpNskH//HUlwEp4WPHuT76BZT3cq1RCatn6iMsFiwpESk9xyDbEVPfxKAr77cRpFIHuJd7amDjTk7/KP0PTliO2ViCyjDudiajwNh7XmY0ZqYrhHI16ebTSESDslh0a0JlZvWlYa4xDBKtKwfINRrcrYmuYUzSF7wn7F1o45cHZ2kuftioOQhLNgx0LqztRMn3RBoeG3QHbxmv9WfO/0hHa4FdkQLErEdzEM9JR4WewRnh04dcjejX1daWKbo2X8ndaCc0BvdNDL/HpSgqfCnJ2Nlq4pM6Pomkvdp5wTWpZwCjDl08UgttAFrQwjYoBy9UpUmDQ== ansible-testing
-    expose:
-      - "22"
   elasticsearch:
     build: services/elasticsearch
     user: '1000'
     environment:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
-    ports:
-      - "9200:9200"
   kibana:
-    build: services/kibana
-    ports:
-      - "5601:5601"
+    build:
+      context: .
+      dockerfile: services/kibana/Dockerfile
   logstash:
-    build: services/logstash
-    user: '1111722'
+    build:
+      context: .
+      dockerfile: services/logstash/Dockerfile
   hacky-rest2tasks-ui:
-    build: services/hacky-rest2tasks-ui
+    build:
+      context: .
+      dockerfile: services/hacky-rest2tasks-ui/Dockerfile
     command: yarn run dev
     environment:
       - API=http://api:3000
       - REST2TASKS_URL=http://rest2tasks:3000
-    volumes:
-      - ./services/hacky-rest2tasks-ui/app:/app/app
-    ports:
-      - "8090:3000"
