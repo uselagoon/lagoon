@@ -82,7 +82,7 @@ services:
       - ./node-packages:/app/node-packages
     ports:
       - "5555:3000"
-  api:
+  api-new:
     build:
       context: .
       dockerfile: services/api/Dockerfile
@@ -110,7 +110,7 @@ services:
       - auth-server
     depends_on:
       - auth-server
-  api-legacy:
+  api:
     build:
       context: .
       dockerfile: services/api-legacy/Dockerfile
