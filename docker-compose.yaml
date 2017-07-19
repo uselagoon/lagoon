@@ -219,6 +219,11 @@ services:
       - RABBITMQ_PASSWORD=guest
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
+  node-packages-lerna:
+    build: node-packages
+    command: bash -c "lerna bootstrap && lerna run --parallel watch"
+    volumes:
+      - .:/app:delegated
   remotedev:
     image: jhen0409/remotedev-server
     command: node main.js
