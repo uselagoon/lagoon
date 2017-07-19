@@ -108,6 +108,21 @@ services:
       - "8080:3000"
     links:
       - auth-server
+    depends_on:
+      - auth-server
+  api-legacy:
+    build:
+      context: .
+      dockerfile: services/api-legacy/Dockerfile
+    command: yarn run dev
+    environment:
+      - GIT_REPOSITORY=file:///lagoon/hiera
+      - GIT_BRANCH_PULL=ci-local
+    volumes:
+      - ./services/api-legacy/src:/app/src
+      - .:/lagoon
+    ports:
+      - "8081:3000"
   auth-ssh:
     build: services/auth-ssh
       # TODO:
