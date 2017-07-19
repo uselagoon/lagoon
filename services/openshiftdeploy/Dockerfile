@@ -7,7 +7,7 @@ RUN cd /app/services/openshiftdeploy && BUILD_ONLY=true yarn install --pure-lock
 FROM amazeeio/centos7-node:6
 ENV NODE_ENV production
 COPY --from=builder /app/services/openshiftdeploy/node_modules /app/services/openshiftdeploy/node_modules
-COPY services/openShiftDeploy /app/services/openshiftdeploy
+COPY services/openshiftdeploy /app/services/openshiftdeploy
 
 WORKDIR /app/services/openshiftdeploy/
 
