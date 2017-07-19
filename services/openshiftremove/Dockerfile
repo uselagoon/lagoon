@@ -1,6 +1,6 @@
 FROM amazeeio/centos7-node-builder:6 as builder
 ENV NODE_ENV production
-COPY services/openShiftRemove/package.json services/openShiftRemove/yarn.lock /app/services/openshiftremove/
+COPY services/openshiftremove/package.json services/openshiftremove/yarn.lock /app/services/openshiftremove/
 COPY node-packages /app/node-packages
 RUN cd /app/services/openshiftremove && BUILD_ONLY=true yarn install --pure-lockfile
 
