@@ -7,7 +7,8 @@ RUN mkdir -m 700 /git/.ssh && \
 	touch /git/.hushlogin && \
 	git --bare init /git/repo.git && \
 	git --bare init /git/node_subfolder.git && \
-	git --bare init /git/node.git
+	git --bare init /git/node.git && \
+	git --bare init /git/hiera.git
 
 USER root
 
