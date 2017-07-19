@@ -90,7 +90,7 @@ services:
     environment:
       - GIT_REPOSITORY=file:///lagoon/hiera
       - GIT_BRANCH_PULL=ci-local
-      - REMOTE_DEV_SERVER=true
+      - REMOTE_DEV_SERVER=false
     volumes:
       # These files and folders already exists within the docker image, but we mount it again
       # so there is no rebuild necessary when we just change with them.
