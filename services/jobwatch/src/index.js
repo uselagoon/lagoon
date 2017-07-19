@@ -105,10 +105,12 @@ app.post('/job', async (req, res) => {
   let buildnumber;
   let jobevent;
   let jenkinsUrl;
+  let path;
 
   jobname = req.headers.jobname
   buildnumber = req.headers.buildnumber
   jobevent    = req.headers.jobevent || "ok"
+  path        = req.headers.path
 
 
   update_job( jobname, {
