@@ -1,25 +1,44 @@
-import Promise from 'bluebird';
+// @flow
+
 import http from 'http';
+import logger from './logger';
+import { defer } from './util/promise';
 import app from './app';
-import normalizePort from './utility/normalizePort';
 
-export default async (repository) => {
-  debug('Starting to boot the server.');
+import type { ApiStore } from './createStore';
 
-  // Log the start time to measure the performance.
-  const start = Date.now();
+const normalizePort = (value) => {
+  const port = parseInt(value, 10);
 
-  const port = normalizePort(process.env.PORT || '3000');
+  if (!isNaN(port) && port > 0) {
+    return port;
+  }
 
-  const server = http.createServer(app(repository));
-  const listen = Promise.promisify(server.listen, {
-    context: server,
+  return false;
+};
+
+export default async (store: ApiStore): Promise<Server> => {
+  logger.debug('Starting to boot the server.');
+
+  const port = normalizePort(process.env.PORT || '8080');
+  const server = http.createServer(app(store));
+
+  const deferred = defer();
+
+  server.listen(port, (err) => {
+    if (err) {
+      deferred.reject(err);
+      return;
+    }
+    deferred.resolve();
   });
 
-  // Wait for the server to finish booting before resolving the promise.
-  await listen(port);
+  await deferred.promise;
 
-  const end = Date.now();
-  const performance = (end - start) / 1000;
-  debug(`Finished booting the server in ${performance} seconds. The server is reachable at Port ${port}.`); // eslint-disable-line
+  logger.debug(
+    `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
+  );
+
+  // eslint-disable-line
+  return server;
 };

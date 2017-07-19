@@ -1,0 +1,6 @@
+/.env
+/.repository
+/dist
+/logs
+node_modules
+npm-debug.log

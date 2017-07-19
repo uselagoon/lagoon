@@ -59,7 +59,7 @@ services:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
     ports:
       - "5555:3000"
-  api:
+  api-new:
     build: services/api
     command: yarn run dev
     environment:
@@ -70,6 +70,17 @@ services:
       - .:/lagoon
     ports:
       - "8080:3000"
+  api:
+    build: services/api-legacy
+    command: yarn run dev
+    environment:
+      - GIT_REPOSITORY=file:///lagoon/hiera
+      - GIT_BRANCH_PULL=ci-local
+    volumes:
+      - ./services/api-legacy/src:/app/src
+      - .:/lagoon
+    ports:
+      - "8081:3000"
   jenkins:
     build: services/jenkins
     environment:

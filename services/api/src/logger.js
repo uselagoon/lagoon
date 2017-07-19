@@ -1,3 +1,5 @@
+// @flow
+
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
@@ -8,7 +10,17 @@ if (!fs.existsSync(directory)) {
   fs.mkdirSync(directory);
 }
 
-const logger = new winston.Logger({
+/* ::
+
+export type LogFn = (...args: Array<any>) => void;
+
+export type Logger = {
+  info: LogFn,
+  debug: LogFn,
+  error: LogFn,
+};
+*/
+const logger: Logger = new winston.Logger({
   exitOnError: false,
   transports: [
     new winston.transports.File({
@@ -29,13 +41,5 @@ const logger = new winston.Logger({
     }),
   ],
 });
-
-if (typeof global.debug === 'undefined') {
-  global.debug = (message) => {
-    if (process.env.NODE_ENV === 'development') {
-      logger.debug(message);
-    }
-  };
-}
 
 export default logger;
