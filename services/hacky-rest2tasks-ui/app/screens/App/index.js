@@ -22,8 +22,8 @@ const Wrapper = styled.div`
 const App = ({ children, router }: AppProps): React.Element<any> => (
   <Wrapper>
     <Helmet
-      titleTemplate="laggon Hacky UI - %s"
-      defaultTitle="laggon Hacky UI"
+      titleTemplate="lagoon Hacky UI - %s"
+      defaultTitle="lagoon Hacky UI"
     />
     {router && router.loading && <LoadingIndicator />}
     {children}
