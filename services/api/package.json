@@ -33,6 +33,7 @@
     "lint-staged": "^4.0.0",
     "nodemon": "^1.11.0",
     "prettier": "^1.4.4",
+    "remote-redux-devtools": "^0.5.12",
     "rimraf": "^2.5.4"
   },
   "dependencies": {
