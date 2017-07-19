@@ -182,7 +182,7 @@ node {
   stage ('Deploy') {
     println( [[name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]] )
 
-    def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobevent', value: "deploy"], [name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
+    def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobevent', value: "deploy"], [name: 'path', value: "${safeSiteGroupName}/${safeBranchName}"], [name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
 
     sh """docker run --rm \\
     ${dockerRunParam} \\
