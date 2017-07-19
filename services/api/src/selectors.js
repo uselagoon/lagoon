@@ -1,6 +1,14 @@
 // @flow
 
-import type { Client, Site, SiteFile, SiteGroup, SshKey, SshKeys, State } from './types';
+import type {
+  Client,
+  Site,
+  SiteFile,
+  SiteGroup,
+  SshKey,
+  SshKeys,
+  State,
+} from './types';
 
 const R = require('ramda');
 
@@ -32,6 +40,43 @@ export type SiteView = Site & {
   serverIdentifier: string,
   serverNames: Array<string>,
 };
+
+type FilterCriteria = {
+  [key: string]: Function | mixed,
+};
+
+type WhereCriteria = {
+  [key: string]: Function,
+};
+
+// ==== Utility
+
+// Removes undefined / null criteria and transforms values to R.equals conditions
+const sanitizeCriteria /*: (FilterCriteria) => WhereCriteria */ = R.compose(
+  R.fromPairs,
+  R.map(([key, val]) => [
+    key,
+    R.ifElse(
+      R.is(Function),
+      // Functions are already predicates
+      R.identity,
+      // otherwise make a predicate out of the value
+      R.always(R.equals(val)),
+    )(val),
+  ]),
+  R.toPairs,
+  R.pickBy(R.compose(R.not, R.isNil)),
+);
+
+// A util to sanitize criteria before applying it to a where condition
+const whereCriteria /* : (FilterCriteria) => Function */ = R.compose(
+  R.where,
+  sanitizeCriteria,
+);
+
+const findAll = (criteria: FilterCriteria) => R.filter(whereCriteria(criteria));
+
+const findFirst = (criteria: FilterCriteria)  => R.find(whereCriteria(criteria));
 
 // ==== Selectors
 const serverNamesLens = R.lensProp('serverNames');
@@ -103,9 +148,13 @@ const addSiteHost /* :
     )(obj),
 );
 
-const CLUSTER_MEMBER_KEY = 'drupalhosting::profiles::nginx_backend::cluster_member';
+const CLUSTER_MEMBER_KEY =
+  'drupalhosting::profiles::nginx_backend::cluster_member';
 
-const clusterServerNames = (siteHost: string, clusterMember: { [string]: string }) =>
+const clusterServerNames = (
+  siteHost: string,
+  clusterMember: { [string]: string },
+) =>
   R.compose(R.map(([key]) => `${key}.${siteHost}`), R.toPairs)(clusterMember);
 
 const addServerNames /* :
@@ -121,7 +170,12 @@ const addServerNames /* :
     // Case 1 - If obj represents cluster information
     [
       obj => R.equals('cluster', obj.serverInfrastructure),
-      obj => R.set(serverNamesLens, clusterServerNames(obj.siteHost, obj[CLUSTER_MEMBER_KEY]), obj),
+      obj =>
+        R.set(
+          serverNamesLens,
+          clusterServerNames(obj.siteHost, obj[CLUSTER_MEMBER_KEY]),
+          obj,
+        ),
     ],
 
     // Case 2 - If obj represents single instances
@@ -174,22 +228,37 @@ const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
   R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups']),
 );
 
-const getSiteGroupsByGitUrl = (state: State, gitUrl: string): Array<SiteGroupView> =>
-  R.compose(R.filter(R.propEq('git_url', gitUrl)), getAllSiteGroups)(state);
+const filterSiteGroups = (
+  criteria: FilterCriteria,
+  state: State,
+): Array<SiteGroupView> =>
+  R.compose(findAll(criteria), getAllSiteGroups)(state);
 
-const getSiteGroupByGitUrl = (state: State, gitUrl: string): ?SiteGroupView =>
-  R.compose(R.find(R.propEq('git_url', gitUrl)), getAllSiteGroups)(state);
+const findSiteGroup = (criteria: FilterCriteria, state: State): SiteGroupView =>
+  R.compose(findFirst(criteria), getAllSiteGroups)(state);
 
 // Utility for converting actual siteFile content w/ fileName to a SiteView object
-const siteFileToSiteViews = (fileName: string, siteFile: SiteFile): Array<SiteView> =>
+const siteFileToSiteViews = (
+  fileName: string,
+  siteFile: SiteFile,
+): Array<SiteView> =>
   R.compose(
     R.map(addServerNames),
     R.map(addSiteHost),
     R.map(site =>
-      R.assoc('id', `${site.serverIdentifier}.${site.serverInfrastructure}/${site.siteName}`, site),
+      R.assoc(
+        'id',
+        `${site.serverIdentifier}.${site.serverInfrastructure}/${site.siteName}`,
+        site,
+      ),
     ),
     R.map(addServerInfo),
-    R.map(site => R.apply(maybeAddJumpHostKey, [R.prop('amazeeio::jumphost', siteFile), site])),
+    R.map(site =>
+      R.apply(maybeAddJumpHostKey, [
+        R.prop('amazeeio::jumphost', siteFile),
+        site,
+      ]),
+    ),
     // -> Array<SiteView>
     // Add siteFile related information in each site object
     R.map(([siteName, site]) =>
@@ -212,19 +281,11 @@ const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
   R.propOr({}, 'siteFiles'),
 );
 
-const getAllSitesByEnv = (state: State, env: string): Array<SiteView> =>
-  R.compose(
-    // Filter sites that don't match the passed environment
-    R.filter(siteV => siteV.site_environment === env),
-    getAllSites,
-  )(state);
+const filterSites = (criteria: FilterCriteria, state: State): Array<SiteView> =>
+  R.compose(findAll(criteria), getAllSites)(state);
 
-const getAllSitesBySiteGroup = (state: State, siteGroupName: string): Array<SiteView> =>
-  R.compose(R.filter(R.propEq('sitegroup', siteGroupName)), getAllSites)(state);
-
-// TODO: ADD TESTS
-const getSiteByName = (state: State, name: string): ?Site =>
-  R.compose(R.find(R.propEq('siteName', name)), getAllSites)(state);
+const findSite = (criteria: FilterCriteria, state: State): SiteView =>
+  R.compose(findFirst(criteria), getAllSites)(state);
 
 const getAllClients /* : (State) => Array<ClientView> */ = R.compose(
   R.map(([id, client]) => ({ ...client, clientName: id })),
@@ -232,38 +293,31 @@ const getAllClients /* : (State) => Array<ClientView> */ = R.compose(
   R.pathOr({}, ['clientsFile', 'amazeeio_clients']),
 );
 
-const getClientByName = (state: State, name: string): ClientView =>
-  R.compose(R.find(client => client.clientName === name), getAllClients)(state);
+const filterClients = (
+  criteria: FilterCriteria,
+  state: State,
+): Array<ClientView> => R.compose(findAll(criteria), getAllClients)(state);
 
-const getSiteGroupsByClient = (state: State, clientName: string): Array<ClientView> =>
-  R.compose(R.filter(siteGroup => siteGroup.client === clientName), getAllSiteGroups)(state);
-
-// TODO: ADD TESTS FOR THIS
-const getSiteGroupByName = (state: State, siteGroupName: string): SiteGroupView =>
-  R.compose(
-    R.head,
-    R.filter(siteGroup => siteGroup.siteGroupName === siteGroupName),
-    getAllSiteGroups,
-  )(state);
+const findClient = (criteria: FilterCriteria, state: State): ClientView =>
+  R.compose(findFirst(criteria), getAllClients)(state);
 
 module.exports = {
   getAllSiteGroups,
-  getSiteByName,
-  getAllSitesByEnv,
+  filterSiteGroups,
+  findSiteGroup,
   getAllClients,
-  getClientByName,
-  getSiteGroupsByClient,
-  getSiteGroupsByGitUrl,
+  filterClients,
+  findClient,
+  getAllSites,
+  filterSites,
+  findSite,
+  sanitizeCriteria,
+  maybeAddJumpHostKey,
   getSshKeysFromClients,
   extractSshKeys,
-  maybeAddJumpHostKey,
+  siteFileToSiteViews,
+  toSiteHostStr,
   addServerInfo,
   addServerNames,
   addSiteHost,
-  siteFileToSiteViews,
-  toSiteHostStr,
-  getSiteGroupByName,
-  getSiteGroupByGitUrl,
-  getAllSites,
-  getAllSitesBySiteGroup,
 };

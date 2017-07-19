@@ -64,6 +64,10 @@ export type Site = {
   +upstream_url: string,
   +basic_auth: BasicAuth,
   +deploy_strategy: string,
+  +created?: string,
+  +comment?: string,
+  +monitoring_level?: string,
+  +uptime_monitoring_uri?: string,
 };
 
 export type SiteGroup = {
@@ -73,6 +77,11 @@ export type SiteGroup = {
   +production_url?: string,
   +git_url?: string,
   +slack?: Slack,
+  +openshift?: Object,
+  +billingclient?: string,
+  +created?: string,
+  +active_systems?: Object,
+  +comment?: string,
 };
 
 export type ClientsFile = {

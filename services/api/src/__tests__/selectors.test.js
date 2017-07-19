@@ -1,13 +1,14 @@
 // @flow
 
 const {
-  getSiteGroupsByClient,
+  filterSiteGroups,
   getAllSiteGroups,
-  getAllSitesByEnv,
+  filterSites,
   addServerInfo,
   addServerNames,
-  getSiteByName,
-  getClientByName,
+  sanitizeCriteria,
+  findSite,
+  findClient,
   extractSshKeys,
   maybeAddJumpHostKey,
   addSiteHost,
@@ -16,6 +17,37 @@ const {
 } = require('../selectors');
 
 describe('Util selectors', () => {
+  describe('sanitizeCriteria', () => {
+    it('should transform values to equal predicate functions', () => {
+      const criteria = {
+        a: () => 'foo',
+        b: 'test',
+      };
+
+      const ret = sanitizeCriteria(criteria);
+
+      expect(typeof ret.a).toBe('function');
+      expect(typeof ret.b).toBe('function');
+
+      expect(ret.b('not')).toBeFalsy();
+      expect(ret.b('test')).toBeTruthy();
+    });
+
+    it('should filter null / undefined values instead of creating predicates', () => {
+      const criteria = {
+        a: null,
+        b: undefined,
+        c: 'test',
+      };
+
+      const ret = sanitizeCriteria(criteria);
+
+      expect(ret.a).toBeUndefined();
+      expect(ret.b).toBeUndefined();
+      expect(typeof ret.c).toBe('function');
+    });
+  });
+
   describe('extractSshKeys', () => {
     test('should extract the ssh_keys field of given entity', () => {
       const entity = {
@@ -164,7 +196,12 @@ describe('SiteGroups related selectors', () => {
 
   describe('getSiteGroupsByClient', () => {
     test('should find existing sitegroups by client', () => {
-      const ret = getSiteGroupsByClient(state, 'c1');
+      const ret = filterSiteGroups(
+        {
+          client: 'c1',
+        },
+        state,
+      );
       expect(ret).toMatchSnapshot();
     });
   });
@@ -226,7 +263,12 @@ describe('Site related selectors', () => {
         },
       };
 
-      const ret = getAllSitesByEnv(state, 'development');
+      const ret = filterSites(
+        {
+          site_environment: 'development',
+        },
+        state,
+      );
       expect(ret).toMatchSnapshot();
     });
   });
@@ -256,7 +298,12 @@ describe('Site related selectors', () => {
         },
       };
 
-      const ret = getSiteByName(state, 'deploytest_branch1');
+      const ret = findSite(
+        {
+          siteName: 'deploytest_branch1',
+        },
+        state,
+      );
       expect(ret).toMatchSnapshot();
     });
   });
@@ -275,7 +322,12 @@ describe('Client based Selectors', () => {
 
   describe('getClientByName', () => {
     test('should find existing client', () => {
-      const ret = getClientByName(state, 'amazeeio');
+      const ret = findClient(
+        {
+          clientName: 'amazeeio',
+        },
+        state,
+      );
       expect(ret).toEqual({
         clientName: 'amazeeio',
         deploy_private_key: 'privatekey',
@@ -283,7 +335,12 @@ describe('Client based Selectors', () => {
     });
 
     test('should return empty result on non-existing client', () => {
-      const ret = getClientByName(state, 'nonexistent');
+      const ret = findClient(
+        {
+          clientName: 'nonexistent',
+        },
+        state,
+      );
       expect(ret).toBeUndefined();
     });
   });
