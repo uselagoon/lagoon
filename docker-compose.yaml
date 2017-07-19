@@ -156,6 +156,7 @@ services:
       dockerfile: services/jenkins/Dockerfile
     environment:
       - JENKINS_ADMIN_PASSWORD=admin
+      - JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Xmx1024m"
     ports:
       - "8888:8080"
   jenkins-slave:
