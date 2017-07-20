@@ -55,6 +55,7 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
 
     case "task:remove-openshift-resources:finished":
     case "task:deploy-openshift:finished":
+    case "task:jobwatch:finished":
       sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapper, msg, appId)
       break;
 
@@ -65,6 +66,7 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
 
     case "task:remove-openshift-resources:error":
     case "task:deploy-openshift:error":
+    case "task:jobwatch:error":
       sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg, appId)
       break;
 
