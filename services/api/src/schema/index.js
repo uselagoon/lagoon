@@ -187,6 +187,7 @@ const resolvers = {
 
       return extractSshKeys(client);
     },
+    deployPrivateKey: (client: ClientView) => client.deploy_private_key,
   },
   SiteGroup: {
     client: (siteGroup: SiteGroupView, _, req) => {

@@ -56,15 +56,15 @@ Object {
 exports[`Site related selectors siteFileToSiteViews should transform a SiteFile Yaml content to a list of SiteView objects 1`] = `
 Array [
   Object {
-    "fileName": "compact/sitefile1.yaml",
-    "id": "sitefile1.compact/deploytest_branch1",
+    "fileName": "cluster/sitefile1.yaml",
+    "id": "sitefile1.cluster/deploytest_branch1",
     "jumpHost": "jumpy",
     "serverIdentifier": "sitefile1",
-    "serverInfrastructure": "compact",
+    "serverInfrastructure": "cluster",
     "serverNames": Array [
-      "sitefile1.compact",
+      "cluster1.arbitraryServerName",
     ],
-    "siteHost": "sitefile1.compact",
+    "siteHost": "arbitraryServerName",
     "siteName": "deploytest_branch1",
     "site_branch": "branch1",
     "site_environment": "development",
@@ -101,9 +101,6 @@ Array [
 
 exports[`Util selectors addServerNames should calculate serverNames from cluster sites (case 1) 1`] = `
 Object {
-  "drupalhosting::profiles::nginx_backend::cluster_member": Object {
-    "cluster1": "127.0.0.1",
-  },
   "serverInfrastructure": "cluster",
   "serverNames": Array [
     "cluster1.sitehost",

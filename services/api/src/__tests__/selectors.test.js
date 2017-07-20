@@ -102,12 +102,20 @@ describe('Util selectors', () => {
 
   describe('addSiteHost', () => {
     test('should add the siteHost attribute based on serverInfrastructure & serverIdentifier', () => {
-      const ret = addSiteHost({
+      const ret = addSiteHost(null, ({
         serverIdentifier: 'deploytest',
         serverInfrastructure: 'compact',
         other: 'other',
-      });
+      }: any));
       expect(ret).toMatchSnapshot();
+    });
+
+    test('should use servername as siteHost, if provided', () => {
+      const ret: any = addSiteHost('some.server.name', ({
+        serverIdentifier: 'deploytest',
+        serverInfrastructure: 'compact',
+      }: any));
+      expect(ret.siteHost).toBe('some.server.name');
     });
   });
 
@@ -149,34 +157,41 @@ describe('Util selectors', () => {
 
   describe('addServerNames', () => {
     test('should calculate serverNames from cluster sites (case 1)', () => {
-      const ret = addServerNames({
+      const clusterMembers = {
+        cluster1: '127.0.0.1',
+      };
+
+      const ret = addServerNames(clusterMembers, ({
         serverInfrastructure: 'cluster',
         siteHost: 'sitehost',
-        'drupalhosting::profiles::nginx_backend::cluster_member': {
-          cluster1: '127.0.0.1',
-        },
-      });
+      }: any));
 
       expect(ret).toMatchSnapshot();
     });
 
     test('should calculate serverNames from single sites (case 2)', () => {
-      const ret = addServerNames({
+      const ret = addServerNames(null, ({
         serverInfrastructure: 'single',
         siteHost: 'sitehost',
-      });
+      }: any));
 
       expect(ret).toMatchSnapshot();
     });
 
     test('should use siteHost as serverNames if there is no way to calculate cluster / single sites', () => {
-      const ret1 = addServerNames({
-        siteHost: 'sitehost',
-      });
+      const ret1 = addServerNames(
+        null,
+        ({
+          siteHost: 'sitehost',
+        }: any),
+      );
 
-      const ret2 = addServerNames({
-        siteHost: ['sh1', 'sh2'],
-      });
+      const ret2 = addServerNames(
+        null,
+        ({
+          siteHost: ['sh1', 'sh2'],
+        }: any),
+      );
 
       expect(ret1.serverNames).toEqual(['sitehost']);
       expect(ret2.serverNames).toEqual(['sh1', 'sh2']);
@@ -217,7 +232,7 @@ describe('SiteGroups related selectors', () => {
 describe('Site related selectors', () => {
   describe('siteFileToSiteViews', () => {
     test('should transform a SiteFile Yaml content to a list of SiteView objects', () => {
-      const filename = 'compact/sitefile1.yaml';
+      const filename = 'cluster/sitefile1.yaml';
       const siteFile: any = {
         drupalsites: {
           deploytest_branch1: {
@@ -226,6 +241,10 @@ describe('Site related selectors', () => {
             uid: 3201,
             sitegroup: 'deploytest',
           },
+        },
+        'amazeeio::servername': 'arbitraryServerName',
+        'drupalhosting::profiles::nginx_backend::cluster_member': {
+          cluster1: '127.0.0.1',
         },
         'amazeeio::jumphost': 'jumpy',
       };

@@ -3,11 +3,11 @@ services:
     amazeeio:
       type: node:6
     build:
-      dockerfile: subfolder/.amazeeio.Dockerfile
+      dockerfile: .amazeeio.Dockerfile
       context: subfolder
   node-test:
     amazeeio:
       type: node:6
     build:
-      dockerfile: subfolder/.amazeeio.Dockerfile
+      dockerfile: .amazeeio.Dockerfile
       context: subfolder
