@@ -73,11 +73,15 @@ services:
     volumes:
       - ./services/api-legacy/src:/app/src
   jenkins:
-    build: services/jenkins
+    build:
+      context: .
+      dockerfile: services/jenkins/Dockerfile
     environment:
       - JENKINS_ADMIN_PASSWORD=admin
   jenkins-slave:
-    build: services/jenkins-slave
+    build:
+      context: .
+      dockerfile: services/jenkins-slave/Dockerfile
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
