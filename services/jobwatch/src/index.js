@@ -12,6 +12,9 @@ import util from 'util'
 import Transport from 'lokka-transport-http';
 import Lokka from 'lokka';
 
+import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
+initSendToAmazeeioLogs();
+
 import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
 
 var jobdata = Object();
@@ -46,7 +49,7 @@ var mypush = async (payload): Promise<void> => {
 await channelWrapper.sendToQueue('amazeeio:jobwatch', buffer, { persistent: true })
 }
 
-var upload_logs = async function(path, log) {
+var upload_logs = async function(path, log, callback) {
   var accesskeyid =  process.env.AWS_KEY_ID
   var secretaccesskey =  process.env.AWS_SECRET_ACCESS_KEY
   var region = process.env.AWS_REGION || 'us-east-2'
@@ -66,11 +69,10 @@ var upload_logs = async function(path, log) {
     Key:    path,
     Body:   log,
     ACL:    'public-read',
+    ContentType: 'text/plain',
   };
 
-  s3.upload(params, function(err, data) {
-    console.log(err, data);
-  });
+  s3.upload(params, callback);
 
 };
 
@@ -170,10 +172,20 @@ var jobcheck = function() {
         const hash = crypto.createHash('sha256', entropy).digest('hex');
 
         let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
-        upload_logs(log_path, "build died after " + diff + " seconds.\n" + data )
+        let uri = upload_logs(log_path, "build died after " + diff + " seconds.\n" + data,
+          function(err,data) {
+            let uri = data.Location
+
+            let siteGroupName = 'ci-node1'
+            let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {},
+            uri
+              //`*[${siteGroupName}]* logs \`${openshiftRessourceAppName}\``
+            )
+
+
+          })
 
         delete jobdata[build]
-
 
         });
 
