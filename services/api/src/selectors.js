@@ -76,7 +76,7 @@ const whereCriteria /* : (FilterCriteria) => Function */ = R.compose(
 
 const findAll = (criteria: FilterCriteria) => R.filter(whereCriteria(criteria));
 
-const findFirst = (criteria: FilterCriteria)  => R.find(whereCriteria(criteria));
+const findFirst = (criteria: FilterCriteria) => R.find(whereCriteria(criteria));
 
 // ==== Selectors
 const serverNamesLens = R.lensProp('serverNames');
@@ -135,52 +135,56 @@ const toSiteHostStr /* :
   R.pick(['serverIdentifier', 'serverInfrastructure']),
 );
 
-const addSiteHost /* :
-   <T: {
-    serverIdentifier: string,
-    serverInfrastructure: string}
-    >(T) => T */ = R.compose(
-  obj =>
-    R.ifElse(
-      R.and(R.has('serverIdentifier'), R.has('serverInfrastructure')),
-      R.set(R.lensProp('siteHost'), toSiteHostStr(obj)),
-      R.identity(),
-    )(obj),
-);
+const addSiteHost = (
+  // ==> SiteFile -> amazeeio::servername
+  servername: null | string | Array<string>,
+  site: SiteView & { serverIdentifier: string, serverInfrastructure: string },
+): SiteView =>
+  R.compose(obj =>
+    R.cond([
+      [
+        // servername comes from the upper context siteFile['amazeeio::servername']
+        () => servername != null,
+        R.set(R.lensProp('siteHost'), servername),
+      ],
+      [
+        R.and(R.has('serverIdentifier'), R.has('serverInfrastructure')),
+        R.set(R.lensProp('siteHost'), toSiteHostStr(obj)),
+      ],
+      [R.T, R.identity],
+    ])(obj),
+  )(site);
 
 const CLUSTER_MEMBER_KEY =
   'drupalhosting::profiles::nginx_backend::cluster_member';
 
 const clusterServerNames = (
   siteHost: string,
-  clusterMember: { [string]: string },
+  clusterMembers: { [string]: string },
 ) =>
-  R.compose(R.map(([key]) => `${key}.${siteHost}`), R.toPairs)(clusterMember);
+  R.compose(R.map(([key]) => `${key}.${siteHost}`), R.toPairs)(clusterMembers);
 
-const addServerNames /* :
-    <T: {
-      serverInfrastructure?: string,
-      siteHost: string | Array<string>,
-      'drupalhosting::profiles::nginx_backend::cluster_member'?: {
-        [string]: string,
-      },
-      'amazeeio::servername'?: string | Array<string>
-      }> (T) => {...T, serverNames: Array<string>} */ = R.cond(
-  [
+// Adds the computed 'serverNames' attribute to given SiteView object
+const addServerNames = (
+  // ==> SiteFile -> drupalhosting::profiles::nginx_backend::cluster_member
+  clusterMembers: ?{ [string]: string },
+  site: SiteView,
+): SiteView =>
+  R.cond([
     // Case 1 - If obj represents cluster information
     [
-      obj => R.equals('cluster', obj.serverInfrastructure),
+      R.compose(R.equals('cluster'), R.prop('serverInfrastructure')),
       obj =>
         R.set(
           serverNamesLens,
-          clusterServerNames(obj.siteHost, obj[CLUSTER_MEMBER_KEY]),
+          clusterServerNames(obj.siteHost, clusterMembers || {}),
           obj,
         ),
     ],
 
     // Case 2 - If obj represents single instances
     [
-      obj => R.equals('single', obj.serverInfrastructure),
+      R.compose(R.equals('single'), R.prop('serverInfrastructure')),
       obj => R.set(serverNamesLens, [`backend.${obj.siteHost}`], obj),
     ],
 
@@ -197,8 +201,7 @@ const addServerNames /* :
           ),
         )(obj),
     ],
-  ],
-);
+  ])(site);
 
 const maybeAddJumpHostKey = (jumpHost?: string, obj: Object): Object =>
   R.ifElse(
@@ -243,8 +246,12 @@ const siteFileToSiteViews = (
   siteFile: SiteFile,
 ): Array<SiteView> =>
   R.compose(
-    R.map(addServerNames),
-    R.map(addSiteHost),
+    R.map(site =>
+      R.apply(addServerNames, [R.prop(CLUSTER_MEMBER_KEY, siteFile), site]),
+    ),
+    R.map(site =>
+      R.apply(addSiteHost, [R.prop('amazeeio::servername', siteFile), site]),
+    ),
     R.map(site =>
       R.assoc(
         'id',
