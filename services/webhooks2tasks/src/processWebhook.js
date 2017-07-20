@@ -111,6 +111,14 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
         }
 
         break;
+      case "bitbucket:repo:push":
+        if (body.deleted === true) {
+          await handle(bitbucketBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+        } else {
+          await handle(bitbucketPush, webhook, siteGroup, `${webhooktype}:${event}`)
+        }
+
+        break;
 
       default:
         unhandled(webhook, siteGroup, `${webhooktype}:${event}`)
