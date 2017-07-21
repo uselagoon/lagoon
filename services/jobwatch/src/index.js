@@ -175,25 +175,31 @@ var jobcheck = function() {
           const hash = crypto.createHash('sha256', entropy).digest('hex');
 
           let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
-          let uri = upload_logs(log_path, "build died after " + diff + " seconds.\n" + data,
-            function(err,data) {
-              let uri = data.Location
-              let siteGroupName = 'ci-node1'
+          console.log(data)
+          let uri = "test"
 
-              let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {}, uri )
-              delete jobdata[build]
+          jenkins.build.log(build, parseInt(job.buildnumber), function(err, buildlogdata) {
 
-          })
+            console.log(buildlogdata)
+
+             let uri = upload_logs(log_path, "build finished after " + diff + " seconds.\n" + buildlogdata,
+                function(err,data) {
+                  let uri = data.Location
+                    let siteGroupName = 'ci-node1'
+                    let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {}, uri )
+                    delete jobdata[build]
+                }) // upload_logs
+
+          }) // jenkins.build.log
+
+
 
 
         }
-
-
-
         console.log('building', data.building )
         console.log('result', data.result )
         console.log('estimatedDuration', data.estimatedDuration )
-      });
+      }); // jenkins.build.get
 
 
 
