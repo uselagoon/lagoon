@@ -226,7 +226,7 @@ node {
 
   var jobname = `${foldername}/deploy-${openshiftRessourceAppName}`
 
-  const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true});
+  const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true, crumbIssuer: true });
 
   // First check if the Folder exists (hint: Folders are also called "job" in Jenkins)
   if (await jenkins.job.exists(foldername)) {

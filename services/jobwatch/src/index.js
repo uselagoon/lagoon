@@ -99,6 +99,17 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(expressValidator());
 
 app.get('/', (req, res) => {
+
+  var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
+
+
+  jenkins.job.get('ci-node_subfolder1/deploy-branch1', function(err, data) {
+  if (err) throw err;
+
+  console.log('job', data);
+});
+
   return res.status(200).send('welcome to jobwatch')
 })
 
@@ -115,6 +126,8 @@ app.post('/job', async (req, res) => {
   jobevent    = req.headers.jobevent || "ok"
   path        = req.headers.path
 
+  console.log("received update ", buildnumber , " for job ", jobname)
+
 if (parseInt(buildnumber) > 0 ) {
   update_job( jobname, {
     'event' : jobevent,
@@ -124,77 +137,120 @@ if (parseInt(buildnumber) > 0 ) {
     'buildnumber': buildnumber
   });
   }
+
   res.status(200).type('json').send({"ok":"true"})
 
 });
 
 
 var jobcheck = function() {
-  console.log('jobcheck:')
+  console.log(jobdata)
+  console.log("jobcheck firing")
+  var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
+  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
+
   var d = new Date()
   for (let build in jobdata) {
     if (build == undefined ){
+      console.log( "undefined build: ", build)
       continue;
     }
-    let job = jobdata[build]
+    var job = jobdata[build]
     let w = job['created']
     let diff = (d - w) / 1000
-    if (diff > 10) {
-      // console.log(" last update " + diff + " seconds ago.")
-      console.log("build:", build)
-      // console.log(job)
-
-      var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
-      var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: false });
-
-      if (job.buildnumber) {
-        jenkins.build.log(build, job.buildnumber, function(err, data) {
-          if (  jobdata[build]) {
-            jobdata[build]['when'] = new Date()
-          } else {
-            console.log(jobdata[build] )
-            console.log(" can't update 0-----------")
-          }
-        });
-      } else {
-        console.log("build is undefined for job", job)
-      }
-
-    }
-
-    if (diff > 300) {
-      // job appears stuck or missing for 10 minutes:
+    console.log("checking on build:", build, job)
+    console.log("diff:", diff, " build number: ", job.buildnumber)
 
 
-      jenkins.build.log(build, job.buildnumber, function(err, data) {
+    if (diff > 1 && job.buildnumber) {
+      console.log("get build now")
+      jenkins.build.get(build, parseInt(job.buildnumber), function(err, data) {
+        if (err) throw err;
 
-        const entropy = job.buildnumber +  job.created + job.path
-        const hash = crypto.createHash('sha256', entropy).digest('hex');
+        if (data.building) {
+          jobdata[build]['updated'] = new Date()
+        }  else {
 
-        let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
-        let uri = upload_logs(log_path, "build died after " + diff + " seconds.\n" + data,
-          function(err,data) {
-            let uri = data.Location
+          const entropy = job.buildnumber +  job.created + job.path
+          const hash = crypto.createHash('sha256', entropy).digest('hex');
 
-            let siteGroupName = 'ci-node1'
-            let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {},
-            uri
-              //`*[${siteGroupName}]* logs \`${openshiftRessourceAppName}\``
-            )
+          let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
+          let uri = upload_logs(log_path, "build died after " + diff + " seconds.\n" + data,
+            function(err,data) {
+              let uri = data.Location
+              let siteGroupName = 'ci-node1'
 
+              let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {}, uri )
+              delete jobdata[build]
 
           })
 
-        delete jobdata[build]
 
-        });
+        }
+
+
+
+        console.log('building', data.building )
+        console.log('result', data.result )
+        console.log('estimatedDuration', data.estimatedDuration )
+      });
+
+
 
     }
-
-
   }
-
 }
 
 
 setInterval(jobcheck, 10000);
+
+
+
+
+
+    // jenkins.build.log(build, job.buildnumber, function(err, data) {
+    //   console.log(err)
+    //   console.log(data)
+    //
+    //       if (  jobdata[build]) {
+    //         jobdata[build]['when'] = new Date()
+    //       } else {
+    //         console.log(jobdata[build] )
+    //         console.log(" can't update 0-----------")
+    //       }
+    //     });
+    //
+    //
+    //   } else {
+    //     console.log("build is undefined for job", job)
+    //   }
+
+
+
+//    if (diff > 300) {
+//
+//
+//      jenkins.build.log(build, job.buildnumber, function(err, data) {
+//
+//        const entropy = job.buildnumber +  job.created + job.path
+//        const hash = crypto.createHash('sha256', entropy).digest('hex');
+//
+//        let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
+//        let uri = upload_logs(log_path, "build died after " + diff + " seconds.\n" + data,
+//          function(err,data) {
+//            let uri = data.Location
+//
+//            let siteGroupName = 'ci-node1'
+//            let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {},
+//            uri
+//              //`*[${siteGroupName}]* logs \`${openshiftRessourceAppName}\``
+//            )
+//
+//
+//          })
+//
+//        delete jobdata[build]
+//
+//        });
+//
+//    }  // diff > 300
