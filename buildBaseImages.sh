@@ -2,6 +2,8 @@
 BUILD_TAG=${BUILD_TAG:-lagoon-local-dev}
 BUILD_TAG=$(echo "$BUILD_TAG" | tr '[:upper:]' '[:lower:]')
 
+pushd docker-images
+
 function build {
   docker build $3 --build-arg IMAGE_REPO=$BUILD_TAG -t "$2" -f $1/Dockerfile $1
 }
