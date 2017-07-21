@@ -1,14 +1,20 @@
 services:
-  api:
+  api-new:
     amazeeio:
       type: custom
       template: services/api/.amazeeio.app.yml
     build:
       dockerfile: services/api/Dockerfile
+  api:
+    amazeeio:
+      type: custom
+      template: services/api-legacy/.amazeeio.app.yml
+    build:
+      dockerfile: services/api-legacy/Dockerfile
   elasticsearch:
     amazeeio:
       type: custom
-    template: services/elasticsearch/.amazeeio.app.yml
+      template: services/elasticsearch/.amazeeio.app.yml
     build:
       dockerfile: services/elasticsearch/Dockerfile
   kibana:

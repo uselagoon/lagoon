@@ -27,7 +27,14 @@ else
   oc project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT || oc new-project  --insecure-skip-tls-verify $OPENSHIFT_PROJECT --display-name="[${SITEGROUP}] ${BRANCH}"
 fi
 
+
 curl -X POST -d siteGroupName=$SITEGROUP -d branchName=$BRANCH -d project=${OPENSHIFT_PROJECT} -d jobevent=create_project jobwatch:3000/job
+
+# If we have a project user set, give that user access to the created project
+if [ ! -z "$OPENSHIFT_PROJECT_USER" ]; then
+  oc policy add-role-to-user edit $OPENSHIFT_PROJECT_USER -n $OPENSHIFT_PROJECT
+fi
+
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
 oc process --insecure-skip-tls-verify \
@@ -58,7 +65,7 @@ do
     fi
   else
     DOCKERFILE=$OVERRIDE_DOCKERFILE
-    if [ ! -f $DOCKERFILE ]; then
+    if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
       echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
     fi
   fi

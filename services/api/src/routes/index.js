@@ -1,27 +1,26 @@
+// @flow
+
 import express from 'express';
-import graphQL from 'express-graphql';
-import schema from '../schema';
+import statusRoute from './status';
+import keysRoute from './keys';
+import graphqlRoute from './graphql';
 
-const router = new express.Router();
+import type { $Request, $Response, Router } from 'express';
 
-// Add the GraphQL server.
-router.use('/graphql', graphQL({
-  graphiql: process.env.NODE_ENV === 'development',
-  pretty: true,
-  schema,
-}));
+export default function createRouter(): Router {
+  const router = new express.Router();
 
-// Load route middlewares into the main router.
-import genericRouter from './generic';
-router.use('/', genericRouter);
+  // Redirect GET requests on "/" to the status route.
+  router.get('/', (req: $Request, res: $Response) => res.redirect('/status'));
 
-import siteRouter from './site';
-router.use('/site', siteRouter);
+  // Fetch the current api status.
+  router.get('/status', ...statusRoute);
 
-import siteGroupRouter from './sitegroup';
-router.use('/sitegroup', siteGroupRouter);
+  // Return keys of all clients from clients.yaml.
+  router.get('/keys', ...keysRoute);
 
-import clientRouter from './client';
-router.use('/client', clientRouter);
+  // Enable graphql requests.
+  router.all('/graphql', ...graphqlRoute);
 
-export default router;
+  return router;
+}
