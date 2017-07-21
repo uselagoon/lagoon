@@ -1,12 +1,12 @@
 #!/bin/bash
-git() {
+git-hiera() {
     /usr/bin/git --git-dir=/home/git-dir --work-tree=/home/hiera "$@"
 }
 
 add_and_push() {
-  git add . -v
-  git commit -m "adding all hiera files"
-  git push -f origin master
+  git-hiera add . -v
+  git-hiera commit -m "adding all hiera files"
+  git-hiera push -f origin master
 }
 
 
@@ -29,6 +29,6 @@ cd /home/hiera/
 
 rm -rf .git || true
 
-git init
-git config remote.origin.url $GIT_REPO
+git-hiera init
+git-hiera config remote.origin.url $GIT_REPO
 watch_hierafolder
