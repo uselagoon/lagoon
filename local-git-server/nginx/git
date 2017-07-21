@@ -1,0 +1,14 @@
+server {
+    listen       8080;
+    server_name  _;
+
+    location ~ /git(/.*) {
+        fastcgi_param SCRIPT_FILENAME     /usr/lib/git-core/git-http-backend;
+        # export all repositories under GIT_PROJECT_ROOT
+        fastcgi_param GIT_HTTP_EXPORT_ALL "";
+        fastcgi_param GIT_PROJECT_ROOT    /git;
+        fastcgi_param PATH_INFO           $1;
+        include       fastcgi_params;
+        fastcgi_pass  unix:/var/run/fcgiwrap.socket;
+    }
+}

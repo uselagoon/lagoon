@@ -23,19 +23,6 @@ brew cask install docker-edge
 ## Start Services
 
 1. clone me
-1. init git submodules and hiera
-
-		git submodule update --init
-		cd hiera; git checkout -b ci-local
-
-```sh
-git clone git@github.com:amazeeio/lagoon.git
-cd lagoon
-git submodule update --init --recursive
-
-# Make sure to check out the branches of hiera that we need locally
-./initHiera.sh
-```
 
 1. start Lagoon Services
 
@@ -58,6 +45,12 @@ docker-compose logs -f
 ```
 
 1. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
+
+1. build base images needed for testing
+
+```sh
+./buildBaseImages.sh
+```
 
 1. test Openshift Node Deployment
 
