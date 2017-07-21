@@ -20,8 +20,8 @@ export default async function bitbucketPush(webhook: WebhookRequestData, siteGro
       body,
     } = webhook;
 
-    const branchName = body.push.changes.new.name.toLowerCase()
-    const sha = body.push.changes.commits.hash
+    const branchName = body.push.changes[0].new.name.toLowerCase()
+    const sha = body.push.changes[0].commits.hash
 
     const meta = {
       branch: branchName,
@@ -35,10 +35,10 @@ export default async function bitbucketPush(webhook: WebhookRequestData, siteGro
       sha: sha
     }
 
-    let logMessage = `\`<${body.push.changes.new.links.html.href}>\``
+    let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``
     if (sha) {
       const shortSha: string = sha.substring(0, 7)
-      logMessage = `${logMessage} (<${body.push.changes.new.target.links.html.href}|${shortSha}>)`
+      logMessage = `${logMessage} (<${body.push.changes[0].new.target.links.html.href}|${shortSha}>)`
     }
 
     try {
