@@ -82,7 +82,7 @@ services:
       - ./node-packages:/app/node-packages
     ports:
       - "5555:3000"
-  api-new:
+  api:
     build:
       context: .
       dockerfile: services/api/Dockerfile
@@ -100,12 +100,12 @@ services:
       - ./services/api/yarn.lock:/app/yarn.lock
       - .:/lagoon
     ports:
-      - "8080:3000"
+      - "3000:3000"
     links:
       - auth-server
     depends_on:
       - auth-server
-  api:
+  api-legacy:
     build:
       context: .
       dockerfile: services/api-legacy/Dockerfile
@@ -117,7 +117,7 @@ services:
       - ./services/api-legacy/src:/app/src
       - .:/lagoon
     ports:
-      - "8081:3000"
+      - "3001:3000"
   auth-ssh:
     build: services/auth-ssh
       # TODO:
@@ -127,13 +127,13 @@ services:
       # disregard it entirely.
       # - ./services/auth-ssh/authorize.sh:/usr/local/bin/authorize.sh
     links:
-      - api-new
+      - api
       - auth-server
     ports:
       - "2020:2020"
     environment:
       - AMAZEEIO_AUTH_HOST=http://auth-server:3000
-      - AMAZEEIO_API_HOST=http://api-new:3000
+      - AMAZEEIO_API_HOST=http://api:3000
     user: 'api'
   auth-server:
     build: services/auth-server
