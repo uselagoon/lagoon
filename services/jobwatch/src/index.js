@@ -145,7 +145,7 @@ var jobcheck = function() {
       // console.log(job)
 
       var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
-      var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
+      var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: false });
 
       if (job.buildnumber) {
         jenkins.build.log(build, job.buildnumber, function(err, data) {
