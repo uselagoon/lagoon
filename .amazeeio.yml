@@ -1,11 +1,11 @@
 services:
-  api-new:
+  api:
     amazeeio:
       type: custom
       template: services/api/.amazeeio.app.yml
     build:
       dockerfile: services/api/Dockerfile
-  api:
+  api-legacy:
     amazeeio:
       type: custom
       template: services/api-legacy/.amazeeio.app.yml

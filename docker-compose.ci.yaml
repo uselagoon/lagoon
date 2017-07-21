@@ -52,7 +52,7 @@ services:
       context: .
       dockerfile: services/rest2tasks/Dockerfile
     command: yarn run dev
-  api-new:
+  api:
     build:
       context: .
       dockerfile: services/api/Dockerfile
@@ -62,7 +62,7 @@ services:
       - GIT_BRANCH_PULL=ci-local
     volumes:
       - .:/lagoon
-  api:
+  api-legacy:
     build:
       context: .
       dockerfile: services/api-legacy/Dockerfile
