@@ -5,6 +5,12 @@ services:
       template: services/api/.amazeeio.app.yml
     build:
       dockerfile: services/api/Dockerfile
+  api-legacy:
+    amazeeio:
+      type: custom
+      template: services/api/.amazeeio.app.yml
+    build:
+      dockerfile: services/api/Dockerfile      
   elasticsearch:
     amazeeio:
       type: custom
