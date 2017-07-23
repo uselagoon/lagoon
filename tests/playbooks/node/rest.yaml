@@ -90,7 +90,7 @@
   serial: 1
   vars:
     sitegroup: "{{ sitegroup }}"
-    openshiftRessourceAppName: "{{ sitegroup | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    branch: "{{ branch }}"
   tasks:
   - include: ../../tasks/rest/remove.yaml
 
