@@ -122,11 +122,11 @@ app.post('/remove', async (req, res) => {
         errorMessage: 'siteGroupName must be defined and must only contain alphanumeric, dashes and underline'
       },
     },
-    'openshiftRessourceAppName': {
+    'branch': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-]+$/],
-        errorMessage: 'openshiftRessourceAppName must be defined and must only contain alphanumeric and dashes'
+        options: [/^[a-zA-Z0-9-\/]+$/],
+        errorMessage: 'branch must be defined and must only contain alphanumeric, dashes and slashes'
       },
     }
   });
@@ -140,13 +140,14 @@ app.post('/remove', async (req, res) => {
 
   const data = {
     siteGroupName: req.body.siteGroupName,
-    openshiftRessourceAppName: req.body.openshiftRessourceAppName
+    branch: req.body.branch,
+    type: 'branch'
   }
 
   try {
     const taskResult = await createRemoveTask(data);
     sendToAmazeeioLogs('info', data.siteGroupName, '', `rest:remove:receive`, {},
-      `*[${data.siteGroupName}]* REST remove trigger \`${data.openshiftRessourceAppName}\``
+      `*[${data.siteGroupName}]* REST remove trigger \`${data.branch}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
