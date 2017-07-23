@@ -3,15 +3,14 @@
 const amqp = require('amqp-connection-manager')
 const { logger } = require('./local-logging');
 
-exports.initSendToAmazeeioLogs = initSendToAmazeeioLogs;
-exports.sendToAmazeeioLogs = sendToAmazeeioLogs;
 import type { ChannelWrapper } from './types';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 
-let channelWrapperLogs: ChannelWrapper
+exports.initSendToAmazeeioLogs = initSendToAmazeeioLogs;
+let sendToAmazeeioLogs = exports.sendToAmazeeioLogs = sendToAmazeeioLogs => {};
 
 function initSendToAmazeeioLogs() {
 	const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
@@ -27,24 +26,26 @@ function initSendToAmazeeioLogs() {
 			]);
 		}
 	});
-}
 
-async function sendToAmazeeioLogs(severity: string, sitegroup: string, uuid: string, event: string, meta: object, message: string): Promise<void> {
+	exports.sendToAmazeeioLogs = sendToAmazeeioLogs = async (severity: string, sitegroup: string, uuid: string, event: string, meta: object, message: string): Promise<void> => {
 
-	const payload = {severity, sitegroup, uuid, event, meta, message}
+		const payload = {severity, sitegroup, uuid, event, meta, message}
 
 
-	try {
-		const buffer = new Buffer(JSON.stringify(payload));
-		const packageName = process.env.npm_package_name || ""
-		const options = {
-			persistent: true,
-			appId: packageName,
+		try {
+			const buffer = new Buffer(JSON.stringify(payload));
+			const packageName = process.env.npm_package_name || ""
+			const options = {
+				persistent: true,
+				appId: packageName,
+			}
+			await channelWrapperLogs.publish(`amazeeio-logs`, '', buffer, options );
+
+			logger.log(severity, `amazeeio-logs: Send to amazeeio-logs: ${message}`);
+		} catch(error) {
+			logger.error(`amazeeio-logs: Error send to rabbitmq amazeeio-logs exchange, error: ${error}`);
 		}
-		await channelWrapperLogs.publish(`amazeeio-logs`, '', buffer, options );
-
-		logger.log(severity, `amazeeio-logs: Send to amazeeio-logs: ${message}`);
-	} catch(error) {
-		logger.error(`amazeeio-logs: Error send to rabbitmq amazeeio-logs exchange, error: ${error}`);
 	}
+
 }
+
