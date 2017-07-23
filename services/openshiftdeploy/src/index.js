@@ -1,15 +1,13 @@
 // @flow
 require('flow-remove-types/register')({ excludes: '' })
 
-const { sleep } = require("es7-sleep");
+const sleep = require("es7-sleep");
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { Jenkins } = require('jenkins');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
-
-
 
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();

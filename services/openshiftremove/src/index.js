@@ -1,7 +1,7 @@
 // @flow
 require('flow-remove-types/register')({ excludes: '' })
 
-const { sleep } = require("es7-sleep");
+const sleep = require("es7-sleep");
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
