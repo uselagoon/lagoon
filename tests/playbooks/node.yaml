@@ -5,7 +5,7 @@
     node_version: 8
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: branch1
+    branch: node8-regular-branch
 
 - include: node/github.yaml
   vars:
@@ -13,7 +13,7 @@
     node_version: 8
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: slash/branch1
+    branch: node8/slash/branch
 
 - include: node/github.yaml
   vars:
@@ -21,7 +21,7 @@
     node_version: 8
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: branch1
+    branch: node8-regular-branch-github
 
 - include: node/github.yaml
   vars:
@@ -29,7 +29,7 @@
     node_version: 6_subfolder
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: branch1
+    branch: node6-subfolder
 
 - include: node/multisitegroup.yaml
   vars:

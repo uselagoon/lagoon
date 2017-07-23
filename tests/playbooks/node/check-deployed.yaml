@@ -51,12 +51,3 @@
     expected_content: "VARIABLE_SET_BY_DOTENV_DEFAULTS=true"
   tasks:
   - include: ../../tests/test-url-content.yaml
-
-- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the env variable set by .amazeeio.env.{{ branch | regex_replace('/', '-') }} file"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-    expected_content: "VARIABLE_SET_BY_DOTENV_BRANCH={{ branch }}"
-  tasks:
-  - include: ../../tests/test-url-content.yaml

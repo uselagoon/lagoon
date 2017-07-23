@@ -42,7 +42,7 @@
   hosts: localhost
   serial: 1
   vars:
-    sitegroup: "{{ sitegroup }}"
+    sitegroup: "{{ sitegroup1 }}"
     openshiftRessourceAppName: "{{ sitegroup1 | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/rest/remove.yaml
@@ -51,7 +51,7 @@
   hosts: localhost
   serial: 1
   vars:
-    sitegroup: "{{ sitegroup }}"
+    sitegroup: "{{ sitegroup2 }}"
     openshiftRessourceAppName: "{{ sitegroup2 | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/rest/remove.yaml
