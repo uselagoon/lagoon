@@ -59,7 +59,7 @@
   serial: 1
   vars:
     branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup1 }}"
+    sitegroup: "{{ sitegroup }}"
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
@@ -67,14 +67,14 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup1 }}"
+    sitegroup: "{{ sitegroup }}"
 
 - name: "{{ testname }} - rest2tasks deploy post with sha of second commit on {{ sitegroup }}, which should deploy again the second commit even we had a deployment of the branch before"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup1 }}"
+    sitegroup: "{{ sitegroup }}"
     sha: "{{ second_commit_hash }}"
   tasks:
   - include: ../../tasks/rest/deploy-sha.yaml
