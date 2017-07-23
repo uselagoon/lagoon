@@ -138,6 +138,8 @@ services:
       context: .
       dockerfile: services/jenkins-slave/Dockerfile
     user: root
+    depends_on:
+      - jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./docker-executors/ansible-drupal-deploy:/ansible-drupal-deploy
