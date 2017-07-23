@@ -12,9 +12,8 @@ export type ChannelWrapper = {
 
 export type removeData = {
   siteGroupName: string,
-  openshiftRessourceAppName: string,
-  branch: string?,
-  pullrequest: string?,
+  branch: ?string,
+  pullrequest: ?string,
   type: string,
 }
 
