@@ -1,18 +1,29 @@
-FROM amazeeio/centos7-node-builder:6 as builder
+
+# STAGE 1: building packages needed by all lagoon services
+# Idea is that this build is the exact same for all services so we profit highly from layer caching
+FROM amazeeio/centos7-node-builder:8 as lagoon-packages-builder
 ENV NODE_ENV production
-COPY services/openshiftremove-legacy/package.json services/openshiftremove-legacy/yarn.lock /app/services/openshiftremove-legacy/
+COPY package.json yarn.lock .yarnrc /app/
 COPY node-packages /app/node-packages
-RUN cd /app/services/openshiftremove-legacy && BUILD_ONLY=true yarn install --pure-lockfile
+RUN BUILD_ONLY=true yarn install --pure-lockfile
 
-FROM amazeeio/centos7-node:6
+# STAGE 2: specific service node package build
+FROM amazeeio/centos7-node-builder:8 as service-builder
 ENV NODE_ENV production
-COPY --from=builder /app/services/openshiftremove-legacy/node_modules /app/services/openshiftremove-legacy/node_modules
-COPY services/openshiftremove-legacy /app/services/openshiftremove-legacy
+# Copying generated node_modules from the first stage
+COPY --from=lagoon-packages-builder /app /app
+COPY services/openshiftremove-legacy/package.json /app/services/openshiftremove-legacy/
+# yarn install, our service might need special packages
+RUN cd /app/services/openshiftremove-legacy && yarn install --pure-lockfile
 
+# STAGE 3: runtime image with actual code
+FROM amazeeio/centos7-node:8
+COPY --from=service-builder /app /app
+# Copying files from our service
+COPY services/openshiftremove-legacy /app/services/openshiftremove-legacy
 WORKDIR /app/services/openshiftremove-legacy/
 
+# building our service
 RUN yarn run build
-
-RUN fix-permissions /app/
 
 CMD ["yarn", "start"]

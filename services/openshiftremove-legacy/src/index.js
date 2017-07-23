@@ -1,25 +1,23 @@
 // @flow
+require('flow-remove-types/register')({ excludes: '' })
 
-require("babel-polyfill");
+const { sleep } = require("es7-sleep");
+const { Lokka } = require('lokka');
+const { Transport } = require('lokka-transport-http');
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { Jenkins } = require('jenkins');
+const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import sleep from "es7-sleep";
-import Lokka from 'lokka';
-import Transport from 'lokka-transport-http';
-import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import amqp from 'amqp-connection-manager';
-import jenkinsLib from 'jenkins'
-import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-import { consumeTasks, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
 
-// Initialize the logging mechanism
-initLogger();
+
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
 
-const jenkins = jenkinsLib({ baseUrl: `${jenkinsurl}`, promisify: true});
+const jenkins = Jenkins({ baseUrl: `${jenkinsurl}`, promisify: true});
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)

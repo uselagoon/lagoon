@@ -4,12 +4,12 @@ services:
     build:
       context: .
       dockerfile: services/webhook-handler/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     ports:
       - "7777:3000"
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
   rabbitmq:
     build:
       context: .
@@ -21,65 +21,54 @@ services:
     build:
       context: .
       dockerfile: services/openshiftremove/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
   openshiftremove-legacy:
     build:
       context: .
       dockerfile: services/openshiftremove-legacy/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     volumes:
       - ./services/openshiftremove-legacy/src:/app/services/openshiftremove/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
   openshiftdeploy:
     build:
       context: .
       dockerfile: services/openshiftdeploy/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
       - CI_OVERRIDE_IMAGE_REPO=laggon-local-dev
     volumes:
       - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
-      - ./node-packages:/app/node-packages
-  openshiftdeploy-legacy:
-    build:
-      context: .
-      dockerfile: services/openshiftdeploy-legacy/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
-    environment:
-      - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
-      - DOCKER_RUN_PARARM=--network=lagoon_default
-    volumes:
-      - ./services/openshiftdeploy-legacy/src:/app/services/openshiftdeploy/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
   logs2slack:
     build:
       context: .
       dockerfile: services/logs2slack/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
   webhooks2tasks:
     build:
       context: .
       dockerfile: services/webhooks2tasks/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
   rest2tasks:
     build:
       context: .
       dockerfile: services/rest2tasks/Dockerfile
-    command: bash -c "yarn run link-node-packages && yarn run dev"
+    command: yarn run dev
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
-      - ./node-packages:/app/node-packages
+      - ./node-packages:/app/node-packages:delegated
     ports:
       - "5555:3000"
   api:
@@ -104,18 +93,6 @@ services:
       - auth-server
     depends_on:
       - auth-server
-  api-legacy:
-    build:
-      context: .
-      dockerfile: services/api-legacy/Dockerfile
-    command: yarn run dev
-    environment:
-      - GIT_REPOSITORY=http://git:8080/git/hiera.git
-    volumes:
-      - ./services/api-legacy/src:/app/src
-      - .:/lagoon
-    ports:
-      - "3001:3000"
   auth-ssh:
     build: services/auth-ssh
       # TODO:
@@ -199,11 +176,6 @@ services:
       - RABBITMQ_PASSWORD=guest
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
-  node-packages-lerna:
-    build: node-packages
-    command: bash -c "lerna bootstrap && lerna run --parallel watch"
-    volumes:
-      - .:/app:delegated
   remotedev:
     image: jhen0409/remotedev-server
     command: node main.js

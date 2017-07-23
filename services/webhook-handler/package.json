@@ -2,50 +2,17 @@
   "name": "webhook-handler",
   "version": "0.9.0",
   "description": "amazeeio handler for webhooks",
-  "main": "index.js",
-  "engines": {
-    "node": ">=6"
-  },
+  "main": "build/index.js",
   "scripts": {
+    "postinstall": "ln -s ../../../node_modules/.bin node_modules/.bin #fix for not linked bin folder from root only needed till yarn v0.28.4 (https://github.com/yarnpkg/yarn/pull/3896)",
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "node build/index.js",
     "build": "babel src -d build",
-    "dev": "yarn run link-node-packages && nodemon src/index.js --exec babel-node",
-    "newman:all": "newman run ./newman/amazeeio-webhook-handler.postman_collection.json -e ./newman/localhost.postman_environment.json",
-    "link-node-packages": "if [ ! -d ../../node-packages ]; then exit 0; fi; for D in ../../node-packages/*/; do cd \"${D}\" && yarn link && package=${PWD##*/} && cd \"${OLDPWD}\" && yarn link @amazeeio/$package; done"
-  },
-  "author": "Rod Vagg <r@va.gg> (http://r.va.gg)",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/rvagg/github-webhook-handler.git"
+    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'yarn run build && yarn run start'",
+    "newman:all": "newman run ./newman/amazeeio-webhook-handler.postman_collection.json -e ./newman/localhost.postman_environment.json"
   },
   "license": "MIT",
-  "dependencies": {
-    "@amazeeio/amazeeio-local-logging": "file:../../node-packages/amazeeio-local-logging",
-    "@amazeeio/amazeeio-logs": "file:../../node-packages/amazeeio-logs",
-    "amqp-connection-manager": "^1.3.5",
-    "amqplib": "^0.5.1",
-    "babel-cli": "^6.18.0",
-    "babel-core": "^6.21.0",
-    "babel-plugin-syntax-async-functions": "^6.13.0",
-    "babel-plugin-transform-flow-strip-types": "^6.21.0",
-    "babel-plugin-transform-object-rest-spread": "^6.20.2",
-    "babel-plugin-transform-regenerator": "^6.21.0",
-    "babel-polyfill": "^6.23.0",
-    "babel-preset-es2015": "^6.18.0",
-    "bl": "~1.1.2",
-    "body-parser": "^1.17.1",
-    "buffer-equal-constant-time": "~1.0.1",
-    "newman": "^3.3.0",
-    "nodemon": "^1.11.0",
-    "uuid4": "^1.0.0",
-    "winston": "^2.2.0"
-  },
-  "devDependencies": {
-    "flow-bin": "^0.37.4",
-    "jest": "^18.1.0"
-  },
   "jest": {
     "rootDir": "src",
     "testEnvironment": "node"
