@@ -22,7 +22,7 @@ export async function githubBranchDeleted(webhook: WebhookRequestData, siteGroup
 
     const data: removeData = {
       siteGroupName: siteGroup.siteGroupName,
-      branch: meta.origBranch,
+      branch: meta.branch,
       type: 'branch'
     }
 
