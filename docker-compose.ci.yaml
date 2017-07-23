@@ -49,8 +49,7 @@ services:
       dockerfile: services/api/Dockerfile
     command: yarn run dev
     environment:
-      - GIT_REPOSITORY=file:///lagoon/hiera
-      - GIT_BRANCH_PULL=ci-local
+      - GIT_REPOSITORY=http://git:8080/git/hiera.git
     volumes:
       - .:/lagoon
   jenkins:
