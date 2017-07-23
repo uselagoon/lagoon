@@ -12,16 +12,16 @@ FROM amazeeio/centos7-node-builder:8 as service-builder
 ENV NODE_ENV production
 # Copying generated node_modules from the first stage
 COPY --from=lagoon-packages-builder /app /app
-COPY services/openshiftremove-legacy/package.json /app/services/openshiftremove-legacy/
+COPY services/openshiftremove-resources/package.json /app/services/openshiftremove-resources/
 # yarn install, our service might need special packages
-RUN cd /app/services/openshiftremove-legacy && yarn install --pure-lockfile
+RUN cd /app/services/openshiftremove-resources && yarn install --pure-lockfile
 
 # STAGE 3: runtime image with actual code
 FROM amazeeio/centos7-node:8
 COPY --from=service-builder /app /app
 # Copying files from our service
-COPY services/openshiftremove-legacy /app/services/openshiftremove-legacy
-WORKDIR /app/services/openshiftremove-legacy/
+COPY services/openshiftremove-resources /app/services/openshiftremove-resources
+WORKDIR /app/services/openshiftremove-resources/
 
 # building our service
 RUN yarn run build
