@@ -58,7 +58,7 @@ docker-compose logs -f
 docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
 ```
 
-## Node Development
+## Local Development
 
 Most services are written in NodeJS. As many of these services share similar Node code and Node Packaes, we're using a new feature of yarn, called `yarn workspaces`. Yarn Workspaces needs a package.json in the projects root directory that defines the workspaces plus an `.yarnrc` that enables workspace mode.
 
@@ -67,3 +67,7 @@ The development of the services can happen directly within Docker. Each containe
 ### lagoon-commons
 
 The services not only share many node packages, but also share actual custom code. This code is within `node-packages/lagoon-commons` it will be automatically symlinked by yarn workspaces, plus the nodemon of the services is setup in a way that it also checks for changes in `node-packages` and will restart the node process automatically
+
+### Hiera
+
+The API uses a puppet compatible yaml format to store it's data. On production this hiera is in another git repository. For local development there is a folder `local-hiera` which contains testdata that is used during development and testing, plus has no client related data in them. For easier development there is `local-hiera-watcher-pusher` which watches the `local-hiera` folder and on every changes pushes the changes into `local-git-server` which emulates a git server like it is on production. The api service is connecting to this local git server and updates it's data from it.
