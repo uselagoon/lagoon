@@ -86,7 +86,6 @@ services:
       - ./services/api/jest:/app/jest
       - ./services/api/package.json:/app/package.json
       - ./services/api/yarn.lock:/app/yarn.lock
-      - .:/lagoon
     ports:
       - "3000:3000"
     links:
