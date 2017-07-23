@@ -25,13 +25,13 @@ services:
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages:delegated
-  openshiftremove-legacy:
+  openshiftremove-resources:
     build:
       context: .
-      dockerfile: services/openshiftremove-legacy/Dockerfile
+      dockerfile: services/openshiftremove-resources/Dockerfile
     command: yarn run dev
     volumes:
-      - ./services/openshiftremove-legacy/src:/app/services/openshiftremove/src
+      - ./services/openshiftremove-resources/src:/app/services/openshiftremove-resources/src
       - ./node-packages:/app/node-packages:delegated
   openshiftdeploy:
     build:
@@ -145,6 +145,9 @@ services:
       - ./docker-executors/ansible-drupal-deploy:/ansible-drupal-deploy
       - ./docker-executors/docker-oc-build-deploy:/docker-oc-build-deploy
   tests:
+    depends_on:
+      - git
+      - webhook-handler
     build: tests
     environment:
       - WEBHOOK_HOST=webhook-handler

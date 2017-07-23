@@ -41,12 +41,12 @@ services:
       template: services/openshiftremove/.amazeeio.app.yml
     build:
       dockerfile: services/openshiftremove/Dockerfile
-  openshiftremove-legacy:
+  openshiftremove-resources:
     amazeeio:
       type: custom
-      template: services/openshiftremove-legacy/.amazeeio.app.yml
+      template: services/openshiftremove-resources/.amazeeio.app.yml
     build:
-      dockerfile: services/openshiftremove-legacy/Dockerfile
+      dockerfile: services/openshiftremove-resources/Dockerfile
   rabbitmq:
     amazeeio:
       type: custom

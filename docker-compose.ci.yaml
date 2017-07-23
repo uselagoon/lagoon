@@ -14,10 +14,10 @@ services:
       context: .
       dockerfile: services/openshiftremove/Dockerfile
     command: yarn run dev
-  openshiftremove-legacy:
+  openshiftremove-resources:
     build:
       context: .
-      dockerfile: services/openshiftremove-legacy/Dockerfile
+      dockerfile: services/openshiftremove-resources/Dockerfile
     command: yarn run dev
   openshiftdeploy:
     build:
