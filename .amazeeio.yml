@@ -74,6 +74,7 @@ services:
   drush-alias:
     amazeeio:
       type: nginx:1.12
+      template: helpers/drush-alias/.amazeeio.nginx.yml
     build:
       context: helpers/drush-alias
       dockerfile: helpers/drush-alias/Dockerfile
