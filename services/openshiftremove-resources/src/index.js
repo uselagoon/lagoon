@@ -52,18 +52,18 @@ const messageConsumer = async function(msg) {
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupName
 
-    var openshiftRessourceAppName
+    var openshiftRessourceName
 
     switch (type) {
       case 'pullrequest':
         const openshiftNamingPullRequests = (typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined') ? siteGroupOpenShift.siteGroup.openshift.naming.pullrequest : "${sitegroup}-pr-${number}"
-        openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', pullrequest).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
+        openshiftRessourceName = openshiftNamingPullRequests.replace('${number}', pullrequest).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
         break;
 
       case 'branch':
         const safeBranchName = ocsafety(branch)
         const openshiftNamingBranches = (typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined') ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}"
-        openshiftRessourceAppName = openshiftNamingBranches.replace('${branch}', safeBranchName).replace('${sitegroup}', safeSiteGroupName).replace(/_/g,'-')
+        openshiftRessourceName = openshiftNamingBranches.replace('${branch}', safeBranchName).replace('${sitegroup}', safeSiteGroupName).replace(/_/g,'-')
         break;
     }
 
@@ -239,11 +239,13 @@ const deathHandler = async (msg, lastError) => {
 
   const {
     siteGroupName,
-    openshiftRessourceName,
+    branch,
+    pullrequest,
+    type
   } = JSON.parse(msg.content.toString())
 
   sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
-`*[${siteGroupName}]* remove \`${openshiftRessourceName}\` ERROR:
+`*[${siteGroupName}]* remove ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
@@ -255,11 +257,13 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
 
   const {
     siteGroupName,
-    openshiftRessourceName,
+    branch,
+    pullrequest,
+    type
   } = JSON.parse(msg.content.toString())
 
   sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift-resources:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${siteGroupName}]* remove \`${openshiftRessourceName}\` ERROR:
+`*[${siteGroupName}]* remove ERROR:
 \`\`\`
 ${error}
 \`\`\`

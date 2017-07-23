@@ -187,9 +187,10 @@ async function consumeTasks(taskQueueName, messageConsumer, retryHandler, deathH
 			const retryDelayMilisecs = retryDelaySecs * 1000;
 
 			try {
-				retryHandler(msg, error, failCount, retryDelaySecs)
+				retryHandler(msg, error, retryCount, retryDelaySecs)
 			} catch (error) {
 				// intentionally empty as we don't want to fail and not requeue our message just becase the retryHandler fails
+				logger.info(`amazeeio-tasks: retryHandler for ${taskQueueName} failed with ${error}, will continue to retry the message anyway.`)
 			}
 
 			// copying options from the original message
