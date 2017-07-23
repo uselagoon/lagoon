@@ -2,7 +2,6 @@
 
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { getSiteGroupsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
-const { SiteGroupNotFound } = require('@amazeeio/lagoon-commons/src/logs');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { githubPullRequestClosed } = require('./handlers/githubPullRequestClosed');
 const { githubBranchDeleted } = require('./handlers/githubBranchDeleted');
