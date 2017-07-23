@@ -10,8 +10,6 @@ const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon
 import type { Logger } from '@amazeeio/lagoon-commons/src/local-logging';
 import type { ChannelWrapper } from './types';
 
-initSendToAmazeeioLogs();
-
 type Req = http$IncomingMessage;
 type Res = http$ServerResponse;
 
@@ -19,10 +17,12 @@ type Cb = () => void;
 
 type Options = {
   path: string,
-  channelWrapper: ChannelWrapper,
+  channelWrapperWebhooks: ChannelWrapper,
 };
 
 type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
+
+initSendToAmazeeioLogs();
 
 export function createReqHandler(options: Options): Handler {
   const {
@@ -70,13 +70,7 @@ export function createReqHandler(options: Options): Handler {
           giturl: giturl,
           rawbody: data.toString(),
         }
-
-        logger.debug("RAW Request data", {
-          event: 'raw-request-data',
-          uuid,
-          data: data.toString(),
-        });
-
+        console.log(`Calling sendToAmazeeioLogs`)
         sendToAmazeeioLogs('info', "", uuid, "webhooks:receive",  meta,
           `Received new ${webhooktype} webhook,  event: ${event}, giturl: ${giturl}`
         )

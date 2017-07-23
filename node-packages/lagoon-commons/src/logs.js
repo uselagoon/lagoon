@@ -8,9 +8,9 @@ import type { ChannelWrapper } from './types';
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
-
+let channelWrapperLogs
 exports.initSendToAmazeeioLogs = initSendToAmazeeioLogs;
-let sendToAmazeeioLogs = exports.sendToAmazeeioLogs = sendToAmazeeioLogs => {};
+exports.sendToAmazeeioLogs = sendToAmazeeioLogs;
 
 function initSendToAmazeeioLogs() {
 	const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
@@ -27,8 +27,10 @@ function initSendToAmazeeioLogs() {
 		}
 	});
 
-	exports.sendToAmazeeioLogs = sendToAmazeeioLogs = async (severity: string, sitegroup: string, uuid: string, event: string, meta: object, message: string): Promise<void> => {
+}
 
+
+async function sendToAmazeeioLogs (severity: string, sitegroup: string, uuid: string, event: string, meta: object, message: string): Promise<void> {
 		const payload = {severity, sitegroup, uuid, event, meta, message}
 
 
@@ -46,6 +48,3 @@ function initSendToAmazeeioLogs() {
 			logger.error(`amazeeio-logs: Error send to rabbitmq amazeeio-logs exchange, error: ${error}`);
 		}
 	}
-
-}
-
