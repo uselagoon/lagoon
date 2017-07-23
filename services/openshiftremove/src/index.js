@@ -66,7 +66,7 @@ const messageConsumer = async function(msg) {
     }
 
   } catch(error) {
-    logger.warn(`Cannot find openshift token and console information for sitegroup ${siteGroupName}`)
+    logger.warn(`Error while loading openshift information for sitegroup ${siteGroupName}, error ${error}`)
     throw(error)
   }
 
