@@ -1,17 +1,14 @@
 // @flow
 
-import bl from 'bl';
-import bufferEq from 'buffer-equal-constant-time';
-import extractWebhookData from './extractWebhookData';
+const bl = require('bl');
+const { bufferEq } = require('buffer-equal-constant-time');
+const { extractWebhookData } = require('./extractWebhookData');
 
-import sendToAmazeeioWebhooks from './sendToAmazeeioWebhooks';
-import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
+const { sendToAmazeeioWebhooks } = require('./sendToAmazeeioWebhooks');
+const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 
-import type { Logger } from '@amazeeio/amazeeio-local-logging';
-
+import type { Logger } from '@amazeeio/lagoon-commons/src/local-logging';
 import type { ChannelWrapper } from './types';
-
-initSendToAmazeeioLogs();
 
 type Req = http$IncomingMessage;
 type Res = http$ServerResponse;
@@ -20,15 +17,17 @@ type Cb = () => void;
 
 type Options = {
   path: string,
-  channelWrapper: ChannelWrapper,
+  channelWrapperWebhooks: ChannelWrapper,
 };
 
 type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
 
-export default function createReqHandler(options: Options): Handler {
+initSendToAmazeeioLogs();
+
+export function createReqHandler(options: Options): Handler {
   const {
     path,
-    channelWrapper,
+    channelWrapperWebhooks,
   } = options;
 
   /**
@@ -71,18 +70,12 @@ export default function createReqHandler(options: Options): Handler {
           giturl: giturl,
           rawbody: data.toString(),
         }
-
-        logger.debug("RAW Request data", {
-          event: 'raw-request-data',
-          uuid,
-          data: data.toString(),
-        });
-
+        console.log(`Calling sendToAmazeeioLogs`)
         sendToAmazeeioLogs('info', "", uuid, "webhooks:receive",  meta,
           `Received new ${webhooktype} webhook,  event: ${event}, giturl: ${giturl}`
         )
 
-        sendToAmazeeioWebhooks(webhookData, channelWrapper);
+        sendToAmazeeioWebhooks(webhookData, channelWrapperWebhooks);
 
         res.writeHead(200, { 'content-type': 'application/json' });
 

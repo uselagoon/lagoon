@@ -7,30 +7,63 @@ The amazee.io lagoon is the amazee.io deployment system, completely independent 
 
 Please take into account that currently, multi-stage dockerfiles only work with [Docker CE Edge](https://docs.docker.com/edge/).
 
+
+## Install Docker
+
+Lagoon requires Docker version >= 17.05.
+
+### Via Homebrew
+
+```sh
+# Allow installation of other Cask versions
+brew tap caskroom/versions
+# Install Docker for Mac Edge
+brew cask install docker-edge
+```
 ## Start Services
 
 1. clone me
-1. init git submodules and hiera
-
-		git submodule update --init
-		cd hiera; git checkout -b ci-local
 
 1. start Lagoon Services
 
-		docker-compose up -d
+```sh
+docker-compose up -d
+```
 
 1. Follow the Services logs
 
-		docker-compose logs -f
+```sh
+docker-compose logs -f
+```
 
 ## Start & Test OpenShift
 
 1. start OpenShift
 
-		./startOpenShift.sh
+```sh
+./startOpenShift.sh
+```
 
 1. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
 
+1. build base images needed for testing
+
+```sh
+./buildBaseImages.sh
+```
+
 1. test Openshift Node Deployment
 
-		docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+```sh
+docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+```
+
+## Node Development
+
+Most services are written in NodeJS. As many of these services share similar Node code and Node Packaes, we're using a new feature of yarn, called `yarn workspaces`. Yarn Workspaces needs a package.json in the projects root directory that defines the workspaces plus an `.yarnrc` that enables workspace mode.
+
+The development of the services can happen directly within Docker. Each container for each service is setup in a way that it's source code is mounted into the running container. Node itself is watching the code via `nodemon` and restarts the node process automatically on a change.
+
+### lagoon-commons
+
+The services not only share many node packages, but also share actual custom code. This code is within `node-packages/lagoon-commons` it will be automatically symlinked by yarn workspaces, plus the nodemon of the services is setup in a way that it also checks for changes in `node-packages` and will restart the node process automatically

@@ -1,20 +1,29 @@
-FROM amazeeio/centos7-node-builder:6 as builder
+
+# STAGE 1: building packages needed by all lagoon services
+# Idea is that this build is the exact same for all services so we profit highly from layer caching
+FROM amazeeio/centos7-node-builder:8 as lagoon-packages-builder
 ENV NODE_ENV production
-COPY services/webhook-handler/package.json services/webhook-handler/yarn.lock /app/services/webhook-handler/
+COPY package.json yarn.lock .yarnrc /app/
 COPY node-packages /app/node-packages
-RUN cd /app/services/webhook-handler && BUILD_ONLY=true yarn install --pure-lockfile
+RUN BUILD_ONLY=true yarn install --pure-lockfile
 
-FROM amazeeio/centos7-node:6
+# STAGE 2: specific service node package build
+FROM amazeeio/centos7-node-builder:8 as service-builder
 ENV NODE_ENV production
-COPY --from=builder /app/services/webhook-handler/node_modules /app/services/webhook-handler/node_modules
-COPY services/webhook-handler /app/services/webhook-handler
+# Copying generated node_modules from the first stage
+COPY --from=lagoon-packages-builder /app /app
+COPY services/webhook-handler/package.json /app/services/webhook-handler/
+# yarn install, our service might need special packages
+RUN cd /app/services/webhook-handler && yarn install --pure-lockfile
 
+# STAGE 3: runtime image with actual code
+FROM amazeeio/centos7-node:8
+COPY --from=service-builder /app /app
+# Copying files from our service
+COPY services/webhook-handler /app/services/webhook-handler
 WORKDIR /app/services/webhook-handler/
 
+# building our service
 RUN yarn run build
 
-RUN fix-permissions /app/
-
 CMD ["yarn", "start"]
-
-EXPOSE 3000

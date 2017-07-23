@@ -1,9 +1,8 @@
 {
-  "presets": ["es2015"],
+  "presets": [
+    "node8-es6"
+  ],
   "plugins": [
-    "transform-flow-strip-types",
-    "transform-regenerator",
-    "syntax-async-functions",
-    "transform-object-rest-spread"
+    "transform-flow-strip-types"
   ]
 }
