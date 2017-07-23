@@ -1,24 +1,6 @@
 ---
 amazeeio_sitegroups:
-  ci-node_subfolder1:
-    client: deploytestclient
-    git_url: 'git@git:/git/node_subfolder.git'
-    slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
-    openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
-      username: developer
-      password: developer
-      project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
-    active_systems:
-      deploy:
-        lagoon_openshiftDeploy:
-          branches: true
-      remove: lagoon_openshiftRemove
-  ci-node1:
+  ci-node:
     client: deploytestclient
     git_url: 'git@git:/git/node.git'
     slack:
@@ -36,9 +18,9 @@ amazeeio_sitegroups:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
-  ci-node_subfolder2:
+  ci-node-multisitegroup1:
     client: deploytestclient
-    git_url: 'git@git:/git/node_subfolder.git'
+    git_url: 'git@git:/git/node-multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -47,16 +29,16 @@ amazeeio_sitegroups:
       registry: docker-registry-default.192.168.77.100.nip.io:443
       username: developer
       password: developer
-      project: myproject
-      template: node.yml
+      project_user: developer
       router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
-      folder: subfolder
     active_systems:
-      deploy: lagoon_openshiftDeploy
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
       remove: lagoon_openshiftRemove
-  ci-node2:
+  ci-node-multisitegroup2:
     client: deploytestclient
-    git_url: 'git@git:/git/node.git'
+    git_url: 'git@git:/git/node-multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -65,9 +47,10 @@ amazeeio_sitegroups:
       registry: docker-registry-default.192.168.77.100.nip.io:443
       username: developer
       password: developer
-      project: myproject
-      template: node.yml
+      project_user: developer
       router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
     active_systems:
-      deploy: lagoon_openshiftDeploy
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
       remove: lagoon_openshiftRemove
