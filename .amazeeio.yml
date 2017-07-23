@@ -77,4 +77,4 @@ services:
       template: helpers/drush-alias/.amazeeio.nginx.yml
     build:
       context: helpers/drush-alias
-      dockerfile: helpers/drush-alias/Dockerfile
+      dockerfile: Dockerfile
