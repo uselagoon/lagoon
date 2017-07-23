@@ -27,10 +27,14 @@ const messageConsumer = async function(msg) {
 
   const {
     siteGroupName,
-    openshiftRessourceAppName,
+    branch,
+    pullrequest,
+    type
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received RemoveOpenshiftResources task for sitegroup ${siteGroupName}, app name ${openshiftRessourceAppName}`);
+  logger.verbose(`Received RemoveOpenshiftResources task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequest}`);
+
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
   const siteGroupOpenShift = await amazeeioAPI.query(`
     {
@@ -41,17 +45,34 @@ const messageConsumer = async function(msg) {
   `)
 
   try {
+    var safeSiteGroupName = ocsafety(siteGroupName)
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
     var openshiftProject = siteGroupOpenShift.siteGroup.openshift.project || siteGroupName
+
+    var openshiftRessourceAppName
+
+    switch (type) {
+      case 'pullrequest':
+        const openshiftNamingPullRequests = (typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined') ? siteGroupOpenShift.siteGroup.openshift.naming.pullrequest : "${sitegroup}-pr-${number}"
+        openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', pullrequest).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
+        break;
+
+      case 'branch':
+        const safeBranchName = ocsafety(branch)
+        const openshiftNamingBranches = (typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined') ? siteGroupOpenShift.siteGroup.openshift.naming.branch : "${sitegroup}-${branch}"
+        openshiftRessourceAppName = openshiftNamingBranches.replace('${branch}', safeBranchName).replace('${sitegroup}', safeSiteGroupName).replace(/_/g,'-')
+        break;
+    }
+
   } catch(error) {
     logger.warn(`Cannot find openshift token and console information for sitegroup ${siteGroupName}`)
     throw(error)
   }
 
-  logger.info(`Will remove OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
+  logger.info(`Will remove OpenShift Resources with app name ${openshiftRessourceName} on ${openshiftConsole}`);
 
   var folderxml =
   `<?xml version='1.0' encoding='UTF-8'?>
@@ -101,7 +122,7 @@ const messageConsumer = async function(msg) {
 
     stage ('oc delete') {
       sh """
-        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete all -l app=${openshiftRessourceAppName}  -n ${openshiftProject}
+        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete all -l app=${openshiftRessourceName}  -n ${openshiftProject}
       """
     }
   }
@@ -111,7 +132,7 @@ const messageConsumer = async function(msg) {
   `<?xml version='1.0' encoding='UTF-8'?>
   <flow-definition plugin="workflow-job@2.7">
     <actions/>
-    <description>${openshiftRessourceAppName}</description>
+    <description>${openshiftRessourceName}</description>
     <keepDependencies>false</keepDependencies>
     <properties>
       <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -127,7 +148,7 @@ const messageConsumer = async function(msg) {
 
   var foldername = `${siteGroupName}`
 
-  var jobname = `${foldername}/remove-${openshiftRessourceAppName}`
+  var jobname = `${foldername}/removeresources-${openshiftRessourceName}`
 
 
   // First check if the Folder exists (hint: Folders are also called "job" in Jenkins)
@@ -176,7 +197,7 @@ const messageConsumer = async function(msg) {
 
 
   sendToAmazeeioLogs('start', siteGroupName, "", "task:remove-openshift-resources:start", {},
-    `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\``
+    `*[${siteGroupName}]* remove \`${openshiftRessourceName}\``
   )
 
   let log = jenkins.build.logStream(jobname, jenkinsJobID)
@@ -197,11 +218,11 @@ const messageConsumer = async function(msg) {
 
         if (result.result === "SUCCESS") {
           sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift-resources:finished",  {},
-            `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\``
+            `*[${siteGroupName}]* remove \`${openshiftRessourceName}\``
           )
           logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
         } else {
-          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR`)
+          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `*[${siteGroupName}]* remove \`${openshiftRessourceName}\` ERROR`)
           logger.error(`Finished FAILURE job removal: ${jobname}, job id: ${jenkinsJobID}`)
         }
         resolve()
@@ -211,18 +232,18 @@ const messageConsumer = async function(msg) {
     });
   })
 
-  logger.info(`Removed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
+  logger.info(`Removed OpenShift Resources with app name ${openshiftRessourceName} on ${openshiftConsole}`);
 }
 
 const deathHandler = async (msg, lastError) => {
 
   const {
     siteGroupName,
-    openshiftRessourceAppName,
+    openshiftRessourceName,
   } = JSON.parse(msg.content.toString())
 
   sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
-`*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR:
+`*[${siteGroupName}]* remove \`${openshiftRessourceName}\` ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
@@ -234,11 +255,11 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
 
   const {
     siteGroupName,
-    openshiftRessourceAppName,
+    openshiftRessourceName,
   } = JSON.parse(msg.content.toString())
 
   sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift-resources:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR:
+`*[${siteGroupName}]* remove \`${openshiftRessourceName}\` ERROR:
 \`\`\`
 ${error}
 \`\`\`
@@ -246,4 +267,4 @@ Retrying in ${retryExpirationSecs} secs`
   )
 }
 
-consumeTasks('remove-openshift-resources-legacy', messageConsumer, retryHandler, deathHandler)
+consumeTasks('remove-openshift-resources', messageConsumer, retryHandler, deathHandler)

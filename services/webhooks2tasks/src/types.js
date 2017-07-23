@@ -10,9 +10,12 @@ export type ChannelWrapper = {
   ack: (msg: Object) => void,
 }
 
-export type removeOpenshiftResourcesData = {
+export type removeData = {
   siteGroupName: string,
-  openshiftRessourceAppName: string
+  openshiftRessourceAppName: string,
+  branch: string?,
+  pullrequest: string?,
+  type: string,
 }
 
 export type deployData = {

@@ -100,33 +100,6 @@ async function createDeployTask(deployData) {
 	const activeDeploySystem = Object.keys(activeSystems.deploy)[0]
 
 	switch (activeDeploySystem) {
-		case 'lagoon_openshift':
-		case 'lagoon_openshiftLegacy':
-			// this is the old legacy system which does not create projects
-			const legacyDeploySystemConfig = activeSystems.deploy['lagoon_openshift']
-			if (type === 'branch') {
-				switch (legacyDeploySystemConfig.branches) {
-					case undefined:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
-						return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
-					case true:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
-						return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
-					case false:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
-						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
-					default:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${legacyDeploySystemConfig.branches}, testing if it matches`)
-						let branchRegex = new RegExp(legacyDeploySystemConfig.branches);
-						if (branchRegex.test(branchName)) {
-							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${legacyDeploySystemConfig.branches} matched branchname, starting deploy`)
-							return sendToAmazeeioTasks('deploy-openshift-legacy', deployData);
-						} else {
-							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${legacyDeploySystemConfig.branches} did not match branchname, not deploying`)
-							throw new NoNeedToDeployBranch(`configured regex '${legacyDeploySystemConfig.branches}' does not match branchname '${branchName}'`)
-						}
-				}
-			}
 		case 'lagoon_openshiftDeploy':
 			const deploySystemConfig = activeSystems.deploy['lagoon_openshiftDeploy']
 			if (type === 'branch') {
@@ -180,13 +153,11 @@ async function createRemoveTask(removeData) {
 	const activeRemoveSystem = Object.keys(activeSystems.remove)[0]
 
 	switch (activeRemoveSystem) {
-		case 'lagoon_openshiftLegacy':
-		case 'lagoon_openshift':
-			// this is the old legacy system that tries to remove resources within one shared project
-			return sendToAmazeeioTasks('remove-openshift-resources-legacy', removeData);
+		case 'lagoon_openshiftRemoveResources':
+			return sendToAmazeeioTasks('remove-openshift-resources', removeData);
 
 		case 'lagoon_openshiftRemove':
-			return sendToAmazeeioTasks('remove-openshift-resources', removeData);
+			return sendToAmazeeioTasks('remove-openshift', removeData);
 
 		default:
       throw new UnknownActiveSystem(`Unknown active system '${activeRemoveSystem}' for task 'remove' in for sitegroup ${siteGroupName}`)

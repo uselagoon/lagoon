@@ -4,7 +4,7 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import type { WebhookRequestData, removeOpenshiftResourcesData, ChannelWrapper, SiteGroup  } from '../types';
+import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup  } from '../types';
 
 export async function githubBranchDeleted(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
@@ -16,25 +16,20 @@ export async function githubBranchDeleted(webhook: WebhookRequestData, siteGroup
       body,
     } = webhook;
 
-    const saveBranchname = body.ref.toLowerCase().replace('refs/heads/','').replace(/\//g,'-')
-
-    const openshiftNamingPullRequests = (typeof siteGroup.openshift.naming !== 'undefined') ? siteGroup.openshift.naming.branch : "${sitegroup}-${branch}"
-    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', saveBranchname).replace('${sitegroup}', siteGroup.siteGroupName).replace(/_/g,'-')
-
     const meta = {
-      branch: saveBranchname,
-      origBranch: body.ref.replace('refs/heads/','')
+      branch: body.ref.replace('refs/heads/','')
     }
 
-    const data: removeOpenshiftResourcesData = {
+    const data: removeData = {
       siteGroupName: siteGroup.siteGroupName,
-      openshiftRessourceAppName: openshiftRessourceAppName,
+      branch: meta.origBranch,
+      type: 'branch'
     }
 
     try {
       const taskResult = await createRemoveTask(data);
       sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
+        `*[${siteGroup.siteGroupName}]* \`${meta.branch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
@@ -44,7 +39,7 @@ export async function githubBranchDeleted(webhook: WebhookRequestData, siteGroup
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted. No remove task created, reason: ${error}`
+            `*[${siteGroup.siteGroupName}]* \`${meta.branch}\` deleted. No remove task created, reason: ${error}`
           )
           return;
 

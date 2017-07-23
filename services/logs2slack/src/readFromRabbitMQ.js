@@ -53,26 +53,30 @@ export async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: Ch
       sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
-    case "task:remove-openshift-resources:finished":
     case "task:deploy-openshift:finished":
+    case "task:remove-openshift:finished":
+    case "task:remove-openshift-resources:finished":
       sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
+    case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
       sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
-    case "task:remove-openshift-resources:error":
-    case "task:deploy-openshift:error":
+      case "task:deploy-openshift:error":
+      case "task:remove-openshift:error":
+      case "task:remove-openshift-resources:error":
       sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 
     case "unresolvedSitegroup:webhooks2tasks":
     case "unhandledWebhook":
     case "webhooks:receive":
-    case "task:remove-openshift-resources:start":
     case "task:deploy-openshift:start":
+    case "task:remove-openshift:start":
+    case "task:remove-openshift-resources:start":
       // known logs entries that should never go to slack
       channelWrapperLogs.ack(msg)
       break;

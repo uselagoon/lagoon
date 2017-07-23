@@ -27,10 +27,14 @@ const messageConsumer = async function(msg) {
 
   const {
     siteGroupName,
-    openshiftRessourceAppName,
+    branch,
+    pullrequest,
+    type
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received RemoveOpenshiftResources task for sitegroup ${siteGroupName}, app name ${openshiftRessourceAppName}`);
+  logger.verbose(`Received RemoveOpenshift task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequest}`);
+
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
   const siteGroupOpenShift = await amazeeioAPI.query(`
     {
@@ -41,18 +45,32 @@ const messageConsumer = async function(msg) {
   `)
 
   try {
+    var safeSiteGroupName = ocsafety(siteGroupName)
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
     var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
     var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
     var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
-    var openshiftProject = openshiftIsAppuio ? `amze-${openshiftRessourceAppName}` : `${openshiftRessourceAppName}`
+
+    var openshiftProject
+
+    switch (type) {
+      case 'pullrequest':
+        //@TODO
+        break;
+
+      case 'branch':
+        const safeBranchName = ocsafety(branch)
+        openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
+        break;
+    }
+
   } catch(error) {
     logger.warn(`Cannot find openshift token and console information for sitegroup ${siteGroupName}`)
     throw(error)
   }
 
-  logger.info(`Will remove OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
+  logger.info(`Will remove OpenShift Project ${openshiftProject} on ${openshiftConsole}`);
 
   var folderxml =
   `<?xml version='1.0' encoding='UTF-8'?>
@@ -112,7 +130,7 @@ const messageConsumer = async function(msg) {
   `<?xml version='1.0' encoding='UTF-8'?>
   <flow-definition plugin="workflow-job@2.7">
     <actions/>
-    <description>${openshiftRessourceAppName}</description>
+    <description>${openshiftProject}</description>
     <keepDependencies>false</keepDependencies>
     <properties>
       <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -128,7 +146,7 @@ const messageConsumer = async function(msg) {
 
   var foldername = `${siteGroupName}`
 
-  var jobname = `${foldername}/remove-${openshiftRessourceAppName}`
+  var jobname = `${foldername}/remove-${openshiftProject}`
 
 
   // First check if the Folder exists (hint: Folders are also called "job" in Jenkins)
@@ -176,8 +194,8 @@ const messageConsumer = async function(msg) {
   logger.verbose(`Running job build: ${jobname}, job id: ${jenkinsJobID}`)
 
 
-  sendToAmazeeioLogs('start', siteGroupName, "", "task:remove-openshift-resources:start", {},
-    `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\``
+  sendToAmazeeioLogs('start', siteGroupName, "", "task:remove-openshift:start", {},
+    `*[${siteGroupName}]* remove \`${openshiftProject}\``
   )
 
   let log = jenkins.build.logStream(jobname, jenkinsJobID)
@@ -197,12 +215,12 @@ const messageConsumer = async function(msg) {
         const result = await jenkins.build.get(jobname, jenkinsJobID)
 
         if (result.result === "SUCCESS") {
-          sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift-resources:finished",  {},
-            `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\``
+          sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift:finished",  {},
+            `*[${siteGroupName}]* remove \`${openshiftProject}\``
           )
           logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
         } else {
-          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {}, `*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR`)
+          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift:error",  {}, `*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR`)
           logger.error(`Finished FAILURE job removal: ${jobname}, job id: ${jenkinsJobID}`)
         }
         resolve()
@@ -212,18 +230,18 @@ const messageConsumer = async function(msg) {
     });
   })
 
-  logger.info(`Removed OpenShift Resources with app name ${openshiftRessourceAppName} on ${openshiftConsole}`);
+  logger.info(`Removed OpenShift Resources with app name ${openshiftProject} on ${openshiftConsole}`);
 }
 
 const deathHandler = async (msg, lastError) => {
 
   const {
     siteGroupName,
-    openshiftRessourceAppName,
+    openshiftProject,
   } = JSON.parse(msg.content.toString())
 
-  sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
-`*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR:
+  sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift:error",  {},
+`*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
@@ -235,11 +253,11 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
 
   const {
     siteGroupName,
-    openshiftRessourceAppName,
+    openshiftProject,
   } = JSON.parse(msg.content.toString())
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift-resources:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${siteGroupName}]* remove \`${openshiftRessourceAppName}\` ERROR:
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+`*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${error}
 \`\`\`
@@ -247,4 +265,4 @@ Retrying in ${retryExpirationSecs} secs`
   )
 }
 
-consumeTasks('remove-openshift-resources', messageConsumer, retryHandler, deathHandler)
+consumeTasks('remove-openshift', messageConsumer, retryHandler, deathHandler)
