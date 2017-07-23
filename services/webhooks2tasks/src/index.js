@@ -1,19 +1,17 @@
 // @flow
+require('flow-remove-types/register')({ excludes: '' })
 
-require("babel-polyfill");
+const amqp = require('amqp-connection-manager');
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { sendToAmazeeioTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import amqp from 'amqp-connection-manager';
-
-import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-import { sendToAmazeeioTasks, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
-
-import processWebhook from './processWebhook';
+const { processWebhook } = require('./processWebhook');
 
 import type { ChannelWrapper } from './types';
 
-// Initialize the logging mechanism
-initLogger();
+
+
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
@@ -26,7 +24,7 @@ connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { a
 connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));
 
 // Cast any to ChannelWrapper to get type-safetiness through our own code
-const channelWrapper: ChannelWrapper = connection.createChannel({
+const channelWrapperWebhooks: ChannelWrapper = connection.createChannel({
 	setup: channel => {
 		return Promise.all([
 
@@ -42,7 +40,7 @@ const channelWrapper: ChannelWrapper = connection.createChannel({
 			channel.bindExchange('amazeeio-webhooks', 'amazeeio-webhooks-delay', ''),
 
 			channel.prefetch(1),
-			channel.consume('amazeeio-webhooks:queue', msg => processWebhook(msg, channelWrapper), {noAck: false}),
+			channel.consume('amazeeio-webhooks:queue', msg => {processWebhook(msg, channelWrapperWebhooks)}, {noAck: false}),
 
 		]);
 	}

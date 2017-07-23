@@ -1,14 +1,12 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
-
-import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-
-import { createRemoveTask } from '@amazeeio/amazeeio-tasks';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, removeOpenshiftResourcesData, ChannelWrapper, SiteGroup } from '../types';
 
-export default async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+export async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,

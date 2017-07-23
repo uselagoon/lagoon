@@ -1,18 +1,17 @@
 // @flow
+require('flow-remove-types/register')({ excludes: '' })
 
-require("babel-polyfill");
+const bodyParser = require('body-parser');
+const expressValidator = require('express-validator');
+const express = require('express');
+const cors = require('cors');
+const util = require('util');
 
-import bodyParser from 'body-parser'
-import expressValidator from 'express-validator'
-import express from 'express'
-import cors from 'cors'
-import util from 'util'
+const { createDeployTask, createRemoveTask, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 
-import { createDeployTask, createRemoveTask, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
-import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
 
-initLogger();
 initSendToAmazeeioTasks();
 initSendToAmazeeioLogs();
 

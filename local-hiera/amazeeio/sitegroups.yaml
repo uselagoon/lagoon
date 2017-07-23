@@ -52,10 +52,8 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
       folder: subfolder
     active_systems:
-      deploy:
-        lagoon_openshift:
-          branches: true
-      remove: lagoon_openshift
+      deploy: lagoon_openshiftDeploy
+      remove: lagoon_openshiftRemove
   ci-node2:
     client: deploytestclient
     git_url: 'git@git:/git/node.git'
@@ -71,7 +69,5 @@ amazeeio_sitegroups:
       template: node.yml
       router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
     active_systems:
-      deploy:
-        lagoon_openshift:
-          branches: true
-      remove: lagoon_openshift
+      deploy: lagoon_openshiftDeploy
+      remove: lagoon_openshiftRemove
