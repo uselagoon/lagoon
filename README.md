@@ -57,3 +57,13 @@ docker-compose logs -f
 ```sh
 docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
 ```
+
+## Node Development
+
+Most services are written in NodeJS. As many of these services share similar Node code and Node Packaes, we're using a new feature of yarn, called `yarn workspaces`. Yarn Workspaces needs a package.json in the projects root directory that defines the workspaces plus an `.yarnrc` that enables workspace mode.
+
+The development of the services can happen directly within Docker. Each container for each service is setup in a way that it's source code is mounted into the running container. Node itself is watching the code via `nodemon` and restarts the node process automatically on a change.
+
+### lagoon-commons
+
+The services not only share many node packages, but also share actual custom code. This code is within `node-packages/lagoon-commons` it will be automatically symlinked by yarn workspaces, plus the nodemon of the services is setup in a way that it also checks for changes in `node-packages` and will restart the node process automatically
