@@ -71,3 +71,13 @@ The services not only share many node packages, but also share actual custom cod
 ### Hiera
 
 The API uses a puppet compatible yaml format to store it's data. On production this hiera is in another git repository. For local development there is a folder `local-hiera` which contains testdata that is used during development and testing, plus has no client related data in them. For easier development there is `local-hiera-watcher-pusher` which watches the `local-hiera` folder and on every changes pushes the changes into `local-git-server` which emulates a git server like it is on production. The api service is connecting to this local git server and updates it's data from it.
+
+### Troubleshooting
+
+**I can't build any docker image for any NodeJS based service**
+
+Try to update the base image cache: `docker pull amazeeio/centos7-node-builder:8 && docker pull amazeeio/centos7-node:8`
+
+**I get errors about missing node_modules content when I try to build / run a NodeJS based image**
+
+Make sure to run `yarn` in lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
