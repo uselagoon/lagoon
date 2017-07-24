@@ -6,13 +6,6 @@ node {
 
   stage ('Checkout') {
     checkout scm
-
-    sshagent (credentials: ['api-test-hiera_deploykey']) {
-      sh 'git submodule update --init'
-    }
-
-    // create a new branch 'ci-local' from the current HEAD, this is necessary as the api service searches for a branch 'ci-local'
-    sh "cd hiera && git branch -f ci-local HEAD && cd .."
   }
 
   lock('minishift') {
@@ -21,7 +14,7 @@ node {
         parallel (
           'start services': {
             stage ('build base images') {
-              sh "cd docker-images && ./buildall.sh"
+              sh "./buildBaseImages.sh"
             }
             stage ('start services') {
               sh "${docker_compose} build --pull"
@@ -44,7 +37,7 @@ node {
           '_tests': {
               stage ('run tests') {
                 try {
-                  sh "${docker_compose} exec tests ansible-playbook /ansible/playbooks/node.yaml"
+                  sh "${docker_compose} run --rm tests ansible-playbook /ansible/playbooks/node.yaml"
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup(docker_compose)

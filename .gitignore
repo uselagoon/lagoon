@@ -6,3 +6,4 @@ deploytest
 startVagrant.sh
 minishift
 **/v8-*
+node_modules

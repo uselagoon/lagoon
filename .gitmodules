@@ -1,3 +1,0 @@
-[submodule "hiera"]
-	path = hiera
-	url = git@github.com:amazeeio/api-test-hiera.git

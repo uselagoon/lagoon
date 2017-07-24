@@ -1,14 +1,12 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
+import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
 
-import { createRemoveTask } from '@amazeeio/amazeeio-tasks';
-
-import type { WebhookRequestData, removeOpenshiftResourcesData, ChannelWrapper, SiteGroup } from '../types';
-
-export default async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+export async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -18,16 +16,14 @@ export default async function githubPullRequestClosed(webhook: WebhookRequestDat
       body,
     } = webhook;
 
-    const openshiftNamingPullRequests = (typeof siteGroup.openshift.naming !== 'undefined') ? siteGroup.openshift.naming.pullrequest : "${sitegroup}-pr-${number}"
-    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${number}', body.number).replace('${sitegroup}', siteGroup.siteGroupName).replace(/_/g,'-')
-
     const meta = {
-      prNumber: body.number
+      pullrequest: body.number
     }
 
-    const data: removeOpenshiftResourcesData = {
+    const data: removeData = {
       siteGroupName: siteGroup.siteGroupName,
-      openshiftRessourceAppName: openshiftRessourceAppName
+      pullrequest: body.number,
+      type: 'pullrequest'
     }
 
     try {

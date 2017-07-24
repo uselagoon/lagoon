@@ -1,37 +1,51 @@
+// @flow
+
 import express from 'express';
 import morgan from 'morgan';
 import compression from 'compression';
-import bodyParser from 'body-parser';
+import { json } from 'body-parser';
+import selectors from './selectors';
 import logger from './logger';
-import routes from './routes';
+import createRouter from './routes';
 
-export default (repository) => {
+import type { $Application, $Request } from 'express';
+import type { ApiStore } from './createStore';
+
+export type Context = {
+  selectors: typeof selectors,
+  store: ApiStore,
+};
+
+export const getContext = (req: $Request): Context =>
+  (req.app.get('context'): any);
+
+export default (store: ApiStore): $Application => {
   const app = express();
+
+  // Set the global app context (make the state accessible
+  // to the routes and graphql).
+  app.set('context', {
+    selectors,
+    store,
+  });
 
   // Use compression (gzip) for responses.
   app.use(compression());
 
   // Automatically decode json.
-  app.use(bodyParser.json());
+  app.use(json());
 
   // Add custom configured logger (morgan through winston).
-  app.use(morgan('combined', {
-    stream: {
-      write: (message) => logger.info(message),
-    },
-  }));
+  app.use(
+    morgan('combined', {
+      stream: {
+        write: message => logger.info(message),
+      },
+    }),
+  );
 
   // Add routes.
-  app.use('/', routes);
-
-  // Respond with 404 to any routes not matching API endpoints.
-  app.all('/*', (request, response) => response.status(404).json({
-    status: 'error',
-    message: `No endpoint exists at ${request.originalUrl} (method: ${request.method})`,
-  }));
-
-  // Store the repository as a global.
-  app.set('repository', repository);
+  app.use('/', createRouter());
 
   return app;
 };
