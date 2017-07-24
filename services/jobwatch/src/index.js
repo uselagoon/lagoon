@@ -84,7 +84,7 @@ var watch = async function(message) {
 
 
 var update_job = function( name, data ) {
-  jobdata[name] = data;
+  jobdata[name] =  Object.assign({},  jobdata[name], data);
   console.log( "adding ", name, " to array with ", data)
 }
 
@@ -120,18 +120,21 @@ app.post('/job', async (req, res) => {
   let jobevent;
   let jenkinsUrl;
   let path;
+  let sitegroup;
 
   jobname = req.headers.jobname
   buildnumber = req.headers.buildnumber
   jobevent    = req.headers.jobevent || "ok"
   path        = req.headers.path
-
+  sitegroup   = req.headers.sitegroup
+  
   console.log("received update ", buildnumber , " for job ", jobname)
 
 if (parseInt(buildnumber) > 0 ) {
   update_job( jobname, {
     'event' : jobevent,
     'path':  path,
+    'sitegroup': sitegroup,
     'created' :  new Date(),
     'updated' : 0,
     'buildnumber': buildnumber
@@ -180,14 +183,13 @@ var jobcheck = function() {
 
           jenkins.build.log(build, parseInt(job.buildnumber), function(err, buildlogdata) {
 
-            console.log(buildlogdata)
-
              let uri = upload_logs(log_path, "build finished after " + diff + " seconds.\n" + buildlogdata,
                 function(err,data) {
+                  console.log(job)
                   let uri = data.Location
-                    let siteGroupName = 'ci-node1'
-                    let x = sendToAmazeeioLogs('start', siteGroupName, "", "task:jobwatch:finished", {}, uri )
-                    delete jobdata[build]
+                  console.log( "sendToAmazeeioLogs",'start', job.sitegroup, "", "task:jobwatch:finished", {}, uri )
+                  sendToAmazeeioLogs('start', job.sitegroup, "", "task:jobwatch:finished", {}, uri )
+                  delete jobdata[build]
                 }) // upload_logs
 
           }) // jenkins.build.log
