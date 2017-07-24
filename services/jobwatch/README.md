@@ -18,3 +18,4 @@ At points throughout the build and deploy process, jenkins posts the status of t
 1. the job status structure could be persistent, perhaps a queue.
 1. the build log could be filtered for secrets, or filtered for excessively
    chatty docker output
+1. utilitze `estimatedDuration` for some meaningful information to the user / slack.
