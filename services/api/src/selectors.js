@@ -155,14 +155,41 @@ const addSiteHost = (
     ])(obj),
   )(site);
 
-const CLUSTER_MEMBER_KEY =
-  'drupalhosting::profiles::nginx_backend::cluster_member';
-
-const clusterServerNames = (
+const computeServerNames /*: (obj: {
+  serverInfrastructure?: string,
   siteHost: string,
-  clusterMembers: { [string]: string },
-) =>
-  R.compose(R.map(([key]) => `${key}.${siteHost}`), R.toPairs)(clusterMembers);
+  clusterMembers: ?{ [string]: string },
+}) => Array<string> */ = R.cond(
+  [
+    // Case 1 - If obj represents cluster information
+    [
+      R.compose(R.equals('cluster'), R.prop('serverInfrastructure')),
+      ({ clusterMembers, siteHost }) =>
+        // map to [ "servername1", "servername2", ...]
+        R.compose(
+          // { backend1: 10.0.0.1 } => "backend1.mySiteHost"
+          R.map(([key]) => `${key}.${siteHost}`),
+          R.toPairs,
+        )(clusterMembers),
+    ],
+
+    // Case 2 - If obj represents single instances
+    [
+      R.compose(R.equals('single'), R.prop('serverInfrastructure')),
+      obj => [`backend.${obj.siteHost}`],
+    ],
+
+    // Case 3 - use siteHost as serverNames instead
+    [
+      R.T,
+      R.ifElse(
+        R.compose(R.is(Array), R.prop('siteHost')),
+        R.prop('siteHost'),
+        R.compose(R.of, R.prop('siteHost')),
+      ),
+    ],
+  ],
+);
 
 // Adds the computed 'serverNames' attribute to given SiteView object
 const addServerNames = (
@@ -170,38 +197,15 @@ const addServerNames = (
   clusterMembers: ?{ [string]: string },
   site: SiteView,
 ): SiteView =>
-  R.cond([
-    // Case 1 - If obj represents cluster information
-    [
-      R.compose(R.equals('cluster'), R.prop('serverInfrastructure')),
-      obj =>
-        R.set(
-          serverNamesLens,
-          clusterServerNames(obj.siteHost, clusterMembers || {}),
-          obj,
-        ),
-    ],
-
-    // Case 2 - If obj represents single instances
-    [
-      R.compose(R.equals('single'), R.prop('serverInfrastructure')),
-      obj => R.set(serverNamesLens, [`backend.${obj.siteHost}`], obj),
-    ],
-
-    // Case 3 - use siteHost as serverNames instead
-    [
-      R.T,
-      obj =>
-        R.compose(
-          serverNames => R.set(serverNamesLens, serverNames, obj),
-          R.ifElse(
-            R.compose(R.is(Array), R.prop('siteHost')),
-            R.prop('siteHost'),
-            R.compose(R.of, R.prop('siteHost')),
-          ),
-        )(obj),
-    ],
-  ])(site);
+  R.set(
+    serverNamesLens,
+    computeServerNames({
+      serverInfrastructure: site.serverInfrastructure,
+      siteHost: site.siteHost,
+      clusterMembers,
+    }),
+    site,
+  );
 
 const maybeAddJumpHostKey = (jumpHost?: string, obj: Object): Object =>
   R.ifElse(
@@ -247,7 +251,13 @@ const siteFileToSiteViews = (
 ): Array<SiteView> =>
   R.compose(
     R.map(site =>
-      R.apply(addServerNames, [R.prop(CLUSTER_MEMBER_KEY, siteFile), site]),
+      R.apply(addServerNames, [
+        R.prop(
+          'drupalhosting::profiles::nginx_backend::cluster_member',
+          siteFile,
+        ),
+        site,
+      ]),
     ),
     R.map(site =>
       R.apply(addSiteHost, [R.prop('amazeeio::servername', siteFile), site]),

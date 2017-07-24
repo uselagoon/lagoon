@@ -2,35 +2,12 @@
   "name": "rest2tasks",
   "version": "1.0.0",
   "description": "Demo app for react-isomorphic-form",
-  "main": "index.js",
+  "main": "build/index.js",
+  "license": "MIT",
   "scripts": {
+    "postinstall": "ln -s ../../../node_modules/.bin node_modules/.bin #fix for not linked bin folder from root only needed till yarn v0.28.4 (https://github.com/yarnpkg/yarn/pull/3896)",
     "start": "node build/index.js",
     "build": "babel src -d build",
-    "dev": "yarn run link-node-packages && nodemon src/index.js --exec babel-node",
-    "link-node-packages": "if [ ! -d ../../node-packages ]; then exit 0; fi; for D in ../../node-packages/*/; do cd \"${D}\" && yarn link && package=${PWD##*/} && cd \"${OLDPWD}\" && yarn link @amazeeio/$package; done"
-  },
-  "author": "Gert Hengeveld <info@ghengeveld.nl> (https://github.com/ghengeveld)",
-  "license": "ISC",
-  "dependencies": {
-    "@amazeeio/amazeeio-local-logging": "file:../../node-packages/amazeeio-local-logging",
-    "@amazeeio/amazeeio-logs": "file:../../node-packages/amazeeio-logs",
-    "@amazeeio/amazeeio-tasks": "file:../../node-packages/amazeeio-tasks",
-    "babel-cli": "^6.18.0",
-    "babel-core": "^6.21.0",
-    "babel-plugin-syntax-async-functions": "^6.13.0",
-    "babel-plugin-transform-flow-strip-types": "^6.21.0",
-    "babel-plugin-transform-object-rest-spread": "^6.20.2",
-    "babel-plugin-transform-regenerator": "^6.21.0",
-    "babel-polyfill": "^6.23.0",
-    "babel-preset-es2015": "^6.18.0",
-    "body-parser": "^1.17.2",
-    "cors": "^2.8.3",
-    "express": "^4.15.3",
-    "express-validator": "^3.2.0",
-    "nodemon": "^1.11.0"
-  },
-  "devDependencies": {
-    "flow-bin": "^0.37.4",
-    "jest": "^18.1.0"
+    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'yarn run build && yarn run start'"
   }
 }

@@ -1,7 +1,7 @@
 // @flow
 
-import uuid4 from 'uuid4';
-import url from 'url';
+const uuid4 = require('uuid4')
+const url = require('url');
 
 import type { WebhookRequestData } from './types';
 
@@ -22,7 +22,7 @@ type Req = {
  * Will throw an error on malformed request headers,
  * non-json body data or unsupported method.
  */
-export default function extractWebhookData(req: Req, body?: string): WebhookRequestData {
+export function extractWebhookData(req: Req, body?: string): WebhookRequestData {
   const {
     method,
     headers,

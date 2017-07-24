@@ -1,0 +1,7 @@
+{
+  "name": "@amazeeio/lagoon-commons",
+  "version": "3.0.2",
+  "description": "lagoon node commons",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "license": "MIT"
+}

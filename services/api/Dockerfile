@@ -12,10 +12,6 @@ COPY --from=builder /app/node_modules /app/node_modules
 # Now copy in our application code.
 COPY services/api /app
 
-# Fixing permissions of the app folder so that the openshift user can access it with write.
-RUN fix-permissions /app && \
-    fix-permissions /home
-
 RUN yarn run build
 
 CMD yarn run start

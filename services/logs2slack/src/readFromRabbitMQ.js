@@ -1,8 +1,8 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 
-import { getSlackinfoForSiteGroup } from '@amazeeio/amazeeio-api';
+const { getSlackinfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
 
 var IncomingWebhook = require('@slack/client').IncomingWebhook;
 
@@ -21,7 +21,7 @@ export type SiteGroup = {
   siteGroupName: string,
 };
 
-export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper: ChannelWrapper): Promise<void> {
+export async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const {
     content,
     fields,
@@ -50,43 +50,47 @@ export default async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapper
     case "github:push:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
-      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapper, msg, appId)
+      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
-    case "task:remove-openshift-resources:finished":
     case "task:deploy-openshift:finished":
+    case "task:remove-openshift:finished":
+    case "task:remove-openshift-resources:finished":
     case "task:jobwatch:finished":
-      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapper, msg, appId)
+      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
+    case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
-      sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapper, msg, appId)
+      sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
-    case "task:remove-openshift-resources:error":
-    case "task:deploy-openshift:error":
-    case "task:jobwatch:error":
-      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapper, msg, appId)
+      case "task:deploy-openshift:error":
+      case "task:remove-openshift:error":
+      case "task:remove-openshift-resources:error":
+      case "task:jobwatch:error":
+      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 
     case "unresolvedSitegroup:webhooks2tasks":
     case "unhandledWebhook":
     case "webhooks:receive":
-    case "task:remove-openshift-resources:start":
     case "task:deploy-openshift:start":
+    case "task:remove-openshift:start":
+    case "task:remove-openshift-resources:start":
       // known logs entries that should never go to slack
-      channelWrapper.ack(msg)
+      channelWrapperLogs.ack(msg)
       break;
 
     default:
       logger.warn(`unhandled log message ${event} ${JSON.stringify(logMessage)}`)
-      return channelWrapper.ack(msg)
+      return channelWrapperLogs.ack(msg)
   }
 
 }
 
-const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg, appId) => {
+const sendToSlack = async (sitegroup, message, color, emoji, channelWrapperLogs, msg, appId) => {
 
   let sitegroupSlack;
   try {
@@ -94,7 +98,7 @@ const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg
   }
   catch (error) {
     logger.error(`No Slack information found, error: ${error}`)
-    return channelWrapper.ack(msg)
+    return channelWrapperLogs.ack(msg)
   }
 
   await new IncomingWebhook(sitegroupSlack.slack.webhook, {
@@ -107,6 +111,6 @@ const sendToSlack = async (sitegroup, message, color, emoji, channelWrapper, msg
       footer: appId
     }]
   });
-  channelWrapper.ack(msg)
+  channelWrapperLogs.ack(msg)
   return
 }
