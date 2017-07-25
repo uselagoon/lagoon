@@ -24,13 +24,13 @@ brew cask install docker-edge
 
 1. clone me
 
-1. start Lagoon Services
+2. start Lagoon Services
 
 ```sh
 docker-compose up -d
 ```
 
-1. Follow the Services logs
+3. Follow the Services logs
 
 ```sh
 docker-compose logs -f
@@ -44,15 +44,15 @@ docker-compose logs -f
 ./startOpenShift.sh
 ```
 
-1. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
+2. Add `https://docker-registry-default.192.168.77.100.nip.io:443` to insecure registries in docker.
 
-1. build base images needed for testing
+3. build base images needed for testing
 
 ```sh
 ./buildBaseImages.sh
 ```
 
-1. test Openshift Node Deployment
+4. test Openshift Node Deployment
 
 ```sh
 docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
