@@ -247,7 +247,7 @@ node {
 
   var jobname = `${foldername}/deploy-${safeBranchName}`
 
-  const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true, crumbIssuer: true });
+  const jenkins = Jenkins({ baseUrl: `${jenkinsUrl}`, promisify: true, crumbIssuer: true });
 
   // First check if the Folder exists (hint: Folders are also called "job" in Jenkins)
   if (await jenkins.job.exists(foldername)) {
