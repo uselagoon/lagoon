@@ -1,16 +1,12 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
-
-import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-
-import { createDeployTask } from '@amazeeio/amazeeio-tasks';
-
-import { getEnabledSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
 
-export default async function gitlabPush(webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper) {
+export async function gitlabPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -35,20 +31,17 @@ export default async function gitlabPush(webhook: WebhookRequestData, siteGroup:
       sha: sha
     }
 
-    let logMessage = ''
+    let logMessage = `\`<${body.project.http_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
-      logMessage = `\`${meta.branch}\` (${sha.substring(0, 7)})`
-    } else {
-      logMessage = `\`${meta.branch}\``
+      const shortSha: string = sha.substring(0, 7)
+      logMessage = `${logMessage} (<${body.commits[0].url}|${shortSha}>)`
     }
-
-    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
-      `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.project.http_url}|${body.project.name}>`
-    )
 
     try {
       const taskResult = await createDeployTask(data);
-      logger.verbose(taskResult)
+      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.project.http_url}|${body.project.path_with_namespace}>`
+      )
       return;
     } catch (error) {
       switch (error.name) {

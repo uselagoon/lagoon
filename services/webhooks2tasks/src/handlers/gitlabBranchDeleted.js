@@ -1,14 +1,12 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
+import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup  } from '../types';
 
-import { createRemoveTask } from '@amazeeio/amazeeio-tasks';
-
-import type { WebhookRequestData, removeOpenshiftResourcesData, ChannelWrapper, SiteGroup  } from '../types';
-
-export default async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGroup: SiteGroup, channelWrapper: ChannelWrapper) {
+export  async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -18,28 +16,21 @@ export default async function gitlabBranchDeleted(webhook: WebhookRequestData, s
       body,
     } = webhook;
 
-    const saveBranchname = body.ref.toLowerCase().replace('refs/heads/','').replace('/','-')
-
-    const openshiftNamingPullRequests = (typeof siteGroup.openshift.naming !== 'undefined') ? siteGroup.openshift.naming.branch : "${sitegroup}-${branch}"
-    const openshiftRessourceAppName = openshiftNamingPullRequests.replace('${branch}', saveBranchname).replace('${sitegroup}', siteGroup.siteGroupName).replace('_','-')
-
     const meta = {
-      branch: saveBranchname,
-      origBranch: body.ref.replace('refs/heads/','')
+      branch: body.ref.replace('ref/heads/','')
     }
 
-    const data: removeOpenshiftResourcesData = {
+    const data: removeData = {
       siteGroupName: siteGroup.siteGroupName,
-      openshiftRessourceAppName: openshiftRessourceAppName,
+      branch: meta.branch,
+      type: 'branch'
     }
-
-    sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
-      `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted in <${body.project.http_url}|${body.project.name}>`
-    )
 
     try {
       const taskResult = await createRemoveTask(data);
-      logger.verbose(taskResult)
+      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${siteGroup.siteGroupName}]* \`${meta.branch}\` deleted in <${body.project.http_url}|${body.project.path_with_namespace}>`
+      )
       return;
     } catch (error) {
       switch (error.name) {
@@ -48,7 +39,7 @@ export default async function gitlabBranchDeleted(webhook: WebhookRequestData, s
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* \`${meta.origBranch}\` deleted. No remove task created, reason: ${error}`
+            `*[${siteGroup.siteGroupName}]* \`${meta.branch}\` deleted. No remove task created, reason: ${error}`
           )
           return;
 
