@@ -17,7 +17,7 @@ export  async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGrou
     } = webhook;
 
     const meta = {
-      branch: body.ref.replace('ref/heads/','')
+      branch: body.ref.replace('refs/heads/','')
     }
 
     const data: removeData = {
