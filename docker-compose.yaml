@@ -92,6 +92,7 @@ services:
       - auth-server
     depends_on:
       - auth-server
+      - local-hiera-watcher-pusher
   auth-ssh:
     build: services/auth-ssh
       # TODO:
