@@ -99,17 +99,6 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(expressValidator());
 
 app.get('/', (req, res) => {
-
-  var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
-  var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
-
-
-  jenkins.job.get('ci-node_subfolder1/deploy-branch1', function(err, data) {
-  if (err) throw err;
-
-  console.log('job', data);
-});
-
   return res.status(200).send('welcome to jobwatch')
 })
 
