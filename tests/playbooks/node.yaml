@@ -60,6 +60,6 @@
   vars:
     testname: "GITLAB - node 6 inside subfolder"
     node_version: 6_subfolder
-    git_repo_name: node_subfolder.git
-    sitegroup: ci-node_subfolder
+    git_repo_name: node.git
+    sitegroup: ci-node
     branch: node6-subfolder-gitlab
