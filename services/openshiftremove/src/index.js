@@ -17,7 +17,7 @@ initSendToAmazeeioTasks();
 const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
 
-const jenkins = Jenkins({ baseUrl: `${jenkinsurl}`, promisify: true});
+const jenkins = Jenkins({ baseUrl: `${jenkinsurl}`, promisify: true, crumbIssuer: true });
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)

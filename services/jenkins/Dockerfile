@@ -21,6 +21,10 @@ COPY $FOLDER/adminuser.groovy /usr/share/jenkins/ref/init.groovy.d/adminuser.gro
 # Setting Executors to 0
 COPY $FOLDER/no-executors-master.groovy /usr/share/jenkins/ref/init.groovy.d/no-executors-master.groovy
 
+# crumbIssuer / CSRF
+# https://wiki.jenkins.io/display/JENKINS/CSRF+Protection
+COPY $FOLDER/csrf.groovy /usr/share/jenkins/ref/init.groovy.d/csrf.groovy
+
 # Creating the amazeeio bearer token credential
 COPY $FOLDER/github-amazeeio-bearer-token.groovy /usr/share/jenkins/ref/init.groovy.d/github-amazeeio-bearer-token.groovy
 COPY $FOLDER/vshn-gitlab-access-token.groovy /usr/share/jenkins/ref/init.groovy.d/vshn-gitlab-access-token.groovy
