@@ -5,7 +5,7 @@
     node_version: 8
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: node8-regular-branch
+    branch: node8-regular-branch-rest
 
 - include: node/github.yaml
   vars:
@@ -13,7 +13,7 @@
     node_version: 8
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: node8/slash/branch
+    branch: node8/slash/github
 
 - include: node/github.yaml
   vars:
@@ -29,16 +29,7 @@
     node_version: 6_subfolder
     git_repo_name: node.git
     sitegroup: ci-node
-    branch: node6-subfolder
-
-- include: node/github.yaml
-  vars:
-    testname: "GITHUB - node 6 regular branch"
-    node_version: 6
-    git_repo_name: node.git
-    sitegroup1: ci-node1
-    sitegroup2: ci-node2
-    branch: branch1
+    branch: node6-subfolder-github
 
 - include: node/multisitegroup.yaml
   vars:
@@ -47,40 +38,28 @@
     git_repo_name: node-multisitegroup.git
     sitegroup1: ci-node-multisitegroup1
     sitegroup2: ci-node-multisitegroup2
-    branch: branch1
+    branch: node8-multisitegroup
 
 - include: node/gitlab.yaml
   vars:
     testname: "GITLAB - node 8 with slash branch"
     node_version: 8
     git_repo_name: node.git
-    sitegroup1: ci-node1
-    sitegroup2: ci-node2
-    branch: slash/branch1
+    sitegroup: ci-node
+    branch: node8/slash/gitlab
 
 - include: node/gitlab.yaml
   vars:
     testname: "GITLAB - node 8 regular branch"
     node_version: 8
     git_repo_name: node.git
-    sitegroup1: ci-node1
-    sitegroup2: ci-node2
-    branch: branch1
+    sitegroup: ci-node
+    branch: node8-regular-branch-gitlab
 
 - include: node/gitlab.yaml
   vars:
     testname: "GITLAB - node 6 inside subfolder"
     node_version: 6_subfolder
     git_repo_name: node_subfolder.git
-    sitegroup1: ci-node_subfolder1
-    sitegroup2: ci-node_subfolder2
-    branch: branch1
-
-- include: node/gitlab.yaml
-  vars:
-    testname: "GITLAB - node 6 regular branch"
-    node_version: 6
-    git_repo_name: node.git
-    sitegroup1: ci-node1
-    sitegroup2: ci-node2
-    branch: branch1
+    sitegroup: ci-node_subfolder
+    branch: node6-subfolder-gitlab
