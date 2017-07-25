@@ -11,7 +11,7 @@ import cors from 'cors'
 import util from 'util'
 import Transport from 'lokka-transport-http';
 import Lokka from 'lokka';
-
+const { Jenkins } = require('jenkins');
 import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
 initSendToAmazeeioLogs();
 
@@ -127,7 +127,7 @@ app.post('/job', async (req, res) => {
   jobevent    = req.headers.jobevent || "ok"
   path        = req.headers.path
   sitegroup   = req.headers.sitegroup
-  
+
   console.log("received update ", buildnumber , " for job ", jobname)
 
 if (parseInt(buildnumber) > 0 ) {
@@ -147,8 +147,7 @@ if (parseInt(buildnumber) > 0 ) {
 
 
 var jobcheck = function() {
-  console.log(jobdata)
-  console.log("jobcheck firing")
+  console.log("jobcheck firing with ", Object.keys(jobdata).length, " builds.")
   var jenkinsUrl = process.env.JENKINS_URL || "https://amazee:amazee4ever$1@ci-popo.amazeeio.cloud"
   var jenkins = require('jenkins')({ baseUrl: jenkinsUrl, crumbIssuer: true });
 
@@ -161,12 +160,10 @@ var jobcheck = function() {
     var job = jobdata[build]
     let w = job['created']
     let diff = (d - w) / 1000
-    console.log("checking on build:", build, job)
-    console.log("diff:", diff, " build number: ", job.buildnumber)
 
 
-    if (diff > 1 && job.buildnumber) {
-      console.log("get build now")
+    if (diff > 5 && job.buildnumber) {
+
       jenkins.build.get(build, parseInt(job.buildnumber), function(err, data) {
         if (err) throw err;
 
@@ -178,16 +175,13 @@ var jobcheck = function() {
           const hash = crypto.createHash('sha256', entropy).digest('hex');
 
           let log_path = job.path[0] + '/' + job.path + '/' + hash + '/' + job.buildnumber + '.txt'
-          console.log(data)
-          let uri = "test"
 
           jenkins.build.log(build, parseInt(job.buildnumber), function(err, buildlogdata) {
 
              let uri = upload_logs(log_path, "build finished after " + diff + " seconds.\n" + buildlogdata,
                 function(err,data) {
-                  console.log(job)
+
                   let uri = data.Location
-                  console.log( "sendToAmazeeioLogs",'start', job.sitegroup, "", "task:jobwatch:finished", {}, uri )
                   sendToAmazeeioLogs('start', job.sitegroup, "", "task:jobwatch:finished", {}, uri )
                   delete jobdata[build]
                 }) // upload_logs
@@ -198,9 +192,6 @@ var jobcheck = function() {
 
 
         }
-        console.log('building', data.building )
-        console.log('result', data.result )
-        console.log('estimatedDuration', data.estimatedDuration )
       }); // jenkins.build.get
 
 
