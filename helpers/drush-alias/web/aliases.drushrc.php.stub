@@ -2,23 +2,25 @@ global $sitegroup_name;
 
 // For CI: allow to completely disable amazee.io alias loading
 if (getenv('AMAZEEIO_DISABLE_ALIASES')) {
+  drush_log('AMAZEEIO_DISABLE_ALIASES is set, bailing out of loading amazeeio aliases');
   return;
 }
 
 // Allow to override sitegroup via environment variable
 if (getenv('AMAZEEIO_OVERRIDE_SITEGROUP')) {
   $sitegroup_name = getenv('AMAZEEIO_OVERRIDE_SITEGROUP');
+  drush_log("AMAZEEIO_OVERRIDE_SITEGROUP is set, using '$sitegroup_name' as sitegroup");
 }
 
 if (empty($sitegroup_name)) {
   // You know nothing, John amazee.io
   $amazeeioyml_path = $amazeeioyml = $sitegroup_name = FALSE;
 
-  drush_log(sprintf('Finding Drupal Root'));
+  drush_log('Finding Drupal Root');
   $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
 
   // No sitegroup name could be found, let's search for it via the .amazeeio.yml file
-  drush_log(sprintf('Starting to search for .amazeeio.yml file to extract sitegroup name within "%s" and parent directories', $path));
+  drush_log("Starting to search for .amazeeio.yml file to extract sitegroup name within '$path' and parent directories");
 
   // Borrowed from drush_locate_root() - thank you
   foreach (array(TRUE, FALSE) as $follow_symlinks) {
@@ -46,23 +48,23 @@ if (empty($sitegroup_name)) {
 
   // An .amazeeio.yml file has been found, let's try to load the sitegroup from it.
   if ($amazeeioyml_path) {
-    drush_log(sprintf('Using .amazeeio.yml file at: "%s"', $amazeeioyml_path));
+    drush_log("Using .amazeeio.yml file at: '$amazeeioyml_path'");
     $amazeeioyml = Drush\Make\Parser\ParserYaml::parse(file_get_contents($amazeeioyml_path));
     if ($amazeeioyml['sitegroup']) {
       $sitegroup_name = $amazeeioyml['sitegroup'];
-      drush_log(sprintf('Discovered sitegroup name "%s" from .amazeeio.yml file', $sitegroup_name));
+      drush_log("Discovered sitegroup name '$sitegroup_name' from .amazeeio.yml file");
     } else {
-      drush_log(sprintf('No sitegroup defined in .amazeeio.yml file, will try to fall back to deprecated $sitename variable.'));
+      drush_log('No sitegroup defined in .amazeeio.yml file, will try to fall back to deprecated $sitename variable.');
     }
   } else {
-    drush_log(sprintf('Could not find .amazeeio.yml file.'));
+    drush_log('Could not find .amazeeio.yml file.');
   }
 
   // Sitegroup still not defined, last try: using the deprecated variable $sitename directly inside aliases.drushrc.php
   if ($sitegroup_name === FALSE) {
     if ($sitename && $sitename != 'CHANGEME') {
       $sitegroup_name = $sitename;
-      drush_log(sprintf('Using sitegroup name "%s" from deprecated $sitename variable within aliases.drushrc.php. You should define the sitegroup within .amazeeio.yml for future compatibility.', $sitegroup_name), 'warning');
+      drush_log("Using sitegroup name '$sitegroup_name' from deprecated \$sitename variable within aliases.drushrc.php. You should define the sitegroup within .amazeeio.yml for future compatibility.", 'warning');
     } else {
       // No $sitename defined either (or never changed), fully bail here.
       drush_log('ERROR: Could not discover sitegroup name, you should define it inside your .amazeeio.yml file', 'warning');
@@ -80,12 +82,18 @@ $cache = drush_cache_get($cid);
 
 // Drush does not respect the cache expire, so we need to check it ourselves.
 if (isset($cache->data) && time() < $cache->expire && getenv('AMAZEEIO_IGNORE_DRUSHCACHE') === FALSE) {
+  drush_log('Hit amazee.io sitegroup cache');
   $aliases = $cache->data;
+
+  if (getenv('AMAZEEIO_DEBUG')) {
+    drush_log("Aliases found in cache: " . var_export($aliases, true));
+  }
+
   return;
 }
 
 // The aliases haven't been cached yet. Load them from the API.
-drush_log(sprintf('Loading site configuration for "%s" from the API.', $sitegroup_name));
+drush_log("Loading site configuration for '$sitegroup_name' from the API.");
 
 $query = sprintf('{
   siteGroup:siteGroupByName(name: "%s") {
@@ -116,6 +124,9 @@ $query = sprintf('{
 }', $sitegroup_name);
 
 $api = getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') ? getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') : 'https://api.amazeeio.services/graphql';
+
+drush_log("Using $api as amazee.io API endpoint");
+
 $curl = curl_init($api);
 
 // Build up the curl options for the GraphQL query. When using the content type
@@ -132,22 +143,32 @@ curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
 
 $response = curl_exec($curl);
 
+if (getenv('AMAZEEIO_DEBUG')) {
+  drush_log("Response from api: " . var_export($response, true));
+}
+
 // Check if the curl request succeeded.
 if ($response === FALSE) {
   $info = var_export(curl_getinfo($curl), TRUE);
+  $error = curl_error($curl);
   curl_close($curl);
 
 
-  drush_log($info, 'warning');
+  drush_log($info, 'error');
+  drush_log($error, 'error');
   exit;
 }
 
 curl_close($curl);
 $response = json_decode($response);
 
+if (getenv('AMAZEEIO_DEBUG')) {
+  drush_log("Decoded response from api: " . var_export($response, true));
+}
+
 // Check if the query returned any data for the requested site group.
 if (empty($response->data->siteGroup->sites)) {
-  drush_log(sprintf('Curl request didn\'t return any sites for the given site group "%s".', $sitegroup_name), 'warning');
+  drush_log("Curl request didn't return any sites for the given site group '$sitegroup_name'.", 'warning');
   return;
 }
 
@@ -228,6 +249,10 @@ $aliases = array_reduce($sites, function ($carry, $item) use ($defaults) {
 
   return $carry + $aliases;
 }, []);
+
+if (getenv('AMAZEEIO_DEBUG')) {
+  drush_log("Generated aliases: " . var_export($aliases, true));
+}
 
 // Caching the aliases for 10 minutes.
 drush_cache_set($cid, $aliases, 'default', time() + 600);
