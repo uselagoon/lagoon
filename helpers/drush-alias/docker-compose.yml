@@ -13,6 +13,8 @@ services:
       # otherwise the script will not find any data for the sitegroup
       - AMAZEEIO_OVERRIDE_SITEGROUP=xxxx
       - AMAZEEIO_OVERRIDE_API_ENDPOINT=http://api:3000/graphql
+      #- AMAZEEIO_DEBUG=true
+      #- AMAZEEIO_IGNORE_DRUSHCACHE=true
     volumes:
       - './web/aliases.drushrc.php.stub:/etc/drush/aliases.drushrc.php'
     networks:
