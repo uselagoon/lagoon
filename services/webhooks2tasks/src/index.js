@@ -1,5 +1,4 @@
 // @flow
-require('flow-remove-types/register')({ excludes: '' })
 
 const amqp = require('amqp-connection-manager');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');

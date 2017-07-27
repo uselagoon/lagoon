@@ -6,7 +6,7 @@ const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
 
-export async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -49,3 +49,5 @@ export async function githubPullRequestClosed(webhook: WebhookRequestData, siteG
       }
     }
 }
+
+module.exports = githubPullRequestClosed;
