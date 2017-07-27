@@ -1,7 +1,7 @@
 // @flow
 
 import { runGQLQuery } from '../../query';
-import { listSites } from '../list';
+import { listSites } from '../sites';
 
 jest.mock('../../query');
 

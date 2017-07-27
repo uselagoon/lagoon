@@ -6,21 +6,17 @@ import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import {
-  printNoConfigError,
-  printErrors,
-  printGraphQLErrors,
-} from '../printErrors';
+import { printNoConfigError, printGraphQLErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
-const name = 'list';
+const name = 'sites';
 const description = 'List specific deployment information';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
-    .usage(`$0 ${name} [target] - ${description}`)
+    .usage(`$0 ${name} - ${description}`)
     .options({
       sitegroup: {
         demandOption: false,
@@ -30,11 +26,11 @@ export async function setup(yargs: Yargs): Promise<Object> {
     })
     .alias('s', 'sitegroup')
     .example(
-      `$0 ${name} sites`,
+      `$0 ${name}`,
       'List all sites for the specific sitegroup configured in your .amazeeio.yml config file',
     )
     .example(
-      `$0 ${name} sites -s mysitegroup`,
+      `$0 ${name} -s mysitegroup`,
       'List all sites for a specific sitegroup (instead of using the config file)',
     ).argv;
 }
@@ -122,11 +118,8 @@ export async function listSites({
   return 0;
 }
 
-type Target = 'sites';
-
 type Args = BaseArgs & {
   sitegroup: ?string,
-  target: Target,
   clog: typeof console.log,
   cerr: typeof console.error,
 };
@@ -140,18 +133,8 @@ export async function run(args: Args): Promise<number> {
     return printNoConfigError(cerr);
   }
 
-  const [target] = args._.slice(1);
   const sitegroup = args.sitegroup || config.sitegroup;
-
-  switch (target) {
-    case 'sites':
-      return listSites({ sitegroup, clog, cerr });
-    default:
-      return printErrors(
-        cerr,
-        `Unknown target ${target} ... possible values: 'sites'`,
-      );
-  }
+  return listSites({ sitegroup, clog, cerr });
 }
 
 export default {
