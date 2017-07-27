@@ -24,7 +24,7 @@ type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
 
 initSendToAmazeeioLogs();
 
-export function createReqHandler(options: Options): Handler {
+function createReqHandler(options: Options): Handler {
   const {
     path,
     channelWrapperWebhooks,
@@ -90,3 +90,5 @@ export function createReqHandler(options: Options): Handler {
 
   return handler;
 }
+
+module.exports = createReqHandler;

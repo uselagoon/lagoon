@@ -28,10 +28,12 @@
     "lokka-transport-http": "^1.4.0",
     "newman": "^3.3.0",
     "nodemon": "^1.11.0",
+    "ramda": "^0.24.1",
     "uuid4": "^1.0.0"
   },
   "devDependencies": {
     "flow-bin": "^0.37.4",
-    "jest": "^18.1.0"
+    "jest": "^18.1.0",
+    "prettier": "^1.5.3"
   }
 }
