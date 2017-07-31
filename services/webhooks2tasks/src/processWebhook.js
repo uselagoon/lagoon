@@ -6,8 +6,8 @@ const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { githubPullRequestClosed } = require('./handlers/githubPullRequestClosed');
 const { githubBranchDeleted } = require('./handlers/githubBranchDeleted');
 const { githubPush } = require('./handlers/githubPush');
-const { gitlabPush } = require('./handlers/gitlabPush');
-const { gitlabBranchDeleted } = require('./handlers/gitlabBranchDeleted');
+const gitlabPush = require('./handlers/gitlabPush');
+const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
