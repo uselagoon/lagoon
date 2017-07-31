@@ -1,10 +1,12 @@
 // @flow
 
-import { makeExecutableSchema } from 'graphql-tools';
-import { getContext } from '../app';
+const { makeExecutableSchema } = require('graphql-tools');
+const getContext = require('../getContext');
+
 import type { Slack } from '../types';
 import type { ClientView, SiteGroupView, SiteView } from '../selectors';
-import GraphQLJSON from 'graphql-type-json';
+
+const GraphQLJSON = require('graphql-type-json');
 
 const typeDefs = `
   scalar JSON
@@ -121,46 +123,61 @@ const resolvers = {
       const { getState } = context.store;
       const { findSiteGroup } = context.selectors;
 
-      return findSiteGroup({
-        siteGroupName: args.name,
-      }, getState());
+      return findSiteGroup(
+        {
+          siteGroupName: args.name,
+        },
+        getState()
+      );
     },
     siteGroupByGitUrl: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { findSiteGroup } = context.selectors;
 
-      return findSiteGroup({
-        git_url: args.gitUrl,
-      }, getState());
+      return findSiteGroup(
+        {
+          git_url: args.gitUrl,
+        },
+        getState()
+      );
     },
     allSiteGroups: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { filterSiteGroups } = context.selectors;
 
-      return filterSiteGroups({
-        git_url: args.gitUrl,
-        created: args.createdAfter && createdAfter(args.createdAfter),
-      }, getState());
+      return filterSiteGroups(
+        {
+          git_url: args.gitUrl,
+          created: args.createdAfter && createdAfter(args.createdAfter),
+        },
+        getState()
+      );
     },
     allSites: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { filterSites } = context.selectors;
 
-      return filterSites({
-        site_environment: args.environmentType,
-      }, getState());
+      return filterSites(
+        {
+          site_environment: args.environmentType,
+        },
+        getState()
+      );
     },
     siteByName: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { findSite } = context.selectors;
 
-      return findSite({
-        siteName: args.name,
-      }, getState());
+      return findSite(
+        {
+          siteName: args.name,
+        },
+        getState()
+      );
     },
     allClients: (_, __, req) => {
       const context = getContext(req);
@@ -176,10 +193,13 @@ const resolvers = {
       const { getState } = context.store;
       const { filterSiteGroups } = context.selectors;
 
-      return filterSiteGroups({
-        client: client.clientName,
-        created: args.createdAfter && createdAfter(args.createdAfter),
-      }, getState());
+      return filterSiteGroups(
+        {
+          client: client.clientName,
+          created: args.createdAfter && createdAfter(args.createdAfter),
+        },
+        getState()
+      );
     },
     sshKeys: (client: ClientView, _, req) => {
       const context = getContext(req);
@@ -195,30 +215,45 @@ const resolvers = {
       const { getState } = context.store;
       const { findClient } = context.selectors;
 
-      return siteGroup.client && findClient({
-        clientName: siteGroup.client,
-      }, getState());
+      return (
+        siteGroup.client &&
+        findClient(
+          {
+            clientName: siteGroup.client,
+          },
+          getState()
+        )
+      );
     },
     billingClient: (siteGroup: SiteGroupView, _, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { findClient } = context.selectors;
 
-      return siteGroup.billingclient && findClient({
-        clientName: siteGroup.billingclient,
-      }, getState());
+      return (
+        siteGroup.billingclient &&
+        findClient(
+          {
+            clientName: siteGroup.billingclient,
+          },
+          getState()
+        )
+      );
     },
     sites: (siteGroup: SiteGroupView, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { filterSites } = context.selectors;
 
-      return filterSites({
-        sitegroup: siteGroup.siteGroupName,
-        site_branch: args.branch,
-        site_environment: args.environmentType,
-        created: args.createdAfter && createdAfter(args.createdAfter),
-      }, getState());
+      return filterSites(
+        {
+          sitegroup: siteGroup.siteGroupName,
+          site_branch: args.branch,
+          site_environment: args.environmentType,
+          created: args.createdAfter && createdAfter(args.createdAfter),
+        },
+        getState()
+      );
     },
     gitUrl: (siteGroup: SiteGroupView) => siteGroup.git_url,
     sshKeys: (siteGroup: SiteGroupView, _, req) => {
@@ -262,4 +297,4 @@ const resolvers = {
   },
 };
 
-export default makeExecutableSchema({ typeDefs, resolvers });
+module.exports = makeExecutableSchema({ typeDefs, resolvers });

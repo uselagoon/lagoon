@@ -105,7 +105,7 @@ export async function run({
   sitegroup,
   clog,
   cerr,
-}: Args): Promise<number> {
+  }: Args): Promise<number> {
   const filepath = path.join(cwd, '.amazeeio.yml');
 
   const exists = await fileExists(filepath);
@@ -128,7 +128,7 @@ export async function run({
         name: 'sitegroup',
         message: 'Enter the name of the sitegroup to configure.',
         validate: input =>
-            input ? Boolean(input) : 'Please enter a sitegroup.',
+          input ? Boolean(input) : 'Please enter a sitegroup.',
       },
     ]);
 

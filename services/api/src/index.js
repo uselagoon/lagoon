@@ -1,10 +1,14 @@
 // @flow
 
-import 'babel-polyfill';
-import { ensureRepository, createCredentialsCb, createSignature } from './util/git';
-import logger from './logger';
-import server from './server';
-import createStore from './createStore';
+const {
+  ensureRepository,
+  createCredentialsCb,
+  createSignature,
+} = require('./util/git');
+
+const logger = require('./logger');
+const createServer = require('./server');
+const createStore = require('./createStore');
 
 const { validateApiEnv } = require('./validate');
 
@@ -12,7 +16,9 @@ const { validateApiEnv } = require('./validate');
   logger.debug('Starting to boot the application.');
 
   if (!process.env.GIT_REPOSITORY || !process.env.GIT_BRANCH_PULL) {
-    throw new Error('Missing repository or branch name in environment variables.');
+    throw new Error(
+      'Missing repository or branch name in environment variables.'
+    );
   }
 
   try {
@@ -33,7 +39,7 @@ const { validateApiEnv } = require('./validate');
       GIT_REPOSITORY,
       GIT_BRANCH_PULL,
       GIT_REPO_DIR,
-      credCb,
+      credCb
     );
 
     const signature = createSignature();
@@ -53,11 +59,11 @@ const { validateApiEnv } = require('./validate');
     const initialState = await {};
     const store = createStore(initialState, sagaArgs);
 
-    await server(store);
+    await createServer(store);
 
     logger.debug('Finished booting the application.');
   } catch (e) {
     logger.error('Error occurred while starting the application');
-    logger.error(e.message);
+    logger.error(e.stack);
   }
 })();

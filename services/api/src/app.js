@@ -1,25 +1,17 @@
 // @flow
 
-import express from 'express';
-import morgan from 'morgan';
-import compression from 'compression';
-import { json } from 'body-parser';
-import selectors from './selectors';
-import logger from './logger';
-import createRouter from './routes';
+const express = require('express');
+const morgan = require('morgan');
+const compression = require('compression');
+const { json } = require('body-parser');
+const selectors = require('./selectors');
+const logger = require('./logger');
+const createRouter = require('./routes');
 
-import type { $Application, $Request } from 'express';
+import type { $Application } from 'express';
 import type { ApiStore } from './createStore';
 
-export type Context = {
-  selectors: typeof selectors,
-  store: ApiStore,
-};
-
-export const getContext = (req: $Request): Context =>
-  (req.app.get('context'): any);
-
-export default (store: ApiStore): $Application => {
+const createApp = (store: ApiStore): $Application => {
   const app = express();
 
   // Set the global app context (make the state accessible
@@ -41,7 +33,7 @@ export default (store: ApiStore): $Application => {
       stream: {
         write: message => logger.info(message),
       },
-    }),
+    })
   );
 
   // Add routes.
@@ -49,3 +41,5 @@ export default (store: ApiStore): $Application => {
 
   return app;
 };
+
+module.exports = createApp;

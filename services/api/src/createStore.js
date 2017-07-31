@@ -1,10 +1,10 @@
 // @flow
 
-import { createStore, applyMiddleware } from 'redux';
-import { composeWithDevTools } from 'remote-redux-devtools';
-import createSagaMiddleware from 'redux-saga';
+const { createStore: createReduxStore, applyMiddleware } = require('redux');
 
-import rootSaga from './sagas';
+const createSagaMiddleware = require('redux-saga').default;
+
+const rootSaga = require('./sagas');
 
 const reducer = require('./reducer');
 
@@ -21,6 +21,8 @@ const enhanceMiddleware = (...middleware) => {
 
   // REMOTE_DEV_SERVER is useful if we want to just run the application without jkkjj
   if (process.env.NODE_ENV === 'development' && remoteDevEnabled) {
+    // eslint-disable-next-line import/no-extraneous-dependencies, global-require
+    const { composeWithDevTools } = require('remote-redux-devtools');
     // 'remotedev' is a container managed by docker-compose
     const composeEnhancers = composeWithDevTools({
       realtime: true,
@@ -33,11 +35,13 @@ const enhanceMiddleware = (...middleware) => {
   return applyMiddleware(...middleware);
 };
 
-export default (initialState: State, sagaArgs: RootSagaArgs): ApiStore => {
+const createStore = (initialState: State, sagaArgs: RootSagaArgs): ApiStore => {
   const sagaMiddleware = createSagaMiddleware();
 
-  const store = createStore(reducer, enhanceMiddleware(sagaMiddleware));
+  const store = createReduxStore(reducer, enhanceMiddleware(sagaMiddleware));
   sagaMiddleware.run(rootSaga, sagaArgs);
 
   return store;
 };
+
+module.exports = createStore;

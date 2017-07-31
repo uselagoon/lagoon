@@ -8,4 +8,4 @@ const notFoundRoute = (req: $Request, res: $Response) =>
     message: `No endpoint exists at ${req.originalUrl} (method: ${req.method})`,
   });
 
-export default [notFoundRoute];
+module.exports = [notFoundRoute];

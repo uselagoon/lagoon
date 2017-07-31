@@ -2,9 +2,9 @@
 
 const bl = require('bl');
 const { bufferEq } = require('buffer-equal-constant-time');
-const { extractWebhookData } = require('./extractWebhookData');
+const extractWebhookData = require('./extractWebhookData');
 
-const { sendToAmazeeioWebhooks } = require('./sendToAmazeeioWebhooks');
+const sendToAmazeeioWebhooks = require('./sendToAmazeeioWebhooks');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 
 import type { Logger } from '@amazeeio/lagoon-commons/src/local-logging';

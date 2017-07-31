@@ -15,16 +15,16 @@ const siteGroupToYaml = (siteGroup: SiteGroup): string =>
 
 const writeSiteGroupsFile = (
   repoPath: string,
-  yamlContent: string,
+  yamlContent: string
 ): Promise<void> =>
   writeFile(siteGroupsFilePath(repoPath), yamlContent, 'utf8');
 
 const readSiteGroupsFile = async (
-  repoPath: string,
+  repoPath: string
 ): Promise<SiteGroupsFile> => {
   // TODO: Maybe use a schema w/ safeLoad?
-  const yaml = await readFile(siteGroupsFilePath(repoPath), 'utf8');
-  return Yaml.safeLoad(yaml);
+  const yaml = await readFile(siteGroupsFilePath(repoPath));
+  return Yaml.safeLoad(yaml.toString());
 };
 
 module.exports = {
