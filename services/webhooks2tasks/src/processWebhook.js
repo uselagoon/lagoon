@@ -7,6 +7,7 @@ const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
 const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
 const bitbucketPush = require('./handlers/bitbucketPush');
+const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
@@ -108,7 +109,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 
         break;
       case "bitbucket:repo:push":
-        if (body.deleted === true) {
+        if (body.push.changes[0].closed === true) {
           await handle(bitbucketBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
         } else {
           await handle(bitbucketPush, webhook, siteGroup, `${webhooktype}:${event}`)
