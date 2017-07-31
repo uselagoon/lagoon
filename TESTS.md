@@ -21,9 +21,9 @@ Now you can run tests, via ansible:
 
 This would run all tests defined in `tests/playbooks/node.yaml`. If you like only to run a subset of the tests, it's best to shortly comment out the tests in these files you don't like to run.
 
-Sometimes you just would like to create another push webhook, without to wait for the git repo to be initialized and beeing pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repo and push a webhook push. It needs to know which git repo you would like to check and push:
+Sometimes you just would like to create another push webhook, without to wait for the git repo to be initialized and beeing pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repo and push a webhook push. It needs to know which git repo and branch you would like to check and push:
 
-		docker-compose exec tests ansible-playbook /ansible/playbooks/helpers/just-push.yaml -e git_repo_name=node.git
+		docker-compose exec tests ansible-playbook /ansible/playbooks/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
 
 In order to actually see what is happening inside the microservices, we can use `docker-compose logs`:
 

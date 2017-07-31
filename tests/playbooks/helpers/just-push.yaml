@@ -20,3 +20,4 @@
   tasks:
   - include: ../../tasks/webhook-github/push.yaml
   - include: ../../tasks/webhook-bitbucket/push.yaml
+  - include: ../../tasks/webhook-gitlab/push.yaml

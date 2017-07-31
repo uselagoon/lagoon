@@ -8,6 +8,8 @@ const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
 const bitbucketPush = require('./handlers/bitbucketPush');
 const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
+const gitlabPush = require('./handlers/gitlabPush');
+const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
@@ -113,6 +115,15 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
           await handle(bitbucketBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
         } else {
           await handle(bitbucketPush, webhook, siteGroup, `${webhooktype}:${event}`)
+        }
+
+        break;
+
+      case "gitlab:push":
+        if (body.after == '0000000000000000000000000000000000000000' ) {
+          await handle(gitlabBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+        } else {
+          await handle(gitlabPush, webhook, siteGroup, `${webhooktype}:${event}`)
         }
 
         break;
