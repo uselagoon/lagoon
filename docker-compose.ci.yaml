@@ -53,7 +53,6 @@ services:
     volumes:
       - .:/lagoon
     depends_on:
-      - auth-server
       - local-hiera-watcher-pusher      
   jenkins:
     build:
