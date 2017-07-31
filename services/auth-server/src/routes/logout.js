@@ -1,7 +1,8 @@
 // @flow
 
-import { get, destroy } from '../util/db';
-import { validateKey, parseJson } from '../util/routing';
+const { get, destroy } = require('../util/db');
+const { validateKey, parseJson } = require('../util/routing');
+
 import type { $Request, $Response } from 'express';
 
 function destroyToken(key: string): Promise<Object> {
@@ -19,4 +20,4 @@ function logoutRoute(req: $Request, res: $Response, next: Function) {
   destroyToken(key).then(success).catch(next);
 }
 
-export default [parseJson, validateKey, logoutRoute];
+module.exports = [parseJson, validateKey, logoutRoute];

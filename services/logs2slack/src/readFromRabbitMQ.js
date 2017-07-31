@@ -21,7 +21,7 @@ export type SiteGroup = {
   siteGroupName: string,
 };
 
-export async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
+async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const {
     content,
     fields,
@@ -113,3 +113,5 @@ const sendToSlack = async (sitegroup, message, color, emoji, channelWrapperLogs,
   channelWrapperLogs.ack(msg)
   return
 }
+
+module.exports = readFromRabbitMQ;

@@ -1,5 +1,4 @@
 // @flow
-require('flow-remove-types/register')({ excludes: '' })
 
 const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
@@ -10,7 +9,6 @@ const util = require('util');
 const { createDeployTask, createRemoveTask, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-
 
 initSendToAmazeeioTasks();
 initSendToAmazeeioLogs();
