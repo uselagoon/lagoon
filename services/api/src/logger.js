@@ -1,8 +1,8 @@
 // @flow
 
-import winston from 'winston';
-import path from 'path';
-import fs from 'fs';
+const winston = require('winston');
+const path = require('path');
+const fs = require('fs');
 
 // Create the logs directory if it doesn't exist yet.
 const directory = path.join('.', 'logs');
@@ -42,4 +42,4 @@ const logger: Logger = new winston.Logger({
   ],
 });
 
-export default logger;
+module.exports = logger;

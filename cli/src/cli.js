@@ -3,9 +3,10 @@
 // @flow
 
 import 'babel-polyfill';
+import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
-import { statSync, readFile } from './util/fs';
+import { readFile } from './util/fs';
 import findConfig from './findConfig';
 import parseConfig from './parseConfig';
 import { printErrors } from './printErrors';
@@ -88,7 +89,7 @@ if (require.main === module) {
       'amazee-io-cli',
     );
     try {
-      if (statSync(localCLIPath).isFile()) {
+      if (fs.statSync(localCLIPath).isFile()) {
         main = require.call(null, localCLIPath).runCLI;
         break;
       }

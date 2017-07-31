@@ -16,7 +16,7 @@ const sshKey = new schema.Entity(
       // but we need to stay consistent with the yaml structure, so we
       // need to eliminate the `id` attribute again
       R.omit(['id'], value),
-  },
+  }
 );
 
 // const renameSshKeys = (relName: string, sshKeys: SshKeys): SshKeys =>
@@ -29,12 +29,13 @@ const sshKey = new schema.Entity(
 const addSshKeyId = (
   ctx: 'site' | 'sitegroup' | 'client',
   relName: string,
-  sshKeys: SshKeys,
+  sshKeys: SshKeys
 ): SshKeys =>
-  R.mapObjIndexed((sshKeyObj, personName) => ({
-    ...sshKeyObj,
-    id: [ctx, relName, personName].join('/'),
-  }))(sshKeys);
+  R.mapObjIndexed((sshKeyObj, personName) =>
+    Object.assign({}, sshKeyObj, {
+      id: [ctx, relName, personName].join('/'),
+    })
+  )(sshKeys);
 
 const siteGroupObj = new schema.Entity(
   'siteGroups',
@@ -52,9 +53,9 @@ const siteGroupObj = new schema.Entity(
       // the id attribute in the ssh key normalization process (see sshKey schema)
       const sshKeys = addSshKeyId('sitegroup', sgName, value.ssh_keys);
 
-      return { ...value, ssh_keys: sshKeys };
+      return Object.assign({}, value, { ssh_keys: sshKeys });
     },
-  },
+  }
 );
 
 const siteGroupObjSchema = new schema.Values(siteGroupObj);
