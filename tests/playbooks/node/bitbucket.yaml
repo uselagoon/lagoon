@@ -22,8 +22,7 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup1: "{{ sitegroup1 }}"
-    sitegroup2: "{{ sitegroup2 }}"
+    sitegroup: "{{ sitegroup }}"
 
 - name: "{{ testname }} - second commit (empty) and git push into same git repo"
   hosts: localhost
@@ -44,8 +43,7 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup1: "{{ sitegroup1 }}"
-    sitegroup2: "{{ sitegroup2 }}"
+    sitegroup: "{{ sitegroup }}"
 
 - name: "{{ testname }} - third commit (empty) and git push into same git repo - no webhook push yet"
   hosts: localhost
@@ -75,7 +73,7 @@
   vars:
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"
-    sitegroup1: "{{ sitegroup1 }}"
+    sitegroup: "{{ sitegroup }}"
     sitegroup2: "{{ sitegroup2 }}"
 
 - name: "{{ testname }} - webhook bitbucket delete push"
@@ -86,20 +84,11 @@
   tasks:
   - include: ../../tasks/webhook-bitbucket/push-delete.yaml
 
-- name: "{{ testname }} - check if site for sitegroup1 does not exist anymore"
+- name: "{{ testname }} - check if site for sitegroup does not exist anymore"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-    expected_returncode: 503
-  tasks:
-  - include: ../../tests/test-url-returncode.yaml
-
-- name: "{{ testname }} - check if site for sitegroup2 does not exist anymore"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
   - include: ../../tests/test-url-returncode.yaml
