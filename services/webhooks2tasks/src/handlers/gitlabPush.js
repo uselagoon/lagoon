@@ -6,7 +6,7 @@ const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
 
-export async function gitlabPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function function gitlabPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -62,3 +62,5 @@ export async function gitlabPush(webhook: WebhookRequestData, siteGroup: SiteGro
     }
 
 }
+
+module.exports = gitlabPush;
