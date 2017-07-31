@@ -55,10 +55,18 @@ objects:
           - containerPort: 8080
             protocol: TCP
           readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
+            httpGet:
+              path: /nginx_status
+              port: 50000
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /nginx_status
+              port: 50000
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            failureThreshold: 5
           env:
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:

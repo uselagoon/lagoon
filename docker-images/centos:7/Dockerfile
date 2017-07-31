@@ -6,6 +6,10 @@ RUN curl -sLo /usr/local/bin/fix-permissions https://raw.githubusercontent.com/s
 RUN curl -sLo /usr/local/bin/ep https://github.com/kreuzwerker/envplate/releases/download/1.0.0-RC1/ep-linux && \
     chmod +x /usr/local/bin/ep
 
+ENV TINI_VERSION v0.15.0
+RUN curl -sLo /usr/local/bin/tini  https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini && \
+    chmod +x /usr/local/bin/tini
+
 RUN yum install -y which && \
     yum clean all
 
@@ -18,7 +22,7 @@ RUN chmod g+w /home
 ENV HOME=/home
 
 COPY amazeeio-entrypoints.sh /usr/sbin/amazeeio-entrypoints
-ENTRYPOINT ["amazeeio-entrypoints"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/sbin/amazeeio-entrypoints"]
 
 COPY entrypoints /amazeeio/entrypoints
 

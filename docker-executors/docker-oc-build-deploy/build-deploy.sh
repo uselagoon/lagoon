@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-git-checkout-pull $GIT_REPO $GIT_REF
+/scripts/git-checkout-pull.sh $GIT_REPO $GIT_REF
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 
@@ -34,6 +34,13 @@ fi
 
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
+FLAVOR=($(cat .amazeeio.yml | shyaml get-value flavor custom))
+
+if [ $FLAVOR == "drupal" ]; then
+  . /scripts/build-deploy-drupal.sh
+  exit
+fi
+
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
@@ -49,15 +56,18 @@ SERVICES=($(cat .amazeeio.yml | shyaml keys services))
 # export the services so Jenkins can load them afterwards to check the deployments
 cat .amazeeio.yml | shyaml keys services | tr '\n' ',' | sed 's/,$//' > .amazeeio.services
 
+BUILD_ARGS=()
+
 for SERVICE in "${SERVICES[@]}"
 do
+  SERVICE_UPPERCASE=$(echo "$SERVICE" | tr '[:lower:]' '[:upper:]')
   SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type custom)
   OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.dockerfile false)
   BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.context .)
 
   if [ $OVERRIDE_DOCKERFILE == "false" ]; then
     DOCKERFILE="/openshift-templates/${SERVICE_TYPE}/Dockerfile"
-    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+    if [ ! -f $DOCKERFILE ]; then
       echo "No Dockerfile for service type ${SERVICE_TYPE} found"; exit 1;
     fi
   else
@@ -67,7 +77,10 @@ do
     fi
   fi
 
-  . /usr/sbin/exec-build
+  . /scripts/exec-build.sh
+
+  # adding the build image to the list of arguments passed into the next image builds
+  BUILD_ARGS+=("${SERVICE_UPPERCASE}_IMAGE=${IMAGE}-${SERVICE}")
 done
 
 for SERVICE in "${SERVICES[@]}"
@@ -87,10 +100,10 @@ do
     fi
   fi
 
-  . /usr/sbin/exec-openshift-resources
+  . /scripts/exec-openshift-resources.sh
 done
 
 for SERVICE in "${SERVICES[@]}"
 do
-  . /usr/sbin/exec-push
+  . /scripts/exec-push.sh
 done

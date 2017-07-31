@@ -1,0 +1,5 @@
+
+flavor: drupal
+env:
+  - WEBROOT=/web
+  - WEBROOT2=/web

@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: services/webhook-handler/Dockerfile
-    command: yarn run dev
+    #command: yarn run dev
     ports:
       - "7777:3000"
     volumes:
@@ -163,7 +163,7 @@ services:
       - SSH_AUTH_HOST=auth-ssh
       - SSH_AUTH_PORT=2020
     volumes:
-      - ./tests:/ansible
+      - ./tests:/ansible:delegated
   git:
     build: local-git-server
     environment:
