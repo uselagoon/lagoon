@@ -6,7 +6,7 @@ const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup  } from '../types';
 
-export  async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -50,3 +50,5 @@ export  async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGrou
     }
 
 }
+
+module.exports = gitlabBranchDeleted;
