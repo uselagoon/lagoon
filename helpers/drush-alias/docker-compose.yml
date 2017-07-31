@@ -1,0 +1,24 @@
+version: '2'
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - "8087:8080"
+  testing:
+    image: 'drupaldocker/drush:8-alpine'
+    environment:
+      # Make sure to run lagoon with properly configured hiera repo
+      # otherwise the script will not find any data for the sitegroup
+      - AMAZEEIO_OVERRIDE_SITEGROUP=xxxx
+      - AMAZEEIO_OVERRIDE_API_ENDPOINT=http://api:3000/graphql
+      #- AMAZEEIO_DEBUG=true
+      #- AMAZEEIO_IGNORE_DRUSHCACHE=true
+    volumes:
+      - './web/aliases.drushrc.php.stub:/etc/drush/aliases.drushrc.php'
+    networks:
+      - lagoon_default
+networks:
+  lagoon_default:
+    external: true

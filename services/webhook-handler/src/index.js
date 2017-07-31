@@ -1,19 +1,12 @@
 // @flow
 
-require("babel-polyfill");
-
-import http from 'http';
-import events from 'events';
-
-import amqp from 'amqp-connection-manager';
-
-import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import createReqHandler from './createReqHandler';
+const http = require('http');
+const events = require('events');
+const amqp = require('amqp-connection-manager');
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const createReqHandler = require('./createReqHandler');
 
 import type { ChannelWrapper } from './types';
-
-// Initialize the logging mechanism
-initLogger();
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
@@ -25,7 +18,7 @@ connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { a
 connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));
 
 // Cast any to ChannelWrapper to get type-safetiness through our own code
-const channelWrapper: ChannelWrapper = connection.createChannel({
+const channelWrapperWebhooks: ChannelWrapper = connection.createChannel({
 	setup: channel => {
 		return Promise.all([
 			channel.assertExchange('amazeeio-webhooks', 'direct', { durable: true }),
@@ -33,7 +26,7 @@ const channelWrapper: ChannelWrapper = connection.createChannel({
 	}
 });
 
-const handler = createReqHandler({ path: '/', channelWrapper });
+const handler = createReqHandler({ path: '/', channelWrapperWebhooks });
 
 http.createServer((req, res) => {
   const { method, url, headers } = req;

@@ -1,17 +1,13 @@
 // @flow
 
-require("babel-polyfill");
+const sleep = require("es7-sleep");
+const { Lokka } = require('lokka');
+const { Transport } = require('lokka-transport-http');
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { Jenkins } = require('jenkins');
+const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import sleep from "es7-sleep";
-import Lokka from 'lokka';
-import Transport from 'lokka-transport-http';
-import { logger, initLogger } from '@amazeeio/amazeeio-local-logging';
-import jenkinsLib from 'jenkins'
-import { sendToAmazeeioLogs, initSendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-import { consumeTasks, initSendToAmazeeioTasks } from '@amazeeio/amazeeio-tasks';
-
-// Initialize the logging mechanism
-initLogger();
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
@@ -21,7 +17,6 @@ const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION ||
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ocBuildDeployBranch = process.env.AMAZEEIO_GIT_BRANCH || "master"
 const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
-
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)
@@ -241,7 +236,7 @@ node {
 
   var jobname = `${foldername}/deploy-${safeBranchName}`
 
-  const jenkins = jenkinsLib({ baseUrl: `${jenkinsUrl}`, promisify: true});
+  const jenkins = Jenkins({ baseUrl: `${jenkinsUrl}`, promisify: true});
 
   // First check if the Folder exists (hint: Folders are also called "job" in Jenkins)
   if (await jenkins.job.exists(foldername)) {
@@ -330,7 +325,6 @@ node {
 }
 
 const deathHandler = async (msg, lastError) => {
-
   const {
     siteGroupName,
     branchName,
@@ -354,7 +348,6 @@ ${lastError}
 }
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
-
   const {
     siteGroupName,
     branchName,

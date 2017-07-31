@@ -1,6 +1,6 @@
 // @flow
 
-import { view } from '../util/db';
+const { view } = require('../util/db');
 
 function getKeyFromToken(token: string): Promise<string> {
   return view('auth', 'by_token', { token }).then((body) => {
@@ -20,4 +20,4 @@ function authenticateRoute(req: $Request, res: $Response, next: Function) {
   getKeyFromToken(token).then(success).catch(next);
 }
 
-export default [authenticateRoute];
+module.exports = [authenticateRoute];

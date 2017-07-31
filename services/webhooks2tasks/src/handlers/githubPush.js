@@ -1,16 +1,12 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
-
-import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-
-import { createDeployTask } from '@amazeeio/amazeeio-tasks';
-
-import { getEnabledSystemsForSiteGroup } from '@amazeeio/amazeeio-api';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
 
-export default async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -66,3 +62,5 @@ export default async function githubPush(webhook: WebhookRequestData, siteGroup:
     }
 
 }
+
+module.exports = githubPush;

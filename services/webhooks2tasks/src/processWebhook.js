@@ -1,20 +1,16 @@
 // @flow
 
-import { logger } from '@amazeeio/amazeeio-local-logging';
-
-import { getSiteGroupsByGitUrl } from '@amazeeio/amazeeio-api';
-import { SiteGroupNotFound } from '@amazeeio/amazeeio-logs';
-import { sendToAmazeeioLogs } from '@amazeeio/amazeeio-logs';
-import githubPullRequestClosed from './handlers/githubPullRequestClosed';
-import githubBranchDeleted from './handlers/githubBranchDeleted';
-import githubPush from './handlers/githubPush';
-import bitbucketPush from './handlers/bitbucketPush';
+const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { getSiteGroupsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
+const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
+const githubBranchDeleted = require('./handlers/githubBranchDeleted');
+const githubPush = require('./handlers/githubPush');
+const bitbucketPush = require('./handlers/bitbucketPush');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
-
-export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapper: ChannelWrapper): Promise<void> {
-
+async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
   const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString())
 
   let siteGroups: SiteGroup[]
@@ -38,7 +34,7 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
       sendToAmazeeioLogs('warn', 'unresolved', uuid, `unresolvedSitegroup:webhooks2tasks`, meta,
         `Unresolved sitegroup \`${giturl}\` while handling ${webhooktype}:${event}`
       )
-      channelWrapper.ack(rabbitMsg)
+      channelWrapperWebhooks.ack(rabbitMsg)
     } else {
       // we have an error that we don't know about, let's retry this message a little later
 
@@ -46,7 +42,7 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
 
 			if (retryCount > 3) {
         sendToAmazeeioLogs('error', '', uuid, "webhooks2tasks:resolveSitegroup:fail", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading sitegroup for GitURL '${giturl}', bailing after 3 retries, error was: ${error}`)
-				channelWrapper.ack(rabbitMsg)
+				channelWrapperWebhooks.ack(rabbitMsg)
 				return
 			}
 
@@ -61,15 +57,15 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
 				timestamp: rabbitMsg.properties.timestamp,
 				contentType: rabbitMsg.properties.contentType,
 				deliveryMode: rabbitMsg.properties.deliveryMode,
-				headers: { ...rabbitMsg.properties.headers, 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount},
+				headers: Object.assign({}, rabbitMsg.properties.headers, { 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount}),
 				persistent: true,
 			};
 			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
 			// which will send the message into the original exchange `amazeeio-tasks` after x-delay time.
-			channelWrapper.publish(`amazeeio-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
+			channelWrapperWebhooks.publish(`amazeeio-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
 
 			// acknologing the existing message, we cloned it and is not necessary anymore
-			channelWrapper.ack(rabbitMsg)
+			channelWrapperWebhooks.ack(rabbitMsg)
     }
     return
   }
@@ -126,7 +122,7 @@ export default async function processWebhook (rabbitMsg: RabbitMQMsg, channelWra
     }
 
   });
-  channelWrapper.ack(rabbitMsg)
+  channelWrapperWebhooks.ack(rabbitMsg)
 }
 
 async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup, fullEvent: string){
@@ -165,3 +161,5 @@ async function unhandled(webhook: WebhookRequestData, siteGroup: SiteGroup, full
   )
   return
 }
+
+module.exports = processWebhook;

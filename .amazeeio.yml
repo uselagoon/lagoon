@@ -5,12 +5,6 @@ services:
       template: services/api/.amazeeio.app.yml
     build:
       dockerfile: services/api/Dockerfile
-  api-legacy:
-    amazeeio:
-      type: custom
-      template: services/api-legacy/.amazeeio.app.yml
-    build:
-      dockerfile: services/api-legacy/Dockerfile
   elasticsearch:
     amazeeio:
       type: custom
@@ -41,24 +35,18 @@ services:
       template: services/openshiftdeploy/.amazeeio.app.yml
     build:
       dockerfile: services/openshiftdeploy/Dockerfile
-  openshiftdeploy-legacy:
-    amazeeio:
-      type: custom
-      template: services/openshiftdeploy-legacy/.amazeeio.app.yml
-    build:
-      dockerfile: services/openshiftdeploy-legacy/Dockerfile
   openshiftremove:
     amazeeio:
       type: custom
       template: services/openshiftremove/.amazeeio.app.yml
     build:
       dockerfile: services/openshiftremove/Dockerfile
-  openshiftremove-legacy:
+  openshiftremove-resources:
     amazeeio:
       type: custom
-      template: services/openshiftremove-legacy/.amazeeio.app.yml
+      template: services/openshiftremove-resources/.amazeeio.app.yml
     build:
-      dockerfile: services/openshiftremove-legacy/Dockerfile
+      dockerfile: services/openshiftremove-resources/Dockerfile
   rabbitmq:
     amazeeio:
       type: custom
@@ -83,3 +71,10 @@ services:
       template: services/webhooks2tasks/.amazeeio.app.yml
     build:
       dockerfile: services/webhooks2tasks/Dockerfile
+  drush-alias:
+    amazeeio:
+      type: nginx:1.12
+      template: helpers/drush-alias/.amazeeio.nginx.yml
+    build:
+      context: helpers/drush-alias
+      dockerfile: Dockerfile

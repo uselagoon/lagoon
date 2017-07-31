@@ -1,7 +1,7 @@
 // @flow
 
-import graphql from 'express-graphql';
-import schema from '../schema';
+const graphql = require('express-graphql');
+const schema = require('../schema');
 
 const graphqlRoute = graphql({
   graphiql: process.env.NODE_ENV === 'development',
@@ -9,4 +9,4 @@ const graphqlRoute = graphql({
   schema,
 });
 
-export default [graphqlRoute];
+module.exports = [graphqlRoute];
