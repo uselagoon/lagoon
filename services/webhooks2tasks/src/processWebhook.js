@@ -3,9 +3,9 @@
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { getSiteGroupsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { githubPullRequestClosed } = require('./handlers/githubPullRequestClosed');
-const { githubBranchDeleted } = require('./handlers/githubBranchDeleted');
-const { githubPush } = require('./handlers/githubPush');
+const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
+const githubBranchDeleted = require('./handlers/githubBranchDeleted');
+const githubPush = require('./handlers/githubPush');
 const gitlabPush = require('./handlers/gitlabPush');
 const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 
