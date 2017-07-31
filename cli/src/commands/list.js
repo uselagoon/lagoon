@@ -49,7 +49,7 @@ export async function listSites({
   sitegroup,
   clog,
   cerr,
-}: MainArgs): Promise<number> {
+  }: MainArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
