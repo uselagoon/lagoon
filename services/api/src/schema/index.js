@@ -1,7 +1,6 @@
 // @flow
 
 const { makeExecutableSchema } = require('graphql-tools');
-const R = require('ramda');
 const getContext = require('../getContext');
 
 import type { Slack } from '../types';
