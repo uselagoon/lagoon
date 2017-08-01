@@ -160,27 +160,13 @@ const resolvers = {
     allSites: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
-      const { filterSites, findSiteGroup } = context.selectors;
-      const state = getState();
+      const { filterSites } = context.selectors;
 
-      const sitesByEnvironment = filterSites(
+      return filterSites(
         {
           site_environment: args.environmentType,
         },
-        state
-      );
-
-      return R.map(
-        site =>
-          Object.assign({}, site, {
-            sitegroup: findSiteGroup(
-              {
-                siteGroupName: site.sitegroup,
-              },
-              state
-            ),
-          }),
-        sitesByEnvironment
+        getState()
       );
     },
     siteByName: (_, args, req) => {
@@ -282,7 +268,18 @@ const resolvers = {
   },
   Site: {
     siteBranch: (site: SiteView) => site.site_branch,
-    siteGroup: (site: SiteView) => site.sitegroup,
+    siteGroup: (site: SiteView, args, req) => {
+      const context = getContext(req);
+      const { getState } = context.store;
+      const { findSiteGroup } = context.selectors;
+
+      return findSiteGroup(
+        {
+          siteGroupName: site.sitegroup,
+        },
+        getState()
+      );
+    },
     siteEnvironment: (site: SiteView) => site.site_environment,
     webRoot: (site: SiteView) => site.webroot,
     SSLCertificateType: (site: SiteView) => site.sslcerttype,
