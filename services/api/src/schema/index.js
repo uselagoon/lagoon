@@ -1,6 +1,7 @@
 // @flow
 
 const { makeExecutableSchema } = require('graphql-tools');
+const R = require('ramda');
 const getContext = require('../getContext');
 
 import type { Slack } from '../types';
@@ -159,13 +160,27 @@ const resolvers = {
     allSites: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
-      const { filterSites } = context.selectors;
+      const { filterSites, findSiteGroup } = context.selectors;
+      const state = getState();
 
-      return filterSites(
+      const sitesByEnvironment = filterSites(
         {
           site_environment: args.environmentType,
         },
-        getState()
+        state
+      );
+
+      return R.map(
+        site =>
+          Object.assign({}, site, {
+            sitegroup: findSiteGroup(
+              {
+                siteGroupName: site.sitegroup,
+              },
+              state
+            ),
+          }),
+        sitesByEnvironment
       );
     },
     siteByName: (_, args, req) => {
