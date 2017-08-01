@@ -222,12 +222,18 @@ const getSshKeysFromClients /* State => Array<string> */ = R.compose(
   R.map(extractSshKeys)
 );
 
+const siteGroupFileToSiteGroupViews = (siteGroupsFile): Array<SiteGroupView> =>
+  R.compose(
+    R.map(([id, siteGroup]) =>
+      Object.assign({}, siteGroup, { siteGroupName: id })
+    ),
+    R.toPairs,
+    R.propOr({}, 'amazeeio_sitegroups')
+  )(siteGroupsFile);
+
 const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
-  R.map(([id, siteGroup]) =>
-    Object.assign({}, siteGroup, { siteGroupName: id })
-  ),
-  Object.entries,
-  R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups'])
+  siteGroupFileToSiteGroupViews,
+  R.propOr({}, 'siteGroupsFile')
 );
 
 const filterSiteGroups = (
@@ -285,11 +291,127 @@ const siteFileToSiteViews = (
 
 // TODO: ADD TESTS
 const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
+  // R.tap(i => console.log('i', JSON.stringify(i, null, 2))),
   R.flatten,
+  // R.tap(i => console.log('i', JSON.stringify(i, null, 2))),
   // Create SiteView objects from all siteFiles w/ it's fileName
-  R.map(([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)),
+  R.map(
+    // siteFileToSiteViews
+    ([fileName, siteFile]) => siteFileToSiteViews(fileName, siteFile)
+    // R.cond([
+    //   [
+    //     R.prop('drupalsites'),
+    //     R.always(siteFileToSiteViews(fileName, siteFile)),
+    //   ],
+    //   [R.prop('amazeeio_sitegroups'), R.always([siteFile])],
+    //   [R.T, R.always([])],
+    // ])(siteFile)
+    // (R.prop('drupalsites', siteFile)
+    //   ? siteFileToSiteViews(fileName, siteFile)
+    //   : [fileName, siteFile])
+  ),
+  // siteFileToSiteViews,
+  // R.tap(i => console.log('i', JSON.stringify(i, null, 2))),
+  // R.flatten,
+  // TODO: Reduce it to an array of objects containing fileName, siteFile and siteGroup
+  // R.reduce(
+  //   // (siteFiles, siteFile) => console.log('siteFile', siteFile),
+  //   (siteFiles, siteFile) =>
+  //   R.cond([
+  //     [R.has('drupalsites'), R.always([...siteFiles, siteFile])],
+  //     [
+  //       ([fileName, siteFile]) => R.has('amazeeio_sitegroups', siteFile),
+  //       ([fileName, siteFile]) =>
+  //         R.map(
+  //           siteFileToUpdate =>
+  //             R.propEq('sitegroup', siteFile.site, siteFileToUpdate) ?
+  //             R.assoc('siteGroup', siteFile, siteFileToUpdate) :
+  //             ,
+  //           siteFiles
+  //         )(siteFile)
+  //       ,
+  //     ],
+  //     [R.T, R.always(siteFiles)],
+  //   ])(siteFile),
+  //   []
+  // ),
+
+  // R.toPairs,
+  // R.tap(console.log),
+  // R.tap(i => console.log('i', JSON.stringify(i, null, 2))),
+  (siteFiles) => {
+    const drupalsites = R.filter(
+      ([, siteFile]) => R.has('drupalsites', siteFile),
+      R.toPairs(siteFiles)
+    );
+
+    const sitegroups = R.find(
+      R.has('amazeeio_sitegroups'),
+      R.values(siteFiles)
+    );
+
+    return R.map(
+      ([fileName, siteFile]) => [
+        fileName,
+        R.mapObjIndexed(
+          (value, key) =>
+            (key !== 'drupalsites'
+              ? value
+              : R.map(
+                site =>
+                  Object.assign({}, site, {
+                    sitegroup: R.prop(
+                      site.sitegroup,
+                      sitegroups.amazeeio_sitegroups
+                    ),
+                  }),
+                value
+              )),
+          siteFile
+        ),
+      ],
+      drupalsites
+    );
+
+    // R.map(
+    //   ([fileName, siteFile]) => [
+    //     fileName,
+    //     Object.assign({}, siteFile, {
+    //       sitegroup: R.prop(siteFile.sitegroup, sitegroups.amazeeio_sitegroups),
+    //     }),
+    //   ],
+    //   drupalsites
+    // );
+    // return R.assocPath(
+    //   ['/app/.repository/compact/deploytest1.yaml', 'drupalsites'],
+    //   R.map(
+    //     s =>
+    //       Object.assign({}, s, {
+    //         sitegroup: R.prop(s.sitegroup, sitegroups.amazeeio_sitegroups),
+    //       }),
+    //     drupalsites.drupalsites
+    //   ),
+    //   siteFiles
+    // );
+  },
+  // R.tap(i => console.log('i', JSON.stringify(i, null, 2))),
+  // siteFiles.find(({sgn}) => sgn === siteFile.siteGroupName).siteGroup = siteFile
+  //
+  // R.filter(([, siteFile]) =>
+  //   R.either(R.has('drupalsites'), R.has('amazeeio_sitegroups'))(siteFile)
+  // ),
+  //
+  // R.converge(R.concat, [
+  //   ([, siteFile]) =>
+  //     console.log('sf', siteFile) ||
+  //     (R.prop('drupalsites', siteFile) ? 'drupalsites' : ''),
+  //   ([, siteFile]) =>
+  //     (R.prop('amazeeio_sitegroups', siteFile) ? 'amazeeio_sitegroups' : ''),
+  // ]),
+  // R.flatten,
   // Get all names and yaml contents of all files
-  R.toPairs,
+  // R.tap(full => console.log(JSON.stringify(full, null, 2))),
+  // R.toPairs,
   R.propOr({}, 'siteFiles')
 );
 

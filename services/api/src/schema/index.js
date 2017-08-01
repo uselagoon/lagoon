@@ -39,6 +39,7 @@ const typeDefs = `
     siteBranch: String
     uid: String
     siteHost: String
+    siteGroup: SiteGroup,
     siteName: String
     fileName: String
     siteEnvironment: String
@@ -266,6 +267,7 @@ const resolvers = {
   },
   Site: {
     siteBranch: (site: SiteView) => site.site_branch,
+    siteGroup: (site: SiteView) => site.sitegroup,
     siteEnvironment: (site: SiteView) => site.site_environment,
     webRoot: (site: SiteView) => site.webroot,
     SSLCertificateType: (site: SiteView) => site.sslcerttype,
