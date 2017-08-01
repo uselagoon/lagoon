@@ -54,10 +54,13 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       webhooktype = 'bitbucket'
       event = req.headers['x-event-key']
       uuid = req.headers['x-request-uuid']
-      var full_name = bodyObj.repository.full_name.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
-      var pat =  new RegExp("https?:\/\/([a-z0-9-_.]*).*" + full_name + "$","i")
-      var repoPath = bodyObj.repository.links.html.href.match(pat)
-      giturl = "git@" + repoPath[1] + ":" + bodyObj.repository.full_name + ".git"
+      // bitbucket does not provide a git-ssh URI to the repo in the webhook payload,
+      // here we transform the the https url into the ssh URI
+      // ex: https://bitbucket.org/amazeeio/sitename => git@bitbucket.org:amazeeio/sitename.git
+      const fullName = bodyObj.repository.full_name.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
+      const pat =  new RegExp(`https?:\/\/([a-z0-9-_.]*).*${fullName}$`,"i")
+      const repoPath = bodyObj.repository.links.html.href.match(pat)
+      giturl = `git@${repoPath[1]}:${bodyObj.repository.full_name}.git`
     } else {
       throw new Error('No supported event header found on POST request');
     }
