@@ -107,7 +107,7 @@ const typeDefs = `
     siteGroupByName(name: String!): SiteGroup
     siteGroupByGitUrl(gitUrl: String!): SiteGroup
     allSiteGroups(createdAfter: String, gitUrl: String): [SiteGroup]
-    allSites(environmentType: String!): [Site]
+    allSites(createdAfter: String, environmentType: String): [Site]
     siteByName(name: String!): Site
     allClients: [Client]
   }
@@ -164,6 +164,7 @@ const resolvers = {
       return filterSites(
         {
           site_environment: args.environmentType,
+          created: args.createdAfter && createdAfter(args.createdAfter),
         },
         getState()
       );
