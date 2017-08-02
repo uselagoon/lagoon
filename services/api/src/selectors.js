@@ -54,18 +54,15 @@ type WhereCriteria = {
 
 // Removes undefined / null criteria and transforms values to R.equals conditions
 const sanitizeCriteria: FilterCriteria => WhereCriteria = R.compose(
-  R.fromPairs,
-  R.map(([key, val]) => [
-    key,
+  R.map(val =>
     R.ifElse(
       R.is(Function),
       // Functions are already predicates
       R.identity,
       // otherwise make a predicate out of the value
       R.always(R.equals(val))
-    )(val),
-  ]),
-  R.toPairs,
+    )(val)
+  ),
   R.pickBy(R.compose(R.not, R.isNil))
 );
 
