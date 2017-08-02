@@ -107,7 +107,7 @@ const typeDefs = `
     siteGroupByName(name: String!): SiteGroup
     siteGroupByGitUrl(gitUrl: String!): SiteGroup
     allSiteGroups(createdAfter: String, gitUrl: String): [SiteGroup]
-    allSites(environmentType: String!): [Site]
+    allSites(environmentType: String): [Site]
     siteByName(name: String!): Site
     allClients: [Client]
   }
