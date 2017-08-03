@@ -34,8 +34,8 @@ for SERVICE in "${SERVICES[@]}"
 do
   SERVICE_UPPERCASE=$(echo "$SERVICE" | tr '[:lower:]' '[:upper:]')
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.com\\.amazeeio\\.type custom)
-  DOCKERFILE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.build.dockerfile false)
-  BUILD_CONTEXT=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.build.context .)
+  DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.build.dockerfile false)
+  BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.build.context .)
 
   if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
     echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
@@ -70,7 +70,7 @@ done
 for SERVICE in "${SERVICES[@]}"
 do
 
-  PUSH=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.com\\.amazeeio\\.push true)
+  PUSH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.amazeeio.com\\.amazeeio\\.push true)
   if [ "$PUSH" == "true" ]; then
     . /scripts/exec-push.sh
   fi
@@ -85,7 +85,7 @@ done
 
 while IFS= read -d '' line; do
     POST_DEPLOY_TASKS+=( "$line" )
-done < <(cat .amazeeio.yml | shyaml values-0 tasks.post-deploy.0)
+done < <(cat .amazeeio.yml | shyaml values-0 tasks.post-deploy.0 | sed "s/^- //")
 
 for POST_DEPLOY_TASK in "${POST_DEPLOY_TASKS[@]}"
 do
