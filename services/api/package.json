@@ -13,18 +13,17 @@
     "format": "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
   },
   "devDependencies": {
-    "babel-eslint": "7.x.x",
-    "eslint": "^4.1.1",
-    "eslint-config-airbnb-base": "^11.2.0",
-    "eslint-plugin-flow-vars": "^0.5.0",
-    "eslint-plugin-flowtype": "^2.25.0",
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.3.0",
+    "eslint-config-airbnb-base": "^11.3.1",
+    "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-graphql": "^1.0.0",
     "eslint-plugin-import": "^2.6.0",
     "flow-bin": "^0.48.0",
     "jest": "^20.0.4",
     "lint-staged": "^4.0.0",
     "nodemon": "^1.11.0",
-    "prettier": "^1.4.4",
+    "prettier": "^1.5.3",
     "remote-redux-devtools": "^0.5.12",
     "rimraf": "^2.5.4"
   },
