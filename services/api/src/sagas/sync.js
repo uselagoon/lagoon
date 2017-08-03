@@ -83,7 +83,7 @@ function* pushSaga({
     // Attempt to push any pending commits.
     yield call(remotePush, remote, refs, credCb);
   } catch (e) {
-    yield call(error, e.message);
+    yield call(error, e.stack);
   }
 }
 
