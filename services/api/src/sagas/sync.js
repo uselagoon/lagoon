@@ -101,27 +101,31 @@ function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    yield call(logger.info, 'Rebasing repository');
-    yield call(rebaseSaga, Object.assign({}, args, { branch: pullBranch }));
+    try {
+      yield call(info, 'Rebasing repository');
+      yield call(rebaseSaga, Object.assign({}, args, { branch: pullBranch }));
 
-    if (pushEnabled) {
-      yield call(pushSaga, args);
+      if (pushEnabled) {
+        yield call(pushSaga, args);
+      }
+
+      yield call(debug, 'Finished synchronization');
+
+      const siteGroupsFile = yield call(readSiteGroupsFile, repoDir);
+      yield put(setSiteGroupsFile(siteGroupsFile));
+
+      const siteFilePaths = yield call(listYamlFiles, repoDir);
+      const siteFiles = yield call(getSiteFiles, siteFilePaths);
+      yield put(setSiteFiles(siteFiles));
+
+      const clientsFile = yield call(readClientsFile, repoDir);
+      yield put(setClientsFile(clientsFile));
+
+      // Wait some time before re-doing the sync again
+      yield call(delay, syncInterval);
+    } catch (e) {
+      yield call(error, e.stack);
     }
-
-    yield call(logger.debug, 'Finished synchronization');
-
-    const siteGroupsFile = yield call(readSiteGroupsFile, repoDir);
-    yield put(setSiteGroupsFile(siteGroupsFile));
-
-    const siteFilePaths = yield call(listYamlFiles, repoDir);
-    const siteFiles = yield call(getSiteFiles, siteFilePaths);
-    yield put(setSiteFiles(siteFiles));
-
-    const clientsFile = yield call(readClientsFile, repoDir);
-    yield put(setClientsFile(clientsFile));
-
-    // Wait some time before re-doing the sync again
-    yield call(delay, syncInterval);
   }
 }
 
