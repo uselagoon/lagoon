@@ -1,15 +1,15 @@
 // @flow
 
-import logger from '../logger';
+const logger = require('../logger');
 
-import { getContext } from '../app';
+const getContext = require('../getContext');
 
 import type { $Request, $Response } from 'express';
 
 const keysAccessMiddleware = (
   req: $Request,
   res: $Response,
-  next: Function,
+  next: Function
 ) => {
   // TODO:
   // This should restrict access for all requests except those
@@ -30,4 +30,4 @@ const keysRoute = (req: $Request, res: $Response) => {
   res.send(keys.join('\n'));
 };
 
-export default [keysAccessMiddleware, keysRoute];
+module.exports = [keysAccessMiddleware, keysRoute];

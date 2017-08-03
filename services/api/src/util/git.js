@@ -19,12 +19,12 @@ export type {
 
 const createSignature = (
   time?: number = parseInt(Date.now() / 1000, 10),
-  offset?: number = new Date().getTimezoneOffset(),
+  offset?: number = new Date().getTimezoneOffset()
 ): Signature => Git.Signature.create('API', 'api@amazee.io', time, offset);
 
 const createCredentialsCb = (
   username: string,
-  password: string,
+  password: string
 ): CredCb => () => Git.Cred.userpassPlaintextNew(username, password);
 
 const expectDefaultState = (repository: Repository): Repository => {
@@ -39,7 +39,7 @@ const getRepository = async (
   url: string,
   branch: string,
   destination: string,
-  credCb: CredCb,
+  credCb: CredCb
 ): Promise<Repository> => {
   try {
     // Get the repository if it already exists.
@@ -61,7 +61,7 @@ const getRemote = (repository: Repository, remote: string): Promise<Remote> =>
 const remotePush = (
   remote: Remote,
   refs: Array<string>,
-  credCb: CredCb,
+  credCb: CredCb
 ): Promise<void> =>
   remote.push(refs, {
     // Attempt to push any pending commits.
@@ -70,12 +70,12 @@ const remotePush = (
 
 const revparseSingle = (
   repository: Repository,
-  spec: string,
+  spec: string
 ): Promise<Revparse> => Git.Revparse.single(repository, spec);
 
 const fetchAll = (
   repository: Repository,
-  credentialsCb: CredCb,
+  credentialsCb: CredCb
 ): Promise<void> =>
   repository.fetchAll({
     // Fetch any changes from the remote.
@@ -87,7 +87,7 @@ const ensureRepository = async (
   url: string,
   branch: string,
   destination: string,
-  credCb: CredCb,
+  credCb: CredCb
 ): Promise<Repository> => {
   const repository = await getRepository(url, branch, destination, credCb);
 
@@ -102,7 +102,7 @@ const rebase = (
   branch: string,
   upstream: string,
   onto: string,
-  sig: Signature,
+  sig: Signature
 ): Promise<void> => repository.rebaseBranches(branch, upstream, onto, sig);
 
 module.exports = {

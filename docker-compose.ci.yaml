@@ -52,6 +52,8 @@ services:
       - GIT_REPOSITORY=http://git:8080/git/hiera.git
     volumes:
       - .:/lagoon
+    depends_on:
+      - local-hiera-watcher-pusher
   jenkins:
     build:
       context: .

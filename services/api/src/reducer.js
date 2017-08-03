@@ -13,15 +13,15 @@ const reducer = (state: State = {}, action: Action): State => {
   switch (action.type) {
     case 'SET_SITE_GROUPS_FILE': {
       const { siteGroupsFile } = action;
-      return { ...state, siteGroupsFile };
+      return Object.assign({}, state, { siteGroupsFile });
     }
     case 'SET_SITE_FILES': {
       const { siteFiles } = action;
-      return { ...state, siteFiles };
+      return Object.assign({}, state, { siteFiles });
     }
     case 'SET_CLIENTS_FILE': {
       const { clientsFile } = action;
-      return { ...state, clientsFile };
+      return Object.assign({}, state, { clientsFile });
     }
     default:
       return state;

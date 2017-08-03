@@ -1,12 +1,13 @@
 // @flow
 
-import jwt from 'jsonwebtoken';
-import { get, insert } from '../util/db';
-import {
+const jwt = require('jsonwebtoken');
+const { get, insert } = require('../util/db');
+const {
   validateKey,
   parseJson,
   // createErrorMiddleware
-} from '../util/routing';
+} = require('../util/routing');
+
 import type { $Request, $Response } from 'express';
 
 // TODO:
@@ -35,4 +36,4 @@ function loginRoute(req: $Request, res: $Response, next: Function) {
   getOrCreateToken(key).then(success).catch(next);
 }
 
-export default [parseJson, validateKey, loginRoute];
+module.exports = [parseJson, validateKey, loginRoute];

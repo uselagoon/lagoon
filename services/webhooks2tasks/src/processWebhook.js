@@ -3,13 +3,13 @@
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { getSiteGroupsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { githubPullRequestClosed } = require('./handlers/githubPullRequestClosed');
-const { githubBranchDeleted } = require('./handlers/githubBranchDeleted');
-const { githubPush } = require('./handlers/githubPush');
+const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
+const githubBranchDeleted = require('./handlers/githubBranchDeleted');
+const githubPush = require('./handlers/githubPush');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
-export async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
+async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
   const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString())
 
   let siteGroups: SiteGroup[]
@@ -56,7 +56,7 @@ export async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebh
 				timestamp: rabbitMsg.properties.timestamp,
 				contentType: rabbitMsg.properties.contentType,
 				deliveryMode: rabbitMsg.properties.deliveryMode,
-				headers: { ...rabbitMsg.properties.headers, 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount},
+				headers: Object.assign({}, rabbitMsg.properties.headers, { 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount}),
 				persistent: true,
 			};
 			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
@@ -152,3 +152,5 @@ async function unhandled(webhook: WebhookRequestData, siteGroup: SiteGroup, full
   )
   return
 }
+
+module.exports = processWebhook;

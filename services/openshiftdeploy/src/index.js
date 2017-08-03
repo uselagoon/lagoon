@@ -1,5 +1,4 @@
 // @flow
-require('flow-remove-types/register')({ excludes: '' })
 
 const sleep = require("es7-sleep");
 const { Lokka } = require('lokka');
@@ -18,7 +17,6 @@ const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION ||
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ocBuildDeployBranch = process.env.AMAZEEIO_GIT_BRANCH || "master"
 const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
-
 
 const amazeeioAPI = new Lokka({
   transport: new Transport(`${amazeeioapihost}/graphql`)
@@ -311,7 +309,6 @@ node {
 }
 
 const deathHandler = async (msg, lastError) => {
-
   const {
     siteGroupName,
     branchName,
@@ -335,7 +332,6 @@ ${lastError}
 }
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
-
   const {
     siteGroupName,
     branchName,

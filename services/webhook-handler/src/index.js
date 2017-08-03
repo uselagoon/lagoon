@@ -1,5 +1,4 @@
 // @flow
-require('flow-remove-types/register')({ excludes: '' })
 
 // // Handle signals properly
 // // see: https://github.com/nodejs/node-v0.x-archive/issues/9131
@@ -18,10 +17,9 @@ const http = require('http');
 const events = require('events');
 const amqp = require('amqp-connection-manager');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { createReqHandler } = require('./createReqHandler');
+const createReqHandler = require('./createReqHandler');
 
 import type { ChannelWrapper } from './types';
-
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"

@@ -5,16 +5,17 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 import type { WebhookRequestData } from './types';
 
 export type ChannelWrapper = {
+  publish: (string, string, Buffer, Object) => void,
   sendToQueue: (evt: string, data: Buffer, opts: Object) => void,
 }
 
-export async function sendToAmazeeioWebhooks (args: WebhookRequestData, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
+async function sendToAmazeeioWebhooks (args: WebhookRequestData, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
   const {
     webhooktype,
     event,
     giturl,
     uuid,
-    body,
+
   } = args;
 
   try {
@@ -30,3 +31,5 @@ export async function sendToAmazeeioWebhooks (args: WebhookRequestData, channelW
     logger.error(`Error queuing amazeeio-webhooks ${webhooktype}:${event}, error: ${error}`);
   }
 }
+
+module.exports = sendToAmazeeioWebhooks;

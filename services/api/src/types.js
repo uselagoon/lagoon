@@ -131,7 +131,3 @@ export type ApiEnv = {
   GIT_SYNC_INTERVAL: number,
   GIT_REPO_DIR: string,
 };
-
-export type { State } from './reducer';
-export type { ApiStore } from './createStore';
-export type { Context } from './app';

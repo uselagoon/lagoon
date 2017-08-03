@@ -2,7 +2,6 @@ module.exports = {
   extends: ['airbnb-base', 'plugin:flowtype/recommended'],
   plugins: ['flowtype'],
   env: { es6: true, jest: true, node: true },
-  // globals: { Generator: true },
   rules: {
     // Rule to enforce function return types. We disable this because Flow will check our function return types.
     'consistent-return': 'off',
