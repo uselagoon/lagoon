@@ -34,10 +34,10 @@ fi
 
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
-FLAVOR=($(cat .amazeeio.yml | shyaml get-value flavor custom))
+USE_DOCKER_COMPOSE_YAML=($(cat .amazeeio.yml | shyaml get-value docker-compose-yaml false))
 
-if [ $FLAVOR == "drupal" ]; then
-  . /scripts/build-deploy-drupal.sh
+if [ ! $USE_DOCKER_COMPOSE_YAML == "false" ]; then
+  . /scripts/build-deploy-docker-compose.sh
   exit
 fi
 

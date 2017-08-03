@@ -1,5 +1,7 @@
+docker-compose-yaml: docker-compose.yml
 
-flavor: drupal
-env:
-  - WEBROOT=/web
-  - WEBROOT2=/web
+tasks:
+  post-deploy:
+    - cli:
+      - cd web && drush -y si
+      - cd web && drush -y status

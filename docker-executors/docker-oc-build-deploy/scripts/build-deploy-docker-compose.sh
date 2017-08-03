@@ -12,14 +12,14 @@ oc process --insecure-skip-tls-verify \
   -v AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
-SERVICES_YAML="/flavors/drupal/services.yml"
+DOCKER_COMPOSE_YAML=($(cat .amazeeio.yml | shyaml get-value docker-compose-yaml))
 
-SERVICES=($(cat $SERVICES_YAML | shyaml keys services))
+SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 SERVICE_TYPES=()
 for SERVICE in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.type custom)
+  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.type custom)
 
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
@@ -33,23 +33,12 @@ BUILD_ARGS=()
 for SERVICE in "${SERVICES[@]}"
 do
   SERVICE_UPPERCASE=$(echo "$SERVICE" | tr '[:lower:]' '[:upper:]')
-  SERVICE_TYPE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.type custom)
-  OVERRIDE_DOCKERFILE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.build.dockerfile false)
+  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.com\\.amazeeio\\.type custom)
+  DOCKERFILE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.build.dockerfile false)
   BUILD_CONTEXT=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.build.context .)
 
-  if [ $OVERRIDE_DOCKERFILE == "false" ]; then
-    DOCKERFILE="/flavors/drupal/${SERVICE}/Dockerfile"
-    if [ ! -f $DOCKERFILE ]; then
-      echo "No Dockerfile for service type ${SERVICE} found"; exit 1;
-    fi
-    mkdir -p $BUILD_CONTEXT/.tmp/
-    cp $DOCKERFILE $BUILD_CONTEXT/.tmp/Dockerfile.$SERVICE
-    DOCKERFILE=$BUILD_CONTEXT/.tmp/Dockerfile.$SERVICE
-  else
-    DOCKERFILE=$OVERRIDE_DOCKERFILE
-    if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
-      echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
-    fi
+  if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
+    echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
   fi
 
   . /scripts/exec-build.sh
@@ -64,7 +53,7 @@ do
   #OVERRIDE_TEMPLATE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.template false)
 
   #if [ $OVERRIDE_TEMPLATE == "false" ]; then
-    OPENSHIFT_TEMPLATE="/flavors/drupal/${SERVICE_TYPE}/template.yml"
+    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
     fi
@@ -81,8 +70,8 @@ done
 for SERVICE in "${SERVICES[@]}"
 do
 
-  PUSH=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.push True)
-  if [ "$PUSH" == "True" ]; then
+  PUSH=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.com\\.amazeeio\\.push true)
+  if [ "$PUSH" == "true" ]; then
     . /scripts/exec-push.sh
   fi
 
@@ -96,7 +85,7 @@ done
 
 while IFS= read -d '' line; do
     POST_DEPLOY_TASKS+=( "$line" )
-done < <(cat $SERVICES_YAML | shyaml get-values-0 tasks.post_deploy)
+done < <(cat .amazeeio.yml | shyaml values-0 tasks.post-deploy.0)
 
 for POST_DEPLOY_TASK in "${POST_DEPLOY_TASKS[@]}"
 do

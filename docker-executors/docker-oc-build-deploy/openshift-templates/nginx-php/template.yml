@@ -25,9 +25,6 @@ parameters:
   - name: ROUTER_URL
     description: URL of the Router
     required: true
-  - name: WEBROOT
-    description: Path of the webroot
-    value: /
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -73,8 +70,6 @@ objects:
           env:
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
-            - name: WEBROOT
-              value: ${WEBROOT}
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
                 configMapKeyRef:

@@ -1,0 +1,33 @@
+version: '2'
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+    labels:
+      com.amazeeio.type: none
+      com.amazeeio.push: "false"
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    labels:
+      com.amazeeio.type: none
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    labels:
+      com.amazeeio.type: nginx-php
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    labels:
+      com.amazeeio.type: nginx-php
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+    labels:
+      com.amazeeio.type: mariadb

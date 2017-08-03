@@ -16,7 +16,6 @@ COPY build-deploy.sh /usr/sbin/build-deploy
 COPY scripts /scripts
 
 COPY openshift-templates /openshift-templates
-COPY flavors /flavors
 COPY appuio.json /appuio/appuio.json
 
 ENTRYPOINT ["docker-entrypoint"]
