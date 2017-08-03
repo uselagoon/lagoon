@@ -136,11 +136,13 @@ Done in 4.15s.
 
 ```sh
 # List sites for the configured / given sitegroup
-io list sites
-io list sites -s my_sitegroup
+io sites
+io sites -s my_sitegroup
 ```
 
 #### `io sites` Examples
+
+TODO: Make examples
 
 ## Development
 
