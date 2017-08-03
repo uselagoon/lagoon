@@ -1,0 +1,5 @@
+sitegroup: your_sitegroup
+deploy_tasks:
+  task1:
+    before_deploy: []
+    after_deploy: []

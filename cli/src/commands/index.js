@@ -1,6 +1,6 @@
 // @flow
 
-import type { AmazeeConfig } from '../parseConfig';
+import type { AmazeeConfig } from '../util/config';
 import typeof Yargs from 'yargs';
 
 export type BaseArgs = {
