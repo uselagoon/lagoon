@@ -44,18 +44,23 @@ export type RebaseSagaArgs = {
   logger: Logger,
 };
 
-function* rebaseSaga(args: RebaseSagaArgs): Generator<IOEffect, *, *> {
-  const { repository, branch, signature, credCb } = args;
-
+function* rebaseSaga({
+  repository,
+  branch,
+  signature,
+  credCb,
+  }: RebaseSagaArgs): Generator<IOEffect, *, *> {
   yield call(fetchAll, repository, credCb);
   yield call(rebase, repository, branch, `origin/${branch}`, branch, signature);
 }
 
-function* pushSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
-  const { repository, pullBranch, pushBranch, credCb, logger } = args;
-
-  const { debug, error } = logger;
-
+function* pushSaga({
+  repository,
+  pullBranch,
+  pushBranch,
+  credCb,
+  logger: { debug, error },
+  }: SyncSagaArgs): Generator<IOEffect, *, *> {
   yield call(fetchAll, repository, credCb);
 
   const localRevision = yield call(revparseSingle, repository, pullBranch);
@@ -88,7 +93,7 @@ function* syncSaga(args: SyncSagaArgs): Generator<IOEffect, *, *> {
     pullBranch,
     syncInterval,
     pushEnabled = false,
-    logger,
+    logger: { debug, error, info },
   } = args;
 
   // Read sitegroups and store them in the state
