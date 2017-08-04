@@ -102,19 +102,25 @@ describe('Util selectors', () => {
 
   describe('addSiteHost', () => {
     test('should add the siteHost attribute based on serverInfrastructure & serverIdentifier', () => {
-      const ret = addSiteHost(null, ({
-        serverIdentifier: 'deploytest',
-        serverInfrastructure: 'compact',
-        other: 'other',
-      }: any));
+      const ret = addSiteHost(
+        null,
+        ({
+          serverIdentifier: 'deploytest',
+          serverInfrastructure: 'compact',
+          other: 'other',
+        }: any)
+      );
       expect(ret).toMatchSnapshot();
     });
 
     test('should use servername as siteHost, if provided', () => {
-      const ret: any = addSiteHost('some.server.name', ({
-        serverIdentifier: 'deploytest',
-        serverInfrastructure: 'compact',
-      }: any));
+      const ret: any = addSiteHost(
+        'some.server.name',
+        ({
+          serverIdentifier: 'deploytest',
+          serverInfrastructure: 'compact',
+        }: any)
+      );
       expect(ret.siteHost).toBe('some.server.name');
     });
   });
@@ -161,19 +167,25 @@ describe('Util selectors', () => {
         cluster1: '127.0.0.1',
       };
 
-      const ret = addServerNames(clusterMembers, ({
-        serverInfrastructure: 'cluster',
-        siteHost: 'sitehost',
-      }: any));
+      const ret = addServerNames(
+        clusterMembers,
+        ({
+          serverInfrastructure: 'cluster',
+          siteHost: 'sitehost',
+        }: any)
+      );
 
       expect(ret).toMatchSnapshot();
     });
 
     test('should calculate serverNames from single sites (case 2)', () => {
-      const ret = addServerNames(null, ({
-        serverInfrastructure: 'single',
-        siteHost: 'sitehost',
-      }: any));
+      const ret = addServerNames(
+        null,
+        ({
+          serverInfrastructure: 'single',
+          siteHost: 'sitehost',
+        }: any)
+      );
 
       expect(ret).toMatchSnapshot();
     });
@@ -183,14 +195,14 @@ describe('Util selectors', () => {
         null,
         ({
           siteHost: 'sitehost',
-        }: any),
+        }: any)
       );
 
       const ret2 = addServerNames(
         null,
         ({
           siteHost: ['sh1', 'sh2'],
-        }: any),
+        }: any)
       );
 
       expect(ret1.serverNames).toEqual(['sitehost']);
@@ -215,7 +227,7 @@ describe('SiteGroups related selectors', () => {
         {
           client: 'c1',
         },
-        state,
+        state
       );
       expect(ret).toMatchSnapshot();
     });
@@ -286,7 +298,7 @@ describe('Site related selectors', () => {
         {
           site_environment: 'development',
         },
-        state,
+        state
       );
       expect(ret).toMatchSnapshot();
     });
@@ -321,7 +333,7 @@ describe('Site related selectors', () => {
         {
           siteName: 'deploytest_branch1',
         },
-        state,
+        state
       );
       expect(ret).toMatchSnapshot();
     });
@@ -345,7 +357,7 @@ describe('Client based Selectors', () => {
         {
           clientName: 'amazeeio',
         },
-        state,
+        state
       );
       expect(ret).toEqual({
         clientName: 'amazeeio',
@@ -358,7 +370,7 @@ describe('Client based Selectors', () => {
         {
           clientName: 'nonexistent',
         },
-        state,
+        state
       );
       expect(ret).toBeUndefined();
     });

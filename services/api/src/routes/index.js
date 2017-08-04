@@ -1,13 +1,13 @@
 // @flow
 
-import express from 'express';
-import statusRoute from './status';
-import keysRoute from './keys';
-import graphqlRoute from './graphql';
+const express = require('express');
+const statusRoute = require('./status');
+const keysRoute = require('./keys');
+const graphqlRoute = require('./graphql');
 
 import type { $Request, $Response, Router } from 'express';
 
-export default function createRouter(): Router {
+function createRouter(): Router {
   const router = new express.Router();
 
   // Redirect GET requests on "/" to the status route.
@@ -24,3 +24,5 @@ export default function createRouter(): Router {
 
   return router;
 }
+
+module.exports = createRouter;

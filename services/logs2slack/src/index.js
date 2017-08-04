@@ -1,14 +1,10 @@
 // @flow
-require('flow-remove-types/register')({ excludes: '' })
 
 const amqp = require('amqp-connection-manager');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { readFromRabbitMQ } = require('./readFromRabbitMQ');
+const readFromRabbitMQ = require('./readFromRabbitMQ');
 
 import type { ChannelWrapper } from './types';
-
-
-
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"

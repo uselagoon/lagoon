@@ -6,7 +6,7 @@ const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
 
-async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function gitlabPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -31,16 +31,16 @@ async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
       sha: sha
     }
 
-    let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
+    let logMessage = `\`<${body.project.http_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
       const shortSha: string = sha.substring(0, 7)
-      logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
+      logMessage = `${logMessage} (<${body.commits[0].url}|${shortSha}>)`
     }
 
     try {
       const taskResult = await createDeployTask(data);
       sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}>`
+        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.project.http_url}|${body.project.path_with_namespace}>`
       )
       return;
     } catch (error) {
@@ -63,4 +63,4 @@ async function githubPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
 }
 
-module.exports = githubPush;
+module.exports = gitlabPush;

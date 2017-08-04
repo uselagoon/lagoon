@@ -36,5 +36,3 @@ export async function fileExists(path: string): Promise<boolean> {
     return false;
   }
 }
-
-export const statSync = fs.statSync;

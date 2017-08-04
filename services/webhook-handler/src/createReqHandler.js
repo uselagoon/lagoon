@@ -2,9 +2,9 @@
 
 const bl = require('bl');
 const { bufferEq } = require('buffer-equal-constant-time');
-const { extractWebhookData } = require('./extractWebhookData');
+const extractWebhookData = require('./extractWebhookData');
 
-const { sendToAmazeeioWebhooks } = require('./sendToAmazeeioWebhooks');
+const sendToAmazeeioWebhooks = require('./sendToAmazeeioWebhooks');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 
 import type { Logger } from '@amazeeio/lagoon-commons/src/local-logging';
@@ -24,7 +24,7 @@ type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
 
 initSendToAmazeeioLogs();
 
-export function createReqHandler(options: Options): Handler {
+function createReqHandler(options: Options): Handler {
   const {
     path,
     channelWrapperWebhooks,
@@ -90,3 +90,5 @@ export function createReqHandler(options: Options): Handler {
 
   return handler;
 }
+
+module.exports = createReqHandler;

@@ -7,7 +7,7 @@
 export type WebhookRequestData = {
   webhooktype: string,
   event: string,
-  giturl: any,
+  giturl?: string,
   uuid?: string,
   body?: Object,
 };
@@ -16,6 +16,7 @@ export type ChannelWrapper = {
   sendToQueue: (evt: string, data: Buffer, opts: Object) => void,
 }
 
+// See: https://developer.github.com/v3/activity/events/types/#pushevent
 export type GithubPushEvent = {
   event: 'push',
   webhooktype: 'github',
@@ -29,6 +30,7 @@ export type GithubPushEvent = {
   },
 };
 
+// See: https://developer.github.com/v3/activity/events/types/#pullrequestevent
 export type GithubPullRequestEvent = {
   event: 'pull_request',
   webhooktype: 'github',
@@ -42,6 +44,7 @@ export type GithubPullRequestEvent = {
   }
 };
 
+// See: https://developer.github.com/v3/activity/events/types/#deleteevent
 export type GithubDeleteEvent = {
   event: 'delete',
   webhooktype: 'github',

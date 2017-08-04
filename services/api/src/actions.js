@@ -44,7 +44,7 @@ export type Action =
 // ===== ACTION CREATORS
 
 const setSiteGroupsFile = (
-  siteGroupsFile: SiteGroupsFile,
+  siteGroupsFile: SiteGroupsFile
 ): SetSiteGroupsFileAction => ({
   type: 'SET_SITE_GROUPS_FILE',
   siteGroupsFile,

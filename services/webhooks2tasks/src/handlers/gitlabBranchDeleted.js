@@ -4,9 +4,9 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
+import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup  } from '../types';
 
-async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function gitlabBranchDeleted(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -17,19 +17,19 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: S
     } = webhook;
 
     const meta = {
-      pullrequest: body.number
+      branch: body.ref.replace('refs/heads/','')
     }
 
     const data: removeData = {
       siteGroupName: siteGroup.siteGroupName,
-      pullrequest: body.number,
-      type: 'pullrequest'
+      branch: meta.branch,
+      type: 'branch'
     }
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:closed:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
+      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${siteGroup.siteGroupName}]* \`${meta.branch}\` deleted in <${body.project.http_url}|${body.project.path_with_namespace}>`
       )
       return;
     } catch (error) {
@@ -39,7 +39,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: S
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* PR ${body.number} closed. No remove task created, reason: ${error}`
+            `*[${siteGroup.siteGroupName}]* \`${meta.branch}\` deleted. No remove task created, reason: ${error}`
           )
           return;
 
@@ -48,6 +48,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: S
           throw error
       }
     }
+
 }
 
-module.exports = githubPullRequestClosed;
+module.exports = gitlabBranchDeleted;

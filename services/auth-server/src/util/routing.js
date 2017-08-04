@@ -1,14 +1,11 @@
 // @flow
 
-import sshpk from 'sshpk';
-import bodyParser from 'body-parser';
+const sshpk = require('sshpk');
+const bodyParser = require('body-parser');
+
 import type { $Request, $Response } from 'express';
 
-export function validateKey(
-  req: $Request,
-  res: $Response,
-  next: Function,
-): void {
+function validateKey(req: $Request, res: $Response, next: Function): void {
   const key = (req.body && req.body.key) || '';
 
   if (!key) {
@@ -27,4 +24,9 @@ export function validateKey(
   }
 }
 
-export const parseJson = bodyParser.json();
+const parseJson = bodyParser.json();
+
+module.exports = {
+  validateKey,
+  parseJson,
+};
