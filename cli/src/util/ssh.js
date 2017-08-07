@@ -65,6 +65,23 @@ export async function sshExec(
   });
 }
 
+async function promptUntilValidPath(
+  cerr: typeof console.error,
+): Promise<String> {
+  const { privateKeyPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'privateKeyPath',
+      message: 'Path to private key file',
+    },
+  ]);
+  if (!await fileExists(untildify(privateKeyPath))) {
+    printErrors(cerr, 'File does not exist at given path!');
+    return promptUntilValidPath(cerr);
+  }
+  return privateKeyPath;
+}
+
 type GetPrivateKeyPathArgs = {
   fileExistsAtDefaultPath: boolean,
   defaultPrivateKeyPath: string,
@@ -88,33 +105,7 @@ export const getPrivateKeyPath = async (
     // If a file exists at the default private key path, use that
     [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
     // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
-    [
-      R.T,
-      async ({ cerr }) => {
-        // TODO: Do now.
-        // TODO: Ramdaify / FPify?
-        let privateKeyPath = '';
-        let privateKeyExists = false;
-        while (!privateKeyPath || !privateKeyExists) {
-          // eslint-disable-next-line no-await-in-loop
-          const promptReturn = await inquirer.prompt([
-            {
-              type: 'input',
-              name: 'privateKeyPath',
-              message: 'Path to private key file',
-            },
-          ]);
-          privateKeyPath = promptReturn.privateKeyPath;
-
-          // eslint-disable-next-line no-await-in-loop
-          privateKeyExists = await fileExists(untildify(privateKeyPath));
-          if (!privateKeyExists) {
-            printErrors(cerr, 'File does not exist at given path!');
-          }
-        }
-        return privateKeyPath;
-      },
-    ],
+    [R.T, async ({ cerr }) => promptUntilValidPath(cerr)],
   ])(args);
 
 export const getPrivateKeyPassphrase = async (
