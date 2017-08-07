@@ -3,6 +3,7 @@
 import inquirer from 'inquirer';
 import R from 'ramda';
 import { Client } from 'ssh2';
+import untildify from 'untildify';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 
@@ -106,7 +107,7 @@ export const getPrivateKeyPath = async (
           privateKeyPath = promptReturn.privateKeyPath;
 
           // eslint-disable-next-line no-await-in-loop
-          privateKeyExists = await fileExists(privateKeyPath);
+          privateKeyExists = await fileExists(untildify(privateKeyPath));
           if (!privateKeyExists) {
             printErrors(cerr, 'File does not exist at given path!');
           }
