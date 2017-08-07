@@ -1,6 +1,11 @@
 #!/bin/bash -xe
 set -o pipefail
 
+containsValue () {
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
 
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
@@ -22,6 +27,11 @@ do
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.type custom)
 
   if [ "$SERVICE_TYPE" == "none" ]; then
+    continue
+  fi
+
+  # Check if the servicetype already has been added to the SERVICE_TYPES array
+  if [ containsValue "$SERVICE_TYPE" "${SERVICE_TYPES[@]}"]; then
     continue
   fi
 
@@ -49,19 +59,19 @@ done
 for SERVICE_TYPE in "${SERVICE_TYPES[@]}"
 do
 
-  #OVERRIDE_TEMPLATE=$(cat $SERVICES_YAML | shyaml get-value services.$SERVICE.amazeeio.template false)
+  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.template false)
 
-  #if [ $OVERRIDE_TEMPLATE == "false" ]; then
+  if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
     fi
-  # else
-  #   OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
-  #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE not found"; exit 1;
-  #   fi
-  # fi
+  else
+    OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+    fi
+  fi
 
   . /scripts/exec-openshift-resources.sh
 done
@@ -69,7 +79,7 @@ done
 for SERVICE in "${SERVICES[@]}"
 do
 
-  PUSH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.amazeeio.com\\.amazeeio\\.push true)
+  PUSH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.push true)
   if [ "$PUSH" == "true" ]; then
     . /scripts/exec-push.sh
   fi
