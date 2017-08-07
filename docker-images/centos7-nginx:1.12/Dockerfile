@@ -27,5 +27,8 @@ RUN mkdir -p /app /etc/nginx/sites && \
     fix-permissions /var/cache/nginx/ && \
     fix-permissions /run/
 
+ENV AMAZEEIO=AMAZEEIO \
+    AMAZEEIO_HTTP_PORT=8080
+
 ENTRYPOINT ["container-entrypoint"]
 CMD [ "nginx" ]

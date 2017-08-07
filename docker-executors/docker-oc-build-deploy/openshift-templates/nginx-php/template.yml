@@ -174,7 +174,7 @@ objects:
       protocol: TCP
       targetPort: 8080
     selector:
-      service: nginx
+      service: nginx-php
   status:
     loadBalancer: {}
 - apiVersion: v1

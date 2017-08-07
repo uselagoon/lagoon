@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.builder
+    image: builder
     labels:
       com.amazeeio.type: none
       com.amazeeio.push: "false"
@@ -13,21 +14,43 @@ services:
       dockerfile: Dockerfile.cli
     labels:
       com.amazeeio.type: none
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
   nginx:
+    networks:
+      - amazeeio-network
+      - default
     build:
       context: .
       dockerfile: Dockerfile.nginx
     labels:
       com.amazeeio.type: nginx-php
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+    expose:
+      - "8080"
+    environment:
+      - AMAZEEIO_URL=drupal.docker.amazee.io
   php:
     build:
       context: .
       dockerfile: Dockerfile.php
     labels:
       com.amazeeio.type: nginx-php
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
   mariadb:
     build:
       context: .
       dockerfile: Dockerfile.mariadb
     labels:
       com.amazeeio.type: mariadb
+networks:
+  amazeeio-network:
+    external: true

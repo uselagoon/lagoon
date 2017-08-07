@@ -2,6 +2,11 @@ docker-compose-yaml: docker-compose.yml
 
 tasks:
   post-deploy:
-    - cli:
-      - cd web && drush -y si
-      - cd web && drush -y status
+    - run:
+        name: drush si with no email sending
+        command: cd web && drush -y si standard install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL --site-name="AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA AMAZEEIO_GIT_BRANCH=$AMAZEEIO_GIT_BRANCH"
+        image: cli
+    - run:
+        name: drush cr
+        command: cd web && drush -y cr
+        image: cli

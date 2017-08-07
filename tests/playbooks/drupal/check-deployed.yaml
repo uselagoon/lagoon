@@ -3,6 +3,15 @@
   serial: 1
   vars:
     url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-    expected_content: "Drupal"
+    expected_content: "AMAZEEIO_GIT_SHA={{ expected_head }}"
+  tasks:
+  - include: ../../tests/test-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for branch name"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_BRANCH={{ expected_branch }}"
   tasks:
   - include: ../../tests/test-url-content.yaml

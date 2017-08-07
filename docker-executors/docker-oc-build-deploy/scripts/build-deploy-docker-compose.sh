@@ -33,7 +33,6 @@ BUILD_ARGS=()
 for SERVICE in "${SERVICES[@]}"
 do
   SERVICE_UPPERCASE=$(echo "$SERVICE" | tr '[:lower:]' '[:upper:]')
-  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.com\\.amazeeio\\.type custom)
   DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.build.dockerfile false)
   BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.build.context .)
 
@@ -83,11 +82,22 @@ do
 done
 
 
-while IFS= read -d '' line; do
-    POST_DEPLOY_TASKS+=( "$line" )
-done < <(cat .amazeeio.yml | shyaml values-0 tasks.post-deploy.0 | sed "s/^- //")
-
-for POST_DEPLOY_TASK in "${POST_DEPLOY_TASKS[@]}"
+COUNTER=0
+while [ -n "$(cat .amazeeio.yml | shyaml keys tasks.post-deploy.$COUNTER 2> /dev/null)" ]
 do
-  . /scripts/exec-post-deploy-tasks.sh
+  TASK_TYPE=$(cat .amazeeio.yml | shyaml keys tasks.post-deploy.$COUNTER)
+  echo $TASK_TYPE
+  case "$TASK_TYPE" in
+    run)
+        COMMAND=$(cat .amazeeio.yml | shyaml get-value tasks.post-deploy.$COUNTER.$TASK_TYPE.command)
+        IMAGE=$(cat .amazeeio.yml | shyaml get-value tasks.post-deploy.$COUNTER.$TASK_TYPE.image)
+        . /scripts/exec-post-deploy-tasks-run.sh
+        ;;
+    *)
+        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+
+  esac
+
+  let COUNTER=COUNTER+1
 done
+

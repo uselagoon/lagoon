@@ -5,5 +5,3 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeio}/centos7-drupal-builder:7.0
 
 COPY --from=builder /app /app
-
-RUN fix-permissions /app
