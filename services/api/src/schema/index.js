@@ -39,6 +39,7 @@ const typeDefs = `
     siteBranch: String
     uid: String
     siteHost: String
+    siteGroup: SiteGroup,
     siteName: String
     fileName: String
     siteEnvironment: String
@@ -106,7 +107,7 @@ const typeDefs = `
     siteGroupByName(name: String!): SiteGroup
     siteGroupByGitUrl(gitUrl: String!): SiteGroup
     allSiteGroups(createdAfter: String, gitUrl: String): [SiteGroup]
-    allSites(environmentType: String!): [Site]
+    allSites(createdAfter: String, environmentType: String): [Site]
     siteByName(name: String!): Site
     allClients: [Client]
   }
@@ -163,6 +164,7 @@ const resolvers = {
       return filterSites(
         {
           site_environment: args.environmentType,
+          created: args.createdAfter && createdAfter(args.createdAfter),
         },
         getState()
       );
@@ -266,6 +268,18 @@ const resolvers = {
   },
   Site: {
     siteBranch: (site: SiteView) => site.site_branch,
+    siteGroup: (site: SiteView, args, req) => {
+      const context = getContext(req);
+      const { getState } = context.store;
+      const { findSiteGroup } = context.selectors;
+
+      return findSiteGroup(
+        {
+          siteGroupName: site.sitegroup,
+        },
+        getState()
+      );
+    },
     siteEnvironment: (site: SiteView) => site.site_environment,
     webRoot: (site: SiteView) => site.webroot,
     SSLCertificateType: (site: SiteView) => site.sslcerttype,

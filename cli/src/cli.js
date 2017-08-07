@@ -7,13 +7,12 @@ import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
 import { readFile } from './util/fs';
-import findConfig from './findConfig';
-import parseConfig from './parseConfig';
+import { findConfig, parseConfig } from './util/config';
 import { printErrors } from './printErrors';
 
 import commands from './commands';
 
-import type { AmazeeConfig } from './parseConfig';
+import type { AmazeeConfig } from './util/config';
 
 /**
  * Finds and reads the amazeeio.yml file

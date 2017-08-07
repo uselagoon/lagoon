@@ -1,6 +1,6 @@
 // @flow
 
-import type { AmazeeConfig } from '../parseConfig';
+import type { AmazeeConfig } from '../util/config';
 import typeof Yargs from 'yargs';
 
 export type BaseArgs = {
@@ -21,10 +21,8 @@ export type CommandModule = {
 
 import login from './login';
 import logout from './logout';
-import list from './list';
+import sites from './sites';
 import info from './info';
 import init from './init';
 
-export { login, logout, list, init, info };
-
-export default ([login, logout, list, init, info]: Array<CommandModule>);
+export default ([login, logout, sites, init, info]: Array<CommandModule>);

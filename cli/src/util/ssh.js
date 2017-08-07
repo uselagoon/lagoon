@@ -1,11 +1,20 @@
 // @flow
 
+import inquirer from 'inquirer';
+import R from 'ramda';
 import { Client } from 'ssh2';
+import untildify from 'untildify';
+import { fileExists } from '../util/fs';
+import { printErrors } from '../printErrors';
 
 type ExecOptions = {};
 
 type Connection = {
-  exec: (command: string, options?: ExecOptions, callback: Function) => Connection,
+  exec: (
+    command: string,
+    options?: ExecOptions,
+    callback: Function,
+  ) => Connection,
   on: (event: string, callback: Function) => Connection,
   end: () => Connection,
 };
@@ -55,3 +64,68 @@ export async function sshExec(
     });
   });
 }
+
+async function promptUntilValidPath(
+  cerr: typeof console.error,
+): Promise<String> {
+  const { privateKeyPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'privateKeyPath',
+      message: 'Path to private key file',
+    },
+  ]);
+  if (!await fileExists(untildify(privateKeyPath))) {
+    printErrors(cerr, 'File does not exist at given path!');
+    return promptUntilValidPath(cerr);
+  }
+  return privateKeyPath;
+}
+
+type GetPrivateKeyPathArgs = {
+  fileExistsAtDefaultPath: boolean,
+  defaultPrivateKeyPath: string,
+  identityOption?: string,
+  cerr: typeof console.error,
+};
+
+export const getPrivateKeyPath = async (
+  args: GetPrivateKeyPathArgs,
+): Promise<string> =>
+  R.cond([
+    // If the identity option for the command has been specified and the file at the path exists, use the value of that
+    [
+      R.propSatisfies(
+        // Option is not null or undefined
+        R.complement(R.isNil),
+        'identityOption',
+      ),
+      R.prop('identityOption'),
+    ],
+    // If a file exists at the default private key path, use that
+    [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
+    // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
+    [R.T, async ({ cerr }) => promptUntilValidPath(cerr)],
+  ])(args);
+
+export const getPrivateKeyPassphrase = async (
+  privateKeyHasEncryption: boolean,
+): Promise<string> =>
+  R.ifElse(
+    // If the private key doesn't have encryption...
+    R.not,
+    // ... return an empty string
+    R.always(''),
+    // If the private key has encryption, ask for the password
+    async () => {
+      const { passphrase } = await inquirer.prompt([
+        {
+          type: 'password',
+          name: 'passphrase',
+          message: 'Private key password (never saved)',
+          default: '',
+        },
+      ]);
+      return passphrase;
+    },
+  )(privateKeyHasEncryption);

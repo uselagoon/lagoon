@@ -6,6 +6,8 @@ const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
 const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
+const gitlabPush = require('./handlers/gitlabPush');
+const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
 
@@ -103,6 +105,15 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
           await handle(githubBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
         } else {
           await handle(githubPush, webhook, siteGroup, `${webhooktype}:${event}`)
+        }
+
+        break;
+
+      case "gitlab:push":
+        if (body.after == '0000000000000000000000000000000000000000' ) {
+          await handle(gitlabBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+        } else {
+          await handle(gitlabPush, webhook, siteGroup, `${webhooktype}:${event}`)
         }
 
         break;
