@@ -1,8 +1,8 @@
 ---
-- include: drupal/rest.yaml
+- include: drupal/drupal.yaml
   vars:
-    testname: "REST - drupal 8 regular branch"
+    testname: "Drupal 8 composer"
     drupal_version: 8
     git_repo_name: drupal.git
     sitegroup: ci-drupal
-    branch: drupal8-regular-branch
+    branch: drupal8-composer

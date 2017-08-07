@@ -23,20 +23,20 @@
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup }}"
 
-# - name: "{{ testname }} - rest2tasks /remove POST on {{ sitegroup }}, which should remove all resources"
-#   hosts: localhost
-#   serial: 1
-#   vars:
-#     sitegroup: "{{ sitegroup }}"
-#     branch: "{{ branch }}"
-#   tasks:
-#   - include: ../../tasks/rest/remove.yaml
+- name: "{{ testname }} - rest2tasks /remove POST on {{ sitegroup }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    sitegroup: "{{ sitegroup }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/rest/remove.yaml
 
-# - name: "{{ testname }} - check if site for {{ sitegroup }} does not exist anymore"
-#   hosts: localhost
-#   serial: 1
-#   vars:
-#     url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-#     expected_returncode: 503
-#   tasks:
-#   - include: ../../tests/test-url-returncode.yaml
+- name: "{{ testname }} - check if site for {{ sitegroup }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../tests/test-url-returncode.yaml
