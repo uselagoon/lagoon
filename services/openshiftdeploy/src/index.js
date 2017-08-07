@@ -106,7 +106,6 @@ const messageConsumer = async msg => {
     ocBuildDeploystage =
     `
       stage ('oc-build-deploy docker pull') {
-        def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobevent', value: "builddeploy-dockerhub"],  [name: 'sitegroup', value: "${siteGroupName}"], [name: 'path', value: "${safeSiteGroupName}/${safeBranchName}"], [name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
         sh '''
           docker pull ${ocBuildDeployImageName}
         '''
@@ -117,8 +116,6 @@ const messageConsumer = async msg => {
     ocBuildDeploystage =
     `
       stage ('oc-build-deploy docker build') {
-        def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobevent', value: "builddeploy-absolute"],  [name: 'sitegroup', value: "${siteGroupName}"], [name: 'path', value: "${safeSiteGroupName}/${safeBranchName}"], [name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
-
         sh '''
           docker build -t ${ocBuildDeployImageName} /docker-oc-build-deploy
         '''
@@ -129,7 +126,6 @@ const messageConsumer = async msg => {
     ocBuildDeploystage =
     `
       stage ('oc-build-deploy git checkout') {
-        def response = httpRequest url:'http://jobwatch:3000/job', httpMode:'POST', customHeaders: [[name: 'jobevent', value: "builddeploy-checkout"],  [name: 'sitegroup', value: "${siteGroupName}"], [name: 'path', value: "${safeSiteGroupName}/${safeBranchName}"], [name: 'jobname', value: "\${env.JOB_NAME}"], [name: 'buildnumber', value: "\${env.BUILD_NUMBER}"]]
         git branch: '${ocBuildDeployBranch}', changelog: false, poll: false, url: '${ocBuildDeployImageLocation}', credentialsId: 'amazeeio-github-bearer-token'
       }
 
