@@ -5,7 +5,7 @@ set -o pipefail
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
-  -v SERVICE_NAME="${SERVICE}" \
+  -v SERVICE_NAME="${SERVICE_NAME}" \
   -v SAFE_BRANCH="${SAFE_BRANCH}" \
   -v SAFE_SITEGROUP="${SAFE_SITEGROUP}" \
   -v BRANCH="${BRANCH}" \

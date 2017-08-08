@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: amazeeio-openshift-template-nginx
+  name: amazeeio-openshift-template-nginx-php
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -33,18 +33,18 @@ objects:
     labels:
       branch: ${SAFE_BRANCH}
       sitegroup: ${SAFE_SITEGROUP}
-    name: nginx-php
+    name: ${SERVICE_NAME}
   spec:
     replicas: 1
     selector:
-      service: nginx-php
+      service: ${SERVICE_NAME}
     strategy:
       resources: {}
     template:
       metadata:
         creationTimestamp: null
         labels:
-          service: nginx-php
+          service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
           sitegroup: ${SAFE_SITEGROUP}
       spec:
@@ -112,8 +112,6 @@ objects:
             initialDelaySeconds: 60
             periodSeconds: 5
           env:
-            - name: WEBROOT
-              value: ${WEBROOT}
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
                 configMapKeyRef:
@@ -163,10 +161,10 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      service: nginx-php
+      service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       sitegroup: ${SAFE_SITEGROUP}
-    name: nginx-php
+    name: ${SERVICE_NAME}
   spec:
     ports:
     - name: 8080-tcp
@@ -174,7 +172,7 @@ objects:
       protocol: TCP
       targetPort: 8080
     selector:
-      service: nginx-php
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -182,14 +180,14 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      service: nginx-php
+      service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       sitegroup: ${SAFE_SITEGROUP}
-    name: nginx-php
+    name: ${SERVICE_NAME}
   spec:
     host: ${ROUTER_URL}
     port:
       targetPort: 8080-tcp
     to:
       kind: Service
-      name: nginx-php
+      name: ${SERVICE_NAME}

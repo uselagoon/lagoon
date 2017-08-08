@@ -13,7 +13,7 @@ services:
       context: .
       dockerfile: Dockerfile.cli
     labels:
-      com.amazeeio.type: none
+      com.amazeeio.type: cli
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -27,6 +27,7 @@ services:
       dockerfile: Dockerfile.nginx
     labels:
       com.amazeeio.type: nginx-php
+      com.amazeeio.name: nginx-php
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -41,6 +42,7 @@ services:
       dockerfile: Dockerfile.php
     labels:
       com.amazeeio.type: nginx-php
+      com.amazeeio.name: nginx-php
     volumes:
       - ./web:/app/web:delegated
     depends_on:

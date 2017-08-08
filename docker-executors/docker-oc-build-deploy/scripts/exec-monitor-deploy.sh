@@ -2,4 +2,4 @@
 
 set -o pipefail
 
-oc rollout --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} status dc/${SERVICE_TYPE} --watch
+oc rollout --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} status dc/${SERVICE_NAME} --watch
