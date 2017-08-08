@@ -59,13 +59,18 @@ export async function run({
     utils.parseKey(privateKey).encryption,
   );
 
-  const connection = await sshConnect({
-    host: process.env.SSH_AUTH_HOST || 'auth.amazee.io',
-    port: Number(process.env.SSH_AUTH_PORT) || 2020,
-    username: process.env.SSH_AUTH_USER || 'api',
-    privateKey,
-    passphrase,
-  });
+  let connection;
+  try {
+    connection = await sshConnect({
+      host: process.env.SSH_AUTH_HOST || 'auth.amazee.io',
+      port: Number(process.env.SSH_AUTH_PORT) || 2020,
+      username: process.env.SSH_AUTH_USER || 'api',
+      privateKey,
+      passphrase,
+    });
+  } catch (err) {
+    return printErrors(cerr, err);
+  }
 
   const output = await sshExec(connection, 'login');
   const token = output.toString();

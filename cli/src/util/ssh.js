@@ -35,8 +35,13 @@ export async function sshConnect(args: ConnectArgs): Promise<Connection> {
       resolve(connection);
     });
 
-    connection.on('error', (error) => {
-      reject(error);
+    connection.on('error', (err) => {
+      if (
+        err.message.includes('All configured authentication methods failed')
+      ) {
+        return reject('SSH key not authorized.');
+      }
+      reject(err);
     });
 
     try {
