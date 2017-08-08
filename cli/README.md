@@ -123,11 +123,11 @@ Login successful
 Done in 1.70s.
 ```
 
-If the private key has a password, the user will be prompted to enter it. The password will never be saved.
+If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
 $ io login -i /path/to/id_rsa
-? Private key password (never saved) [hidden]
+? Private key passphrase (never saved) [hidden]
 Login successful
 Done in 4.15s.
 ```
