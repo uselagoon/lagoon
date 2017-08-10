@@ -1,6 +1,7 @@
 ---
 amazeeio_clients:
   amazeelabs:
+    created: 2011-05-18
     ssh_keys:
       'karl.horky@gmail.com':
         key: 'AAAAB3NzaC1yc2EAAAADAQABAAACAQDCrV8SgeHX7rAw1WfbzsvYlhmvVscdHyTvu15VMnVqC64bqYMQl4d9YcdfF/9cJLHYjnwiIUrD2aWv0jWrQHQE3RGIF+FvIgZlGXjX2cl7IWEQRHKL+kyfYOiGV26Zqort5YHEn9+Igbpi8VyNQ90hIQSXVqp6yzXM+2mduYsz/ohjd1mNUKNu0LYCm/YZl3SFEWYzPfnENb3oBEYeqofvShN0MMGOA9/YhyEcKzIukxBbJTQBgCfJD2AusvMFxF+H6fiyMOjrM5fnvmoKCY1KMw2uhGyCGblY9Hgb6mZHJF71xnCbVhHWTHMHPsO0crP3HeFlStZ0hMvOGPLHSqnO4ykMWFnmIvOFyHsz5ftovOX8s59vMHqDzIPLWPao8rFOil0zJ2eExHq1h/jOD71+TXKLkG4yVAZjV6U7Yeh8BjzwKtXgGvss3mHJUIdK7OxknYg6Q8jxeOaI94U5lmiUC80fgu1IXawpMsCupwvjQejPq8belip9b/BP/oqQcqozVMr2DLxoqP8HeF8sDOlZKA3I9w+rD9Sg2g4vJ6asovCvNy/HfRQg1qi7IlTDtCHtxUIqE8qQB+BQqzXHvXHF2ipJh5Sy3hQv868JQqG6MkfZ1CdMP5mqR2/dMutK+hyO5vXNG2tEjA1HvRRkgQmR77tl5SP2bKVM5ODVJDwtQw=='
