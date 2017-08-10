@@ -109,7 +109,7 @@ const typeDefs = `
     allSiteGroups(createdAfter: String, gitUrl: String): [SiteGroup]
     allSites(createdAfter: String, environmentType: String): [Site]
     siteByName(name: String!): Site
-    allClients: [Client]
+    allClients(createdAfter: String): [Client]
   }
 `;
 
@@ -181,12 +181,17 @@ const resolvers = {
         getState()
       );
     },
-    allClients: (_, __, req) => {
+    allClients: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
-      const { getAllClients } = context.selectors;
+      const { filterClients } = context.selectors;
 
-      return getAllClients(getState());
+      return filterClients(
+        {
+          created: args.createdAfter && createdAfter(args.createdAfter),
+        },
+        getState()
+      );
     },
   },
   Client: {
