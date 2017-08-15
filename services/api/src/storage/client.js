@@ -15,14 +15,14 @@ const clientsToYaml = (client: Client): string =>
 
 const writeClientsFile = (
   repoPath: string,
-  yamlContent: string,
+  yamlContent: string
 ): Promise<void> => writeFile(clientsFilePath(repoPath), yamlContent, 'utf8');
 
 const readClientsFile = async (repoPath: string): Promise<ClientsFile> => {
-  const yaml = await readFile(clientsFilePath(repoPath), 'utf8');
+  const yaml = await readFile(clientsFilePath(repoPath));
 
   // TODO: Maybe use a schema w/ safeLoad?
-  return Yaml.safeLoad(yaml);
+  return Yaml.safeLoad(yaml.toString());
 };
 
 module.exports = {

@@ -1,6 +1,6 @@
 // @flow
 
-import logger from '../logger';
+const logger = require('../logger');
 
 import type { $Request, $Response } from 'express';
 
@@ -13,4 +13,4 @@ const statusRoute = (req: $Request, res: $Response) => {
   res.json({ status: 'success', data: status });
 };
 
-export default [statusRoute];
+module.exports = [statusRoute];

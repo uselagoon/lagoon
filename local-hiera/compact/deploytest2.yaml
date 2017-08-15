@@ -2,9 +2,8 @@
 
 # Drupal Sites Definitions
 drupalsites:
-  deploytest_branch1:
-    created: 2017-05-18
-    site_branch: branch1
+  deploytest_branch2:
+    site_branch: branch2
     site_environment: development
     domains:
       - deploytest

@@ -4,64 +4,25 @@
  * This module exists to promisify all the fs functionality
  */
 
-import fs from 'fs';
-import type { Stats } from 'fs';
+const fs = require('fs');
+const util = require('util');
 
-export function readFile(filename: string, encOrOpts: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filename, encOrOpts, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-}
-
-export function accessFile(path: string, mode?: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    fs.access(path, mode, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-export function writeFile(
+type ReadFileFn = (filename: string, enc?: string) => Promise<Buffer | string>;
+type WriteFileFn = (
   filename: string,
   data: Buffer | string,
-  options?: Object | string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(filename, data, options, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
+  options?: Object | string
+) => Promise<void>;
 
-export function lstat(path: string): Promise<Stats> {
-  return new Promise((resolve, reject) => {
-    fs.lstat(path, (err, stat) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(stat);
-      }
-    });
-  });
-}
+// $FlowIgnore https://github.com/facebook/flow/pull/4176
+const readFile: ReadFileFn = util.promisify(fs.readFile);
+// $FlowIgnore https://github.com/facebook/flow/pull/4176
+const writeFile: WriteFileFn = util.promisify(fs.writeFile);
 
-export async function fileExists(file: string): Promise<boolean> {
+async function fileExists(path: string): Promise<boolean> {
   try {
-    const stats = await lstat(file);
+    // $FlowIgnore https://github.com/facebook/flow/pull/4176
+    const stats = await util.promisify(fs.lstat)(path);
 
     if (stats.isFile()) {
       return true;
@@ -73,4 +34,8 @@ export async function fileExists(file: string): Promise<boolean> {
   }
 }
 
-export const statSync = fs.statSync;
+module.exports = {
+  readFile,
+  writeFile,
+  fileExists,
+};

@@ -3,28 +3,28 @@
 const Git = require('nodegit');
 
 import type {
-  Repository,
-  Signature,
-  Revparse,
-  Remote,
   CredAcquireCb as CredCb,
+  Remote,
+  Repository,
+  Revparse,
+  Signature,
 } from 'nodegit';
 
 export type {
-  Repository,
   CredAcquireCb as CredCb,
   Remote,
+  Repository,
   Signature,
 } from 'nodegit';
 
 const createSignature = (
   time?: number = parseInt(Date.now() / 1000, 10),
-  offset?: number = new Date().getTimezoneOffset(),
+  offset?: number = new Date().getTimezoneOffset()
 ): Signature => Git.Signature.create('API', 'api@amazee.io', time, offset);
 
 const createCredentialsCb = (
   username: string,
-  password: string,
+  password: string
 ): CredCb => () => Git.Cred.userpassPlaintextNew(username, password);
 
 const expectDefaultState = (repository: Repository): Repository => {
@@ -39,19 +39,24 @@ const getRepository = async (
   url: string,
   branch: string,
   destination: string,
-  credCb: CredCb,
+  credCb: CredCb
 ): Promise<Repository> => {
   try {
     // Get the repository if it already exists.
     return await Git.Repository.open(destination);
   } catch (e) {
-    // Repository doesn't exist locally yet. Clone it.
-    return Git.Clone.clone(url, destination, {
-      checkoutBranch: branch,
-      fetchOpts: {
-        callbacks: { certificateCheck: () => 1, credentials: credCb },
-      },
-    });
+    if (e.message.includes('No such file or directory')) {
+      // Repository doesn't exist locally yet. Clone it.
+      return Git.Clone.clone(url, destination, {
+        checkoutBranch: branch,
+        fetchOpts: {
+          callbacks: { certificateCheck: () => 1, credentials: credCb },
+        },
+      });
+    }
+
+    // Wrap e.message in a new Error because no stack is available from node-git
+    throw new Error(e.message);
   }
 };
 
@@ -61,7 +66,7 @@ const getRemote = (repository: Repository, remote: string): Promise<Remote> =>
 const remotePush = (
   remote: Remote,
   refs: Array<string>,
-  credCb: CredCb,
+  credCb: CredCb
 ): Promise<void> =>
   remote.push(refs, {
     // Attempt to push any pending commits.
@@ -70,12 +75,12 @@ const remotePush = (
 
 const revparseSingle = (
   repository: Repository,
-  spec: string,
+  spec: string
 ): Promise<Revparse> => Git.Revparse.single(repository, spec);
 
 const fetchAll = (
   repository: Repository,
-  credentialsCb: CredCb,
+  credentialsCb: CredCb
 ): Promise<void> =>
   repository.fetchAll({
     // Fetch any changes from the remote.
@@ -87,14 +92,17 @@ const ensureRepository = async (
   url: string,
   branch: string,
   destination: string,
-  credCb: CredCb,
+  credCb: CredCb
 ): Promise<Repository> => {
-  const repository = await getRepository(url, branch, destination, credCb);
-
-  // Ensure that we are on the right branch.
-  await repository.checkoutBranch(branch);
-
-  return expectDefaultState(repository);
+  try {
+    const repository = await getRepository(url, branch, destination, credCb);
+    // Ensure that we are on the right branch.
+    await repository.checkoutBranch(branch);
+    return expectDefaultState(repository);
+  } catch (e) {
+    // Wrap e.message in a new Error because no stack is available from node-git
+    throw new Error(`(node-git) ${e.message}`);
+  }
 };
 
 const rebase = (
@@ -102,7 +110,7 @@ const rebase = (
   branch: string,
   upstream: string,
   onto: string,
-  sig: Signature,
+  sig: Signature
 ): Promise<void> => repository.rebaseBranches(branch, upstream, onto, sig);
 
 module.exports = {

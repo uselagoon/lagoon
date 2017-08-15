@@ -3,16 +3,16 @@
 // @flow
 
 import 'babel-polyfill';
+import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
-import { statSync, readFile } from './util/fs';
-import findConfig from './findConfig';
-import parseConfig from './parseConfig';
+import { readFile } from './util/fs';
+import { findConfig, parseConfig } from './util/config';
 import { printErrors } from './printErrors';
 
 import commands from './commands';
 
-import type { AmazeeConfig } from './parseConfig';
+import type { AmazeeConfig } from './util/config';
 
 /**
  * Finds and reads the amazeeio.yml file
@@ -31,11 +31,11 @@ async function readConfig(cwd: string): Promise<?AmazeeConfig> {
 /**
  * Used for logging unexpected errors raised by subcommands
  */
-function errorQuit(err: Error | Object | string) {
+function errorQuit(err: Error | Object | string, prefix: string) {
   const exitCode = printErrors(
     // eslint-disable-next-line no-console
     console.error,
-    'Uncaught error in command:',
+    prefix,
     err,
   );
   process.exit(exitCode);
@@ -54,7 +54,7 @@ export async function runCLI(cwd: string) {
         const runFn = args =>
           // eslint-disable-next-line no-console
           run({ ...args, cwd, config, clog: console.log, cerr: console.error })
-            .catch(errorQuit)
+            .catch(err => errorQuit(err, `Uncaught error in ${name} command:`))
             .then(code => process.exit(code));
 
         const setupFn =
@@ -66,7 +66,7 @@ export async function runCLI(cwd: string) {
       .strict()
       .help().argv;
   } catch (err) {
-    errorQuit(err);
+    errorQuit(err, 'Uncaught error:');
   }
 }
 
@@ -88,7 +88,7 @@ if (require.main === module) {
       'amazee-io-cli',
     );
     try {
-      if (statSync(localCLIPath).isFile()) {
+      if (fs.statSync(localCLIPath).isFile()) {
         main = require.call(null, localCLIPath).runCLI;
         break;
       }

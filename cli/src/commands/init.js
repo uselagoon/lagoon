@@ -4,7 +4,7 @@ import path from 'path';
 import { green } from 'chalk';
 import R from 'ramda';
 import inquirer from 'inquirer';
-import createConfig from '../createConfig';
+import { createConfig } from '../util/config';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 
@@ -105,7 +105,7 @@ export async function run({
   sitegroup,
   clog,
   cerr,
-}: Args): Promise<number> {
+  }: Args): Promise<number> {
   const filepath = path.join(cwd, '.amazeeio.yml');
 
   const exists = await fileExists(filepath);
@@ -128,7 +128,7 @@ export async function run({
         name: 'sitegroup',
         message: 'Enter the name of the sitegroup to configure.',
         validate: input =>
-            input ? Boolean(input) : 'Please enter a sitegroup.',
+          input ? Boolean(input) : 'Please enter a sitegroup.',
       },
     ]);
 

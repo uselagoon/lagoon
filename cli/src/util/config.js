@@ -1,8 +1,44 @@
 // @flow
 
+import { fileExists, writeFile } from './fs';
+import yaml from 'js-yaml';
+
 import path from 'path';
-import { fileExists } from './util/fs';
 import co from 'co';
+
+type DeployTask = {
+  before_deploy: Array<string>,
+  after_deploy: Array<string>,
+};
+
+// TODO: Type the rest of the config
+export type AmazeeConfig = {
+  sitegroup: string,
+  deploy_tasks: {
+    [name: string]: DeployTask,
+  },
+};
+
+export type AmazeeConfigInput = {
+  sitegroup: string,
+};
+
+export function createConfig(
+  filepath: string,
+  inputOptions: AmazeeConfigInput,
+): Promise<void> {
+  const config: AmazeeConfig = {
+    ...inputOptions,
+    deploy_tasks: {
+      task1: {
+        before_deploy: [],
+        after_deploy: [],
+      },
+    },
+  };
+  const yamlConfig = yaml.safeDump(config);
+  return writeFile(filepath, yamlConfig);
+}
 
 function* walker(
   dir: string,
@@ -36,7 +72,7 @@ function* walker(
  * If no file was found, it will return null, otherwise the path
  * of the found file.
  */
-export default async function findConfig(
+export async function findConfig(
   filename: string,
   cwd: string,
 ): Promise<?string> {
@@ -44,4 +80,10 @@ export default async function findConfig(
   const { root } = path.parse(start);
 
   return co(walker(cwd, filename, root));
+}
+
+export function parseConfig(yamlContent: string): AmazeeConfig {
+  // TODO: eventually add some SCHEMA validation in there if
+  //       necessary
+  return yaml.safeLoad(yamlContent);
 }

@@ -1,11 +1,11 @@
 // @flow
 
-import express from 'express';
-import morgan from 'morgan';
-import logger from './logger';
-import loginRoute from './routes/login';
-import logoutRoute from './routes/logout';
-import authenticateRoute from './routes/authenticate';
+const express = require('express');
+const morgan = require('morgan');
+const logger = require('./logger');
+const loginRoute = require('./routes/login');
+const logoutRoute = require('./routes/logout');
+const authenticateRoute = require('./routes/authenticate');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -24,7 +24,7 @@ app.post('/logout', ...logoutRoute);
 app.get('/authenticate/:token', ...authenticateRoute);
 
 // $FlowIgnore
-app.use((err: Error, req: $Request, res: $Response, next: Function) => {
+app.use((err: Error, req: $Request, res: $Response) => {
   logger.error(err.toString());
   res.status(500);
   res.send(`Request failed: ${err.toString()}`);

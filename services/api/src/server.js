@@ -1,9 +1,9 @@
 // @flow
 
-import http from 'http';
-import logger from './logger';
-import { defer } from './util/promise';
-import app from './app';
+const http = require('http');
+const util = require('util');
+const logger = require('./logger');
+const createApp = require('./app');
 
 import type { ApiStore } from './createStore';
 
@@ -17,28 +17,22 @@ const normalizePort = (value) => {
   return false;
 };
 
-export default async (store: ApiStore): Promise<Server> => {
+const createServer = async (store: ApiStore): Promise<Server> => {
   logger.debug('Starting to boot the server.');
 
   const port = normalizePort(process.env.PORT || '8080');
-  const server = http.createServer(app(store));
+  const server = http.createServer(createApp(store));
 
-  const deferred = defer();
-
-  server.listen(port, (err) => {
-    if (err) {
-      deferred.reject(err);
-      return;
-    }
-    deferred.resolve();
-  });
-
-  await deferred.promise;
+  // $FlowIgnore https://github.com/facebook/flow/pull/4176
+  const listen = util.promisify(server.listen).bind(server);
+  await listen(port);
 
   logger.debug(
-    `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
+    `Finished booting the server. The server is reachable at Port ${port.toString()}.`
   );
 
   // eslint-disable-line
   return server;
 };
+
+module.exports = createServer;

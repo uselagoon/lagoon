@@ -1,7 +1,5 @@
 // @flow
 
-const { getSiteFiles } = require('../../storage/sitefiles');
-
 jest.mock('../../storage', () => ({
   readYamlFile: jest.fn(async () => ({
     drupalsites: {
@@ -14,13 +12,14 @@ jest.mock('../../storage', () => ({
   })),
 }));
 
+const { getSiteFiles } = require('../../storage/sitefiles');
+
 describe('getSiteFiles', () => {
   test('returns a list of site files', async () => {
     const ret = await getSiteFiles([
       'compact/site1.yaml',
       'compact/site2.yaml',
     ]);
-    // console.log('ret', ret);
     expect(ret).toEqual({
       'compact/site1.yaml': {
         drupalsites: {

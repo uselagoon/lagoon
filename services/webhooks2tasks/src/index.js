@@ -1,12 +1,11 @@
 // @flow
-require('flow-remove-types/register')({ excludes: '' })
 
 const amqp = require('amqp-connection-manager');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { sendToAmazeeioTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 
-const { processWebhook } = require('./processWebhook');
+const processWebhook = require('./processWebhook');
 
 import type { ChannelWrapper } from './types';
 

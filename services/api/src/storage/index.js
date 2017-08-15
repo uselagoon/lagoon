@@ -1,47 +1,44 @@
 // @flow
 
-import glob from 'glob';
-import Yaml from 'js-yaml';
-import path from 'path';
-import { createSignature } from '../util/git';
-import * as fs from '../util/fs';
+const glob = require('glob');
+const Yaml = require('js-yaml');
+const path = require('path');
+const { createSignature } = require('../util/git');
+
+const { readFile, writeFile } = require('../util/fs');
 
 import type { Repository, Signature, Oid } from 'nodegit';
 
-export async function readYamlFile(filepath: string): Promise<*> {
-  const contents = await fs.readFile(filepath, 'utf-8');
-  return Yaml.safeLoad(contents);
+async function readYamlFile(filepath: string): Promise<*> {
+  const contents = await readFile(filepath);
+  return Yaml.safeLoad(contents.toString());
 }
 
-export async function writeYamlFile(
-  filepath: string,
-  data: Object,
-): Promise<void> {
+async function writeYamlFile(filepath: string, data: Object): Promise<void> {
   const contents = Yaml.safeDump(data);
-  return fs.writeFile(filepath, contents, 'utf-8');
+  return writeFile(filepath, contents, 'utf-8');
 }
 
-export function commitFile(
+function commitFile(
   repository: Repository,
   relFilepath: string,
   signature: Signature = createSignature(),
-  message: string,
+  message: string
 ): Promise<Oid> {
   // Create the commit with the passed message.
   return repository.createCommitOnHead(
     [relFilepath],
     signature,
     signature,
-    message,
+    message
   );
 }
 
-export const repoPath = (
-  repository: Repository,
-  ...paths: Array<string>
-): string => path.join(repository.workdir(), ...paths);
+function repoPath(repository: Repository, ...paths: Array<string>): string {
+  return path.join(repository.workdir(), ...paths);
+}
 
-export function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
+function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
     glob(`${listRepoPath}/**/*.yaml`, (err, matches) => {
       if (err) {
@@ -52,3 +49,11 @@ export function listYamlFiles(listRepoPath: string): Promise<Array<string>> {
     });
   });
 }
+
+module.exports = {
+  readYamlFile,
+  writeYamlFile,
+  commitFile,
+  repoPath,
+  listYamlFiles,
+};
