@@ -111,3 +111,8 @@ do
   IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
   . /scripts/exec-push.sh
 done
+
+for SERVICE_NAME in "${SERVICES[@]}"
+do
+  . /scripts/exec-monitor-deploy.sh
+done
