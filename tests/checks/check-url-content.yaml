@@ -1,5 +1,5 @@
 ---
-- name: "{{ testname }} - Test if URL {{url}} contains content {{expected_content}}"
+- name: "{{ testname }} - Check if URL {{url}} contains content {{expected_content}}"
   uri:
     url: "{{ url }}"
     return_content: yes

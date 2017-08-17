@@ -26,13 +26,13 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: check-deployed.yaml
+- include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup1 }}"
 
-- include: check-deployed.yaml
+- include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -63,7 +63,7 @@
     url: "http://{{ sitegroup1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
-  - include: ../../tests/test-url-returncode.yaml
+  - include: ../../checks/check-url-returncode.yaml
 
 - name: "{{ testname }} - check if site for {{ sitegroup2 }} does not exist anymore"
   hosts: localhost
@@ -72,4 +72,4 @@
     url: "http://{{ sitegroup2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
-  - include: ../../tests/test-url-returncode.yaml
+  - include: ../../checks/check-url-returncode.yaml

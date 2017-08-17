@@ -17,7 +17,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: check-deployed.yaml
+- include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -48,7 +48,7 @@
   - include: ../../tasks/rest/deploy-sha.yaml
 
 
-- include: check-deployed.yaml
+- include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
@@ -63,7 +63,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: check-deployed.yaml
+- include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -79,7 +79,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-sha.yaml
 
-- include: check-deployed.yaml
+- include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
@@ -101,4 +101,4 @@
     url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
-  - include: ../../tests/test-url-returncode.yaml
+  - include: ../../checks/check-url-returncode.yaml
