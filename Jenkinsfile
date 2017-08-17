@@ -88,7 +88,7 @@ node {
     stage ('tag_push') {
       withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
         sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-        sh "./buildBaseImages.sh tag_push amaeeiodev"
+        sh "./buildBaseImages.sh tag_push amazeeiodev"
       }
     }
   }
