@@ -27,6 +27,7 @@ thread_stack = 256K
 tmp_table_size = 512M
 tmpdir = /tmp
 transaction-isolation = READ-COMMITTED
+socket = /tmp/mysql.sock
 
 [isamchk]
 key_buffer_size = 16M
