@@ -35,11 +35,29 @@ export async function sshConnect(args: ConnectArgs): Promise<Connection> {
       resolve(connection);
     });
 
-    connection.on('error', (error) => {
-      reject(error);
+    connection.on('error', (err) => {
+      if (
+        err.message.includes('All configured authentication methods failed')
+      ) {
+        return reject('SSH key not authorized.');
+      }
+      reject(err);
     });
 
-    connection.connect(args);
+    try {
+      connection.connect(args);
+    } catch (err) {
+      // As of now, `ssh2-streams` has a dependency on `node-asn1`, which is
+      // throwing obscure error messages when there are incorrect passphrases
+      // for encrypted private keys.
+      // Ref: https://github.com/mscdex/ssh2-streams/issues/76
+      // Here we catch these errors and throw our own with messages that make
+      // more sense.
+      if (err.stack.includes('InvalidAsn1Error')) {
+        reject('Malformed private key. Bad passphrase?');
+      }
+      reject(err);
+    }
   });
 }
 
@@ -116,13 +134,13 @@ export const getPrivateKeyPassphrase = async (
     R.not,
     // ... return an empty string
     R.always(''),
-    // If the private key has encryption, ask for the password
+    // If the private key has encryption, ask for the passphrase
     async () => {
       const { passphrase } = await inquirer.prompt([
         {
           type: 'password',
           name: 'passphrase',
-          message: 'Private key password (never saved)',
+          message: 'Private key passphrase (never saved)',
           default: '',
         },
       ]);

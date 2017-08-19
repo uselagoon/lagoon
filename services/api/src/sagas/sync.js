@@ -49,7 +49,7 @@ function* rebaseSaga({
   branch,
   signature,
   credCb,
-  }: RebaseSagaArgs): Generator<IOEffect, *, *> {
+}: RebaseSagaArgs): Generator<IOEffect, *, *> {
   yield call(fetchAll, repository, credCb);
   yield call(rebase, repository, branch, `origin/${branch}`, branch, signature);
 }
@@ -60,7 +60,7 @@ function* pushSaga({
   pushBranch,
   credCb,
   logger: { debug, error },
-  }: SyncSagaArgs): Generator<IOEffect, *, *> {
+}: SyncSagaArgs): Generator<IOEffect, *, *> {
   yield call(fetchAll, repository, credCb);
 
   const localRevision = yield call(revparseSingle, repository, pullBranch);

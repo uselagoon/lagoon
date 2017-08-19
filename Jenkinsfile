@@ -73,8 +73,26 @@ node {
           }
         )
       }
-
   }
+
+  if (env.BRANCH_NAME == 'master') {
+    stage ('tag_push') {
+      withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+        sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+        sh "./buildBaseImages.sh tag_push amazeeio"
+      }
+    }
+  }
+
+  if (env.BRANCH_NAME == 'develop') {
+    stage ('tag_push') {
+      withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+        sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+        sh "./buildBaseImages.sh tag_push amazeeiodev"
+      }
+    }
+  }
+
 }
 
 def cleanup(docker_compose) {
