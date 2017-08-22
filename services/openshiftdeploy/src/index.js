@@ -15,7 +15,6 @@ const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
-const ocBuildDeployBranch = process.env.AMAZEEIO_GIT_BRANCH || "master"
 const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
 
 const amazeeioAPI = new Lokka({
@@ -102,7 +101,11 @@ const messageConsumer = async msg => {
   let ocBuildDeploystage
   let ocBuildDeployImageName
   if (ocBuildDeployImageLocation == "dockerhub") {
-    ocBuildDeployImageName = `amazeeio/oc-build-deploy:${ocBuildDeployBranch}`
+    if (process.env.AMAZEEIO_GIT_SAFE_BRANCH == "master") {
+      ocBuildDeployImageName = 'amazeeio/oc-build-deploy:latest';
+    } else {
+      ocBuildDeployImageName = `amazeeiodev/oc-build-deploy:latest-${process.env.AMAZEEIO_GIT_SAFE_BRANCH}`;
+    }
     ocBuildDeploystage =
     `
       stage ('oc-build-deploy docker pull') {
@@ -117,21 +120,7 @@ const messageConsumer = async msg => {
     `
       stage ('oc-build-deploy docker build') {
         sh '''
-          docker build -t ${ocBuildDeployImageName} /docker-oc-build-deploy
-        '''
-      }
-    `
-  } else {
-    ocBuildDeployImageName = `oc-build-deploy-${ocBuildDeployBranch}`
-    ocBuildDeploystage =
-    `
-      stage ('oc-build-deploy git checkout') {
-        git branch: '${ocBuildDeployBranch}', changelog: false, poll: false, url: '${ocBuildDeployImageLocation}', credentialsId: 'amazeeio-github-bearer-token'
-      }
-
-      stage ('oc-build-deploy docker build') {
-        sh '''
-          docker build -t ${ocBuildDeployImageName} .
+          docker build -t ${ocBuildDeployImageName} /oc-build-deploy
         '''
       }
     `
