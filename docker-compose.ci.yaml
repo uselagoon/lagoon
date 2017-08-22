@@ -53,7 +53,7 @@ services:
     volumes:
       - .:/lagoon
     depends_on:
-      - local-hiera-watcher-pusher      
+      - local-hiera-watcher-pusher
   jenkins:
     build:
       context: .
@@ -69,8 +69,8 @@ services:
       - jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./docker-executors/ansible-drupal-deploy:/ansible-drupal-deploy
-      - ./docker-executors/docker-oc-build-deploy:/docker-oc-build-deploy
+      - ./docker-images/ansible-drupal-deploy:/ansible-drupal-deploy
+      - ./docker-images/docker-oc-build-deploy:/docker-oc-build-deploy
   tests:
     build: tests
     environment:
