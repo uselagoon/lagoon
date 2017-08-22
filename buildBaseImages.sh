@@ -15,7 +15,7 @@ function tag_push {
   REPO=$2
   IMAGESUFFIX=$3
   docker tag $BUILD_TAG/$IMAGENAME $REPO/$IMAGENAME$IMAGESUFFIX
-  docker push $IMAGEPREFIX$IMAGENAME
+  docker push $REPO/$IMAGENAME$IMAGESUFFIX
 }
 
 
@@ -26,8 +26,8 @@ case "$1" in
     tag_push 'centos7-node:8' $2 $3
     tag_push 'centos7-node-builder:6' $2 $3
     tag_push 'centos7-node-builder:8' $2 $3
-    tag_push 'oc' $2 $3
-    tag_push 'oc-build-deploy' $2 $3
+    tag_push 'oc:latest' $2 $3
+    tag_push 'oc-build-deploy:latest' $2 $3
     ;;
 
   *)
@@ -36,7 +36,7 @@ case "$1" in
     build 'centos7-node:8'
     build 'centos7-node-builder:6'
     build 'centos7-node-builder:8'
-    build 'oc'
-    build 'oc-build-deploy'
+    build 'oc:latest'
+    build 'oc-build-deploy:latest'
 
 esac
