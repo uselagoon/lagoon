@@ -1,4 +1,5 @@
-FROM amazeeio/oc
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-amazeeio}/oc
 
 RUN apk add --no-cache bash git openssh docker py-pip && \
     pip install shyaml
