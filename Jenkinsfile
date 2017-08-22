@@ -37,7 +37,7 @@ node {
           '_tests': {
               stage ('run tests') {
                 try {
-                  sh "${docker_compose} run --rm tests ansible-playbook /ansible/playbooks/node.yaml"
+                  sh "${docker_compose} run --rm tests ansible-playbook /ansible/tests/ALL.yaml"
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup(docker_compose)
