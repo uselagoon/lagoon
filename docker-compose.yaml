@@ -143,8 +143,8 @@ services:
       - jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./docker-executors/ansible-drupal-deploy:/ansible-drupal-deploy
-      - ./docker-executors/docker-oc-build-deploy:/docker-oc-build-deploy
+      - ./docker-images/ansible-drupal-deploy:/ansible-drupal-deploy
+      - ./docker-images/oc-build-deploy:/oc-build-deploy
   tests:
     depends_on:
       - git

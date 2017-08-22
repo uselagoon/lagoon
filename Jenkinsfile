@@ -1,6 +1,6 @@
 node {
   def docker_compose = "docker run -t --rm -e BUILD_TAG=\$BUILD_TAG -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
-
+  env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
 
   deleteDir()
 
@@ -73,8 +73,25 @@ node {
           }
         )
       }
-
   }
+
+  stage ('tag_push') {
+    withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+      sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+      sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
+    }
+  }
+
+  if (env.BRANCH_NAME == 'master') {
+    stage ('tag_push') {
+      withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+        sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+        sh "./buildBaseImages.sh tag_push amazeeio"
+      }
+    }
+  }
+
+
 }
 
 def cleanup(docker_compose) {
