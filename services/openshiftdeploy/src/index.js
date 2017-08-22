@@ -124,20 +124,6 @@ const messageConsumer = async msg => {
         '''
       }
     `
-  } else {
-    ocBuildDeployImageName = `oc-build-deploy-${ocBuildDeployBranch}`
-    ocBuildDeploystage =
-    `
-      stage ('oc-build-deploy git checkout') {
-        git branch: '${ocBuildDeployBranch}', changelog: false, poll: false, url: '${ocBuildDeployImageLocation}', credentialsId: 'amazeeio-github-bearer-token'
-      }
-
-      stage ('oc-build-deploy docker build') {
-        sh '''
-          docker build -t ${ocBuildDeployImageName} .
-        '''
-      }
-    `
   }
 
   // If we don't have an OpenShift token, start an amazeeio/oc container which will log us in and then get the token.
