@@ -78,7 +78,7 @@ node {
   stage ('tag_push') {
     withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
       sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-      sh "./buildBaseImages.sh tag_push amazeeiodev/${SAFEBRANCH_NAME}-"
+      sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
     }
   }
 
@@ -86,7 +86,7 @@ node {
     stage ('tag_push') {
       withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
         sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-        sh "./buildBaseImages.sh tag_push amazeeio/"
+        sh "./buildBaseImages.sh tag_push amazeeio"
       }
     }
   }

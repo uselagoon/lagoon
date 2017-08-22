@@ -12,21 +12,22 @@ function build {
 
 function tag_push {
   IMAGENAME=$1
-  IMAGEPREFIX=$2
-  docker tag $BUILD_TAG/$IMAGENAME $IMAGEPREFIX$IMAGENAME
+  REPO=$2
+  IMAGESUFFIX=$3
+  docker tag $BUILD_TAG/$IMAGENAME $REPO/$IMAGENAME$IMAGESUFFIX
   docker push $IMAGEPREFIX$IMAGENAME
 }
 
 
 case "$1" in
   tag_push)
-    tag_push 'centos:7' $2
-    tag_push 'centos7-node:6' $2
-    tag_push 'centos7-node:8' $2
-    tag_push 'centos7-node-builder:6' $2
-    tag_push 'centos7-node-builder:8' $2
-    tag_push 'oc' $2
-    tag_push 'oc-build-deploy' $2
+    tag_push 'centos:7' $2 $3
+    tag_push 'centos7-node:6' $2 $3
+    tag_push 'centos7-node:8' $2 $3
+    tag_push 'centos7-node-builder:6' $2 $3
+    tag_push 'centos7-node-builder:8' $2 $3
+    tag_push 'oc' $2 $3
+    tag_push 'oc-build-deploy' $2 $3
     ;;
 
   *)
