@@ -1,5 +1,5 @@
 ---
-- include: rest/push.yaml
+- include: rest/branch.yaml
   vars:
     testname: "NODE 8"
     node_version: 8
@@ -7,7 +7,7 @@
     sitegroup: ci-node
     branch: node8
 
-- include: rest/push.yaml
+- include: rest/branch.yaml
   vars:
     testname: "NODE 6"
     node_version: 6_subfolder
