@@ -117,7 +117,7 @@ const messageConsumer = async msg => {
     `
       stage ('oc-build-deploy docker build') {
         sh '''
-          docker build -t ${ocBuildDeployImageName} /docker-oc-build-deploy
+          docker build -t ${ocBuildDeployImageName} /oc-build-deploy
         '''
       }
     `

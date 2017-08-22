@@ -70,7 +70,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./docker-images/ansible-drupal-deploy:/ansible-drupal-deploy
-      - ./docker-images/docker-oc-build-deploy:/docker-oc-build-deploy
+      - ./docker-images/oc-build-deploy:/oc-build-deploy
   tests:
     build: tests
     environment:
