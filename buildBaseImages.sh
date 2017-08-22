@@ -25,6 +25,8 @@ case "$1" in
     tag_push 'centos7-node:8' $2
     tag_push 'centos7-node-builder:6' $2
     tag_push 'centos7-node-builder:8' $2
+    tag_push 'oc' $2
+    tag_push 'oc-build-deploy' $2
     ;;
 
   *)
@@ -33,5 +35,7 @@ case "$1" in
     build 'centos7-node:8'
     build 'centos7-node-builder:6'
     build 'centos7-node-builder:8'
+    build 'oc'
+    build 'oc-build-deploy'
 
 esac
