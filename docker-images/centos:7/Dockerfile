@@ -9,6 +9,10 @@ RUN curl -sLo /usr/local/bin/ep https://github.com/kreuzwerker/envplate/releases
 RUN yum install -y which && \
     yum clean all
 
+ENV TINI_VERSION v0.15.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
 # Define Temp Dir
 ENV TMPDIR=/tmp TMP=/tmp
 
@@ -18,7 +22,7 @@ RUN chmod g+w /home
 ENV HOME=/home
 
 COPY amazeeio-entrypoints.sh /usr/sbin/amazeeio-entrypoints
-ENTRYPOINT ["amazeeio-entrypoints"]
+ENTRYPOINT ["/usr/sbin/amazeeio-entrypoints"]
 
 COPY entrypoints /amazeeio/entrypoints
 

@@ -16,3 +16,5 @@ RUN \
 RUN mkdir -p /app && \
     fix-permissions /app
 WORKDIR /app
+
+ENTRYPOINT ["/tini", "--", "/usr/sbin/amazeeio-entrypoints"]
