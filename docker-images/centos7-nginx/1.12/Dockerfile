@@ -14,7 +14,7 @@ RUN yum install -y \
         nginx && \
     yum clean all
 
-COPY container-entrypoint /usr/sbin/container-entrypoint
+COPY docker-entrypoint /amazeeio/entrypoints/70-nginx-entrypoint
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
@@ -30,5 +30,4 @@ RUN mkdir -p /app /etc/nginx/sites && \
 ENV AMAZEEIO=AMAZEEIO \
     AMAZEEIO_HTTP_PORT=8080
 
-ENTRYPOINT ["container-entrypoint"]
 CMD [ "nginx" ]

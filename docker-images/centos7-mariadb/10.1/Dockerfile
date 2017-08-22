@@ -13,7 +13,7 @@ RUN { \
     } > /etc/yum.repos.d/mariadb.repo
 
 COPY server.cnf /etc/my.cnf.d/server.cnf
-COPY docker-entrypoint /usr/local/bin/docker-entrypoint
+COPY docker-entrypoint /amazeeio/entrypoints/70-mariadb-entrypoint
 
 RUN yum install -y epel-release && \
     yum install -y pwgen MariaDB-server MariaDB-client && \
@@ -35,5 +35,4 @@ ENV MYSQL_RANDOM_ROOT_PASSWORD=true \
     MYSQL_PASSWORD=amazeeio
 
 VOLUME /var/lib/mysql
-ENTRYPOINT ["docker-entrypoint"]
 CMD ["mysqld"]

@@ -13,10 +13,6 @@ RUN curl -sLo /usr/local/bin/tini  https://github.com/krallin/tini/releases/down
 RUN yum install -y which && \
     yum clean all
 
-ENV TINI_VERSION v0.15.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-
 # Define Temp Dir
 ENV TMPDIR=/tmp TMP=/tmp
 

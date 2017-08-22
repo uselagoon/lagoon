@@ -31,7 +31,7 @@ case "$1" in
     tag_push 'centos7-nginx-drupal:1.12' $2 $3
     tag_push 'centos7-php:7.0' $2 $3
     tag_push 'centos7-php-drupal:7.0' $2 $3
-    tag_push 'centos7-php-builder-drupal:7.0' $2 $3
+    tag_push 'centos7-php-drupal-builder:7.0' $2 $3
     tag_push 'centos7-mariadb:10.1' $2 $3
     tag_push 'centos7-mariadb-drupal:10.1' $2 $3
     tag_push 'oc:latest' $2 $3
@@ -48,7 +48,7 @@ case "$1" in
     build 'centos7-nginx-drupal/1.12'       'centos7-nginx-drupal:1.12'
     build 'centos7-php/7.0'                 'centos7-php:7.0'
     build 'centos7-php-drupal/7.0'          'centos7-php-drupal:7.0'
-    build 'centos7-php-builder-drupal/7.0'  'centos7-php-builder-drupal:7.0'
+    build 'centos7-php-drupal-builder/7.0'  'centos7-php-drupal-builder:7.0'
     build 'centos7-mariadb/10.1'            'centos7-mariadb:10.1'
     build 'centos7-mariadb-drupal/10.1'     'centos7-mariadb-drupal:10.1'
     build 'oc'                              'oc:latest'
