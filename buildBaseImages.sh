@@ -5,9 +5,10 @@ BUILD_TAG=$(echo "$BUILD_TAG" | tr '[:upper:]' '[:lower:]')
 pushd docker-images
 
 function build {
-  IMAGENAME=$1
-  DOCKER_BUILD_PARAM=$2
-  docker build $DOCKER_BUILD_PARAM --build-arg IMAGE_REPO=$BUILD_TAG -t "$BUILD_TAG/$IMAGENAME" -f $IMAGENAME/Dockerfile $IMAGENAME
+  FOLDER=$1
+  IMAGENAME=$2
+  DOCKER_BUILD_PARAM=$3
+  docker build $DOCKER_BUILD_PARAM --build-arg IMAGE_REPO=$BUILD_TAG -t "$BUILD_TAG/$IMAGENAME" -f $FOLDER/Dockerfile $FOLDER
 }
 
 function tag_push {
@@ -31,12 +32,12 @@ case "$1" in
     ;;
 
   *)
-    build 'centos:7' "--pull"
-    build 'centos7-node:6'
-    build 'centos7-node:8'
-    build 'centos7-node-builder:6'
-    build 'centos7-node-builder:8'
-    build 'oc:latest'
-    build 'oc-build-deploy:latest'
+    build 'centos/7'                'centos:7' '--pull'
+    build 'centos7-node/6'          'centos7-node:6'
+    build 'centos7-node/8'          'centos7-node:8'
+    build 'centos7-node-builder/6'  'centos7-node-builder:6'
+    build 'centos7-node-builder/8'  'centos7-node-builder:8'
+    build 'oc'                      'oc:latest'
+    build 'oc-build-deploy'         'oc-build-deploy:latest'
 
 esac
