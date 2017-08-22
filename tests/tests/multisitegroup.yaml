@@ -1,5 +1,5 @@
 ---
-- include: node/multisitegroup.yaml
+- include: multisitegroup/multisitegroup.yaml
   vars:
     testname: "MULTISITEGROUP - two sitegroups with same git url"
     node_version: 8
