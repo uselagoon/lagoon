@@ -13,13 +13,13 @@ RUN mkdir /home/api/.ssh && \
 
 # This is the script that is run on every ssh login attempt. It
 # calls the authentication server to retrieve a token.
-COPY command.sh /home/api/command.sh
+COPY services/auth-ssh/command.sh /home/api/command.sh
 
 # Add the ssh config for the 'api' user.
-COPY sshd_config /home/api/.ssh/sshd_config
+COPY services/auth-ssh/sshd_config /home/api/.ssh/sshd_config
 
 # This is the authorized keys command.
-COPY authorize.sh /usr/local/bin/authorize.sh
+COPY services/auth-ssh/authorize.sh /usr/local/bin/authorize.sh
 RUN chmod 755 /usr/local/bin/authorize.sh
 
 # The ssh keys and the script need to be owned by the user.
@@ -27,7 +27,7 @@ RUN chown api:api /home/api -R
 
 # Entrypoint file which will replace some environment variables into
 # hardcoded values every time the container is started
-COPY docker-entrypoint.sh /amazeeio/entrypoints/99-envplate.sh
+COPY services/auth-ssh/docker-entrypoint.sh /amazeeio/entrypoints/99-envplate.sh
 
 COPY .env.defaults .
 

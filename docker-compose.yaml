@@ -95,7 +95,9 @@ services:
       - auth-server
       - local-hiera-watcher-pusher
   auth-ssh:
-    build: services/auth-ssh
+    build:
+      context: .
+      dockerfile: services/auth-ssh/Dockerfile
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume
