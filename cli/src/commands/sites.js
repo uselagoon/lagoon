@@ -2,7 +2,7 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
+import R from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -69,11 +69,11 @@ export async function listSites({
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
+  const sortBySite = R.sortBy(R.compose(R.toLower, R.propOr('', 'siteName')));
 
-  const nodes = compose(
+  const nodes = R.compose(
     sortBySite,
-    pathOr([], ['data', 'siteGroupByName', 'sites']),
+    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
   )(result);
 
   if (nodes.length === 0) {
@@ -106,12 +106,12 @@ export async function listSites({
     },
   };
 
-  const tableBody = map((node) => {
+  const tableBody = R.map((node) => {
     const inProdMarker = node.siteEnvironment === 'production' ? '\u221A' : '';
     return [node.siteName, node.siteBranch, inProdMarker];
   }, nodes);
 
-  const tableData = prepend(['Site', 'Branch', 'Deployed?'], tableBody);
+  const tableData = R.prepend(['Site', 'Branch', 'Deployed?'], tableBody);
 
   clog(table(tableData, tableConfig));
 
