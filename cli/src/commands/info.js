@@ -93,9 +93,6 @@ export async function sitegroupInfo({
           informStart
           informChannel
         }
-        client {
-          clientName
-        }
         sites {
           siteName
           siteBranch
