@@ -45,28 +45,8 @@ node {
                 }
                 cleanup(docker_compose)
               }
-          },
-          'webhook-handler logs': {
-              stage ('webhook-handler') {
-                sh "${docker_compose} logs -f webhook-handler"
-              }
-          },
-          'webhooks2tasks logs': {
-              stage ('webhooks2tasks') {
-                sh "${docker_compose} logs -f webhooks2tasks"
-              }
-          },
-          'openshiftdeploy logs': {
-              stage ('openshiftdeploy') {
-                sh "${docker_compose} logs -f openshiftdeploy"
-              }
-          },
-          'openshiftremove logs': {
-              stage ('openshiftremove') {
-                sh "${docker_compose} logs -f openshiftremove"
-              }
-          },
-          'all logs': {
+          }
+          'logs': {
               stage ('all') {
                 sh "${docker_compose} logs -f "
               }
