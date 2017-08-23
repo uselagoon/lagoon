@@ -16,11 +16,11 @@ Array [
 exports[`siteGroupInfo should list found information for given sitegroup 1`] = `
 Array [
   Array [
-    "I found following information for sitegroup 'mysitegroup':",
+    "Details for 'mysitegroup':",
   ],
   Array [
     "╔════════════════╤════════════════════════════════════════════╗
-║ SiteGroup Name │ mysitegroup                                ║
+║ Sitegroup Name │ mysitegroup                                ║
 ╟────────────────┼────────────────────────────────────────────╢
 ║ Git Url        │ sitegroup.git                              ║
 ╟────────────────┼────────────────────────────────────────────╢
@@ -44,7 +44,7 @@ Array [
 exports[`siteInfo should detect ambiguity and propose more specific parameters 1`] = `
 Array [
   Array [
-    "I found multiple sites with the same name, but different branches, maybe try following parameter...",
+    "Multiple sites found with the same name but different branches. The branch can be specified with the \\"siteName@siteBranch\\" syntax. For example:",
   ],
   Array [
     "-> site1@dev",
@@ -71,7 +71,7 @@ Array [
 exports[`siteInfo should show table with information about sitegroup 1`] = `
 Array [
   Array [
-    "I found following information for 'some_sitegroup -> site1@dev':",
+    "Details for 'some_sitegroup -> site1@dev':",
   ],
   Array [
     "╔══════════════════════╤════════════════════════╗

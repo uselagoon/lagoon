@@ -12,7 +12,7 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from './index';
 
 const name = 'sites';
-const description = 'List specific deployment information';
+const description = 'List all sites for a sitegroup';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -20,22 +20,22 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Override the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Specify a sitegroup for the site list',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name}`,
-      'List all sites for the specific sitegroup configured in your .amazeeio.yml config file',
+      'List all sites for the sitegroup configured in .amazeeio.yml',
     )
     .example(
       `$0 ${name} -s mysitegroup`,
-      'List all sites for a specific sitegroup (instead of using the config file)',
+      'List all sites for the sitegroup "mysitegroup"',
     ).argv;
 }
 
-type MainArgs = {
+type ListSitesArgs = {
   sitegroup: string,
   clog: typeof console.log,
   cerr: typeof console.error,
@@ -45,7 +45,7 @@ export async function listSites({
   sitegroup,
   clog,
   cerr,
-}: MainArgs): Promise<number> {
+}: ListSitesArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
@@ -81,7 +81,7 @@ export async function listSites({
     return 0;
   }
 
-  clog(`I found following sites for sitegroup '${sitegroup}':`);
+  clog(`Sites for '${sitegroup}':`);
 
   const tableConfig = {
     columns: {
