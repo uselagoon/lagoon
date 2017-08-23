@@ -37,7 +37,7 @@ node {
           '_tests': {
               stage ('run tests') {
                 try {
-                  sh "${docker_compose} run --rm tests ansible-playbook /ansible/playbooks/node.yaml"
+                  sh "${docker_compose} run --rm tests ansible-playbook /ansible/tests/ALL.yaml"
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup(docker_compose)
@@ -46,27 +46,7 @@ node {
                 cleanup(docker_compose)
               }
           },
-          'webhook-handler logs': {
-              stage ('webhook-handler') {
-                sh "${docker_compose} logs -f webhook-handler"
-              }
-          },
-          'webhooks2tasks logs': {
-              stage ('webhooks2tasks') {
-                sh "${docker_compose} logs -f webhooks2tasks"
-              }
-          },
-          'openshiftdeploy logs': {
-              stage ('openshiftdeploy') {
-                sh "${docker_compose} logs -f openshiftdeploy"
-              }
-          },
-          'openshiftremove logs': {
-              stage ('openshiftremove') {
-                sh "${docker_compose} logs -f openshiftremove"
-              }
-          },
-          'all logs': {
+          'logs': {
               stage ('all') {
                 sh "${docker_compose} logs -f "
               }

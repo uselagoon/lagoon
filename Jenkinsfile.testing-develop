@@ -9,7 +9,7 @@ node {
 
   ansiColor('xterm') {
     stage ('run test') {
-      sh "${docker_compose} -f tests/docker-compose.yaml run --rm tests-develop ansible-playbook /ansible/playbooks/node.yaml"
+      sh "${docker_compose} -f tests/docker-compose.yaml run --rm tests-develop ansible-playbook /ansible/tests/ALL.yaml"
     }
   }
 
