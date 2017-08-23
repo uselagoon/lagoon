@@ -5,4 +5,4 @@
     node_version: 8
     git_repo_name: repo.git
     sitegroup: ci-repo
-    branch: rest-regular-branch
+    branch: rest/slash/branch
