@@ -34,6 +34,11 @@ const tableConfig = {
 const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
+// TODO: This can probably be split up into two commands (`site` and `sitegroup`):
+// - io site mysite
+// - io site mysite@prod
+// - io site mysite -s mysitegroup
+// - io sitegroup mysitegroup
 const name = 'info';
 const description = 'Show info about sites or sitegroups';
 
