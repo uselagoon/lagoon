@@ -6,9 +6,9 @@ Array [
     "[31mOops! The amazee.io API returned an error:[39m",
   ],
   Array [
-    "[31m{
-  \\"message\\": \\"something something error\\"
-}[39m",
+    "[31m{[39m
+[31m  \\"message\\": \\"something something error\\"[39m
+[31m}[39m",
   ],
 ]
 `;
@@ -61,9 +61,9 @@ Array [
     "[31mOops! The amazee.io API returned an error:[39m",
   ],
   Array [
-    "[31m{
-  \\"message\\": \\"something something error\\"
-}[39m",
+    "[31m{[39m
+[31m  \\"message\\": \\"something something error\\"[39m
+[31m}[39m",
   ],
 ]
 `;

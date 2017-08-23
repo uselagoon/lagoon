@@ -1,8 +1,10 @@
 // @flow
 
 const logger = require('../logger');
+const R = require('ramda');
 
 const getContext = require('../getContext');
+const getCredentials = require('../getCredentials');
 
 import type { $Request, $Response } from 'express';
 
@@ -22,12 +24,25 @@ const keysRoute = (req: $Request, res: $Response) => {
 
   const context = getContext(req);
 
+  const credentials = getCredentials(req);
+
   const { getState } = context.store;
-  const { getAllClients, getSshKeysFromClients } = context.selectors;
+  const {
+    getAllClients,
+    getSshKeysFromClients,
+    toSshKeyStr,
+  } = context.selectors;
 
   const clients = getAllClients(getState());
-  const keys = getSshKeysFromClients(clients);
-  res.send(keys.join('\n'));
+
+  const result = R.compose(
+    R.join('\n'),
+    R.map(toSshKeyStr),
+    getSshKeysFromClients,
+    R.filter(client => R.contains(client.clientName, credentials.clients))
+  )(clients);
+
+  res.send(result);
 };
 
 module.exports = [keysAccessMiddleware, keysRoute];

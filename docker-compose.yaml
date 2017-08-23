@@ -79,6 +79,7 @@ services:
     environment:
       - GIT_REPOSITORY=http://git:8080/git/hiera.git
       - REMOTE_DEV_SERVER=false
+      - JWTAUDIENCE=api.dev
     volumes:
       # These files and folders already exists within the docker image, but we mount it again
       # so there is no rebuild necessary when we just change with them.
@@ -113,18 +114,16 @@ services:
   auth-server:
     build: services/auth-server
     command: yarn run dev
+    environment:
+      - JWTISSUER=auth-server.dev
+      - JWTAUDIENCE=api.dev
     volumes:
       - ./services/auth-server/src:/app/src
       - ./services/auth-server/package.json:/app/package.json
       - ./services/auth-server/yarn.lock:/app/yarn.lock
-    links:
-      - auth-database
-    depends_on:
-      - auth-database
     user: '111111111'
-  auth-database:
-    build: services/auth-database
-    user: '111111111'
+    ports:
+      - "3001:3000"
   jenkins:
     build:
       context: .

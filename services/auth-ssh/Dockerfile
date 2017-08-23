@@ -27,9 +27,9 @@ RUN chown api:api /home/api -R
 
 # Entrypoint file which will replace some environment variables into
 # hardcoded values every time the container is started
-COPY docker-entrypoint.sh /usr/bin/docker-entrypoint
+COPY docker-entrypoint.sh /amazeeio/entrypoints/99-envplate.sh
 
-ENTRYPOINT ["docker-entrypoint"]
+COPY .env.defaults .
 
 EXPOSE 2020
 

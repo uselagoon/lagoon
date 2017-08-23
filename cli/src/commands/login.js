@@ -38,7 +38,7 @@ export async function run({
   clog,
   cerr,
   identity: identityOption,
-  }: Args): Promise<number> {
+}: Args): Promise<number> {
   if (identityOption != null && !await fileExists(identityOption)) {
     return printErrors(cerr, 'File does not exist at identity option path!');
   }
@@ -73,7 +73,7 @@ export async function run({
   }
 
   const output = await sshExec(connection, 'login');
-  const token = output.toString();
+  const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
   const tokenFilePath = path.join(homeDir, '.ioauth');
   await writeFile(tokenFilePath, token);
 

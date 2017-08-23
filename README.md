@@ -74,9 +74,24 @@ The API uses a puppet compatible yaml format to store it's data. On production t
 
 ### Troubleshooting
 
-**I can't build any docker image for any NodeJS based service**
+**Docker images will not build for Node.js services**
 
-Try to update the base image cache: `docker pull amazeeio/centos7-node-builder:8 && docker pull amazeeio/centos7-node:8`
+Try updating the base image cache:
+
+```sh
+docker pull amazeeio/centos7-node-builder:8
+docker pull amazeeio/centos7-node:8
+```
+
+And also building all affected images:
+
+```sh
+docker-compose build api
+docker-compose build auth-ssh
+docker-compose build auth-server
+docker-compose build auth-database
+# etc.
+```
 
 **I get errors about missing node_modules content when I try to build / run a NodeJS based image**
 

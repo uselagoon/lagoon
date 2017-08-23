@@ -1,6 +1,7 @@
 node-helpers
 virtual-machine
 deploytest
+.env
 .DS_Store
 *.retry
 startVagrant.sh

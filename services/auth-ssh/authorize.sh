@@ -1,7 +1,12 @@
 #!/bin/bash
 
+# This token will be required for accessing the sshKeys in the AmazeeIO api
+bearer="Authorization: bearer $AUTH_SSH_ADMIN_TOKEN"
+
 api=${AMAZEEIO_API_HOST}
-keys=$(wget $api/keys --content-on-error -q -O -)
+
+keys=$(wget --header "$bearer" $api/keys --content-on-error -q -O -)
+
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
 command="/bin/bash ~/command.sh"
 

@@ -41,7 +41,7 @@ export async function run({
   clog,
   cerr,
   identity: identityOption,
-  }: Args): Promise<number> {
+}: Args): Promise<number> {
   if (identityOption != null && !await fileExists(identityOption)) {
     return printErrors(cerr, 'File does not exist at identity option path!');
   }

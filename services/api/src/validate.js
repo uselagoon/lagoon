@@ -14,6 +14,8 @@ const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
     GIT_PUSH_ENABLE = 'false',
     GIT_SYNC_INTERVAL = 60000,
     GIT_REPO_DIR = path.join('/hiera'),
+    JWTSECRET = '',
+    JWTAUDIENCE,
   } = env;
 
   // TODO: Too tedious to validate it properly
@@ -26,6 +28,8 @@ const validateApiEnv = (cwd: string, env: Object): ApiEnv => {
     GIT_PUSH_ENABLE: GIT_PUSH_ENABLE.toLowerCase() === 'true',
     GIT_SYNC_INTERVAL,
     GIT_REPO_DIR,
+    JWTSECRET,
+    JWTAUDIENCE,
   }: any);
 
   Object.keys(ret).forEach((k) => {

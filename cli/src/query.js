@@ -35,12 +35,18 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
     const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {
-      const token = await readFile(tokenFile);
-      headers.Authorization = `Bearer ${encodeURIComponent(token.toString())}`;
+      const tokenBuffer = await readFile(tokenFile);
+      const token = tokenBuffer.toString().replace(/(\r\n|\n|\r)/gm, '');
+      headers.Authorization = `Bearer ${token}`;
     }
   }
 
-  const { hostname, path: pathname, port: urlPort, protocol = 'https:' } = url.parse(endpoint);
+  const {
+    hostname,
+    path: pathname,
+    port: urlPort,
+    protocol = 'https:',
+  } = url.parse(endpoint);
 
   if (hostname == null) {
     throw new Error('Hostname required');
@@ -63,7 +69,10 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
   const options = {
     hostname,
     path: pathname,
-    port: urlPort === null ? R.propOr(443, protocol)(protocolPorts) : Number(urlPort),
+    port:
+      urlPort === null
+        ? R.propOr(443, protocol)(protocolPorts)
+        : Number(urlPort),
     method: 'POST',
     headers,
     body,

@@ -76,7 +76,7 @@ export async function sitegroupInfo({
   sitegroup,
   clog,
   cerr,
-  }: SiteGroupInfoArgs): Promise<number> {
+}: SiteGroupInfoArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
@@ -160,7 +160,7 @@ export async function siteInfo({
   branch,
   clog,
   cerr,
-  }: SiteInfoArgs): Promise<number> {
+}: SiteInfoArgs): Promise<number> {
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
 
