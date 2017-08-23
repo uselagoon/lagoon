@@ -45,7 +45,7 @@ node {
                 }
                 cleanup(docker_compose)
               }
-          }
+          },
           'logs': {
               stage ('all') {
                 sh "${docker_compose} logs -f "
