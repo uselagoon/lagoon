@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # first export all current environment variables into a file.
 # We do that in order to keep the hierarchy of environment variables. Already defined ones are probably overwritten

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -d /amazeeio/entrypoints ]; then
   for i in /amazeeio/entrypoints/*; do
