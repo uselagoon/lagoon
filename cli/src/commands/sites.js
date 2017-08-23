@@ -9,7 +9,7 @@ import { runGQLQuery } from '../query';
 import { printNoConfigError, printGraphQLErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from './index';
+import type { BaseArgs } from '.';
 
 const name = 'sites';
 const description = 'List all sites for a sitegroup';
