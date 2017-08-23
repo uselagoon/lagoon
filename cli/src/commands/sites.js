@@ -120,12 +120,9 @@ export async function listSites({
 
 type Args = BaseArgs & {
   sitegroup: ?string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
 };
 
 export async function run(args: Args): Promise<number> {
-  // eslint-disable-next-line no-console
   const { config, clog, cerr } = args;
 
   // FIXME: doesn't handle empty config file case correctly
