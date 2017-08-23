@@ -24,7 +24,8 @@ ENV HOME=/home
 COPY amazeeio-entrypoints.sh /usr/sbin/amazeeio-entrypoints
 ENTRYPOINT ["/usr/sbin/amazeeio-entrypoints"]
 
-RUN chmod g=u /etc/passwd
+# Allow our future random user to change /etc/passwd (needed for 10-passwd.sh)
+RUN chmod g+w /etc/passwd
 
 COPY entrypoints /amazeeio/entrypoints
 
