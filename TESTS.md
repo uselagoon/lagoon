@@ -17,7 +17,7 @@ During local development the best and easiest is to test locally. For that you n
 
 Now you can run tests, via ansible:
 
-    docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+    docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
 This would run all tests defined in `tests/playbooks/node.yaml`. If you like only to run a subset of the tests, it's best to shortly comment out the tests in these files you don't like to run.
 

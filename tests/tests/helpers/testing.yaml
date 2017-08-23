@@ -2,4 +2,4 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tests/test-url-returncode.yaml
+  - include: ../../checks/check-url-returncode.yaml

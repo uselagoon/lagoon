@@ -55,7 +55,7 @@ docker-compose logs -f
 4. test Openshift Node Deployment
 
 ```sh
-docker-compose exec tests ansible-playbook /ansible/playbooks/node.yaml
+docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 ```
 
 ## Local Development
