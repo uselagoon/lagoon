@@ -22,7 +22,8 @@ export type CommandModule = {
 import login from './login';
 import logout from './logout';
 import sites from './sites';
+import client from './client';
 import info from './info';
 import init from './init';
 
-export default ([login, logout, sites, init, info]: Array<CommandModule>);
+export default ([login, logout, sites, client, init, info]: Array<CommandModule, >);
