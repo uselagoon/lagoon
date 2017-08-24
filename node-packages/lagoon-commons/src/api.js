@@ -2,11 +2,6 @@
 
 import type { SiteGroup } from './types';
 
-exports.siteGroupByGitUrl = siteGroupByGitUrl;
-exports.getSiteGroupsByGitUrl = getSiteGroupsByGitUrl;
-exports.getSlackinfoForSiteGroup = getSlackinfoForSiteGroup;
-exports.getActiveSystemsForSiteGroup = getActiveSystemsForSiteGroup;
-
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 
@@ -109,7 +104,7 @@ async function getSlackinfoForSiteGroup(siteGroup: string): SiteGroup {
 async function getActiveSystemsForSiteGroup(
   siteGroup: string,
   task: string
-): String {
+): Promise<String> {
   const result = await graphqlapi.query(`
     {
       siteGroup:siteGroupByName(name: "${siteGroup}"){
@@ -132,3 +127,24 @@ async function getActiveSystemsForSiteGroup(
 
   return result.siteGroup.activeSystems;
 }
+
+const getOpenShiftInfoForSiteGroup = (siteGroupName: string): Promise<Object> =>
+  graphqlapi.query(`
+    {
+      siteGroup:siteGroupByName(name: "${siteGroupName}"){
+        openshift
+        client {
+          deployPrivateKey
+        }
+        gitUrl
+      }
+    }
+`);
+
+module.exports = {
+  siteGroupByGitUrl,
+  getSiteGroupsByGitUrl,
+  getSlackinfoForSiteGroup,
+  getActiveSystemsForSiteGroup,
+  getOpenShiftInfoForSiteGroup
+};

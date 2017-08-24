@@ -150,7 +150,9 @@ services:
     depends_on:
       - git
       - webhook-handler
-    build: tests
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
