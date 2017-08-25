@@ -104,13 +104,27 @@ export async function getClientInfo({
     return 0;
   }
 
+  const formatDeployPrivateKey = R.ifElse(
+    R.identity,
+    R.always('\u221A'),
+    R.always(''),
+  );
+  const formatSiteGroups = R.map(R.prop('siteGroupName'));
+  const formatSshKeys = R.map(R.prop('owner'));
+
   const tableBody = [
     ['Client Name', R.prop('clientName', client)],
-    ['Deploy Private Key', R.prop('deployPrivateKey', client)],
+    [
+      'Deploy Private Key',
+      formatDeployPrivateKey(R.prop('deployPrivateKey', client)),
+    ],
     ['Created', R.prop('created', client)],
     ['Comment', R.prop('comment', client)],
-    ['Site Groups', R.join(', ', R.propOr([], 'siteGroups', client))],
-    ['SSH Keys', R.join(', ', R.propOr([], 'sshKeys', client))],
+    [
+      'Site Groups',
+      R.join(', ', formatSiteGroups(R.propOr([], 'siteGroups', client))),
+    ],
+    ['SSH Keys', R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', client)))],
   ];
   const tableData = R.filter(onlyValues)(tableBody);
 
