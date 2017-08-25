@@ -102,6 +102,7 @@ export async function sitegroupInfo({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });
@@ -217,6 +218,7 @@ export async function siteInfo({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });

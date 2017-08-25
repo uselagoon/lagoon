@@ -87,6 +87,7 @@ export async function getClientInfo({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });

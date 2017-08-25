@@ -60,6 +60,7 @@ export async function listSites({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });
