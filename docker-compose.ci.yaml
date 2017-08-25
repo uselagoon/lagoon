@@ -72,7 +72,9 @@ services:
       - ./docker-images/ansible-drupal-deploy:/ansible-drupal-deploy
       - ./docker-images/oc-build-deploy:/oc-build-deploy
   tests:
-    build: tests
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
