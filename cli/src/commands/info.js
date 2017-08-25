@@ -13,7 +13,7 @@ import {
 } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from './index';
+import type { BaseArgs } from '.';
 
 const tableConfig = {
   columns: {
@@ -34,6 +34,11 @@ const tableConfig = {
 const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
+// TODO: This can probably be split up into two commands (`site` and `sitegroup`):
+// - io site mysite
+// - io site mysite@prod
+// - io site mysite -s mysitegroup
+// - io sitegroup mysitegroup
 const name = 'info';
 const description = 'Show info about sites or sitegroups';
 
@@ -43,14 +48,14 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Override the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Specify a sitegroup to show information about',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name}`,
-      'Show information about sitegroup in the .amazeeio.yml config file',
+      'Show information about the sitegroup configured in .amazeeio.yml',
     )
     .example(
       `$0 ${name} mysite`,
@@ -88,9 +93,6 @@ export async function sitegroupInfo({
           informStart
           informChannel
         }
-        client {
-          clientName
-        }
         sites {
           siteName
           siteBranch
@@ -100,6 +102,7 @@ export async function sitegroupInfo({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });
@@ -132,7 +135,7 @@ export async function sitegroupInfo({
   };
 
   const tableBody = [
-    ['SiteGroup Name', R.prop('siteGroupName', sitegroupData)],
+    ['Sitegroup Name', R.prop('siteGroupName', sitegroupData)],
     ['Git Url', R.prop('gitUrl', sitegroupData)],
     ['Slack', formatSlack(R.prop('slack', sitegroupData))],
     ['Sites', R.join(', ', sites)],
@@ -140,7 +143,7 @@ export async function sitegroupInfo({
 
   const tableData = R.filter(onlyValues)(tableBody);
 
-  clog(`I found following information for sitegroup '${sitegroup}':`);
+  clog(`Details for '${sitegroup}':`);
   clog(table(tableData, tableConfig));
 
   return 0;
@@ -215,6 +218,7 @@ export async function siteInfo({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });
@@ -248,7 +252,7 @@ export async function siteInfo({
   // For the case if there was no branch name given to begin with
   if (nodes.length > 1) {
     clog(
-      'I found multiple sites with the same name, but different branches, maybe try following parameter...',
+      'Multiple sites found with the same name but different branches. The branch can be specified with the "siteName@siteBranch" syntax. For example:',
     );
     R.forEach(({ siteName, siteBranch }) =>
       clog(`-> ${siteName}@${siteBranch}`),
@@ -256,7 +260,7 @@ export async function siteInfo({
     return 0;
   }
 
-  clog(`I found following information for '${sitegroup} -> ${siteBranchStr}':`);
+  clog(`Details for '${sitegroup} -> ${siteBranchStr}':`);
 
   // nodes only contains one element, extract it
   const [node] = nodes;
