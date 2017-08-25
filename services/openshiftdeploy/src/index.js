@@ -11,8 +11,6 @@ const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-comm
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
-
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
