@@ -79,7 +79,6 @@ services:
     environment:
       - GIT_REPOSITORY=http://git:8080/git/hiera.git
       - REMOTE_DEV_SERVER=false
-      - JWTAUDIENCE=api.dev
     volumes:
       # These files and folders already exists within the docker image, but we mount it again
       # so there is no rebuild necessary when we just change with them.
