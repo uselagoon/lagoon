@@ -79,7 +79,6 @@ services:
     environment:
       - GIT_REPOSITORY=http://git:8080/git/hiera.git
       - REMOTE_DEV_SERVER=false
-      - JWTAUDIENCE=api.dev
     volumes:
       # These files and folders already exists within the docker image, but we mount it again
       # so there is no rebuild necessary when we just change with them.
@@ -95,7 +94,9 @@ services:
       - auth-server
       - local-hiera-watcher-pusher
   auth-ssh:
-    build: services/auth-ssh
+    build:
+      context: .
+      dockerfile: services/auth-ssh/Dockerfile
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume
@@ -148,7 +149,9 @@ services:
     depends_on:
       - git
       - webhook-handler
-    build: tests
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000

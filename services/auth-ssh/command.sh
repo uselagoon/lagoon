@@ -16,31 +16,34 @@ case $SSH_ORIGINAL_COMMAND in
 
     # Submit the token request as a POST request with the JSON data
     # containing the key.
-    echo $(wget "$server/login" --header "$header" --post-data "$data" --content-on-error -q -O -)
+    echo $(wget "$server/generate" --header "$header" --post-data "$data" --content-on-error -q -O -)
 
     ;;
-  'logout')
-    # Prepare the post (containing the ssh public key) as a JSON object.
-    data='{"key": "'$key'"}'
+  # TODO: Add blacklist stuff
+  # 'logout')
 
-    # Submit the token request as a POST request with the JSON data
-    # containing the key.
-    echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+  #   # Prepare the post (containing the ssh public key) as a JSON object.
+  #   data='{"key": "'$key'"}'
 
-    ;;
-  'logout '*)
-    # Take the first argument from the original ssh input.
-    input=($SSH_ORIGINAL_COMMAND)
-    token=$INPUT[1]
+  #   # Submit the token request as a POST request with the JSON data
+  #   # containing the key.
+  #   echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
 
-    # Prepare the post (containing the ssh public key) as a JSON object.
-    data="{\"key\": \"$key\", \"token\": \"$token\"}"
+  #   ;;
+  # 'logout '*)
 
-    # Submit the token request as a POST request with the JSON data
-    # containing the key.
-    echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+  #   # Take the first argument from the original ssh input.
+  #   input=($SSH_ORIGINAL_COMMAND)
+  #   token=$INPUT[1]
 
-    ;;
+  #   # Prepare the post (containing the ssh public key) as a JSON object.
+  #   data="{\"key\": \"$key\", \"token\": \"$token\"}"
+
+  #   # Submit the token request as a POST request with the JSON data
+  #   # containing the key.
+  #   echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+
+  #   ;;
   *)
     # We only allow 'login' and 'logout' requests.
     echo 'Permission denied.'

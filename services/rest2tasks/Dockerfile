@@ -23,6 +23,8 @@ COPY --from=service-builder /app /app
 COPY services/rest2tasks /app/services/rest2tasks
 WORKDIR /app/services/rest2tasks/
 
+COPY .env.defaults .
+
 # building our service
 RUN yarn run build
 

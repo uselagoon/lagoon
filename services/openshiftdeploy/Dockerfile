@@ -23,6 +23,8 @@ COPY --from=service-builder /app /app
 COPY services/openshiftdeploy /app/services/openshiftdeploy
 WORKDIR /app/services/openshiftdeploy/
 
+COPY .env.defaults .
+
 # building our service
 RUN yarn run build
 
