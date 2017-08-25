@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getClientInfo should show client information 1`] = `
+Array [
+  Array [
+    "Client information for sitegroup 'some_sitegroup'",
+  ],
+  Array [
+    "╔════════════════════╤═════════════════════════════════════════╗
+║ Client Name        │ client1                                 ║
+╟────────────────────┼─────────────────────────────────────────╢
+║ Deploy Private Key │ √                                       ║
+╟────────────────────┼─────────────────────────────────────────╢
+║ Created            │ Wed May 18 2011 00:00:00 GMT+0000 (UTC) ║
+╟────────────────────┼─────────────────────────────────────────╢
+║ SSH Keys           │ a@example.com                           ║
+╚════════════════════╧═════════════════════════════════════════╝
+",
+  ],
+]
+`;
+
+exports[`getClientInfo should show error message if GraphQL returns errors 1`] = `
+Array [
+  Array [
+    "[31mOops! The amazee.io API returned an error:[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"Something, something missing parameter X\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`getClientInfo should show message for non-existing sites 1`] = `
+Array [
+  Array [
+    "[31mNo client found for sitegroup 'some_sitegroup'[39m",
+  ],
+]
+`;
