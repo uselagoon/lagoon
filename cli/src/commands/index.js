@@ -23,11 +23,12 @@ import login from './login';
 import logout from './logout';
 import sites from './sites';
 import client from './client';
-import info from './info';
+import site from './site';
+import sitegroup from './sitegroup';
 import init from './init';
 
 // Disable flowtype linting error because prettier formats to this
 // eslint-disable-next-line flowtype/generic-spacing
-export default ([login, logout, sites, client, init, info]: Array<
+export default ([login, logout, sites, client, init, site, sitegroup]: Array<
   CommandModule,
 >);

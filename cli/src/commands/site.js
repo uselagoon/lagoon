@@ -34,13 +34,8 @@ const tableConfig = {
 const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
-// TODO: This can probably be split up into two commands (`site` and `sitegroup`):
-// - io site mysite
-// - io site mysite@prod
-// - io site mysite -s mysitegroup
-// - io sitegroup mysitegroup
-const name = 'info';
-const description = 'Show info about sites or sitegroups';
+const name = 'site';
+const description = 'Show site information for a sitegroup';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -48,15 +43,11 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Specify a sitegroup to show information about',
+        describe: 'Specify a sitegroup for the site information',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
-    .example(
-      `$0 ${name}`,
-      'Show information about the sitegroup configured in .amazeeio.yml',
-    )
     .example(
       `$0 ${name} mysite`,
       'Show information about site "mysite" (only works if the site only has a single branch) (sitegroup as stated by config)',
@@ -69,84 +60,6 @@ export async function setup(yargs: Yargs): Promise<Object> {
       `$0 ${name} -s mysitegroup mysite`,
       'Show information about site "mysite" in sitegroup "somesitegroup"',
     ).argv;
-}
-
-type SiteGroupInfoArgs = {
-  sitegroup: string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
-
-export async function sitegroupInfo({
-  sitegroup,
-  clog,
-  cerr,
-}: SiteGroupInfoArgs): Promise<number> {
-  const query = gql`
-    query querySites($sitegroup: String!) {
-      siteGroupByName(name: $sitegroup) {
-        gitUrl
-        siteGroupName
-        slack {
-          webhook
-          channel
-          informStart
-          informChannel
-        }
-        sites {
-          siteName
-          siteBranch
-        }
-      }
-    }
-  `;
-
-  const result = await runGQLQuery({
-    cerr,
-    query,
-    variables: { sitegroup },
-  });
-
-  const { errors } = result;
-  if (errors != null) {
-    return printGraphQLErrors(cerr, ...errors);
-  }
-
-  const sitegroupData = R.path(['data', 'siteGroupByName'])(result);
-
-  if (sitegroupData == null) {
-    return printErrors(clog, `No sitegroup '${sitegroup}' found`);
-  }
-
-  const sites = R.compose(
-    R.map(({ siteName, siteBranch }) => `${siteName}:${siteBranch}`),
-    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
-  )(result);
-
-  const formatSlack = (slack) => {
-    if (slack == null) {
-      return '';
-    }
-
-    const webhook = R.prop('webhook', slack);
-    const channel = R.prop('channel', slack);
-
-    return `${channel} -> ${webhook}`;
-  };
-
-  const tableBody = [
-    ['Sitegroup Name', R.prop('siteGroupName', sitegroupData)],
-    ['Git Url', R.prop('gitUrl', sitegroupData)],
-    ['Slack', formatSlack(R.prop('slack', sitegroupData))],
-    ['Sites', R.join(', ', sites)],
-  ];
-
-  const tableData = R.filter(onlyValues)(tableBody);
-
-  clog(`Details for '${sitegroup}':`);
-  clog(table(tableData, tableConfig));
-
-  return 0;
 }
 
 type SiteInfoArgs = {
@@ -311,7 +224,7 @@ type Args = BaseArgs & {
 export async function run(args: Args): Promise<number> {
   const { config, clog, cerr } = args;
 
-  // FIXME: doesn't handle empty config file case correctly
+  // FIXME: Doesn't handle empty config file case correctly
   if (config == null) {
     return printNoConfigError(cerr);
   }
@@ -320,7 +233,7 @@ export async function run(args: Args): Promise<number> {
   const sitegroup = args.sitegroup || config.sitegroup;
 
   if (siteAndBranch == null) {
-    return sitegroupInfo({ sitegroup, clog, cerr });
+    return printErrors(cerr, 'Site name not specified.');
   }
 
   const [site, branch] = siteAndBranch.split('@');

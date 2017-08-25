@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`siteGroupInfo should display error, if GraphQL sends error messages 1`] = `
+Array [
+  Array [
+    "[31mOops! The amazee.io API returned an error:[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"something something error\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`siteGroupInfo should list found information for given sitegroup 1`] = `
+Array [
+  Array [
+    "Details for 'mysitegroup':",
+  ],
+  Array [
+    "╔════════════════╤════════════════════════════════════════════╗
+║ Sitegroup Name │ mysitegroup                                ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Git Url        │ sitegroup.git                              ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Slack          │ myslack -> https://slack-webhook.something ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Sites          │ site1:dev, site1:prod                      ║
+╚════════════════╧════════════════════════════════════════════╝
+",
+  ],
+]
+`;
+
+exports[`siteGroupInfo should show error on missing sitegroup 1`] = `
+Array [
+  Array [
+    "[31mNo sitegroup 'not_existing' found[39m",
+  ],
+]
+`;
