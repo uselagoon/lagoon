@@ -1,11 +1,20 @@
 #!/bin/bash
 
-env
+# @file
+# This file is called by OpenSSH via an AuthorizedKeysCommand Script
+# It is responsible to talk to the api host and getting all AuthorizedKeys
+# in an OpenSSH readable format back.
+
+# OpenSSH does not pass environment variables into AuthorizedKeysCommand
+# scripts, but we need them for $SERVICE_ADMIN_TOKEN and $AMAZEEIO_API_HOST
+# so we source the file /authorize.env which has been filled with env
+# variables during the container entrypoint.
+source /authorize.env
 
 # This token will be required for accessing the sshKeys in the AmazeeIO api
-bearer="Authorization: bearer ${SERVICE_ADMIN_TOKEN}"
+bearer="Authorization: bearer $SERVICE_ADMIN_TOKEN"
 
-api=${AMAZEEIO_API_HOST}
+api=$AMAZEEIO_API_HOST
 
 keys=$(wget --header "$bearer" $api/keys --content-on-error -q -O -)
 

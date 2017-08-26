@@ -37,9 +37,13 @@ COPY services/auth-ssh/command.sh /home/api/command.sh
 COPY services/auth-ssh/sshd_config /home/api/.ssh/sshd_config
 
 # This is the authorized keys command.
-COPY services/auth-ssh/authorize.sh /usr/local/bin/authorize.sh
-RUN chmod 750 /usr/local/bin/authorize.sh
-RUN chgrp api /usr/local/bin/authorize.sh
+COPY services/auth-ssh/authorize.sh /authorize.sh
+RUN chmod 755 /authorize.sh
+
+# Create /authorize.env file and give api right to write it, it will be filled
+# within docker-entrypoint with all environment variables and then sourced
+# by /authorize.sh
+RUN touch /authorize.env && chown api:api /authorize.env
 
 # The ssh keys and the script need to be owned by the user.
 RUN chown api:api /home/api -R
@@ -52,4 +56,4 @@ COPY .env.defaults .
 
 EXPOSE 2020
 
-CMD ["/usr/sbin/sshd", "-D", "-ddd", "-f", "/home/api/.ssh/sshd_config"]
+CMD ["/usr/sbin/sshd", "-D", "-f", "/home/api/.ssh/sshd_config"]
