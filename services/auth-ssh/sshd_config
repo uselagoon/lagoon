@@ -15,7 +15,6 @@ AuthorizedKeysFile .ssh/authorized_keys
 AuthorizedKeysCommand /usr/local/bin/authorize.sh
 AuthorizedKeysCommandUser api
 
-RhostsRSAAuthentication no
 HostbasedAuthentication no
 
 PasswordAuthentication no
@@ -34,10 +33,7 @@ PermitTTY no
 PrintMotd no
 PrintLastLog no
 
-UseLogin no
-UsePrivilegeSeparation no
 PermitUserEnvironment no
-ShowPatchLevel no
 #UseDNS yes
 PermitTunnel no
 Banner none

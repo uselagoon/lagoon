@@ -1,7 +1,9 @@
 #!/bin/bash
 
+env
+
 # This token will be required for accessing the sshKeys in the AmazeeIO api
-bearer="Authorization: bearer $SERVICE_ADMIN_TOKEN"
+bearer="Authorization: bearer ${SERVICE_ADMIN_TOKEN}"
 
 api=${AMAZEEIO_API_HOST}
 
