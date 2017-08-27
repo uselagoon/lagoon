@@ -1,6 +1,7 @@
 node {
   def docker_compose = "docker run -t --rm -e BUILD_TAG=\$BUILD_TAG -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
   env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
+  env.BUILD_TAG = env.BUILD_TAG.toLowerCase() // We use the buildtag as Docker Repository name which needs to be lowercase
 
   deleteDir()
 
