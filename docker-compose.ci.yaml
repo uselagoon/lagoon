@@ -54,6 +54,24 @@ services:
       - .:/lagoon
     depends_on:
       - local-hiera-watcher-pusher
+  auth-ssh:
+    build:
+      context: .
+      dockerfile: services/auth-ssh/Dockerfile
+    links:
+      - api
+      - auth-server
+    environment:
+      - AMAZEEIO_AUTH_HOST=http://auth-server:3000
+      - AMAZEEIO_API_HOST=http://api:3000
+    user: '111111111'
+  auth-server:
+    build: services/auth-server
+    command: yarn run dev
+    environment:
+      - JWTISSUER=auth-server.dev
+      - JWTAUDIENCE=api.dev
+    user: '111111111'
   jenkins:
     build:
       context: .
