@@ -15,7 +15,7 @@ import { fileExists, readFile, writeFile } from '../util/fs';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from './index';
+import type { BaseArgs } from '.';
 
 const name = 'login';
 const description = 'Authenticate with amazee.io via an SSH key';

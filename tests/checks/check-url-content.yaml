@@ -5,6 +5,6 @@
     return_content: yes
   register: result
   until: result.content | search(expected_content)
-  retries: 20
+  retries: 40
   delay: 10
 - debug: msg="Success!!!"
