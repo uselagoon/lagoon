@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ep /home/api/command.sh
+ep /home/get-jwt-token.sh
 
 # filling /authorize.env with all our current env variables, this file
 # will be sourced by /authorize.sh in order to have all environment variables.

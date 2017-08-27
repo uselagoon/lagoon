@@ -19,7 +19,7 @@ api=$AMAZEEIO_API_HOST
 keys=$(wget --header "$bearer" $api/keys --content-on-error -q -O -)
 
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
-command="/bin/bash ~/command.sh"
+command="/bin/bash /home/get-jwt-token.sh"
 
 ##### START ACTUAL IMPLEMENTATION
 
@@ -41,12 +41,12 @@ command="/bin/bash ~/command.sh"
 ##### START HACKY TEMPORARY SOLUTION
 
 # Empty the keys file or create it.
-:> /home/api/keys
+:> /home/keys
 
 while read -r key; do
-  printf '%s\n' "$options,command=\"$command '$key'\" $key" >> /home/api/keys
+  printf '%s\n' "$options,command=\"$command '$key'\" $key" >> /home/keys
 done <<< "$keys"
 
-cat /home/api/keys
+cat /home/keys
 
 ##### END HACKY TEMPORARY SOLUTION

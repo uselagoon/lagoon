@@ -1,8 +1,8 @@
 Port 2020
 
-HostKey /home/api/.ssh/ssh_host_rsa_key
-HostKey /home/api/.ssh/ssh_host_ecdsa_key
-HostKey /home/api/.ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
 
 LogLevel INFO
 
