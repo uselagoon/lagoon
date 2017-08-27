@@ -18,7 +18,7 @@ node {
               sh "./buildBaseImages.sh"
             }
             stage ('start services') {
-              sh "${docker_compose} build --pull"
+              sh "${docker_compose} build"
               sh "${docker_compose} up -d --force"
             }
           },
