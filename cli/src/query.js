@@ -6,8 +6,10 @@ import url from 'url';
 import R from 'ramda';
 import { fileExists, readFile } from './util/fs';
 import request from './util/request';
+import { printErrors } from './printErrors';
 
 type QLQueryArgs = {
+  cerr: typeof console.error,
   endpoint?: string,
   query: string,
   variables?: Object,
@@ -15,8 +17,9 @@ type QLQueryArgs = {
   pretty?: boolean,
 };
 
-export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
+export async function runGQLQuery(args: QLQueryArgs): Object {
   const {
+    cerr,
     endpoint = process.env.API_URL || 'https://api.amazee.io/graphql',
     query,
     variables,
@@ -79,7 +82,19 @@ export async function runGQLQuery(args: QLQueryArgs): Promise<Object> {
     rejectUnauthorized: false,
   };
 
-  return request(options);
+  try {
+    return await request(options);
+  } catch (err) {
+    const error = R.ifElse(
+      R.propEq('message', 'socket hang up'),
+      // Print a nicer error message for socket hangups
+      R.always('Could not connect to API.'),
+      // If not a socket hang up, return the error message
+      R.prop('message'),
+    )(err);
+    printErrors(cerr, error);
+    process.exit(1);
+  }
 }
 
 export default runGQLQuery;

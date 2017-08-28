@@ -3,7 +3,7 @@
 exports[`listSites should list sites as given by GraphQL 1`] = `
 Array [
   Array [
-    "I found following sites for sitegroup 'some_sitegroup':",
+    "Sites for 'some_sitegroup':",
   ],
   Array [
     "╔═══════╤════════╤═══════════╗

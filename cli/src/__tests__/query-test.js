@@ -19,6 +19,7 @@ describe('runGQLQuery', () => {
   it('Should reject because of missing hostname', async () => {
     try {
       await runGQLQuery({
+        cerr: jest.fn(),
         endpoint: '',
         query: '',
       });
@@ -37,6 +38,7 @@ describe('runGQLQuery', () => {
     );
 
     const result = await runGQLQuery({
+      cerr: jest.fn(),
       endpoint: 'https://url.com/api',
       query: 'test',
     });

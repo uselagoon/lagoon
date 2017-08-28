@@ -1,12 +1,12 @@
 // @flow
 
 const sleep = require("es7-sleep");
-const { Lokka } = require('lokka');
-const { Transport } = require('lokka-transport-http');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { Jenkins } = require('jenkins');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+
+const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
 
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
@@ -15,10 +15,6 @@ const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
 const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
 
 const jenkins = Jenkins({ baseUrl: `${jenkinsurl}`, promisify: true});
-
-const amazeeioAPI = new Lokka({
-  transport: new Transport(`${amazeeioapihost}/graphql`)
-});
 
 const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
@@ -32,13 +28,7 @@ const messageConsumer = async function(msg) {
 
   logger.verbose(`Received RemoveOpenshift task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequest}`);
 
-  const siteGroupOpenShift = await amazeeioAPI.query(`
-    {
-      siteGroup:siteGroupByName(name: "${siteGroupName}"){
-        openshift
-      }
-    }
-  `)
+  const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
 
   try {
     var safeSiteGroupName = ocsafety(siteGroupName)
