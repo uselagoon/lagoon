@@ -144,7 +144,7 @@ io sites -s my_sitegroup
 
 TODO: Make examples
 
-## Development
+## Development - local nodejs
 
 The `runCli.sh` script injects the necessary environment variables such as `process.env.API_URL`.
 
@@ -156,6 +156,14 @@ For example:
 
 ```sh
 ../runCli.sh -- init --overwrite false --sitegroup my_sitegroup
+```
+
+## Development - inside docker
+
+There is already a docker container prepared that has the cli running. Run a new container with bash and then run `yarn run execute <command>`
+
+```sh
+docker-compose run --rm cli bash
 ```
 
 ### Old development instructions
