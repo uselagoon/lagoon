@@ -40,7 +40,7 @@ export function printGraphQLErrors(
   ) {
     return printErrors(
       cerr,
-      'Please log in first. Docs: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login',
+      'Please log in first.\nSee the documentation here: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login',
     );
   }
   const errorMessage =

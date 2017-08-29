@@ -76,7 +76,8 @@ Array [
 exports[`printGraphQLErrors should tell the user to log in if there is a bearer token error 1`] = `
 Array [
   Array [
-    "[31mPlease log in first. Docs: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login[39m",
+    "[31mPlease log in first.[39m
+[31mSee the documentation here: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login[39m",
   ],
 ]
 `;
