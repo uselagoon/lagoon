@@ -12,7 +12,7 @@ PermitRootLogin no
 # but this is overridden so installations will only check .ssh/authorized_keys
 AuthorizedKeysFile .ssh/authorized_keys
 
-AuthorizedKeysCommand /authorize.sh
+AuthorizedKeysCommand /authorize.sh %f
 AuthorizedKeysCommandUser api
 
 HostbasedAuthentication no

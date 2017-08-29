@@ -52,6 +52,7 @@
     "redux-saga": "^0.15.4",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4",
+    "sshpk": "^1.13.1",
     "winston": "^2.3.0"
   },
   "jest": {

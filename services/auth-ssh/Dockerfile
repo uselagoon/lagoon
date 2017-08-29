@@ -22,7 +22,7 @@ RUN rpm -Uvh --nodeps /home/openssh/*.rpm
 RUN yum install -y wget
 
 # Generate ssh server keys
-RUN mkdir /home/.ssh && \
+RUN mkdir .ssh && \
     ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' && \
     ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
     ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
@@ -36,6 +36,7 @@ RUN fix-permissions /etc/ssh/ && \
 # This is the script that is run on every ssh login attempt. It
 # calls the authentication server to retrieve a token, it is
 # envplated during entrypoint so fix permissions
+
 COPY services/auth-ssh/get-jwt-token.sh /home/get-jwt-token.sh
 RUN fix-permissions /home/get-jwt-token.sh
 
