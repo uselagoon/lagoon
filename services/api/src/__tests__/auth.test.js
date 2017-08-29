@@ -25,7 +25,7 @@ describe('getCredentialsForEntities', () => {
 
     const sshKey = 'ssh1';
 
-    const ret = getCredentialsForEntities('ssh1', 'none', null, clients);
+    const ret = getCredentialsForEntities('ssh1', 'none', 'client', null, clients);
 
     expect(ret).toEqual(['c1', 'c3']);
   });

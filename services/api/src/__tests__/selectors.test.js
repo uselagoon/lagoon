@@ -263,6 +263,7 @@ describe('SiteGroups related selectors', () => {
         {
           client: 'c1',
         },
+        undefined,
         state
       );
       expect(ret).toMatchSnapshot();
@@ -334,6 +335,7 @@ describe('Site related selectors', () => {
         {
           site_environment: 'development',
         },
+        undefined,
         state
       );
       expect(ret).toMatchSnapshot();
@@ -369,6 +371,7 @@ describe('Site related selectors', () => {
         {
           siteName: 'deploytest_branch1',
         },
+        undefined,
         state
       );
       expect(ret).toMatchSnapshot();

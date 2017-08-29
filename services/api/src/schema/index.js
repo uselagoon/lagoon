@@ -133,6 +133,7 @@ const resolvers = {
           siteGroupName: (name: string) =>
             R.contains(name, credentials.sitegroups) && name === args.name,
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -149,6 +150,7 @@ const resolvers = {
             R.contains(name, credentials.sitegroups),
           git_url: args.gitUrl,
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -165,6 +167,7 @@ const resolvers = {
           git_url: args.gitUrl,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -181,6 +184,7 @@ const resolvers = {
           site_environment: args.environmentType,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.site,
         getState()
       );
     },
@@ -196,6 +200,7 @@ const resolvers = {
           siteName: (name: string) =>
             R.contains(name, credentials.sites) && name === args.name,
         },
+        credentials.attributeFilters.site,
         getState()
       );
     },
@@ -230,6 +235,7 @@ const resolvers = {
           client: client.clientName,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -301,6 +307,7 @@ const resolvers = {
           site_environment: args.environmentType,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.site,
         getState()
       );
     },
@@ -332,6 +339,7 @@ const resolvers = {
           siteGroupName: (name: string) =>
             R.contains(name, credentials.sitegroups) && name === site.sitegroup,
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },

@@ -44,11 +44,59 @@ const decodeToken = (token: string, secret: string): ?TokenPayload => {
   }
 };
 
+// A filter gets an entity and returns a new object with filtered attributes
+// Used for mapping over and remove attributes of a list of entities
+// e.g. R.map(cred.attributeFilters.site)(sites)
+export type AttributeFilter<E> = (entity: E) => Object;
+
 export type Credentials = {
   clients: Array<string>,
   sitegroups: Array<string>,
   sites: Array<string>,
   role: Role,
+  attributeFilters: {
+    sitegroup?: AttributeFilter<SiteGroup>,
+    site?: AttributeFilter<Site>,
+    client?: AttributeFilter<Client>,
+  }
+};
+
+// Filtering is based on Whitelisting certain attributes of entire Entity groups
+// ... be vary that there is no consideration on subattribute entities (e.g. Slack), unless
+// they are also part of the resulting AttributeFilter object (e.g. Site, SiteGroup,..)
+//
+// Also, AttributeFilter should only be used for filtering attributes
+// of already fetched entity data... if you want to prohibit access to
+// complete group s see `getCredentialsForEntities`
+const createAttributeFilters = (role: Role) => {
+  let sitegroup, site;
+
+  if (role === 'drush') {
+    sitegroup = R.pick([
+      'gitUrl',
+      'slack',
+      'sites',
+    ]);
+
+    site = R.pick([
+      'siteName',
+      'siteBranch',
+      'siteEnvironment',
+      'siteHost',
+      'serverInfrastructure',
+      'serverIdentifier',
+      'serverNames',
+      'deployStrategy',
+      'webRoot',
+      'domains',
+      'jumpHost',
+    ]);
+  }
+
+  return {
+    sitegroup,
+    site,
+  };
 };
 
 const hasSshKey = (sshKey: string, entity: { +ssh_keys?: SshKeys }) =>
@@ -62,6 +110,7 @@ const hasSshKey = (sshKey: string, entity: { +ssh_keys?: SshKeys }) =>
 const getCredentialsForEntities = (
   sshKey: string,
   role: Role,
+  entityType: 'client' | 'sitegroup' | 'site',
   // used for resolving specific relations between entities
   relationCond: ?(entityName: string, entity: Object) => boolean,
   entities: { [id: string]: { +ssh_keys?: SshKeys } }
@@ -70,6 +119,15 @@ const getCredentialsForEntities = (
     R.reduce((acc, [entityName, entity]) => {
       // If there is an admin role, don't filter at all
       if (role === 'admin') {
+        return R.append(entityName, acc);
+      }
+
+      // Drush users should be able to access all entities with read access... with a few exceptions
+      if (role === 'drush') {
+        // Drush users should generally not be allowed to access client information
+        if (entityType === 'client') {
+          return acc;
+        }
         return R.append(entityName, acc);
       }
 
@@ -92,7 +150,7 @@ const getCredentials = (
   state: State
 ): Credentials => {
   const clients = R.compose(
-    clients => getCredentialsForEntities(sshKey, role, null, clients),
+    clients => getCredentialsForEntities(sshKey, role, 'client', null, clients),
     R.pathOr({}, ['clientsFile', 'amazeeio_clients'])
   )(state);
 
@@ -101,7 +159,7 @@ const getCredentials = (
 
   const sitegroups = R.compose(
     siteGroups =>
-      getCredentialsForEntities(sshKey, role, siteGroupInClient, siteGroups),
+    getCredentialsForEntities(sshKey, role, 'sitegroup', siteGroupInClient, siteGroups),
     R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups'])
   )(state);
 
@@ -109,7 +167,7 @@ const getCredentials = (
     R.contains(site.sitegroup, sitegroups);
 
   const sites = R.compose(
-    sites => getCredentialsForEntities(sshKey, role, siteInSiteGroup, sites),
+    sites => getCredentialsForEntities(sshKey, role, 'site', siteInSiteGroup, sites),
     R.fromPairs,
     R.unnest,
     R.map(([fileName, siteFile]) =>
@@ -124,6 +182,7 @@ const getCredentials = (
     sitegroups,
     sites,
     role,
+    attributeFilters: createAttributeFilters(role),
   };
 };
 
