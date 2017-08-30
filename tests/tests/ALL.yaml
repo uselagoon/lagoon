@@ -4,6 +4,7 @@
 - include: rest.yaml
 - include: github.yaml
 - include: gitlab.yaml
+- include: bitbucket.yaml
 
 - include: multisitegroup.yaml
 - include: node.yaml
