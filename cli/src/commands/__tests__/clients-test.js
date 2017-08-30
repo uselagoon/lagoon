@@ -21,28 +21,6 @@ const mockResponse = {
           },
         ],
       },
-      // client: {
-      //   clientName: 'client2',
-      //   deployPrivateKey: null,
-      //   created: 'Wed May 18 2011 00:00:00 GMT+0000 (UTC)',
-      //   siteGroups: [{}],
-      //   sshKeys: [
-      //     {
-      //       owner: 'b@example.com',
-      //     },
-      //   ],
-      // },
-      // client: {
-      //   clientName: 'client3',
-      //   deployPrivateKey: null,
-      //   created: 'Sat Jun 22 2013 00:00:00 GMT+0000 (UTC)',
-      //   siteGroups: [{}],
-      //   sshKeys: [
-      //     {
-      //       owner: 'c@example.com',
-      //     },
-      //   ],
-      // },
     },
   },
 };
