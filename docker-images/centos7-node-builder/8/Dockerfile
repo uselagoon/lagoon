@@ -14,6 +14,6 @@ RUN yum install -y \
                 && \
     yum clean all -y
 
+### Use `docker-sleep.sh` as `CMD` which will cause a Container creates from this image to keep running without doing anything.
 COPY docker-sleep.sh /usr/local/bin/docker-sleep
-
 CMD ["/usr/local/bin/docker-sleep"]
