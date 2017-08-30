@@ -4,8 +4,8 @@ amazeeio_sitegroups:
     client: deploytestclient
     git_url: 'git@git:/git/repo.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
       console: https://192.168.77.100:8443/
       registry: docker-registry-default.192.168.77.100.nip.io:443
@@ -22,8 +22,8 @@ amazeeio_sitegroups:
     client: deploytestclient
     git_url: 'git@git:/git/node.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
       console: https://192.168.77.100:8443/
       registry: docker-registry-default.192.168.77.100.nip.io:443
@@ -58,8 +58,8 @@ amazeeio_sitegroups:
     client: deploytestclient
     git_url: 'git@git:/git/node-multisitegroup.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
       console: https://192.168.77.100:8443/
       registry: docker-registry-default.192.168.77.100.nip.io:443
@@ -76,8 +76,8 @@ amazeeio_sitegroups:
     client: deploytestclient
     git_url: 'git@git:/git/node.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
       console: https://192.168.77.100:8443/
       registry: docker-registry-default.192.168.77.100.nip.io:443
