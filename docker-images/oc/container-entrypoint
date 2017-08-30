@@ -1,0 +1,15 @@
+#!/bin/sh -e
+
+if [  ! -z "$OPENSHIFT_TOKEN" ]; then
+  # If we got a token, we use that to create our kubeconfig
+  ep  /openshift/.kubeconfig
+elif [ ! -z "$OPENSHIFT_USERNAME" ] && [ ! -z "$OPENSHIFT_PASSWORD" ]; then
+  # If we haven username and password instead, don't use the kubeconfig template
+  # and instead login via 'oc login', this will create a new kubeconfig file
+  rm /openshift/.kubeconfig
+  oc login --insecure-skip-tls-verify -u "$OPENSHIFT_USERNAME" -p "$OPENSHIFT_PASSWORD" "${OPENSHIFT_CONSOLE}" > /dev/null
+  # also export our token, in case we need it maybe later
+  export OPENSHIFT_TOKEN=$(oc whoami -t)
+fi
+
+exec "$@"

@@ -23,6 +23,8 @@ COPY --from=service-builder /app /app
 COPY services/logs2slack /app/services/logs2slack
 WORKDIR /app/services/logs2slack/
 
+COPY .env.defaults .
+
 # building our service
 RUN yarn run build
 

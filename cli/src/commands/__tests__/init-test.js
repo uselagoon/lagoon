@@ -4,7 +4,7 @@ import { fileExists } from '../../util/fs';
 import { run } from '../init';
 
 jest.mock('fs');
-jest.mock('../../createConfig');
+jest.mock('../../util/config');
 jest.mock('../../util/fs');
 
 function _mock(fn: any): JestMockFn {

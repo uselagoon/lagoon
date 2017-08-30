@@ -1,0 +1,5 @@
+- name: webhook push delete
+  hosts: localhost
+  serial: 1
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

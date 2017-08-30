@@ -123,11 +123,11 @@ Login successful
 Done in 1.70s.
 ```
 
-If the private key has a password, the user will be prompted to enter it. The password will never be saved.
+If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
 $ io login -i /path/to/id_rsa
-? Private key password (never saved) [hidden]
+? Private key passphrase (never saved) [hidden]
 Login successful
 Done in 4.15s.
 ```
@@ -136,13 +136,15 @@ Done in 4.15s.
 
 ```sh
 # List sites for the configured / given sitegroup
-io list sites
-io list sites -s my_sitegroup
+io sites
+io sites -s my_sitegroup
 ```
 
 #### `io sites` Examples
 
-## Development
+TODO: Make examples
+
+## Development - local nodejs
 
 The `runCli.sh` script injects the necessary environment variables such as `process.env.API_URL`.
 
@@ -154,6 +156,14 @@ For example:
 
 ```sh
 ../runCli.sh -- init --overwrite false --sitegroup my_sitegroup
+```
+
+## Development - inside docker
+
+There is already a docker container prepared that has the cli running. Run a new container with bash and then run `yarn run execute <command>`
+
+```sh
+docker-compose run --rm cli bash
 ```
 
 ### Old development instructions

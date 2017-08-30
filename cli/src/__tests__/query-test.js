@@ -19,6 +19,7 @@ describe('runGQLQuery', () => {
   it('Should reject because of missing hostname', async () => {
     try {
       await runGQLQuery({
+        cerr: jest.fn(),
         endpoint: '',
         query: '',
       });
@@ -32,9 +33,12 @@ describe('runGQLQuery', () => {
   });
 
   it('should do a POST request ala GraphQL', async () => {
-    _mock(request).mockImplementationOnce(() => Promise.resolve({ data: 'data' }));
+    _mock(request).mockImplementationOnce(() =>
+      Promise.resolve({ data: 'data' }),
+    );
 
     const result = await runGQLQuery({
+      cerr: jest.fn(),
       endpoint: 'https://url.com/api',
       query: 'test',
     });

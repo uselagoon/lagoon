@@ -3,17 +3,17 @@
 const Git = require('nodegit');
 
 import type {
-  Repository,
-  Signature,
-  Revparse,
-  Remote,
   CredAcquireCb as CredCb,
+  Remote,
+  Repository,
+  Revparse,
+  Signature,
 } from 'nodegit';
 
 export type {
-  Repository,
   CredAcquireCb as CredCb,
   Remote,
+  Repository,
   Signature,
 } from 'nodegit';
 
@@ -45,13 +45,18 @@ const getRepository = async (
     // Get the repository if it already exists.
     return await Git.Repository.open(destination);
   } catch (e) {
-    // Repository doesn't exist locally yet. Clone it.
-    return Git.Clone.clone(url, destination, {
-      checkoutBranch: branch,
-      fetchOpts: {
-        callbacks: { certificateCheck: () => 1, credentials: credCb },
-      },
-    });
+    if (e.message.includes('No such file or directory')) {
+      // Repository doesn't exist locally yet. Clone it.
+      return Git.Clone.clone(url, destination, {
+        checkoutBranch: branch,
+        fetchOpts: {
+          callbacks: { certificateCheck: () => 1, credentials: credCb },
+        },
+      });
+    }
+
+    // Wrap e.message in a new Error because no stack is available from node-git
+    throw new Error(e.message);
   }
 };
 
@@ -89,12 +94,15 @@ const ensureRepository = async (
   destination: string,
   credCb: CredCb
 ): Promise<Repository> => {
-  const repository = await getRepository(url, branch, destination, credCb);
-
-  // Ensure that we are on the right branch.
-  await repository.checkoutBranch(branch);
-
-  return expectDefaultState(repository);
+  try {
+    const repository = await getRepository(url, branch, destination, credCb);
+    // Ensure that we are on the right branch.
+    await repository.checkoutBranch(branch);
+    return expectDefaultState(repository);
+  } catch (e) {
+    // Wrap e.message in a new Error because no stack is available from node-git
+    throw new Error(`(node-git) ${e.message}`);
+  }
 };
 
 const rebase = (

@@ -19,7 +19,6 @@ const readFile: ReadFileFn = util.promisify(fs.readFile);
 // $FlowIgnore https://github.com/facebook/flow/pull/4176
 const writeFile: WriteFileFn = util.promisify(fs.writeFile);
 
-// TODO: @ryyppy Can we use something simpler like util.promisify(fs.access)?
 async function fileExists(path: string): Promise<boolean> {
   try {
     // $FlowIgnore https://github.com/facebook/flow/pull/4176

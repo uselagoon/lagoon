@@ -10,7 +10,9 @@
 
 export type SshKey = {
   +key: string,
-  +type?: string,
+
+  // See: https://docs.puppet.com/puppet/3.8/types/sshkey.html#sshkey-attribute-type
+  +type?: 'ssh-dss' | 'ssh-rsa' | 'ssh-ed25519',
 };
 
 export type SshKeys = { +[sshKeyName: string]: SshKey };
@@ -84,16 +86,19 @@ export type SiteGroup = {
   +comment?: string,
 };
 
+export type Clients = {
+  +[client_name: string]: ?Client,
+};
 export type ClientsFile = {
-  +amazeeio_clients: {
-    +[client_name: string]: ?Client,
-  },
+  +amazeeio_clients: Clients,
+};
+
+export type SiteGroups = {
+  +[site_group_name: string]: SiteGroup,
 };
 
 export type SiteGroupsFile = {
-  +amazeeio_sitegroups: {
-    +[site_group_name: string]: SiteGroup,
-  },
+  +amazeeio_sitegroups: SiteGroups,
 };
 
 export type SiteFile = {
@@ -130,4 +135,6 @@ export type ApiEnv = {
   GIT_PUSH_ENABLE: boolean,
   GIT_SYNC_INTERVAL: number,
   GIT_REPO_DIR: string,
+  JWTSECRET: string,
+  JWTAUDIENCE?: string,
 };

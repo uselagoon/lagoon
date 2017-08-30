@@ -31,6 +31,8 @@ const { validateApiEnv } = require('./validate');
       GIT_PUSH_ENABLE,
       GIT_SYNC_INTERVAL,
       GIT_REPO_DIR,
+      JWTSECRET,
+      JWTAUDIENCE,
     } = validateApiEnv(process.cwd(), process.env);
 
     const credCb = createCredentialsCb(GIT_USERNAME, GIT_PASSWORD);
@@ -59,7 +61,11 @@ const { validateApiEnv } = require('./validate');
     const initialState = await {};
     const store = createStore(initialState, sagaArgs);
 
-    await createServer(store);
+    await createServer({
+      store,
+      jwtSecret: JWTSECRET,
+      jwtAudience: JWTAUDIENCE,
+    });
 
     logger.debug('Finished booting the application.');
   } catch (e) {

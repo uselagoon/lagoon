@@ -1,0 +1,53 @@
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the hash"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_SHA={{ expected_head }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the branch name"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_BRANCH={{ expected_branch }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the hash inside an environment variable set during buildtime"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_SHA_BUILDTIME={{ expected_head }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the branch name inside an environment variable set during buildtime"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the env variable set by .env file"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "VARIABLE_SET_BY_DOTENV=true"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the env variable set by .env.defaults file"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "VARIABLE_SET_BY_DOTENV_DEFAULTS=true"
+  tasks:
+  - include: check-url-content.yaml

@@ -2,8 +2,10 @@
 
 const { makeExecutableSchema } = require('graphql-tools');
 const getContext = require('../getContext');
+const getCredentials = require('../getCredentials');
+const R = require('ramda');
 
-import type { Slack } from '../types';
+import type { Slack, SshKey } from '../types';
 import type { ClientView, SiteGroupView, SiteView } from '../selectors';
 
 const GraphQLJSON = require('graphql-type-json');
@@ -39,6 +41,7 @@ const typeDefs = `
     siteBranch: String
     uid: String
     siteHost: String
+    siteGroup: SiteGroup,
     siteName: String
     fileName: String
     siteEnvironment: String
@@ -106,9 +109,9 @@ const typeDefs = `
     siteGroupByName(name: String!): SiteGroup
     siteGroupByGitUrl(gitUrl: String!): SiteGroup
     allSiteGroups(createdAfter: String, gitUrl: String): [SiteGroup]
-    allSites(environmentType: String!): [Site]
+    allSites(createdAfter: String, environmentType: String): [Site]
     siteByName(name: String!): Site
-    allClients: [Client]
+    allClients(createdAfter: String): [Client]
   }
 `;
 
@@ -123,9 +126,12 @@ const resolvers = {
       const { getState } = context.store;
       const { findSiteGroup } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return findSiteGroup(
         {
-          siteGroupName: args.name,
+          siteGroupName: (name: string) =>
+            R.contains(name, credentials.sitegroups) && name === args.name,
         },
         getState()
       );
@@ -135,8 +141,12 @@ const resolvers = {
       const { getState } = context.store;
       const { findSiteGroup } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return findSiteGroup(
         {
+          siteGroupName: (name: string) =>
+            R.contains(name, credentials.sitegroups),
           git_url: args.gitUrl,
         },
         getState()
@@ -147,8 +157,11 @@ const resolvers = {
       const { getState } = context.store;
       const { filterSiteGroups } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return filterSiteGroups(
         {
+          siteGroupName: (id: string) => R.contains(id, credentials.sitegroups),
           git_url: args.gitUrl,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
@@ -160,9 +173,13 @@ const resolvers = {
       const { getState } = context.store;
       const { filterSites } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return filterSites(
         {
+          siteName: (name: string) => R.contains(name, credentials.sites),
           site_environment: args.environmentType,
+          created: args.createdAfter && createdAfter(args.createdAfter),
         },
         getState()
       );
@@ -172,19 +189,30 @@ const resolvers = {
       const { getState } = context.store;
       const { findSite } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return findSite(
         {
-          siteName: args.name,
+          siteName: (name: string) =>
+            R.contains(name, credentials.sites) && name === args.name,
         },
         getState()
       );
     },
-    allClients: (_, __, req) => {
+    allClients: (_, args, req) => {
       const context = getContext(req);
       const { getState } = context.store;
-      const { getAllClients } = context.selectors;
+      const { filterClients } = context.selectors;
 
-      return getAllClients(getState());
+      const credentials = getCredentials(req);
+
+      return filterClients(
+        {
+          clientName: (name: string) => R.contains(name, credentials.clients),
+          created: args.createdAfter && createdAfter(args.createdAfter),
+        },
+        getState()
+      );
     },
   },
   Client: {
@@ -193,8 +221,12 @@ const resolvers = {
       const { getState } = context.store;
       const { filterSiteGroups } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return filterSiteGroups(
         {
+          siteGroupName: (name: string) =>
+            R.contains(name, credentials.sitegroups),
           client: client.clientName,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
@@ -205,7 +237,12 @@ const resolvers = {
       const context = getContext(req);
       const { extractSshKeys } = context.selectors;
 
-      return extractSshKeys(client);
+      const credentials = getCredentials(req);
+
+      return (
+        R.contains(client.clientName, credentials.clients) &&
+        extractSshKeys(client)
+      );
     },
     deployPrivateKey: (client: ClientView) => client.deploy_private_key,
   },
@@ -215,11 +252,15 @@ const resolvers = {
       const { getState } = context.store;
       const { findClient } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return (
         siteGroup.client &&
         findClient(
           {
-            clientName: siteGroup.client,
+            clientName: (name: string) =>
+              R.contains(name, credentials.clients) &&
+              name === siteGroup.client,
           },
           getState()
         )
@@ -230,11 +271,15 @@ const resolvers = {
       const { getState } = context.store;
       const { findClient } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return (
         siteGroup.billingclient &&
         findClient(
           {
-            clientName: siteGroup.billingclient,
+            clientName: (name: string) =>
+              R.contains(name, credentials.clients) &&
+              name === siteGroup.billingclient,
           },
           getState()
         )
@@ -245,9 +290,13 @@ const resolvers = {
       const { getState } = context.store;
       const { filterSites } = context.selectors;
 
+      const credentials = getCredentials(req);
+
       return filterSites(
         {
-          sitegroup: siteGroup.siteGroupName,
+          sitegroup: (name: string) =>
+            R.contains(name, credentials.sitegroups) &&
+            name === siteGroup.siteGroupName,
           site_branch: args.branch,
           site_environment: args.environmentType,
           created: args.createdAfter && createdAfter(args.createdAfter),
@@ -260,12 +309,32 @@ const resolvers = {
       const context = getContext(req);
       const { extractSshKeys } = context.selectors;
 
-      return extractSshKeys(siteGroup);
+      const credentials = getCredentials(req);
+
+      return (
+        R.contains(siteGroup.siteGroupName, credentials.sitegroups) &&
+        extractSshKeys(siteGroup)
+      );
     },
     activeSystems: (siteGroup: SiteGroupView) => siteGroup.active_systems,
   },
   Site: {
     siteBranch: (site: SiteView) => site.site_branch,
+    siteGroup: (site: SiteView, args, req) => {
+      const context = getContext(req);
+      const { getState } = context.store;
+      const { findSiteGroup } = context.selectors;
+
+      const credentials = getCredentials(req);
+
+      return findSiteGroup(
+        {
+          siteGroupName: (name: string) =>
+            R.contains(name, credentials.sitegroups) && name === site.sitegroup,
+        },
+        getState()
+      );
+    },
     siteEnvironment: (site: SiteView) => site.site_environment,
     webRoot: (site: SiteView) => site.webroot,
     SSLCertificateType: (site: SiteView) => site.sslcerttype,

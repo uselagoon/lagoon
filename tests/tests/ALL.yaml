@@ -1,0 +1,9 @@
+---
+- include: ssh-auth.yaml
+
+- include: rest.yaml
+- include: github.yaml
+- include: gitlab.yaml
+
+- include: multisitegroup.yaml
+- include: node.yaml
