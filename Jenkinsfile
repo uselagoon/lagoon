@@ -77,7 +77,7 @@ node {
 def cleanup(docker_compose) {
   try {
     sh "${docker_compose} down -v"
-    sh "./minishift/minishift delete"
+    sh "./local-dev/minishift/minishift delete"
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }
