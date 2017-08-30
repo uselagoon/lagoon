@@ -9,6 +9,9 @@ export API_URL="http://localhost:3000/graphql"
 # commands unless the option is already set.
 if [[ $@ =~ login|logout && ! $@ =~ ^.*(--identity\ |-i\ ).*$ ]]; then
   ARGS="--identity $(dirname "${BASH_SOURCE[0]}")/local-dev/cli_id_rsa"
+  if [[ $@ =~ ^[^-][^-] ]]; then
+    PREFIX="--"
+  fi
 fi
 
-cd "$(dirname "${BASH_SOURCE[0]}")/cli" && yarn run execute "$@" $ARGS
+cd "$(dirname "${BASH_SOURCE[0]}")/cli" && yarn run execute $PREFIX "$@" $ARGS
