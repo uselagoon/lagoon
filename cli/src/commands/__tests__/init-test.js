@@ -57,7 +57,7 @@ describe('run', () => {
     expect(cerr.mock.calls).toMatchSnapshot();
   });
 
-  it('should write default yaml to given cwd + .amazeeio.yml', async () => {
+  it('should write default yaml to given cwd + .io.yml', async () => {
     _mock(fileExists).mockImplementationOnce(() => Promise.resolve(false));
 
     const clog = jest.fn();

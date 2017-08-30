@@ -14,7 +14,7 @@ yarn global add @amazeeio/amazee-io-cli
 
 ## Setup
 
-`io` needs a configuration file at `<project directory>/.amazeeio.yml`, which can be created with [the `init` command](#io-init):
+`io` needs a configuration file at `<project directory>/.io.yml`, which can be created with [the `init` command](#io-init):
 
 ```sh
 # Initialize project configuration
@@ -29,7 +29,7 @@ For more options, see the [`io init` documentation](#io-init).
 
 ```text
 $ io init --help
-io init - Create a .amazeeio.yml config file in the current working
+io init - Create a .io.yml config file in the current working
 directory
 
 Options:
@@ -38,7 +38,7 @@ Options:
   --sitegroup, -s  Name of sitegroup to configure                       [string]
 
 Examples:
-  io init                           Create a config file at ./.amazeeio.yml.
+  io init                           Create a config file at ./.io.yml.
                                     This will confirm with the user whether to
                                     overwrite the config if it already exists
                                     and also prompt for a sitegroup name to add
@@ -65,9 +65,9 @@ Examples:
 
 ```text
 $ io init
-? File '/Users/Claudine/Projects/developermentify/.amazeeio.yml' already exists! Overwrite? (y/N) y
+? File '/Users/Claudine/Projects/developermentify/.io.yml' already exists! Overwrite? (y/N) y
 ? Enter the name of the sitegroup to configure. my_sitegroup
-Creating file '/Users/Claudine/Projects/developermentify/.amazeeio.yml'...
+Creating file '/Users/Claudine/Projects/developermentify/.io.yml'...
 Configuration file created!
 Done in 10.56s.
 ```
@@ -75,7 +75,7 @@ Done in 10.56s.
 This will generate the following file:
 
 ```text
-$ cat .amazeeio.yml
+$ cat .io.yml
 sitegroup: my_sitegroup
 deploy_tasks:
   task1:

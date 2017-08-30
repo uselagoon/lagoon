@@ -27,7 +27,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name}`,
-      'List all sites for the sitegroup configured in .amazeeio.yml',
+      'List all sites for the sitegroup configured in .io.yml',
     )
     .example(
       `$0 ${name} -s mysitegroup`,

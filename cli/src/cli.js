@@ -15,10 +15,10 @@ import commands from './commands';
 import type { AmazeeConfig } from './util/config';
 
 /**
- * Finds and reads the amazeeio.yml file
+ * Finds and reads the io.yml file
  */
 async function readConfig(cwd: string): Promise<?AmazeeConfig> {
-  const configPath = await findConfig('.amazeeio.yml', cwd);
+  const configPath = await findConfig('.io.yml', cwd);
 
   if (configPath == null) {
     return null;

@@ -41,7 +41,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .usage(`$0 ${name} [sitegroup] - ${description}`)
     .example(
       `$0 ${name}`,
-      'Show information about the sitegroup configured in .amazeeio.yml',
+      'Show information about the sitegroup configured in .io.yml',
     )
     .example(
       `$0 ${name} mysitegroup`,
