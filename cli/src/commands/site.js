@@ -9,6 +9,7 @@ import { runGQLQuery } from '../query';
 import {
   printErrors,
   printNoConfigError,
+  printSitegroupConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
 
@@ -230,10 +231,18 @@ export async function run(args: Args): Promise<number> {
   }
 
   const [siteAndBranch] = args._.slice(1);
-  const sitegroup = args.sitegroup || config.sitegroup;
 
   if (siteAndBranch == null) {
-    return printErrors(cerr, 'Site name not specified.');
+    return printErrors(
+      cerr,
+      'Site name not specified. Please pass the site name as the first argument.',
+    );
+  }
+
+  const sitegroup = args.sitegroup || config.sitegroup;
+
+  if (sitegroup == null) {
+    return printSitegroupConfigurationError(cerr);
   }
 
   const [site, branch] = siteAndBranch.split('@');

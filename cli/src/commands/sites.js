@@ -6,7 +6,11 @@ import R from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { printNoConfigError, printGraphQLErrors } from '../printErrors';
+import {
+  printNoConfigError,
+  printSitegroupConfigurationError,
+  printGraphQLErrors,
+} from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
@@ -132,6 +136,11 @@ export async function run(args: Args): Promise<number> {
   }
 
   const sitegroup = args.sitegroup || config.sitegroup;
+
+  if (sitegroup == null) {
+    return printSitegroupConfigurationError(cerr);
+  }
+
   return listSites({ sitegroup, clog, cerr });
 }
 

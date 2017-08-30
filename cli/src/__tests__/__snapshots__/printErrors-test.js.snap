@@ -85,7 +85,17 @@ Array [
 exports[`printNoConfigError should print an error about the configuration file not being found 1`] = `
 Array [
   Array [
-    "[31m.amazeeio.yml config file not found.[39m",
+    "[31m.io.yml config file not found. Please create one with \\"io init\\".[39m
+[31mOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init[39m",
+  ],
+]
+`;
+
+exports[`printSitegroupConfigurationError should print an error about missing sitegroup configuration 1`] = `
+Array [
+  Array [
+    "[31mNo sitegroup configured. Please create a .io.yml config file with \\"io init\\" or pass a sitegroup to this command via the --sitegroup option.[39m
+[31mOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init[39m",
   ],
 ]
 `;
