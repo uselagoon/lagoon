@@ -83,7 +83,6 @@ export async function findConfig(
 }
 
 export function parseConfig(yamlContent: string): AmazeeConfig {
-  // TODO: eventually add some SCHEMA validation in there if
-  //       necessary
+  // TODO: Add schema validation in there if necessary
   return yaml.safeLoad(yamlContent);
 }
