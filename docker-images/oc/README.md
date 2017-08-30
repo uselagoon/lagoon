@@ -1,6 +1,6 @@
 # OpenShift client tools Docker image
 
-# Main purpose
+## Main purpose
 - Provide the `oc` command inside a docker container so the command does not need to be installed on a computer
 
 ## Upstream Image

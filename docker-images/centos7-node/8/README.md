@@ -1,6 +1,6 @@
 # Lagoon centos7-node:8 Docker Image
 
-# Main purpose
+## Main purpose
 - Runtime image for Node.js 8 Containers
 
 ## Upstream Image

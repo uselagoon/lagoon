@@ -1,6 +1,6 @@
 # Lagoon centos7-node-builder:8 Docker Image
 
-# Main purpose
+## Main purpose
 - Builder image with Node.js 8.
 - *Not suggested to be used as Runtime Image*
 
