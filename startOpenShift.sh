@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pushd local-dev
+
 mkdir -p minishift
 
 MINISHIFT_RELEASE=1.1.0
