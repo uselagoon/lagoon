@@ -225,7 +225,6 @@ type Args = BaseArgs & {
 export async function run(args: Args): Promise<number> {
   const { config, clog, cerr } = args;
 
-  // FIXME: Doesn't handle empty config file case correctly
   if (config == null) {
     return printNoConfigError(cerr);
   }
