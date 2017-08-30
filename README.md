@@ -19,7 +19,7 @@ Lagoon solves what Developers are dreaming about: A system that allows Developer
 8. Lagoon is built and deployed via Lagoon. (Mind blown? ;) )
 9. Most important: It's work in progress, it's not fully done yet. At amazee.io we believe that as a Hosting community we need to work together and share code where we can.
 
-In order to understand the Lagoon infrastructure and how the services work together, here a schema: https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
+In order to understand the Lagoon infrastructure and how the services work together, here a schema: [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
 
 #### History of Lagoon
 As described, Lagoon is a dream come true. At amazee.io we're hosting Drupal since more than 8 years and this is the fourth major iteration of our hosting platform. The 3rd iteration was built around Puppet and Ansible, where every single piece of the platform was done with configuration management. This allowed very fast setup of new servers, but at the same time was also lacking customizability for developers. We implemented some customizability (some already with Docker in Production), but we've never been completely happy with it. With the rise of Decoupled Drupal and the need to run Node.js on the server side, plus the requests for Elasticsearch or different Solr versions we realized that our existing platform wasn't enough.
