@@ -1,6 +1,6 @@
 #!/bin/bash
 
-popd local-dev
+pushd local-dev
 
 mkdir -p minishift
 
