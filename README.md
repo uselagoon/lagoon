@@ -2,13 +2,20 @@
 
 Lagoon solves what Developers are dreaming about: A system that allows Developers to locally develop their code and their services with Docker and run the exact same system in Production. The same Docker Images, the same service configurations, the same code.
 
-#### Here is how it works:
+### Here is how it works:
 1. Developers define and configure their needed services (like Nginx, PHP, MySQL) within YAML files (like docker-compose.yml), test them with docker-compose itself.
 2. When they are happy, they push the code to Git.
 3. Lagoon parses the YAML files, builds the needed Docker Images, creates the needed resources in OpenShift, pushes them to a Docker registry and monitors the deployment of the containers.
 4. When all is done, Lagoon informs the Developers via different ways (Slack, E-Mail, Website, etc.) about this.
 
-#### A couple of things about Lagoon:
+### Links
+
+- How to develop Lagoon: [./DEVELOPMENT.md](./DEVELOPMENT.md)
+- How Lagoon is tested: [./TESTS.md](./TESTS.md)
+- Slack Channel where the maintainers hang out: #lagoon in the amazee.io Slack https://slack.amazee.io
+- Schema of Lagoon: https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
+
+### A couple of things about Lagoon:
 1. Lagoon is based on Microservices. A whole deployment and build workflow is very complex; not only do we have multiple sources (like Github, Bitbucket, Gitlab, etc.), multiple OpenShift servers and multiple notification systems (Slack, Rocketchat, etc.); but each deployment is unique and can take from seconds got maybe even hours. So it's built with flexibility and robustness in mind. Having microservices that all communicate through a messaging system (RabbitMQ) allows us to scale individual services up and down, survive down times of individual services and also to try out new parts of Lagoon in production without affecting others.
 2. Lagoon uses multiple programming languages. Each programming language has specific strengths and we try to decide which language makes the most sense for each service. Currently, a lot is built in Node.js, partly because we started with it but also because Node.js allows asynchronous processing of webhooks, tasks and more. We probably gonna change the programming language of some services. But this is what is great about micro services, we can replace a single service with another language without to worry about other parts of the platform.
 3. Lagoon is not Drupal specific. Everything has been built that technically it can run any Docker Image. There are Docker Images specifically for Drupal existing and support for specific Drupal tools like Drush. But that's it.
