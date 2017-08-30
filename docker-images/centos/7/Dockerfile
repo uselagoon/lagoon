@@ -30,7 +30,7 @@ ENV TMPDIR=/tmp TMP=/tmp
 
 # On openshift the docker container is called with a random user, so we force the HOME env variable
 # to be /home but also be outside of the workdir as many scripts add stuff to the HOME directory
-RUN fix-permission /home
+RUN fix-permissions /home
 ENV HOME=/home
 
 # The amazeeio entrypoint system
