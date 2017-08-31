@@ -8,7 +8,7 @@ function build {
   FOLDER=$1
   IMAGENAME=$2
   DOCKER_BUILD_PARAM=$3
-  docker build $DOCKER_BUILD_PARAM --build-arg IMAGE_REPO=$BUILD_TAG -t "$BUILD_TAG/$IMAGENAME" -f $FOLDER/Dockerfile $FOLDER
+  docker build $DOCKER_BUILD_PARAM --cache-from "$BUILD_TAG/$IMAGENAME" --cache-from amazeeio/$IMAGENAME --build-arg IMAGE_REPO=$BUILD_TAG -t "$BUILD_TAG/$IMAGENAME" -f $FOLDER/Dockerfile $FOLDER
 }
 
 function tag_push {
@@ -28,12 +28,12 @@ case "$1" in
     tag_push 'centos7-node-builder:6' $2 $3
     tag_push 'centos7-node-builder:8' $2 $3
     tag_push 'centos7-nginx:1.12' $2 $3
-    tag_push 'centos7-nginx-drupal:1.12' $2 $3
+    tag_push 'centos7-nginx-drupal:latest' $2 $3
     tag_push 'centos7-php:7.0' $2 $3
     tag_push 'centos7-php-drupal:7.0' $2 $3
     tag_push 'centos7-php-drupal-builder:7.0' $2 $3
-    tag_push 'centos7-mariadb:10.1' $2 $3
-    tag_push 'centos7-mariadb-drupal:10.1' $2 $3
+    tag_push 'centos7-mariadb:10' $2 $3
+    tag_push 'centos7-mariadb-drupal:latest' $2 $3
     tag_push 'oc:latest' $2 $3
     tag_push 'oc-build-deploy:latest' $2 $3
     ;;
@@ -45,12 +45,12 @@ case "$1" in
     build 'centos7-node-builder/6'          'centos7-node-builder:6'
     build 'centos7-node-builder/8'          'centos7-node-builder:8'
     build 'centos7-nginx/1.12'              'centos7-nginx:1.12'
-    build 'centos7-nginx-drupal/1.12'       'centos7-nginx-drupal:1.12'
+    build 'centos7-nginx-drupal/latest'     'centos7-nginx-drupal:latest'
     build 'centos7-php/7.0'                 'centos7-php:7.0'
     build 'centos7-php-drupal/7.0'          'centos7-php-drupal:7.0'
     build 'centos7-php-drupal-builder/7.0'  'centos7-php-drupal-builder:7.0'
-    build 'centos7-mariadb/10.1'            'centos7-mariadb:10.1'
-    build 'centos7-mariadb-drupal/10.1'     'centos7-mariadb-drupal:10.1'
+    build 'centos7-mariadb/10'              'centos7-mariadb:10'
+    build 'centos7-mariadb-drupal/latest'   'centos7-mariadb-drupal:latest'
     build 'oc'                              'oc:latest'
     build 'oc-build-deploy'                 'oc-build-deploy:latest'
 
