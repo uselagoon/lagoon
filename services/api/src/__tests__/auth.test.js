@@ -4,6 +4,7 @@ const {
   getCredentialsForEntities,
   getCredentials,
   createAttributeFilters,
+  createAllowedQueries,
 } = require('../auth');
 
 describe('createAttributeFilters', () => {
@@ -241,3 +242,17 @@ describe('getCredentials', () => {
     });
   });
 });
+
+describe('createAllowedQueries', () => {
+  test('should limit role "drush" to a subset of queries', () => {
+    const ret = createAllowedQueries('drush');
+
+    expect(ret).toEqual(['siteGroupByName'])
+  });
+
+  test('should not limit any other roles', () => {
+    expect(createAllowedQueries('admin')).toBeUndefined();
+    expect(createAllowedQueries('none')).toBeUndefined();
+  });
+});
+

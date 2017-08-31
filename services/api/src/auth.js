@@ -63,6 +63,9 @@ export type Credentials = {
   sites: Array<string>,
   role: Role,
   attributeFilters: AttributeFilters,
+
+  // if this is defined, query filter will apply
+  allowedQueries?: Array<string>,
 };
 
 // Filtering is based on Whitelisting certain attributes of entire Entity groups
@@ -175,6 +178,13 @@ const getCredentialsForEntities = (
     R.toPairs
   )(entities);
 
+// If this function return void, all queries are allowed
+const createAllowedQueries = (role: Role): void | Array<string> => {
+  if (role === 'drush') {
+    return ['siteGroupByName'];
+  }
+};
+
 const getCredentials = (
   sshKey: string,
   role: Role,
@@ -215,12 +225,14 @@ const getCredentials = (
     R.propOr({}, 'siteFiles')
   )(state);
 
+
   return {
     clients,
     sitegroups,
     sites,
     role,
     attributeFilters: createAttributeFilters(role),
+    allowedQueries: createAllowedQueries(role),
   };
 };
 
@@ -293,6 +305,7 @@ const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
 };
 
 module.exports = {
+  createAllowedQueries,
   createAttributeFilters,
   getCredentialsForEntities,
   getCredentials,
