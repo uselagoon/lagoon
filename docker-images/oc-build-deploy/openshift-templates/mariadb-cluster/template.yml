@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeio-openshift-template-mariadb-clustered
+parameters:
+  - name: SERVICE_NAME
+    description: Name of this service
+    required: true
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    required: true
+  - name: SAFE_SITEGROUP
+    description: Which sitegroup this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
+    required: true
+  - name: SITEGROUP
+    description: Which sitegroup this belongs to, original value
+    required: true
+  - name: AMAZEEIO_GIT_SHA
+    description: git hash sha of the current deployment
+    required: true
+  - name: ROUTER_URL
+    description: URL of the Router
+    required: true
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+    name: mariadb-cluster
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+      ha: "true"
+      cluster: "true"
+  spec:
+    ports:
+    - port: 3306
+      targetPort: mysql
+    selector:
+      service: ${SERVICE_NAME}
+- apiVersion: apps/v1beta1
+  kind: StatefulSet
+  metadata:
+    name: mariadb-cluster
+  spec:
+    serviceName: mariadb-cluster
+    replicas: "3"
+    template:
+      metadata:
+        labels:
+          app:
+            - mysql
+            - mariadb-cluster
+        annotations:
+          pod.alpha.kubernetes.io/initialized: "true"
+      spec:
+        containers:
+        - name: mariadb-cluster
+          image: adfinissygroup/k8s-mariadb-galera-centos:v003
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 3306
+            name: mysql
+          - containerPort: 4444
+            name: sst
+          - containerPort: 4567
+            name: replication
+          - containerPort: 4568
+            name: ist
+          readinessProbe:
+            exec:
+              command:
+              - /usr/share/container-scripts/mysql/readiness-probe.sh
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+          volumeMounts:
+          - name: datadir
+            mountPath: /var/lib/mysql
+            subPath: data
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+    volumeClaimTemplates:
+    - metadata:
+        name: datadir
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
