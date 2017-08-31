@@ -11,7 +11,7 @@ import type {
   SshKeys,
 } from './types';
 
-import type { Credentials, Role } from './auth';
+import type { Credentials, Role, AttributeFilter } from './auth';
 
 const R = require('ramda');
 
@@ -242,12 +242,21 @@ const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
 
 const filterSiteGroups = (
   criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteGroupView> = R.identity(),
   state: State
 ): Array<SiteGroupView> =>
-  R.compose(findAll(criteria), getAllSiteGroups)(state);
+  R.compose(R.map(attributeFilter), findAll(criteria), getAllSiteGroups)(state);
 
-const findSiteGroup = (criteria: FilterCriteria, state: State): SiteGroupView =>
-  R.compose(findFirst(criteria), getAllSiteGroups)(state);
+const findSiteGroup = (
+  criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteGroupView> = R.identity(),
+  state: State
+): SiteGroupView =>
+  R.compose(
+    attributeFilter,
+    findFirst(criteria),
+    getAllSiteGroups
+  )(state);
 
 // Utility for converting actual siteFile content w/ fileName to a SiteView object
 const siteFileToSiteViews = (
@@ -303,11 +312,19 @@ const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
   R.propOr({}, 'siteFiles')
 );
 
-const filterSites = (criteria: FilterCriteria, state: State): Array<SiteView> =>
-  R.compose(findAll(criteria), getAllSites)(state);
+const filterSites = (
+  criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteView> = R.identity(),
+  state: State
+): Array<SiteView> =>
+  R.compose(R.map(attributeFilter), findAll(criteria), getAllSites)(state);
 
-const findSite = (criteria: FilterCriteria, state: State): SiteView =>
-  R.compose(findFirst(criteria), getAllSites)(state);
+const findSite = (
+  criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteView> = R.identity(),
+  state: State
+): SiteView =>
+  R.compose(attributeFilter, findFirst(criteria), getAllSites)(state);
 
 const getAllClients /* : (State) => Array<ClientView> */ = R.compose(
   R.map(([id, client]) => Object.assign({}, client, { clientName: id })),
