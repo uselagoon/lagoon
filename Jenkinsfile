@@ -1,76 +1,85 @@
 node {
-  def docker_compose = "docker run -t --rm -e BUILD_TAG=\$BUILD_TAG -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
-  env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
+  try {
+    def docker_compose = "docker run -t --rm -e BUILD_TAG=\$BUILD_TAG -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
+    env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
 
-  deleteDir()
+    deleteDir()
 
-  stage ('Checkout') {
-    checkout scm
-  }
+    notifySlack('RECEIVED')
 
-  lock('minishift') {
-    ansiColor('xterm') {
-      try {
-        parallel (
-          'start services': {
-            stage ('build base images') {
-              sh "./buildBaseImages.sh"
-            }
-            stage ('start services') {
-              sh "${docker_compose} build --pull"
-              sh "${docker_compose} up -d --force"
-            }
-          },
-          'start openshift': {
-            stage ('start openshift') {
-              sh './startOpenShift.sh'
-            }
-          }
-        )
-      } catch (e) {
-        echo "Something went wrong, trying to cleanup"
-        cleanup(docker_compose)
-        throw e
-      }
-
-        parallel (
-          '_tests': {
-              stage ('run tests') {
-                try {
-                  sh "${docker_compose} run --rm tests ansible-playbook /ansible/tests/ALL.yaml"
-                } catch (e) {
-                  echo "Something went wrong, trying to cleanup"
-                  cleanup(docker_compose)
-                  throw e
-                }
-                cleanup(docker_compose)
-              }
-          },
-          'logs': {
-              stage ('all') {
-                sh "${docker_compose} logs -f "
-              }
-          }
-        )
-      }
-  }
-
-  stage ('tag_push') {
-    withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-      sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-      sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
+    stage ('Checkout') {
+      checkout scm
     }
-  }
 
-  if (env.BRANCH_NAME == 'master') {
+    lock('minishift') {
+      notifySlack()
+      ansiColor('xterm') {
+        try {
+          parallel (
+            'start services': {
+              stage ('build base images') {
+                sh "./buildBaseImages.sh"
+              }
+              stage ('start services') {
+                sh "${docker_compose} build --pull"
+                sh "${docker_compose} up -d --force"
+              }
+            },
+            'start openshift': {
+              stage ('start openshift') {
+                sh './startOpenShift.sh'
+              }
+            }
+          )
+        } catch (e) {
+          echo "Something went wrong, trying to cleanup"
+          cleanup(docker_compose)
+          throw e
+        }
+
+          parallel (
+            '_tests': {
+                stage ('run tests') {
+                  try {
+                    sh "${docker_compose} run --rm tests ansible-playbook /ansible/tests/ALL.yaml"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup(docker_compose)
+                    throw e
+                  }
+                  cleanup(docker_compose)
+                }
+            },
+            'logs': {
+                stage ('all') {
+                  sh "${docker_compose} logs -f "
+                }
+            }
+          )
+        }
+    }
+
     stage ('tag_push') {
       withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
         sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-        sh "./buildBaseImages.sh tag_push amazeeio"
+        sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
       }
     }
-  }
 
+    if (env.BRANCH_NAME == 'master') {
+      stage ('tag_push') {
+        withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+          sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+          sh "./buildBaseImages.sh tag_push amazeeio"
+        }
+      }
+    }
+  } catch (e) {
+    currentBuild.result = 'FAILURE'
+    throw e
+  } finally {
+    notifySlack(currentBuild.result)
+  }
 
 }
 
@@ -81,4 +90,27 @@ def cleanup(docker_compose) {
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }
+}
+
+def notifySlack(String buildStatus = 'STARTED') {
+    // Build status of null means success.
+    buildStatus = buildStatus ?: 'SUCCESS'
+
+    def color
+
+    if (buildStatus == 'STARTED') {
+        color = '#68A1D1'
+    } else if (buildStatus == 'SUCCESS') {
+        color = '#BDFFC3'
+    } else if (buildStatus == 'UNSTABLE') {
+        color = '#FFFE89'
+    } else if (buildStatus == 'RECEIVED') {
+        color = '#D4DADF'
+    } else {
+        color = '#FF9FA1'
+    }
+
+    def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+
+    slackSend(color: color, message: msg)
 }
