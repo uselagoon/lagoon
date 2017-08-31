@@ -97,6 +97,8 @@ services:
     build:
       context: .
       dockerfile: services/auth-ssh/Dockerfile
+      args:
+        IMAGE_NAME: lagoon-local-dev/centos:7
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume

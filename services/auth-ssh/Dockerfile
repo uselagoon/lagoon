@@ -1,5 +1,5 @@
-ARG BUILD_TAG
-FROM ${BUILD_TAG:-lagoon-local-dev}/centos:7 as openssh-builder
+ARG IMAGE_NAME
+FROM ${IMAGE_NAME:-amazeeiodev/centos:7-develop} as openssh-builder
 
 RUN yum install -y rpm-build gcc make wget openssl-devel krb5-devel pam-devel libX11-devel xmkmf libXt-devel
 RUN cd /usr/src && wget http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.5p1.tar.gz && tar -xvzf openssh-7.5p1.tar.gz && \
@@ -13,7 +13,7 @@ RUN cd /usr/src && wget http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/open
 
 RUN ls -l /home/rpmbuild/RPMS/x86_64/
 
-FROM ${BUILD_TAG:-lagoon-local-dev}/centos:7
+FROM ${IMAGE_NAME:-amazeeiodev/centos:7-develop}
 
 COPY --from=openssh-builder /home/rpmbuild/RPMS/x86_64 /home/openssh
 

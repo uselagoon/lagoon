@@ -59,7 +59,7 @@ services:
       context: .
       dockerfile: services/auth-ssh/Dockerfile
       args:
-        BUILD_TAG: ${BUILD_TAG}
+        IMAGE_NAME: ${BUILD_TAG}/centos:7
     links:
       - api
       - auth-server
