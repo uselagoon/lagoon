@@ -9,6 +9,7 @@ import { runGQLQuery } from '../query';
 import {
   printErrors,
   printNoConfigError,
+  printSitegroupConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
 
@@ -224,16 +225,23 @@ type Args = BaseArgs & {
 export async function run(args: Args): Promise<number> {
   const { config, clog, cerr } = args;
 
-  // FIXME: Doesn't handle empty config file case correctly
   if (config == null) {
     return printNoConfigError(cerr);
   }
 
   const [siteAndBranch] = args._.slice(1);
-  const sitegroup = args.sitegroup || config.sitegroup;
 
   if (siteAndBranch == null) {
-    return printErrors(cerr, 'Site name not specified.');
+    return printErrors(
+      cerr,
+      'Site name not specified. Please pass the site name as the first argument.',
+    );
+  }
+
+  const sitegroup = args.sitegroup || config.sitegroup;
+
+  if (sitegroup == null) {
+    return printSitegroupConfigurationError(cerr);
   }
 
   const [site, branch] = siteAndBranch.split('@');

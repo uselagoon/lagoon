@@ -47,7 +47,6 @@ function* walker(
 ): Generator<*, ?string, *> {
   let next = dir;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const full = path.join(next, filename);
     const exists = yield fileExists(full);
@@ -83,7 +82,6 @@ export async function findConfig(
 }
 
 export function parseConfig(yamlContent: string): AmazeeConfig {
-  // TODO: eventually add some SCHEMA validation in there if
-  //       necessary
+  // TODO: Add schema validation in there if necessary
   return yaml.safeLoad(yamlContent);
 }
