@@ -51,7 +51,21 @@ objects:
         containers:
         - image: ' '
           name: ${SERVICE_NAME}
+          ports:
+          - containerPort: 3000
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
           env:
+            - name: GIT_REPOSITORY
+              value: https://git.vshn.net/amazee/amazee_hieradata.git
+            - name: GIT_USERNAME
+              value: michael.schmid
+            - name: GIT_PASSWORD
+              value: 4ahjnuCiMKb98nmJtr3AVNR
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
                 configMapKeyRef:
@@ -72,26 +86,11 @@ objects:
                 configMapKeyRef:
                   name: amazeeio-env
                   key: AMAZEEIO_SITEGROUP
-            - name: RABBITMQ_USERNAME
+            - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
                   name: secret-environment
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secret-environment
-                  key: RABBITMQ_PASSWORD
-            - name: JENKINS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: secret-environment
-                  key: JENKINS_URL
-            - name: SERVICE_API_ADMIN_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: secret-environment
-                  key: SERVICE_API_ADMIN_TOKEN
+                  key: JWTSECRET
           resources:
             requests:
               cpu: 100m
@@ -108,3 +107,22 @@ objects:
           name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
+  spec:
+    ports:
+    - name: 3000-tcp
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      service: ${SERVICE_NAME}
+  status:
+    loadBalancer: {}
