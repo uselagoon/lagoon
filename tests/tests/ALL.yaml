@@ -7,3 +7,4 @@
 
 - include: multisitegroup.yaml
 - include: node.yaml
+- include: drupal.yaml
