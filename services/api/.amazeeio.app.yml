@@ -86,6 +86,11 @@ objects:
                 configMapKeyRef:
                   name: amazeeio-env
                   key: AMAZEEIO_SITEGROUP
+            - name: JWTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: JWTSECRET
           resources:
             requests:
               cpu: 100m
