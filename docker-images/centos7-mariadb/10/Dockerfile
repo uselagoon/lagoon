@@ -2,7 +2,7 @@ ARG IMAGE_REPO=amazeeio
 FROM ${IMAGE_REPO}/centos:7
 MAINTAINER amazee.io
 
-ENV MARIADB_VERSION=10.1
+ENV MARIADB_VERSION=10.2
 
 RUN { \
       echo '[mariadb]'; \
