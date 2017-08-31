@@ -89,5 +89,4 @@ services:
       type: custom
       template: services/auth-ssh/.amazeeio.app.yml
     build:
-      context: services/auth-ssh
-      dockerfile: Dockerfile
+      dockerfile: services/auth-ssh/Dockerfile
