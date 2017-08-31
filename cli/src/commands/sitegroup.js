@@ -143,7 +143,7 @@ export async function run(args: Args): Promise<number> {
   if (sitegroup == null) {
     return printErrors(
       cerr,
-      'No sitegroup configured. Please create a .io.yml config file with "io init" or pass a sitegroup to this command via the first argument.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+      'No sitegroup configured. Please create a .amazeeio.yml config file with "io init" or pass a sitegroup to this command via the first argument.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
     );
   }
 
