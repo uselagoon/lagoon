@@ -78,3 +78,16 @@ services:
     build:
       context: helpers/drush-alias
       dockerfile: Dockerfile
+  auth-server:
+    amazeeio:
+      type: custom
+      template: services/auth-server/.amazeeio.app.yml
+    build:
+      dockerfile: services/auth-server/Dockerfile
+  auth-ssh:
+    amazeeio:
+      type: custom
+      template: services/auth-ssh/.amazeeio.app.yml
+    build:
+      context: services/auth-ssh
+      dockerfile: Dockerfile
