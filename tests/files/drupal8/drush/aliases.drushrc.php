@@ -1,12 +1,6 @@
 <?php
 // Don't change anything here, it's magic!
 
-// For CI: allow to completely disable amazee.io alias loading
-if (getenv('AMAZEEIO_DISABLE_ALIASES')) {
-  drush_log('AMAZEEIO_DISABLE_ALIASES is set, bailing out of loading amazeeio aliases');
-  return;
-}
-
 // global $aliases_stub;
 // if (empty($aliases_stub)) {
 //     $ch = curl_init();
