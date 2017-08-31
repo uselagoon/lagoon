@@ -242,18 +242,18 @@ const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
 
 const filterSiteGroups = (
   criteria: FilterCriteria,
-  attributeFilter?: AttributeFilter<SiteGroup> = R.identity(),
+  attributeFilter?: AttributeFilter<SiteGroupView> = R.identity(),
   state: State
 ): Array<SiteGroupView> =>
   R.compose(R.map(attributeFilter), findAll(criteria), getAllSiteGroups)(state);
 
 const findSiteGroup = (
   criteria: FilterCriteria,
-  attributeFilter?: AttributeFilter<SiteGroup> = R.identity(),
+  attributeFilter?: AttributeFilter<SiteGroupView> = R.identity(),
   state: State
 ): SiteGroupView =>
   R.compose(
-    result => (attributeFilter != null ? attributeFilter(result) : result),
+    attributeFilter,
     findFirst(criteria),
     getAllSiteGroups
   )(state);
@@ -314,14 +314,14 @@ const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
 
 const filterSites = (
   criteria: FilterCriteria,
-  attributeFilter?: AttributeFilter<Site> = R.identity(),
+  attributeFilter?: AttributeFilter<SiteView> = R.identity(),
   state: State
 ): Array<SiteView> =>
   R.compose(R.map(attributeFilter), findAll(criteria), getAllSites)(state);
 
 const findSite = (
   criteria: FilterCriteria,
-  attributeFilter?: AttributeFilter<Site> = R.identity(),
+  attributeFilter?: AttributeFilter<SiteView> = R.identity(),
   state: State
 ): SiteView =>
   R.compose(attributeFilter, findFirst(criteria), getAllSites)(state);

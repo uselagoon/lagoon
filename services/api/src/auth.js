@@ -7,13 +7,14 @@ const R = require('ramda');
 const logger = require('./logger');
 
 import type { SshKeys, Clients, SiteGroups, SiteGroup, Site } from './types';
+import type { SiteGroupView, SiteView, ClientView } from './selectors';
 import type { State } from './reducer';
 import type { $Request, $Response, NextFunction } from 'express';
 
 export type Role = 'none' | 'admin' | 'drush';
 
 // Sourced from services/auth-server/src/jwt.js
-type TokenPayload = {
+export type TokenPayload = {
   sshKey: string,
   role: Role,
   iss: string,
@@ -49,16 +50,19 @@ const decodeToken = (token: string, secret: string): ?TokenPayload => {
 // e.g. R.map(cred.attributeFilters.site)(sites)
 export type AttributeFilter<E> = (entity: E) => Object;
 
+// Collection of AttributeFilters used in Credentials
+export type AttributeFilters = {
+  sitegroup?: AttributeFilter<SiteGroupView>,
+  site?: AttributeFilter<SiteView>,
+  client?: AttributeFilter<ClientView>,
+};
+
 export type Credentials = {
   clients: Array<string>,
   sitegroups: Array<string>,
   sites: Array<string>,
   role: Role,
-  attributeFilters: {
-    sitegroup?: AttributeFilter<SiteGroup>,
-    site?: AttributeFilter<Site>,
-    client?: AttributeFilter<Client>,
-  }
+  attributeFilters: AttributeFilters,
 };
 
 // Filtering is based on Whitelisting certain attributes of entire Entity groups
@@ -68,35 +72,62 @@ export type Credentials = {
 // Also, AttributeFilter should only be used for filtering attributes
 // of already fetched entity data... if you want to prohibit access to
 // complete group s see `getCredentialsForEntities`
-const createAttributeFilters = (role: Role) => {
-  let sitegroup, site;
+const createAttributeFilters = (role: Role): AttributeFilters => {
+  let sitegroup;
+  let site;
+  let client;
+
+  let createFilter = attr =>
+    R.ifElse(
+      // Note: we need id & siteGroupName to be able
+      // to normalize data
+      R.isNil,
+      R.always(null),
+      R.pick(attr)
+    );
 
   if (role === 'drush') {
-    sitegroup = R.pick([
-      'gitUrl',
+    // For attributes check the SiteGroupView type
+    sitegroup = createFilter([
+      // SiteGroup attributes
+      'id',
+      'git_url',
       'slack',
-      'sites',
+
+      // SiteGroupView attributes
+      'siteGroupName',
     ]);
 
-    site = R.pick([
+    // For attributes check the SiteView type
+    site = createFilter([
+      // Site attributes
+      'id',
+      'site_branch',
+      'site_environment',
+      'site_host',
+      'deploy_strategy',
+      'webroot',
+      'domains',
+
+      // SiteView attributes
       'siteName',
-      'siteBranch',
-      'siteEnvironment',
-      'siteHost',
+      'jumpHost',
       'serverInfrastructure',
       'serverIdentifier',
       'serverNames',
-      'deployStrategy',
-      'webRoot',
-      'domains',
-      'jumpHost',
+
+      // Allow this is well for the
+      // nested access
+      'sitegroup',
     ]);
   }
 
-  return {
+  // Only pick filters which are defined
+  return R.pick(['sitegroup', 'site', 'client'], {
     sitegroup,
     site,
-  };
+    client,
+  });
 };
 
 const hasSshKey = (sshKey: string, entity: { +ssh_keys?: SshKeys }) =>
@@ -159,7 +190,13 @@ const getCredentials = (
 
   const sitegroups = R.compose(
     siteGroups =>
-    getCredentialsForEntities(sshKey, role, 'sitegroup', siteGroupInClient, siteGroups),
+      getCredentialsForEntities(
+        sshKey,
+        role,
+        'sitegroup',
+        siteGroupInClient,
+        siteGroups
+      ),
     R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups'])
   )(state);
 
@@ -167,7 +204,8 @@ const getCredentials = (
     R.contains(site.sitegroup, sitegroups);
 
   const sites = R.compose(
-    sites => getCredentialsForEntities(sshKey, role, 'site', siteInSiteGroup, sites),
+    sites =>
+      getCredentialsForEntities(sshKey, role, 'site', siteInSiteGroup, sites),
     R.fromPairs,
     R.unnest,
     R.map(([fileName, siteFile]) =>
@@ -233,12 +271,10 @@ const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
     const { sshKey, role = 'none', aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
-      logger.info(`Invalid token with aud attribute: "${aud || ''}"`)
+      logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
       return res.status(500).send({
-        errors: [
-          { message: 'Auth token audience mismatch'}
-        ]
-      })
+        errors: [{ message: 'Auth token audience mismatch' }],
+      });
     }
 
     // Add credentials to request context
@@ -257,6 +293,7 @@ const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
 };
 
 module.exports = {
+  createAttributeFilters,
   getCredentialsForEntities,
   getCredentials,
   createAuthMiddleware,

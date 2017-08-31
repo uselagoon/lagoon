@@ -298,15 +298,17 @@ const resolvers = {
 
       const credentials = getCredentials(req);
 
+      const criteria = {
+        sitegroup: (name: string) =>
+          R.contains(name, credentials.sitegroups) &&
+          name === siteGroup.siteGroupName,
+        site_branch: args.branch,
+        site_environment: args.environmentType,
+        created: args.createdAfter && createdAfter(args.createdAfter),
+      };
+
       return filterSites(
-        {
-          sitegroup: (name: string) =>
-            R.contains(name, credentials.sitegroups) &&
-            name === siteGroup.siteGroupName,
-          site_branch: args.branch,
-          site_environment: args.environmentType,
-          created: args.createdAfter && createdAfter(args.createdAfter),
-        },
+        criteria,
         credentials.attributeFilters.site,
         getState()
       );

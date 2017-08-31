@@ -7,6 +7,7 @@ const {
   addServerInfo,
   addServerNames,
   sanitizeCriteria,
+  findSiteGroup,
   findSite,
   findClient,
   extractSshKeys,
@@ -16,6 +17,8 @@ const {
   toSiteHostStr,
   toSshKeyStr,
 } = require('../selectors');
+
+const R = require('ramda');
 
 describe('Util selectors', () => {
   describe('sanitizeCriteria', () => {
@@ -93,7 +96,7 @@ describe('Util selectors', () => {
           key: 'k2',
           type: 'ssh-rsa',
         },
-      ])
+      ]);
     });
 
     test('should return an empty array on non-existing ssh_keys', () => {
@@ -257,6 +260,26 @@ describe('SiteGroups related selectors', () => {
     },
   };
 
+  describe('findSiteGroup', () => {
+    test('with attributeFilter (only allow gitUrl attribute)', () => {
+      const attributeFilter = R.pick(['gitUrl']);
+
+      const ret = findSiteGroup({ client: 'c1' }, attributeFilter, state);
+
+      expect(ret).toEqual({ gitUrl: 'git://sg1' });
+    });
+  });
+
+  describe('filterSiteGroups', () => {
+    test('with attributeFilter (only allow gitUrl attribute)', () => {
+      const attributeFilter = R.pick(['gitUrl']);
+
+      const ret = filterSiteGroups({ client: 'c1' }, attributeFilter, state);
+
+      expect(ret).toEqual([{ gitUrl: 'git://sg1' }]);
+    });
+  });
+
   describe('getSiteGroupsByClient', () => {
     test('should find existing sitegroups by client', () => {
       const ret = filterSiteGroups(
@@ -279,6 +302,56 @@ describe('SiteGroups related selectors', () => {
 });
 
 describe('Site related selectors', () => {
+  describe('filterSites', () => {
+    test('with attributeFilter (only allow sitegroup attribute)', () => {
+      const state: any = {
+        siteFiles: {
+          'compact/deploytest1.yaml': {
+            drupalsites: {
+              deploytest_branch1: {
+                site_environment: 'development',
+                site_branch: 'branch1',
+                uid: 1,
+                sitegroup: 'deploytest',
+              },
+            },
+            'amazeeio::jumphost': 'jumpy',
+          },
+        },
+      };
+
+      const attributeFilter = R.pick(['sitegroup']);
+
+      const ret = filterSites({ uid: 1 }, attributeFilter, state);
+
+      expect(ret).toEqual([{ sitegroup: 'deploytest' }]);
+    });
+  });
+
+  describe('findSite', () => {
+    test('with attributeFilter (only allow uid attribute)', () => {
+      const state: any = {
+        siteFiles: {
+          'compact/deploytest1.yaml': {
+            drupalsites: {
+              deploytest_branch1: {
+                site_environment: 'development',
+                uid: 1,
+                sitegroup: 'deploytest',
+              },
+            },
+            'amazeeio::jumphost': 'jumpy',
+          },
+        },
+      };
+
+      const attributeFilter = R.pick(['uid']);
+      const ret = findSite({ uid: 1 }, attributeFilter, state);
+
+      expect(ret).toEqual({ uid: 1 });
+    });
+  });
+
   describe('siteFileToSiteViews', () => {
     test('should transform a SiteFile Yaml content to a list of SiteView objects', () => {
       const filename = 'cluster/sitefile1.yaml';
