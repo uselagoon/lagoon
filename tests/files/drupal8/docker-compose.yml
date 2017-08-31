@@ -7,11 +7,10 @@ services:
     image: builder
     labels:
       com.amazeeio.type: none
-      com.amazeeio.push: "false"
   cli:
     build:
       context: .
-      dockerfile: Dockerfile.cli
+      dockerfile: Dockerfile.builder
     labels:
       com.amazeeio.type: cli
     volumes:
