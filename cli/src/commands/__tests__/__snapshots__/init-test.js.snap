@@ -3,7 +3,7 @@
 exports[`run should not overwrite config file when \`overwrite\` option set to false 1`] = `
 Array [
   Array [
-    "[31mNot overwriting existing file 'some/path/.io.yml'.[39m",
+    "[31mNot overwriting existing file 'some/path/.amazeeio.yml'.[39m",
   ],
 ]
 `;
@@ -11,7 +11,7 @@ Array [
 exports[`run should overwrite existing config file if overwrite option passed as true 1`] = `
 Array [
   Array [
-    "Creating file 'some/path/.io.yml'...",
+    "Creating file 'some/path/.amazeeio.yml'...",
   ],
   Array [
     "[32mConfiguration file created![39m",
@@ -19,10 +19,10 @@ Array [
 ]
 `;
 
-exports[`run should write default yaml to given cwd + .io.yml 1`] = `
+exports[`run should write default yaml to given cwd + .amazeeio.yml 1`] = `
 Array [
   Array [
-    "Creating file 'some/path/.io.yml'...",
+    "Creating file 'some/path/.amazeeio.yml'...",
   ],
   Array [
     "[32mConfiguration file created![39m",

@@ -13,7 +13,7 @@ import type { BaseArgs } from '.';
 
 const name = 'init';
 const description =
-  'Create a .io.yml config file in the current working directory';
+  'Create a .amazeeio.yml config file in the current working directory';
 
 type GetOverwriteOptionArgs = {
   exists: boolean,
@@ -70,7 +70,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     })
     .example(
       `$0 ${name}`,
-      'Create a config file at ./.io.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a sitegroup name to add to the config.\n',
+      'Create a config file at ./.amazeeio.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a sitegroup name to add to the config.\n',
     )
     .example(
       `$0 ${name} --overwrite`,
@@ -106,7 +106,7 @@ export async function run({
   clog,
   cerr,
 }: Args): Promise<number> {
-  const filepath = path.join(cwd, '.io.yml');
+  const filepath = path.join(cwd, '.amazeeio.yml');
 
   const exists = await fileExists(filepath);
 
