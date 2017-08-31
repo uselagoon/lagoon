@@ -97,11 +97,8 @@ done
 for IMAGE_NAME in "${IMAGES[@]}"
 do
 
-  PUSH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.com\\.amazeeio\\.push true)
-  if [ "$PUSH" == "true" ]; then
-    IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
-    . /scripts/exec-push.sh
-  fi
+  IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
+  . /scripts/exec-push.sh
 
 done
 
