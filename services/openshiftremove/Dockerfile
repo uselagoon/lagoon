@@ -23,6 +23,8 @@ COPY --from=service-builder /app /app
 COPY services/openshiftremove /app/services/openshiftremove
 WORKDIR /app/services/openshiftremove/
 
+COPY .env.defaults .
+
 # building our service
 RUN yarn run build
 

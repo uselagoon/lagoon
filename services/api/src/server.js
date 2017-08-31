@@ -5,7 +5,7 @@ const util = require('util');
 const logger = require('./logger');
 const createApp = require('./app');
 
-import type { ApiStore } from './createStore';
+import type { CreateAppArgs } from './app';
 
 const normalizePort = (value) => {
   const port = parseInt(value, 10);
@@ -17,11 +17,11 @@ const normalizePort = (value) => {
   return false;
 };
 
-const createServer = async (store: ApiStore): Promise<Server> => {
+const createServer = async (args: CreateAppArgs): Promise<Server> => {
   logger.debug('Starting to boot the server.');
 
   const port = normalizePort(process.env.PORT || '8080');
-  const server = http.createServer(createApp(store));
+  const server = http.createServer(createApp(args));
 
   // $FlowIgnore https://github.com/facebook/flow/pull/4176
   const listen = util.promisify(server.listen).bind(server);

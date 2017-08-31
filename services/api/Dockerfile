@@ -1,5 +1,7 @@
 FROM amazeeio/centos7-node-builder:8 as builder
 
+RUN yum install -y libcurl-devel && yum clean all -y
+
 # Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.
 COPY services/api/package.json services/api/yarn.lock /app/
 

@@ -11,6 +11,8 @@ import type {
   SshKeys,
 } from './types';
 
+import type { Credentials, Role } from './auth';
+
 const R = require('ramda');
 
 // ==== View Types
@@ -21,6 +23,10 @@ const R = require('ramda');
 * types (types representing yaml related content) w/ extra
 * computanional values
 * */
+
+export type SshKeyView = SshKey & {
+  owner: string,
+};
 
 // TODO: Type spread is broken for autocompletion for some reason >:(
 export type ClientView = Client & {
@@ -204,17 +210,24 @@ const maybeAddJumpHostKey = (jumpHost?: string, obj: Object): Object =>
     () => R.set(R.lensProp('jumpHost'), jumpHost, obj)
   )(obj);
 
-const extractSshKeys: ({ +ssh_keys?: SshKeys }) => Array<SshKey> = R.compose(
-  R.ifElse(R.isEmpty, R.always([]), R.identity),
-  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
-  R.filter(value => R.has('key', value)),
-  // -> Array<SshKey>
-  R.map(R.prop(1)),
-  Object.entries,
+const toSshKeyStr = ({ type = 'ssh-rsa', key }: SshKey): string =>
+  `${type} ${key}`;
+
+const extractSshKeys: ({ +ssh_keys?: SshKeys }) => Array<
+  SshKeyView
+> = R.compose(
+  // Add the missing owner attribute, making it a SshKeyView
+  R.map(([owner, sshKey]) =>
+    R.merge(sshKey, {
+      owner,
+      type: R.propOr('ssh-rsa', 'type', sshKey),
+    })
+  ),
+  R.toPairs,
   R.propOr({}, 'ssh_keys')
 );
 
-const getSshKeysFromClients /* State => Array<string> */ = R.compose(
+const getSshKeysFromClients /* State => Array<SshKeyView> */ = R.compose(
   R.flatten,
   R.map(extractSshKeys)
 );
@@ -329,4 +342,5 @@ module.exports = {
   addServerInfo,
   addServerNames,
   addSiteHost,
+  toSshKeyStr,
 };

@@ -17,7 +17,7 @@ function createRouter(): Router {
   router.get('/status', ...statusRoute);
 
   // Return keys of all clients from clients.yaml.
-  router.get('/keys', ...keysRoute);
+  router.post('/keys', ...keysRoute);
 
   // Enable graphql requests.
   router.all('/graphql', ...graphqlRoute);

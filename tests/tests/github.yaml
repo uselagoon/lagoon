@@ -1,0 +1,8 @@
+---
+- include: github/branch.yaml
+  vars:
+    testname: "GITHUB - slash branch"
+    node_version: 8
+    git_repo_name: repo.git
+    sitegroup: ci-repo
+    branch: github/slash/branch

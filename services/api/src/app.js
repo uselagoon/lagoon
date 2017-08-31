@@ -7,11 +7,19 @@ const { json } = require('body-parser');
 const selectors = require('./selectors');
 const logger = require('./logger');
 const createRouter = require('./routes');
+const { createAuthMiddleware } = require('./auth');
 
 import type { $Application } from 'express';
 import type { ApiStore } from './createStore';
 
-const createApp = (store: ApiStore): $Application => {
+export type CreateAppArgs = {
+  store: ApiStore,
+  jwtSecret: string,
+  jwtAudience?: string,
+};
+
+const createApp = (args: CreateAppArgs): $Application => {
+  const { store, jwtSecret, jwtAudience } = args;
   const app = express();
 
   // Set the global app context (make the state accessible
@@ -33,6 +41,14 @@ const createApp = (store: ApiStore): $Application => {
       stream: {
         write: message => logger.info(message),
       },
+    })
+  );
+
+  app.use(
+    createAuthMiddleware({
+      baseUri: 'http://auth-server:3000',
+      jwtSecret,
+      jwtAudience,
     })
   );
 

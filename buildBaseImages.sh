@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -ex
 BUILD_TAG=${BUILD_TAG:-lagoon-local-dev}
 BUILD_TAG=$(echo "$BUILD_TAG" | tr '[:upper:]' '[:lower:]')
 

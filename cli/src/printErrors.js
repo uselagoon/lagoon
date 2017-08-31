@@ -35,6 +35,14 @@ export function printGraphQLErrors(
   cerr: Cerr,
   ...errors: Array<GraphQLError>
 ): number {
+  if (
+    R.find(R.propEq('message', 'Unauthorized - Bearer Token Required'))(errors)
+  ) {
+    return printErrors(
+      cerr,
+      'Please log in first.\nSee the documentation here: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login',
+    );
+  }
   const errorMessage =
     R.length(errors) === 1
       ? 'Oops! The amazee.io API returned an error:'

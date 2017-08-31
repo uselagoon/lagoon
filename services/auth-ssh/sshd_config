@@ -1,8 +1,8 @@
 Port 2020
 
-HostKey /home/api/.ssh/ssh_host_rsa_key
-HostKey /home/api/.ssh/ssh_host_ecdsa_key
-HostKey /home/api/.ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
 
 LogLevel INFO
 
@@ -12,10 +12,9 @@ PermitRootLogin no
 # but this is overridden so installations will only check .ssh/authorized_keys
 AuthorizedKeysFile .ssh/authorized_keys
 
-AuthorizedKeysCommand /usr/local/bin/authorize.sh
+AuthorizedKeysCommand /authorize.sh %f
 AuthorizedKeysCommandUser api
 
-RhostsRSAAuthentication no
 HostbasedAuthentication no
 
 PasswordAuthentication no
@@ -23,7 +22,7 @@ ChallengeResponseAuthentication no
 KerberosAuthentication no
 GSSAPIAuthentication no
 
-UsePAM yes
+UsePAM no
 
 AllowAgentForwarding no
 AllowTcpForwarding no
@@ -34,10 +33,7 @@ PermitTTY no
 PrintMotd no
 PrintLastLog no
 
-UseLogin no
-UsePrivilegeSeparation no
 PermitUserEnvironment no
-ShowPatchLevel no
 #UseDNS yes
 PermitTunnel no
 Banner none

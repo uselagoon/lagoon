@@ -3,7 +3,7 @@
 exports[`listSites should list sites as given by GraphQL 1`] = `
 Array [
   Array [
-    "I found following sites for sitegroup 'some_sitegroup':",
+    "Sites for 'some_sitegroup':",
   ],
   Array [
     "╔═══════╤════════╤═══════════╗
@@ -26,9 +26,9 @@ Array [
     "[31mOops! The amazee.io API returned an error:[39m",
   ],
   Array [
-    "[31m{
-  \\"message\\": \\"Something, something missing parameter X\\"
-}[39m",
+    "[31m{[39m
+[31m  \\"message\\": \\"Something, something missing parameter X\\"[39m
+[31m}[39m",
   ],
 ]
 `;

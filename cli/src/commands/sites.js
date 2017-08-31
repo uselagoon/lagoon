@@ -2,17 +2,17 @@
 
 import { table } from 'table';
 import { red } from 'chalk';
-import { prepend, pathOr, propOr, map, compose, sortBy, toLower } from 'ramda';
+import R from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
 import { printNoConfigError, printGraphQLErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from './index';
+import type { BaseArgs } from '.';
 
 const name = 'sites';
-const description = 'List specific deployment information';
+const description = 'List all sites for a sitegroup';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -20,22 +20,22 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Override the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Specify a sitegroup for the site list',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name}`,
-      'List all sites for the specific sitegroup configured in your .amazeeio.yml config file',
+      'List all sites for the sitegroup configured in .amazeeio.yml',
     )
     .example(
       `$0 ${name} -s mysitegroup`,
-      'List all sites for a specific sitegroup (instead of using the config file)',
+      'List all sites for the sitegroup "mysitegroup"',
     ).argv;
 }
 
-type MainArgs = {
+type ListSitesArgs = {
   sitegroup: string,
   clog: typeof console.log,
   cerr: typeof console.error,
@@ -45,7 +45,7 @@ export async function listSites({
   sitegroup,
   clog,
   cerr,
-  }: MainArgs): Promise<number> {
+}: ListSitesArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {
@@ -60,6 +60,7 @@ export async function listSites({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });
@@ -69,11 +70,11 @@ export async function listSites({
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const sortBySite = sortBy(compose(toLower, propOr('', 'siteName')));
+  const sortBySite = R.sortBy(R.compose(R.toLower, R.propOr('', 'siteName')));
 
-  const nodes = compose(
+  const nodes = R.compose(
     sortBySite,
-    pathOr([], ['data', 'siteGroupByName', 'sites']),
+    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
   )(result);
 
   if (nodes.length === 0) {
@@ -81,7 +82,7 @@ export async function listSites({
     return 0;
   }
 
-  clog(`I found following sites for sitegroup '${sitegroup}':`);
+  clog(`Sites for '${sitegroup}':`);
 
   const tableConfig = {
     columns: {
@@ -106,12 +107,12 @@ export async function listSites({
     },
   };
 
-  const tableBody = map((node) => {
+  const tableBody = R.map((node) => {
     const inProdMarker = node.siteEnvironment === 'production' ? '\u221A' : '';
     return [node.siteName, node.siteBranch, inProdMarker];
   }, nodes);
 
-  const tableData = prepend(['Site', 'Branch', 'Deployed?'], tableBody);
+  const tableData = R.prepend(['Site', 'Branch', 'Deployed?'], tableBody);
 
   clog(table(tableData, tableConfig));
 
@@ -120,12 +121,9 @@ export async function listSites({
 
 type Args = BaseArgs & {
   sitegroup: ?string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
 };
 
 export async function run(args: Args): Promise<number> {
-  // eslint-disable-next-line no-console
   const { config, clog, cerr } = args;
 
   // FIXME: doesn't handle empty config file case correctly

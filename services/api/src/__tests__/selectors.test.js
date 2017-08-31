@@ -14,6 +14,7 @@ const {
   addSiteHost,
   siteFileToSiteViews,
   toSiteHostStr,
+  toSshKeyStr,
 } = require('../selectors');
 
 describe('Util selectors', () => {
@@ -48,16 +49,51 @@ describe('Util selectors', () => {
     });
   });
 
+  describe('toSshKeyStr', () => {
+    test('should convert full specified sshKey to string', () => {
+      const sshKey = {
+        owner: 'o1',
+        key: 'k1',
+        type: ('some-type': any),
+      };
+
+      const ret = toSshKeyStr(sshKey);
+      expect(ret).toEqual('some-type k1');
+    });
+
+    test('should assum ssh-rsa as type, if not given', () => {
+      const sshKey = {
+        owner: 'o1',
+        key: 'k1',
+      };
+
+      const ret = toSshKeyStr(sshKey);
+      expect(ret).toEqual('ssh-rsa k1');
+    });
+  });
+
   describe('extractSshKeys', () => {
     test('should extract the ssh_keys field of given entity', () => {
       const entity = {
         ssh_keys: {
-          k1: { key: 'k1key' },
-          k2: { key: 'k2key' },
+          o1: { key: 'k1' },
+          o2: { key: 'k2' },
         },
       };
       const ret = extractSshKeys(entity);
-      expect(ret).toMatchSnapshot();
+
+      expect(ret).toEqual([
+        {
+          owner: 'o1',
+          key: 'k1',
+          type: 'ssh-rsa',
+        },
+        {
+          owner: 'o2',
+          key: 'k2',
+          type: 'ssh-rsa',
+        },
+      ])
     });
 
     test('should return an empty array on non-existing ssh_keys', () => {

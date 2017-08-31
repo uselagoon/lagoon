@@ -1,0 +1,10 @@
+---
+- name: "{{ testname }} - Check if URL {{url}} contains content {{expected_content}}"
+  uri:
+    url: "{{ url }}"
+    return_content: yes
+  register: result
+  until: result.content | search(expected_content)
+  retries: 40
+  delay: 10
+- debug: msg="Success!!!"

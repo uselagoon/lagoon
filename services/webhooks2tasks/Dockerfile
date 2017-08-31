@@ -23,6 +23,8 @@ COPY --from=service-builder /app /app
 COPY services/webhooks2tasks /app/services/webhooks2tasks
 WORKDIR /app/services/webhooks2tasks/
 
+COPY .env.defaults .
+
 # building our service
 RUN yarn run build
 

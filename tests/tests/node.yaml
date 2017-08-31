@@ -1,0 +1,16 @@
+---
+- include: rest/branch.yaml
+  vars:
+    testname: "NODE 8"
+    node_version: 8
+    git_repo_name: node.git
+    sitegroup: ci-node
+    branch: node8
+
+- include: rest/branch.yaml
+  vars:
+    testname: "NODE 6"
+    node_version: 6_subfolder
+    git_repo_name: node.git
+    sitegroup: ci-node
+    branch: node6

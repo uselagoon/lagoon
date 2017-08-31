@@ -1,33 +1,56 @@
 // @flow
 
 const logger = require('../logger');
+const R = require('ramda');
+const sshpk = require('sshpk');
+const bodyParser = require('body-parser');
 
 const getContext = require('../getContext');
+const getCredentials = require('../getCredentials');
 
 import type { $Request, $Response } from 'express';
 
-const keysAccessMiddleware = (
-  req: $Request,
-  res: $Response,
-  next: Function
-) => {
-  // TODO:
-  // This should restrict access for all requests except those
-  // from the local network (from the ssh agent service).
-  next();
-};
+const toFingerprint = (sshKey: string): string =>
+  sshpk.parseKey(sshKey, 'ssh').fingerprint().toString();
 
 const keysRoute = (req: $Request, res: $Response) => {
-  logger.debug('Collecting client keys.');
+  const { fingerprint } = req.body;
+
+  if (!fingerprint) {
+    return res.status(500).send('Missing parameter "fingerprint"');
+  }
+
+  logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
   const context = getContext(req);
 
+  const credentials = getCredentials(req);
+
   const { getState } = context.store;
-  const { getAllClients, getSshKeysFromClients } = context.selectors;
+  const {
+    getAllClients,
+    getSshKeysFromClients,
+    toSshKeyStr,
+  } = context.selectors;
 
   const clients = getAllClients(getState());
-  const keys = getSshKeysFromClients(clients);
-  res.send(keys.join('\n'));
+
+  // Creates a fingerprint => sshKey mapping
+  const fingerprintKeyMap = R.compose(
+    R.fromPairs,
+    R.map(sshKey => [toFingerprint(sshKey), sshKey]),
+    R.map(toSshKeyStr),
+    getSshKeysFromClients,
+    R.filter(client => R.contains(client.clientName, credentials.clients))
+  )(clients);
+
+  const result = R.propOr('', fingerprint, fingerprintKeyMap);
+
+  if (!result) {
+    logger.debug(`Unknown fingerprint: ${fingerprint}`);
+  }
+
+  res.send(result);
 };
 
-module.exports = [keysAccessMiddleware, keysRoute];
+module.exports = [bodyParser.json(), keysRoute];
