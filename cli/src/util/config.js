@@ -47,7 +47,6 @@ function* walker(
 ): Generator<*, ?string, *> {
   let next = dir;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const full = path.join(next, filename);
     const exists = yield fileExists(full);
