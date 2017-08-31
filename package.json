@@ -29,11 +29,24 @@
     "newman": "^3.3.0",
     "nodemon": "^1.11.0",
     "ramda": "^0.24.1",
-    "uuid4": "^1.0.0"
+    "uuid4": "^1.0.0",
+    "jsonwebtoken": "^7.4.1",
+    "morgan": "^1.8.2",
+    "nano": "^6.3.0",
+    "sshpk": "^1.13.1",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "flow-bin": "^0.37.4",
     "jest": "^18.1.0",
-    "prettier": "^1.5.3"
+    "prettier": "^1.5.3",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-flow-vars": "^0.5.0",
+    "eslint-plugin-flowtype": "^2.34.0",
+    "eslint-plugin-import": "^2.2.0",
+    "flow-remove-types": "^1.2.1",
+    "lint-staged": "^4.0.0",
+    "rimraf": "^2.6.1"
   }
 }
