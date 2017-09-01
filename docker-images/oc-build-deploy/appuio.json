@@ -1,6 +1,6 @@
 {
     "adminUids": [
-        "technology@amazee.io",,
+        "technology@amazee.io",
         "system:serviceaccount:amze-amazeeio:jenkins"
     ],
     "created": CREATED,
