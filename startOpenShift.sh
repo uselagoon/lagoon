@@ -14,7 +14,7 @@ if [ $(uname) == "Darwin" ]; then
   sudo ifconfig lo0 alias 172.16.123.1
 else
   curl -L https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz | tar xzC oc --strip-components=1
-  route add -host 172.16.123.1 dev lo
+  sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up
 fi
 
 ./oc/oc cluster down
