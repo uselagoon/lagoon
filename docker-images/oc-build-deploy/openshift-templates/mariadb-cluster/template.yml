@@ -55,7 +55,6 @@ objects:
       metadata:
         labels:
           app:
-            - mysql
             - mariadb-cluster
         annotations:
           pod.alpha.kubernetes.io/initialized: "true"
