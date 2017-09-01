@@ -1,0 +1,18 @@
+version: 2
+jobs:
+  build:
+    machine: true
+
+    steps:
+      - checkout
+
+      - run:
+          name: Start openshift
+          command: |
+            ./startOpenShift.sh
+
+      - run:
+          name: Start container and verify it's working
+          command: |
+            set -x
+            docker-compose -f docker-compose.ci.yaml up -d
