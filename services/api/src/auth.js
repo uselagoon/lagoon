@@ -107,12 +107,12 @@ const createAttributeFilters = (role: Role): AttributeFilters => {
       'id',
       'site_branch',
       'site_environment',
-      'site_host',
       'deploy_strategy',
       'webroot',
       'domains',
 
       // SiteView attributes
+      'siteHost',
       'siteName',
       'jumpHost',
       'serverInfrastructure',

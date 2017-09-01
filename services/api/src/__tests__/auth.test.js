@@ -40,16 +40,19 @@ describe('createAttributeFilters', () => {
     test('should filter site attributes correctly', () => {
       const data: any = {
         id: 's1',
-        siteName: 's1',
-        siteBranch: 'branch',
+        site_branch: 'branch',
         site_environment: 'environment',
-        siteHost: 'host',
-        serverInfrastructure: 'infra',
-        serverNames: ['n1', 'n2'],
         deploy_strategy: 'deploy',
         webroot: 'webroot',
         domains: ['d1', 'd2'],
+
+        siteHost: 'host',
+        siteName: 's1',
         jumpHost: 'jumpy',
+        serverInfrastructure: 'infra',
+        serverIdentifier: 'identifier',
+        serverNames: ['n1', 'n2'],
+
         sitegroup: 'sg1',
 
         // These attributes should be omitted
@@ -64,7 +67,7 @@ describe('createAttributeFilters', () => {
         'siteName',
         'site_branch',
         'site_environment',
-        'site_host',
+        'siteHost',
         'serverInfrastructure',
         'serverIdentifier',
         'serverNames',
@@ -77,7 +80,7 @@ describe('createAttributeFilters', () => {
         'serverIdentifier',
         'serverNames',
         'sitegroup',
-      ].forEach((attr) => expect(attr).toBeDefined);
+      ].forEach((attr) => expect(ret).toHaveProperty(attr));
     });
   });
 });
