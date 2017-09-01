@@ -11,9 +11,9 @@ jobs:
       - run:
           name: check docker
           command: |
-            echo "DOCKER_OPTS='--insecure-registry 172.30.0.0/16'" >> /etc/default/docker
+            sudo echo "DOCKER_OPTS='--insecure-registry 172.30.0.0/16'" >> /etc/default/docker
             cat /etc/default/docker
-            service restart docker
+            sudo service restart docker
       - run:
           name: Start openshift
           command: |
