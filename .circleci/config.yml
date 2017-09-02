@@ -11,8 +11,9 @@ jobs:
       - run:
           name: check docker
           command: |
-            echo "DOCKER_OPTS='--insecure-registry 172.30.0.0/16'" >> sudo /etc/default/docker
+            sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker"
             sudo service docker restart
+            sudo mount --make-rshared /
       - run:
           name: Start openshift
           command: |
@@ -22,4 +23,5 @@ jobs:
           name: Start container and verify it's working
           command: |
             set -x
-            docker-compose -f docker-compose.ci.yaml up -d
+            make build services-build
+            docker-compose up -d

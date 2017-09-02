@@ -1,29 +1,22 @@
-
-# STAGE 1: building packages needed by all lagoon services
-# Idea is that this build is the exact same for all services so we profit highly from layer caching
-FROM amazeeio/centos7-node-builder:8 as lagoon-packages-builder
-ENV NODE_ENV production
-COPY package.json yarn.lock .yarnrc /app/
-COPY node-packages /app/node-packages
-RUN BUILD_ONLY=true yarn install --pure-lockfile
+# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon-local-dev}/lagoon-node-packages-builder:latest as lagoon-packages-builder
 
 # STAGE 2: specific service node package build
-FROM amazeeio/centos7-node-builder:8 as service-builder
+FROM ${IMAGE_REPO:-lagoon-local-dev}/centos7-node-builder:8 as service-builder
 ENV NODE_ENV production
 # Copying generated node_modules from the first stage
 COPY --from=lagoon-packages-builder /app /app
-COPY services/logs2slack/package.json /app/services/logs2slack/
+COPY package.json /app/services/logs2slack/
 # yarn install, our service might need special packages
 RUN cd /app/services/logs2slack && yarn install --pure-lockfile
 
 # STAGE 3: runtime image with actual code
-FROM amazeeio/centos7-node:8
+FROM ${IMAGE_REPO:-lagoon-local-dev}/centos7-node:8
 COPY --from=service-builder /app /app
 # Copying files from our service
-COPY services/logs2slack /app/services/logs2slack
+COPY . /app/services/logs2slack
 WORKDIR /app/services/logs2slack/
-
-COPY .env.defaults .
 
 # building our service
 RUN yarn run build

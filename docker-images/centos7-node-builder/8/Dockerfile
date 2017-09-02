@@ -11,6 +11,7 @@ RUN yum install -y \
                 gcc gcc-c++ \
                 file \
                 openssl openssl-devel \
+                libcurl-devel \
                 && \
     yum clean all -y
 

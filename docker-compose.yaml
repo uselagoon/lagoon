@@ -2,8 +2,8 @@ version: '2'
 services:
   webhook-handler:
     build:
-      context: .
-      dockerfile: services/webhook-handler/Dockerfile
+      context: services/webhook-handler
+      dockerfile: Dockerfile
     command: yarn run dev
     ports:
       - "7777:3000"
@@ -19,24 +19,24 @@ services:
       - "5672:5672"
   openshiftremove:
     build:
-      context: .
-      dockerfile: services/openshiftremove/Dockerfile
+      context: services/openshiftremove
+      dockerfile: Dockerfile
     command: yarn run dev
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages:delegated
   openshiftremove-resources:
     build:
-      context: .
-      dockerfile: services/openshiftremove-resources/Dockerfile
+      context: services/openshiftremove-resources
+      dockerfile: Dockerfile
     command: yarn run dev
     volumes:
       - ./services/openshiftremove-resources/src:/app/services/openshiftremove-resources/src
       - ./node-packages:/app/node-packages:delegated
   openshiftdeploy:
     build:
-      context: .
-      dockerfile: services/openshiftdeploy/Dockerfile
+      context: services/openshiftdeploy
+      dockerfile: Dockerfile
     command: yarn run dev
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
@@ -47,24 +47,24 @@ services:
       - ./node-packages:/app/node-packages:delegated
   logs2slack:
     build:
-      context: .
-      dockerfile: services/logs2slack/Dockerfile
+      context: services/logs2slack
+      dockerfile: Dockerfile
     command: yarn run dev
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
       - ./node-packages:/app/node-packages:delegated
   webhooks2tasks:
     build:
-      context: .
-      dockerfile: services/webhooks2tasks/Dockerfile
+      context: services/webhooks2tasks
+      dockerfile: Dockerfile
     command: yarn run dev
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
   rest2tasks:
     build:
-      context: .
-      dockerfile: services/rest2tasks/Dockerfile
+      context: services/rest2tasks
+      dockerfile: Dockerfile
     command: yarn run dev
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
@@ -97,8 +97,6 @@ services:
     build:
       context: .
       dockerfile: services/auth-ssh/Dockerfile
-      args:
-        IMAGE_NAME: lagoon-local-dev/centos:7
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume
@@ -116,8 +114,8 @@ services:
     user: '111111111'
   auth-server:
     build:
-      context: .
-      dockerfile: services/auth-server/Dockerfile
+      context: services/auth-server
+      dockerfile: Dockerfile
     command: yarn run dev
     environment:
       - JWTISSUER=auth-server.dev
@@ -154,8 +152,8 @@ services:
       - git
       - webhook-handler
     build:
-      context: .
-      dockerfile: tests/Dockerfile
+      context: tests
+      dockerfile: Dockerfile
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
