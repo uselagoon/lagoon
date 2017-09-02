@@ -130,8 +130,19 @@ $(services):
 		$(call docker-compose_build,$@)
 
 
-test:
-	env
+
+images-cache-save:
+		mkdir -p .cache
+		for image in `docker image ls -q | uniq | head -n 3`; do \
+ 			docker save $$image > .cache/$$image.tar; \
+		done
+
+images-cache-load:
+		if find .cache -mindepth 1 | read; then \
+			for image in .cache/*; do \
+				docker load -i $$image ; \
+			done \
+		fi
 
 ######
 ###### Helper Functions
