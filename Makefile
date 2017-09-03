@@ -138,7 +138,7 @@ images-cache-save:
 		done
 
 images-cache-load:
-		if find .cache -mindepth 1 | read; then \
+		if find .cache -mindepth 1 -print -quit | grep -q .; then \
 			for image in .cache/*; do \
 				docker load -i $$image ; \
 			done \
