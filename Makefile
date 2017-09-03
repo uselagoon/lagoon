@@ -133,7 +133,7 @@ $(services):
 
 images-cache-save:
 		mkdir -p .cache
-		for image in `docker image ls -q | uniq | head -n 3`; do \
+		for image in `docker image ls -q | uniq`; do \
  			docker save $$image > .cache/$$image.tar; \
 		done
 
