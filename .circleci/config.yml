@@ -29,14 +29,11 @@ jobs:
 
       - run:
           name: Start openshift
-          command: |
-            sudo ./startOpenShift.sh
+          command: sudo ./startOpenShift.sh
 
       - run:
           name: Build Images
-          command: |
-            set -x
-            make build -j6 -Oline TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
+          command: make build -j6 TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
 
       - run:
           name: push cache docker images to dockerhub
@@ -45,13 +42,11 @@ jobs:
 
       - run:
           name: docker-compose up
-          command: |
-            docker-compose -p lagoon up -d
+          command: docker-compose -p lagoon up -d
 
       - run:
           name: docker-compose logs
-          command: |
-            docker-compose -p lagoon logs -f
+          command: docker-compose -p lagoon logs -f
           background: true
 
       - run:
@@ -60,7 +55,6 @@ jobs:
 
       - run:
           name: run tests
-          command: |
-            docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
+          command: docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
 
