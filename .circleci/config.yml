@@ -26,10 +26,11 @@ jobs:
             sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker"
             sudo service docker restart
             sudo mount --make-rshared /
-    #   - run:
-    #       name: Start openshift
-    #       command: |
-    #         sudo ./startOpenShift.sh
+
+      - run:
+          name: Start openshift
+          command: |
+            sudo ./startOpenShift.sh
 
       - run:
           name: Build Images
@@ -41,6 +42,21 @@ jobs:
           name: docker-compose up
           command: |
             IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
+
+      - run:
+          name: docker-compose logs
+          command: |
+            IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose logs -f
+          background: true
+
+      - run:
+          name: sleep 30 to allow services to boot
+          command: sleep 30
+
+      - run:
+          name: run tests
+          command: |
+            IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
       - run:
           name: push cache docker images to dockerhub
