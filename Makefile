@@ -54,6 +54,7 @@ build:
 .PHONY: build-error
 build-error:
 		@echo "ERROR during parallel build, execute 'make build-single' to see which one failed"
+		@exit 1
 
 # Define build for each defined image
 .PHONY: $(images)
@@ -136,6 +137,7 @@ services-build:
 .PHONY: services-build-error
 services-build-error:
 		@echo "ERROR during parallel docker-compose build, execute 'make services-build-single' to see which one failed"
+		@exit 1
 
 # Define build for each defined image
 .PHONY: $(services)
