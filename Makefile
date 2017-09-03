@@ -1,13 +1,15 @@
 
 
 image_folder := docker-images
-BUILDTAG := lagoon-local-dev
-REPO :=
+REPO := lagoon-local-dev
 IMAGESUFFIX :=
-docker_build = docker build $(2) --build-arg IMAGE_REPO=$(BUILDTAG) -t "$(BUILDTAG)/$(subst /,:,$(1))" -f $(image_folder)/$(1)/Dockerfile $(image_folder)/$(1)
-docker_tag_push = docker tag $(BUILDTAG)/$(subst /,:,$(1)) $(REPO)/$(subst /,:,$(1))$(IMAGESUFFIX) && docker push $(REPO)/$(subst /,:,$(1))$(IMAGESUFFIX)
+docker_build = docker build --cache-from $(REPO)/$(subst /,:,$(1))  --cache-from $(REPO)/$(subst /,:,$(1))$(IMAGESUFFIX) --build-arg IMAGE_REPO=$(REPO) -t $(REPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile $(image_folder)/$(1)
+docker_tag_push = docker tag $(REPO)/$(subst /,:,$(1)) $(REPO)/$(subst /,:,$(1))$(IMAGESUFFIX) && docker push $(REPO)/$(subst /,:,$(1))$(IMAGESUFFIX)
 
-docker-compose_build = docker-compose build --build-arg IMAGE_REPO=$(BUILDTAG) $(1)
+docker_pull = docker pull $(REPO)/$(subst /,:,$(1))$(IMAGESUFFIX) || true
+
+docker-compose_build = REPO=$(REPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build --build-arg IMAGE_REPO=$(REPO) $(1)
+docker-compose_push = REPO=$(REPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1)
 
 ######
 ###### BASE IMAGES
@@ -59,7 +61,6 @@ $(images):
 #		Calling docker_build for the image name
 		$(call docker_build,$@)
 
-
 # Define new list of all images prefixed with '[tag-push]-' so we can reuse the list again
 tag-push-images = $(foreach var,$(images),[tag-push]-$(var))
 
@@ -75,12 +76,29 @@ $(tag-push-images):
 #   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
 		$(call docker_tag_push,$(subst [tag-push]-,,$@))
 
+
+# Define new list of all images prefixed with '[tag-push]-' so we can reuse the list again
+pull-images = $(foreach image,$(images),[pull]-$(image))
+
+# tag and push all images
+.PHONY: pull-images
+pull: $(pull-images)
+
+# tag and push of each image
+.PHONY: $(pull-images)
+$(pull-images):
+#   Check first if REPO variable is defined
+		$(call check_defined, REPO, Docker Repo to which to push to)
+#   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
+		$(call docker_pull,$(subst [pull]-,,$@))
+
+
 ######
 ###### SERVICE IMAGES
 ######
 
 lagoon-node-packages-builder: centos7-node-builder/8
-		docker build --build-arg IMAGE_REPO=$(BUILDTAG) -t $(BUILDTAG)/$@ -f docker-images/lagoon-node-packages-builder/latest/Dockerfile .
+		docker build --build-arg IMAGE_REPO=$(REPO) -t $(REPO)/$@ -f docker-images/lagoon-node-packages-builder/latest/Dockerfile .
 
 # Define service Images
 services := webhook-handler \
@@ -130,19 +148,28 @@ $(services):
 		$(call docker-compose_build,$@)
 
 
+# Define new list of all images prefixed with '[tag-push]-' so we can reuse the list again
+push-services := $(foreach service,$(services),[push]-$(service))
 
-images-cache-save:
-		mkdir -p .cache
-		for image in `docker image ls -q | uniq`; do \
- 			docker save $$image > .cache/$$image.tar; \
-		done
+# tag and push all images
+.PHONY: push-services
+push-services: $(push-services)
 
-images-cache-load:
-		if find .cache -mindepth 1 -print -quit | grep -q .; then \
-			for image in .cache/*; do \
-				docker load -i $$image ; \
-			done \
-		fi
+# tag and push of each image
+.PHONY: $(push-services)
+$(push-services):
+#   Check first if REPO variable is defined
+		$(call check_defined, REPO, Docker Repo to which to push to)
+#   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
+		$(call docker-compose_push,$(subst [push]-,,$@))
+
+pull-services:
+		REPO=$(REPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures
+
+images-cache-push: tag-push push-services
+
+images-cache-pull: pull pull-services
+
 
 ######
 ###### Helper Functions

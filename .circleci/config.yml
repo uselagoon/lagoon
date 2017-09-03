@@ -8,14 +8,13 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - images-cache-{{ .Branch }}
-            - images-cache
+      - run:
+          name: login to dockerhub
+          command: docker login -u amazeeiojenkins -p $DOCKERHUB_PASSWORD
 
       - run:
-          name: load docker images from cache
-          command: make images-cache-load
+          name: load cache docker images from dockerhub
+          command: make images-cache-pull REPO=amazeeiodev IMAGESUFFIX=$$CIRCLE_BRANCH
 
       - run:
           name: show existing images
@@ -36,18 +35,9 @@ jobs:
           name: Start container and verify it's working
           command: |
             set -x
-            make build services-build
+            make build services-build REPO=amazeeiodev IMAGESUFFIX=$$CIRCLE_BRANCH
             docker-compose up -d
 
       - run:
-          name: save docker images to cache
-          command: make images-cache-save
-
-      - save_cache:
-          key: images-cache-{{ .Branch }}
-          paths:
-            - .cache
-      - save_cache:
-          key: images-cache
-          paths:
-            - .cache
+          name: push cache docker images to dockerhub
+          command: make images-cache-push REPO=amazeeiodev IMAGESUFFIX=$$CIRCLE_BRANCH
