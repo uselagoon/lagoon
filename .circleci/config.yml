@@ -41,12 +41,12 @@ jobs:
       - run:
           name: docker-compose up
           command: |
-            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
+            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon up -d
 
       - run:
           name: docker-compose logs
           command: |
-            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose logs -f
+            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon logs -f
           background: true
 
       - run:
@@ -56,7 +56,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
+            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
       - run:
           name: push cache docker images to dockerhub
