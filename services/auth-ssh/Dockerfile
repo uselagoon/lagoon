@@ -1,5 +1,5 @@
 ARG IMAGEREPO
-FROM ${IMAGEREPO:-amazeeio}/centos:7 as openssh-builder
+FROM ${IMAGEREPO:-amazeeio}/centos:7 as builder
 
 RUN yum install -y rpm-build gcc make wget openssl-devel krb5-devel pam-devel libX11-devel xmkmf libXt-devel
 RUN cd /usr/src && wget http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.5p1.tar.gz && tar -xvzf openssh-7.5p1.tar.gz && \
@@ -15,7 +15,7 @@ RUN ls -l /home/rpmbuild/RPMS/x86_64/
 
 FROM ${IMAGEREPO:-amazeeio}/centos:7
 
-COPY --from=openssh-builder /home/rpmbuild/RPMS/x86_64 /home/openssh
+COPY --from=builder /home/rpmbuild/RPMS/x86_64 /home/openssh
 
 RUN rpm -Uvh --nodeps /home/openssh/*.rpm
 

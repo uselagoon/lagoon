@@ -1,14 +1,14 @@
 
 
 image_folder := docker-images
-IMAGESUFFIX :=
+IMAGESUFFIX := local
 docker_build = docker build --cache-from amazeeiolagoon/$(subst /,:,$(1))  --cache-from amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) -t amazeeiolagoon/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile
 docker_build_folder = $(docker_build) $(image_folder)/$(1)
 docker_build_root = $(docker_build) .
 
-docker-builders_build = docker build --target builder --cache-from amazeeiolagoon/$(1)-builder:latest-$(IMAGESUFFIX)-builder -t amazeeiolagoon/$(1)-builder:latest-$(IMAGESUFFIX)-builder -f $(image_folder)/$(1)/Dockerfile
-docker_builders_build_folder = $(builders_build) $(image_folder)/$(1)
-docker_builders_build_root = $(docker_build) .
+docker-builders_build = docker build --target builder --cache-from amazeeiolagoon/$(1)-builder:latest-$(IMAGESUFFIX) -t amazeeiolagoon/$(1)-builder:latest-$(IMAGESUFFIX) -f services/$(1)/Dockerfile
+docker_builders_build_folder = $(docker-builders_build) services/$(1)
+docker_builders_build_root = $(docker-builders_build) .
 
 docker_push = docker push amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
 docker_tag_push = docker tag amazeeiolagoon/$(subst /,:,$(1)) amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) && $(docker_push)
@@ -158,12 +158,14 @@ services-builders-root := api \
 services-builders-root-prefix = $(foreach image,$(services-builders-root),[builder]-$(image))
 
 $(services-builders-folder-prefix):
-		$(call docker_builders_build_folder,$(subst [builder]-,,$@)
+		$(call docker_builders_build_folder,$(subst [builder]-,,$@))
 
 $(services-builders-root-prefix):
-		$(call docker_builders_build_root,$(subst [builder]-,,$@)
+		$(call docker_builders_build_root,$(subst [builder]-,,$@))
 
 pull-services-builders-images = $(foreach image,$(services-builders-folder) $(services-builders-root),[builder-pull]-$(image))
+
+bla: $(services-builders-root-prefix)
 
 $(pull-services-builders-images):
 		$(call docker_pull,$(subst [builder-pull]-,,lagoon-$@-builder:latest))
@@ -183,7 +185,7 @@ local-hiera-watcher-pusher: centos/7
 
 # Building Base Images, without parallelism, best for debugging
 .PHONY: services-build-single
-services-build-single: $(services) $(services-builders-folder) $(services-builders-root)
+services-build-single: $(services) $(services-builders-folder-prefix) $(services-builders-root-prefix)
 
 # Regular build with calling a submake that runs parallel
 .PHONY: services-build
@@ -212,7 +214,7 @@ push-services-single: $(push-services) $(push-services-builders-images)
 
 # Regular build with calling a submake that runs parallel
 .PHONY: push-services
-push-services:
+push-services: 
 		$(MAKE) push-services-single -j5 --no-print-directory || $(MAKE) --no-print-directory push-services-error
 
 # Nicer error in case the parallel build fails
