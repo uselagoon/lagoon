@@ -18,6 +18,9 @@ COPY --from=service-builder /app /app
 COPY . /app/services/auth-server
 WORKDIR /app/services/auth-server/
 
+# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
+COPY --from=lagoon-packages-builder /app/.env.defaults .
+
 # building our service
 RUN yarn run build
 

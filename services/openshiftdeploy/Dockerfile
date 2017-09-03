@@ -20,6 +20,9 @@ COPY --from=service-builder /app /app
 COPY . /app/services/openshiftdeploy
 WORKDIR /app/services/openshiftdeploy/
 
+# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
+COPY --from=lagoon-packages-builder /app/.env.defaults .
+
 # building our service
 RUN yarn run build
 
