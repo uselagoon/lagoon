@@ -3,7 +3,9 @@
 image_folder := docker-images
 IMAGEREPO := lagoon-local-dev
 IMAGESUFFIX :=
-docker_build = docker build --quiet --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile $(image_folder)/$(1)
+docker_build = docker build --quiet --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile
+docker_build_folder = $(docker_build) $(image_folder)/$(1)
+docker_build_root = $(docker_build) .
 docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) && docker push $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
 
 docker_pull = docker pull $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat || true
@@ -34,6 +36,7 @@ centos7-node-builder/8: centos7-node/8
 
 oc-build-deploy/latest: oc/latest
 
+images_root_context := lagoon-node-packages-builder/latest
 
 # Pull upstream centos Image
 .PHONY: pull-centos7
@@ -43,7 +46,7 @@ pull-centos7:
 
 # Building Base Images, without parallelism, best for debugging
 .PHONY: build-single
-build-single: $(images)
+build-single: $(images) $(images_root_context)
 
 # Regular build with calling a submake that runs parallel
 .PHONY: build
@@ -60,10 +63,16 @@ build-error:
 .PHONY: $(images)
 $(images):
 #		Calling docker_build for the image name
-		$(call docker_build,$@)
+		$(call docker_build_folder,$@)
+
+# Define build for each defined image
+.PHONY: $(images_root_context)
+$(images_root_context):
+#		Calling docker_build for the image name
+		$(call docker_build_root,$@)
 
 # Define new list of all images prefixed with '[tag-push]-' so we can reuse the list again
-tag-push-images = $(foreach var,$(images),[tag-push]-$(var))
+tag-push-images = $(foreach image,$(images) $(images_root_context),[tag-push]-$(image))
 
 # tag and push all images
 .PHONY: tag-push
@@ -77,7 +86,7 @@ $(tag-push-images):
 
 
 # Define new list of all images prefixed with '[tag-push]-' so we can reuse the list again
-pull-images = $(foreach image,$(images),[pull]-$(image))
+pull-images = $(foreach image,$(images) $(images_root_context),[pull]-$(image))
 
 # tag and push all images
 .PHONY: pull-single
@@ -105,9 +114,6 @@ pull-error:
 ###### SERVICE IMAGES
 ######
 
-lagoon-node-packages-builder: centos7-node-builder/8
-		docker build --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$@ -f docker-images/lagoon-node-packages-builder/latest/Dockerfile .
-
 # Define service Images
 services := webhook-handler \
 						rabbitmq \
@@ -129,7 +135,7 @@ services := webhook-handler \
 						cli
 
 # node services need the lagoon-node-packages-builder which includes shared node packages
-auth-server logs2slack openshiftdeploy openshiftremove openshiftremove-resources rest2tasks webhook-handler webhooks2tasks: lagoon-node-packages-builder
+auth-server logs2slack openshiftdeploy openshiftremove openshiftremove-resources rest2tasks webhook-handler webhooks2tasks: lagoon-node-packages-builder/latest
 auth-ssh: centos/7
 hacky-rest2tasks-ui: centos7-node-builder/6 centos7-node/6
 cli api: centos7-node-builder/8 centos7-node/8
