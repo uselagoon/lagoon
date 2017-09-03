@@ -3,13 +3,13 @@
 image_folder := docker-images
 IMAGEREPO := lagoon-local-dev
 IMAGESUFFIX :=
-docker_build = docker build --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile $(image_folder)/$(1)
+docker_build = docker build --quiet --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile $(image_folder)/$(1)
 docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) && docker push $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
 
 docker_pull = docker pull $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat || true
 
-docker-compose_build = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build $(1)
-docker-compose_push = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1)
+docker-compose_build = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build --quiet $(1) | cat
+docker-compose_push = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1) | cat
 
 ######
 ###### BASE IMAGES
@@ -151,7 +151,18 @@ push-services := $(foreach service,$(services),[push]-$(service))
 
 # tag and push all images
 .PHONY: push-services
-push-services: $(push-services)
+push-services-single: $(push-services)
+
+# Regular build with calling a submake that runs parallel
+.PHONY: push-services
+push-services:
+		$(MAKE) push-services-single -j5 --no-print-directory || $(MAKE) --no-print-directory push-services-error
+
+# Nicer error in case the parallel build fails
+.PHONY: push-services-error
+push-services-error:
+		@echo "ERROR during pushing service images in parallel, execute 'make push-services-single' to see which one failed"
+		@exit 1
 
 # tag and push of each image
 .PHONY: $(push-services)
@@ -160,6 +171,8 @@ $(push-services):
 		$(call check_defined, IMAGEREPO, Docker IMAGEREPO to which to push to)
 #   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
 		$(call docker-compose_push,$(subst [push]-,,$@))
+
+
 
 pull-services:
 		IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures
