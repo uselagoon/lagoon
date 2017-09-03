@@ -39,6 +39,11 @@ jobs:
             make build-single services-build-single IMAGESUFFIX=$CIRCLE_BRANCH
 
       - run:
+          name: push cache docker images to dockerhub
+          command: make images-cache-push IMAGESUFFIX=$CIRCLE_BRANCH
+          background: true
+
+      - run:
           name: docker-compose up
           command: |
             IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon up -d
@@ -58,6 +63,4 @@ jobs:
           command: |
             IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
-      - run:
-          name: push cache docker images to dockerhub
-          command: make images-cache-push IMAGESUFFIX=$CIRCLE_BRANCH
+
