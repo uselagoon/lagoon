@@ -14,8 +14,3 @@ ENTRYPOINT ["/usr/sbin/ssh-key"]
 COPY hiera-watch-push.sh /home/hiera-watch-push.sh
 
 CMD ["/home/hiera-watch-push.sh"]
-
-
-docker images -q | while read IMAGE_ID; do
-    docker inspect --format='{{.RepoTags}}' --type=image ${IMAGE_ID}
-done
