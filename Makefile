@@ -3,7 +3,7 @@
 image_folder := docker-images
 IMAGEREPO := lagoon-local-dev
 IMAGESUFFIX :=
-docker_build = docker build --quiet --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile
+docker_build = docker build --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile
 docker_build_folder = $(docker_build) $(image_folder)/$(1)
 docker_build_root = $(docker_build) .
 docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) && docker push $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
