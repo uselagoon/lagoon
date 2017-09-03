@@ -14,7 +14,7 @@ jobs:
 
       - run:
           name: load cache docker images from dockerhub
-          command: make images-cache-pull IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+          command: make images-cache-pull IMAGESUFFIX=$CIRCLE_BRANCH
 
       - run:
           name: show existing images
@@ -36,17 +36,17 @@ jobs:
           name: Build Images
           command: |
             set -x
-            make build-single services-build-single IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+            make build-single services-build-single IMAGESUFFIX=$CIRCLE_BRANCH
 
       - run:
           name: docker-compose up
           command: |
-            IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
+            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
 
       - run:
           name: docker-compose logs
           command: |
-            IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose logs -f
+            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose logs -f
           background: true
 
       - run:
@@ -56,8 +56,8 @@ jobs:
       - run:
           name: run tests
           command: |
-            IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
+            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
       - run:
           name: push cache docker images to dockerhub
-          command: make images-cache-push IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+          command: make images-cache-push IMAGESUFFIX=$CIRCLE_BRANCH

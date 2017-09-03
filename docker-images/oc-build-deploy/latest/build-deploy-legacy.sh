@@ -12,10 +12,7 @@ fi
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 
-# CI_OVERRIDE_IMAGE_REPO can contain uppercase letters, which docker doesn't like, lowercasing them
-CI_OVERRIDE_IMAGE_REPO=$(echo "$CI_OVERRIDE_IMAGE_REPO" | tr '[:upper:]' '[:lower:]')
-
-docker build --build-arg IMAGE_REPO=$CI_OVERRIDE_IMAGE_REPO --build-arg AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA --build-arg AMAZEEIO_GIT_BRANCH=$BRANCH -t $IMAGE -f $DOCKERFILE .
+docker build --build-arg AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA --build-arg AMAZEEIO_GIT_BRANCH=$BRANCH -t $IMAGE -f $DOCKERFILE .
 
 # If the given OpenShift Template exists from within the Git Repo
 if [ -f ".amazeeio.app.yml" ]; then

@@ -6,9 +6,6 @@ git-checkout-pull $GIT_REPO $GIT_REF
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 
-# CI_OVERRIDE_IMAGE_REPO can contain uppercase letters, which docker doesn't like, lowercasing them
-CI_OVERRIDE_IMAGE_REPO=$(echo "$CI_OVERRIDE_IMAGE_REPO" | tr '[:upper:]' '[:lower:]')
-
 pushd $OPENSHIFT_FOLDER
 
 if [ ! -f .amazeeio.yml ]; then

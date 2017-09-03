@@ -1,9 +1,9 @@
 # STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
 ARG IMAGEREPO
-FROM ${IMAGEREPO:-lagoon-local-dev}/lagoon-node-packages-builder:latest as lagoon-packages-builder
+FROM amazeeiolagoon/lagoon-node-packages-builder:latest as lagoon-packages-builder
 
 # STAGE 2: specific service node package build
-FROM ${IMAGEREPO:-lagoon-local-dev}/centos7-node-builder:8 as service-builder
+FROM amazeeiolagoon/centos7-node-builder:8 as builder
 ENV NODE_ENV production
 # Copying generated node_modules from the first stage
 COPY --from=lagoon-packages-builder /app /app
@@ -12,8 +12,8 @@ COPY package.json /app/services/auth-server/
 RUN cd /app/services/auth-server && yarn install --pure-lockfile
 
 # STAGE 3: runtime image with actual code
-FROM ${IMAGEREPO:-lagoon-local-dev}/centos7-node:8
-COPY --from=service-builder /app /app
+FROM amazeeiolagoon/centos7-node:8
+COPY --from=builder /app /app
 # Copying files from our service
 COPY . /app/services/auth-server
 WORKDIR /app/services/auth-server/

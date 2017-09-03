@@ -1,5 +1,4 @@
-ARG IMAGEREPO
-FROM ${IMAGEREPO:-lagoon-local-dev}/oc:latest
+FROM amazeeiolagoon/oc:latest
 
 RUN apk add --no-cache bash git openssh docker py-pip && \
     pip install shyaml

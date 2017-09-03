@@ -1,17 +1,22 @@
 
 
 image_folder := docker-images
-IMAGEREPO := lagoon-local-dev
 IMAGESUFFIX :=
-docker_build = docker build --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile
+docker_build = docker build --cache-from amazeeiolagoon/$(subst /,:,$(1))  --cache-from amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) -t amazeeiolagoon/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile
 docker_build_folder = $(docker_build) $(image_folder)/$(1)
 docker_build_root = $(docker_build) .
-docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) && docker push $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
 
-docker_pull = docker pull $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat || true
+docker-builders_build = docker build --target builder --cache-from amazeeiolagoon/$(1)-builder:latest-$(IMAGESUFFIX)-builder -t amazeeiolagoon/$(1)-builder:latest-$(IMAGESUFFIX)-builder -f $(image_folder)/$(1)/Dockerfile
+docker_builders_build_folder = $(builders_build) $(image_folder)/$(1)
+docker_builders_build_root = $(docker_build) .
 
-docker-compose_build = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build $(1) | cat
-docker-compose_push = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1) | cat
+docker_push = docker push amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
+docker_tag_push = docker tag amazeeiolagoon/$(subst /,:,$(1)) amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) && $(docker_push)
+
+docker_pull = docker pull amazeeiolagoon/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat || true
+
+docker-compose_build = IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build $(1) | cat
+docker-compose_push = IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1) | cat
 
 ######
 ###### BASE IMAGES
@@ -134,6 +139,41 @@ services := webhook-handler \
 						local-hiera-watcher-pusher \
 						cli
 
+
+services-builders-folder := webhook-handler \
+														openshiftremove \
+														openshiftremove-resources \
+														openshiftdeploy \
+														logs2slack \
+														webhooks2tasks \
+														rest2tasks \
+														auth-server
+
+services-builders-folder-prefix = $(foreach image,$(services-builders-folder),[builder]-$(image))
+
+services-builders-root := api \
+													auth-ssh \
+													hacky-rest2tasks-ui
+
+services-builders-root-prefix = $(foreach image,$(services-builders-root),[builder]-$(image))
+
+$(services-builders-folder-prefix):
+		$(call docker_builders_build_folder,$(subst [builder]-,,$@)
+
+$(services-builders-root-prefix):
+		$(call docker_builders_build_root,$(subst [builder]-,,$@)
+
+pull-services-builders-images = $(foreach image,$(services-builders-folder) $(services-builders-root),[builder-pull]-$(image))
+
+$(pull-services-builders-images):
+		$(call docker_pull,$(subst [builder-pull]-,,lagoon-$@-builder:latest))
+
+
+push-services-builders-images = $(foreach image,$(services-builders-folder) $(services-builders-root),[builder-push]-$(image))
+
+$(push-services-builders-images):
+		$(call docker_push,$(subst [builder-push]-,,lagoon-$@-builder:latest))
+
 # node services need the lagoon-node-packages-builder which includes shared node packages
 auth-server logs2slack openshiftdeploy openshiftremove openshiftremove-resources rest2tasks webhook-handler webhooks2tasks: lagoon-node-packages-builder/latest
 auth-ssh: centos/7
@@ -143,7 +183,7 @@ local-hiera-watcher-pusher: centos/7
 
 # Building Base Images, without parallelism, best for debugging
 .PHONY: services-build-single
-services-build-single: $(services)
+services-build-single: $(services) $(services-builders-folder) $(services-builders-root)
 
 # Regular build with calling a submake that runs parallel
 .PHONY: services-build
@@ -168,7 +208,7 @@ push-services := $(foreach service,$(services),[push]-$(service))
 
 # tag and push all images
 .PHONY: push-services
-push-services-single: $(push-services)
+push-services-single: $(push-services) $(push-services-builders-images)
 
 # Regular build with calling a submake that runs parallel
 .PHONY: push-services
@@ -184,15 +224,13 @@ push-services-error:
 # tag and push of each image
 .PHONY: $(push-services)
 $(push-services):
-#   Check first if IMAGEREPO variable is defined
-		$(call check_defined, IMAGEREPO, Docker IMAGEREPO to which to push to)
 #   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
 		$(call docker-compose_push,$(subst [push]-,,$@))
 
 
 
-pull-services:
-		IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures --parallel | cat
+pull-services: $(pull-services-builders-images)
+		IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures --parallel | cat
 
 images-cache-push: tag-push push-services
 
