@@ -2,3 +2,4 @@
 .dockerignore
 .git
 tests
+.cache
