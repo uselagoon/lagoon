@@ -80,8 +80,8 @@ $(tag-push-images):
 pull-images = $(foreach image,$(images),[pull]-$(image))
 
 # tag and push all images
-.PHONY: pull-images
-pull: $(pull-images)
+.PHONY: pull-single
+pull-single: $(pull-images)
 
 # tag and push of each image
 .PHONY: $(pull-images)
@@ -89,6 +89,17 @@ $(pull-images):
 #   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
 		$(call docker_pull,$(subst [pull]-,,$@))
 
+
+# Regular build with calling a submake that runs parallel
+.PHONY: pull
+pull:
+		$(MAKE) pull-single -j5 --no-print-directory || $(MAKE) --no-print-directory pull-error
+
+# Nicer error in case the parallel build fails
+.PHONY: pull-error
+pull-error:
+		@echo "ERROR during parallel base image pull execute 'make pull-single' to see which one failed"
+		@exit 1
 
 ######
 ###### SERVICE IMAGES

@@ -35,7 +35,7 @@ jobs:
           name: Build Images
           command: |
             set -x
-            make build services-build IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+            make build-single services-build-single IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
 
       - run:
           name: docker-compose up
