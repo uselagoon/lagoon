@@ -18,6 +18,10 @@ jobs:
           command: make images-cache-load
 
       - run:
+          name: show existing images
+          command: docker image ls -a --digests
+
+      - run:
           name: check docker
           command: |
             sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker"
