@@ -14,7 +14,7 @@ jobs:
 
       - run:
           name: load cache docker images from dockerhub
-          command: make images-cache-pull REPO=amazeeiodev IMAGESUFFIX=$$CIRCLE_BRANCH
+          command: make images-cache-pull REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
 
       - run:
           name: show existing images
@@ -35,9 +35,9 @@ jobs:
           name: Start container and verify it's working
           command: |
             set -x
-            make build services-build REPO=amazeeiodev IMAGESUFFIX=$$CIRCLE_BRANCH
-            docker-compose up -d
+            make build services-build REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+            REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
 
       - run:
           name: push cache docker images to dockerhub
-          command: make images-cache-push REPO=amazeeiodev IMAGESUFFIX=$$CIRCLE_BRANCH
+          command: make images-cache-push REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
