@@ -1,4 +1,4 @@
-ARG IMAGE_REPO
+ARG IMAGEREPO
 FROM ${IMAGEREPO:-lagoon-local-dev}/centos7-node:8
 
 ### Installing GIT

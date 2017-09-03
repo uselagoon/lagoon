@@ -1,4 +1,4 @@
-ARG IMAGE_REPO
+ARG IMAGEREPO
 FROM ${IMAGEREPO:-lagoon-local-dev}/centos:7
 
 MAINTAINER amazee.io hello@amazee.io

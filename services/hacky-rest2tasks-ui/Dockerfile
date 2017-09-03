@@ -1,10 +1,10 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon-local-dev}/centos7-node-builder:6 as builder
+ARG IMAGEREPO
+FROM ${IMAGEREPO:-lagoon-local-dev}/centos7-node-builder:6 as builder
 ENV NODE_ENV production
 COPY services/hacky-rest2tasks-ui/package.json services/hacky-rest2tasks-ui/yarn.lock /app/
 RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
 
-FROM ${IMAGE_REPO:-lagoon-local-dev}/centos7-node:6
+FROM ${IMAGEREPO:-lagoon-local-dev}/centos7-node:6
 ENV NODE_ENV production
 COPY --from=builder /app/node_modules /app/node_modules
 COPY services/hacky-rest2tasks-ui /app

@@ -1,4 +1,4 @@
-ARG IMAGE_REPO
+ARG IMAGEREPO
 FROM ${IMAGEREPO:-lagoon-local-dev}/oc:latest
 
 RUN apk add --no-cache bash git openssh docker py-pip && \
