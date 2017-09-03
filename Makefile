@@ -4,9 +4,9 @@ image_folder := docker-images
 IMAGEREPO := lagoon-local-dev
 IMAGESUFFIX :=
 docker_build = docker build --cache-from $(IMAGEREPO)/$(subst /,:,$(1))  --cache-from $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) --build-arg IMAGEREPO=$(IMAGEREPO) -t $(IMAGEREPO)/$(subst /,:,$(1)) -f $(image_folder)/$(1)/Dockerfile $(image_folder)/$(1)
-docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) && docker push $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX)
+docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) && docker push $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat
 
-docker_pull = docker pull $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) || true
+docker_pull = docker pull $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat || true
 
 docker-compose_build = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build $(1)
 docker-compose_push = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1)
@@ -162,11 +162,9 @@ $(push-services):
 pull-services:
 		IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures
 
-# images-cache-push: tag-push push-services
-images-cache-push: tag-push
+images-cache-push: tag-push push-services
 
-# images-cache-pull: pull pull-services
-images-cache-pull: pull
+images-cache-pull: pull pull-services
 
 
 ######

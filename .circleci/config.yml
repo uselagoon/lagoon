@@ -32,12 +32,15 @@ jobs:
     #         sudo ./startOpenShift.sh
 
       - run:
-          name: Start container and verify it's working
+          name: Build Images
           command: |
             set -x
-            # make build services-build IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
-            make build IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
-            # IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
+            make build services-build IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+
+      - run:
+          name: docker-compose up
+          command: |
+            IMAGEREPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
 
       - run:
           name: push cache docker images to dockerhub
