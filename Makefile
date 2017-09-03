@@ -162,9 +162,11 @@ $(push-services):
 pull-services:
 		IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures
 
-images-cache-push: tag-push push-services
+# images-cache-push: tag-push push-services
+images-cache-push: tag-push
 
-images-cache-pull: pull pull-services
+# images-cache-pull: pull pull-services
+images-cache-pull: pull
 
 
 ######

@@ -1,5 +1,5 @@
-ARG IMAGE_REPO=amazeeio
-FROM ${IMAGE_REPO}/centos7-node:6
+ARG IMAGE_REPO
+FROM ${IMAGEREPO:-lagoon-local-dev}/centos7-node:6
 
 ### Installing GIT
 RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \

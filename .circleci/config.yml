@@ -26,17 +26,18 @@ jobs:
             sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker"
             sudo service docker restart
             sudo mount --make-rshared /
-      - run:
-          name: Start openshift
-          command: |
-            sudo ./startOpenShift.sh
+    #   - run:
+    #       name: Start openshift
+    #       command: |
+    #         sudo ./startOpenShift.sh
 
       - run:
           name: Start container and verify it's working
           command: |
             set -x
-            make build services-build REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
-            REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
+            # make build services-build REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+            make build REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH
+            # REPO=amazeeiodev IMAGESUFFIX=$CIRCLE_BRANCH docker-compose up -d
 
       - run:
           name: push cache docker images to dockerhub
