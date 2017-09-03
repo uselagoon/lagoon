@@ -8,7 +8,7 @@ docker_tag_push = docker tag $(IMAGEREPO)/$(subst /,:,$(1)) $(IMAGEREPO)/$(subst
 
 docker_pull = docker pull $(IMAGEREPO)/$(subst /,:,$(1))-$(IMAGESUFFIX) | cat || true
 
-docker-compose_build = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build --quiet $(1) | cat
+docker-compose_build = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose build $(1) | cat
 docker-compose_push = IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose push $(1) | cat
 
 ######
@@ -175,7 +175,7 @@ $(push-services):
 
 
 pull-services:
-		IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures
+		IMAGEREPO=$(IMAGEREPO) IMAGESUFFIX=$(IMAGESUFFIX) docker-compose pull --ignore-pull-failures --parallel | cat
 
 images-cache-push: tag-push push-services
 
