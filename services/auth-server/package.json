@@ -1,6 +1,8 @@
 {
-  "private": true,
+  "name": "auth-server",
+  "version": "0.9.0",
   "scripts": {
+    "postinstall": "ln -s ../../../node_modules/.bin node_modules/.bin #fix for not linked bin folder from root only needed till yarn v0.28.4 (https://github.com/yarnpkg/yarn/pull/3896)",
     "clean": "rimraf dist && rimraf logs",
     "build": "flow-remove-types --out-dir dist/ src/",
     "dev": "nodemon --ignore dist --watch . --exec 'flow-node src/index.js'",
@@ -10,29 +12,6 @@
     "test:watch": "jest --watch",
     "flow": "flow check",
     "format": "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
-  },
-  "dependencies": {
-    "body-parser": "^1.17.2",
-    "express": "^4.15.3",
-    "jsonwebtoken": "^7.4.1",
-    "morgan": "^1.8.2",
-    "nano": "^6.3.0",
-    "sshpk": "^1.13.1",
-    "winston": "^2.3.1"
-  },
-  "devDependencies": {
-    "eslint": "^3.19.0",
-    "eslint-config-airbnb-base": "^11.2.0",
-    "eslint-plugin-flow-vars": "^0.5.0",
-    "eslint-plugin-flowtype": "^2.34.0",
-    "eslint-plugin-import": "^2.2.0",
-    "flow-bin": "^0.48.0",
-    "flow-remove-types": "^1.2.1",
-    "jest": "^20.0.4",
-    "lint-staged": "^4.0.0",
-    "nodemon": "^1.11.0",
-    "prettier": "^1.4.4",
-    "rimraf": "^2.6.1"
   },
   "jest": {
     "rootDir": "src",

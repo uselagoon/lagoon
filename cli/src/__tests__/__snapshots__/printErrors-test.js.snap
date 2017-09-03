@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`printErrors should print Errors (objects with a stack property) 1`] = `
+Array [
+  Array [
+    "[31mReassigning the stack so that there's no paths to break the tests[39m",
+  ],
+]
+`;
+
+exports[`printErrors should print a mix of Errors, GraphQLErrors and strings 1`] = `
+Array [
+  Array [
+    "[31mReassigning the stack so that there's no paths to break the tests[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"arbitraryValue\\"[39m
+[31m}[39m",
+  ],
+  Array [
+    "[31mAn error string[39m",
+  ],
+]
+`;
+
+exports[`printErrors should print objects with a message key but no stack key (GraphQLErrors) 1`] = `
+Array [
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"arbitraryValue\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`printErrors should print regular strings 1`] = `
+Array [
+  Array [
+    "[31mAn error string[39m",
+  ],
+]
+`;
+
+exports[`printGraphQLErrors should print multiple GraphQLErrors 1`] = `
+Array [
+  Array [
+    "[31mOops! The amazee.io API returned errors:[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"A GraphQLError message\\"[39m
+[31m}[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"Another GraphQLError message\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`printGraphQLErrors should print singular GraphQLErrors 1`] = `
+Array [
+  Array [
+    "[31mOops! The amazee.io API returned an error:[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"A GraphQLError message\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`printGraphQLErrors should tell the user to log in if there is a bearer token error 1`] = `
+Array [
+  Array [
+    "[31mNo authentication token found. Please log in first with \\"io login\\".[39m
+[31mOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login[39m",
+  ],
+]
+`;
+
+exports[`printNoConfigError should print an error about the configuration file not being found 1`] = `
+Array [
+  Array [
+    "[31m.amazeeio.yml config file not found. Please create one with \\"io init\\".[39m
+[31mOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init[39m",
+  ],
+]
+`;
+
+exports[`printSitegroupConfigurationError should print an error about missing sitegroup configuration 1`] = `
+Array [
+  Array [
+    "[31mNo sitegroup configured. Please create a .amazeeio.yml config file with \\"io init\\" or pass a sitegroup to this command via the --sitegroup option.[39m
+[31mOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init[39m",
+  ],
+]
+`;

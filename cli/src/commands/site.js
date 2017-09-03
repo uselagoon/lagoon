@@ -9,11 +9,12 @@ import { runGQLQuery } from '../query';
 import {
   printErrors,
   printNoConfigError,
+  printSitegroupConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from './index';
+import type { BaseArgs } from '.';
 
 const tableConfig = {
   columns: {
@@ -34,8 +35,8 @@ const tableConfig = {
 const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
-const name = 'info';
-const description = 'Show info about sites or sitegroups';
+const name = 'site';
+const description = 'Show site information for a sitegroup';
 
 export async function setup(yargs: Yargs): Promise<Object> {
   return yargs
@@ -43,15 +44,11 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .options({
       sitegroup: {
         demandOption: false,
-        describe: 'Override the currently configured sitegroup (.amazeeio.yml)',
+        describe: 'Specify a sitegroup for the site information',
         type: 'string',
       },
     })
     .alias('s', 'sitegroup')
-    .example(
-      `$0 ${name}`,
-      'Show information about sitegroup in the .amazeeio.yml config file',
-    )
     .example(
       `$0 ${name} mysite`,
       'Show information about site "mysite" (only works if the site only has a single branch) (sitegroup as stated by config)',
@@ -64,86 +61,6 @@ export async function setup(yargs: Yargs): Promise<Object> {
       `$0 ${name} -s mysitegroup mysite`,
       'Show information about site "mysite" in sitegroup "somesitegroup"',
     ).argv;
-}
-
-type SiteGroupInfoArgs = {
-  sitegroup: string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
-
-export async function sitegroupInfo({
-  sitegroup,
-  clog,
-  cerr,
-  }: SiteGroupInfoArgs): Promise<number> {
-  const query = gql`
-    query querySites($sitegroup: String!) {
-      siteGroupByName(name: $sitegroup) {
-        gitUrl
-        siteGroupName
-        slack {
-          webhook
-          channel
-          informStart
-          informChannel
-        }
-        client {
-          clientName
-        }
-        sites {
-          siteName
-          siteBranch
-        }
-      }
-    }
-  `;
-
-  const result = await runGQLQuery({
-    query,
-    variables: { sitegroup },
-  });
-
-  const { errors } = result;
-  if (errors != null) {
-    return printGraphQLErrors(cerr, ...errors);
-  }
-
-  const sitegroupData = R.path(['data', 'siteGroupByName'])(result);
-
-  if (sitegroupData == null) {
-    return printErrors(clog, `No sitegroup '${sitegroup}' found`);
-  }
-
-  const sites = R.compose(
-    R.map(({ siteName, siteBranch }) => `${siteName}:${siteBranch}`),
-    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
-  )(result);
-
-  const formatSlack = (slack) => {
-    if (slack == null) {
-      return '';
-    }
-
-    const webhook = R.prop('webhook', slack);
-    const channel = R.prop('channel', slack);
-
-    return `${channel} -> ${webhook}`;
-  };
-
-  const tableBody = [
-    ['SiteGroup Name', R.prop('siteGroupName', sitegroupData)],
-    ['Git Url', R.prop('gitUrl', sitegroupData)],
-    ['Slack', formatSlack(R.prop('slack', sitegroupData))],
-    ['Sites', R.join(', ', sites)],
-  ];
-
-  const tableData = R.filter(onlyValues)(tableBody);
-
-  clog(`I found following information for sitegroup '${sitegroup}':`);
-  clog(table(tableData, tableConfig));
-
-  return 0;
 }
 
 type SiteInfoArgs = {
@@ -160,7 +77,7 @@ export async function siteInfo({
   branch,
   clog,
   cerr,
-  }: SiteInfoArgs): Promise<number> {
+}: SiteInfoArgs): Promise<number> {
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
 
@@ -215,6 +132,7 @@ export async function siteInfo({
   `;
 
   const result = await runGQLQuery({
+    cerr,
     query,
     variables: { sitegroup },
   });
@@ -248,7 +166,7 @@ export async function siteInfo({
   // For the case if there was no branch name given to begin with
   if (nodes.length > 1) {
     clog(
-      'I found multiple sites with the same name, but different branches, maybe try following parameter...',
+      'Multiple sites found with the same name but different branches. The branch can be specified with the "siteName@siteBranch" syntax. For example:',
     );
     R.forEach(({ siteName, siteBranch }) =>
       clog(`-> ${siteName}@${siteBranch}`),
@@ -256,7 +174,7 @@ export async function siteInfo({
     return 0;
   }
 
-  clog(`I found following information for '${sitegroup} -> ${siteBranchStr}':`);
+  clog(`Details for '${sitegroup} -> ${siteBranchStr}':`);
 
   // nodes only contains one element, extract it
   const [node] = nodes;
@@ -307,16 +225,23 @@ type Args = BaseArgs & {
 export async function run(args: Args): Promise<number> {
   const { config, clog, cerr } = args;
 
-  // FIXME: doesn't handle empty config file case correctly
   if (config == null) {
     return printNoConfigError(cerr);
   }
 
   const [siteAndBranch] = args._.slice(1);
-  const sitegroup = args.sitegroup || config.sitegroup;
 
   if (siteAndBranch == null) {
-    return sitegroupInfo({ sitegroup, clog, cerr });
+    return printErrors(
+      cerr,
+      'Site name not specified. Please pass the site name as the first argument.',
+    );
+  }
+
+  const sitegroup = args.sitegroup || config.sitegroup;
+
+  if (sitegroup == null) {
+    return printSitegroupConfigurationError(cerr);
   }
 
   const [site, branch] = siteAndBranch.split('@');

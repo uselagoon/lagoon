@@ -9,7 +9,7 @@ import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from './index';
+import type { BaseArgs } from '.';
 
 const name = 'init';
 const description =
@@ -105,7 +105,7 @@ export async function run({
   sitegroup,
   clog,
   cerr,
-  }: Args): Promise<number> {
+}: Args): Promise<number> {
   const filepath = path.join(cwd, '.amazeeio.yml');
 
   const exists = await fileExists(filepath);

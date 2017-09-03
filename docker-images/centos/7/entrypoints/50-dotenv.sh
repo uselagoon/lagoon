@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # dotenv implementation in Bash:
 # We basically search for files within the current working directory (defined by WORKDIR in the Dockerfile).

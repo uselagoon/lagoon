@@ -127,10 +127,3 @@ Object {
   "siteHost": "deploytest.compact",
 }
 `;
-
-exports[`Util selectors extractSshKeys should extract the ssh_keys field of given entity 1`] = `
-Array [
-  "ssh-rsa k1key",
-  "ssh-rsa k2key",
-]
-`;

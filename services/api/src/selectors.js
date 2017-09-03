@@ -11,6 +11,8 @@ import type {
   SshKeys,
 } from './types';
 
+import type { Credentials, Role, AttributeFilter } from './auth';
+
 const R = require('ramda');
 
 // ==== View Types
@@ -21,6 +23,10 @@ const R = require('ramda');
 * types (types representing yaml related content) w/ extra
 * computanional values
 * */
+
+export type SshKeyView = SshKey & {
+  owner: string,
+};
 
 // TODO: Type spread is broken for autocompletion for some reason >:(
 export type ClientView = Client & {
@@ -204,17 +210,24 @@ const maybeAddJumpHostKey = (jumpHost?: string, obj: Object): Object =>
     () => R.set(R.lensProp('jumpHost'), jumpHost, obj)
   )(obj);
 
-const extractSshKeys: ({ +ssh_keys?: SshKeys }) => Array<SshKey> = R.compose(
-  R.ifElse(R.isEmpty, R.always([]), R.identity),
-  R.map(value => `${value.type || 'ssh-rsa'} ${value.key}`),
-  R.filter(value => R.has('key', value)),
-  // -> Array<SshKey>
-  R.map(R.prop(1)),
-  Object.entries,
+const toSshKeyStr = ({ type = 'ssh-rsa', key }: SshKey): string =>
+  `${type} ${key}`;
+
+const extractSshKeys: ({ +ssh_keys?: SshKeys }) => Array<
+  SshKeyView
+> = R.compose(
+  // Add the missing owner attribute, making it a SshKeyView
+  R.map(([owner, sshKey]) =>
+    R.merge(sshKey, {
+      owner,
+      type: R.propOr('ssh-rsa', 'type', sshKey),
+    })
+  ),
+  R.toPairs,
   R.propOr({}, 'ssh_keys')
 );
 
-const getSshKeysFromClients /* State => Array<string> */ = R.compose(
+const getSshKeysFromClients /* State => Array<SshKeyView> */ = R.compose(
   R.flatten,
   R.map(extractSshKeys)
 );
@@ -229,12 +242,21 @@ const getAllSiteGroups /* : (State) => Array<SiteGroupView> */ = R.compose(
 
 const filterSiteGroups = (
   criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteGroupView> = R.identity(),
   state: State
 ): Array<SiteGroupView> =>
-  R.compose(findAll(criteria), getAllSiteGroups)(state);
+  R.compose(R.map(attributeFilter), findAll(criteria), getAllSiteGroups)(state);
 
-const findSiteGroup = (criteria: FilterCriteria, state: State): SiteGroupView =>
-  R.compose(findFirst(criteria), getAllSiteGroups)(state);
+const findSiteGroup = (
+  criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteGroupView> = R.identity(),
+  state: State
+): SiteGroupView =>
+  R.compose(
+    attributeFilter,
+    findFirst(criteria),
+    getAllSiteGroups
+  )(state);
 
 // Utility for converting actual siteFile content w/ fileName to a SiteView object
 const siteFileToSiteViews = (
@@ -290,11 +312,19 @@ const getAllSites /* : (State) => Array<SiteView> */ = R.compose(
   R.propOr({}, 'siteFiles')
 );
 
-const filterSites = (criteria: FilterCriteria, state: State): Array<SiteView> =>
-  R.compose(findAll(criteria), getAllSites)(state);
+const filterSites = (
+  criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteView> = R.identity(),
+  state: State
+): Array<SiteView> =>
+  R.compose(R.map(attributeFilter), findAll(criteria), getAllSites)(state);
 
-const findSite = (criteria: FilterCriteria, state: State): SiteView =>
-  R.compose(findFirst(criteria), getAllSites)(state);
+const findSite = (
+  criteria: FilterCriteria,
+  attributeFilter?: AttributeFilter<SiteView> = R.identity(),
+  state: State
+): SiteView =>
+  R.compose(attributeFilter, findFirst(criteria), getAllSites)(state);
 
 const getAllClients /* : (State) => Array<ClientView> */ = R.compose(
   R.map(([id, client]) => Object.assign({}, client, { clientName: id })),
@@ -329,4 +359,5 @@ module.exports = {
   addServerInfo,
   addServerNames,
   addSiteHost,
+  toSshKeyStr,
 };

@@ -1,9 +1,9 @@
 // @flow
 
 const sleep = require("es7-sleep");
-const { Lokka } = require('lokka');
-const { Transport } = require('lokka-transport-http');
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
+
 const { Jenkins } = require('jenkins');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
@@ -11,15 +11,9 @@ const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-comm
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
-
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
-
-const amazeeioAPI = new Lokka({
-  transport: new Transport(`${amazeeioapihost}/graphql`)
-});
 
 const messageConsumer = async msg => {
   const {
@@ -30,19 +24,9 @@ const messageConsumer = async msg => {
 
   logger.verbose(`Received DeployOpenshift task for sitegroup: ${siteGroupName}, branch: ${branchName}, sha: ${sha}`);
 
-  const siteGroupOpenShift = await amazeeioAPI.query(`
-    {
-      siteGroup:siteGroupByName(name: "${siteGroupName}"){
-        openshift
-        client {
-          deployPrivateKey
-        }
-        gitUrl
-      }
-    }
-  `)
+  const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
 
-  let jenkinsUrl
+  let jenkinsUrl;
 
   const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
@@ -358,5 +342,4 @@ ${error}
 Retrying deployment in ${retryExpirationSecs} secs`
   )
 }
-
 consumeTasks('deploy-openshift', messageConsumer, retryHandler, deathHandler)

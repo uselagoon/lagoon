@@ -1,0 +1,5 @@
+- name: "{{ testname }} - getting a new login token from ssh-auth on {{ssh_auth_host}} on port {{ssh_auth_host}}"
+  command: ssh api@{{ssh_auth_host}} -p {{ssh_auth_port}} login
+  register: token
+
+- debug: var=token

@@ -2,19 +2,23 @@
 
 import type { SiteGroup } from './types';
 
-exports.siteGroupByGitUrl = siteGroupByGitUrl;
-exports.getSiteGroupsByGitUrl = getSiteGroupsByGitUrl;
-exports.getSlackinfoForSiteGroup = getSlackinfoForSiteGroup;
-exports.getActiveSystemsForSiteGroup = getActiveSystemsForSiteGroup;
-
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
+const {
+  AMAZEEIO_API_HOST = 'http://api:3000',
+  SERVICE_API_ADMIN_TOKEN,
+} = process.env;
 
-const graphqlapi = new Lokka({
-  transport: new Transport(`${amazeeioapihost}/graphql`)
-});
+const options = {
+  headers: {
+    Authorization: `Bearer ${SERVICE_API_ADMIN_TOKEN}`,
+  },
+};
+
+const transport = new Transport(`${AMAZEEIO_API_HOST}/graphql`, options);
+
+const graphqlapi = new Lokka({ transport });
 
 class SiteGroupNotFound extends Error {
   constructor(message: string) {
@@ -30,9 +34,7 @@ class NoActiveSystemsDefined extends Error {
   }
 }
 
-
-async function siteGroupByGitUrl (gitUrl: string): SiteGroup {
-
+async function siteGroupByGitUrl(gitUrl: string): SiteGroup {
   const result = await graphqlapi.query(`
     {
       siteGroup:siteGroupByGitUrl(gitUrl: "${gitUrl}"){
@@ -44,17 +46,18 @@ async function siteGroupByGitUrl (gitUrl: string): SiteGroup {
         openshift
       }
     }
-  `)
+  `);
 
   if (!result || !result.siteGroup) {
-    throw new SiteGroupNotFound(`Cannot find site information for git repo ${gitUrl}`)
+    throw new SiteGroupNotFound(
+      `Cannot find site information for git repo ${gitUrl}`
+    );
   }
 
   return result.siteGroup;
 }
 
 async function getSiteGroupsByGitUrl(gitUrl: string): SiteGroup[] {
-
   const result = await graphqlapi.query(`
     {
       allSiteGroups(gitUrl: "${gitUrl}") {
@@ -69,14 +72,15 @@ async function getSiteGroupsByGitUrl(gitUrl: string): SiteGroup[] {
   `);
 
   if (!result || !result.allSiteGroups || !result.allSiteGroups.length) {
-    throw new SiteGroupNotFound(`Cannot find site information for git repo ${gitUrl}`)
+    throw new SiteGroupNotFound(
+      `Cannot find site information for git repo ${gitUrl}`
+    );
   }
 
   return result.allSiteGroups;
 }
 
-async function getSlackinfoForSiteGroup (siteGroup: string): SiteGroup {
-
+async function getSlackinfoForSiteGroup(siteGroup: string): SiteGroup {
   const result = await graphqlapi.query(`
     {
       siteGroup:siteGroupByName(name: "${siteGroup}"){
@@ -86,17 +90,21 @@ async function getSlackinfoForSiteGroup (siteGroup: string): SiteGroup {
         }
       }
     }
-  `)
+  `);
 
   if (!result || !result.siteGroup || !result.siteGroup.slack) {
-    throw new SiteGroupNotFound(`Cannot find site information for siteGroup ${siteGroup}`)
+    throw new SiteGroupNotFound(
+      `Cannot find site information for siteGroup ${siteGroup}`
+    );
   }
 
   return result.siteGroup;
 }
 
-async function getActiveSystemsForSiteGroup (siteGroup: string, task: string): String {
-
+async function getActiveSystemsForSiteGroup(
+  siteGroup: string,
+  task: string
+): Promise<String> {
   const result = await graphqlapi.query(`
     {
       siteGroup:siteGroupByName(name: "${siteGroup}"){
@@ -106,12 +114,37 @@ async function getActiveSystemsForSiteGroup (siteGroup: string, task: string): S
   `);
 
   if (!result || !result.siteGroup) {
-    throw new SiteGroupNotFound(`Cannot find site information for siteGroup ${siteGroup}`);
+    throw new SiteGroupNotFound(
+      `Cannot find site information for siteGroup ${siteGroup}`
+    );
   }
 
-  if (!result.siteGroup.activeSystems){
-    throw new NoActiveSystemsDefined(`Cannot find active systems for siteGroup ${siteGroup}`)
+  if (!result.siteGroup.activeSystems) {
+    throw new NoActiveSystemsDefined(
+      `Cannot find active systems for siteGroup ${siteGroup}`
+    );
   }
 
   return result.siteGroup.activeSystems;
 }
+
+const getOpenShiftInfoForSiteGroup = (siteGroupName: string): Promise<Object> =>
+  graphqlapi.query(`
+    {
+      siteGroup:siteGroupByName(name: "${siteGroupName}"){
+        openshift
+        client {
+          deployPrivateKey
+        }
+        gitUrl
+      }
+    }
+`);
+
+module.exports = {
+  siteGroupByGitUrl,
+  getSiteGroupsByGitUrl,
+  getSlackinfoForSiteGroup,
+  getActiveSystemsForSiteGroup,
+  getOpenShiftInfoForSiteGroup
+};

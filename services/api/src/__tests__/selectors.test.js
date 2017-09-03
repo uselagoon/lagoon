@@ -7,6 +7,7 @@ const {
   addServerInfo,
   addServerNames,
   sanitizeCriteria,
+  findSiteGroup,
   findSite,
   findClient,
   extractSshKeys,
@@ -14,7 +15,10 @@ const {
   addSiteHost,
   siteFileToSiteViews,
   toSiteHostStr,
+  toSshKeyStr,
 } = require('../selectors');
+
+const R = require('ramda');
 
 describe('Util selectors', () => {
   describe('sanitizeCriteria', () => {
@@ -48,16 +52,51 @@ describe('Util selectors', () => {
     });
   });
 
+  describe('toSshKeyStr', () => {
+    test('should convert full specified sshKey to string', () => {
+      const sshKey = {
+        owner: 'o1',
+        key: 'k1',
+        type: ('some-type': any),
+      };
+
+      const ret = toSshKeyStr(sshKey);
+      expect(ret).toEqual('some-type k1');
+    });
+
+    test('should assum ssh-rsa as type, if not given', () => {
+      const sshKey = {
+        owner: 'o1',
+        key: 'k1',
+      };
+
+      const ret = toSshKeyStr(sshKey);
+      expect(ret).toEqual('ssh-rsa k1');
+    });
+  });
+
   describe('extractSshKeys', () => {
     test('should extract the ssh_keys field of given entity', () => {
       const entity = {
         ssh_keys: {
-          k1: { key: 'k1key' },
-          k2: { key: 'k2key' },
+          o1: { key: 'k1' },
+          o2: { key: 'k2' },
         },
       };
       const ret = extractSshKeys(entity);
-      expect(ret).toMatchSnapshot();
+
+      expect(ret).toEqual([
+        {
+          owner: 'o1',
+          key: 'k1',
+          type: 'ssh-rsa',
+        },
+        {
+          owner: 'o2',
+          key: 'k2',
+          type: 'ssh-rsa',
+        },
+      ]);
     });
 
     test('should return an empty array on non-existing ssh_keys', () => {
@@ -221,12 +260,33 @@ describe('SiteGroups related selectors', () => {
     },
   };
 
+  describe('findSiteGroup', () => {
+    test('with attributeFilter (only allow gitUrl attribute)', () => {
+      const attributeFilter = R.pick(['gitUrl']);
+
+      const ret = findSiteGroup({ client: 'c1' }, attributeFilter, state);
+
+      expect(ret).toEqual({ gitUrl: 'git://sg1' });
+    });
+  });
+
+  describe('filterSiteGroups', () => {
+    test('with attributeFilter (only allow gitUrl attribute)', () => {
+      const attributeFilter = R.pick(['gitUrl']);
+
+      const ret = filterSiteGroups({ client: 'c1' }, attributeFilter, state);
+
+      expect(ret).toEqual([{ gitUrl: 'git://sg1' }]);
+    });
+  });
+
   describe('getSiteGroupsByClient', () => {
     test('should find existing sitegroups by client', () => {
       const ret = filterSiteGroups(
         {
           client: 'c1',
         },
+        undefined,
         state
       );
       expect(ret).toMatchSnapshot();
@@ -242,6 +302,56 @@ describe('SiteGroups related selectors', () => {
 });
 
 describe('Site related selectors', () => {
+  describe('filterSites', () => {
+    test('with attributeFilter (only allow sitegroup attribute)', () => {
+      const state: any = {
+        siteFiles: {
+          'compact/deploytest1.yaml': {
+            drupalsites: {
+              deploytest_branch1: {
+                site_environment: 'development',
+                site_branch: 'branch1',
+                uid: 1,
+                sitegroup: 'deploytest',
+              },
+            },
+            'amazeeio::jumphost': 'jumpy',
+          },
+        },
+      };
+
+      const attributeFilter = R.pick(['sitegroup']);
+
+      const ret = filterSites({ uid: 1 }, attributeFilter, state);
+
+      expect(ret).toEqual([{ sitegroup: 'deploytest' }]);
+    });
+  });
+
+  describe('findSite', () => {
+    test('with attributeFilter (only allow uid attribute)', () => {
+      const state: any = {
+        siteFiles: {
+          'compact/deploytest1.yaml': {
+            drupalsites: {
+              deploytest_branch1: {
+                site_environment: 'development',
+                uid: 1,
+                sitegroup: 'deploytest',
+              },
+            },
+            'amazeeio::jumphost': 'jumpy',
+          },
+        },
+      };
+
+      const attributeFilter = R.pick(['uid']);
+      const ret = findSite({ uid: 1 }, attributeFilter, state);
+
+      expect(ret).toEqual({ uid: 1 });
+    });
+  });
+
   describe('siteFileToSiteViews', () => {
     test('should transform a SiteFile Yaml content to a list of SiteView objects', () => {
       const filename = 'cluster/sitefile1.yaml';
@@ -298,6 +408,7 @@ describe('Site related selectors', () => {
         {
           site_environment: 'development',
         },
+        undefined,
         state
       );
       expect(ret).toMatchSnapshot();
@@ -333,6 +444,7 @@ describe('Site related selectors', () => {
         {
           siteName: 'deploytest_branch1',
         },
+        undefined,
         state
       );
       expect(ret).toMatchSnapshot();
