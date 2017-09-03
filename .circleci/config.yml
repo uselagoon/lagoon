@@ -40,13 +40,6 @@ jobs:
             docker-compose up -d
 
       - run:
-          name: Start container and verify it's working
-          command: |
-            set -x
-            make build services-build
-            docker-compose up -d
-
-      - run:
           name: save docker images to cache
           command: make images-cache-save
 
