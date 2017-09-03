@@ -1,8 +1,8 @@
-FROM amazeeio/centos7-node-builder:8 as builder
+FROM amazeeio/centos7-node8-builder as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM amazeeio/centos7-node:8
+FROM amazeeio/centos7-node8
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 

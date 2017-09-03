@@ -1,4 +1,4 @@
-# Lagoon centos:7 Docker Image
+# Lagoon centos7 Docker Image
 
 This image is the base for all other Docker images within Lagoon. It has the upstream of `centos:centos7`.
 

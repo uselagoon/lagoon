@@ -1,13 +1,7 @@
 version: '3.2'
 services:
   webhook-handler:
-    build:
-      context: services/webhook-handler
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/webhook-handler:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/webhook-handler-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/webhook-handler:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/webhook-handler
     command: yarn run dev
     ports:
       - "7777:3000"
@@ -15,47 +9,24 @@ services:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages:delegated
   rabbitmq:
-    build:
-      context: .
-      dockerfile: services/rabbitmq/Dockerfile
-      cache_from:
-        - amazeeiolagoon/rabbitmq:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/rabbitmq:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
   openshiftremove:
-    build:
-      context: services/openshiftremove
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/openshiftremove:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/openshiftremove-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/openshiftremove:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/openshiftremove
     command: yarn run dev
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
       - ./node-packages:/app/node-packages:delegated
   openshiftremove-resources:
-    build:
-      context: services/openshiftremove-resources
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/openshiftremove-resources:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/openshiftremove-resources-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/openshiftremove-resources:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/openshiftremove-resources
     command: yarn run dev
     volumes:
       - ./services/openshiftremove-resources/src:/app/services/openshiftremove-resources/src
       - ./node-packages:/app/node-packages:delegated
   openshiftdeploy:
-    build:
-      context: services/openshiftdeploy
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/openshiftdeploy:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/openshiftdeploy-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/openshiftdeploy:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/openshiftdeploy
     command: yarn run dev
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
@@ -64,37 +35,19 @@ services:
       - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
       - ./node-packages:/app/node-packages:delegated
   logs2slack:
-    build:
-      context: services/logs2slack
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/logs2slack:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/logs2slack-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/logs2slack:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/logs2slack
     command: yarn run dev
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
       - ./node-packages:/app/node-packages:delegated
   webhooks2tasks:
-    build:
-      context: services/webhooks2tasks
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/webhooks2tasks:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/webhooks2tasks-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/webhooks2tasks:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/webhooks2tasks
     command: yarn run dev
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
   rest2tasks:
-    build:
-      context: services/rest2tasks
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/rest2tasks:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/rest2tasks-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/rest2tasks:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/rest2tasks
     command: yarn run dev
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
@@ -102,13 +55,7 @@ services:
     ports:
       - "5555:3000"
   api:
-    build:
-      context: .
-      dockerfile: services/api/Dockerfile
-      cache_from:
-        - amazeeiolagoon/api:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/api-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/api:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/api
     command: yarn run dev
     environment:
       - GIT_REPOSITORY=http://git:8080/git/hiera.git
@@ -128,13 +75,7 @@ services:
       - auth-server
       - local-hiera-watcher-pusher
   auth-ssh:
-    build:
-      context: .
-      dockerfile: services/auth-ssh/Dockerfile
-      cache_from:
-        - amazeeiolagoon/auth-ssh:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/auth-ssh-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/auth-ssh:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/auth-ssh
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume
@@ -151,13 +92,7 @@ services:
       - AMAZEEIO_API_HOST=http://api:3000
     user: '111111111'
   auth-server:
-    build:
-      context: services/auth-server
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/auth-server:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/auth-server-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/auth-server:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/auth-server
     command: yarn run dev
     environment:
       - JWTISSUER=auth-server.dev
@@ -170,40 +105,25 @@ services:
     ports:
       - "3001:3000"
   jenkins:
-    build:
-      context: .
-      dockerfile: services/jenkins/Dockerfile
-      cache_from:
-        - amazeeiolagoon/jenkins:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/jenkins:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/jenkins
     environment:
       - JENKINS_ADMIN_PASSWORD=admin
       - JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Xmx1024m"
     ports:
       - "8888:8080"
   jenkins-slave:
-    build:
-      context: .
-      dockerfile: services/jenkins-slave/Dockerfile
-      cache_from:
-        - amazeeiolagoon/jenkins-slave:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/jenkins-slave:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/jenkins-slave
     user: root
     depends_on:
       - jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./docker-images/oc-build-deploy/latest:/oc-build-deploy
+      - ./images/oc-build-deploy:/oc-build-deploy
   tests:
     depends_on:
       - git
       - webhook-handler
-    build:
-      context: tests
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/tests:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/tests:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/tests
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
@@ -222,23 +142,13 @@ services:
     volumes:
       - ./tests:/ansible
   git:
-    build:
-      context: local-dev/git-server
-      cache_from:
-        - amazeeiolagoon/git:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/git:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/local-git
     environment:
       - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5b9Awb6iwWRz1z+QDwLlSvtpxg/7pR7Rf+kJT3khQGiLuX4Qk2aDCrt1fKndjyUuj55ocRc8OlExrA8FPfZbpnfaNXfVh9TlybhjIWUHtLbc9giCoDuiV2TEb6ZW/esKlVtWomzfY/njwPAuXEU2i3j5YxVQuZ0y+AN4yca4V1y7y2BlUOvp5qSvz/8PcBJegaoesSSuFpQWCR788/i0sURJiaG6+tZN+bGVSnJgtbXQJvc0r45au3PL5jyMcApbHOCDQUIiWyC6ipW2EIYTUBVO80QVEjymmBZpZEQl/0DQPEzBdqCi4X4wmwhoan7hQJQ7dNdqmRL+W4L75yPNyngNgJVNTlIXOHXevpNskH//HUlwEp4WPHuT76BZT3cq1RCatn6iMsFiwpESk9xyDbEVPfxKAr77cRpFIHuJd7amDjTk7/KP0PTliO2ViCyjDudiajwNh7XmY0ZqYrhHI16ebTSESDslh0a0JlZvWlYa4xDBKtKwfINRrcrYmuYUzSF7wn7F1o45cHZ2kuftioOQhLNgx0LqztRMn3RBoeG3QHbxmv9WfO/0hHa4FdkQLErEdzEM9JR4WewRnh04dcjejX1daWKbo2X8ndaCc0BvdNDL/HpSgqfCnJ2Nlq4pM6Pomkvdp5wTWpZwCjDl08UgttAFrQwjYoBy9UpUmDQ== ansible-testing
     expose:
       - "22"
   hacky-rest2tasks-ui:
-    build:
-      context: .
-      dockerfile: services/hacky-rest2tasks-ui/Dockerfile
-      cache_from:
-        - amazeeiolagoon/hacky-rest2tasks-ui:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/hacky-rest2tasks-ui-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/hacky-rest2tasks-ui:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/hacky-rest2tasks-ui
     command: yarn run dev
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -267,13 +177,7 @@ services:
     volumes:
       - ./local-dev/hiera:/home/hiera
   cli:
-    build:
-      context: cli
-      dockerfile: Dockerfile
-      cache_from:
-        - amazeeiolagoon/cli:latest-${IMAGESUFFIX:-local}
-        - amazeeiolagoon/cli-builder:latest-${IMAGESUFFIX:-local}
-    image: amazeeiolagoon/cli:latest-${IMAGESUFFIX:-local}
+    image: amazeeiolagoon/cli
     depends_on:
       - api
     environment:

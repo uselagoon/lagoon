@@ -1,11 +1,11 @@
-# Lagoon centos7-node-builder:6 Docker Image
+# Lagoon centos7-node6-builder Docker Image
 
 ## Main purpose
 - Builder image with Node.js 6.
 - *Not suggested to be used as Runtime Image*
 
 ## Upstream Image
-- Based on the Lagoon `centos7-node:6` image
+- Based on the Lagoon `centos7-node6` image
 
 ## Installed Software/Services
 - Tools required to build Node packages that need a full build system (gcc, make, git, etc.)

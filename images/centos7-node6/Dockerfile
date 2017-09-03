@@ -1,4 +1,4 @@
-FROM amazeeiolagoon/centos:7
+FROM amazeeiolagoon/centos7
 
 MAINTAINER amazee.io hello@amazee.io
 

@@ -14,7 +14,7 @@ jobs:
 
       - run:
           name: load cache docker images from dockerhub
-          command: make images-cache-pull IMAGESUFFIX=$CIRCLE_BRANCH
+          command: make pull -j6 TAG=$CIRCLE_BRANCH
 
       - run:
           name: show existing images
@@ -36,22 +36,22 @@ jobs:
           name: Build Images
           command: |
             set -x
-            make build-single services-build-single IMAGESUFFIX=$CIRCLE_BRANCH
+            make build -j6 -Oline TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
 
       - run:
           name: push cache docker images to dockerhub
-          command: make images-cache-push IMAGESUFFIX=$CIRCLE_BRANCH
+          command: make tag-push -j6 TAG=$CIRCLE_BRANCH
           background: true
 
       - run:
           name: docker-compose up
           command: |
-            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon up -d
+            docker-compose -p lagoon up -d
 
       - run:
           name: docker-compose logs
           command: |
-            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon logs -f
+            docker-compose -p lagoon logs -f
           background: true
 
       - run:
@@ -61,6 +61,6 @@ jobs:
       - run:
           name: run tests
           command: |
-            IMAGESUFFIX=$CIRCLE_BRANCH docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
+            docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
 
 

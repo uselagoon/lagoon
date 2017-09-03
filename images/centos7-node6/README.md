@@ -1,10 +1,10 @@
-# Lagoon centos7-node:6 Docker Image
+# Lagoon centos7-node6 Docker Image
 
 ## Main purpose
 - Runtime image for Node.js 6 Containers
 
 ## Upstream Image
-- Based on the Lagoon `centos:7` image
+- Based on the Lagoon `centos7` image
 
 ## Installed Software/Services
 - Newest stable version of Node.js 6

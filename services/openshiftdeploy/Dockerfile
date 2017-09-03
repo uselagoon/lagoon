@@ -1,27 +1,27 @@
 # STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-ARG IMAGEREPO
-FROM amazeeiolagoon/lagoon-node-packages-builder:latest as lagoon-packages-builder
+FROM amazeeiolagoon/yarn-workspace-builder as yarn-workspace-builder
 
-# STAGE 2: specific service node package build
-ARG IMAGEREPO
-FROM amazeeiolagoon/centos7-node-builder:8 as builder
+# STAGE 2: specific service Image
+FROM amazeeiolagoon/centos7-node8
 ENV NODE_ENV production
-# Copying generated node_modules from the first stage
-COPY --from=lagoon-packages-builder /app /app
-COPY package.json /app/services/openshiftdeploy/
-# yarn install, our service might need special packages
-RUN cd /app/services/openshiftdeploy && yarn install --pure-lockfile
 
-# STAGE 3: runtime image with actual code
-ARG IMAGEREPO
-FROM amazeeiolagoon/centos7-node:8
-COPY --from=builder /app /app
-# Copying files from our service
-COPY . /app/services/openshiftdeploy
-WORKDIR /app/services/openshiftdeploy/
+# Copying generated node_modules from the first stage
+COPY --from=yarn-workspace-builder /app /app
+
+# Setting the workdir to the service, all following commands will run from here
+WORKDIR /app/services/myself/
 
 # Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
-COPY --from=lagoon-packages-builder /app/.env.defaults .
+COPY --from=yarn-workspace-builder /app/.env.defaults .
+
+# Copying our own package.json
+COPY package.json .
+
+# yarn install, our service might need special packages
+RUN yarn install --pure-lockfile && yarn cache clean
+
+# Copying files from our service
+COPY . .
 
 # building our service
 RUN yarn run build
