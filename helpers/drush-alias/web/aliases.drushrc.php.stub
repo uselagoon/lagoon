@@ -1,4 +1,3 @@
-<?php
 global $sitegroup_name;
 
 // For CI: allow to completely disable amazee.io alias loading
