@@ -148,6 +148,10 @@ local-hiera-watcher-pusher: centos7
 local-git: centos7
 	$(call docker_build,$@,local-dev/git-server/Dockerfile,local-dev/git-server)
 
+.PHONY: rabbitmq
+rabbitmq:
+	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+
 .PHONY: jenkins
 jenkins:
 	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
