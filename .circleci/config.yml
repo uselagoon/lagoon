@@ -59,7 +59,7 @@ jobs:
           command: sleep 30
 
       - run:
-          name: run tests
-          command: make tests
+          name: run test
+          command: make test
 
 

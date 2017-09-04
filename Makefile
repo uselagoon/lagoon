@@ -199,16 +199,16 @@ $(pull-images):
 		$(call docker_pull,$(subst [pull]-,,$@))
 
 
-tests:= ssh-auth \
-				github \
-				gitlab \
-				rest \
-				multisitegroup \
-				node
+test:= ssh-auth \
+		   github \
+		   gitlab \
+		   rest \
+		   multisitegroup \
+		   node
 
-tests: $(tests)
+test: $(test)
 
-$(tests):
+$(test):
 		docker-compose run --name tests-$@ --rm tests ansible-playbook /ansible/tests/$@.yaml
 
 
@@ -247,11 +247,13 @@ local-dev/oc/oc:
 	fi
 
 start-openshift: local-dev/oc/oc oc-loopback
-	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1
+	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1 --version="v1.5.1"
 
 stop-openshift: local-dev/oc/oc
 	./local-dev/oc/oc cluster down
 
+clean-openshift:
+	rm -rf ./local-dev/oc
 
 oc-loopback:
 	@echo "configuring loopback address for openshit, this might need sudo"
