@@ -238,7 +238,7 @@ $(publish-images):
 local-dev/oc/oc:
 	@echo "downloading oc"
 	@mkdir local-dev/oc
-	@if [ "`uname`" == "Darwin" ]; then \
+	@if [[ "`uname`" == "Darwin" ]]; then \
 		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip; \
 		unzip -o oc-mac.zip -d local-dev/oc; \
 		rm -f oc-mac.zip; \
@@ -246,10 +246,10 @@ local-dev/oc/oc:
 		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1; \
 	fi
 
-start-openshift: local-dev/oc oc-loopback
+start-openshift: local-dev/oc/oc oc-loopback
 	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1
 
-stop-openshift: local-dev/oc
+stop-openshift: local-dev/oc/oc
 	./local-dev/oc/oc cluster down
 
 

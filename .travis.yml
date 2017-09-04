@@ -19,7 +19,7 @@ install:
 
 before_script:
 - make start-openshift
-- make build -j6 TAG=$TRAVIS_BRANCH 
+- make build -j6 TAG=$TRAVIS_BRANCH
 - docker-compose -p lagoon up -d
 - sleep 30
 
