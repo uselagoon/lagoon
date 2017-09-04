@@ -14,7 +14,7 @@ jobs:
 
       - run:
           name: load cache docker images from dockerhub
-          command: make pull -j6 TAG=$CIRCLE_BRANCH
+          command: make pull -j10 TAG=$CIRCLE_BRANCH
 
       - run:
           name: show existing images
@@ -38,7 +38,7 @@ jobs:
 
       - run:
           name: Build Images
-          command: make build -j6 TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
+          command: make build -j10 TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
 
       - run:
           name: push cache docker images to dockerhub

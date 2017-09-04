@@ -201,11 +201,11 @@ $(pull-images):
 
 
 test:= ssh-auth \
+			 node
 		   github \
 		   gitlab \
 		   rest \
-		   multisitegroup \
-		   node
+		   multisitegroup
 
 test: $(test)
 
