@@ -29,7 +29,7 @@ jobs:
 
       - run:
           name: Start openshift
-          command: sudo ./startOpenShift.sh
+          command: make start-openshift
 
       - run:
           name: OpenShift Logs
@@ -60,6 +60,6 @@ jobs:
 
       - run:
           name: run tests
-          command: docker-compose -p lagoon run --rm tests ansible-playbook /ansible/tests/ALL.yaml
+          command: make tests
 
 

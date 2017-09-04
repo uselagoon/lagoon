@@ -13,8 +13,10 @@ USER git
 RUN mkdir -m 700 /git/.ssh && \
 	chmod 600 /git/.ssh/authorized_keys >> /git/.ssh/authorized_keys && \
 	touch /git/.hushlogin && \
-	git --bare init /git/repo.git && \
-	git --bare init /git/node-multisitegroup.git && \
+	git --bare init /git/github.git && \
+	git --bare init /git/gitlab.git && \
+	git --bare init /git/rest.git && \
+	git --bare init /git/multisitegroup.git && \
 	git --bare init /git/node.git && \
 	git --bare init /git/hiera.git
 

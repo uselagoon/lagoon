@@ -1,8 +1,44 @@
 ---
 amazeeio_sitegroups:
-  ci-repo:
+  ci-github:
     client: deploytestclient
-    git_url: 'git@git:/git/repo.git'
+    git_url: 'git@git:/git/github.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: amazeeio-testing
+    openshift:
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  ci-gitlab:
+    client: deploytestclient
+    git_url: 'git@git:/git/gitlab.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: amazeeio-testing
+    openshift:
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  ci-rest:
+    client: deploytestclient
+    git_url: 'git@git:/git/rest.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -36,9 +72,9 @@ amazeeio_sitegroups:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
-  ci-node-multisitegroup1:
+  ci-multisitegroup1:
     client: deploytestclient
-    git_url: 'git@git:/git/node-multisitegroup.git'
+    git_url: 'git@git:/git/multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -54,9 +90,9 @@ amazeeio_sitegroups:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
-  ci-node-multisitegroup2:
+  ci-multisitegroup2:
     client: deploytestclient
-    git_url: 'git@git:/git/node-multisitegroup.git'
+    git_url: 'git@git:/git/multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing

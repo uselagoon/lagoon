@@ -4,6 +4,9 @@ TAG := local
 
 DOCKER_BUILD_PARAMS :=
 
+OC_VERSION := v3.6.0
+OC_HASH := c4dd4cf
+
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
 docker_build_with_builder = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) --cache-from amazeeiolagoon/$(1)-builder  --cache-from amazeeiolagoon/$(1)-builder:$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
 docker_target_build = docker build $(DOCKER_BUILD_PARAMS) --target $(4) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(IMAGESUFFIX) -t amazeeiolagoon/$(1) -f $(2) $(3)
@@ -13,6 +16,8 @@ docker_target_build = docker build $(DOCKER_BUILD_PARAMS) --target $(4) --cache-
 # docker_target_build = @echo $(1) && sleep 2
 
 docker_tag_push = docker tag amazeeiolagoon/$(1) amazeeiolagoon/$(1):$(TAG) && docker push amazeeiolagoon/$(1):$(TAG) | cat
+
+docker_publish = docker tag amazeeiolagoon/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
 
 docker_pull = docker pull amazeeiolagoon/$(1):$(TAG) | cat || true
 
@@ -194,7 +199,21 @@ $(pull-images):
 		$(call docker_pull,$(subst [pull]-,,$@))
 
 
-publish-images := centos7 \
+tests:= ssh-auth \
+				github \
+				gitlab \
+				rest \
+				multisitegroup \
+				node
+
+tests: $(tests)
+
+$(tests):
+		docker-compose run --name tests-$@ --rm tests ansible-playbook /ansible/tests/$@.yaml
+
+
+
+publish-image-list := centos7 \
 					centos7-node6 \
 					centos7-node8 \
 					centos7-node6-builder \
@@ -202,3 +221,42 @@ publish-images := centos7 \
 					oc \
 					oc-build-deploy
 
+publish-images = $(foreach image,$(publish-image-list),[publish]-$(image))
+
+# tag and push all images
+.PHONY: publish
+publish: $(publish-images)
+
+# tag and push of each image
+.PHONY: $(publish-images)
+$(publish-images):
+#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+		$(call docker_publish,$(subst [publish]-,,$@))
+
+
+
+local-dev/oc/oc:
+	@echo "downloading oc"
+	@mkdir local-dev/oc
+	@if [ "`uname`" == "Darwin" ]; then \
+		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip; \
+		unzip -o oc-mac.zip -d local-dev/oc; \
+		rm -f oc-mac.zip; \
+	else \
+		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1; \
+	fi
+
+start-openshift: local-dev/oc oc-loopback
+	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1
+
+stop-openshift: local-dev/oc
+	./local-dev/oc/oc cluster down
+
+
+oc-loopback:
+	@echo "configuring loopback address for openshit, this might need sudo"
+	@if [ "`uname`" == "Darwin" ]; then \
+		sudo ifconfig lo0 alias 172.16.123.1; \
+	else \
+		sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up; \
+	fi
