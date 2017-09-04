@@ -9,7 +9,7 @@ OC_HASH := c4dd4cf
 
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
 docker_build_with_builder = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) --cache-from amazeeiolagoon/$(1)-builder  --cache-from amazeeiolagoon/$(1)-builder:$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
-docker_target_build = docker build $(DOCKER_BUILD_PARAMS) --target $(4) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(IMAGESUFFIX) -t amazeeiolagoon/$(1) -f $(2) $(3)
+docker_target_build = docker build $(DOCKER_BUILD_PARAMS) --target $(4) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
 
 # docker_build = @echo $(1) && sleep 2
 # docker_build_with_builder = @echo $(1) && sleep 2
@@ -40,6 +40,7 @@ images := centos7 \
 					webhook-handler \
 					webhooks2tasks \
 					auth-ssh \
+					auth-ssh-builder \
 					hacky-rest2tasks-ui \
 					cli \
 					local-hiera-watcher-pusher \
@@ -209,7 +210,7 @@ test:= ssh-auth \
 test: $(test)
 
 $(test):
-		docker-compose run --name tests-$@ --rm tests ansible-playbook /ansible/tests/$@.yaml
+		docker-compose -p lagoon run --name tests-$@ --rm tests ansible-playbook /ansible/tests/$@.yaml
 
 
 
