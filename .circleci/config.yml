@@ -32,6 +32,11 @@ jobs:
           command: sudo ./startOpenShift.sh
 
       - run:
+          name: OpenShift Logs
+          command: docker logs -f origin
+          background: true
+
+      - run:
           name: Build Images
           command: make build -j6 TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
 
