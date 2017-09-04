@@ -39,6 +39,7 @@ images := centos7 \
 					cli \
 					local-hiera-watcher-pusher \
 					local-git \
+					rabbitmq \
 					jenkins \
 					jenkins-slave \
 					tests
