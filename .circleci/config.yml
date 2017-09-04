@@ -28,6 +28,10 @@ jobs:
             sudo mount --make-rshared /
 
       - run:
+          name: fail
+          command: fail
+
+      - run:
           name: Start openshift
           command: make start-openshift
 
