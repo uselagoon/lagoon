@@ -201,7 +201,7 @@ $(pull-images):
 
 
 test:= ssh-auth \
-			 node
+			 node \
 		   github \
 		   gitlab \
 		   rest \
