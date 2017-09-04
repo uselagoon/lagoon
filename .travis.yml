@@ -1,0 +1,27 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+- curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+- sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+- sudo apt-get update
+- sudo apt-get -y install docker-ce
+- docker info
+- docker version
+- docker login -u amazeeiojenkins -p $DOCKERHUB_PASSWORD
+
+install:
+- make pull -j6 TAG=$TRAVIS_BRANCH
+- docker image ls -a --digests
+- sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker" && sudo service docker restart && sudo mount --make-rshared /
+
+before_script:
+- make start-openshift
+- make build -j6 TAG=$TRAVIS_BRANCH 
+- docker-compose -p lagoon up -d
+- sleep 30
+
+script:
+- make tests
