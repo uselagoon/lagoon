@@ -60,6 +60,6 @@ jobs:
 
       - run:
           name: run test
-          command: make test
+          command: make test -j2
 
 
