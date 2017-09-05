@@ -8,6 +8,7 @@ before_install:
 - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 - sudo apt-get update
 - sudo apt-get -y install docker-ce
+- sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker" && sudo service docker restart && sudo mount --make-rshared /
 - docker info
 - docker version
 - docker login -u amazeeiojenkins -p $DOCKERHUB_PASSWORD
@@ -15,13 +16,15 @@ before_install:
 install:
 - make pull -j6 TAG=$TRAVIS_BRANCH
 - docker image ls -a --digests
-- sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker" && sudo service docker restart && sudo mount --make-rshared /
 
 before_script:
 - make start-openshift
-- make build -j6 TAG=$TRAVIS_BRANCH
-- docker-compose -p lagoon up -d
-- sleep 30
+- docker logs -f origin &
+- make build -j10 TAG=$TRAVIS_BRANCH
+- make tag-push -j6 TAG=$TRAVIS_BRANCH &
+- make up
+- docker-compose -p lagoon logs -f &
+- sleep 20
 
 script:
-- make test
+- make test -2
