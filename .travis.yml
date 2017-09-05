@@ -27,4 +27,4 @@ before_script:
 - sleep 20
 
 script:
-- make test -2
+- make test -j2
