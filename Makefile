@@ -218,6 +218,8 @@ clean:
 logs:
 	docker-compose -p lagoon logs --tail=10 -f
 
+up:
+	docker-compose -p lagoon up
 
 local-dev/oc/oc:
 	@echo "downloading oc"

@@ -47,11 +47,11 @@ jobs:
 
       - run:
           name: starting services
-          command: docker-compose up -d
+          command: make up
 
       - run:
           name: docker-compose logs
-          command: while true; do docker-compose logs -f; done
+          command: while true; do docker-compose -p lagoon logs -f; done
           background: true
 
       - run:
