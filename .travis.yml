@@ -22,7 +22,7 @@ before_script:
 
 script:
 - docker logs -f origin &> .openshift-logs &
-- make build -j6 TAG=$TRAVIS_BRANCH DOCKER_BUILD_PARAMS=
+- make build TAG=$TRAVIS_BRANCH DOCKER_BUILD_PARAMS=
 - make tag-push TAG=$TRAVIS_BRANCH &> .push-logs &
 - make up
 - docker-compose -p lagoon logs -f &> .service-logs &
