@@ -55,6 +55,10 @@ jobs:
           background: true
 
       - run:
+          name: give services time to boot up
+          command: sleep 20
+
+      - run:
           name: run tests
           command: make tests -j2
 
