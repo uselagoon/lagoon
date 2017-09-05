@@ -46,6 +46,10 @@ jobs:
           background: true
 
       - run:
+          name: starting services
+          command: docker-compose up -d
+
+      - run:
           name: docker-compose logs
           command: while true; do docker-compose logs -f; done
           background: true
