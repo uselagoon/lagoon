@@ -71,6 +71,8 @@ $(build-serviceimages):
 
 build/auth-server build/logs2slack build/openshiftdeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
 
+build/hacky-rest2tasks-ui: build/centos7-node6
+
 all-images += api api-builder
 
 build/api: build/api-builder
@@ -113,7 +115,7 @@ $(build-localdevimages):
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
 	touch $@
 
-build/local-hiera-watcher-pusher build/local-git-server: centos7
+build/local-hiera-watcher-pusher build/local-git-server: build/centos7
 
 all-images += tests
 
