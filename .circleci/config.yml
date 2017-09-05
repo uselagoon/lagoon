@@ -1,0 +1,65 @@
+version: 2
+jobs:
+  build:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+
+    steps:
+      - checkout
+
+      - run:
+          name: login to dockerhub
+          command: docker login -u amazeeiojenkins -p $DOCKERHUB_PASSWORD
+
+      - run:
+          name: load cache docker images from dockerhub
+          command: make pull -j10 TAG=$CIRCLE_BRANCH
+
+      - run:
+          name: show existing images
+          command: docker image ls -a --digests
+
+      - run:
+          name: check docker
+          command: |
+            sudo sh -c "echo \"DOCKER_OPTS='--insecure-registry 172.30.0.0/16'\" >> /etc/default/docker"
+            sudo service docker restart
+            sudo mount --make-rshared /
+
+      - run:
+          name: Start openshift
+          command: make start-openshift
+
+      - run:
+          name: OpenShift Logs
+          command: docker logs -f origin
+          background: true
+
+      - run:
+          name: Build Images
+          command: make build -j10 TAG=$CIRCLE_BRANCH
+
+      - run:
+          name: push cache docker images to dockerhub
+          command: make tag-push -j6 TAG=$CIRCLE_BRANCH
+          background: true
+
+      - run:
+          name: starting services
+          command: make up
+
+      - run:
+          name: docker-compose logs
+          command: while true; do docker-compose -p lagoon logs -f; done
+          background: true
+
+      - run:
+          name: give services time to boot up
+          command: sleep 20
+
+      - run:
+          name: run tests
+          command: make tests -j2
+
+

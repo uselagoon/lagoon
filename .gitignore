@@ -5,6 +5,9 @@ deploytest
 .DS_Store
 *.retry
 startVagrant.sh
+local-dev/oc
 minishift
 **/v8-*
 node_modules
+build/*
+!build/.gitkeep
