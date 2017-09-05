@@ -19,12 +19,17 @@ install:
 
 before_script:
 - make start-openshift
-- docker logs -f origin &
+- docker logs -f origin & &> .openshift-logs
 - make build -j10 TAG=$TRAVIS_BRANCH
-- make tag-push -j6 TAG=$TRAVIS_BRANCH &
+- make tag-push -j6 TAG=$TRAVIS_BRANCH & &> .push-logs
 - make up
-- docker-compose -p lagoon logs -f &
+- docker-compose -p lagoon logs -f & &> .service-logs
 - sleep 20
 
 script:
 - make test -j2
+
+after_script:
+- cat .openshift-logs
+- cat .push-logs
+- cat .service-logs
