@@ -38,7 +38,7 @@ jobs:
 
       - run:
           name: Build Images
-          command: make build -j10 TAG=$CIRCLE_BRANCH DOCKER_BUILD_PARAMS=--quiet
+          command: make build -j10 TAG=$CIRCLE_BRANCH
 
       - run:
           name: push cache docker images to dockerhub
@@ -46,17 +46,9 @@ jobs:
           background: true
 
       - run:
-          name: docker-compose up
-          command: docker-compose -p lagoon up -d
-
-      - run:
           name: docker-compose logs
-          command: docker-compose -p lagoon logs -f
+          command: while true; do docker-compose logs -f; done
           background: true
-
-      - run:
-          name: sleep 30 to allow services to boot
-          command: sleep 30
 
       - run:
           name: run test

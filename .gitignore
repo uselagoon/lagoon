@@ -9,4 +9,5 @@ local-dev/oc
 minishift
 **/v8-*
 node_modules
-.cache
+build/*
+!build/.gitkeep

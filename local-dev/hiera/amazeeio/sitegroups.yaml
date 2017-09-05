@@ -2,7 +2,7 @@
 amazeeio_sitegroups:
   ci-github:
     client: deploytestclient
-    git_url: 'git@git:/git/github.git'
+    git_url: 'git@local-git:/git/github.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -20,7 +20,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   ci-gitlab:
     client: deploytestclient
-    git_url: 'git@git:/git/gitlab.git'
+    git_url: 'git@local-git:/git/gitlab.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -38,7 +38,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   ci-rest:
     client: deploytestclient
-    git_url: 'git@git:/git/rest.git'
+    git_url: 'git@local-git:/git/rest.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -56,7 +56,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   ci-node:
     client: deploytestclient
-    git_url: 'git@git:/git/node.git'
+    git_url: 'git@local-git:/git/node.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -74,7 +74,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   ci-multisitegroup1:
     client: deploytestclient
-    git_url: 'git@git:/git/multisitegroup.git'
+    git_url: 'git@local-git:/git/multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -92,7 +92,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   ci-multisitegroup2:
     client: deploytestclient
-    git_url: 'git@git:/git/multisitegroup.git'
+    git_url: 'git@local-git:/git/multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -110,7 +110,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   credentialtest:
     client: credentialtestclient
-    git_url: 'git@git:/git/credentialtest.git'
+    git_url: 'git@local-git:/git/credentialtest.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing

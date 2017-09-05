@@ -1,8 +1,8 @@
 
 
-TAG := local
+TAG := master
 
-DOCKER_BUILD_PARAMS :=
+DOCKER_BUILD_PARAMS := --quiet
 
 OC_VERSION := v3.6.0
 OC_HASH := c4dd4cf
@@ -11,169 +11,122 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$
 docker_build_with_builder = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) --cache-from amazeeiolagoon/$(1)-builder  --cache-from amazeeiolagoon/$(1)-builder:$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
 docker_target_build = docker build $(DOCKER_BUILD_PARAMS) --target $(4) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
 
-# docker_build = @echo $(1) && sleep 2
-# docker_build_with_builder = @echo $(1) && sleep 2
-# docker_target_build = @echo $(1) && sleep 2
-
 docker_tag_push = docker tag amazeeiolagoon/$(1) amazeeiolagoon/$(1):$(TAG) && docker push amazeeiolagoon/$(1):$(TAG) | cat
 
 docker_publish = docker tag amazeeiolagoon/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
 
 docker_pull = docker pull amazeeiolagoon/$(1):$(TAG) | cat || true
 
-images := centos7 \
-					centos7-node6 \
-					centos7-node8 \
-					centos7-node6-builder \
-					centos7-node8-builder \
-					oc \
-					oc-build-deploy \
-					yarn-workspace-builder \
-					api \
-					api-builder \
-					auth-server \
-					logs2slack \
-					openshiftdeploy \
-					openshiftremove \
-					openshiftremove-resources \
-					rest2tasks \
-					webhook-handler \
-					webhooks2tasks \
-					auth-ssh \
-					auth-ssh-builder \
-					hacky-rest2tasks-ui \
-					cli \
-					local-hiera-watcher-pusher \
-					local-git \
-					rabbitmq \
-					jenkins \
-					jenkins-slave \
-					tests
+baseimages := centos7 \
+							centos7-node6 \
+							centos7-node8 \
+							centos7-node6-builder \
+							centos7-node8-builder \
+							oc \
+							oc-build-deploy
 
-build: $(images)
+all-images += $(baseimages)
 
-.PHONY: centos7
-centos7:
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+build-baseimages = $(foreach image,$(baseimages),build/$(image))
 
-.PHONY: centos7-node6
-centos7-node6: centos7
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+$(build-baseimages):
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),images/$(image)/Dockerfile,images/$(image))
+	touch $@
 
-.PHONY: centos7-node8
-centos7-node8: centos7
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+build/centos7: images/centos7/Dockerfile
+build/centos7-node6: build/centos7 images/centos7-node6/Dockerfile
+build/centos7-node8: build/centos7 images/centos7-node8/Dockerfile
+build/centos7-node6-builder: build/centos7-node6 images/centos7-node6/Dockerfile
+build/centos7-node8-builder: build/centos7-node8 images/centos7-node8/Dockerfile
+build/oc: images/oc/Dockerfile
+build/oc-build-deploy: build/oc images/oc-build-deploy/Dockerfile
 
-.PHONY: centos7-node6-builder
-centos7-node6-builder: centos7-node6
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+build/yarn-workspace-builder: build/centos7-node8-builder images/yarn-workspace-builder/Dockerfile
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
+	touch $@
 
-.PHONY: centos7-node8-builder
-centos7-node8-builder: centos7-node8
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+serviceimages :=  auth-server \
+									logs2slack \
+									openshiftdeploy \
+									openshiftremove \
+									openshiftremove-resources \
+									rest2tasks \
+									webhook-handler \
+									webhooks2tasks \
+									hacky-rest2tasks-ui \
+									jenkins \
+									jenkins-slave \
+									rabbitmq
 
-.PHONY: oc
-oc:
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+all-images += $(serviceimages)
 
-.PHONY: oc-build-deploy
-oc-build-deploy: oc
-	$(call docker_build,$@,images/$@/Dockerfile,images/$@)
+build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
 
-.PHONY: yarn-workspace-builder
-yarn-workspace-builder: centos7-node8-builder
-	$(call docker_build,$@,images/$@/Dockerfile,.)
+$(build-serviceimages):
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
+	touch $@
 
-# Pull upstream centos Image
-.PHONY: pull-centos7
-pull-centos7:
-		docker pull centos:centos7
+build/auth-server build/logs2slack build/openshiftdeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
 
+all-images += api api-builder
 
+build/api: build/api-builder
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build_with_builder,$(image),services/$(image)/Dockerfile,services/$(image))
+	touch $@
+build/api-builder: build/centos7-node8-builder services/api/Dockerfile
+	$(eval image = $(subst build/,,$@))
+	$(call docker_target_build,$(image),services/api/Dockerfile,services/api,builder)
+	touch $@
 
-.PHONY: api-builder
-api-builder: centos7-node8-builder
-	$(call docker_target_build,$@,services/api/Dockerfile,.,builder)
+all-images += auth-ssh auth-ssh-builder
 
-.PHONY: api
-api: api-builder
-	$(call docker_build_with_builder,$@,services/$@/Dockerfile,.)
+build/auth-ssh: build/auth-ssh-builder
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build_with_builder,$(image),services/$(image)/Dockerfile,.)
+	touch $@
+build/auth-ssh-builder: build/centos7
+	$(eval image = $(subst build/,,$@))
+	$(call docker_target_build,$(image),services/auth-ssh/Dockerfile,.,builder)
+	touch $@
 
-.PHONY: auth-server
-auth-server: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+all-images += cli
 
-.PHONY: logs2slack
-logs2slack: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+build/cli: build/centos7-node8
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
+	touch $@
 
-.PHONY: openshiftdeploy
-openshiftdeploy: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+localdevimages := local-hiera-watcher-pusher \
+									local-git
 
-.PHONY: openshiftremove
-openshiftremove: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+all-images += $(localdevimages)
 
-.PHONY: openshiftremove-resources
-openshiftremove-resources: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
-.PHONY: rest2tasks
-rest2tasks: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+$(build-localdevimages):
+	$(eval folder = $(subst build/local-,,$@))
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
+	touch $@
 
-.PHONY: webhook-handler
-webhook-handler: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+build/local-hiera-watcher-pusher build/local-git-server: centos7
 
-.PHONY: webhooks2tasks
-webhooks2tasks: yarn-workspace-builder
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
+all-images += tests
 
-.PHONY: auth-ssh-builder
-auth-ssh-builder: centos7
-	$(call docker_target_build,$@,services/auth-ssh/Dockerfile,.,builder)
+build/tests:
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
+	touch $@
 
-.PHONY: auth-ssh
-auth-ssh: auth-ssh-builder
-	$(call docker_build_with_builder,$@,services/$@/Dockerfile,.)
-
-.PHONY: hacky-rest2tasks-ui
-hacky-rest2tasks-ui: centos7-node6
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
-
-.PHONY: cli
-cli: centos7-node8
-	$(call docker_build,$@,cli/Dockerfile,cli)
-
-.PHONY: local-hiera-watcher-pusher
-local-hiera-watcher-pusher: centos7
-	$(call docker_build,$@,local-dev/hiera-watcher-pusher/Dockerfile,local-dev/hiera-watcher-pusher)
-
-.PHONY: local-git
-local-git: centos7
-	$(call docker_build,$@,local-dev/git-server/Dockerfile,local-dev/git-server)
-
-.PHONY: rabbitmq
-rabbitmq:
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
-
-.PHONY: jenkins
-jenkins:
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
-
-.PHONY: jenkins-slave
-jenkins-slave:
-	$(call docker_build,$@,services/$@/Dockerfile,services/$@)
-
-.PHONY: tests
-tests:
-	$(call docker_build,$@,$@/Dockerfile,$@)
-
+.PHONY: build
+build: $(foreach image,$(all-images),build/$(image))
 
 # Define new list of all images prefixed with '[tag-push]-' so we can reuse the list again
-tag-push-images = $(foreach image,$(images),[tag-push]-$(image))
+tag-push-images = $(foreach image,$(all-images),[tag-push]-$(image))
 
 # tag and push all images
 .PHONY: tag-push
@@ -187,7 +140,7 @@ $(tag-push-images):
 
 
 # Define new list of all images prefixed with '[pull]-' so we can reuse the list again
-pull-images = $(foreach image,$(images),[pull]-$(image))
+pull-images = $(foreach image,$(all-images),[pull]-$(image))
 
 # tag and push all images
 .PHONY: pull
@@ -200,28 +153,50 @@ $(pull-images):
 		$(call docker_pull,$(subst [pull]-,,$@))
 
 
-test:= ssh-auth \
-			 node \
-		   github \
-		   gitlab \
-		   rest \
-		   multisitegroup
+all-tests-list:= 	ssh-auth \
+									node \
+									github \
+									gitlab \
+									rest \
+									multisitegroup
 
-test: $(test)
+all-tests = $(foreach image,$(all-tests-list),test/$(image))
 
-$(test):
-		docker-compose -p lagoon run --name tests-$@ --rm tests ansible-playbook /ansible/tests/$@.yaml
+.PHONY: tests
+tests: $(all-tests)
+
+deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher
+deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
+deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
+
+.PHONY: test/ssh-auth
+test/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
+		$(eval testname = $(subst test/,,$@))
+		docker-compose -p lagoon up -d auth-ssh auth-server api
+		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+
+rest-tests = rest node multisitegroup
+run-rest-tests = $(foreach image,$(rest-tests),test/$(image))
+
+.PHONY: $(run-rest-tests)
+$(run-rest-tests): build/centos7-node6-builder build/centos7-node8-builder $(foreach image,$(deployment-test-services-rest),build/$(image))
+		$(eval testname = $(subst test/,,$@))
+		docker-compose -p lagoon up -d $(deployment-test-services-rest)
+		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+
+webhook-tests = github gitlab
+run-webhook-tests = $(foreach image,$(webhook-tests),test/$(image))
+
+.PHONY: $(run-webhook-tests)
+$(run-webhook-tests): build/centos7-node6-builder build/centos7-node8-builder $(foreach image,$(deployment-test-services-webhooks),build/$(image))
+		$(eval testname = $(subst test/,,$@))
+		docker-compose -p lagoon up -d $(deployment-test-services-webhooks)
+		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 
 
-publish-image-list := centos7 \
-					centos7-node6 \
-					centos7-node8 \
-					centos7-node6-builder \
-					centos7-node8-builder \
-					oc \
-					oc-build-deploy
 
+publish-image-list := $(baseimages)
 publish-images = $(foreach image,$(publish-image-list),[publish]-$(image))
 
 # tag and push all images
@@ -234,6 +209,12 @@ $(publish-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(call docker_publish,$(subst [publish]-,,$@))
 
+
+clean:
+	rm -rf build/*
+
+logs:
+	docker-compose -p lagoon logs --tail=10 -f
 
 
 local-dev/oc/oc:
