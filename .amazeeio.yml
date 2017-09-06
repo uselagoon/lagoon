@@ -19,7 +19,7 @@ services:
       template: services/kibana/.amazeeio.app.yml
     build:
       dockerfile: Dockerfile
-      build: services/kibana
+      context: services/kibana
   logs2slack:
     amazeeio:
       type: custom
