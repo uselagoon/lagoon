@@ -17,12 +17,12 @@ before_script:
 - make openshift
 script:
 - docker logs -f origin &> .openshift-logs &
-- make build TAG=$TRAVIS_BRANCH DOCKER_BUILD_PARAMS=
+- make build TAG=$TRAVIS_BRANCH
 - make tag-push TAG=$TRAVIS_BRANCH &> .push-logs &
 - make up
 - docker-compose -p lagoon logs -f &> .service-logs &
 - sleep 45
-- make tests -j2
+- make tests
 after_script:
 - cat .build-logs
 - cat .openshift-logs
