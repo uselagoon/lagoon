@@ -42,16 +42,19 @@
 # make logs
 # Shows logs of Lagoon Services (aka docker-compose logs -f)
 
-# make start-openshift
+# make openshift
 # Some tests need a full openshift running in order to test deployments and such. This can be
-# started via `start-openshift`. It will:
+# started via openshift`. It will:
 # 1. Download the `oc` cli
 # 2. Create a loopback device on the current machine in order to have preditable IP addresses of
 #    the OpenShift Console and Registry
 # 3. Start an OpenShift Cluster
 
-# make stop-openshift
+# make openshift/stop
 # Removes an OpenShift Cluster
+
+# make openshift/clean
+# Removes all openshift related things: OpenShift itself and the oc cli
 
 # make publish-images
 # Pushes images that will be used by amazee.io clients during local development to the amazeeio
@@ -280,7 +283,7 @@ all-tests-list:= 	ssh-auth \
 									gitlab \
 									rest \
 									multisitegroup
-all-tests = $(foreach image,$(all-tests-list),test/$(image))
+all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 # Run all tests
 .PHONY: tests
@@ -292,10 +295,6 @@ tests-list:
 	@for number in $(all-tests); do \
 			echo $$number ; \
 	done
-
-# Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher
-
 #### Definition of tests
 
 # SSH-Auth test
@@ -305,13 +304,16 @@ test/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		docker-compose -p lagoon up -d auth-ssh auth-server api
 		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
+# Define a list of which Lagoon Services are needed for running any deployment testing
+deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
+
 # All Tests that use REST endpoints
 rest-tests = rest node multisitegroup
 run-rest-tests = $(foreach image,$(rest-tests),test/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): build/centos7-node6-builder build/centos7-node8-builder $(foreach image,$(deployment-test-services-rest),build/$(image))
+$(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
 		$(eval testname = $(subst test/,,$@))
 		docker-compose -p lagoon up -d $(deployment-test-services-rest)
 		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
@@ -322,7 +324,7 @@ run-webhook-tests = $(foreach image,$(webhook-tests),test/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): build/centos7-node6-builder build/centos7-node8-builder $(foreach image,$(deployment-test-services-webhooks),build/$(image))
+$(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
 		$(eval testname = $(subst test/,,$@))
 		docker-compose -p lagoon up -d $(deployment-test-services-webhooks)
 		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
@@ -347,22 +349,26 @@ clean:
 
 # Show Lagoon Service Logs
 logs:
-	docker-compose -p lagoon logs --tail=10 -f
+	docker-compose -p lagoon logs --tail=10 -f $(service)
 
 # Start all Lagoon Services
 up:
 	docker-compose -p lagoon up -d
 
 # Start Local OpenShift Cluster with specific IP
-start-openshift: local-dev/oc/oc oc-loopback
+openshift: local-dev/oc/oc .loopback
 	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1 --version="v1.5.1"
+	@echo "used by make to track if openshift is running" > $@
 
 # Stop OpenShift Cluster
-stop-openshift: local-dev/oc/oc
+.PHONY: openshift/stop
+openshift/stop: local-dev/oc/oc
 	./local-dev/oc/oc cluster down
+	rm openshift
 
-# Remove downloaded oc cli
-clean-openshift:
+# Stop OpenShift, remove downloaded cli, remove loopback
+.PHONY: openshift/clean
+openshift/clean: openshift/stop .loopback-clean
 	rm -rf ./local-dev/oc
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
@@ -378,10 +384,17 @@ local-dev/oc/oc:
 	fi
 
 # Creates loopback address `172.16.123.1` on the current machine that will be used by OpenShift to bind the Cluster too
-oc-loopback:
+.loopback:
 	@echo "configuring loopback address for openshit, this might need sudo"
 	@if [ "`uname`" == "Darwin" ]; then \
 		sudo ifconfig lo0 alias 172.16.123.1; \
 	else \
 		sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up; \
 	fi
+	@echo "used by make to track if loopback is configured is running" > $@
+
+# Remove the loopback address
+.PHONY: .loopback-clean
+# TODO: Remove the actuall loopback interface
+.loopback-clean:
+	rm .loopback
