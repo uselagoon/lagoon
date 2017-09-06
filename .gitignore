@@ -12,3 +12,4 @@ node_modules
 build/*
 !build/.gitkeep
 openshift
+.loopback
