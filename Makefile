@@ -298,9 +298,9 @@ tests-list:
 #### Definition of tests
 
 # SSH-Auth test
-.PHONY: test/ssh-auth
-test/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
-		$(eval testname = $(subst test/,,$@))
+.PHONY: tests/ssh-auth
+tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
+		$(eval testname = $(subst tests/,,$@))
 		docker-compose -p lagoon up -d auth-ssh auth-server api
 		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
@@ -309,23 +309,23 @@ deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2sl
 
 # All Tests that use REST endpoints
 rest-tests = rest node multisitegroup
-run-rest-tests = $(foreach image,$(rest-tests),test/$(image))
+run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
 $(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
-		$(eval testname = $(subst test/,,$@))
+		$(eval testname = $(subst tests/,,$@))
 		docker-compose -p lagoon up -d $(deployment-test-services-rest)
 		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab
-run-webhook-tests = $(foreach image,$(webhook-tests),test/$(image))
+run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
 $(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
-		$(eval testname = $(subst test/,,$@))
+		$(eval testname = $(subst tests/,,$@))
 		docker-compose -p lagoon up -d $(deployment-test-services-webhooks)
 		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
@@ -373,24 +373,25 @@ openshift/clean: openshift/stop .loopback-clean
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
 local-dev/oc/oc:
-	@echo "downloading oc"
+	$(info downloading oc)
 	@mkdir local-dev/oc
-	@if [[ "`uname`" == "Darwin" ]]; then \
-		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip; \
-		unzip -o oc-mac.zip -d local-dev/oc; \
-		rm -f oc-mac.zip; \
-	else \
-		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1; \
-	fi
+ifeq ($(shell uname), Darwin)
+		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip
+		unzip -o oc-mac.zip -d local-dev/oc
+		rm -f oc-mac.zip
+else
+		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1
+endif
 
 # Creates loopback address `172.16.123.1` on the current machine that will be used by OpenShift to bind the Cluster too
 .loopback:
-	@echo "configuring loopback address for openshit, this might need sudo"
-	@if [ "`uname`" == "Darwin" ]; then \
-		sudo ifconfig lo0 alias 172.16.123.1; \
-	else \
-		sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up; \
-	fi
+	$(info configuring loopback address for openshit, this might need sudo)
+ifeq ($(shell uname), Darwin)
+	sudo ifconfig lo0 alias 172.16.123.1;
+else
+	sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up
+endif
+
 	@echo "used by make to track if loopback is configured is running" > $@
 
 # Remove the loopback address
