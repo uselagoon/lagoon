@@ -50,7 +50,7 @@ make tests
 
 ## Local Development
 
-Most services are written in Node.js. As many of these services share similar Node code and Node Packaes, we're using a new feature of yarn, called `yarn workspaces`. Yarn Workspaces needs a package.json in the projects root directory that defines the workspaces plus an `.yarnrc` that enables workspace mode.
+Most services are written in Node.js. As many of these services share similar Node code and Node Packages, we're using a new feature of yarn, called `yarn workspaces`. Yarn Workspaces needs a package.json in the projects root directory that defines the workspaces plus an `.yarnrc` that enables workspace mode.
 
 The development of the services can happen directly within Docker. Each container for each service is setup in a way that it's source code is mounted into the running container (see [docker-compose.yml](./docker-compose.yml). Node itself is watching the code via `nodemon` and restarts the node process automatically on a change.
 
