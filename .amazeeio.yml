@@ -75,14 +75,14 @@ services:
       template: services/webhook-handler/.amazeeio.app.yml
     build:
       dockerfile: Dockerfile
-      context: webhook-handler
+      context: services/webhook-handler
   webhooks2tasks:
     amazeeio:
       type: custom
       template: services/webhooks2tasks/.amazeeio.app.yml
     build:
       dockerfile: Dockerfile
-      context: webhooks2tasks
+      context: services/webhooks2tasks
   drush-alias:
     amazeeio:
       type: nginx:1.12
