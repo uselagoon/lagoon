@@ -5,8 +5,8 @@ USER root
 RUN curl -sLo /usr/local/bin/fix-permissions https://raw.githubusercontent.com/sclorg/s2i-base-container/master/core/root/usr/bin/fix-permissions && \
     chmod +x /usr/local/bin/fix-permissions
 
-COPY services/logstash/logstash.conf /usr/share/logstash/pipeline/logstash.conf
-COPY services/logstash/logstash.yml /usr/share/logstash/config/logstash.yml
+COPY logstash.conf /usr/share/logstash/pipeline/logstash.conf
+COPY logstash.yml /usr/share/logstash/config/logstash.yml
 
 RUN fix-permissions /usr/share/logstash
 
