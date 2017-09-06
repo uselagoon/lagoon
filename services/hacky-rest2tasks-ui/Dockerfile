@@ -1,4 +1,5 @@
-FROM amazeeiolagoon/centos7-node6
+ARG AMAZEEIO_GIT_BRANCH
+FROM amazeeiolagoon/centos7-node6:${AMAZEEIO_GIT_BRANCH:-latest}
 ENV NODE_ENV production
 COPY package.json yarn.lock /app/
 RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
