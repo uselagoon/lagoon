@@ -9,7 +9,7 @@ Object {
         "remove": "lagoon_openshift",
       },
       "client": "deploytestclient",
-      "git_url": "git@git:/git/node.git",
+      "git_url": "git@local-git:/git/node.git",
       "openshift": Object {
         "console": "https://192.168.77.100:8443/",
         "password": "developer",
@@ -30,7 +30,7 @@ Object {
         "remove": "lagoon_openshift",
       },
       "client": "deploytestclient",
-      "git_url": "git@git:/git/node.git",
+      "git_url": "git@local-git:/git/node.git",
       "openshift": Object {
         "console": "https://192.168.77.100:8443/",
         "password": "developer",
@@ -51,7 +51,7 @@ Object {
         "remove": "lagoon_openshift",
       },
       "client": "deploytestclient",
-      "git_url": "git@git:/git/node_subfolder.git",
+      "git_url": "git@local-git:/git/node_subfolder.git",
       "openshift": Object {
         "console": "https://192.168.77.100:8443/",
         "folder": "subfolder",
@@ -73,7 +73,7 @@ Object {
         "remove": "lagoon_openshift",
       },
       "client": "deploytestclient",
-      "git_url": "git@git:/git/node_subfolder.git",
+      "git_url": "git@local-git:/git/node_subfolder.git",
       "openshift": Object {
         "console": "https://192.168.77.100:8443/",
         "folder": "subfolder",

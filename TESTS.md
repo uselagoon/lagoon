@@ -13,33 +13,31 @@ Lagoon is mostly tested in 3 different ways:
 
 ## 1. Locally
 
-During local development the best and easiest is to test locally. For that you need all microservices running `docker-compose up -d` and the MiniShift OpenShift running as well: `./startOpenShift.sh`.
+During local development the best and easiest is to test locally. All tests are started via make. Make will download and build all the requred dependencies.
 
-Now you can run tests, via ansible:
+    make tests
 
-    docker-compose run --rm tests ansible-playbook /ansible/tests/ALL.yaml
+This would run all tests defined. If you like only to run a subset of the tests, run `make tests-list` to see all tests that exist and run them individually like `make tests/node` to run the nodejs Docker Images tests
 
-This would run all tests defined in `tests/playbooks/ALL.yaml`. If you like only to run a subset of the tests, it's best to define the path to the test that you like to run in the `docker-compose run` statement.
+In order to actually see what is happening inside the microservices, we can use `make logs`:
 
-Sometimes you just would like to create another push webhook, without to wait for the git repo to be initialized and beeing pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repo and push a webhook push. It needs to know which git repo and branch you would like to check and push:
-
-		docker-compose exec tests ansible-playbook /ansible/tests/tests/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
-
-In order to actually see what is happening inside the microservices, we can use `docker-compose logs`:
-
-		docker-compose logs -f
+		make logs
 
 Or only for a specific service:
 
-		docker-compose logs -f webhook-handler
+		make logs service=webhook-handler
 
 Sometimes you would like to see what is happening inside the Jenkins, it can be found here: http://localhost:8888/ (`admin`:`admin`)
 
+Sometimes you just would like to create another push webhook, without to wait for the git repo to be initialized and beeing pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repo and push a webhook push. It needs to know which git repo and branch you would like to check and push:
+
+		docker-compose -p lagoon exec tests ansible-playbook /ansible/tests/tests/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
+
 ## 2. Automated integration testing
 
-In order to test pull requests that are created against Lagoon, we have a full automatic integration test running on Jenkins here: http://lagoon-ci.amazeeio.cloud/. It is defined inside the `Jenkinsfile` and runs automatically for every pull request that is opened.
+In order to test pull requests that are created against Lagoon, we have a full automatic integration test running on TravisCI: https://travis-ci.org/amazeeio/lagoon. It is defined inside the `.travis.yml` and runs automatically for every pull request that is opened.
 
-This Jenkins Job will start a minishift and all services inside the Jenkins and run all tests against it, when everything is fine it will update the GitHub Pull Request with the result of the test.
+This will build all Images, start an OpenShift and run all tests
 
 ## 3. Real World Testing
 
