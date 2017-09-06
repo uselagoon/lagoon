@@ -18,7 +18,7 @@ install:
 - docker image ls -a --digests
 
 before_script:
-- make start-openshift
+- make openshift
 
 script:
 - docker logs -f origin &> .openshift-logs &
