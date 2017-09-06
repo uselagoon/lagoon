@@ -65,7 +65,7 @@ services:
   rest2tasks:
     amazeeio:
       type: custom
-      template: /.amazeeio.app.yml
+      template: services/rest2tasks/.amazeeio.app.yml
     build:
       dockerfile: Dockerfile
       context: services/rest2tasks
