@@ -21,7 +21,7 @@ script:
 - make tag-push TAG=$TRAVIS_BRANCH &> .push-logs &
 - make up
 - docker-compose -p lagoon logs -f &> .service-logs &
-- sleep 45
+- sleep 60
 - make tests
 after_script:
 - cat .build-logs
