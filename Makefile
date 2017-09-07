@@ -184,7 +184,7 @@ $(build-serviceimages):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/openshiftdeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
-build/hacky-rest2tasks-ui: build/centos7-node6
+build/hacky-rest2tasks-ui: build/centos7-node8
 
 
 # API Images have a Multi Stage Dockerimage Build, we define them individually
