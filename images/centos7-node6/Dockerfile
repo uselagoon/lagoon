@@ -7,7 +7,7 @@ RUN \
     curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && \
     yum install -y \
                 nodejs \
-                yarn \
+                yarn-1* \
                 && \
     yum clean all -y
 
