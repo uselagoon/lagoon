@@ -1,5 +1,4 @@
-ARG IMAGE_REPO=amazeeio
-FROM ${IMAGE_REPO}/centos:7
+FROM amazeeiolagoon/centos7
 
 MAINTAINER amazee.io
 

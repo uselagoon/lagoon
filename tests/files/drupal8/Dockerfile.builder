@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/centos7-php-drupal-builder:7.0
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-php7.0-drupal-builder
 
 COPY composer.json composer.lock /app/
 COPY scripts /app/scripts

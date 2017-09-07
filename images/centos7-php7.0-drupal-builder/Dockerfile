@@ -1,5 +1,4 @@
-ARG IMAGE_REPO=amazeeio
-FROM ${IMAGE_REPO}/centos7-php-drupal:7.0
+FROM amazeeiolagoon/centos7-php7.0-drupal
 
 ### Installing Composer and Drush
 ENV COMPOSER_HOME=/composer \
