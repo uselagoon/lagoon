@@ -1,18 +1,30 @@
-FROM amazeeio/centos7-node-builder:8
+ARG AMAZEEIO_GIT_BRANCH
+# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
+FROM amazeeiolagoon/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest}  as yarn-workspace-builder
 
-# Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.
-COPY package.json yarn.lock /app/
+# STAGE 2: specific service Image
+FROM amazeeiolagoon/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
+ENV NODE_ENV production
 
-# Run yarn install and remove the .yarn-cache as we don't need that on our image.
-RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
+# Copying generated node_modules from the first stage
+COPY --from=yarn-workspace-builder /app /app
 
-# Now copy in our application code.
-COPY . /app
+# Setting the workdir to the service, all following commands will run from here
+WORKDIR /app/services/myself/
 
-# Fixing permissions of the app folder so that the openshift user can access it with write.
-RUN fix-permissions /app && \
-    fix-permissions /home
+# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
+COPY --from=yarn-workspace-builder /app/.env.defaults .
 
+# Copying our own package.json
+COPY package.json .
+
+# yarn install, our service might need special packages
+RUN yarn install --pure-lockfile && yarn cache clean
+
+# Copying files from our service
+COPY . .
+
+# building our service
 RUN yarn run build
 
-CMD yarn run start
+CMD ["yarn", "start"]

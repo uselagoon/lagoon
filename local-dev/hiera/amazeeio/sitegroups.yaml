@@ -1,18 +1,54 @@
 ---
 amazeeio_sitegroups:
-  ci-repo:
+  ci-github:
     client: deploytestclient
-    git_url: 'git@git:/git/repo.git'
+    git_url: 'git@local-git:/git/github.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
+    openshift:
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  ci-gitlab:
+    client: deploytestclient
+    git_url: 'git@local-git:/git/gitlab.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
     openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  ci-rest:
+    client: deploytestclient
+    git_url: 'git@local-git:/git/rest.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: amazeeio-testing
+    openshift:
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -20,53 +56,53 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   ci-node:
     client: deploytestclient
-    git_url: 'git@git:/git/node.git'
+    git_url: 'git@local-git:/git/node.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
-  ci-node-multisitegroup1:
+  ci-multisitegroup1:
     client: deploytestclient
-    git_url: 'git@git:/git/node-multisitegroup.git'
+    git_url: 'git@local-git:/git/multisitegroup.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
     openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
-  ci-node-multisitegroup2:
+  ci-multisitegroup2:
     client: deploytestclient
-    git_url: 'git@git:/git/node-multisitegroup.git'
+    git_url: 'git@local-git:/git/multisitegroup.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -92,17 +128,17 @@ amazeeio_sitegroups:
       remove: lagoon_openshiftRemove
   credentialtest:
     client: credentialtestclient
-    git_url: 'git@git:/git/credentialtest.git'
+    git_url: 'git@local-git:/git/credentialtest.git'
     slack:
-      webhook: https://hooks.slack.com/services/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
-      channel: amazeeio-testing
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
     openshift:
-      console: https://192.168.77.100:8443/
-      registry: docker-registry-default.192.168.77.100.nip.io:443
+      console: https://172.16.123.1:8443/
+      registry: 172.30.1.1:5000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.77.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.172.16.123.1.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:

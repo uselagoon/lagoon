@@ -125,6 +125,7 @@ $query = sprintf('{
 }', $sitegroup_name);
 
 $api = getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') ? getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') : 'https://api.amazeeio.services/graphql';
+$jwt_token = getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') ? getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') : 'xxxx';
 
 drush_log("Using $api as amazee.io API endpoint");
 
@@ -137,7 +138,7 @@ curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
 curl_setopt($curl, CURLOPT_POST, TRUE);
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', "Authorization: Bearer $jwt_token"]);
 curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
   'query' => $query,
 )));

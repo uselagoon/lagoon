@@ -4,73 +4,85 @@ services:
       type: custom
       template: services/api/.amazeeio.app.yml
     build:
-      dockerfile: services/api/Dockerfile
+      dockerfile: Dockerfile
+      context: services/api
   elasticsearch:
     amazeeio:
       type: custom
       template: services/elasticsearch/.amazeeio.app.yml
     build:
-      dockerfile: services/elasticsearch/Dockerfile
+      dockerfile: Dockerfile
+      context: services/elasticsearch/
   kibana:
     amazeeio:
       type: custom
       template: services/kibana/.amazeeio.app.yml
     build:
-      dockerfile: services/kibana/Dockerfile
+      dockerfile: Dockerfile
+      context: services/kibana
   logs2slack:
     amazeeio:
       type: custom
       template: services/logs2slack/.amazeeio.app.yml
     build:
-      dockerfile: services/logs2slack/Dockerfile
+      dockerfile: Dockerfile
+      context: services/logs2slack
   logstash:
     amazeeio:
       type: custom
       template: services/logstash/.amazeeio.app.yml
     build:
-      dockerfile: services/logstash/Dockerfile
+      dockerfile: Dockerfile
+      context: services/logstash
   openshiftdeploy:
     amazeeio:
       type: custom
       template: services/openshiftdeploy/.amazeeio.app.yml
     build:
-      dockerfile: services/openshiftdeploy/Dockerfile
+      dockerfile: Dockerfile
+      context: services/openshiftdeploy
   openshiftremove:
     amazeeio:
       type: custom
       template: services/openshiftremove/.amazeeio.app.yml
     build:
-      dockerfile: services/openshiftremove/Dockerfile
+      dockerfile: Dockerfile
+      context: services/openshiftremove
   openshiftremove-resources:
     amazeeio:
       type: custom
       template: services/openshiftremove-resources/.amazeeio.app.yml
     build:
-      dockerfile: services/openshiftremove-resources/Dockerfile
+      dockerfile: Dockerfile
+      context: services/openshiftremove-resources
   rabbitmq:
     amazeeio:
       type: custom
       template: services/rabbitmq/.amazeeio.app.yml
     build:
-      dockerfile: services/rabbitmq/Dockerfile
+      dockerfile: Dockerfile
+      context: services/rabbitmq
   rest2tasks:
     amazeeio:
       type: custom
       template: services/rest2tasks/.amazeeio.app.yml
     build:
-      dockerfile: services/rest2tasks/Dockerfile
+      dockerfile: Dockerfile
+      context: services/rest2tasks
   webhook-handler:
     amazeeio:
       type: custom
       template: services/webhook-handler/.amazeeio.app.yml
     build:
-      dockerfile: services/webhook-handler/Dockerfile
+      dockerfile: Dockerfile
+      context: services/webhook-handler
   webhooks2tasks:
     amazeeio:
       type: custom
       template: services/webhooks2tasks/.amazeeio.app.yml
     build:
-      dockerfile: services/webhooks2tasks/Dockerfile
+      dockerfile: Dockerfile
+      context: services/webhooks2tasks
   drush-alias:
     amazeeio:
       type: nginx:1.12
@@ -78,3 +90,16 @@ services:
     build:
       context: helpers/drush-alias
       dockerfile: Dockerfile
+  auth-server:
+    amazeeio:
+      type: custom
+      template: services/auth-server/.amazeeio.app.yml
+    build:
+      dockerfile: Dockerfile
+      context: services/auth-server
+  auth-ssh:
+    amazeeio:
+      type: custom
+      template: services/auth-ssh/.amazeeio.app.yml
+    build:
+      dockerfile: services/auth-ssh/Dockerfile

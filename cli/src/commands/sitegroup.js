@@ -134,12 +134,18 @@ type Args = BaseArgs & {
 export async function run(args: Args): Promise<number> {
   const { config, clog, cerr } = args;
 
-  // FIXME: doesn't handle empty config file case correctly
   if (config == null) {
     return printNoConfigError(cerr);
   }
 
   const sitegroup = R.head(args._.slice(1)) || config.sitegroup;
+
+  if (sitegroup == null) {
+    return printErrors(
+      cerr,
+      'No sitegroup configured. Please create a .amazeeio.yml config file with "io init" or pass a sitegroup to this command via the first argument.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    );
+  }
 
   return sitegroupInfo({ sitegroup, clog, cerr });
 }

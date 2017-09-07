@@ -1,9 +1,92 @@
 // @flow
 
-const { getCredentialsForEntities, getCredentials } = require('../auth');
+const {
+  getCredentialsForEntities,
+  getCredentials,
+  createAttributeFilters,
+  createAllowedQueries,
+} = require('../auth');
+
+describe('createAttributeFilters', () => {
+  describe('for role "drush"', () => {
+    const filters = createAttributeFilters('drush');
+
+    test('should filter sitegroups attributes correctly', () => {
+      const data: any = {
+        // We just need to check if these attributes are there
+        id: 'sg1',
+        siteGroupName: 'sg1',
+        git_url: 'giturl',
+        slack: { webhook: 'webhook' },
+
+        // Other attributes should be omitted
+        client: {
+          deploy_private_key: 'rsa',
+        },
+      };
+
+      expect(filters.sitegroup).not.toBeNull();
+
+      const ret = (filters: any).sitegroup(data);
+
+      expect(ret).toEqual({
+        id: 'sg1',
+        siteGroupName: 'sg1',
+        git_url: 'giturl',
+        slack: { webhook: 'webhook' },
+      });
+    });
+
+    test('should filter site attributes correctly', () => {
+      const data: any = {
+        id: 's1',
+        site_branch: 'branch',
+        site_environment: 'environment',
+        deploy_strategy: 'deploy',
+        webroot: 'webroot',
+        domains: ['d1', 'd2'],
+
+        siteHost: 'host',
+        siteName: 's1',
+        jumpHost: 'jumpy',
+        serverInfrastructure: 'infra',
+        serverIdentifier: 'identifier',
+        serverNames: ['n1', 'n2'],
+
+        sitegroup: 'sg1',
+
+        // These attributes should be omitted
+        ssh_keys: ['rsa'],
+        sslcerttype: 'ssl',
+      };
+
+      const ret = (filters: any).site(data);
+
+      [
+        'id',
+        'siteName',
+        'site_branch',
+        'site_environment',
+        'siteHost',
+        'serverInfrastructure',
+        'serverIdentifier',
+        'serverNames',
+        'deploy_strategy',
+        'webroot',
+        'domains',
+        'siteName',
+        'jumpHost',
+        'serverInfrastructure',
+        'serverIdentifier',
+        'serverNames',
+        'sitegroup',
+      ].forEach((attr) => expect(ret).toHaveProperty(attr));
+    });
+  });
+});
 
 describe('getCredentialsForEntities', () => {
-  it('should get the proper clients', () => {
+  test('should get the proper clients', () => {
     const clients: any = {
       c1: {
         ssh_keys: {
@@ -25,14 +108,20 @@ describe('getCredentialsForEntities', () => {
 
     const sshKey = 'ssh1';
 
-    const ret = getCredentialsForEntities('ssh1', 'none', null, clients);
+    const ret = getCredentialsForEntities(
+      'ssh1',
+      'none',
+      'client',
+      null,
+      clients
+    );
 
     expect(ret).toEqual(['c1', 'c3']);
   });
 });
 
 describe('getCredentials', () => {
-  it('should get s1 to s5 according to inheritance rules', () => {
+  test('should get s1 to s5 according to inheritance rules', () => {
     const state = {
       clientsFile: {
         amazeeio_clients: ({
@@ -98,6 +187,7 @@ describe('getCredentials', () => {
       sitegroups: ['sg2', 'sg3'],
       sites: ['s1', 's2', 's3', 's4', 's5'],
       role: 'none',
+      attributeFilters: {},
     });
   });
 
@@ -151,6 +241,21 @@ describe('getCredentials', () => {
       sitegroups: ['sg1', 'sg2', 'sg3'],
       sites: ['s1', 's2', 's3', 's4', 's5'],
       role: 'admin',
+      attributeFilters: {},
     });
   });
 });
+
+describe('createAllowedQueries', () => {
+  test('should limit role "drush" to a subset of queries', () => {
+    const ret = createAllowedQueries('drush');
+
+    expect(ret).toEqual(['siteGroupByName'])
+  });
+
+  test('should not limit any other roles', () => {
+    expect(createAllowedQueries('admin')).toBeUndefined();
+    expect(createAllowedQueries('none')).toBeUndefined();
+  });
+});
+

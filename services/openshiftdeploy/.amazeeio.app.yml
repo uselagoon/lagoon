@@ -87,6 +87,11 @@ objects:
                 secretKeyRef:
                   name: secret-environment
                   key: JENKINS_URL
+            - name: SERVICE_API_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: SERVICE_API_ADMIN_TOKEN
           resources:
             requests:
               cpu: 100m
