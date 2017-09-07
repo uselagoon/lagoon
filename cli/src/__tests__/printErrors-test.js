@@ -3,6 +3,7 @@
 import {
   printErrors,
   printNoConfigError,
+  printSitegroupConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
 
@@ -49,6 +50,15 @@ describe('printNoConfigError', () => {
   it('should print an error about the configuration file not being found', () => {
     const cerr = jest.fn();
     const code = printNoConfigError(cerr);
+    expect(code).toBe(1);
+    expect(cerr.mock.calls).toMatchSnapshot();
+  });
+});
+
+describe('printSitegroupConfigurationError', () => {
+  it('should print an error about missing sitegroup configuration', () => {
+    const cerr = jest.fn();
+    const code = printSitegroupConfigurationError(cerr);
     expect(code).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
   });

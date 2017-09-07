@@ -118,10 +118,28 @@ const typeDefs = `
 const createdAfter = (after: string) => (created: string) =>
   new Date(after).getTime() < new Date(created).getTime();
 
+// This applies the query authorization middleware, which will check
+// the credentials if given role is allowed to run the given query
+// If the user is not authorized, the resolver will not run and return
+// null instead
+const applyQueryAuthorizationMiddleware = queryObj =>
+  R.compose(
+    R.mapObjIndexed((resolver, queryName) => (x, args, req, ast) => {
+      const context = getContext(req);
+      const credentials = getCredentials(req);
+
+      const { allowedQueries } = credentials;
+
+      if (!allowedQueries || R.contains(ast.fieldName, allowedQueries)) {
+        return resolver(x, args, req, ast);
+      }
+    })
+  )(queryObj);
+
 const resolvers = {
   JSON: GraphQLJSON,
-  Query: {
-    siteGroupByName: (_, args, req) => {
+  Query: applyQueryAuthorizationMiddleware({
+    siteGroupByName: (_, args, req, ast) => {
       const context = getContext(req);
       const { getState } = context.store;
       const { findSiteGroup } = context.selectors;
@@ -133,6 +151,7 @@ const resolvers = {
           siteGroupName: (name: string) =>
             R.contains(name, credentials.sitegroups) && name === args.name,
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -149,6 +168,7 @@ const resolvers = {
             R.contains(name, credentials.sitegroups),
           git_url: args.gitUrl,
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -165,6 +185,7 @@ const resolvers = {
           git_url: args.gitUrl,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -181,6 +202,7 @@ const resolvers = {
           site_environment: args.environmentType,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.site,
         getState()
       );
     },
@@ -196,6 +218,7 @@ const resolvers = {
           siteName: (name: string) =>
             R.contains(name, credentials.sites) && name === args.name,
         },
+        credentials.attributeFilters.site,
         getState()
       );
     },
@@ -214,7 +237,7 @@ const resolvers = {
         getState()
       );
     },
-  },
+  }),
   Client: {
     siteGroups: (client: ClientView, args, req) => {
       const context = getContext(req);
@@ -230,6 +253,7 @@ const resolvers = {
           client: client.clientName,
           created: args.createdAfter && createdAfter(args.createdAfter),
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },
@@ -292,15 +316,18 @@ const resolvers = {
 
       const credentials = getCredentials(req);
 
+      const criteria = {
+        sitegroup: (name: string) =>
+          R.contains(name, credentials.sitegroups) &&
+          name === siteGroup.siteGroupName,
+        site_branch: args.branch,
+        site_environment: args.environmentType,
+        created: args.createdAfter && createdAfter(args.createdAfter),
+      };
+
       return filterSites(
-        {
-          sitegroup: (name: string) =>
-            R.contains(name, credentials.sitegroups) &&
-            name === siteGroup.siteGroupName,
-          site_branch: args.branch,
-          site_environment: args.environmentType,
-          created: args.createdAfter && createdAfter(args.createdAfter),
-        },
+        criteria,
+        credentials.attributeFilters.site,
         getState()
       );
     },
@@ -332,6 +359,7 @@ const resolvers = {
           siteGroupName: (name: string) =>
             R.contains(name, credentials.sitegroups) && name === site.sitegroup,
         },
+        credentials.attributeFilters.sitegroup,
         getState()
       );
     },

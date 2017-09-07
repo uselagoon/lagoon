@@ -15,7 +15,7 @@ Logs each received webhook to the amazeeio-logs queue.
 
 Fully developed in Docker and hosted on amazee.io Openshift, see the `.openshift` folder. Deployed via Jenkinsfile.
 
-Uses `amazeeio/centos7-node:node6` as base image.
+Uses `amazeeio/centos7-node8` as base image.
 
 ## Development
 

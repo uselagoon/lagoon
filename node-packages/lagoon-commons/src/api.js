@@ -7,12 +7,12 @@ const { Transport } = require('lokka-transport-http');
 
 const {
   AMAZEEIO_API_HOST = 'http://api:3000',
-  SERVICE_ADMIN_TOKEN,
+  SERVICE_API_ADMIN_TOKEN,
 } = process.env;
 
 const options = {
   headers: {
-    Authorization: `Bearer ${SERVICE_ADMIN_TOKEN}`,
+    Authorization: `Bearer ${SERVICE_API_ADMIN_TOKEN}`,
   },
 };
 

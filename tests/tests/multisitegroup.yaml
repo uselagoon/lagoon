@@ -3,7 +3,7 @@
   vars:
     testname: "MULTISITEGROUP - two sitegroups with same git url"
     node_version: 8
-    git_repo_name: node-multisitegroup.git
-    sitegroup1: ci-node-multisitegroup1
-    sitegroup2: ci-node-multisitegroup2
+    git_repo_name: multisitegroup.git
+    sitegroup1: ci-multisitegroup1
+    sitegroup2: ci-multisitegroup2
     branch: multisitegroup

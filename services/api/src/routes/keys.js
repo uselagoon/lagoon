@@ -14,7 +14,7 @@ const toFingerprint = (sshKey: string): string =>
   sshpk.parseKey(sshKey, 'ssh').fingerprint().toString();
 
 const keysRoute = (req: $Request, res: $Response) => {
-  const { fingerprint } = req.body;
+  const { fingerprint } = (req.body: any);
 
   if (!fingerprint) {
     return res.status(500).send('Missing parameter "fingerprint"');
