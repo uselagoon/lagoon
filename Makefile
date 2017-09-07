@@ -281,6 +281,7 @@ all-tests-list:= 	ssh-auth \
 									node \
 									github \
 									gitlab \
+									bitbucket \
 									rest \
 									multisitegroup
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
@@ -316,10 +317,10 @@ deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 $(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
 		docker-compose -p lagoon up -d $(deployment-test-services-rest)
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
-webhook-tests = github gitlab
+webhook-tests = github gitlab bitbucket
 run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
@@ -327,7 +328,7 @@ deployment-test-services-webhooks = $(deployment-test-services-main) webhook-han
 $(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
 		docker-compose -p lagoon up -d $(deployment-test-services-webhooks)
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
 # Publish command

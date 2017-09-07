@@ -3,6 +3,6 @@
   vars:
     testname: "BITBUCKET - slash branch"
     node_version: 8
-    git_repo_name: repo.git
-    sitegroup: ci-repo
+    git_repo_name: bitbucket.git
+    sitegroup: ci-bitbucket
     branch: bitbucket/slash/branch
