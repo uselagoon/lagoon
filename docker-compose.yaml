@@ -6,7 +6,7 @@ services:
     ports:
       - "7777:3000"
     volumes:
-      - ./services/webhook-handler/src:/app/services/webhook-handler/src
+      - ./services/webhook-handler/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
   rabbitmq:
     image: amazeeiolagoon/rabbitmq
@@ -17,13 +17,13 @@ services:
     image: amazeeiolagoon/openshiftremove
     command: yarn run dev
     volumes:
-      - ./services/openshiftremove/src:/app/services/openshiftremove/src
+      - ./services/openshiftremove/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
   openshiftremove-resources:
     image: amazeeiolagoon/openshiftremove-resources
     command: yarn run dev
     volumes:
-      - ./services/openshiftremove-resources/src:/app/services/openshiftremove-resources/src
+      - ./services/openshiftremove-resources/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
   openshiftdeploy:
     image: amazeeiolagoon/openshiftdeploy
@@ -32,25 +32,25 @@ services:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=lagoon_default
     volumes:
-      - ./services/openshiftdeploy/src:/app/services/openshiftdeploy/src
+      - ./services/openshiftdeploy/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
   logs2slack:
     image: amazeeiolagoon/logs2slack
     command: yarn run dev
     volumes:
-      - ./services/logs2slack/src:/app/services/logs2slack/src
+      - ./services/logs2slack/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
   webhooks2tasks:
     image: amazeeiolagoon/webhooks2tasks
     command: yarn run dev
     volumes:
-      - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
+      - ./services/webhooks2tasks/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
   rest2tasks:
     image: amazeeiolagoon/rest2tasks
     command: yarn run dev
     volumes:
-      - ./services/rest2tasks/src:/app/services/rest2tasks/src
+      - ./services/rest2tasks/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
     ports:
       - "5555:3000"
@@ -95,9 +95,7 @@ services:
       - JWTISSUER=auth-server.dev
       - JWTAUDIENCE=api.dev
     volumes:
-      - ./services/auth-server/src:/app/src
-      - ./services/auth-server/package.json:/app/package.json
-      - ./services/auth-server/yarn.lock:/app/yarn.lock
+      - ./services/auth-server/src:/app/services/myself/src
     user: '111111111'
     ports:
       - "3001:3000"

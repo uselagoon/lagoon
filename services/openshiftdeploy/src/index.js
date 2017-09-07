@@ -87,7 +87,7 @@ const messageConsumer = async msg => {
     if (process.env.AMAZEEIO_GIT_SAFE_BRANCH == "master") {
       ocBuildDeployImageName = 'amazeeio/oc-build-deploy:latest';
     } else {
-      ocBuildDeployImageName = `amazeeiolagoon/oc-build-deploy:latest-${process.env.AMAZEEIO_GIT_SAFE_BRANCH}`;
+      ocBuildDeployImageName = `amazeeiolagoon/oc-build-deploy:${process.env.AMAZEEIO_GIT_SAFE_BRANCH}`;
     }
     ocBuildDeploystage =
     `
