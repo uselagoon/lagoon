@@ -54,23 +54,12 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       webhooktype = 'bitbucket'
       event = req.headers['x-event-key']
       uuid = req.headers['x-request-uuid']
-      /*
-      bitbucket does not provide a git-ssh URI to the repo in the webhook payload,
-      here we transform the the https url into the ssh URI
-      ex: https://bitbucket.org/teamawesome/repository => git@bitbucket.org:teamawesome/repository.git
-      start by grabbing the repo name from the payload
-      */
-      // bodyObj.repository.full_name is `<organization>/<reponame>`, so like `teamawesome/repository`
-      // we escape the special chars: `teamawesome\/repository`
-      const fullName = bodyObj.repository.full_name.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
-
-      // Set up a RegExp object to match a URL that has the repo name in it, example: /https?:\/\/([a-z0-9-_.]*).*\/teamawesome\/repository$/i
-      const pat =  new RegExp(`https?:\/\/([a-z0-9-_.]*).*${fullName}$`,"i")
-      // Use the html repo link (example https://bitbucket.org/teamawesome/repository) and RegExp to extract the correct target domain
+      // Bitbucket does not provide a git-ssh URI to the repo in the webhook payload
+      // We the html repo link (example https://bitbucket.org/teamawesome/repository) to extract the correct target domain (bitbucket.org)
       // this could be bitbuck.org(.com) or a private bitbucket server
-      const repoPath = bodyObj.repository.links.html.href.match(pat)
-      // use the extracted domain and repo name to build the git URI, example git@bitbucket.org:teamawesome/repository.git
-      giturl = `git@${repoPath[1]}:${bodyObj.repository.full_name}.git`
+      const domain = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)\//i)
+      // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
+      giturl = `git@${domain[1]}:${bodyObj.repository.full_name}.git`
     } else {
       throw new Error('No supported event header found on POST request');
     }
