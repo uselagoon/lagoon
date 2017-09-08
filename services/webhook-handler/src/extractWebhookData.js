@@ -57,16 +57,19 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       /*
       bitbucket does not provide a git-ssh URI to the repo in the webhook payload,
       here we transform the the https url into the ssh URI
-      ex: https://bitbucket.org/amazeeio/sitename => git@bitbucket.org:amazeeio/sitename.git
+      ex: https://bitbucket.org/teamawesome/repository => git@bitbucket.org:teamawesome/repository.git
       start by grabbing the repo name from the payload
       */
+      // bodyObj.repository.full_name is `<organization>/<reponame>`, so like `teamawesome/repository`
+      // we escape the special chars: `teamawesome\/repository`
       const fullName = bodyObj.repository.full_name.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
-      // Set up a RegExp object to match a URL that has the repo name in it
+
+      // Set up a RegExp object to match a URL that has the repo name in it, example: /https?:\/\/([a-z0-9-_.]*).*\/teamawesome\/repository$/i
       const pat =  new RegExp(`https?:\/\/([a-z0-9-_.]*).*${fullName}$`,"i")
-      // Use the html repo link and RegExp to extract the correct target domain
+      // Use the html repo link (example https://bitbucket.org/teamawesome/repository) and RegExp to extract the correct target domain
       // this could be bitbuck.org(.com) or a private bitbucket server
       const repoPath = bodyObj.repository.links.html.href.match(pat)
-      // use the extracted domain and repo name to build the git URI
+      // use the extracted domain and repo name to build the git URI, example git@bitbucket.org:teamawesome/repository.git
       giturl = `git@${repoPath[1]}:${bodyObj.repository.full_name}.git`
     } else {
       throw new Error('No supported event header found on POST request');
