@@ -9,50 +9,53 @@ node {
     }
 
     notifySlack()
-    ansiColor('xterm') {
-      try {
-        parallel (
-          'start services': {
-            stage ('build images') {
-              sh "make build"
-            }
-            stage ('start services') {
-              sh "make up-no-ports"
-            }
-          },
-          'start openshift': {
-            stage ('start openshift') {
-              sh 'make openshift'
-            }
-          }
-        )
-      } catch (e) {
-        echo "Something went wrong, trying to cleanup"
-        cleanup()
-        throw e
-      }
 
+    try {
       parallel (
-        '_tests': {
-            stage ('run tests') {
-              try {
-                sh "sleep 60"
-                sh "make tests"
-              } catch (e) {
-                echo "Something went wrong, trying to cleanup"
-                cleanup()
-                throw e
-              }
-              cleanup()
-            }
+        'start services': {
+          stage ('build images') {
+            sh "make build"
+          }
+          stage ('start services') {
+            sh "make up-no-ports"
+          }
         },
-        'logs': {
-            stage ('all') {
-              sh "make logs"
-            }
+        'start openshift': {
+          stage ('start openshift') {
+            sh 'make openshift'
+          }
         }
       )
+    } catch (e) {
+      echo "Something went wrong, trying to cleanup"
+      cleanup()
+      throw e
     }
+
+    parallel (
+      '_tests': {
+          stage ('run tests') {
+            try {
+              sh "sleep 60"
+              ansiColor('xterm') {
+                sh "make tests"
+              }
+            } catch (e) {
+              echo "Something went wrong, trying to cleanup"
+              cleanup()
+              throw e
+            }
+            cleanup()
+          }
+      },
+      'logs': {
+          stage ('all') {
+            ansiColor('xterm') {
+              sh "make logs"
+            }
+          }
+      }
+    )
 
 
     // stage ('tag_push') {
