@@ -36,6 +36,7 @@ node {
         '_tests': {
             stage ('run tests') {
               try {
+                sh "sleep 60"
                 sh "make tests"
               } catch (e) {
                 echo "Something went wrong, trying to cleanup"
@@ -80,6 +81,7 @@ node {
 
 def cleanup() {
   try {
+    sh "make down"
     sh "make openshift/clean"
     sh "make clean"
   } catch (error) {
