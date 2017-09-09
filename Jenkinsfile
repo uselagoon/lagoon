@@ -72,7 +72,6 @@ node {
         }
       }
     }
-    cleanup()
   } catch (e) {
     currentBuild.result = 'FAILURE'
     throw e
