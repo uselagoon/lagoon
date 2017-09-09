@@ -312,6 +312,9 @@ endif
 
 up-no-ports: remove-ports-from-yaml up
 
+down:
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v 
+
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 openshift: local-dev/oc/oc
