@@ -30,7 +30,7 @@ services:
     command: yarn run dev
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
-      # - DOCKER_RUN_PARARM=--network=lagoon_default
+      - DOCKER_RUN_PARARM=--network=${CI_BUILD_TAG:-lagoon}_default
     volumes:
       - ./services/openshiftdeploy/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
