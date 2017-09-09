@@ -13,9 +13,6 @@ node {
       try {
         parallel (
           'start services': {
-            stage ('pull existing images') {
-              sh "make pull -j5"
-            }
             stage ('build images') {
               sh "make build"
             }
@@ -57,21 +54,21 @@ node {
     }
 
 
-    stage ('tag_push') {
-      withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-        sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-        sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
-      }
-    }
+    // stage ('tag_push') {
+    //   withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+    //     sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+    //     sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
+    //   }
+    // }
 
-    if (env.BRANCH_NAME == 'master') {
-      stage ('tag_push') {
-        withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-          sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-          sh "./buildBaseImages.sh tag_push amazeeio"
-        }
-      }
-    }
+    // if (env.BRANCH_NAME == 'master') {
+    //   stage ('tag_push') {
+    //     withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+    //       sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+    //       sh "./buildBaseImages.sh tag_push amazeeio"
+    //     }
+    //   }
+    // }
   } catch (e) {
     currentBuild.result = 'FAILURE'
     throw e
