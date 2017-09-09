@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 # amazee.io lagoon Makefile The main purpose of this Makefile is to provide easier handling of
 # building images and running tests It understands the relation of the different images (like
 # centos7-node6 is based on centos7) and builds them in the correct order Also it knows which
