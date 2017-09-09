@@ -8,7 +8,7 @@ amazeeio_sitegroups:
       channel: lagoon-local-ci
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
@@ -26,7 +26,7 @@ amazeeio_sitegroups:
       channel: amazeeio-testing
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
@@ -44,7 +44,7 @@ amazeeio_sitegroups:
       channel: amazeeio-testing
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
@@ -62,7 +62,7 @@ amazeeio_sitegroups:
       channel: lagoon-local-ci
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
@@ -80,7 +80,7 @@ amazeeio_sitegroups:
       channel: amazeeio-testing
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
@@ -98,7 +98,7 @@ amazeeio_sitegroups:
       channel: lagoon-local-ci
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
@@ -116,7 +116,7 @@ amazeeio_sitegroups:
       channel: lagoon-local-ci
     openshift:
       console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:5000
+      registry: 192.168.99.100:30000
       username: developer
       password: developer
       project_user: developer
