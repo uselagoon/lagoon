@@ -1,6 +1,6 @@
 node {
   try {
-    env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-')
+    env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
 
     deleteDir()
 
@@ -12,7 +12,7 @@ node {
 
     try {
       parallel (
-        'start services': {
+        'build & start services': {
           stage ('build images') {
             sh "make build"
           }
@@ -37,9 +37,7 @@ node {
           stage ('run tests') {
             try {
               sh "sleep 60"
-              ansiColor('xterm') {
-                sh "make tests"
-              }
+              sh "make tests"
             } catch (e) {
               echo "Something went wrong, trying to cleanup"
               cleanup()
@@ -50,9 +48,7 @@ node {
       },
       'logs': {
           stage ('all') {
-            ansiColor('xterm') {
-              sh "make logs"
-            }
+            sh "make logs"
           }
       }
     )
