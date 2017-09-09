@@ -58,7 +58,7 @@ services:
     image: ${IMAGE_REPO:-amazeeiolagoon}/api
     command: yarn run dev
     environment:
-      - GIT_IMAGE_REPOSITORY=http://local-git:8080/git/hiera.git
+      - GIT_REPOSITORY=http://local-git:8080/git/hiera.git
       - REMOTE_DEV_SERVER=false
     volumes:
       # These files and folders already exists within the docker image, but we mount it again
