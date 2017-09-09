@@ -75,6 +75,11 @@ DOCKER_BUILD_PARAMS := --quiet
 OC_VERSION := v3.6.0
 OC_HASH := c4dd4cf
 
+# On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
+# CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
+# If it's not set we assume that we are running local and just call it lagoon.
+CI_BUILD_TAG ?= lagoon
+
 #######
 ####### Functions
 #######
@@ -301,8 +306,8 @@ tests-list:
 .PHONY: tests/ssh-auth
 tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
-		docker-compose -p lagoon up -d auth-ssh auth-server api
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
+		docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
 deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
@@ -315,8 +320,8 @@ deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
 $(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
-		docker-compose -p lagoon up -d $(deployment-test-services-rest)
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+		docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab
@@ -326,8 +331,8 @@ deployment-test-services-webhooks = $(deployment-test-services-main) webhook-han
 .PHONY: $(run-webhook-tests)
 $(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
-		docker-compose -p lagoon up -d $(deployment-test-services-webhooks)
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
+		docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
 # Publish command
@@ -349,26 +354,36 @@ clean:
 
 # Show Lagoon Service Logs
 logs:
-	docker-compose -p lagoon logs --tail=10 -f $(service)
+	docker-compose -p $(CI_BUILD_TAG) logs --tail=10 -f $(service)
 
 # Start all Lagoon Services
 up:
-	docker-compose -p lagoon up -d
+	docker-compose -p $(CI_BUILD_TAG) up -d
 
-# Start Local OpenShift Cluster with specific IP
-openshift: local-dev/oc/oc .loopback
-	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1 --version="v1.5.1"
-	@echo "used by make to track if openshift is running" > $@
+# Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
+# that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
+openshift: local-dev/oc/oc
+	$(info starting openshift with name $(CI_BUILD_TAG))
+	./local-dev/oc/oc cluster up --version="v1.5.1" --create-machine --docker-machine="$(CI_BUILD_TAG)"
+	@./local-dev/oc/oc login -u system:admin > /dev/null
+	@echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | ./local-dev/oc/oc create -n default -f -
+	@OPENSHIFT_MACHINE_IP=$$(docker-machine ip $(CI_BUILD_TAG)); \
+	if [ ! $$OPENSHIFT_MACHINE_IP == "192.168.99.100" ]; then \
+		echo "created OpenShift Machine has not the default IP '192.168.99.100' it has '$$OPENSHIFT_MACHINE_IP'"; \
+		echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the correct IP"; \
+		sed -i '' -e "s/192.168.99.100/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml; \
+	fi
+	@echo "$(CI_BUILD_TAG)" > $@
 
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
 openshift/stop: local-dev/oc/oc
-	./local-dev/oc/oc cluster down
+	docker-machine rm -y $(CI_BUILD_TAG)
 	rm openshift
 
 # Stop OpenShift, remove downloaded cli, remove loopback
 .PHONY: openshift/clean
-openshift/clean: openshift/stop .loopback-clean
+openshift/clean: openshift/stop
 	rm -rf ./local-dev/oc
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
@@ -383,19 +398,3 @@ else
 		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1
 endif
 
-# Creates loopback address `172.16.123.1` on the current machine that will be used by OpenShift to bind the Cluster too
-.loopback:
-	$(info configuring loopback address for openshit, this might need sudo)
-ifeq ($(shell uname), Darwin)
-	sudo ifconfig lo0 alias 172.16.123.1;
-else
-	sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up
-endif
-
-	@echo "used by make to track if loopback is configured is running" > $@
-
-# Remove the loopback address
-.PHONY: .loopback-clean
-# TODO: Remove the actuall loopback interface
-.loopback-clean:
-	rm .loopback

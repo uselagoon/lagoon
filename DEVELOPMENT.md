@@ -46,7 +46,7 @@ make logs
 make tests
 ```
 
-6. Look what happens in OpenShift: https://172.16.123.1:8443/console (developer/developer)
+6. Look what happens in OpenShift: https://192.168.99.100:8443/console (developer/developer)
 
 ## Local Development
 
