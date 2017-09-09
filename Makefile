@@ -71,6 +71,8 @@ OC_HASH := c4dd4cf
 # If it's not set we assume that we are running local and just call it amazeeiolagoon.
 CI_BUILD_TAG ?= amazeeiolagoon
 
+ARCH := $(shell uname)
+
 #######
 ####### Functions
 #######
@@ -301,6 +303,15 @@ logs:
 up:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 
+remove-ports-from-yaml:
+ifeq ($(ARCH), Darwin)
+		$(error this command only works on Linux as Mac does not have a proper new version of awk)
+else
+		awk 's{if(/\s*-\s*"[^"]*"/) next; else s=0} /ports:/{s=1;next;}1' docker-compose.yaml > docker-compose-no-ports.yaml && mv docker-compose-no-ports.yaml docker-compose.yaml
+endif
+
+up-no-ports: remove-ports-from-yaml up
+
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 openshift: local-dev/oc/oc
@@ -331,7 +342,7 @@ openshift/clean: openshift/stop
 local-dev/oc/oc:
 	$(info downloading oc)
 	@mkdir local-dev/oc
-ifeq ($(shell uname), Darwin)
+ifeq ($(ARCH), Darwin)
 		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip
 		unzip -o oc-mac.zip -d local-dev/oc
 		rm -f oc-mac.zip

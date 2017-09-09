@@ -17,7 +17,7 @@ node {
               sh "make build"
             }
             stage ('start services') {
-              sh "make up"
+              sh "make up-no-ports"
             }
           },
           'start openshift': {
