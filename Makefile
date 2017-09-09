@@ -250,7 +250,7 @@ tests-list:
 tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
 deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
@@ -264,7 +264,7 @@ deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 $(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab
@@ -275,7 +275,7 @@ deployment-test-services-webhooks = $(deployment-test-services-main) webhook-han
 $(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
 # Publish command
