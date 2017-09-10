@@ -1,4 +1,5 @@
-FROM amazeeiolagoon/centos7
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/centos7
 
 MAINTAINER amazee.io hello@amazee.io
 
@@ -7,7 +8,7 @@ RUN \
     curl --silent --location https://rpm.nodesource.com/setup_8.x | bash - && \
     yum install -y \
                 nodejs \
-                yarn \
+                yarn-1* \
                 && \
     yum clean all -y
 

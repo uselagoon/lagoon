@@ -4,7 +4,6 @@
   "description": "amazeeio handler for webhooks",
   "main": "build/index.js",
   "scripts": {
-    "postinstall": "ln -s ../../../node_modules/.bin node_modules/.bin #fix for not linked bin folder from root only needed till yarn v0.28.4 (https://github.com/yarnpkg/yarn/pull/3896)",
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "flow-node build/index.js",
