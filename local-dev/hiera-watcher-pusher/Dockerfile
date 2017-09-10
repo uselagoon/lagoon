@@ -1,5 +1,5 @@
-ARG IMAGEREPO
-FROM amazeeiolagoon/centos7
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/centos7
 
 RUN yum -y install git && yum clean all
 
