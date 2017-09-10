@@ -1,7 +1,7 @@
 ARG BUILDER_IMAGE
+ARG IMAGE_REPO
 FROM ${BUILDER_IMAGE:-builder} as builder
 
-ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/centos7-nginx1-drupal
 
 COPY --from=builder /app /app
