@@ -1,4 +1,5 @@
 node {
+  env.HOME = env.WORKSPACE
   try {
     env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
 
@@ -36,7 +37,7 @@ node {
       '_tests': {
           stage ('run tests') {
             try {
-              sh "sleep 60"
+              sh "sleep 30"
               sh "make tests"
             } catch (e) {
               echo "Something went wrong, trying to cleanup"
