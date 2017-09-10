@@ -1,4 +1,5 @@
-FROM amazeeiolagoon/centos7-mariadb10
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/centos7-mariadb10
 
 ENV MYSQL_DATABASE=drupal \
     MYSQL_USER=drupal \

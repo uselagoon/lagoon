@@ -1,4 +1,5 @@
-FROM amazeeiolagoon/centos7-php7.0
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/centos7-php7.0
 
 ENV AMAZEEIO_DB_HOST=mariadb \
     AMAZEEIO_DB_PORT=3306 \

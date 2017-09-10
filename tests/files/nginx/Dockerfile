@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/centos7-nginx:1.12
+FROM ${IMAGE_REPO:-lagoon}/centos7-nginx1
 
 COPY nginx-site.conf /etc/nginx/sites/
 COPY app/ /app/
