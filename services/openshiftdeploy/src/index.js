@@ -13,6 +13,7 @@ initSendToAmazeeioTasks();
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
 const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
+const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
 
 const messageConsumer = async msg => {
   const {
@@ -87,7 +88,7 @@ const messageConsumer = async msg => {
     if (process.env.AMAZEEIO_GIT_SAFE_BRANCH == "master") {
       ocBuildDeployImageName = 'amazeeio/oc-build-deploy:latest';
     } else {
-      ocBuildDeployImageName = `amazeeiolagoon/oc-build-deploy:${process.env.AMAZEEIO_GIT_SAFE_BRANCH}`;
+      ocBuildDeployImageName = `lagoon/oc-build-deploy:${process.env.AMAZEEIO_GIT_SAFE_BRANCH}`;
     }
     ocBuildDeploystage =
     `
@@ -103,7 +104,7 @@ const messageConsumer = async msg => {
     `
       stage ('oc-build-deploy docker build') {
         sh '''
-          docker build -t ${ocBuildDeployImageName} /oc-build-deploy
+          docker build --build-arg IMAGE_REPO=${ciOverrideImageRepo} -t ${ocBuildDeployImageName} /oc-build-deploy
         '''
       }
     `
@@ -162,6 +163,7 @@ node {
     -e IMAGE=\${env.IMAGE} \\
     -e SAFE_SITEGROUP="${safeSiteGroupName}" \\
     -e SITEGROUP="${siteGroupName}" \\
+    -e CI_OVERRIDE_IMAGE_REPO="${ciOverrideImageRepo}" \\
     -v $WORKSPACE:/git \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     ${ocBuildDeployImageName}"""

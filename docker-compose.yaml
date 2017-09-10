@@ -31,6 +31,7 @@ services:
     environment:
       - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
       - DOCKER_RUN_PARARM=--network=${CI_BUILD_TAG:-lagoon}_default
+      - CI_OVERRIDE_IMAGE_REPO=${CI_BUILD_TAG:-lagoon}
     volumes:
       - ./services/openshiftdeploy/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
