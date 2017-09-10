@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 # amazee.io lagoon Makefile The main purpose of this Makefile is to provide easier handling of
 # building images and running tests It understands the relation of the different images (like
 # centos7-node6 is based on centos7) and builds them in the correct order Also it knows which
@@ -5,11 +6,6 @@
 # images
 #
 # The main commands are:
-
-# make pull
-# Tries to pull already existing Docker images from dockerhub in order to use them as layer caching
-# for a build. Define with `TAG` which branch of images you would like to pull, by default this is
-# `master`. Example: `make pull TAG=develop`
 
 # make build/<imagename>
 # Builds an individual image and all of it's needed parents. Run `make build-list` to get a list of
@@ -20,10 +16,6 @@
 # make build
 # builds all images in the correct order. Uses existing images for layer caching, define via `TAG`
 # which branch should be used
-
-# make tag-push
-# Tags all previously build images with a given `TAG` and pushes them to the `amazeeiolagoon`
-# registry which will then can be used again for `make pull` to save build Images between CI runs
 
 # make tests/<testname>
 # Runs individual tests. In a nutshell it does:
@@ -64,10 +56,6 @@
 ####### Default Variables
 #######
 
-# Docker Image Tag that should be used for pulling and pushing images from the amazeeiolagoon
-# registry
-TAG := master
-
 # Parameter for all `docker build` commands, can be overwritten with `DOCKER_BUILD_PARAMS=` in cli
 DOCKER_BUILD_PARAMS := --quiet
 
@@ -75,31 +63,32 @@ DOCKER_BUILD_PARAMS := --quiet
 OC_VERSION := v3.6.0
 OC_HASH := c4dd4cf
 
+# On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
+# CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
+# If it's not set we assume that we are running local and just call it lagoon.
+CI_BUILD_TAG ?= lagoon
+
+ARCH := $(shell uname)
+
+# Docker Image Tag that should be used when publishing to docker hub registry
+PUBLISH_TAG :=
+
 #######
 ####### Functions
 #######
 
-# Pulls a given image name from the amazeeiolagoon dockerhub. Does not fail if image is not found
-docker_pull = docker pull amazeeiolagoon/$(1):$(TAG) | cat || true
-
 # Builds a docker image with a `--cache-from` of an Image with the same name and an Image with the
 # Tag defined with `TAG` (to use a maybe pulled image via `make pull` as layer caching). Expects as
 # arguments: name of the image, location of Dockerfile, path of Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
-# Similar to docker_build, just that it also uses `--cache-from` with `-builder`. Usefull for Multi
-# Stage Images, which also need the builder image as cache-from
-docker_build_with_builder = docker build $(DOCKER_BUILD_PARAMS) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) --cache-from amazeeiolagoon/$(1)-builder  --cache-from amazeeiolagoon/$(1)-builder:$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
-
-# Docker build command with a 4th argument, the name of the target to be built (will be used to
-# specifically build multi stage build images)
-docker_target_build = docker build $(DOCKER_BUILD_PARAMS) --target $(4) --cache-from amazeeiolagoon/$(1)  --cache-from amazeeiolagoon/$(1):$(TAG) -t amazeeiolagoon/$(1) -f $(2) $(3)
-
-# Tags and Image with `TAG` and pushes it to the amazeeiolagoon dockerhub
-docker_tag_push = docker tag amazeeiolagoon/$(1) amazeeiolagoon/$(1):$(TAG) && docker push amazeeiolagoon/$(1):$(TAG) | cat
 
 # Tags and image with the `amazeeio` repository and pushes it
-docker_publish = docker tag amazeeiolagoon/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
+
+# Tags and image with the `amazeeio` repository and pushes it
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(1):$(PUBLISH_TAG) && docker push amazeeiolagoon/$(1):$(PUBLISH_TAG) | cat
+
 
 #######
 ####### Base Images
@@ -116,7 +105,7 @@ baseimages := centos7 \
 							oc-build-deploy
 
 # all-images is a variable that will be constantly filled with all image there are, to use for
-# commands like `make pull` which need to know all images existing
+# commands like `make build` which need to know all images existing
 all-images += $(baseimages)
 
 # List with all images prefixed with `build/`. Which are the commands to actually build images
@@ -161,7 +150,8 @@ build/yarn-workspace-builder: build/centos7-node8-builder images/yarn-workspace-
 	touch $@
 
 # Variables of service images we manage and build
-serviceimages :=  auth-server \
+serviceimages :=  api \
+									auth-server \
 									logs2slack \
 									openshiftdeploy \
 									openshiftremove \
@@ -185,29 +175,14 @@ $(build-serviceimages):
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/openshiftdeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/centos7-node8
+build/api: build/centos7-node8-builder
 
-
-# API Images have a Multi Stage Dockerimage Build, we define them individually
-build/api: build/api-builder
+# Auth SSH needs the context of the root folder, so we have it individually
+build/auth-ssh: build/centos7
 	$(eval image = $(subst build/,,$@))
-	$(call docker_build_with_builder,$(image),services/$(image)/Dockerfile,services/$(image))
+	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
-build/api-builder: build/centos7-node8-builder services/api/Dockerfile
-	$(eval image = $(subst build/,,$@))
-	$(call docker_target_build,$(image),services/api/Dockerfile,services/api,builder)
-	touch $@
-all-images += api api-builder
-
-# Auth SSH have a Multi Stage Dockerimage Build, we define them individually
-build/auth-ssh: build/auth-ssh-builder
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build_with_builder,$(image),services/$(image)/Dockerfile,.)
-	touch $@
-build/auth-ssh-builder: build/centos7
-	$(eval image = $(subst build/,,$@))
-	$(call docker_target_build,$(image),services/auth-ssh/Dockerfile,.,builder)
-	touch $@
-all-images += auth-ssh auth-ssh-builder
+all-images += auth-ssh
 
 # CLI Image
 build/cli: build/centos7-node8
@@ -253,29 +228,6 @@ build-list:
 			echo $$number ; \
 	done
 
-# Define new list of all images prefixed with '[tag-push]-'
-tag-push-images = $(foreach image,$(all-images),[tag-push]-$(image))
-# tag and push all images
-.PHONY: tag-push
-tag-push: $(tag-push-images)
-# tag and push of each image
-.PHONY: $(tag-push-images)
-$(tag-push-images):
-#   Calling docker_tag_push for image, but remove the prefix '[tag-push]-' first
-		$(call docker_tag_push,$(subst [tag-push]-,,$@))
-
-
-# Define new list of all images prefixed with '[pull]-'
-pull-images = $(foreach image,$(all-images),[pull]-$(image))
-# tag and push all images
-.PHONY: pull
-pull: $(pull-images)
-# pull definition for each image
-.PHONY: $(pull-images)
-$(pull-images):
-#   Calling docker_tag_push for image, but remove the prefix '[pull]-' first
-		$(call docker_pull,$(subst [pull]-,,$@))
-
 # Define list of all tests
 all-tests-list:= 	ssh-auth \
 									node \
@@ -302,8 +254,8 @@ tests-list:
 .PHONY: tests/ssh-auth
 tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
-		docker-compose -p lagoon up -d auth-ssh auth-server api
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
 deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
@@ -316,8 +268,8 @@ deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
 $(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
-		docker-compose -p lagoon up -d $(deployment-test-services-rest)
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab bitbucket
@@ -327,21 +279,33 @@ deployment-test-services-webhooks = $(deployment-test-services-main) webhook-han
 .PHONY: $(run-webhook-tests)
 $(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
-		docker-compose -p lagoon up -d $(deployment-test-services-webhooks)
-		docker-compose -p lagoon run --name tests-$(testname) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
-# Publish command
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-image-list := $(baseimages)
-publish-images = $(foreach image,$(publish-image-list),[publish]-$(image))
+publish-amazeeio-images = $(foreach image,$(publish-image-list),[publish-amazeeio]-$(image))
 # tag and push all images
-.PHONY: publish
-publish: $(publish-images)
+.PHONY: publish-amazeeio
+publish-amazeeio: $(publish-amazeeio-images)
 # tag and push of each image
-.PHONY: $(publish-images)
-$(publish-images):
+.PHONY: $(publish-amazeeio-images)
+$(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(call docker_publish,$(subst [publish]-,,$@))
+		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
+
+
+# Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
+publish-amazeeiolagoon-images = $(foreach image,$(publish-image-list),[publish-amazeeiolagoon]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeiolagoon
+publish-amazeeiolagoon: $(publish-amazeeiolagoon-images)
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-images)
+$(publish-amazeeiolagoon-images):
+#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+		$(call docker_publish_amazeeiolagoon,$(subst [publish-amazeeiolagoon]-,,$@))
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)
@@ -350,33 +314,64 @@ clean:
 
 # Show Lagoon Service Logs
 logs:
-	docker-compose -p lagoon logs --tail=10 -f $(service)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) logs --tail=10 -f $(service)
 
 # Start all Lagoon Services
 up:
-	docker-compose -p lagoon up -d
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 
-# Start Local OpenShift Cluster with specific IP
-openshift: local-dev/oc/oc .loopback
-	./local-dev/oc/oc cluster up --routing-suffix=172.16.123.1.nip.io --public-hostname=172.16.123.1 --version="v1.5.1"
-	@echo "used by make to track if openshift is running" > $@
+remove-ports-from-yaml:
+ifeq ($(ARCH), Darwin)
+		$(error this command only works on Linux as Mac does not have a proper new version of awk)
+else
+		awk 's{if(/\s*-\s*"[^"]*"/) next; else s=0} /ports:/{s=1;next;}1' docker-compose.yaml > docker-compose-no-ports.yaml && mv docker-compose-no-ports.yaml docker-compose.yaml
+endif
+
+up-no-ports: remove-ports-from-yaml up
+
+down:
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v
+
+# Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
+# that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
+openshift: local-dev/oc/oc
+	$(info starting openshift with name $(CI_BUILD_TAG))
+	./local-dev/oc/oc cluster up --version="v1.5.1" --create-machine --docker-machine="$(CI_BUILD_TAG)"
+	@./local-dev/oc/oc login -u system:admin > /dev/null
+	@echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | ./local-dev/oc/oc create -n default -f -
+ifeq ($(ARCH), Darwin)
+	@OPENSHIFT_MACHINE_IP=$$(docker-machine ip $(CI_BUILD_TAG)); \
+	if [ ! "$$OPENSHIFT_MACHINE_IP" == "192.168.99.100" ]; then \
+		echo "created OpenShift Machine has not the default IP '192.168.99.100' it has '$$OPENSHIFT_MACHINE_IP'"; \
+		echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the correct IP"; \
+		sed -i '' -e "s/192.168.99.100/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml; \
+	fi
+else
+	@OPENSHIFT_MACHINE_IP=$$(docker-machine ip $(CI_BUILD_TAG)); \
+	if [ ! "$$OPENSHIFT_MACHINE_IP" == "192.168.99.100" ]; then \
+		echo "created OpenShift Machine has not the default IP '192.168.99.100' it has '$$OPENSHIFT_MACHINE_IP'"; \
+		echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the correct IP"; \
+		sed -i "s/192.168.99.100/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml; \
+	fi
+endif
+	@echo "$(CI_BUILD_TAG)" > $@
 
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
 openshift/stop: local-dev/oc/oc
-	./local-dev/oc/oc cluster down
+	docker-machine rm -y $(CI_BUILD_TAG)
 	rm openshift
 
 # Stop OpenShift, remove downloaded cli, remove loopback
 .PHONY: openshift/clean
-openshift/clean: openshift/stop .loopback-clean
+openshift/clean: openshift/stop
 	rm -rf ./local-dev/oc
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
 local-dev/oc/oc:
 	$(info downloading oc)
 	@mkdir local-dev/oc
-ifeq ($(shell uname), Darwin)
+ifeq ($(ARCH), Darwin)
 		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip
 		unzip -o oc-mac.zip -d local-dev/oc
 		rm -f oc-mac.zip
@@ -384,19 +379,3 @@ else
 		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1
 endif
 
-# Creates loopback address `172.16.123.1` on the current machine that will be used by OpenShift to bind the Cluster too
-.loopback:
-	$(info configuring loopback address for openshit, this might need sudo)
-ifeq ($(shell uname), Darwin)
-	sudo ifconfig lo0 alias 172.16.123.1;
-else
-	sudo ifconfig lo:0 172.16.123.1 netmask 255.255.255.255 up
-endif
-
-	@echo "used by make to track if loopback is configured is running" > $@
-
-# Remove the loopback address
-.PHONY: .loopback-clean
-# TODO: Remove the actuall loopback interface
-.loopback-clean:
-	rm .loopback
