@@ -1,3 +1,4 @@
+ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder
 ENV NODE_ENV production
 COPY package.json yarn.lock .env.defaults /app/

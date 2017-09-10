@@ -1,4 +1,5 @@
 ARG AMAZEEIO_GIT_BRANCH
+ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest} as builder
 
 # Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.

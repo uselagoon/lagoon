@@ -1,3 +1,4 @@
+ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7
 
 MAINTAINER amazee.io hello@amazee.io

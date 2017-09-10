@@ -1,4 +1,5 @@
 ARG AMAZEEIO_GIT_BRANCH
+ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
 ENV NODE_ENV production
 COPY package.json yarn.lock /app/

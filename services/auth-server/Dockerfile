@@ -1,4 +1,5 @@
 ARG AMAZEEIO_GIT_BRANCH
+ARG IMAGE_REPO
 # STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest}  as yarn-workspace-builder
 
