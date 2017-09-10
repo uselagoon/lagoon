@@ -56,7 +56,7 @@ SHELL := /bin/bash
 ####### Default Variables
 #######
 
-# Docker Image Tag that should be used for pulling and pushing images from the amazeeiolagoon
+# Docker Image Tag that should be used for pulling and pushing images from the lagoon
 # registry
 TAG := master
 
@@ -69,8 +69,8 @@ OC_HASH := c4dd4cf
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
-# If it's not set we assume that we are running local and just call it amazeeiolagoon.
-CI_BUILD_TAG ?= amazeeiolagoon
+# If it's not set we assume that we are running local and just call it lagoon.
+CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
 

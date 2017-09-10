@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8
+FROM ${IMAGE_REPO:-lagoon}/centos7-node8
 
 ### Installing GIT
 RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \

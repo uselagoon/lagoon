@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8
+FROM ${IMAGE_REPO:-lagoon}/centos7-node8
 
 RUN yum install -y openssh-clients && yum clean all -y
 

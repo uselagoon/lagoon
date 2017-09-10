@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/oc
+FROM ${IMAGE_REPO:-lagoon}/oc
 
 RUN apk add --no-cache bash git openssh docker py-pip && \
     pip install shyaml
