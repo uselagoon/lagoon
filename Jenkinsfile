@@ -7,7 +7,7 @@ node {
   // MACHINE_STORAGE_PATH will be used by docker-machine and 'oc cluster up' to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
   // Jenkins HOME Folder
-  env.MACHINE_STORAGE_PATH = env.JENKINS_HOME
+  env.MACHINE_STORAGE_PATH = "${env.JENKINS_HOME}/.docker/machine"
 
   try {
     env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
