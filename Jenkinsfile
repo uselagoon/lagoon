@@ -1,5 +1,14 @@
 node {
+  // During creating openshift, 'oc cluster up' creates some config files (for docker login, oc login, etc)
+  // They are by default put in $HOME, where it could happen that multiple builds put the same files and overwrite each
+  // other and lead to weird build fails. We're setting the HOME directory to the current workspace to prevent that
   env.HOME = env.WORKSPACE
+
+  // MACHINE_STORAGE_PATH will be used by docker-machine and 'oc cluster up' to define where to put the docker machines
+  // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
+  // Jenkins HOME Folder
+  env.MACHINE_STORAGE_PATH = env.JENKINS_HOME
+
   try {
     env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
     env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
