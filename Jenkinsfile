@@ -2,6 +2,7 @@ node {
   env.HOME = env.WORKSPACE
   try {
     env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
+    env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
 
     deleteDir()
 
@@ -38,7 +39,7 @@ node {
           stage ('run tests') {
             try {
               sh "sleep 30"
-              sh "make tests"
+              sh "make tests -j2"
             } catch (e) {
               echo "Something went wrong, trying to cleanup"
               cleanup()
@@ -55,21 +56,21 @@ node {
     )
 
 
-    // stage ('tag_push') {
-    //   withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-    //     sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-    //     sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
-    //   }
-    // }
+    stage ('publish-amazeeiolagoon') {
+      withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+        sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+        sh "make publish-amazeeiolagoon PUBLISH_TAG=${SAFEBRANCH_NAME}"
+      }
+    }
 
-    // if (env.BRANCH_NAME == 'master') {
-    //   stage ('tag_push') {
-    //     withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-    //       sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-    //       sh "./buildBaseImages.sh tag_push amazeeio"
-    //     }
-    //   }
-    // }
+    if (env.BRANCH_NAME == 'master') {
+      stage ('publish-amazeeio') {
+        withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+          sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+          sh "make publish-amazeeio"
+        }
+      }
+    }
   } catch (e) {
     currentBuild.result = 'FAILURE'
     throw e

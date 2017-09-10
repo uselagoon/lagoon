@@ -56,10 +56,6 @@ SHELL := /bin/bash
 ####### Default Variables
 #######
 
-# Docker Image Tag that should be used for pulling and pushing images from the lagoon
-# registry
-TAG := master
-
 # Parameter for all `docker build` commands, can be overwritten with `DOCKER_BUILD_PARAMS=` in cli
 DOCKER_BUILD_PARAMS := --quiet
 
@@ -74,6 +70,9 @@ CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
 
+# Docker Image Tag that should be used when publishing to docker hub registry
+PUBLISH_TAG :=
+
 #######
 ####### Functions
 #######
@@ -85,7 +84,11 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_B
 
 
 # Tags and image with the `amazeeio` repository and pushes it
-docker_publish = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
+
+# Tags and image with the `amazeeio` repository and pushes it
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(1):$(PUBLISH_TAG) && docker push amazeeiolagoon/$(1):$(PUBLISH_TAG) | cat
+
 
 #######
 ####### Base Images
@@ -279,17 +282,29 @@ $(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
-# Publish command
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-image-list := $(baseimages)
-publish-images = $(foreach image,$(publish-image-list),[publish]-$(image))
+publish-amazeeio-images = $(foreach image,$(publish-image-list),[publish-amazeeio]-$(image))
 # tag and push all images
-.PHONY: publish
-publish: $(publish-images)
+.PHONY: publish-amazeeio
+publish-amazeeio: $(publish-amazeeio-images)
 # tag and push of each image
-.PHONY: $(publish-images)
-$(publish-images):
+.PHONY: $(publish-amazeeio-images)
+$(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(call docker_publish,$(subst [publish]-,,$@))
+		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
+
+
+# Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
+publish-amazeeiolagoon-images = $(foreach image,$(publish-image-list),[publish-amazeeiolagoon]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeiolagoon
+publish-amazeeiolagoon: $(publish-amazeeiolagoon-images)
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-images)
+$(publish-amazeeiolagoon-images):
+#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+		$(call docker_publish_amazeeiolagoon,$(subst [publish-amazeeiolagoon]-,,$@))
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)
