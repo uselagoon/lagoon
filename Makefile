@@ -77,9 +77,8 @@ PUBLISH_TAG :=
 ####### Functions
 #######
 
-# Builds a docker image with a `--cache-from` of an Image with the same name and an Image with the
-# Tag defined with `TAG` (to use a maybe pulled image via `make pull` as layer caching). Expects as
-# arguments: name of the image, location of Dockerfile, path of Docker Build Context
+# Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
+# Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 
