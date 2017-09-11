@@ -101,6 +101,13 @@ baseimages := centos7 \
 							centos7-node8 \
 							centos7-node6-builder \
 							centos7-node8-builder \
+							centos7-mariadb10 \
+							centos7-mariadb10-drupal \
+							centos7-nginx1 \
+							centos7-nginx1-drupal \
+							centos7-php7.0 \
+							centos7-php7.0-drupal \
+							centos7-php7.0-drupal-builder \
 							oc \
 							oc-build-deploy
 
@@ -131,6 +138,13 @@ build/centos7-node6: build/centos7 images/centos7-node6/Dockerfile
 build/centos7-node8: build/centos7 images/centos7-node8/Dockerfile
 build/centos7-node6-builder: build/centos7-node6 images/centos7-node6/Dockerfile
 build/centos7-node8-builder: build/centos7-node8 images/centos7-node8/Dockerfile
+build/centos7-mariadb10: build/centos7 images/centos7-mariadb10/Dockerfile
+build/centos7-mariadb10-drupal: build/centos7-mariadb10 images/centos7-mariadb10-drupal/Dockerfile
+build/centos7-nginx1: build/centos7 images/centos7-nginx1/Dockerfile
+build/centos7-nginx1-drupal: build/centos7-nginx1 images/centos7-nginx1-drupal/Dockerfile
+build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
+build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
+build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
 build/oc: images/oc/Dockerfile
 build/oc-build-deploy: build/oc images/oc-build-deploy/Dockerfile
 
@@ -231,6 +245,7 @@ build-list:
 # Define list of all tests
 all-tests-list:= 	ssh-auth \
 									node \
+									drupal \
 									github \
 									gitlab \
 									rest \
@@ -266,6 +281,11 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
 $(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
+		$(eval testname = $(subst tests/,,$@))
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+
+tests/drupal: openshift build/centos7-mariadb10-drupal build/centos7-nginx1-drupal build/centos7-php7.0-drupal-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)

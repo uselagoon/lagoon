@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-git-checkout-pull $GIT_REPO $GIT_REF
+/scripts/git-checkout-pull.sh $GIT_REPO $GIT_REF
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 
@@ -31,6 +31,13 @@ fi
 
 docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 
+USE_DOCKER_COMPOSE_YAML=($(cat .amazeeio.yml | shyaml get-value docker-compose-yaml false))
+
+if [ ! $USE_DOCKER_COMPOSE_YAML == "false" ]; then
+  . /scripts/build-deploy-docker-compose.sh
+  exit
+fi
+
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
@@ -46,31 +53,39 @@ SERVICES=($(cat .amazeeio.yml | shyaml keys services))
 # export the services so Jenkins can load them afterwards to check the deployments
 cat .amazeeio.yml | shyaml keys services | tr '\n' ',' | sed 's/,$//' > .amazeeio.services
 
-for SERVICE in "${SERVICES[@]}"
+BUILD_ARGS=()
+
+for SERVICE_NAME in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type custom)
-  OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.dockerfile false)
-  BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.build.context .)
+  SERVICE_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.type custom)
+  OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.dockerfile false)
+  BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.context .)
 
   if [ $OVERRIDE_DOCKERFILE == "false" ]; then
     DOCKERFILE="/openshift-templates/${SERVICE_TYPE}/Dockerfile"
-    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+    if [ ! -f $DOCKERFILE ]; then
       echo "No Dockerfile for service type ${SERVICE_TYPE} found"; exit 1;
     fi
   else
     DOCKERFILE=$OVERRIDE_DOCKERFILE
     if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
-      echo "defined Dockerfile $DOCKERFILE for service $SERVICE not found"; exit 1;
+      echo "defined Dockerfile $DOCKERFILE for service $SERVICE_NAME not found"; exit 1;
     fi
   fi
 
-  . /usr/sbin/exec-build
+  IMAGE_TEMPORARY_NAME=${IMAGE}-${SERVICE_NAME}
+
+  . /scripts/exec-build.sh
+
+  # adding the build image to the list of arguments passed into the next image builds
+  BUILD_ARGS+=("${SERVICE_UPPERCASE}_IMAGE=${IMAGE_TEMPORARY_NAME}")
 done
 
-for SERVICE in "${SERVICES[@]}"
+for SERVICE_NAME in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.type custom)
-  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE.amazeeio.template false)
+  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.type custom)
+  OVERRIDE_TEMPLATE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.template false)
 
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
@@ -80,14 +95,21 @@ do
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE not found"; exit 1;
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_NAME not found"; exit 1;
     fi
   fi
 
-  . /usr/sbin/exec-openshift-resources
+  . /scripts/exec-openshift-resources.sh
 done
 
-for SERVICE in "${SERVICES[@]}"
+for SERVICE_NAME in "${SERVICES[@]}"
 do
-  . /usr/sbin/exec-push
+  IMAGE_NAME=$SERVICE_NAME
+  IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
+  . /scripts/exec-push.sh
+done
+
+for SERVICE_NAME in "${SERVICES[@]}"
+do
+  . /scripts/exec-monitor-deploy.sh
 done

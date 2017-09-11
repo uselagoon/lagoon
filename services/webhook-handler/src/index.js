@@ -1,5 +1,18 @@
 // @flow
 
+// // Handle signals properly
+// // see: https://github.com/nodejs/node-v0.x-archive/issues/9131
+// exitOnSignal('SIGINT');
+// exitOnSignal('SIGTERM');
+
+// function exitOnSignal(signal) {
+//   process.on(signal, function() {
+//     console.log('\ncaught ' + signal + ', exiting');
+//     // perform all required cleanup
+//     process.exit(0);
+//   });
+// }
+
 const http = require('http');
 const events = require('events');
 const amqp = require('amqp-connection-manager');

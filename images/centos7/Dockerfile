@@ -4,26 +4,26 @@ FROM centos:centos7
 # The Source2Image Project has a tool `fix-permissions` which takes a folder or file as argument and changes the persmissions of all included files and folders to
 # basically writeable by group, so that the user under which the docker container is running can access and write folder that it per default couldn't.
 # The installing of `fix-permissions` does not change anythying itself yet, it needs to be called for each folder during a Docker build process.
-RUN curl -sLo /usr/local/bin/fix-permissions https://raw.githubusercontent.com/sclorg/s2i-base-container/master/core/root/usr/bin/fix-permissions && \
-    chmod +x /usr/local/bin/fix-permissions
+RUN curl -sLo /bin/fix-permissions https://raw.githubusercontent.com/sclorg/s2i-base-container/master/core/root/usr/bin/fix-permissions && \
+    chmod +x /bin/fix-permissions
 
 # ep, or also called envplate is a tool that does enviornment variable substitution in files, instead of creating a new file with the variables substituted
 # it overwrites the existing files, which is more desirable in some cases.
-RUN curl -sLo /usr/local/bin/ep https://github.com/kreuzwerker/envplate/releases/download/1.0.0-RC1/ep-linux && \
-    chmod +x /usr/local/bin/ep
-
-# which is just good to have :)
-RUN yum install -y which && \
-    yum clean all
+RUN curl -sLo /bin/ep https://github.com/kreuzwerker/envplate/releases/download/1.0.0-RC1/ep-linux && \
+    chmod +x /bin/ep
 
 # As per best practices of Docker we run services like nginx, node, php, etc directly as the PID 1 of the container. Unfortunately some services are really
 # good in beeing PID 1. They for example can't handle SIGTERM signals or don't keep track of Zombie threads. Here is where `tini` comes into play.
 # Tini is a super slimmed down init system that makes sure that services will work correctly and stop themselves when there is a SIGTERM signal arriving.
 # It is not used by default in our Docker images, as some services like nginx are actually ok in handling beeing PID 1, so we in order to use it a Docker
-# Image needs to change its entrypoing to: ENTRYPOINT ["/tini", "--", "/usr/sbin/amazeeio-entrypoints"]
+# Image needs to change its entrypoing to: ENTRYPOINT ["/bin/tini", "--", "/usr/sbin/amazeeio-entrypoints"]
 ENV TINI_VERSION v0.15.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
+RUN curl -sLo /bin/tini  https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini && \
+    chmod +x /bin/tini
+
+# which is just good to have :)
+RUN yum install -y which && \
+    yum clean all
 
 # Define a TMP dir which the container can definitely write in.
 ENV TMPDIR=/tmp TMP=/tmp

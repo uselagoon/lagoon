@@ -1,0 +1,18 @@
+version: '2'
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - 8686:8080
+    amazeeio:
+      type: nginx:1.12
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    environment:
+      - TEST=TEST
+    amazeeio:
+      type: php:7.0

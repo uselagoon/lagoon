@@ -18,6 +18,7 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/rest.git && \
 	git --bare init /git/multisitegroup.git && \
 	git --bare init /git/node.git && \
+	git --bare init /git/drupal.git && \
 	git --bare init /git/hiera.git
 
 USER root

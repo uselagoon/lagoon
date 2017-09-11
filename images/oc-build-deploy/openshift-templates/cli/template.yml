@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeio-openshift-template-cli
+parameters:
+  - name: SERVICE_NAME
+    description: Name of this service
+    required: true
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    required: true
+  - name: SAFE_SITEGROUP
+    description: Which sitegroup this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
+    required: true
+  - name: SITEGROUP
+    description: Which sitegroup this belongs to, original value
+    required: true
+  - name: AMAZEEIO_GIT_SHA
+    description: git hash sha of the current deployment
+    required: true
+  - name: ROUTER_URL
+    description: URL of the Router
+    required: true
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      service: ${SERVICE_NAME}
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          sitegroup: ${SAFE_SITEGROUP}
+      spec:
+        containers:
+        - image: ' '
+          name: ${SERVICE_NAME}
+          env:
+            - name: AMAZEEIO_GIT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_BRANCH
+            - name: AMAZEEIO_GIT_SAFE_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SAFE_BRANCH
+            ## AMAZEEIO_GIT_SHA is injected directly and not loaded via `amazeeio-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: AMAZEEIO_GIT_SHA
+              value: ${AMAZEEIO_GIT_SHA}
+            - name: AMAZEEIO_SITEGROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_SITEGROUP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${SERVICE_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${SERVICE_NAME}:latest
+      type: ImageChange
+  status: {}

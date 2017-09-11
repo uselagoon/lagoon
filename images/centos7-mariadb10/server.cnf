@@ -1,0 +1,33 @@
+[mysqld]
+character_set_server = utf8
+collation_server = utf8_bin
+expire_logs_days = 10
+ignore_db_dirs= lost+found
+innodb_buffer_pool_size = ${MARIADB_INNODB_BUFFER_POOL_SIZE:-256M}
+innodb_file_format = Barracuda
+innodb_large_prefix = 1
+innodb_log_buffer_size = 32M
+innodb_log_file_size = 100M
+join_buffer_size = 2M
+key_buffer_size = 16M
+max_allowed_packet = 64M
+max_binlog_size = 100M
+max_connections = 400
+max_heap_table_size = 512M
+myisam-recover-options = BACKUP
+query_cache_limit = 1M
+query_cache_size = 128M
+skip-external-locking
+skip_name_resolve = 1
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql-slow.log
+table_open_cache = 200000
+thread_cache_size = 8
+thread_stack = 256K
+tmp_table_size = 512M
+tmpdir = /tmp
+transaction-isolation = READ-COMMITTED
+socket = /tmp/mysql.sock
+
+[isamchk]
+key_buffer_size = 16M
