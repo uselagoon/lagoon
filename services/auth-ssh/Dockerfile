@@ -15,7 +15,7 @@ RUN cd /usr/src && wget http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/open
 RUN ls -l /home/rpmbuild/RPMS/x86_64/
 
 ARG AMAZEEIO_GIT_BRANCH
-FROM ${IMAGE_REPO:-lagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest}
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest}
 
 COPY --from=builder /home/rpmbuild/RPMS/x86_64 /home/openssh
 
