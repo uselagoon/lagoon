@@ -36,6 +36,24 @@ amazeeio_sitegroups:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
+  ci-bitbucket:
+    client: deploytestclient
+    git_url: 'git@local-git:/git/bitbucket.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: amazeeio-testing
+    openshift:
+      console: https://192.168.99.100:8443/
+      registry: 192.168.99.100:30000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
   ci-rest:
     client: deploytestclient
     git_url: 'git@local-git:/git/rest.git'

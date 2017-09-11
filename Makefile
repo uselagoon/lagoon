@@ -248,6 +248,7 @@ all-tests-list:= 	ssh-auth \
 									drupal \
 									github \
 									gitlab \
+									bitbucket \
 									rest \
 									multisitegroup
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
@@ -291,7 +292,7 @@ tests/drupal: openshift build/centos7-mariadb10-drupal build/centos7-nginx1-drup
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
-webhook-tests = github gitlab
+webhook-tests = github gitlab bitbucket
 run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks

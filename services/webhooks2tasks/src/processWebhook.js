@@ -6,6 +6,8 @@ const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
 const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
+const bitbucketPush = require('./handlers/bitbucketPush');
+const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
 const gitlabPush = require('./handlers/gitlabPush');
 const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 
@@ -105,6 +107,14 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
           await handle(githubBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
         } else {
           await handle(githubPush, webhook, siteGroup, `${webhooktype}:${event}`)
+        }
+
+        break;
+      case "bitbucket:repo:push":
+        if (body.push.changes[0].closed === true) {
+          await handle(bitbucketBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+        } else {
+          await handle(bitbucketPush, webhook, siteGroup, `${webhooktype}:${event}`)
         }
 
         break;
