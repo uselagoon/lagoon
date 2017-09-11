@@ -1,6 +1,6 @@
 ARG AMAZEEIO_GIT_BRANCH
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest} as builder
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest} as builder
 
 RUN yum install -y rpm-build gcc make wget openssl-devel krb5-devel pam-devel libX11-devel xmkmf libXt-devel
 RUN cd /usr/src && wget http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.5p1.tar.gz && tar -xvzf openssh-7.5p1.tar.gz && \
