@@ -54,8 +54,7 @@ objects:
     template:
       metadata:
         labels:
-          app:
-            - mariadb-cluster
+          app: mariadb-cluster
         annotations:
           pod.alpha.kubernetes.io/initialized: "true"
       spec:
