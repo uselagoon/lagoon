@@ -15,6 +15,7 @@ RUN mkdir -m 700 /git/.ssh && \
 	touch /git/.hushlogin && \
 	git --bare init /git/github.git && \
 	git --bare init /git/gitlab.git && \
+	git --bare init /git/bitbucket.git && \
 	git --bare init /git/rest.git && \
 	git --bare init /git/multisitegroup.git && \
 	git --bare init /git/node.git && \

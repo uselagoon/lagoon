@@ -48,6 +48,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "github:pull_request:closed:handled":
     case "github:delete:handled":
     case "github:push:handled":
+    case "bitbucket:repo:push:handled":
     case "gitlab:push:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
