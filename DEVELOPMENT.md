@@ -8,13 +8,8 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 ## Start Services
 
-1. Add `172.30.0.0/16` to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 6GB Ram. Also check that nothing is running on localhost:80 and localhost:443, as OpenShift will use these ports to run.
+1. Add `192.168.99.0/24 to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
 
-2. Pull existing images for faster building as we use Docker Layer Caching
-
-```sh
-make pull
-```
 
 Important: Lagoon consists of a lot of Services and Docker Images, building and running them locally might not even be necessary.
 We're using make (see the [Makefile](./Makefile)) in order to only build the needed Docker Images specifically for a part of Lagoon.
