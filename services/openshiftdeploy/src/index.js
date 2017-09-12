@@ -110,25 +110,6 @@ const messageConsumer = async msg => {
     `
   }
 
-  // If we don't have an OpenShift token, start an amazeeio/oc container which will log us in and then get the token.
-  let getTokenStage
-  if (openshiftToken == "") {
-    getTokenStage =
-    `
-      stage ('get oc token') {
-        env.OPENSHIFT_TOKEN = sh script: 'docker run --rm -e OPENSHIFT_USERNAME="${openshiftUsername}" -e OPENSHIFT_PASSWORD="${openshiftPassword}" -e OPENSHIFT_CONSOLE="${openshiftConsole}" amazeeio/oc oc whoami -t', returnStdout: true
-        env.OPENSHIFT_TOKEN = env.OPENSHIFT_TOKEN.trim()
-      }
-    `
-  } else {
-    getTokenStage =
-    `
-      stage ('get oc token') {
-        env.OPENSHIFT_TOKEN = "${openshiftToken}"
-      }
-    `
-  }
-
   var shortName = `${safeBranchName}-${safeSiteGroupName}`.substring(0, 24).replace(/[^a-z0-9]+$/, '')
   var buildName = gitSha ? gitSha.substring(0, 7) : branchName
   // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
@@ -141,8 +122,6 @@ node {
 
   ${ocBuildDeploystage}
 
-  ${getTokenStage}
-
   stage ('Deploy') {
     sh """docker run --rm \\
     ${dockerRunParam} \\
@@ -151,7 +130,9 @@ node {
     -e OPENSHIFT_CONSOLE="${openshiftConsole}" \\
     -e OPENSHIFT_REGISTRY="${openshiftRegistry}" \\
     -e APPUIO_TOKEN="${appuioToken}" \\
-    -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" \\
+    -e OPENSHIFT_TOKEN="${openshiftToken}" \\
+    -e OPENSHIFT_PASSWORD="${openshiftPassword}" \\
+    -e OPENSHIFT_USERNAME="${openshiftUsername}" \\
     -e OPENSHIFT_PROJECT="${openshiftProject}" \\
     -e OPENSHIFT_PROJECT_USER="${openshiftProjectUser}" \\
     -e OPENSHIFT_ROUTER_URL="${openshiftRessourceRouterUrl}" \\
