@@ -79,34 +79,13 @@ const messageConsumer = async function(msg) {
   </com.cloudbees.hudson.plugins.folder.Folder>
   `
 
-  // If we don't have an OpenShift token, start an amazeeio/oc container which will log us in and then get the token.
-  let getTokenStage
-  if (openshiftToken == "") {
-    getTokenStage =
-    `
-      stage ('get oc token') {
-        env.OPENSHIFT_TOKEN = sh script: 'docker run --rm -e OPENSHIFT_USERNAME="${openshiftUsername}" -e OPENSHIFT_PASSWORD="${openshiftPassword}" -e OPENSHIFT_CONSOLE="${openshiftConsole}" amazeeio/oc oc whoami -t', returnStdout: true
-        env.OPENSHIFT_TOKEN = env.OPENSHIFT_TOKEN.trim()
-      }
-    `
-  } else {
-    getTokenStage =
-    `
-      stage ('get oc token') {
-        env.OPENSHIFT_TOKEN = "${openshiftToken}"
-      }
-    `
-  }
-
   var jobdsl =
   `
   node {
 
-    ${getTokenStage}
-
     stage ('oc delete') {
       sh """
-        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="\${env.OPENSHIFT_TOKEN}" amazeeio/oc oc --insecure-skip-tls-verify delete project ${openshiftProject} || true
+        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="${openshiftToken}" -e OPENSHIFT_USERNAME="${openshiftUsername}" -e OPENSHIFT_PASSWORD="${openshiftPassword}" amazeeio/oc oc --insecure-skip-tls-verify delete project ${openshiftProject} || true
       """
     }
   }
