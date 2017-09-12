@@ -31,35 +31,46 @@ objects:
   metadata:
     annotations:
       service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-    name: mariadb-cluster
+    name: galera
     labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      sitegroup: ${SAFE_SITEGROUP}
-      ha: "true"
-      cluster: "true"
+      app: mysql
+      amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
+      branch: ${BRANCH}
+      router_url: ${ROUTER_URL}
+      safe_branch: ${SAFE_BRANCH}
+      safe_sitegroup: ${SAFE_SITEGROUP}
+      service_name: ${SERVICE_NAME}
+      sitegroup: ${SITEGROUP}
   spec:
     ports:
     - port: 3306
-      targetPort: mysql
+      name: mysql
+    clusterIP: None
     selector:
-      service: ${SERVICE_NAME}
+      app: mysql
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: mariadb-cluster
+    name: mysql
   spec:
-    serviceName: mariadb-cluster
-    replicas: "3"
+    serviceName: "galera"
+    replicas: 3
     template:
       metadata:
         labels:
-          app: mariadb-cluster
+          app: mysql
+          amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
+          branch: ${BRANCH}
+          router_url: ${ROUTER_URL}
+          safe_branch: ${SAFE_BRANCH}
+          safe_sitegroup: ${SAFE_SITEGROUP}
+          service_name: ${SERVICE_NAME}
+          sitegroup: ${SITEGROUP}
         annotations:
           pod.alpha.kubernetes.io/initialized: "true"
       spec:
         containers:
-        - name: mariadb-cluster
+        - name: mysql
           image: adfinissygroup/k8s-mariadb-galera-centos:v003
           imagePullPolicy: Always
           ports:
