@@ -13,6 +13,7 @@ RUN cp /usr/sbin/container-entrypoint /usr/sbin/parent-container-entrypoint
 
 COPY docker-entrypoint.sh /usr/sbin/docker-entrypoint
 COPY build-deploy.sh /usr/sbin/build-deploy
+COPY build-deploy-docker-compose.sh /build-deploy-docker-compose.sh
 
 COPY scripts /scripts
 
