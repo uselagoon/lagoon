@@ -1,4 +1,3 @@
-<?php
 global $sitegroup_name;
 
 // For CI: allow to completely disable amazee.io alias loading
@@ -125,7 +124,7 @@ $query = sprintf('{
 }', $sitegroup_name);
 
 $api = getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') ? getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') : 'https://api.amazeeio.services/graphql';
-$jwt_token = getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') ? getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') : 'xxxx';
+$jwt_token = getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') ? getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc2hLZXkiOiJBQUFBQzNOemFDMWxaREkxTlRFNUFBQUFJTU9XTkg4VFpITGlFamJZNzNlbC9PNGp4cUdaczVzQjZ1MFdRTTFWZUVreiIsImlzcyI6ImF1dGgtc2VydmVyLmRldiIsInJvbGUiOiJkcnVzaCIsImF1ZCI6ImFwaS5kZXYiLCJpYXQiOjE1MDQ0MzA2NDh9.mpQKsKaA4WgriFQvzz2cgggG_8OBY0G9VpKpKx3uhas';
 
 drush_log("Using $api as amazee.io API endpoint");
 
