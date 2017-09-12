@@ -378,7 +378,7 @@ endif
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
 openshift/stop: local-dev/oc/oc
-	docker-machine stop -y $(CI_BUILD_TAG)
+	docker-machine stop $(CI_BUILD_TAG)
 	rm openshift
 
 # Stop OpenShift, remove downloaded cli, remove loopback
