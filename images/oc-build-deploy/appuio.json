@@ -1,12 +1,12 @@
 {
     "adminUids": [
-        "technology@amazee.io"
+        "technology@amazee.io",
+        "system:serviceaccount:amze-amazeeio:jenkins"
     ],
     "created": CREATED,
     "customerId": "amazee",
     "editorUids": [
-        "system:serviceaccount:amze-amazeeio-prod:jenkins",
-        "system:serviceaccount:amze-amazeeio:jenkins"
+        "system:serviceaccount:amze-amazeeio-prod:jenkins"
     ],
     "id": "PROJECTID",
     "name": "PROJECTID",
