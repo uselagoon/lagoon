@@ -5,7 +5,6 @@
   "main": "build/index.js",
   "license": "MIT",
   "scripts": {
-    "postinstall": "ln -s ../../../node_modules/.bin node_modules/.bin #fix for not linked bin folder from root only needed till yarn v0.28.4 (https://github.com/yarnpkg/yarn/pull/3896)",
     "start": "flow-node build/index.js",
     "build": "flow-remove-types --out-dir build/ src/",
     "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"

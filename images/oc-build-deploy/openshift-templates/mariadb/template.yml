@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: amazeeio-openshift-template-mariadb
+parameters:
+  - name: SERVICE_NAME
+    description: Name of this service
+    required: true
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    required: true
+  - name: SAFE_SITEGROUP
+    description: Which sitegroup this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
+    required: true
+  - name: SITEGROUP
+    description: Which sitegroup this belongs to, original value
+    required: true
+  - name: AMAZEEIO_GIT_SHA
+    description: git hash sha of the current deployment
+    required: true
+  - name: ROUTER_URL
+    description: URL of the Router
+    required: true
+objects:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${SERVICE_NAME}-data
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      service: ${SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          sitegroup: ${SAFE_SITEGROUP}
+      spec:
+        volumes:
+          - name: ${SERVICE_NAME}-data
+            persistentVolumeClaim:
+              claimName: ${SERVICE_NAME}-data
+        containers:
+        - image: ' '
+          name: ${SERVICE_NAME}
+          ports:
+          - containerPort: 3306
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          volumeMounts:
+            - name: ${SERVICE_NAME}-data
+              mountPath: /var/lib/mysql
+          env:
+            - name: AMAZEEIO_GIT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_BRANCH
+            - name: AMAZEEIO_GIT_SAFE_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SAFE_BRANCH
+            - name: AMAZEEIO_GIT_SHA
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_GIT_SHA
+            - name: AMAZEEIO_SITEGROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: amazeeio-env
+                  key: AMAZEEIO_SITEGROUP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${SERVICE_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${SERVICE_NAME}:latest
+      type: ImageChange
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      sitegroup: ${SAFE_SITEGROUP}
+    name: ${SERVICE_NAME}
+  spec:
+    ports:
+    - name: 3306-tcp
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+    selector:
+      service: ${SERVICE_NAME}
+  status:
+    loadBalancer: {}

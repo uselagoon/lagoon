@@ -1,78 +1,91 @@
 node {
+  // During creating openshift, 'oc cluster up' creates some config files (for docker login, oc login, etc)
+  // They are by default put in $HOME, where it could happen that multiple builds put the same files and overwrite each
+  // other and lead to weird build fails. We're setting the HOME directory to the current workspace to prevent that
+  env.HOME = env.WORKSPACE
+
+  // MACHINE_STORAGE_PATH will be used by docker-machine and 'oc cluster up' to define where to put the docker machines
+  // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
+  // Jenkins HOME Folder
+  env.MACHINE_STORAGE_PATH = "${env.JENKINS_HOME}/.docker/machine"
+  env.VBOX_USER_HOME = "${env.JENKINS_HOME}/.config/VirtualBox"
+
   try {
-    def docker_compose = "docker run -t --rm -e BUILD_TAG=\$BUILD_TAG -v \$WORKSPACE:\$WORKSPACE -v /var/run/docker.sock:/var/run/docker.sock -w \$WORKSPACE docker/compose:1.13.0 -f docker-compose.ci.yaml -p lagoon"
+    env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
     env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
-    env.BUILD_TAG = env.BUILD_TAG.toLowerCase() // We use the buildtag as Docker Repository name which needs to be lowercase
 
     deleteDir()
 
-    notifySlack('RECEIVED')
-
     stage ('Checkout') {
-      checkout scm
+      def checkout = checkout scm
+      env.GIT_COMMIT = checkout["GIT_COMMIT"]
     }
 
-    lock('minishift') {
-      notifySlack()
-      ansiColor('xterm') {
-        try {
-          parallel (
-            'start services': {
-              stage ('build base images') {
-                sh "./buildBaseImages.sh"
-              }
-              stage ('start services') {
-                sh "${docker_compose} build"
-                sh "${docker_compose} up -d --force"
-              }
-            },
-            'start openshift': {
-              stage ('start openshift') {
-                sh './startOpenShift.sh'
-              }
-            }
-          )
-        } catch (e) {
-          echo "Something went wrong, trying to cleanup"
-          cleanup(docker_compose)
-          throw e
-        }
+    notifySlack()
 
-          parallel (
-            '_tests': {
-                stage ('run tests') {
-                  try {
-                    sh "${docker_compose} run --rm tests ansible-playbook /ansible/tests/ALL.yaml"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup(docker_compose)
-                    throw e
-                  }
-                  cleanup(docker_compose)
-                }
-            },
-            'logs': {
-                stage ('all') {
-                  sh "${docker_compose} logs -f "
-                }
-            }
-          )
+    try {
+      parallel (
+        'build & start services': {
+          stage ('build images') {
+            sh "make build"
+          }
+          stage ('start services') {
+            sh "make up-no-ports"
+          }
+        },
+        'start openshift': {
+          stage ('start openshift') {
+            sh 'make openshift'
+          }
         }
+      )
+    } catch (e) {
+      echo "Something went wrong, trying to cleanup"
+      cleanup()
+      throw e
     }
 
-    stage ('tag_push') {
+    parallel (
+      '_tests': {
+          stage ('run tests') {
+            try {
+              sh "sleep 30"
+              sh "make tests -j2"
+            } catch (e) {
+              echo "Something went wrong, trying to cleanup"
+              cleanup()
+              throw e
+            }
+            cleanup()
+          }
+      },
+      'logs': {
+          stage ('all') {
+            sh "make logs"
+          }
+      }
+    )
+
+
+    stage ('publish-amazeeiolagoon') {
       withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
         sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-        sh "./buildBaseImages.sh tag_push amazeeiodev -${SAFEBRANCH_NAME}"
+        sh "make publish-amazeeiolagoon PUBLISH_TAG=${SAFEBRANCH_NAME}"
       }
     }
 
     if (env.BRANCH_NAME == 'master') {
-      stage ('tag_push') {
+      stage ('publish-amazeeio') {
         withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
           sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-          sh "./buildBaseImages.sh tag_push amazeeio"
+          sh "make publish-amazeeio"
         }
+      }
+    }
+
+    if (env.BRANCH_NAME ==~ /develop|master/) {
+      stage ('start-lagoon-deploy') {
+        sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"siteGroupName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
       }
     }
   } catch (e) {
@@ -84,10 +97,11 @@ node {
 
 }
 
-def cleanup(docker_compose) {
+def cleanup() {
   try {
-    sh "${docker_compose} down -v"
-    sh "./local-dev/minishift/minishift delete"
+    sh "make down"
+//    sh "make openshift/clean"
+//    sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }
@@ -105,8 +119,6 @@ def notifySlack(String buildStatus = 'STARTED') {
         color = '#BDFFC3'
     } else if (buildStatus == 'UNSTABLE') {
         color = '#FFFE89'
-    } else if (buildStatus == 'RECEIVED') {
-        color = '#D4DADF'
     } else {
         color = '#FF9FA1'
     }

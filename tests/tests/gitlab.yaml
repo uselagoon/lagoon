@@ -3,6 +3,6 @@
   vars:
     testname: "GITLAB - slash branch"
     node_version: 8
-    git_repo_name: repo.git
-    sitegroup: ci-repo
+    git_repo_name: gitlab.git
+    sitegroup: ci-gitlab
     branch: gitlab/slash/branch

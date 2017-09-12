@@ -1,0 +1,57 @@
+version: '2'
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+    image: builder
+    labels:
+      com.amazeeio.type: none
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+    labels:
+      com.amazeeio.type: cli
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    labels:
+      com.amazeeio.type: nginx-php
+      com.amazeeio.name: nginx-php
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+    expose:
+      - "8080"
+    environment:
+      - AMAZEEIO_URL=drupal.docker.amazee.io
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    labels:
+      com.amazeeio.type: nginx-php
+      com.amazeeio.name: nginx-php
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+    labels:
+      com.amazeeio.type: mariadb
+networks:
+  amazeeio-network:
+    external: true

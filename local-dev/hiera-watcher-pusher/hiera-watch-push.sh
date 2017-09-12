@@ -18,8 +18,11 @@ watch_hierafolder() {
         chsum2=`find /home/hiera -type f -exec md5sum {} \;`
         if [[ $chsum1 != $chsum2 ]] ; then
             echo "******* found changes in /home/hiera, pushing to $GIT_REPO"
-            add_and_push
-            chsum1=$chsum2
+            if add_and_push; then
+                chsum1=$chsum2
+            else
+                echo '**** ERROR while pushing, will try again.'
+            fi
         fi
         sleep 2
     done

@@ -2,7 +2,7 @@
 amazeeio_sitegroups:
   ci-node_subfolder1:
     client: deploytestclient
-    git_url: 'git@git:/git/node_subfolder.git'
+    git_url: 'git@local-git:/git/node_subfolder.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -20,7 +20,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshift
   ci-node1:
     client: deploytestclient
-    git_url: 'git@git:/git/node.git'
+    git_url: 'git@local-git:/git/node.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -37,7 +37,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshift
   ci-node_subfolder2:
     client: deploytestclient
-    git_url: 'git@git:/git/node_subfolder.git'
+    git_url: 'git@local-git:/git/node_subfolder.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
@@ -55,7 +55,7 @@ amazeeio_sitegroups:
       remove: lagoon_openshift
   ci-node2:
     client: deploytestclient
-    git_url: 'git@git:/git/node.git'
+    git_url: 'git@local-git:/git/node.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing

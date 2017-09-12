@@ -1,0 +1,17 @@
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for the hash"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx-php.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_SHA={{ expected_head }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for branch name"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx-php.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "AMAZEEIO_GIT_BRANCH={{ expected_branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml

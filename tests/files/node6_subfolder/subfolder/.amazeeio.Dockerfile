@@ -1,9 +1,9 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/centos7-node-builder:6 as builder
+FROM ${IMAGE_REPO:-lagoon}/centos7-node6-builder as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM ${IMAGE_REPO:-amazeeio}/centos7-node:6
+FROM ${IMAGE_REPO:-lagoon}/centos7-node6
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 

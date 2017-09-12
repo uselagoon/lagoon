@@ -51,8 +51,15 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       uuid = uuid4();
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
     } else if ('x-event-key' in req.headers) {
-      webhooktype = 'bitbucket';
-      event = req.headers['x-event-key'];
+      webhooktype = 'bitbucket'
+      event = req.headers['x-event-key']
+      uuid = req.headers['x-request-uuid']
+      // Bitbucket does not provide a git-ssh URI to the repo in the webhook payload
+      // We the html repo link (example https://bitbucket.org/teamawesome/repository) to extract the correct target domain (bitbucket.org)
+      // this could be bitbuck.org(.com) or a private bitbucket server
+      const domain = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)\//i)
+      // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
+      giturl = `git@${domain[1]}:${bodyObj.repository.full_name}.git`
     } else {
       throw new Error('No supported event header found on POST request');
     }

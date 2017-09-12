@@ -1,16 +1,13 @@
-FROM amazeeio/centos7-node-builder:6 as builder
+ARG AMAZEEIO_GIT_BRANCH
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
 ENV NODE_ENV production
-COPY services/hacky-rest2tasks-ui/package.json services/hacky-rest2tasks-ui/yarn.lock /app/
+COPY package.json yarn.lock /app/
 RUN BUILD_ONLY=true yarn install --pure-lockfile && yarn cache clean
 
-FROM amazeeio/centos7-node:6
-ENV NODE_ENV production
-COPY --from=builder /app/node_modules /app/node_modules
-COPY services/hacky-rest2tasks-ui /app
+COPY . /app
 
 RUN yarn run build
-
-RUN fix-permissions /app/
 
 CMD ["yarn", "start"]
 
