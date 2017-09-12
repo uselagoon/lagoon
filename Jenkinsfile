@@ -8,6 +8,7 @@ node {
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
   // Jenkins HOME Folder
   env.MACHINE_STORAGE_PATH = "${env.JENKINS_HOME}/.docker/machine"
+  env.VBOX_USER_HOME = "${env.JENKINS_HOME}/.config/VirtualBox"
 
   try {
     env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
