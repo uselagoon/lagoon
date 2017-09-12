@@ -16,7 +16,8 @@ node {
     deleteDir()
 
     stage ('Checkout') {
-      checkout scm
+      def checkout = checkout scm
+      env.GIT_COMMIT = checkout["GIT_COMMIT"]
     }
 
     notifySlack()
@@ -78,6 +79,12 @@ node {
           sh 'docker login -u amazeeiojenkins -p $PASSWORD'
           sh "make publish-amazeeio"
         }
+      }
+    }
+
+    if (env.BRANCH_NAME ==~ /develop|master/) {
+      stage ('start-lagoon-deploy') {
+        sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"siteGroupName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
       }
     }
   } catch (e) {
