@@ -57,8 +57,12 @@ do
   DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
   BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
-  if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
-    echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
+  if [ $DOCKERFILE == "false" ]; then
+    echo "No Dockerfile for service ${IMAGE_NAME} defined"; exit 1;
+  else
+    if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
+      echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
+    fi
   fi
 
   IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}

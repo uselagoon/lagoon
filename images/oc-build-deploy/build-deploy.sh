@@ -34,7 +34,7 @@ docker login -u=jenkins -p="${OPENSHIFT_TOKEN}" ${OPENSHIFT_REGISTRY}
 USE_DOCKER_COMPOSE_YAML=($(cat .amazeeio.yml | shyaml get-value docker-compose-yaml false))
 
 if [ ! $USE_DOCKER_COMPOSE_YAML == "false" ]; then
-  . /scripts/build-deploy-docker-compose.sh
+  . /build-deploy-docker-compose.sh
   exit
 fi
 
@@ -59,16 +59,12 @@ for SERVICE_NAME in "${SERVICES[@]}"
 do
   SERVICE_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
   SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.type custom)
-  OVERRIDE_DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.dockerfile false)
+  DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.dockerfile false)
   BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.context .)
 
-  if [ $OVERRIDE_DOCKERFILE == "false" ]; then
-    DOCKERFILE="/openshift-templates/${SERVICE_TYPE}/Dockerfile"
-    if [ ! -f $DOCKERFILE ]; then
-      echo "No Dockerfile for service type ${SERVICE_TYPE} found"; exit 1;
-    fi
+  if [ $DOCKERFILE == "false" ]; then
+    echo "No Dockerfile for service type ${SERVICE_TYPE} defined"; exit 1;
   else
-    DOCKERFILE=$OVERRIDE_DOCKERFILE
     if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
       echo "defined Dockerfile $DOCKERFILE for service $SERVICE_NAME not found"; exit 1;
     fi
