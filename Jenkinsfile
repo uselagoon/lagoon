@@ -99,8 +99,8 @@ node {
 def cleanup() {
   try {
     sh "make down"
-    sh "make openshift/clean"
-    sh "make clean"
+//    sh "make openshift/clean"
+//    sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }
