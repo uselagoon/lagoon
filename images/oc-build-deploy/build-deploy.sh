@@ -52,7 +52,7 @@ SERVICES=($(cat .amazeeio.yml | shyaml keys services))
 
 # export the services so Jenkins can load them afterwards to check the deployments
 for i in `cat .amazeeio.yml | shyaml keys services`; do
-cat .amazeeio.yml | shyaml get-value services.$i.amazeeio.persistant > /dev/null 2>/dev/null || echo $i
+cat .amazeeio.yml | shyaml get-value services.$i.amazeeio.persistent > /dev/null 2>/dev/null || echo $i
 done | tr '\n' ',' | sed 's/,$//'  > .amazeeio.services
 
 BUILD_ARGS=()
