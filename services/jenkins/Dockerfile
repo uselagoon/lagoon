@@ -2,7 +2,7 @@ FROM jenkinsci/jenkins
 
 # Installing the Docker Client
 USER root
-RUN usermod -G root -a jenkins && \
+RUN /usr/sbin/usermod -G root -a jenkins && \
     wget -q https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz -O /tmp/docker.tgz && \
     tar xfvz /tmp/docker.tgz -C /tmp/ && \
     cp /tmp/docker/docker /usr/local/bin
