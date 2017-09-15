@@ -52,7 +52,6 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 5. Describe first token \(token are random generated, so yours will probably have another name\)
 
-
         oc describe secret lagoon-token-dkgwz
 
   example:
