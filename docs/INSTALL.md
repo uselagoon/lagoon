@@ -16,24 +16,25 @@ In order to create resources inside OpenShift and push into the OpenShift Regist
 
 Technically Lagoon can use any Service Account and also needs no admin permissions, the only requirement is that the `self-provisioner` role is given to the Service Account.
 
-In this example we create the Service Account `lagoon` in the OpenShift Project `default`. 
+In this example we create the Service Account `lagoon` in the OpenShift Project `default`.
 
 1. Login into OpenShift as an Admin \(we assume that you have the oc cli tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli)\)
-   ```
-   oc login https://console-vmw-drupal.urz.uni-heidelberg.de/console/
-   ```
+
+        oc login https://console-vmw-drupal.urz.uni-heidelberg.de/console/
+
 2. Switch to the project default
 
-   `oc project default`
+        oc project default
 
-3. Create Service Account `lagoon`.  
-   `oc create serviceaccount lagoon`
+3. Create Service Account `lagoon`.
 
-4. Describe lagoon \(we are interested in the first token\):  
-   oc describe serviceaccount lagoon  
-  
-   example output:  
-  
+        oc create serviceaccount lagoon
+
+4. Describe lagoon \(we are interested in the first token\):
+   oc describe serviceaccount lagoon
+
+   example output:
+
    $ oc describe serviceaccount lagoon
 
    Name:		lagoon
@@ -60,10 +61,10 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
                       	lagoon-token-kvlv0
 
-5. Describe first token \(token are random generated, so yours will probably have another name\)  
-   oc describe secret lagoon-token-dkgwz  
-  
-   example:  
+5. Describe first token \(token are random generated, so yours will probably have another name\)
+   oc describe secret lagoon-token-dkgwz
+
+   example:
    Name:		lagoon-token-dkgwz
 
    Namespace:	default
@@ -96,7 +97,7 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 6. We are interested in the `token`, keep that for now somewhere safe.
 
-7. Add Service Account lagoon to cluster role self-provisioner \(this will allow lagoon to create new projects in OpenShift\)  
+7. Add Service Account lagoon to cluster role self-provisioner \(this will allow lagoon to create new projects in OpenShift\)
    oc adm policy add-cluster-role-to-user self-provisioner -z lagoon
 
 
@@ -108,12 +109,12 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. There are some specific make commands that build and start the needed services for you.
 
 1. Edit `lagoon-kickstart` inside local-dev/hiera/amazeeio/sitegroups.yaml, with:
-   1. `openshift.console` - The URL to the OpenShift Console, without 
+   1. `openshift.console` - The URL to the OpenShift Console, without
 
 1. Build required Images and start services:
    make lagoon-kickstart
 
-2. 
+2.
 
 
 
