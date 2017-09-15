@@ -39,27 +39,15 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
         $ oc describe serviceaccount lagoon
 
         Name:		lagoon
-
         Namespace:	default
-
         Labels:		&lt;none&gt;
-
         Annotations:	&lt;none&gt;
-
-
-
         Image pull secrets:	lagoon-dockercfg-9q303
 
-
-
         Mountable secrets: 	lagoon-token-kvlv0
-
                               lagoon-dockercfg-9q303
 
-
-
         Tokens:            	lagoon-token-dkgwz
-
                               lagoon-token-kvlv0
 
 5. Describe first token \(token are random generated, so yours will probably have another name\)
