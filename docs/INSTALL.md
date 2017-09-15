@@ -52,39 +52,33 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 5. Describe first token \(token are random generated, so yours will probably have another name\)
 
-      oc describe secret lagoon-token-dkgwz
 
-   example:
+        oc describe secret lagoon-token-dkgwz
 
-      Name:		lagoon-token-dkgwz
+  example:
 
-      Namespace:	default
+        Name:		lagoon-token-dkgwz
 
-      Labels:		&lt;none&gt;
+        Namespace:	default
 
-      Annotations:	kubernetes.io/created-by=openshift.io/create-dockercfg-secrets
+        Labels:		&lt;none&gt;
 
-          kubernetes.io/service-account.name=lagoon
+        Annotations:	kubernetes.io/created-by=openshift.io/create-dockercfg-secrets
+            kubernetes.io/service-account.name=lagoon
+            kubernetes.io/service-account.uid=190342fc-99db-11e7-8e14-005056a1ae62
 
-          kubernetes.io/service-account.uid=190342fc-99db-11e7-8e14-005056a1ae62
+        Type:	kubernetes.io/service-account-token
 
+        Data
+        ====
 
+        service-ca.crt:	2186 bytes
 
-      Type:	kubernetes.io/service-account-token
+        token:		eyJhbGciOiJdfasdfNiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImxhZ29vbi10b2tlbi1kadasdfasdfasfV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIxOTA3NDlmYy05OWRiLTExZTctOGUxNC0wMDUwNTZhMWFlNjIiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpsYWdvb24ifQ.TD6zFNtxgSzpQV3IpF5uXDm96XWUqseMqxabPA3cLh9V5qrqoolJ73ZW3a8lx2klzTY20XDV4HpiTIMuqayjrljkc46\_JaWpkPwsDLl61jQdldVrO7PtAXZ-UD4AgDqVfchLhObDn1azlkudohYPtPvYsh8Qv8F1RPWQTpMaFywSLEza8MmrJWrnTCZ6d9V48Duzsmu5Jn2luS8NgmAN2375l5vYYD2fA4CLOUuOqBFrGjQasdfasdffq3np5ZsBMlg0piOREJEwul7hKfPxxMEblHZw7VZUvMleod9jCQmnwrrr5h8rprRV5wfHmpTFiC5JPV6UZGhA\_2gjOVw
 
+        ca.crt:		1070 bytes
 
-
-      Data
-
-      ====
-
-      service-ca.crt:	2186 bytes
-
-      token:		eyJhbGciOiJdfasdfNiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImxhZ29vbi10b2tlbi1kadasdfasdfasfV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIxOTA3NDlmYy05OWRiLTExZTctOGUxNC0wMDUwNTZhMWFlNjIiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpsYWdvb24ifQ.TD6zFNtxgSzpQV3IpF5uXDm96XWUqseMqxabPA3cLh9V5qrqoolJ73ZW3a8lx2klzTY20XDV4HpiTIMuqayjrljkc46\_JaWpkPwsDLl61jQdldVrO7PtAXZ-UD4AgDqVfchLhObDn1azlkudohYPtPvYsh8Qv8F1RPWQTpMaFywSLEza8MmrJWrnTCZ6d9V48Duzsmu5Jn2luS8NgmAN2375l5vYYD2fA4CLOUuOqBFrGjQasdfasdffq3np5ZsBMlg0piOREJEwul7hKfPxxMEblHZw7VZUvMleod9jCQmnwrrr5h8rprRV5wfHmpTFiC5JPV6UZGhA\_2gjOVw
-
-      ca.crt:		1070 bytes
-
-      namespace:	7 bytes
+        namespace:	7 bytes
 
 6. We are interested in the `token`, keep that for now somewhere safe.
 
