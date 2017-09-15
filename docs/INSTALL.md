@@ -82,7 +82,8 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 6. We are interested in the `token`, keep that for now somewhere safe.
 
 7. Add Service Account lagoon to cluster role self-provisioner \(this will allow lagoon to create new projects in OpenShift\)
-   oc adm policy add-cluster-role-to-user self-provisioner -z lagoon
+
+        oc adm policy add-cluster-role-to-user self-provisioner -z lagoon
 
 
 
@@ -96,7 +97,8 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
    1. `openshift.console` - The URL to the OpenShift Console, without
 
 1. Build required Images and start services:
-   make lagoon-kickstart
+
+        make lagoon-kickstart
 
 2.
 
