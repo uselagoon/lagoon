@@ -31,35 +31,36 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
         oc create serviceaccount lagoon
 
 4. Describe lagoon \(we are interested in the first token\):
-   oc describe serviceaccount lagoon
+
+        oc describe serviceaccount lagoon
 
    example output:
 
-   $ oc describe serviceaccount lagoon
+        $ oc describe serviceaccount lagoon
 
-   Name:		lagoon
+        Name:		lagoon
 
-   Namespace:	default
+        Namespace:	default
 
-   Labels:		&lt;none&gt;
+        Labels:		&lt;none&gt;
 
-   Annotations:	&lt;none&gt;
-
-
-
-   Image pull secrets:	lagoon-dockercfg-9q303
+        Annotations:	&lt;none&gt;
 
 
 
-   Mountable secrets: 	lagoon-token-kvlv0
-
-                      	lagoon-dockercfg-9q303
+        Image pull secrets:	lagoon-dockercfg-9q303
 
 
 
-   Tokens:            	lagoon-token-dkgwz
+        Mountable secrets: 	lagoon-token-kvlv0
 
-                      	lagoon-token-kvlv0
+                              lagoon-dockercfg-9q303
+
+
+
+        Tokens:            	lagoon-token-dkgwz
+
+                              lagoon-token-kvlv0
 
 5. Describe first token \(token are random generated, so yours will probably have another name\)
    oc describe secret lagoon-token-dkgwz
