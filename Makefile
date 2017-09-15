@@ -73,13 +73,15 @@ ARCH := $(shell uname)
 # Docker Image Tag that should be used when publishing to docker hub registry
 PUBLISH_TAG :=
 
+BUILD_TAG := master
+
 #######
 ####### Functions
 #######
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1):$(BUILD_TAG) -f $(2) $(3)
 
 
 # Tags and image with the `amazeeio` repository and pushes it
@@ -314,6 +316,10 @@ $(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
 
+lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon-kickstart", "branchName": "master" }'
+	make logs
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
 publish-amazeeiolagoon-images = $(foreach image,$(publish-image-list) yarn-workspace-builder,[publish-amazeeiolagoon]-$(image))
@@ -378,7 +384,7 @@ endif
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
 openshift/stop: local-dev/oc/oc
-	docker-machine stop $(CI_BUILD_TAG)
+	docker-machine rm -y $(CI_BUILD_TAG)
 	rm openshift
 
 # Stop OpenShift, remove downloaded cli, remove loopback

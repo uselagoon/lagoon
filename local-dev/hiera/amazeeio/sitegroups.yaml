@@ -162,3 +162,20 @@ amazeeio_sitegroups:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
+  lagoon:
+    client: deploytestclient
+    git_url: 'git@github.com:amazeeio/lagoon.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
+    openshift:
+      console: https://my.openshift-server.com/
+      registry: registy.my.openshift-server.com
+      token: AAAAAA.BBBBB.CCCC
+      project_user: developer
+      router_pattern: ${sitegroup}-${branch}.my.openshift-server.com
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
