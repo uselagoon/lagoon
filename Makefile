@@ -318,6 +318,7 @@ $(publish-amazeeio-images):
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image)) .secrets
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon-kickstart", "branchName": "master" }'
 	make logs
 

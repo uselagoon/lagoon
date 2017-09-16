@@ -103,3 +103,17 @@ services:
       template: services/auth-ssh/.amazeeio.app.yml
     build:
       dockerfile: services/auth-ssh/Dockerfile
+  jenkins:
+    amazeeio:
+      type: custom
+      template: services/jenkins/.amazeeio.app.yml
+    build:
+      dockerfile: Dockerfile
+      context: services/jenkins
+  jenkins-slave:
+    amazeeio:
+      type: custom
+      template: services/jenkins-slave/.amazeeio.app.yml
+    build:
+      dockerfile: Dockerfile
+      context: services/jenkins-slave
