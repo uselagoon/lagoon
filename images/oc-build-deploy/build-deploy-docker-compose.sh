@@ -55,22 +55,29 @@ for IMAGE_NAME in "${IMAGES[@]}"
 do
   IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
   DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
+  PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
   BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
+  IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
+
   if [ $DOCKERFILE == "false" ]; then
-    echo "No Dockerfile for service ${IMAGE_NAME} defined"; exit 1;
+    if [ $PULL_IMAGE == "false" ]; then
+      echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
+    fi
+
+    . /scripts/exec-pull-tag.sh
+
   else
     if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
       echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
     fi
+
+    . /scripts/exec-build.sh
   fi
-
-  IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
-
-  . /scripts/exec-build.sh
 
   # adding the build image to the list of arguments passed into the next image builds
   BUILD_ARGS+=("${IMAGE_NAME_UPPERCASE}_IMAGE=${IMAGE_TEMPORARY_NAME}")
+
 done
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"

@@ -58,21 +58,26 @@ BUILD_ARGS=()
 for SERVICE_NAME in "${SERVICES[@]}"
 do
   SERVICE_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
-  SERVICE_TYPE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.type custom)
   DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.dockerfile false)
+  PULL_IMAGE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.image false)
   BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.context .)
 
+  IMAGE_TEMPORARY_NAME=${IMAGE}-${SERVICE_NAME}
+
   if [ $DOCKERFILE == "false" ]; then
-    echo "No Dockerfile for service type ${SERVICE_TYPE} defined"; exit 1;
+    if [ $PULL_IMAGE == "false" ]; then
+      echo "No Dockerfile or Image for service type ${SERVICE_NAME} defined"; exit 1;
+    fi
+
+    . /scripts/exec-pull-tag.sh
+
   else
     if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
       echo "defined Dockerfile $DOCKERFILE for service $SERVICE_NAME not found"; exit 1;
     fi
+
+    . /scripts/exec-build.sh
   fi
-
-  IMAGE_TEMPORARY_NAME=${IMAGE}-${SERVICE_NAME}
-
-  . /scripts/exec-build.sh
 
   # adding the build image to the list of arguments passed into the next image builds
   BUILD_ARGS+=("${SERVICE_UPPERCASE}_IMAGE=${IMAGE_TEMPORARY_NAME}")
