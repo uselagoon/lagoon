@@ -11,8 +11,8 @@ node {
   env.VBOX_USER_HOME = "${env.JENKINS_HOME}/.config/VirtualBox"
 
   try {
-    env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
-    env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
+    env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
+    env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
 
     deleteDir()
 
