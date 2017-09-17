@@ -73,15 +73,13 @@ ARCH := $(shell uname)
 # Docker Image Tag that should be used when publishing to docker hub registry
 PUBLISH_TAG :=
 
-BUILD_TAG := master
-
 #######
 ####### Functions
 #######
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1):$(BUILD_TAG) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 
 # Tags and image with the `amazeeio` repository and pushes it
@@ -322,7 +320,7 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	make logs
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
-publish-amazeeiolagoon-images = $(foreach image,$(all-images),[publish-amazeeiolagoon]-$(image))
+publish-amazeeiolagoon-images = $(foreach image,$(publish-image-list) yarn-workspace-builder,[publish-amazeeiolagoon]-$(image))
 # tag and push all images
 .PHONY: publish-amazeeiolagoon
 publish-amazeeiolagoon: $(publish-amazeeiolagoon-images)
