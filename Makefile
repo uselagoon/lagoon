@@ -230,7 +230,7 @@ build-helperimages = $(foreach image,$(helperimages),build/$(image))
 
 $(build-helperimages):
 	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),helpers/$(folder)/Dockerfile,helpers/$(folder))
+	$(call docker_build,$(image),helpers/$(image)/Dockerfile,helpers/$(image))
 	touch $@
 
 build/local-hiera-watcher-pusher build/local-git-server: build/centos7
