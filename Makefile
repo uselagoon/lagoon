@@ -223,6 +223,18 @@ $(build-localdevimages):
 
 build/local-hiera-watcher-pusher build/local-git-server: build/centos7
 
+# Images for helpers that exist in another folder than the service images
+helperimages := drush-alias
+all-images += $(helperimages)
+build-helperimages = $(foreach image,$(helperimages),build/$(image))
+
+$(build-helperimages):
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),helpers/$(folder)/Dockerfile,helpers/$(folder))
+	touch $@
+
+build/local-hiera-watcher-pusher build/local-git-server: build/centos7
+
 # Image with ansible test
 build/tests:
 	$(eval image = $(subst build/,,$@))
@@ -318,10 +330,17 @@ $(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
 
-lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
+lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image)) .secrets
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
-	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon-kickstart", "branchName": "master" }'
+	sleep 30
+	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon-kickstart", "branchName": "kickstart" }'
 	make logs
+
+.secrets: secrets
+	oc apply -f secrets
+
+secrets:
+	python make-secrets.py
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
 publish-amazeeiolagoon-images = $(foreach image,$(all-images),[publish-amazeeiolagoon]-$(image))
