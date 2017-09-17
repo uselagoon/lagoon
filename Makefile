@@ -175,7 +175,11 @@ serviceimages :=  api \
 									hacky-rest2tasks-ui \
 									jenkins \
 									jenkins-slave \
-									rabbitmq
+									rabbitmq \
+									elasticsearch \
+									kibana \
+									logstash
+
 all-images += $(serviceimages)
 build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
 
