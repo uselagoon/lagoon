@@ -20,10 +20,11 @@ RUN curl https://drupalconsole.com/installer -L -o /usr/local/bin/drupal  && \
 RUN { \
       echo '[mariadb]'; \
       echo 'name = MariaDB'; \
-      echo "baseurl = http://yum.mariadb.org/10.1/centos7-amd64"; \
+      echo "baseurl = http://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.3.1/yum/centos7-amd64"; \
       echo 'gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB'; \
       echo 'gpgcheck=1'; \
     } > /etc/yum.repos.d/mariadb.repo && \
+    rpm --import https://yum.mariadb.org/RPM-GPG-KEY-MariaDB && \
     yum install -y MariaDB-client && \
     yum clean all
 
