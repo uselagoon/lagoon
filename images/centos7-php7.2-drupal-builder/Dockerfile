@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/centos7-php7.0-drupal
+FROM ${IMAGE_REPO:-lagoon}/centos7-php7.2-drupal
 
 ### Installing Composer and Drush
 ENV COMPOSER_HOME=/composer \

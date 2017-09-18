@@ -1,0 +1,24 @@
+docker-compose-yaml: docker-compose.yml
+
+tasks:
+  post-deploy:
+    - run:
+        name: env variables
+        command: env
+        service: cli
+    - run:
+        name: IF no Drupal installed drush si with no email sending
+        command: |
+            cd web
+            if [[ $(drush core-status bootstrap --pipe) == "" ]]; then
+                # no drupal installed, we install drupal from scratch
+                drush -y si standard install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL --site-name="AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA AMAZEEIO_GIT_BRANCH=$AMAZEEIO_GIT_BRANCH"
+            else
+                # drupal already installed, set the sitename to the current SHA and BRANCH
+                drush -y cset system.site name "AMAZEEIO_GIT_SHA=$AMAZEEIO_GIT_SHA AMAZEEIO_GIT_BRANCH=$AMAZEEIO_GIT_BRANCH"
+            fi
+        service: cli
+    - run:
+        name: drush cr
+        command: cd web && drush -y cr
+        service: cli
