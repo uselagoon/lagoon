@@ -175,7 +175,8 @@ serviceimages :=  api \
 									hacky-rest2tasks-ui \
 									jenkins \
 									jenkins-slave \
-									rabbitmq
+									rabbitmq \
+									postgres
 all-images += $(serviceimages)
 build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
 
