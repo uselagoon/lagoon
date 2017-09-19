@@ -19,9 +19,9 @@ FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest}
 
 COPY --from=builder /home/rpmbuild/RPMS/x86_64 /home/openssh
 
-RUN rpm -Uvh --nodeps /home/openssh/*.rpm
+RUN yum install -y wget openssl-libs
 
-RUN yum install -y wget
+RUN rpm -Uvh --nodeps /home/openssh/*.rpm
 
 # Generate ssh server keys
 RUN mkdir .ssh && \
