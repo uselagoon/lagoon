@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-dockerd &
+dind dockerd --insecure-registry=$OUTPUT_REGISTRY &
 
-  mkdir -p ~/.ssh
+mkdir -p ~/.ssh
 
 if [ ! -z "$SSH_PRIVATE_KEY" ]; then
   echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -15,4 +15,4 @@ fi
 
 echo -e "Host * \n    StrictHostKeyChecking no" > ~/.ssh/config
 
-exec "/usr/sbin/parent-container-entrypoint" "$@"
+exec "$@"

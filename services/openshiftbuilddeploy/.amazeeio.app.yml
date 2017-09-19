@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: amazeeio-openshift-template-jenkins-slave
+  name: amazeeio-openshift-template-node
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -51,8 +51,6 @@ objects:
         containers:
         - image: ' '
           name: ${SERVICE_NAME}
-          securityContext:
-            privileged: true
           env:
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
@@ -84,6 +82,11 @@ objects:
                 secretKeyRef:
                   name: secret-environment
                   key: RABBITMQ_PASSWORD
+            - name: JENKINS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: secret-environment
+                  key: JENKINS_URL
             - name: SERVICE_API_ADMIN_TOKEN
               valueFrom:
                 secretKeyRef:

@@ -167,6 +167,7 @@ serviceimages :=  api \
 									auth-server \
 									logs2slack \
 									openshiftdeploy \
+									openshiftbuilddeploy \
 									openshiftremove \
 									openshiftremove-resources \
 									rest2tasks \
@@ -190,7 +191,7 @@ $(build-serviceimages):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftdeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftdeploy build/openshiftbuilddeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/centos7-node8
 build/api: build/centos7-node8-builder
 
@@ -288,7 +289,7 @@ tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node multisitegroup
@@ -384,7 +385,9 @@ openshift: local-dev/oc/oc
 	$(info starting openshift with name $(CI_BUILD_TAG))
 	./local-dev/oc/oc cluster up --version="v1.5.1" --create-machine --docker-machine="$(CI_BUILD_TAG)"
 	@./local-dev/oc/oc login -u system:admin > /dev/null
-	@echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | ./local-dev/oc/oc create -n default -f -
+	echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | ./local-dev/oc/oc create -n default -f -
+	./local-dev/oc/oc adm policy add-cluster-role-to-user cluster-admin system:anonymous
+	./local-dev/oc/oc adm policy add-cluster-role-to-user cluster-admin developer
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(docker-machine ip $(CI_BUILD_TAG)); \
 	if [ ! "$$OPENSHIFT_MACHINE_IP" == "192.168.99.100" ]; then \

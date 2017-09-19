@@ -9,3 +9,7 @@ services:
       dockerfile: .amazeeio.Dockerfile
     amazeeio:
       type: node:8
+  nginx:
+    image: amazeeio/centos7-nginx1
+    amazeeio:
+      type: nginx
