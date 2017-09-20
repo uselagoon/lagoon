@@ -79,15 +79,15 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.106:8443/
+      registry: 192.168.99.106:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.103.nip.io
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
   ci-multisitegroup1:

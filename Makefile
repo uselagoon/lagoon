@@ -168,6 +168,7 @@ serviceimages :=  api \
 									logs2slack \
 									openshiftdeploy \
 									openshiftbuilddeploy \
+									openshiftbuilddeploymonitor \
 									openshiftremove \
 									openshiftremove-resources \
 									rest2tasks \
@@ -191,7 +192,7 @@ $(build-serviceimages):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftdeploy build/openshiftbuilddeploy build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftdeploy build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/openshiftremove-resources build/rest2tasks build/webhook-handler build/webhooks2tasks: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/centos7-node8
 build/api: build/centos7-node8-builder
 
@@ -289,7 +290,7 @@ tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
+deployment-test-services-main = rabbitmq openshiftremove openshiftdeploy openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api jenkins jenkins-slave local-git local-hiera-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node multisitegroup

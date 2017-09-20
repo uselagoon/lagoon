@@ -7,13 +7,12 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
 
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+const { consumeTasks, initSendToAmazeeioTasks, createTaskMonitor } = require('@amazeeio/lagoon-commons/src/tasks');
 
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
 const ocBuildDeployImageLocation = process.env.OC_BUILD_DEPLOY_IMAGE_LOCATION || "dockerhub"
-const dockerRunParam = process.env.DOCKER_RUN_PARARM || ""
 const ciOverrideImageRepo = process.env.CI_OVERRIDE_IMAGE_REPO || ""
 
 const messageConsumer = async msg => {
@@ -99,7 +98,7 @@ const messageConsumer = async msg => {
                       },
                       {
                         "secretSource": {
-                            "name": "ssh-key"
+                            "name": "lagoon-sshkey"
                         },
                         "mountPath": "/var/run/secrets/lagoon/ssh"
                     }
@@ -186,16 +185,20 @@ const messageConsumer = async msg => {
       const projectrequestsPost = Promise.promisify(openshift.projectrequests.post, { context: openshift.projectrequests })
       await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${siteGroupName}] ${branchName}`} });
 
-      const serviceaccountsPost = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
-      await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
 
-      const rolebindingsPost = Promise.promisify(openshift.ns(openshiftProject).rolebindings.post, { context: openshift.ns(openshiftProject).rolebindings })
-      await rolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":"edit","namespace":openshiftProject},"roleRef":{"name":"edit"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+    } else {
+      logger.error(err)
+      throw new Error
+    }
+  }
 
-      const sshKeyBase64 = new Buffer(deployPrivateKey).toString('base64')
-      const secretsPost = Promise.promisify(kubernetes.ns(openshiftProject).secrets.post, { context: kubernetes.ns(openshiftProject).secrets })
-      await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"ssh-key"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
-
+  try {
+    const imagestreamsGet = Promise.promisify(openshift.ns(openshiftProject).imagestreams('empty').get, { context: openshift.ns(openshiftProject).imagestreams('empty') })
+    projectStatus = await imagestreamsGet()
+    logger.info(`Imagestream empty already exists, continuing`)
+  } catch (err) {
+    if (err.code == 404) {
+      logger.info(`Imagestream does not exists, creating`)
       // Creating an ImageStream in this project, this ImageStream will be used by our BuildConfig as outpug ImageStream and with that fill the ENV Variable $OUTPUT_REGISTRY that we need
       // The ImageStream itself is not used.
       const imagestreamsPost = Promise.promisify(openshift.ns(openshiftProject).imagestreams.post, { context: openshift.ns(openshiftProject).imagestreams })
@@ -206,9 +209,55 @@ const messageConsumer = async msg => {
     }
   }
 
+
+  try {
+    const serviceaccountsGet = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer').get, { context: kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer') })
+    projectStatus = await serviceaccountsGet()
+    logger.info(`ServiceAccount lagoon-deployer already exists, continuing`)
+  } catch (err) {
+    if (err.code == 404) {
+      logger.info(`ServiceAccount lagoon-deployer does not exists, creating`)
+      const serviceaccountsPost = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
+      await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
+      const rolebindingsPost = Promise.promisify(openshift.ns(openshiftProject).rolebindings.post, { context: openshift.ns(openshiftProject).rolebindings })
+      await rolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":"edit","namespace":openshiftProject},"roleRef":{"name":"edit"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+    } else {
+      logger.error(err)
+      throw new Error
+    }
+  }
+
+  let sshKey = {}
+  const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
+  try {
+    const secretsGet = Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').get, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
+    sshKey = await secretsGet()
+    logger.info(`Secret lagoon-sshkey already exists, updating`)
+    const secretsPut = Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
+    await secretsPut({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+  } catch (err) {
+    if (err.code == 404) {
+      logger.info(`Secret lagoon-sshkey does not exists, creating`)
+      const secretsPost = Promise.promisify(kubernetes.ns(openshiftProject).secrets.post, { context: kubernetes.ns(openshiftProject).secrets })
+      await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+    } else {
+      logger.error(err)
+      throw new Error
+    }
+  }
+
   const serviceaccountsGet = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer").get, { context: kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer") })
   serviceaccount = await serviceaccountsGet()
-  const serviceaccountTokenSecret = serviceaccount.secrets[1].name
+
+  // a ServiceAccount can have multiple secrets, we are interested in one that has starts with 'lagoon-deployer-token'
+  for (var key in serviceaccount.secrets) {
+    if(/^lagoon-deployer-token/.test(key.name)) {
+      const serviceaccountTokenSecret = key.name
+      break;
+    }
+    throw new Error('Could not find token secret for ServiceAccount lagoon-deployer')
+  }
+
 
   try {
     const buildConfigsGet = Promise.promisify(openshift.ns(openshiftProject).buildconfigs('lagoon').get, { context: openshift.ns(openshiftProject).buildconfigs('lagoon') })
@@ -237,6 +286,16 @@ const messageConsumer = async msg => {
 
   logger.verbose(`Running build: ${buildName}`)
 
+  const payload = {
+    buildName: buildName,
+    siteGroupName: siteGroupName,
+    openshiftProject: openshiftProject,
+    branchName: branchName,
+    sha: sha
+  }
+
+  const taskMonitorLogs = await createTaskMonitor('builddeploy-openshift', payload)
+
   let logMessage = ''
   if (gitSha) {
     logMessage = `\`${branchName}\` (${buildName})`
@@ -244,7 +303,7 @@ const messageConsumer = async msg => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('start', siteGroupName, "", "task:deploy-openshift:start", {},
+  sendToAmazeeioLogs('start', siteGroupName, "", "task:builddeploy-openshift:start", {},
     `*[${siteGroupName}]* ${logMessage}`
   )
 
@@ -264,7 +323,7 @@ const deathHandler = async (msg, lastError) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('error', siteGroupName, "", "task:deploy-openshift:error",  {},
+  sendToAmazeeioLogs('error', siteGroupName, "", "task:builddeploy-openshift:error",  {},
 `*[${siteGroupName}]* ${logMessage} ERROR:
 \`\`\`
 ${lastError}
@@ -287,7 +346,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:deploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+  sendToAmazeeioLogs('warn', siteGroupName, "", "task:builddeploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${siteGroupName}]* ${logMessage} ERROR:
 \`\`\`
 ${error}
@@ -295,4 +354,4 @@ ${error}
 Retrying deployment in ${retryExpirationSecs} secs`
   )
 }
-consumeTasks('deploy-openshift', messageConsumer, retryHandler, deathHandler)
+consumeTasks('builddeploy-openshift', messageConsumer, retryHandler, deathHandler)
