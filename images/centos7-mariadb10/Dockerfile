@@ -2,16 +2,6 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/centos7
 MAINTAINER amazee.io
 
-ENV MARIADB_VERSION=10.2
-
-RUN { \
-      echo '[mariadb]'; \
-      echo 'name = MariaDB'; \
-      echo "baseurl = http://yum.mariadb.org/$MARIADB_VERSION/centos7-amd64"; \
-      echo 'gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB'; \
-      echo 'gpgcheck=1'; \
-    } > /etc/yum.repos.d/mariadb.repo
-
 COPY server.cnf /etc/my.cnf.d/server.cnf
 COPY docker-entrypoint /amazeeio/entrypoints/70-mariadb-entrypoint
 
