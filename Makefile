@@ -107,6 +107,12 @@ baseimages := centos7 \
 							centos7-php7.0 \
 							centos7-php7.0-drupal \
 							centos7-php7.0-drupal-builder \
+							centos7-php7.1 \
+							centos7-php7.1-drupal \
+							centos7-php7.1-drupal-builder \
+							centos7-php7.2 \
+							centos7-php7.2-drupal \
+							centos7-php7.2-drupal-builder \
 							oc \
 							oc-build-deploy
 
@@ -144,6 +150,12 @@ build/centos7-nginx1-drupal: build/centos7-nginx1 images/centos7-nginx1-drupal/D
 build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
 build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
 build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
+build/centos7-php7.1: build/centos7 images/centos7-php7.1/Dockerfile
+build/centos7-php7.1-drupal: build/centos7-php7.1 images/centos7-php7.1-drupal/Dockerfile
+build/centos7-php7.1-drupal-builder: build/centos7-php7.1-drupal images/centos7-php7.1-drupal-builder/Dockerfile
+build/centos7-php7.2: build/centos7 images/centos7-php7.2/Dockerfile
+build/centos7-php7.2-drupal: build/centos7-php7.2 images/centos7-php7.2-drupal/Dockerfile
+build/centos7-php7.2-drupal-builder: build/centos7-php7.2-drupal images/centos7-php7.2-drupal-builder/Dockerfile
 build/oc: images/oc/Dockerfile
 build/oc-build-deploy: build/oc images/oc-build-deploy/Dockerfile
 
@@ -398,4 +410,3 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1
 endif
-

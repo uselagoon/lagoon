@@ -59,3 +59,9 @@ ENV BASH_ENV=/amazeeio/entrypoints/50-dotenv.sh
 
 # When Bash is invoked as interactive it sources the file it finds in `/$HOME/.bashrc`
 COPY entrypoints/50-dotenv.sh /$HOME/.bashrc
+
+# Copy in repos that get used later in the builds
+COPY repos/* /etc/yum.repos.d/
+
+# Add MariaDB GPG Key for later use
+RUN rpm --import https://yum.mariadb.org/RPM-GPG-KEY-MariaDB

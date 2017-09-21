@@ -7,12 +7,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -25,12 +25,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -43,12 +43,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -61,12 +61,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -79,12 +79,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -97,12 +97,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: amazeeio-testing
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -115,30 +115,66 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
           branches: true
       remove: lagoon_openshiftRemove
-  ci-drupal:
+  ci-drupal-php70:
     client: deploytestclient
     git_url: 'git@local-git:/git/drupal.git'
     slack:
       webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  ci-drupal-php71:
+    client: deploytestclient
+    git_url: 'git@local-git:/git/drupal.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
+    openshift:
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  ci-drupal-php72:
+    client: deploytestclient
+    git_url: 'git@local-git:/git/drupal.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-local-ci
+    openshift:
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
+      username: developer
+      password: developer
+      project_user: developer
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
@@ -151,12 +187,12 @@ amazeeio_sitegroups:
       webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
-      console: https://192.168.99.100:8443/
-      registry: 192.168.99.100:30000
+      console: https://192.168.99.101:8443/
+      registry: 192.168.99.101:30000
       username: developer
       password: developer
       project_user: developer
-      router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+      router_pattern: ${sitegroup}.${branch}.192.168.99.101.nip.io
     active_systems:
       deploy:
         lagoon_openshiftDeploy:
