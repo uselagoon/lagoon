@@ -406,7 +406,7 @@ down:
 openshift: local-dev/minishift/minishift
 	$(info starting openshift with name $(CI_BUILD_TAG))
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v1.5.1"
-	eval $(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env)
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env)
 	oc login -u system:admin > /dev/null
 	echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | oc create -n default -f -
 	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous
