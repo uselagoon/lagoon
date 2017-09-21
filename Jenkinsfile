@@ -4,11 +4,10 @@ node {
   // other and lead to weird build fails. We're setting the HOME directory to the current workspace to prevent that
   env.HOME = env.WORKSPACE
 
-  // MACHINE_STORAGE_PATH will be used by docker-machine and 'oc cluster up' to define where to put the docker machines
+  // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
   // Jenkins HOME Folder
-  env.MACHINE_STORAGE_PATH = "${env.JENKINS_HOME}/.docker/machine"
-  env.VBOX_USER_HOME = "${env.JENKINS_HOME}/.config/VirtualBox"
+  env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
 
   try {
     env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
