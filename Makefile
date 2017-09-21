@@ -60,7 +60,7 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-OC_VERSION := v3.6.0
+MINISHIFT_VERSION := 1.6.0
 OC_HASH := c4dd4cf
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
@@ -108,7 +108,8 @@ baseimages := centos7 \
 							centos7-php7.0-drupal \
 							centos7-php7.0-drupal-builder \
 							oc \
-							oc-build-deploy
+							oc-build-deploy \
+							oc-build-deploy-dind
 
 # all-images is a variable that will be constantly filled with all image there are, to use for
 # commands like `make build` which need to know all images existing
@@ -298,12 +299,12 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
+$(run-rest-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc build/oc-build-deploy build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: openshift build/centos7-mariadb10-drupal build/centos7-nginx1-drupal build/centos7-php7.0-drupal-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image))
+tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/centos7-nginx1-drupal build/centos7-php7.0-drupal-builder build/oc $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -314,11 +315,31 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): openshift build/centos7-node6-builder build/centos7-node8-builder build/oc $(foreach image,$(deployment-test-services-webhooks),build/$(image))
+$(run-webhook-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc build/oc-build-deploy build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
+
+# push command of our base images into openshift
+push-openshift-images-list := $(baseimages)
+push-openshift-images = $(foreach image,$(push-openshift-images-list),[push-openshift]-$(image))
+# tag and push all images
+.PHONY: push-openshift
+push-openshift: $(push-openshift-images)
+# tag and push of each image
+.PHONY: $(push-openshift-images)
+$(push-openshift-images):
+	$(eval image = $(subst [push-openshift]-,,$@))
+	$(info pushing $(image) to openshift registry)
+	@docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
+	@docker push $$(cat openshift):30000/lagoon/$(image) > /dev/null
+
+local-git-port:
+	$(info configuring ssh port of local-git server inside sitegroups.yaml)
+	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
+	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
+	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" local-dev/hiera/amazeeio/sitegroups.yaml
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-image-list := $(baseimages)
@@ -382,50 +403,47 @@ down:
 
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
-openshift: local-dev/oc/oc
+openshift: local-dev/minishift/minishift
 	$(info starting openshift with name $(CI_BUILD_TAG))
-	./local-dev/oc/oc cluster up --version="v1.5.1" --create-machine --docker-machine="$(CI_BUILD_TAG)"
-	@./local-dev/oc/oc login -u system:admin > /dev/null
-	echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | ./local-dev/oc/oc create -n default -f -
-	./local-dev/oc/oc adm policy add-cluster-role-to-user cluster-admin system:anonymous
-	./local-dev/oc/oc adm policy add-cluster-role-to-user cluster-admin developer
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v1.5.1"
+	eval $(minishift oc-env)
+	@oc login -u system:admin > /dev/null
+	echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"docker-registry-external"},"spec":{"ports":[{"port":5000,"protocol":"TCP","targetPort":5000,"nodePort":30000}],"selector":{"docker-registry":"default"},"sessionAffinity":"None","type":"NodePort"}}' | oc create -n default -f -
+	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous
+	oc adm policy add-cluster-role-to-user cluster-admin developer
+	oc new-project lagoon
+	oc export role shared-resource-viewer -n openshift | oc create -f -
+	oc create policybinding lagoon -n lagoon
+	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon
 ifeq ($(ARCH), Darwin)
-	@OPENSHIFT_MACHINE_IP=$$(docker-machine ip $(CI_BUILD_TAG)); \
-	if [ ! "$$OPENSHIFT_MACHINE_IP" == "192.168.99.100" ]; then \
-		echo "created OpenShift Machine has not the default IP '192.168.99.100' it has '$$OPENSHIFT_MACHINE_IP'"; \
-		echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the correct IP"; \
-		sed -i '' -e "s/192.168.99.100/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml; \
-	fi
+	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
+	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml;
 else
-	@OPENSHIFT_MACHINE_IP=$$(docker-machine ip $(CI_BUILD_TAG)); \
-	if [ ! "$$OPENSHIFT_MACHINE_IP" == "192.168.99.100" ]; then \
-		echo "created OpenShift Machine has not the default IP '192.168.99.100' it has '$$OPENSHIFT_MACHINE_IP'"; \
-		echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the correct IP"; \
-		sed -i "s/192.168.99.100/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml; \
-	fi
+	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
+	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml;
 endif
-	@echo "$(CI_BUILD_TAG)" > $@
+	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
 openshift/stop: local-dev/oc/oc
-	docker-machine rm -y $(CI_BUILD_TAG)
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm openshift
 
 # Stop OpenShift, remove downloaded cli, remove loopback
 .PHONY: openshift/clean
 openshift/clean: openshift/stop
-	rm -rf ./local-dev/oc
+	rm -rf ./local-dev/minishift/minishift
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
-local-dev/oc/oc:
-	$(info downloading oc)
-	@mkdir local-dev/oc
+local-dev/minishift/minishift:
+	$(info downloading minishift)
+	@mkdir -p ./local-dev/minishift
 ifeq ($(ARCH), Darwin)
-		curl -L -o oc-mac.zip https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-mac.zip
-		unzip -o oc-mac.zip -d local-dev/oc
-		rm -f oc-mac.zip
+		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift
 else
-		curl -L https://github.com/openshift/origin/releases/download/$(OC_VERSION)/openshift-origin-client-tools-$(OC_VERSION)-$(OC_HASH)-linux-64bit.tar.gz | tar xzC local-dev/oc --strip-components=1
+		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift
 endif
 

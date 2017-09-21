@@ -1,6 +1,10 @@
-#!/bin/bash -xe
+#!/bin/bash
 
-set -o pipefail
+if [ -n "$ROUTER_URL" ]; then
+  SERVICE_ROUTER_URL=${SERVICE_NAME}.${ROUTER_URL}
+else
+  SERVICE_ROUTER_URL=""
+fi
 
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
@@ -11,4 +15,7 @@ oc process --insecure-skip-tls-verify \
   -p BRANCH="${BRANCH}" \
   -p SITEGROUP="${SITEGROUP}" \
   -p AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
+  -p SERVICE_ROUTER_URL="${SERVICE_ROUTER_URL}" \
+  -p REGISTRY="${OPENSHIFT_REGISTRY}" \
+  -p PROJECT=${OPENSHIFT_PROJECT} \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -

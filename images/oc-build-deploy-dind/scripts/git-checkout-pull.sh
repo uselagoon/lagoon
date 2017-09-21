@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash
 
 # REF: can be a:
 # a sha: a7789dc5e6960bb2250ae39d7e7145b632c44c77
@@ -8,7 +8,7 @@
 REMOTE=$1
 REF=$2
 
-git rev-parse --is-inside-work-tree || git init .
+git init .
 git config remote.origin.url $REMOTE
 git fetch --depth=10 --tags --progress $REMOTE +refs/heads/*:refs/remotes/origin/*
 

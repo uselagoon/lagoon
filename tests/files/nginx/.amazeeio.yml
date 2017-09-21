@@ -3,4 +3,4 @@ services:
     nginx:
       dockerfile: .amazeeio.Dockerfile
     amazeeio:
-      type: nginx:1.12
+      type: nginx

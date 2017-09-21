@@ -22,6 +22,15 @@ parameters:
   - name: AMAZEEIO_GIT_SHA
     description: git hash sha of the current deployment
     required: true
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: PROJECT
+    description: Name of the Project that this service is in
+    required: true
+  - name: REGISTRY
+    description: Registry where Images are pushed to
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -46,7 +55,7 @@ objects:
           sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
-        - image: ' '
+        - image: ${REGISTRY}/${PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 3000
@@ -56,6 +65,11 @@ objects:
               port: 3000
             initialDelaySeconds: 15
             timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 5
           env:
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
@@ -104,7 +118,7 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: 3000-tcp
+    - name: http
       port: 3000
       protocol: TCP
       targetPort: 3000
@@ -122,9 +136,9 @@ objects:
       sitegroup: ${SAFE_SITEGROUP}
     name: ${SERVICE_NAME}
   spec:
-    host: ''
+    host: ${SERVICE_ROUTER_URL}
     port:
-      targetPort: 3000-tcp
+      targetPort: http
     to:
       kind: Service
       name: ${SERVICE_NAME}

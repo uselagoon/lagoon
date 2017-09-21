@@ -1,17 +1,16 @@
-#!/bin/bash -xe
+#!/bin/bash -x
+set -euo pipefail
 
-cp /var/run/secrets/lagoon/ssh/ssh-privatekey ~/.ssh/id_rsa
-chmod 400 ~/.ssh/id_rsa
-
-env
-
-set -o pipefail
-
-GIT_REPO="$SOURCE_REPOSITORY"
 OPENSHIFT_REGISTRY=$OUTPUT_REGISTRY
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 
-/scripts/git-checkout-pull.sh "$GIT_REPO" "$GIT_REF"
+if [ "$CI_USE_OPENSHIFT_REGISTRY" == "true" ]; then
+  CI_OVERRIDE_IMAGE_REPO=${OUTPUT_REGISTRY}/lagoon
+else
+  CI_OVERRIDE_IMAGE_REPO=""
+fi
+
+/scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 

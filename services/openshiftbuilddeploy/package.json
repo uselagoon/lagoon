@@ -9,9 +9,5 @@
     "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
   },
   "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
-  "license": "MIT",
-  "dependencies": {
-    "bluebird": "^3.5.0",
-    "kubernetes-client": "amazeeio/kubernetes-client#master"
-  }
+  "license": "MIT"
 }

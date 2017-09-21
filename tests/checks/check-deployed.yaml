@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "{{ url }}"
     expected_content: "AMAZEEIO_GIT_SHA={{ expected_head }}"
   tasks:
   - include: check-url-content.yaml
@@ -11,7 +11,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "{{ url }}"
     expected_content: "AMAZEEIO_GIT_BRANCH={{ expected_branch }}"
   tasks:
   - include: check-url-content.yaml
@@ -20,7 +20,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "{{ url }}"
     expected_content: "AMAZEEIO_GIT_SHA_BUILDTIME={{ expected_head }}"
   tasks:
   - include: check-url-content.yaml
@@ -29,7 +29,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "{{ url }}"
     expected_content: "AMAZEEIO_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
   tasks:
   - include: check-url-content.yaml
@@ -38,7 +38,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "{{ url }}"
     expected_content: "VARIABLE_SET_BY_DOTENV=true"
   tasks:
   - include: check-url-content.yaml
@@ -47,7 +47,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "{{ url }}"
     expected_content: "VARIABLE_SET_BY_DOTENV_DEFAULTS=true"
   tasks:
   - include: check-url-content.yaml

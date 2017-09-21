@@ -6,6 +6,7 @@
     git_repo_name: node.git
     sitegroup: ci-node
     branch: node8
+    check_url: "http://node.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
 - include: rest/branch.yaml
   vars:
@@ -14,3 +15,4 @@
     git_repo_name: node.git
     sitegroup: ci-node
     branch: node6
+    check_url: "http://node.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

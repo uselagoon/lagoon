@@ -291,13 +291,13 @@ async function consumeTaskMonitor(taskMonitorQueueName, messageConsumer, deathHa
 
 				const retryCount = msg.properties.headers["x-retry"] ? (msg.properties.headers["x-retry"] + 1) : 1
 
-				if (retryCount > 100) {
+				if (retryCount > 250) {
 					channelWrapperTaskMonitor.ack(msg)
 					deathHandler(msg, error)
 					return
 				}
 
-				const retryDelayMilisecs = 2000;
+				const retryDelayMilisecs = 5000;
 
 				// copying options from the original message
 				const retryMsgOptions = {

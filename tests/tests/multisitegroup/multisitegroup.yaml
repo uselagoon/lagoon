@@ -31,12 +31,14 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup1 }}"
+    url: "{{ check_url1 }}"
 
 - include: ../../checks/check-deployed.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup2 }}"
+    url: "{{ check_url2 }}"
 
 - name: "{{ testname }} - rest2tasks /remove POST on {{ sitegroup1 }}, which should remove all resources"
   hosts: localhost

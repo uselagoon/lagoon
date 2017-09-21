@@ -22,8 +22,14 @@ parameters:
   - name: AMAZEEIO_GIT_SHA
     description: git hash sha of the current deployment
     required: true
-  - name: ROUTER_URL
-    description: URL of the Router
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: PROJECT
+    description: Name of the Project that this service is in
+    required: true
+  - name: REGISTRY
+    description: Registry where Images are pushed to
     required: true
 objects:
 - apiVersion: v1
@@ -63,7 +69,7 @@ objects:
             persistentVolumeClaim:
               claimName: ${SERVICE_NAME}-data
         containers:
-        - image: ' '
+        - image: ${REGISTRY}/${PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 3306
@@ -73,6 +79,11 @@ objects:
               port: 3306
             initialDelaySeconds: 15
             timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 120
+            periodSeconds: 5
           volumeMounts:
             - name: ${SERVICE_NAME}-data
               mountPath: /var/lib/mysql

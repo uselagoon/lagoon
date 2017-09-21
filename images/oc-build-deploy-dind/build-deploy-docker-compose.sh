@@ -1,5 +1,4 @@
-#!/bin/bash -xe
-set -o pipefail
+#!/bin/bash
 
 containsValue () {
   local e
@@ -58,8 +57,6 @@ do
   PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
   BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
-  IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
-
   if [ $DOCKERFILE == "false" ]; then
     if [ $PULL_IMAGE == "false" ]; then
       echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
@@ -76,7 +73,7 @@ do
   fi
 
   # adding the build image to the list of arguments passed into the next image builds
-  BUILD_ARGS+=("${IMAGE_NAME_UPPERCASE}_IMAGE=${IMAGE_TEMPORARY_NAME}")
+  BUILD_ARGS+=("${IMAGE_NAME_UPPERCASE}_IMAGE=${IMAGE_NAME}")
 
 done
 
@@ -108,7 +105,6 @@ done
 for IMAGE_NAME in "${IMAGES[@]}"
 do
 
-  IMAGE_TEMPORARY_NAME=${IMAGE}-${IMAGE_NAME}
   . /scripts/exec-push.sh
 
 done

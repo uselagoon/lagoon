@@ -1,7 +1,7 @@
 // @flow
 
 const Promise = require("bluebird");
-const Api = require('kubernetes-client');
+const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
@@ -56,18 +56,19 @@ const messageConsumer = async msg => {
     throw(error)
   }
 
-  const openshift = new Api.Core({
+  // OpenShift API object
+  const openshift = new OpenShiftClient.OApi({
     url: openshiftConsole,
-    path: 'oapi',
     insecureSkipTlsVerify: true,
     auth: {
       bearer: openshiftToken
     },
   });
 
-  const kubernetes = new Api.Core({
+  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
+  // the OpenShift API does not support them.
+  const kubernetes = new OpenShiftClient.Core({
     url: openshiftConsole,
-    path: 'api',
     insecureSkipTlsVerify: true,
     auth: {
       bearer: openshiftToken
@@ -77,7 +78,6 @@ const messageConsumer = async msg => {
 
   // kubernetes-client does not know about the OpenShift Resources, let's teach it.
   openshift.ns.addResource('builds');
-  openshift.addResource('projects');
 
 
 
@@ -138,6 +138,7 @@ const messageConsumer = async msg => {
       break;
 
     case "cancelled":
+    case "error":
       sendToAmazeeioLogs('warn', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` cancelled`
       )
@@ -156,7 +157,7 @@ const messageConsumer = async msg => {
       s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
 
       sendToAmazeeioLogs('info', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
-        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` complete. Logs: ${s3UploadResult.Location}`
+        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` complete. Logs: ${s3UploadResult.Location}}`
       )
       break;
 

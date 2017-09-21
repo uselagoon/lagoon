@@ -1,6 +1,4 @@
-#!/bin/bash -xe
-
-set -o pipefail
+#!/bin/bash
 
 docker tag ${IMAGE_NAME} ${OPENSHIFT_REGISTRY}/${OPENSHIFT_PROJECT}/${IMAGE_NAME}:latest
 

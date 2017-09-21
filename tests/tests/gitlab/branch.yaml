@@ -23,6 +23,7 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup }}"
+    url: "{{ check_url }}"
 
 - name: "{{ testname }} - second commit (empty) and git push into same git repo"
   hosts: localhost
@@ -44,6 +45,7 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup }}"
+    url: "{{ check_url }}"
 
 - name: "{{ testname }} - third commit (empty) and git push into same git repo - no webhook push yet"
   hosts: localhost
@@ -74,6 +76,7 @@
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"
     sitegroup: "{{ sitegroup }}"
+    url: "{{ check_url }}"
 
 - name: "{{ testname }} - webhook gitlab delete push"
   hosts: localhost

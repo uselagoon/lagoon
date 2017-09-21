@@ -22,6 +22,15 @@ parameters:
   - name: AMAZEEIO_GIT_SHA
     description: git hash sha of the current deployment
     required: true
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: PROJECT
+    description: Name of the Project that this service is in
+    required: true
+  - name: REGISTRY
+    description: Registry where Images are pushed to
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -112,7 +121,7 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: 8080-tcp
+    - name: http
       port: 8080
       protocol: TCP
       targetPort: 8080
@@ -130,9 +139,9 @@ objects:
       sitegroup: ${SAFE_SITEGROUP}
     name: ${SERVICE_NAME}
   spec:
-    host: ''
+    host: ${SERVICE_ROUTER_URL}
     port:
-      targetPort: 8080-tcp
+      targetPort: http
     to:
       kind: Service
       name: ${SERVICE_NAME}
