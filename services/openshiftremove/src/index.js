@@ -2,7 +2,6 @@
 
 const sleep = require("es7-sleep");
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { Jenkins } = require('jenkins');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 
@@ -10,11 +9,6 @@ const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/a
 
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
-
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
-const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
-
-const jenkins = Jenkins({ baseUrl: `${jenkinsurl}`, promisify: true});
 
 const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
@@ -57,6 +51,24 @@ const messageConsumer = async function(msg) {
   }
 
   logger.info(`Will remove OpenShift Project ${openshiftProject} on ${openshiftConsole}`);
+
+
+  let projectStatus = {}
+  try {
+    const projectsGet = Promise.promisify(openshift.projects(openshiftProject).get, { context: openshift.projects(openshiftProject) })
+    projectStatus = await projectsGet()
+  } catch (err) {
+    // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
+    if (err.code == 404) {
+      logger.error(`Project ${openshiftProject} does not exist, bailing`)
+      return
+    } else {
+      logger.error(err)
+      throw new Error
+    }
+  }
+
+
 
   var folderxml =
   `<?xml version='1.0' encoding='UTF-8'?>
