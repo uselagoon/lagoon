@@ -413,15 +413,15 @@ down:
 openshift: local-dev/minishift/minishift
 	$(info starting openshift with name $(CI_BUILD_TAG))
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v1.5.1"
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env) \
-	oc login -u system:admin > /dev/null \
-	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -" \
-	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous \
-	oc adm policy add-cluster-role-to-user cluster-admin developer \
-	oc new-project lagoon \
-	bash -c "oc export role shared-resource-viewer -n openshift | oc create -f -" \
-	oc create policybinding lagoon -n lagoon \
-	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	oc login -u system:admin; \
+	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -"; \
+	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	oc adm policy add-cluster-role-to-user cluster-admin developer; \
+	oc new-project lagoon; \
+	bash -c "oc export role shared-resource-viewer -n openshift | oc create -f -"; \
+	oc create policybinding lagoon -n lagoon; \
+	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon;
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
@@ -435,7 +435,7 @@ endif
 
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
-openshift/stop: local-dev/oc/oc
+openshift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm openshift
 
