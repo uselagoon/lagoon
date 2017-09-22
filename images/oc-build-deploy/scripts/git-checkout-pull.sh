@@ -8,6 +8,10 @@
 REMOTE=$1
 REF=$2
 
+if [[ ! "$REMOTE" =~ ^ssh://.* ]]; then
+    REMOTE=ssh://${REMOTE}
+fi
+
 git rev-parse --is-inside-work-tree || git init .
 git config remote.origin.url $REMOTE
 git fetch --depth=10 --tags --progress $REMOTE +refs/heads/*:refs/remotes/origin/*
