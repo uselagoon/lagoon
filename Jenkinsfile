@@ -49,7 +49,7 @@ node {
           stage ('run tests') {
             try {
               sh "sleep 30"
-              sh "make tests -j2"
+              sh "make tests"
             } catch (e) {
               echo "Something went wrong, trying to cleanup"
               cleanup()
