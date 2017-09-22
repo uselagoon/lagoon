@@ -3,6 +3,26 @@
   vars:
     testname: "Drupal 8 composer"
     drupal_version: 8
+    php_version: 7.0
+    target_os: centos
     git_repo_name: drupal.git
     sitegroup: ci-drupal
+    branch: drupal8-composer
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.0 (alpine)"
+    drupal_version: 8
+    php_version: 7.0
+    target_os: alpine
+    git_repo_name: drupal.git
+    sitegroup: ci-drupal-php70-alpine
+    branch: drupal8-composer
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.1 (alpine)"
+    drupal_version: 8
+    php_version: 7.1
+    target_os: alpine
+    git_repo_name: drupal.git
+    sitegroup: ci-drupal-php71-alpine
     branch: drupal8-composer

@@ -81,6 +81,10 @@ PUBLISH_TAG :=
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
+# Build a PHP docker image. Expects as arguments: PHP version, type of image (ie fpm, cli etc),
+# location of Dockerfile, path of Docker Build Context
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(1)-$(2)-alpine -f $(3) $(4)
+
 
 # Tags and image with the `amazeeio` repository and pushes it
 docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
@@ -143,6 +147,32 @@ build/centos7-nginx1-drupal: build/centos7-nginx1 images/centos7-nginx1-drupal/D
 build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
 build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
 build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
+
+#######
+####### PHP Images
+#######
+####### PHP Images are alpine linux based PHP images.
+
+phpimages := php-5.6-fpm \
+	php-7.0-fpm \
+	php-7.1-fpm  \
+	php-5.6-cli \
+	php-7.0-cli \
+	php-7.1-cli
+
+build-phpimages = $(foreach image,$(phpimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-phpimages):
+	$(eval clean = $(subst build/php-,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+# Call the docker build
+	$(call docker_build_php,$(version),$(type),images/php/$(type)-alpine/Dockerfile,images/php/$(type)-alpine)
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+all-images += $(phpimages)
 
 #######
 ####### Service Images
@@ -441,4 +471,3 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift
 endif
-
