@@ -400,7 +400,7 @@ remove-ports-from-yaml:
 ifeq ($(ARCH), Darwin)
 		$(error this command only works on Linux as Mac does not have a proper new version of awk)
 else
-		awk 's{if(/\s*-\s*"[^"]*:[^"]*"/) next; else s=0} /ports:/{s=1;next;}1' docker-compose.yaml > docker-compose-no-ports.yaml && mv docker-compose-no-ports.yaml docker-compose.yaml
+		awk 's{if(/\s*-\s*"[^"]*"/) next; else s=0} /ports:\s*$/{s=1;next;}1' docker-compose.yaml > docker-compose-no-ports.yaml && mv docker-compose-no-ports.yaml docker-compose.yaml
 endif
 
 up-no-ports: remove-ports-from-yaml up
