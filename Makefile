@@ -107,8 +107,6 @@ baseimages := centos7 \
 							centos7-php7.0 \
 							centos7-php7.0-drupal \
 							centos7-php7.0-drupal-builder \
-							oc \
-							oc-build-deploy \
 							oc-build-deploy-dind
 
 # all-images is a variable that will be constantly filled with all image there are, to use for
@@ -145,9 +143,6 @@ build/centos7-nginx1-drupal: build/centos7-nginx1 images/centos7-nginx1-drupal/D
 build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
 build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
 build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
-build/oc: images/oc/Dockerfile
-build/oc-build-deploy: build/oc images/oc-build-deploy/Dockerfile
-
 
 #######
 ####### Service Images
@@ -296,7 +291,7 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc build/oc-build-deploy build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+$(run-rest-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -312,7 +307,7 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc build/oc-build-deploy build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
+$(run-webhook-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
