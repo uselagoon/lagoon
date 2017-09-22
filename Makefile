@@ -328,15 +328,15 @@ $(push-openshift-images):
 	@docker push $$(cat openshift):30000/lagoon/$(image) > /dev/null
 
 local-git-port:
-	$(info configuring ssh port of local-git server inside sitegroups.yaml and docker-compose.yaml)
+	$(info configuring ssh port of local-git server inside sitegroups.yaml, docker-compose.yaml and bitbucket.yaml)
 ifeq ($(ARCH), Darwin)
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml
+	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml
 else
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml
+	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml
 endif
 
 
