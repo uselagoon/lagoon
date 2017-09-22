@@ -13,7 +13,7 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.192.168.99.115.nip.io
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
   ci-gitlab:
@@ -29,7 +29,7 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.192.168.99.115.nip.io
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
   ci-bitbucket:
@@ -45,7 +45,7 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.192.168.99.115.nip.io
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
   ci-rest:
@@ -61,7 +61,7 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.192.168.99.115.nip.io
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
   ci-node:
@@ -141,7 +141,7 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.192.168.99.115.nip.io
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
   lagoon-kickstart:
@@ -158,6 +158,6 @@ amazeeio_sitegroups:
       router_pattern: ${sitegroup}.${branch}.web-vmw-drupal.urz.uni-heidelberg.de
     active_systems:
       deploy:
-        lagoon_openshiftDeploy:
+        lagoon_openshiftBuildDeploy:
           branches: true
       remove: lagoon_openshiftRemove
