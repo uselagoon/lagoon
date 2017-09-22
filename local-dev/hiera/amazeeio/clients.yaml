@@ -1,3 +1,4 @@
+# This file contains configuration used during automated testing. The keys are not used in production.
 ---
 amazeeio_clients:
   credentialtestclient:
