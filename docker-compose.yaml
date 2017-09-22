@@ -25,16 +25,6 @@ services:
     volumes:
       - ./services/openshiftremove-resources/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
-  openshiftdeploy:
-    image: ${IMAGE_REPO:-lagoon}/openshiftdeploy
-    command: yarn run dev
-    environment:
-      - OC_BUILD_DEPLOY_IMAGE_LOCATION=absolute
-      - DOCKER_RUN_PARARM=--network=${CI_BUILD_TAG:-lagoon}_default
-      - CI_OVERRIDE_IMAGE_REPO=${CI_BUILD_TAG:-lagoon}
-    volumes:
-      - ./services/openshiftdeploy/src:/app/services/myself/src
-      - ./node-packages:/app/node-packages:delegated
   openshiftbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
@@ -118,21 +108,6 @@ services:
     user: '111111111'
     ports:
       - "3001:3000"
-  jenkins:
-    image: ${IMAGE_REPO:-lagoon}/jenkins
-    environment:
-      - JENKINS_ADMIN_PASSWORD=admin
-      - JAVA_OPTS="-Djenkins.install.runSetupWizard=false -Xmx800m"
-    ports:
-      - "8888:8080"
-  jenkins-slave:
-    image: ${IMAGE_REPO:-lagoon}/jenkins-slave
-    user: root
-    depends_on:
-      - jenkins
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./images/oc-build-deploy:/oc-build-deploy
   tests:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
