@@ -3,79 +3,79 @@ services:
     amazeeio:
       type: custom
       template: services/api/.amazeeio.app.yml
-    image: amazeeiolagoon/api:master
+    image: amazeeiolagoon/api:kickstart
   elasticsearch:
     amazeeio:
       type: custom
       template: services/elasticsearch/.amazeeio.app.yml
-    image: amazeeiolagoon/elasticsearch:master
+    image: amazeeiolagoon/elasticsearch:kickstart
   kibana:
     amazeeio:
       type: custom
       template: services/kibana/.amazeeio.app.yml
-    image: amazeeiolagoon/kibana:master
+    image: amazeeiolagoon/kibana:kickstart
   logs2slack:
     amazeeio:
       type: custom
       template: services/logs2slack/.amazeeio.app.yml
-    image: amazeeiolagoon/logs2slack:master
+    image: amazeeiolagoon/logs2slack:kickstart
   logstash:
     amazeeio:
       type: custom
       template: services/logstash/.amazeeio.app.yml
-    image: amazeeiolagoon/logstash:master
+    image: amazeeiolagoon/logstash:kickstart
   openshiftbuilddeploy:
     amazeeio:
       type: custom
       template: services/openshiftbuilddeploy/.amazeeio.app.yml
-    image: amazeeiolagoon/openshiftbuilddeploy:master
+    image: amazeeiolagoon/openshiftbuilddeploy:kickstart
   openshiftbuilddeploymonitor:
     amazeeio:
       type: custom
       template: services/openshiftbuilddeploymonitor/.amazeeio.app.yml
-    image: amazeeiolagoon/openshiftbuilddeploymonitor:master
+    image: amazeeiolagoon/openshiftbuilddeploymonitor:kickstart
   openshiftremove:
     amazeeio:
       type: custom
       template: services/openshiftremove/.amazeeio.app.yml
-    image: amazeeiolagoon/openshiftremove:master
+    image: amazeeiolagoon/openshiftremove:kickstart
   openshiftremove-resources:
     amazeeio:
       type: custom
       template: services/openshiftremove-resources/.amazeeio.app.yml
-    image: amazeeiolagoon/openshiftremove-resources:master
+    image: amazeeiolagoon/openshiftremove-resources:kickstart
   rabbitmq:
     amazeeio:
       type: custom
       template: services/rabbitmq/.amazeeio.app.yml
-    image: amazeeiolagoon/rabbitmq:master
+    image: amazeeiolagoon/rabbitmq:kickstart
   rest2tasks:
     amazeeio:
       type: custom
       template: services/rest2tasks/.amazeeio.app.yml
-    image: amazeeiolagoon/rest2tasks:master
+    image: amazeeiolagoon/rest2tasks:kickstart
   webhook-handler:
     amazeeio:
       type: custom
       template: services/webhook-handler/.amazeeio.app.yml
-    image: amazeeiolagoon/webhook-handler:master
+    image: amazeeiolagoon/webhook-handler:kickstart
   webhooks2tasks:
     amazeeio:
       type: custom
       template: services/webhooks2tasks/.amazeeio.app.yml
-    image: amazeeiolagoon/webhooks2tasks:master
+    image: amazeeiolagoon/webhooks2tasks:kickstart
   drush-alias:
     amazeeio:
       type: nginx:1.12
       template: helpers/drush-alias/.amazeeio.nginx.yml
-    image: amazeeiolagoon/drush-alias:master
+    image: amazeeiolagoon/drush-alias:kickstart
   auth-server:
     amazeeio:
       type: custom
       template: services/auth-server/.amazeeio.app.yml
-    image: amazeeiolagoon/auth-server:master
+    image: amazeeiolagoon/auth-server:kickstart
   auth-ssh:
     amazeeio:
       type: custom
       template: services/auth-ssh/.amazeeio.app.yml
-    image: amazeeiolagoon/auth-ssh:master
+    image: amazeeiolagoon/auth-ssh:kickstart
