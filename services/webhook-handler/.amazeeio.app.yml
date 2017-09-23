@@ -22,8 +22,14 @@ parameters:
   - name: AMAZEEIO_GIT_SHA
     description: git hash sha of the current deployment
     required: true
-  - name: ROUTER_URL
-    description: URL of the Router
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: PROJECT
+    description: Name of the Project that this service is in
+    required: true
+  - name: REGISTRY
+    description: Registry where Images are pushed to
     required: true
 objects:
 - apiVersion: v1
@@ -49,7 +55,7 @@ objects:
           sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
-        - image: ' '
+        - image: amazeeiolagoon/${SERVICE_NAME}:${SAFE_BRANCH}
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 3000
@@ -135,7 +141,7 @@ objects:
       sitegroup: ${SAFE_SITEGROUP}
     name: ${SERVICE_NAME}
   spec:
-    host: ${SERVICE_NAME}.${ROUTER_URL}
+    host: ${SERVICE_ROUTER_URL}
     port:
       targetPort: 3000-tcp
     to:

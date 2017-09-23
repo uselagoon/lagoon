@@ -1,16 +1,10 @@
 version: '2'
 services:
-  builder:
-    build:
-      context: .
-      dockerfile: Dockerfile.builder
-    image: builder
-    labels:
-      com.amazeeio.type: none
   cli:
     build:
       context: .
       dockerfile: Dockerfile.builder
+    image: builder
     labels:
       com.amazeeio.type: cli
     volumes:

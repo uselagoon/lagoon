@@ -44,6 +44,9 @@ RUN curl https://dl.yarnpkg.com/rpm/yarn.repo --silent -o /etc/yum.repos.d/yarn.
                 && \
     yum clean all -y
 
+### Installing the newest version of Drupal, so the composer cache is warmed, which will mean we have much faster build times
+RUN cd /tmp && composer create-project amazeeio/drupal-project:8.x-dev composer-cachewarmer --stability dev --no-interaction && rm -rf /tmp/composer-cachewarmer
+
 COPY docker-sleep.sh /usr/local/bin/docker-sleep
 
 WORKDIR /app

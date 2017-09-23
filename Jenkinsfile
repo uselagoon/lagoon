@@ -4,15 +4,14 @@ node {
   // other and lead to weird build fails. We're setting the HOME directory to the current workspace to prevent that
   env.HOME = env.WORKSPACE
 
-  // MACHINE_STORAGE_PATH will be used by docker-machine and 'oc cluster up' to define where to put the docker machines
+  // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
   // Jenkins HOME Folder
-  env.MACHINE_STORAGE_PATH = "${env.JENKINS_HOME}/.docker/machine"
-  env.VBOX_USER_HOME = "${env.JENKINS_HOME}/.config/VirtualBox"
+  env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
 
   try {
-    env.CI_BUILD_TAG = env.BUILD_TAG.toLowerCase().replaceAll('%2f','-').replaceAll('-','')
-    env.SAFEBRANCH_NAME = env.BRANCH_NAME.toLowerCase().replaceAll('%2f','-')
+    env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
+    env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
 
     deleteDir()
 
@@ -50,7 +49,7 @@ node {
           stage ('run tests') {
             try {
               sh "sleep 30"
-              sh "make tests -j2"
+              sh "make tests -j4"
             } catch (e) {
               echo "Something went wrong, trying to cleanup"
               cleanup()
@@ -100,8 +99,8 @@ node {
 def cleanup() {
   try {
     sh "make down"
-//    sh "make openshift/clean"
-//    sh "make clean"
+    sh "make openshift/clean"
+    sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }

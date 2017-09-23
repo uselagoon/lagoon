@@ -6,6 +6,8 @@ const { logger } = require('./local-logging');
 exports.initSendToAmazeeioTasks = initSendToAmazeeioTasks;
 exports.createDeployTask = createDeployTask;
 exports.createRemoveTask = createRemoveTask;
+exports.createTaskMonitor = createTaskMonitor;
+exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
 
 import type { ChannelWrapper } from './types';
@@ -14,6 +16,7 @@ const { getActiveSystemsForSiteGroup } = require('./api');
 
 
 let sendToAmazeeioTasks = exports.sendToAmazeeioTasks = function sendToAmazeeioTasks() {};
+let sendToAmazeeioTasksMonitor = exports.sendToAmazeeioTasksMonitor = function sendToAmazeeioTasksMonitor() {};
 let connection = exports.connection = function connection() {};
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
@@ -52,6 +55,11 @@ function initSendToAmazeeioTasks() {
 				channel.assertExchange('amazeeio-tasks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
 				channel.bindExchange('amazeeio-tasks', 'amazeeio-tasks-delay', ''),
 
+				// Exchange for task monitoring
+				channel.assertExchange('amazeeio-tasks-monitor', 'direct', { durable: true}),
+
+				channel.assertExchange('amazeeio-tasks-monitor-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
+				channel.bindExchange('amazeeio-tasks-monitor', 'amazeeio-tasks-monitor-delay', ''),
 
 			]);
 		},
@@ -65,7 +73,7 @@ function initSendToAmazeeioTasks() {
 			logger.debug(`amazeeio-tasks: Successfully created task '${task}'`, payload);
       return `amazeeio-tasks: Successfully created task '${task}': ${JSON.stringify(payload)}`
 		} catch(error) {
-			logger.error(`amazeeio-tasks: Error send to amazeeio-task exchange`, {
+			logger.error(`amazeeio-tasks: Error send to amazeeio-tasks exchange`, {
 				payload,
 				error,
 			});
@@ -73,7 +81,25 @@ function initSendToAmazeeioTasks() {
 		}
 	}
 
+	exports.sendToAmazeeioTasksMonitor = sendToAmazeeioTasksMonitor = async (task, payload): Promise<void> => {
+
+		try {
+			const buffer = new Buffer(JSON.stringify(payload));
+			await channelWrapperTasks.publish(`amazeeio-tasks-monitor`, task, buffer, { persistent: true })
+			logger.debug(`amazeeio-tasks-monitor: Successfully created monitor '${task}'`, payload);
+			return `amazeeio-tasks-monitor: Successfully created task monitor '${task}': ${JSON.stringify(payload)}`
+		} catch(error) {
+			logger.error(`amazeeio-tasks-monitor: Error send to amazeeio-tasks-monitor exchange`, {
+				payload,
+				error,
+			});
+			throw error
+		}
+	}
+
 }
+
+async function createTaskMonitor(task, payload) { return sendToAmazeeioTasksMonitor(task, payload) }
 
 async function createDeployTask(deployData) {
 	const {
@@ -98,10 +124,10 @@ async function createDeployTask(deployData) {
 
 	// We only check the first given System, we could also allow multiple, but it's better to just create another sitegroup with the same gitURL
 	const activeDeploySystem = Object.keys(activeSystems.deploy)[0]
-
+	let deploySystemConfig = '';
 	switch (activeDeploySystem) {
 		case 'lagoon_openshiftDeploy':
-			const deploySystemConfig = activeSystems.deploy['lagoon_openshiftDeploy']
+			deploySystemConfig = activeSystems.deploy['lagoon_openshiftDeploy']
 			if (type === 'branch') {
 				switch (deploySystemConfig.branches) {
 					case undefined:
@@ -119,6 +145,31 @@ async function createDeployTask(deployData) {
 						if (branchRegex.test(branchName)) {
 							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
 							return sendToAmazeeioTasks('deploy-openshift', deployData);
+						} else {
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
+							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
+						}
+				}
+			}
+			case 'lagoon_openshiftBuildDeploy':
+			deploySystemConfig = activeSystems.deploy['lagoon_openshiftBuildDeploy']
+			if (type === 'branch') {
+				switch (deploySystemConfig.branches) {
+					case undefined:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
+						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
+					case true:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
+						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
+					case false:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
+						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
+					default:
+						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
+						let branchRegex = new RegExp(deploySystemConfig.branches);
+						if (branchRegex.test(branchName)) {
+							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
+							return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 						} else {
 							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
 							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
@@ -225,3 +276,58 @@ async function consumeTasks(taskQueueName, messageConsumer, retryHandler, deathH
 
 
 }
+
+
+async function consumeTaskMonitor(taskMonitorQueueName, messageConsumer, deathHandler) {
+
+
+		const  onMessage = async msg => {
+			try {
+				await messageConsumer(msg)
+				channelWrapperTaskMonitor.ack(msg)
+			} catch (error) {
+				// We land here if the messageConsumer has an error that it did not itslef handle.
+				// This is how the consumer informs us that we it would like to retry the message in a couple of seconds
+
+				const retryCount = msg.properties.headers["x-retry"] ? (msg.properties.headers["x-retry"] + 1) : 1
+
+				if (retryCount > 250) {
+					channelWrapperTaskMonitor.ack(msg)
+					deathHandler(msg, error)
+					return
+				}
+
+				const retryDelayMilisecs = 5000;
+
+				// copying options from the original message
+				const retryMsgOptions = {
+					appId: msg.properties.appId,
+					timestamp: msg.properties.timestamp,
+					contentType: msg.properties.contentType,
+					deliveryMode: msg.properties.deliveryMode,
+					headers: _extends({}, msg.properties.headers, { 'x-delay': retryDelayMilisecs, 'x-retry': retryCount }),
+					persistent: true,
+				};
+
+				// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
+				// which will send the message into the original exchange `amazeeio-tasks` after waiting the x-delay time.
+				channelWrapperTaskMonitor.publish(`amazeeio-tasks-monitor-delay`, msg.fields.routingKey, msg.content, retryMsgOptions)
+
+				// acknologing the existing message, we cloned it and is not necessary anymore
+				channelWrapperTaskMonitor.ack(msg)
+			}
+		}
+
+		const channelWrapperTaskMonitor = connection.createChannel({
+			setup(channel) {
+				return Promise.all([
+					channel.assertQueue(`amazeeio-tasks-monitor:${taskMonitorQueueName}`, { durable: true }),
+					channel.bindQueue(`amazeeio-tasks-monitor:${taskMonitorQueueName}`, 'amazeeio-tasks-monitor', taskMonitorQueueName),
+					channel.prefetch(1),
+					channel.consume(`amazeeio-tasks-monitor:${taskMonitorQueueName}`, onMessage, { noAck: false }),
+				]);
+			},
+		});
+
+
+	}

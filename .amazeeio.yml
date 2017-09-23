@@ -3,103 +3,95 @@ services:
     amazeeio:
       type: custom
       template: services/api/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/api
+      build: "false"
+    image: amazeeiolagoon/api:kickstart
   elasticsearch:
     amazeeio:
       type: custom
       template: services/elasticsearch/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/elasticsearch/
+      build: "false"
+    image: amazeeiolagoon/elasticsearch:kickstart
   kibana:
     amazeeio:
       type: custom
       template: services/kibana/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/kibana
+      build: "false"
+    image: amazeeiolagoon/kibana:kickstart
   logs2slack:
     amazeeio:
       type: custom
       template: services/logs2slack/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/logs2slack
+      build: "false"
+    image: amazeeiolagoon/logs2slack:kickstart
   logstash:
     amazeeio:
       type: custom
       template: services/logstash/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/logstash
-  openshiftdeploy:
+      build: "false"
+    image: amazeeiolagoon/logstash:kickstart
+  openshiftbuilddeploy:
     amazeeio:
       type: custom
-      template: services/openshiftdeploy/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/openshiftdeploy
+      template: services/openshiftbuilddeploy/.amazeeio.app.yml
+      build: "false"
+    image: amazeeiolagoon/openshiftbuilddeploy:kickstart
+  openshiftbuilddeploymonitor:
+    amazeeio:
+      type: custom
+      template: services/openshiftbuilddeploymonitor/.amazeeio.app.yml
+      build: "false"
+    image: amazeeiolagoon/openshiftbuilddeploymonitor:kickstart
   openshiftremove:
     amazeeio:
       type: custom
       template: services/openshiftremove/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/openshiftremove
+      build: "false"
+    image: amazeeiolagoon/openshiftremove:kickstart
   openshiftremove-resources:
     amazeeio:
       type: custom
       template: services/openshiftremove-resources/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/openshiftremove-resources
+      build: "false"
+    image: amazeeiolagoon/openshiftremove-resources:kickstart
   rabbitmq:
     amazeeio:
       type: custom
       template: services/rabbitmq/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/rabbitmq
+      build: "false"
+    image: amazeeiolagoon/rabbitmq:kickstart
   rest2tasks:
     amazeeio:
       type: custom
       template: services/rest2tasks/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/rest2tasks
+      build: "false"
+    image: amazeeiolagoon/rest2tasks:kickstart
   webhook-handler:
     amazeeio:
       type: custom
       template: services/webhook-handler/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/webhook-handler
+      build: "false"
+    image: amazeeiolagoon/webhook-handler:kickstart
   webhooks2tasks:
     amazeeio:
       type: custom
       template: services/webhooks2tasks/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/webhooks2tasks
+      build: "false"
+    image: amazeeiolagoon/webhooks2tasks:kickstart
   drush-alias:
     amazeeio:
       type: nginx:1.12
       template: helpers/drush-alias/.amazeeio.nginx.yml
-    build:
-      context: helpers/drush-alias
-      dockerfile: Dockerfile
+      build: "false"
+    image: amazeeiolagoon/drush-alias:kickstart
   auth-server:
     amazeeio:
       type: custom
       template: services/auth-server/.amazeeio.app.yml
-    build:
-      dockerfile: Dockerfile
-      context: services/auth-server
+      build: "false"
+    image: amazeeiolagoon/auth-server:kickstart
   auth-ssh:
     amazeeio:
       type: custom
       template: services/auth-ssh/.amazeeio.app.yml
-    build:
-      dockerfile: services/auth-ssh/Dockerfile
+      build: "false"
+    image: amazeeiolagoon/auth-ssh:kickstart
