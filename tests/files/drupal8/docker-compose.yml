@@ -1,16 +1,10 @@
 version: '2'
 services:
-  builder:
-    build:
-      context: .
-      dockerfile: Dockerfile.builder
-    image: builder
-    labels:
-      com.amazeeio.type: none
   cli:
     build:
       context: .
       dockerfile: Dockerfile.builder
+    image: builder
     labels:
       com.amazeeio.type: cli
     volumes:
@@ -47,7 +41,9 @@ services:
     depends_on:
       - builder
   mariadb:
-    image: amazeeio/centos7-mariadb10-drupal
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
     labels:
       com.amazeeio.type: mariadb
 networks:
