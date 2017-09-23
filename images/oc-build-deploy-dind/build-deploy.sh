@@ -10,7 +10,11 @@ else
   CI_OVERRIDE_IMAGE_REPO=""
 fi
 
-/scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
+if [ "$TYPE" == "pullrequest" ]; then
+  /scripts/git-checkout-pull-merge.sh "$SOURCE_REPOSITORY" "$PR_HEAD_SHA" "$PR_BASE_SHA"
+else
+  /scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
+fi
 
 AMAZEEIO_GIT_SHA=`git rev-parse HEAD`
 

@@ -83,6 +83,11 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
             await handle(githubPullRequestClosed, webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
             break;
 
+          case 'opened':
+          case 'reopened':
+            await handle(githubPullRequestOpened, webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
+            break;
+
           default:
             unhandled(webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
             break;

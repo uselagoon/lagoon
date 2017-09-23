@@ -175,6 +175,22 @@ async function createDeployTask(deployData) {
 							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
 						}
 				}
+			} else if (type === 'pullrequest') {
+				switch (deploySystemConfig.pullrequest) {
+					case undefined:
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${pullrequest}, no pullrequest defined in active system, assuming we want all of them`)
+						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
+					case true:
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${pullrequest}, all pullrequest active, therefore deploying`)
+						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
+					case false:
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${pullrequest}, pullrequest deployments disabled`)
+						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
+					default:
+						logger.debug(`siteGroupName: ${siteGroupName}, bpullrequest: ${pullrequest}, no pull request pattern matching implemeted yet.`)
+						throw new NoNeedToDeployBranch(`No Pull Request pattern matching implemented yet`)
+						// @TODO Implement pullrequest pattern matching
+				}
 			}
 		default:
       throw new UnknownActiveSystem(`Unknown active system '${activeDeploySystem}' for task 'deploy' in for sitegroup ${siteGroupName}`)

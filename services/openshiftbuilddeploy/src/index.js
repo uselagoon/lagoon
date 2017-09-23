@@ -18,7 +18,12 @@ const messageConsumer = async msg => {
   const {
     siteGroupName,
     branchName,
-    sha
+    sha,
+    type,
+    headBranchName,
+    headSha,
+    baseBranchName,
+    baseSha
   } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received DeployOpenshift task for sitegroup: ${siteGroupName}, branch: ${branchName}, sha: ${sha}`);
@@ -44,6 +49,10 @@ const messageConsumer = async msg => {
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
     var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || ""
     var routerPattern = routerPattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName)
+    var prHeadBranchName = headBranchName || ""
+    var prHeadSha = headSha || ""
+    var prBaseBranchName = baseBranchName || ""
+    var prBaseSha = baseSha || ""
   } catch(error) {
     logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${error}`)
     throw(error)
@@ -53,7 +62,7 @@ const messageConsumer = async msg => {
   var gitRef = gitSha ? gitSha : `origin/${branchName}`
 
   // Generates a buildconfig object
-  const buildconfig = (resourceVersion, secret) => {
+  const buildconfig = (resourceVersion, secret, type) => {
 
     let buildFromImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
@@ -114,6 +123,10 @@ const messageConsumer = async msg => {
                   ],
                   "env": [
                       {
+                          "name": "TYPE",
+                          "value": type
+                      },
+                      {
                           "name": "GIT_REF",
                           "value": gitRef
                       },
@@ -147,6 +160,12 @@ const messageConsumer = async msg => {
     }
     if (ciUseOpenshiftRegistry == "true") {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "CI_USE_OPENSHIFT_REGISTRY","value": ciUseOpenshiftRegistry})
+    }
+    if (type == "pullrequest") {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_HEAD_BRANCH","value": prHeadBranchName})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_HEAD_SHA","value": prHeadSha})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_BASE_BRANCH","value": prBaseBranchName})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_BASE_SHA","value": prBaseSha})
     }
     return buildconfig
   }
@@ -294,14 +313,14 @@ const messageConsumer = async msg => {
     logger.info(`${openshiftProject}: Buildconfig lagoon already exists, updating`)
     const buildConfigsPut = Promise.promisify(openshift.ns(openshiftProject).buildconfigs('lagoon').put, { context: openshift.ns(openshiftProject).buildconfigs('lagoon') })
     // The OpenShift API needs the current resource Version so it knows that we're updating data of the last known version. This is filled within currentBuildConfig.metadata.resourceVersion
-    await buildConfigsPut({ body: buildconfig(currentBuildConfig.metadata.resourceVersion, serviceaccountTokenSecret) })
+    await buildConfigsPut({ body: buildconfig(currentBuildConfig.metadata.resourceVersion, serviceaccountTokenSecret, type) })
   } catch (err) {
     // Same as for projects, if BuildConfig does not exist, it throws an error and we check the error is an 404 and with that we know it does not exist.
     if (err.code == 404) {
       logger.info(`${openshiftProject}: Buildconfig lagoon does not exist, creating`)
       const buildConfigsPost = Promise.promisify(openshift.ns(openshiftProject).buildconfigs.post, { context: openshift.ns(openshiftProject).buildconfigs })
       // This is a complete new BuildConfig, so the resource version is "0" (it will be updated automatically by OpenShift)
-      await buildConfigsPost({ body: buildconfig("0", serviceaccountTokenSecret) })
+      await buildConfigsPost({ body: buildconfig("0", serviceaccountTokenSecret, type) })
     } else {
       logger.error(err)
       throw new Error
