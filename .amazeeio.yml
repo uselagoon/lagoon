@@ -4,94 +4,94 @@ services:
       type: custom
       template: services/api/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/api:kickstart
+    image: amazeeiolagoon/api:develop
   elasticsearch:
     amazeeio:
       type: custom
       template: services/elasticsearch/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/elasticsearch:kickstart
+    image: amazeeiolagoon/elasticsearch:develop
   kibana:
     amazeeio:
       type: custom
       template: services/kibana/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/kibana:kickstart
+    image: amazeeiolagoon/kibana:develop
   logs2slack:
     amazeeio:
       type: custom
       template: services/logs2slack/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/logs2slack:kickstart
+    image: amazeeiolagoon/logs2slack:develop
   logstash:
     amazeeio:
       type: custom
       template: services/logstash/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/logstash:kickstart
+    image: amazeeiolagoon/logstash:develop
   openshiftbuilddeploy:
     amazeeio:
       type: custom
       template: services/openshiftbuilddeploy/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/openshiftbuilddeploy:kickstart
+    image: amazeeiolagoon/openshiftbuilddeploy:develop
   openshiftbuilddeploymonitor:
     amazeeio:
       type: custom
       template: services/openshiftbuilddeploymonitor/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/openshiftbuilddeploymonitor:kickstart
+    image: amazeeiolagoon/openshiftbuilddeploymonitor:develop
   openshiftremove:
     amazeeio:
       type: custom
       template: services/openshiftremove/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/openshiftremove:kickstart
+    image: amazeeiolagoon/openshiftremove:develop
   openshiftremove-resources:
     amazeeio:
       type: custom
       template: services/openshiftremove-resources/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/openshiftremove-resources:kickstart
+    image: amazeeiolagoon/openshiftremove-resources:develop
   rabbitmq:
     amazeeio:
       type: custom
       template: services/rabbitmq/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/rabbitmq:kickstart
+    image: amazeeiolagoon/rabbitmq:develop
   rest2tasks:
     amazeeio:
       type: custom
       template: services/rest2tasks/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/rest2tasks:kickstart
+    image: amazeeiolagoon/rest2tasks:develop
   webhook-handler:
     amazeeio:
       type: custom
       template: services/webhook-handler/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/webhook-handler:kickstart
+    image: amazeeiolagoon/webhook-handler:develop
   webhooks2tasks:
     amazeeio:
       type: custom
       template: services/webhooks2tasks/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/webhooks2tasks:kickstart
+    image: amazeeiolagoon/webhooks2tasks:develop
   drush-alias:
     amazeeio:
       type: nginx:1.12
       template: helpers/drush-alias/.amazeeio.nginx.yml
       build: "false"
-    image: amazeeiolagoon/drush-alias:kickstart
+    image: amazeeiolagoon/drush-alias:develop
   auth-server:
     amazeeio:
       type: custom
       template: services/auth-server/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/auth-server:kickstart
+    image: amazeeiolagoon/auth-server:develop
   auth-ssh:
     amazeeio:
       type: custom
       template: services/auth-ssh/.amazeeio.app.yml
       build: "false"
-    image: amazeeiolagoon/auth-ssh:kickstart
+    image: amazeeiolagoon/auth-ssh:develop
