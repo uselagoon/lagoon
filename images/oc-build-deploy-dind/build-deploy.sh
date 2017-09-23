@@ -1,5 +1,5 @@
 #!/bin/bash -x
-set -euo pipefail
+set -eo pipefail
 
 OPENSHIFT_REGISTRY=$OUTPUT_REGISTRY
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
