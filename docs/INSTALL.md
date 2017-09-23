@@ -83,7 +83,8 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 7. Add Service Account `lagoon` to cluster role self-provisioner \(this will allow lagoon to create new projects in OpenShift\)
 
-        oc adm policy add-cluster-role-to-user self-provisioner -z lagoon
+        oc -n default adm policy add-cluster-role-to-user self-provisioner -z lagoon
+        oc -n default adm policy add-cluster-role-to-user system:build-strategy-custom -z lagoon
 
 
 
