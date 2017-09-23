@@ -66,9 +66,9 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
         // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
         giturl = `git@${domain}:${bodyObj.repository.full_name}.git`
       } else {
-        // If there is a second regex match, we add the port to the url
+        // If there is a second regex match, we add the port to the url and also format the url with `ssh://` in front which is needed for requests with anoter port
         const port = regexmatch[2]
-        giturl = `git@${domain}${port}${bodyObj.repository.full_name}.git`
+        giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
       }
 
     } else {
