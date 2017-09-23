@@ -55,7 +55,12 @@ do
   SERVICE_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
   DOCKERFILE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.dockerfile false)
   PULL_IMAGE=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.image false)
+  DO_BUILD=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.build true)
   BUILD_CONTEXT=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.build.context .)
+
+  if [ $DO_BUILD == "false" ]; then
+    continue
+  fi
 
   IMAGE_NAME=$SERVICE_NAME
 
@@ -100,6 +105,10 @@ done
 
 for SERVICE_NAME in "${SERVICES[@]}"
 do
+  DO_BUILD=$(cat .amazeeio.yml | shyaml get-value services.$SERVICE_NAME.amazeeio.build true)
+  if [ $DO_BUILD == "false" ]; then
+    continue
+  fi
   IMAGE_NAME=$SERVICE_NAME
   . /scripts/exec-push.sh
 done
