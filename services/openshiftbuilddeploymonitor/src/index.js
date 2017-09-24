@@ -130,8 +130,6 @@ const messageConsumer = async msg => {
     return hosts
   }
 
-  let s3UploadResult = {}
-  let buildLog = ""
   let logLink = ""
   const meta = JSON.parse(msg.content.toString())
   switch (buildPhase) {
@@ -154,10 +152,10 @@ const messageConsumer = async msg => {
     case "error":
       try {
         const buildLog = await buildsLogGet()
-        s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+        const s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
-        logger.warn(`${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
       }
       sendToAmazeeioLogs('warn', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` cancelled. ${logLink}`
@@ -167,10 +165,10 @@ const messageConsumer = async msg => {
     case "failed":
       try {
         const buildLog = await buildsLogGet()
-        s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+        const s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
-        logger.warn(`${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
       }
 
       sendToAmazeeioLogs('error', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
@@ -179,13 +177,12 @@ const messageConsumer = async msg => {
       break;
 
     case "complete":
-      let logLink = ''
       try {
         const buildLog = await buildsLogGet()
-        s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+        const s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
-        logger.warn(`${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
       }
 
       const routes = await getAllRoutesURLs()
