@@ -118,8 +118,21 @@ const messageConsumer = async msg => {
 
   const buildPhase = buildstatus.status.phase.toLowerCase();
   const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
+  const routesGet = Promise.promisify(openshift.ns(openshiftProject).routes.get, { context: openshift.ns(openshiftProject).routes })
+
+  const getAllRoutesURLs = async () => {
+    const allRoutesObject = await routesGet();
+    let hosts = []
+    hosts = allRoutesObject.items.map(route => {
+      const schema = ("tls" in route) ? 'https://' : 'http://'
+      return `${schema}${route.spec.host}`
+    })
+    return hosts
+  }
+
   let s3UploadResult = {}
   let buildLog = ""
+  let logLink = ""
   const meta = JSON.parse(msg.content.toString())
   switch (buildPhase) {
     case "new":
@@ -139,25 +152,46 @@ const messageConsumer = async msg => {
 
     case "cancelled":
     case "error":
+      try {
+        const buildLog = await buildsLogGet()
+        s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+        logLink = `<${s3UploadResult.Location}|Logs>`
+      } catch (err) {
+        logger.warn(`${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+      }
       sendToAmazeeioLogs('warn', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
-        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` cancelled`
+        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` cancelled. ${logLink}`
       )
       break;
 
     case "failed":
-      buildLog = await buildsLogGet()
-      s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+      try {
+        const buildLog = await buildsLogGet()
+        s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+        logLink = `<${s3UploadResult.Location}|Logs>`
+      } catch (err) {
+        logger.warn(`${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+      }
+
       sendToAmazeeioLogs('error', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
-        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` failed. Logs: ${s3UploadResult.Location}`
+        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` failed. ${logLink}`
       )
       break;
 
     case "complete":
-      buildLog = await buildsLogGet()
-      s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+      let logLink = ''
+      try {
+        const buildLog = await buildsLogGet()
+        s3UploadResult = await uploadLogToS3(buildName, siteGroupName, branchName, buildLog)
+        logLink = `<${s3UploadResult.Location}|Logs>`
+      } catch (err) {
+        logger.warn(`${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+      }
+
+      const routes = await getAllRoutesURLs()
 
       sendToAmazeeioLogs('info', siteGroupName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
-        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` complete. Logs: ${s3UploadResult.Location}}`
+        `*[${siteGroupName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${routes.join("\n")}`
       )
       break;
 
