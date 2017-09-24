@@ -40,10 +40,6 @@ services:
   openshiftbuilddeploymonitor:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
-    environment:
-      - AWS_KEY_ID=AKIAIEHWR6PAWPSE6RFQ
-      - AWS_SECRET_ACCESS_KEY=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
-      - AWS_BUCKET=jobs.amazeeio.services
     volumes:
       - ./services/openshiftbuilddeploymonitor/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
