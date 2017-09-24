@@ -184,7 +184,7 @@ const messageConsumer = async msg => {
     logger.info(`${openshiftProject}: Project ${openshiftProject} already exists, continuing`)
   } catch (err) {
     // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
-    if (err.code == 404) {
+    if (err.code == 404 || err.code == 403) {
       logger.info(`${openshiftProject}: Project ${openshiftProject}  does not exist, creating`)
       const projectrequestsPost = Promise.promisify(openshift.projectrequests.post, { context: openshift.projectrequests })
       await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${siteGroupName}] ${branchName}`} });
