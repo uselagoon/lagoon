@@ -62,8 +62,7 @@ do
     continue
   fi
 
-  IMAGE_NAME=$SERVICE_NAME
-
+  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${SERVICE_NAME}"
   if [ $DOCKERFILE == "false" ]; then
     if [ $PULL_IMAGE == "false" ]; then
       echo "No Dockerfile or Image for service type ${SERVICE_NAME} defined"; exit 1;
@@ -109,7 +108,7 @@ do
   if [ $DO_BUILD == "false" ]; then
     continue
   fi
-  IMAGE_NAME=$SERVICE_NAME
+  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${SERVICE_NAME}"
   . /scripts/exec-push.sh
 done
 

@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-dind dockerd --insecure-registry=$OUTPUT_REGISTRY &> /dev/null &
+if docker -H docker.dind.svc:2375 info &> /dev/null; then
+    export DOCKER_HOST=docker.dind.svc:2375
+else
+    dind dockerd --insecure-registry=$OUTPUT_REGISTRY &> /dev/null &
+fi
 
 mkdir -p ~/.ssh
 
