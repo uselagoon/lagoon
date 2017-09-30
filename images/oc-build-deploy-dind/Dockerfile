@@ -17,6 +17,7 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
 		rm -rf glibc.apk glibc-bin.apk /var/cache/apk/*  && \
 
 		apk add --no-cache bash git openssh py-pip && \
+		git config --global user.email "lagoon@lagoon.io" && git config --global user.name lagoon && \
     pip install shyaml && \
 		mkdir -p /openshift-origin-client-tools && \
     curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz && \

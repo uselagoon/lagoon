@@ -6,7 +6,7 @@ const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
 
-async function githubPullRequestOpened(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function githubPullRequestSynchronize(webhook: WebhookRequestData, siteGroup: SiteGroup) {
 
     const {
       webhooktype,
@@ -15,6 +15,11 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, siteGroup: S
       uuid,
       body,
     } = webhook;
+
+    if (body.action == 'updated' && !('base' in body.changes)) {
+      // we are only interested in this webhook if the base had been updated, ofter updates like title or description don't need a redeploy
+      return
+    }
 
     const headBranchName = body.pull_request.head.ref
     const headSha = body.pull_request.head.sha
@@ -34,8 +39,8 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, siteGroup: S
 
     try {
       const taskResult = await createDeployTask(data);
-      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:opened:handled`, data,
-        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> opened in <${body.repository.html_url}|${body.repository.full_name}>`
+      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
+        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> updated in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
@@ -56,4 +61,4 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, siteGroup: S
     }
 }
 
-module.exports = githubPullRequestOpened;
+module.exports = githubPullRequestSynchronize;

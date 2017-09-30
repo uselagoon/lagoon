@@ -17,12 +17,12 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: S
     } = webhook;
 
     const meta = {
-      pullrequest: body.number
+      pullrequestNumber: body.number
     }
 
     const data: removeData = {
       siteGroupName: siteGroup.siteGroupName,
-      pullrequest: body.number,
+      pullrequestNumber: body.number,
       type: 'pullrequest'
     }
 

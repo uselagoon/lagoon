@@ -17,11 +17,11 @@ const messageConsumer = async function(msg) {
   const {
     siteGroupName,
     branch,
-    pullrequest,
+    pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received RemoveOpenshift task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequest}`);
+  logger.verbose(`Received RemoveOpenshift task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`);
 
   const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
 
@@ -35,7 +35,7 @@ const messageConsumer = async function(msg) {
 
     switch (type) {
       case 'pullrequest':
-        //@TODO
+        openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-pr-${pullrequestNumber}` : `${safeSiteGroupName}-pr-${pullrequestNumber}`
         break;
 
       case 'branch':
@@ -87,11 +87,11 @@ const deathHandler = async (msg, lastError) => {
   const {
     siteGroupName,
     branch,
-    pullrequest,
+    pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequest}`)
+  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequestNumber}`)
 
   sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift:error",  {},
 `*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
@@ -106,11 +106,11 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
   const {
     siteGroupName,
     branch,
-    pullrequest,
+    pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequest}`)
+  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequestNumber}`)
 
   sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:

@@ -113,6 +113,7 @@ do
     continue
   fi
   TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${SERVICE_NAME}"
+  IMAGE_NAME="${SERVICE_NAME}"
   . /scripts/exec-push.sh
 done
 

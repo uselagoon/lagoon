@@ -178,16 +178,16 @@ async function createDeployTask(deployData) {
 			} else if (type === 'pullrequest') {
 				switch (deploySystemConfig.pullrequest) {
 					case undefined:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${pullrequest}, no pullrequest defined in active system, assuming we want all of them`)
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`)
 						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 					case true:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${pullrequest}, all pullrequest active, therefore deploying`)
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`)
 						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 					case false:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${pullrequest}, pullrequest deployments disabled`)
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:
-						logger.debug(`siteGroupName: ${siteGroupName}, bpullrequest: ${pullrequest}, no pull request pattern matching implemeted yet.`)
+						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, no pull request pattern matching implemeted yet.`)
 						throw new NoNeedToDeployBranch(`No Pull Request pattern matching implemented yet`)
 						// @TODO Implement pullrequest pattern matching
 				}
@@ -199,8 +199,7 @@ async function createDeployTask(deployData) {
 
 async function createRemoveTask(removeData) {
 	const {
-		siteGroupName,
-		openshiftRessourceAppName,
+		siteGroupName
 	} = removeData
 
   let activeSystems = await getActiveSystemsForSiteGroup(siteGroupName);

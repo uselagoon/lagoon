@@ -46,6 +46,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
   switch (event) {
 
     case "github:pull_request:closed:handled":
+    case "github:pull_request:opened:handled":
+    case "github:pull_request:updated:handled":
     case "github:delete:handled":
     case "github:push:handled":
     case "bitbucket:repo:push:handled":
@@ -81,6 +83,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:deploy-openshift:start":
     case "task:remove-openshift:start":
     case "task:remove-openshift-resources:start":
+    case "task:builddeploy-openshift:running":
       // known logs entries that should never go to slack
       channelWrapperLogs.ack(msg)
       break;

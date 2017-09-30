@@ -18,11 +18,11 @@ const messageConsumer = async function(msg) {
   const {
     siteGroupName,
     branch,
-    pullrequest,
+    pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received RemoveOpenshiftResources task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequest}`);
+  logger.verbose(`Received RemoveOpenshiftResources task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`);
 
   const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
@@ -40,8 +40,8 @@ const messageConsumer = async function(msg) {
 
     switch (type) {
       case 'pullrequest':
-        const openshiftNamingPullRequests = (typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined') ? siteGroupOpenShift.siteGroup.openshift.naming.pullrequest : "${sitegroup}-pr-${number}"
-        openshiftRessourceName = openshiftNamingPullRequests.replace('${number}', pullrequest).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
+        const openshiftNamingPullRequests = (typeof siteGroupOpenShift.siteGroup.openshift.naming !== 'undefined') ? siteGroupOpenShift.siteGroup.openshift.naming.pullrequestNumber : "${sitegroup}-pr-${number}"
+        openshiftRessourceName = openshiftNamingPullRequests.replace('${number}', pullrequestNumber).replace('${sitegroup}', siteGroupName).replace(/_/g,'-')
         break;
 
       case 'branch':
@@ -201,10 +201,7 @@ const messageConsumer = async function(msg) {
 const deathHandler = async (msg, lastError) => {
 
   const {
-    siteGroupName,
-    branch,
-    pullrequest,
-    type
+    siteGroupName
   } = JSON.parse(msg.content.toString())
 
   sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift-resources:error",  {},
@@ -219,10 +216,7 @@ ${lastError}
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
 
   const {
-    siteGroupName,
-    branch,
-    pullrequest,
-    type
+    siteGroupName
   } = JSON.parse(msg.content.toString())
 
   sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift-resources:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},

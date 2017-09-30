@@ -4,6 +4,8 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { getSiteGroupsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
+const githubPullRequestOpened = require('./handlers/githubPullRequestOpened');
+const githubPullRequestSynchronize = require('./handlers/githubPullRequestSynchronize');
 const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
 const bitbucketPush = require('./handlers/bitbucketPush');
@@ -88,6 +90,11 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
             await handle(githubPullRequestOpened, webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
             break;
 
+          case 'synchronize':
+          case 'edited':
+            await handle(githubPullRequestSynchronize, webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
+            break;
+
           default:
             unhandled(webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
             break;
@@ -156,7 +163,8 @@ async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup
   try {
     await handler(webhook, siteGroup)
   } catch(error) {
-    logger.error(`Error handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName}, error: ${error}`);
+    logger.error(`Error handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName}`);
+    logger.error(error)
   }
 }
 
