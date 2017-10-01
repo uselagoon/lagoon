@@ -87,6 +87,11 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
         oc -n default adm policy add-cluster-role-to-user system:build-strategy-custom -z lagoon
 
 
+        oc -n default create serviceaccount docker-host
+        oc -n default adm policy add-scc-to-user privileged -z docker-host
+        oc -n default create -f docker-host.yaml
+
+
 
 
 
