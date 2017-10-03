@@ -55,7 +55,7 @@ objects:
           sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
-        - image: amazeeiolagoon/${SERVICE_NAME}:${SAFE_BRANCH}
+        - image: ${REGISTRY}/${PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 9600
