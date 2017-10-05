@@ -9,7 +9,6 @@ def pw(N):
 secret = {
 "Version": "v1",
     "stringData": {
-        "JENKINS_URL": "https://to.be.determined/",
         "JWTSECRET": pw(20),
         "RABBITMQ_PASSWORD": pw(10),
         "RABBITMQ_USERNAME": pw(10),
