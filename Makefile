@@ -414,7 +414,10 @@ openshift: local-dev/minishift/minishift
 	oc new-project lagoon; \
 	bash -c "oc export role shared-resource-viewer -n openshift | oc create -f -"; \
 	oc create policybinding lagoon -n lagoon; \
-	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon;
+	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon; \
+	oc -n default create serviceaccount docker-host; \
+	oc -n default adm policy add-scc-to-user privileged -z docker-host; \
+	oc -n default create -f openshift-setup/docker-host.yaml;
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
