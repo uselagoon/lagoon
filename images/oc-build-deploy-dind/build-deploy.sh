@@ -1,11 +1,11 @@
 #!/bin/bash -x
 set -eo pipefail
 
-OPENSHIFT_REGISTRY=$OUTPUT_REGISTRY
+OPENSHIFT_REGISTRY=docker-registry.default.svc:5000
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 
 if [ "$CI_USE_OPENSHIFT_REGISTRY" == "true" ]; then
-  CI_OVERRIDE_IMAGE_REPO=${OUTPUT_REGISTRY}/lagoon
+  CI_OVERRIDE_IMAGE_REPO=${OPENSHIFT_REGISTRY}/lagoon
 else
   CI_OVERRIDE_IMAGE_REPO=""
 fi
