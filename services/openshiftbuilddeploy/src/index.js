@@ -47,14 +47,14 @@ const messageConsumer = async msg => {
     var openshiftProjectUser = siteGroupOpenShift.siteGroup.openshift.project_user || ""
     var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
     var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
-    var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern || ""
-    var routerPattern = routerPattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName)
+    var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern ? siteGroupOpenShift.siteGroup.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName) : ""
     var prHeadBranchName = headBranchName || ""
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
   } catch(error) {
-    logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${error}`)
+    logger.error(`Error while loading information for sitegroup ${siteGroupName}`)
+    logger.error(error)
     throw(error)
   }
 
