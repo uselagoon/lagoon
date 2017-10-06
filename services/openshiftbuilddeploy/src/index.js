@@ -90,12 +90,6 @@ const messageConsumer = async msg => {
       },
       "spec": {
           "nodeSelector": null,
-          "output": {
-              "to": {
-                  "kind": "ImageStreamTag",
-                  "name": "empty:latest"
-              }
-          },
           "postCommit": {},
           "resources": {},
           "runPolicy": "Serial",
@@ -212,25 +206,6 @@ const messageConsumer = async msg => {
       throw new Error
     }
   }
-
-  // Create ImageStream if does not exist
-  try {
-    const imagestreamsGet = Promise.promisify(openshift.ns(openshiftProject).imagestreams('empty').get, { context: openshift.ns(openshiftProject).imagestreams('empty') })
-    projectStatus = await imagestreamsGet()
-    logger.info(`${openshiftProject}: Imagestream empty already exists, continuing`)
-  } catch (err) {
-    if (err.code == 404) {
-      logger.info(`${openshiftProject}: Imagestream does not exists, creating`)
-      // Creating an ImageStream in this project, this ImageStream will be used by our BuildConfig as outpug ImageStream and with that fill the ENV Variable $OUTPUT_REGISTRY that we need
-      // The ImageStream itself is not used.
-      const imagestreamsPost = Promise.promisify(openshift.ns(openshiftProject).imagestreams.post, { context: openshift.ns(openshiftProject).imagestreams })
-      await imagestreamsPost({ body: {"kind":"ImageStream","apiVersion":"v1","metadata":{"name":"empty"} }});
-    } else {
-      logger.error(err)
-      throw new Error
-    }
-  }
-
 
   // Used to create RoleBindings
   const rolebindingsPost = Promise.promisify(openshift.ns(openshiftProject).rolebindings.post, { context: openshift.ns(openshiftProject).rolebindings })
