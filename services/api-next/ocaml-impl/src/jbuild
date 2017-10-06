@@ -1,0 +1,6 @@
+(jbuild_version 1)
+
+(executable
+ ((name main)
+ (public_name api-next)
+ (libraries (cohttp.lwt graphql-lwt yojson))))
