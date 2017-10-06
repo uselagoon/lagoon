@@ -55,7 +55,7 @@ objects:
           sitegroup: ${SAFE_SITEGROUP}
       spec:
         containers:
-        - image: ' '
+        - image: ${REGISTRY}/${PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 8080
