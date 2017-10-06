@@ -1,0 +1,24 @@
+{
+  "name": "api-next",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'hi'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "dotenv": "^4.0.0",
+    "dotenv-extended": "^2.0.1",
+    "express": "^4.16.1",
+    "express-graphql": "^0.6.11",
+    "graphql": "^0.11.7",
+    "graphql-tools": "^2.2.1",
+    "jsonwebtoken": "^8.0.1",
+    "ramda": "^0.24.1"
+  }
+}
