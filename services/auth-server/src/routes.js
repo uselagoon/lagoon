@@ -2,7 +2,7 @@
 
 const R = require('ramda');
 const { parseJson } = require('./util/routing');
-const { createJWT, validateSshKey } = require('./jwt');
+const { createJWT, validateSshKey } = require('@amazeeio/lagoon-commons/src/jwt');
 
 type GenerateRouteArgs = {
   jwtSecret: string,
