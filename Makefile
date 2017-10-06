@@ -83,7 +83,7 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_B
 
 # Build a PHP docker image. Expects as arguments: PHP version, type of image (ie fpm, cli etc),
 # location of Dockerfile, path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(1)-$(2)-alpine -f $(3) $(4)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(1)-$(2)-alpine -f $(3) $(4)
 
 
 # Tags and image with the `amazeeio` repository and pushes it
@@ -111,7 +111,8 @@ baseimages := centos7 \
 							centos7-php7.0 \
 							centos7-php7.0-drupal \
 							centos7-php7.0-drupal-builder \
-							oc-build-deploy-dind
+							oc-build-deploy-dind \
+							commons
 
 # all-images is a variable that will be constantly filled with all image there are, to use for
 # commands like `make build` which need to know all images existing
@@ -147,6 +148,7 @@ build/centos7-nginx1-drupal: build/centos7-nginx1 images/centos7-nginx1-drupal/D
 build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
 build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
 build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
+build/commons: images/commons/Dockerfile
 
 #######
 ####### PHP Images
@@ -163,7 +165,7 @@ phpimages := php-5.6-fpm \
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
 
 # Define the make recepie for all base images
-$(build-phpimages):
+$(build-phpimages): build/commons
 	$(eval clean = $(subst build/php-,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
@@ -347,7 +349,7 @@ push-openshift-images-list := $(baseimages)
 push-openshift-images = $(foreach image,$(push-openshift-images-list),[push-openshift]-$(image))
 # tag and push all images
 .PHONY: push-openshift
-push-openshift: $(push-openshift-images)
+push-openshift: $(push-openshift-images)  push-php-openshift
 # tag and push of each image
 .PHONY: $(push-openshift-images)
 $(push-openshift-images):
@@ -355,6 +357,23 @@ $(push-openshift-images):
 	$(info pushing $(image) to openshift registry)
 	@docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
 	@docker push $$(cat openshift):30000/lagoon/$(image) > /dev/null
+
+# push command of our php base images into openshift
+push-php-openshift-images-list := $(phpimages)
+push-php-openshift-images = $(foreach image,$(push-php-openshift-images-list),[push-php-openshift]-$(image))
+# tag and push all images
+.PHONY: push-php-openshift
+push-php-openshift: $(push-php-openshift-images)
+# tag and push of each image
+.PHONY: $(push-php-openshift-images)
+$(push-php-openshift-images):
+	$(eval clean = $(subst [push-php-openshift]-php,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+	$(info pushing php:$(version)-$(type)-alpine to openshift registry)
+	@docker tag $(CI_BUILD_TAG)/php:$(version)-$(type)-alpine $$(cat openshift):30000/lagoon/php:$(version)-$(type)-alpine
+	@docker push $$(cat openshift):30000/lagoon/php:$(version)-$(type)-alpine > /dev/null
+
 
 local-git-port:
 	$(info configuring ssh port of local-git server inside sitegroups.yaml, docker-compose.yaml and bitbucket.yaml)
