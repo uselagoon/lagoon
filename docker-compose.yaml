@@ -1,9 +1,9 @@
 version: '3.2'
 services:
-  postgres:
-    image: ${IMAGE_REPO:-lagoon}/postgres
+  mariadb:
+    image: ${IMAGE_REPO:-lagoon}/mariadb
     volumes:
-      - ./services/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./services/mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
@@ -83,6 +83,13 @@ services:
       - "3000:3000"
     depends_on:
       - local-hiera-watcher-pusher
+  api-next:
+    image: ${IMAGE_REPO:-lagoon}/api-next
+    command: yarn run dev
+    volumes:
+      - ./services/api-next/src:/app/src
+      - ./services/api-next/package.json:/app/package.json
+      - ./services/api-next/yarn.lock:/app/yarn.lock
   auth-ssh:
     image: ${IMAGE_REPO:-lagoon}/auth-ssh
       # TODO:
