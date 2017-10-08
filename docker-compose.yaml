@@ -43,6 +43,10 @@ services:
     volumes:
       - ./services/openshiftbuilddeploymonitor/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - AWS_KEY_ID=${AWS_KEY_ID:-XXXXXXXXXXXXXXXXXXXX}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-xxxxxxxxxxxxxxxxxxxx}
+      - AWS_BUCKET=${AWS_BUCKET:-aws-bucket}
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
