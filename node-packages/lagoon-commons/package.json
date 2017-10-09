@@ -5,6 +5,11 @@
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "license": "MIT",
   "devDependencies": {
+    "flow-bin": "^0.48.0",
     "prettier": "^1.5.3"
+  },
+  "dependencies": {
+    "lokka": "^1.7.0",
+    "lokka-transport-http": "^1.6.1"
   }
 }

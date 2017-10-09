@@ -15,7 +15,7 @@ export type Role = 'none' | 'admin' | 'drush';
 
 // Sourced from services/auth-server/src/jwt.js
 export type TokenPayload = {
-  sshKey: string,
+  sshKey?: string,
   role: Role,
   iss: string,
   sub?: string,
@@ -142,7 +142,7 @@ const hasSshKey = (sshKey: string, entity: { +ssh_keys?: SshKeys }) =>
   )(entity);
 
 const getCredentialsForEntities = (
-  sshKey: string,
+  sshKey?: string,
   role: Role,
   entityType: 'client' | 'sitegroup' | 'site',
   // used for resolving specific relations between entities
@@ -165,7 +165,7 @@ const getCredentialsForEntities = (
         return R.append(entityName, acc);
       }
 
-      if (hasSshKey(sshKey, entity)) {
+      if (sshKey != null && hasSshKey(sshKey, entity)) {
         return R.append(entityName, acc);
       }
 
@@ -186,7 +186,7 @@ const createAllowedQueries = (role: Role): void | Array<string> => {
 };
 
 const getCredentials = (
-  sshKey: string,
+  sshKey?: string,
   role: Role,
   state: State
 ): Credentials => {
@@ -293,7 +293,6 @@ const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
     const state = ctx.store.getState();
     const credentials = getCredentials(sshKey, role, state);
 
-    // $FlowIgnore
     req.credentials = credentials;
 
     next();
