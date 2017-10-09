@@ -26,7 +26,7 @@ items:
           - /usr/local/bin/dockerd
           - --host=tcp://0.0.0.0:2375
           - --host=unix:///var/run/docker.sock
-          - --insecure-registry=172.30.1.1:5000
+          - --insecure-registry=docker-registry.default.svc:5000
           - '--bip=172.29.0.1/16'
           image: docker:stable-dind
           imagePullPolicy: Always
