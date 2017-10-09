@@ -1,4 +1,5 @@
 {
+  "name": "api",
   "private": true,
   "scripts": {
     "clean": "rimraf dist && rimraf logs && rimraf .repository",
@@ -19,8 +20,8 @@
     "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-graphql": "^1.0.0",
     "eslint-plugin-import": "^2.6.0",
-    "flow-bin": "^0.48.0",
-    "jest": "^20.0.4",
+    "flow-bin": "0.48.0",
+    "jest": "^21.2.1",
     "lint-staged": "^4.0.0",
     "nodemon": "^1.11.0",
     "prettier": "^1.5.3",
@@ -32,9 +33,7 @@
     "body-parser": "^1.15.0",
     "compression": "^1.6.1",
     "cors": "^2.7.1",
-    "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
-    "dotenv-safe": "^4.0.3",
     "express": "^4.13.4",
     "express-graphql": "^0.6.6",
     "flow-remove-types": "^1.2.1",
@@ -51,7 +50,7 @@
     "redux": "^3.7.1",
     "redux-saga": "^0.15.4",
     "request": "^2.81.0",
-    "request-promise-native": "^1.0.4",
+    "request-promise-native": "^1.0.5",
     "sshpk": "^1.13.1",
     "winston": "^2.3.0"
   },

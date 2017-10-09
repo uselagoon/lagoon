@@ -1,19 +1,31 @@
 ARG AMAZEEIO_GIT_BRANCH
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest} as builder
+# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
+FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest} as yarn-workspace-builder
 
-# Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.
-COPY package.json yarn.lock /app/
-
-# Run yarn install and remove the .yarn-cache as we don't need that on our image.
-RUN BUILD_ONLY=true yarn install --pure-lockfile
-
+# STAGE 2: specific service Image
 FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
-COPY --from=builder /app/node_modules /app/node_modules
+ENV NODE_ENV production
 
-# Now copy in our application code.
-COPY . /app
+# Copying generated node_modules from the first stage
+COPY --from=yarn-workspace-builder /app /app
 
+# Setting the workdir to the service, all following commands will run from here
+WORKDIR /app/services/api/
+
+# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
+COPY --from=yarn-workspace-builder /app/.env.defaults .
+
+# Copying our own package.json
+COPY package.json .
+
+# yarn install, our service might need special packages
+RUN yarn install && yarn cache clean
+
+# Copying files from our service
+COPY . .
+
+# building our service
 RUN yarn run build
 
-CMD yarn run start
+CMD ["yarn", "start"]

@@ -118,6 +118,37 @@ describe('getCredentialsForEntities', () => {
 
     expect(ret).toEqual(['c1', 'c3']);
   });
+
+  test('should not get any clients, because sshKey = undefined', () => {
+    const clients: any = {
+      c1: {
+        ssh_keys: {
+          u1: { key: 'ssh1' },
+        },
+      },
+      c2: {
+        ssh_keys: {
+          u2: { key: 'nope' },
+        },
+      },
+      c3: {
+        ssh_keys: {
+          u3: { key: 'nope' },
+          u4: { key: 'ssh1' },
+        },
+      },
+    };
+
+    const ret = getCredentialsForEntities(
+      undefined,
+      'none',
+      'client',
+      null,
+      clients
+    );
+
+    expect(ret).toEqual([]);
+  });
 });
 
 describe('getCredentials', () => {
@@ -191,7 +222,7 @@ describe('getCredentials', () => {
     });
   });
 
-  test('should return all credentials for a role = "admin"', () => {
+  test('should return all credentials for a role = "admin" (without sshKey)', () => {
     const state = {
       clientsFile: {
         amazeeio_clients: ({
@@ -234,7 +265,7 @@ describe('getCredentials', () => {
       }: any),
     };
 
-    const ret = getCredentials('ssh1', 'admin', state);
+    const ret = getCredentials(undefined, 'admin', state);
 
     expect(ret).toEqual({
       clients: ['c1', 'c2', 'c3'],
