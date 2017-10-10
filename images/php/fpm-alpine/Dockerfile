@@ -7,7 +7,7 @@ MAINTAINER amazee.io
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
-COPY --from=commons /bin/fix-permissions /bin/ep /bin/
+COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home/.bashrc /home/.bashrc
 
 RUN chmod g+w /etc/passwd \
@@ -20,14 +20,34 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 COPY check_fcgi /usr/sbin/
 COPY entrypoints/70-php-config.sh /lagoon/entrypoints
 
-COPY php.ini /usr/local/etc/
+COPY php.ini /usr/local/etc/php/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache fcgi \
-    && rm -rf /var/cache/apk/* \
-    && docker-php-ext-install pdo_mysql \
+        # for gd
+        libpng-dev \
+        # for gettext
+        gettext-dev \
+        # for mcrypt
+        libmcrypt-dev \
+        # for soap
+        libxml2-dev \
+        # for xsl
+        libxslt-dev \
+    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
+    && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
+        yes '' | pecl install -f apcu; \
+       fi \
+    && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
+        yes '' | pecl install -f apcu-4.0.11; \
+       fi \
+    && yes '' | pecl install -f redis \
+    && docker-php-ext-enable apcu redis  \
+    && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap opcache xsl zip \
+    && rm -rf /var/cache/apk/* /tmp/pear/ \
+    && apk del .phpize-deps \
     && mkdir -p /app \
     && fix-permissions /usr/local/etc/ \
     && fix-permissions /app
