@@ -1,32 +1,8 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_VERSION}-alpine
+FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm-alpine
 
 MAINTAINER amazee.io
-
-# Copying commons files
-COPY --from=commons /lagoon /lagoon
-COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
-COPY --from=commons /home/.bashrc /home/.bashrc
-
-RUN chmod g+w /etc/passwd \
-    && mkdir -p /home
-
-# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
-# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
-ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
-
-ENV AMAZEEIO_DB_HOST=mariadb \
-    AMAZEEIO_DB_PORT=3306 \
-    AMAZEEIO_DB_USERNAME=drupal \
-    AMAZEEIO_DB_PASSWORD=drupal \
-    AMAZEEIO_SITENAME=drupal \
-    AMAZEEIO_SITE_NAME=drupal \
-    AMAZEEIO_SITE_ENVIRONMENT=development \
-    AMAZEEIO_HASH_SALT=0000000000000000000000000 \
-    AMAZEEIO_TMP_PATH=/tmp \
-    AMAZEEIO_LOCATION=docker
 
 RUN apk update \
     && apk upgrade \
@@ -34,10 +10,9 @@ RUN apk update \
         mysql-client \
         unzip \
         bash \
+        tini \
     && apk add nodejs-current-npm yarn --update-cache  --repository http://dl-3.alpinelinux.org/alpine/edge/main/ --repository http://dl-3.alpinelinux.org/alpine/edge/community/ \
     && rm -rf /var/cache/apk/* \
-    && docker-php-ext-install pdo_mysql \
-    && mkdir -p /app \
     && curl -L -o /usr/local/bin/composer https://getcomposer.org/download/1.5.2/composer.phar \
     && echo "61dfd2f9262a0a2469e0c1864ab1cce6d3e63f9053faf883cd08307413d92119010638bfbee7c90c9b6977e284814bcb7bfdc01dd9cb9125ac947a2968c791bc  /usr/local/bin/composer" | sha512sum \
     && curl -L -o /usr/local/bin/drupal https://github.com/hechoendrupal/drupal-console-launcher/releases/download/1.0.2/drupal.phar \
@@ -48,6 +23,5 @@ RUN apk update \
         /usr/local/bin/drupal \
         /usr/local/bin/drush
 
-WORKDIR /app
-
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]

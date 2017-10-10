@@ -176,6 +176,12 @@ $(build-phpimages): build/commons
 
 all-images += $(phpimages)
 
+build/php-5.6-fpm build/php-7.0-fpm build/php-7.1-fpm: images/commons
+build/php-5.6-cli: build/php-5.6-fpm
+build/php-7.0-cli: build/php-7.0-fpm
+build/php-7.1-cli: build/php-7.1-fpm
+
+
 #######
 ####### Service Images
 #######
