@@ -9,5 +9,15 @@
     "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
   },
   "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@amazeeio/lagoon-commons": "3.0.2",
+    "bluebird": "^3.5.1",
+    "es7-sleep": "^1.0.0",
+    "flow-remove-types": "^1.2.1",
+    "openshift-client": "^3.10.8"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  }
 }

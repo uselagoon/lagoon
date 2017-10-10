@@ -1,5 +1,6 @@
 {
   "name": "api",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "clean": "rimraf dist && rimraf logs && rimraf .repository",

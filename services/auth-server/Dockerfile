@@ -5,7 +5,6 @@ FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:
 
 # STAGE 2: specific service Image
 FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
-ENV NODE_ENV production
 
 # Copying generated node_modules from the first stage
 COPY --from=yarn-workspace-builder /app /app
@@ -24,6 +23,8 @@ RUN yarn install --pure-lockfile && yarn cache clean
 
 # Copying files from our service
 COPY . .
+
+ENV NODE_ENV production
 
 # building our service
 RUN yarn run build

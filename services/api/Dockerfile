@@ -4,17 +4,18 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest} as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
-ENV NODE_ENV production
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest}
 
 # Copying generated node_modules from the first stage
-COPY --from=yarn-workspace-builder /app /app
+# COPY --from=yarn-workspace-builder /app/yarn.lock /app/package.json /app/node_modules /app
+COPY --from=yarn-workspace-builder /app/yarn.lock /app/package.json /app/
+COPY --from=yarn-workspace-builder /app/node_modules/ /app/node_modules/
+
+# Copying the common .env.defaults to the lagoon root for later usage
+COPY --from=yarn-workspace-builder /app/.env.defaults .
 
 # Setting the workdir to the service, all following commands will run from here
 WORKDIR /app/services/api/
-
-# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
-COPY --from=yarn-workspace-builder /app/.env.defaults .
 
 # Copying our own package.json
 COPY package.json .
@@ -22,8 +23,13 @@ COPY package.json .
 # yarn install, our service might need special packages
 RUN yarn install && yarn cache clean
 
+ENV NODE_ENV production
+
 # Copying files from our service
 COPY . .
+
+# Append common env.defaults to the service's own .env.defaults
+RUN bash -c 'cat /app/.env.defaults >> /app/services/api/.env.defaults'
 
 # building our service
 RUN yarn run build
