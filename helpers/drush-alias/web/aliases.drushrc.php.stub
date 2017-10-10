@@ -1,5 +1,7 @@
 global $sitegroup_name;
 
+use Symfony\Component\Yaml\Yaml;
+
 // For CI: allow to completely disable amazee.io alias loading
 if (getenv('AMAZEEIO_DISABLE_ALIASES')) {
   drush_log('AMAZEEIO_DISABLE_ALIASES is set, bailing out of loading amazeeio aliases');
@@ -17,7 +19,13 @@ if (empty($sitegroup_name)) {
   $amazeeioyml_path = $amazeeioyml = $sitegroup_name = FALSE;
 
   drush_log('Finding Drupal Root');
-  $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
+
+  if ( DRUSH_VERSION >= 9 ) {
+     $_d = new \Drush\Drush();
+     $path = $_d->getContainer()->get('bootstrap.manager')->getRoot();
+   } else {
+     $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
+   }
 
   // No sitegroup name could be found, let's search for it via the .amazeeio.yml file
   drush_log("Starting to search for .amazeeio.yml file to extract sitegroup name within '$path' and parent directories");
@@ -49,7 +57,9 @@ if (empty($sitegroup_name)) {
   // An .amazeeio.yml file has been found, let's try to load the sitegroup from it.
   if ($amazeeioyml_path) {
     drush_log("Using .amazeeio.yml file at: '$amazeeioyml_path'");
-    $amazeeioyml = Drush\Make\Parser\ParserYaml::parse(file_get_contents($amazeeioyml_path));
+
+    $amazeeioyml = Yaml::parse( file_get_contents($amazeeioyml_path) );
+
     if ($amazeeioyml['sitegroup']) {
       $sitegroup_name = $amazeeioyml['sitegroup'];
       drush_log("Discovered sitegroup name '$sitegroup_name' from .amazeeio.yml file");
