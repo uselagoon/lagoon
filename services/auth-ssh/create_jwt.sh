@@ -11,21 +11,23 @@ AUD=$2
 
 HEADER='{
     "typ": "JWT",
-    "alg": "HS256",
-    "iss": "auth-ssh Bash Generator",
-    "aud": "$AUD",
-    "exp": '$(($(date +%s)+1))',
-    "iat": '$(date +%s)'
+    "alg": "HS256"
 }'
 
 PAYLOAD='{
-    "role": "admin"
+    "role": "admin",
+    "iss": "auth-ssh Bash Generator",
+    "aud": "'$AUD'",
+    "sub": "auth-server",
+    "iat": '$(date +%s)'
 }'
 
 function base64_encode()
 {
     declare INPUT=${1:-$(</dev/stdin)}
-    echo -n "${INPUT}" | openssl enc -base64 -A
+
+    # The `tr` part is equivalent to `node_modules/base64url` encode mechanism
+    echo -n "${INPUT}" | openssl enc -base64 -A | tr -- '+/' '-_' | tr -d '='
 }
 
 # For some reason, probably bash-related, JSON that terminates with an integer
