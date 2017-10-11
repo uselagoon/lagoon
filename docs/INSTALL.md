@@ -20,7 +20,7 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 1. Login into OpenShift as an Admin \(we assume that you have the oc cli tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli)\)
 
-        oc login https://console-vmw-drupal.urz.uni-heidelberg.de/console/
+        oc login <openshift console>
 
 2. Switch to the project default
 
