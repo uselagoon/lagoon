@@ -352,17 +352,12 @@ $(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
 
-lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image)) .secrets
+lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
+	oc process -f openshift-setup/secrets.yaml | oc create -f -
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon-kickstart", "branchName": "kickstart" }'
 	make logs
-
-.secrets: secrets
-	oc apply -f secrets
-
-secrets:
-	python make-secrets.py
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
 publish-amazeeiolagoon-images = $(foreach image,$(all-images),[publish-amazeeiolagoon]-$(image))
