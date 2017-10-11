@@ -7,8 +7,9 @@ const sshpk = require('sshpk');
 export type Role = 'none' | 'admin' | 'drush';
 
 export type Payload = {|
-  // This needs to be a valid ssh key (starting w/ 'ssh-rsa ...')
-  sshKey: string,
+  // If set, this needs to be a valid ssh key (starting w/ 'ssh-rsa ...')
+  sshKey?: string,
+
   role: Role,
 
   // Issuer - Information on who created this token
@@ -45,7 +46,7 @@ const createJWT = async (args: Args): Promise<string> => {
   return new Promise((res, rej) => {
     const { sshKey } = args.payload;
 
-    if (!validateSshKey(sshKey)) {
+    if (sshKey == null || !validateSshKey(sshKey)) {
       rej(
         new Error(
           'Invalid ssh-key public key format (should start with e.g. ssh-rsa)'
@@ -73,6 +74,24 @@ const createJWT = async (args: Args): Promise<string> => {
       res(token);
     });
   });
+};
+
+// This function does not do any sshKey checks / validation etc.
+// it's useful for creating service tokens, which will generally
+// get created during startup of services... therefore this function
+// is treated as >sync<... don't use this in heavily async environments!
+const createJWTWithoutSshKey = (args: Args): string => {
+  const { expiresIn, jwtSecret } = args;
+
+  // We don't need any sshKey information
+  const payload = R.omit('sshKey', args.payload);
+
+  // Sometimes we want some expiresIn values, if we don't know an exact payload.exp
+  const options = expiresIn ? { expiresIn } : null;
+
+  // By passing an object, sign will add an issuer timestamp (iat)
+  // that means, the token hash will always be different on each creation
+  return jwt.sign(payload, jwtSecret, options);
 };
 
 // TODO: In hiera, we don't store comment / type information in the key
@@ -106,5 +125,6 @@ const validateSshKey = (key: string): boolean => {
 module.exports = {
   extractBase64Key,
   createJWT,
+  createJWTWithoutSshKey,
   validateSshKey,
 };

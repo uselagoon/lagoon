@@ -2,9 +2,22 @@
 
 const winston = require('winston');
 
-exports.logger = undefined;
+/* ::
 
-type Logger = typeof winston.Logger;
+export type LogFn = (...args: Array<any>) => void;
+
+export type Logger = {
+  error: LogFn,
+  warn: LogFn,
+  info: LogFn,
+  debug: LogFn,
+  error: LogFn,
+  verbose: LogFn,
+  silly: LogFn,
+  log: LogFn,
+};
+
+*/
 
 const identity: Logger = {
   error: () => {},
@@ -16,9 +29,7 @@ const identity: Logger = {
   log: () => {},
 };
 
-let logger: Logger = exports.logger = identity;
-
-exports.logger = new winston.Logger({
+const logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
       level: 'silly',
@@ -28,4 +39,4 @@ exports.logger = new winston.Logger({
   ]
 });
 
-
+exports.logger = logger;

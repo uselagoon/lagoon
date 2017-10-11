@@ -11,6 +11,8 @@
 # variables during the container entrypoint.
 source /authorize.env
 
+SERVICE_API_ADMIN_TOKEN=$(/create_jwt.sh $JWTSECRET $JWTAUDIENCE)
+
 # This token will be required for accessing the sshKeys in the AmazeeIO api
 bearer="Authorization: bearer $SERVICE_API_ADMIN_TOKEN"
 

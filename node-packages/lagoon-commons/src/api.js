@@ -4,15 +4,39 @@ import type { SiteGroup } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
+const { createJWTWithoutSshKey } = require('./jwt');
+const { logger } = require('./local-logging');
 
 const {
   AMAZEEIO_API_HOST = 'http://api:3000',
-  SERVICE_API_ADMIN_TOKEN,
+  JWTSECRET,
+  JWTAUDIENCE,
 } = process.env;
+
+if (JWTSECRET == null) {
+  logger.warn(
+    'No JWTSECRET env variable set... this will cause api requests to fail'
+  );
+}
+
+if (JWTAUDIENCE == null) {
+  logger.warn(
+    'No JWTAUDIENCE env variable set... this *might* cause api requests to fail'
+  );
+}
+
+const apiAdminToken = createJWTWithoutSshKey({
+  payload: {
+    role: 'admin',
+    iss: 'lagoon-commons',
+    aud: JWTAUDIENCE || 'api.amazee.io'
+  },
+  jwtSecret: JWTSECRET || '',
+});
 
 const options = {
   headers: {
-    Authorization: `Bearer ${SERVICE_API_ADMIN_TOKEN}`,
+    Authorization: `Bearer ${apiAdminToken}`,
   },
 };
 

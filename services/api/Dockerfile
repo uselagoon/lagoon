@@ -1,19 +1,37 @@
 ARG AMAZEEIO_GIT_BRANCH
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest} as builder
+# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
+FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest} as yarn-workspace-builder
 
-# Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.
-COPY package.json yarn.lock /app/
+# STAGE 2: specific service Image
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest}
 
-# Run yarn install and remove the .yarn-cache as we don't need that on our image.
-RUN BUILD_ONLY=true yarn install --pure-lockfile
+# Copying generated node_modules from the first stage
+# COPY --from=yarn-workspace-builder /app/yarn.lock /app/package.json /app/node_modules /app
+COPY --from=yarn-workspace-builder /app/yarn.lock /app/package.json /app/
+COPY --from=yarn-workspace-builder /app/node_modules/ /app/node_modules/
 
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
-COPY --from=builder /app/node_modules /app/node_modules
+# Copying the common .env.defaults to the lagoon root for later usage
+COPY --from=yarn-workspace-builder /app/.env.defaults .
 
-# Now copy in our application code.
-COPY . /app
+# Setting the workdir to the service, all following commands will run from here
+WORKDIR /app/services/api/
 
+# Copying our own package.json
+COPY package.json .
+
+# yarn install, our service might need special packages
+RUN yarn install && yarn cache clean
+
+ENV NODE_ENV production
+
+# Copying files from our service
+COPY . .
+
+# Append common env.defaults to the service's own .env.defaults
+RUN bash -c 'cat /app/.env.defaults >> /app/services/api/.env.defaults'
+
+# building our service
 RUN yarn run build
 
-CMD yarn run start
+CMD ["yarn", "start"]

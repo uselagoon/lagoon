@@ -19,9 +19,14 @@ FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest}
 
 COPY --from=builder /home/rpmbuild/RPMS/x86_64 /home/openssh
 
-RUN yum install -y wget openssl-libs
+RUN yum install -y wget openssl-libs openssl
 
 RUN rpm -Uvh --nodeps /home/openssh/*.rpm
+
+# Required for our create_jwt.sh
+RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 && \
+    chmod +x ./jq && \
+    cp jq /usr/bin
 
 # Generate ssh server keys
 RUN mkdir .ssh && \
@@ -44,10 +49,12 @@ RUN fix-permissions /home/get-jwt-token.sh
 
 # This is the authorized keys command, which will be defined as AuthorizedKeysCommand
 COPY services/auth-ssh/authorize.sh /authorize.sh
+COPY services/auth-ssh/create_jwt.sh /create_jwt.sh
 
 # Files defined in AuthorizedKeysCommand need the specific permissions for
 # root to own and no write permission by group or others
 RUN chmod 755 /authorize.sh
+RUN chmod 755 /create_jwt.sh
 
 # Create /authorize.env file and give api right to write it, it will be filled
 # within docker-entrypoint with all environment variables and then sourced

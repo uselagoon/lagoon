@@ -28,5 +28,14 @@
       ]
     },
     "gitDir": "../../"
+  },
+  "dependencies": {
+    "@amazeeio/lagoon-commons": "3.0.2",
+    "express": "^4.16.2",
+    "flow-remove-types": "^1.2.1",
+    "morgan": "^1.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
   }
 }
