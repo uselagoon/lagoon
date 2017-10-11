@@ -4,6 +4,8 @@ services:
     image: ${IMAGE_REPO:-lagoon}/mariadb
     volumes:
       - ./services/mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
