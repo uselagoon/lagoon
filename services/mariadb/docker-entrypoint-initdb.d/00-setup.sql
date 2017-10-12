@@ -22,10 +22,7 @@ CREATE TABLE IF NOT EXISTS openshift (
        id              int NOT NULL auto_increment PRIMARY KEY,
        name            varchar(50) UNIQUE,
        console_url     varchar(300),
-       registry        varchar(500),
        token           varchar(1000),
-       username        varchar(100),
-       password        varchar(100),
        router_pattern  varchar(300),
        project_user    varchar(100),
        created         timestamp DEFAULT CURRENT_TIMESTAMP
