@@ -207,7 +207,8 @@ all-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-hiera-watcher-pusher \
-									local-git
+									local-git \
+									local-api-data-watcher-pusher
 all-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
