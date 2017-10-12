@@ -25,10 +25,7 @@ type openshift = {
   id: int;
   name: string;
   console_url: string;
-  registry: string;
   token: string;
-  username: string;
-  password: string;
   router_pattern: string;
   project_user: string;
   sshKeys: sshKey list;
