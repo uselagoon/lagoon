@@ -89,9 +89,13 @@ services:
     image: ${IMAGE_REPO:-lagoon}/api-next
     command: yarn run dev
     volumes:
-      - ./services/api-next/src:/app/src
-      - ./services/api-next/package.json:/app/package.json
-      - ./services/api-next/yarn.lock:/app/yarn.lock
+      - ./services/api-next/src:/app/services/myself/src
+      - ./node-packages:/app/node-packages:delegated
+    depends_on:
+      - mariadb
+      - local-api-data-watcher-pusher
+    ports:
+      - "3002:8080"
   auth-ssh:
     image: ${IMAGE_REPO:-lagoon}/auth-ssh
       # TODO:

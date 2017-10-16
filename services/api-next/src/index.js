@@ -1,28 +1,23 @@
-const {
-  ensureRepository,
-  createCredentialsCb,
-  createSignature,
-} = require('./util/git');
-
 const logger = require('./logger');
 const createServer = require('./server');
-const createStore = require('./createStore');
-
-const { validateApiEnv } = require('./validate');
+const MariaSQL = require('mariasql');
 
 (async () => {
   logger.debug('Starting to boot the application.');
 
   try {
-    const {
-      JWTSECRET,
-      JWTAUDIENCE,
-    } process.env;
+    const { JWTSECRET, JWTAUDIENCE } = process.env;
+
+    const sqlClient = new MariaSQL({
+      host: 'mariadb:3306',
+      user: 'api',
+      password: 'api',
+    });
 
     await createServer({
-      store,
       jwtSecret: JWTSECRET,
       jwtAudience: JWTAUDIENCE,
+      sqlClient,
     });
 
     logger.debug('Finished booting the application.');

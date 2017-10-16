@@ -5,9 +5,7 @@ const util = require('util');
 const logger = require('./logger');
 const createApp = require('./app');
 
-import type { CreateAppArgs } from './app';
-
-const normalizePort = (value) => {
+const normalizePort = value => {
   const port = parseInt(value, 10);
 
   if (!isNaN(port) && port > 0) {
@@ -17,7 +15,7 @@ const normalizePort = (value) => {
   return false;
 };
 
-const createServer = async (args: CreateAppArgs): Promise<Server> => {
+const createServer = async args => {
   logger.debug('Starting to boot the server.');
 
   const port = normalizePort(process.env.PORT || '8080');

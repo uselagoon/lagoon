@@ -5,20 +5,30 @@
   "main": "index.js",
   "scripts": {
     "build": "echo 'hi'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "start": "node -r dotenv-extended/config src",
+    "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "compression": "^1.7.1",
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
     "graphql": "^0.11.7",
-    "graphql-tools": "^2.2.1",
+    "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
-    "ramda": "^0.24.1"
+    "mariasql": "^0.2.6",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.12.1",
+    "ramda": "^0.24.1",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
+    "winston": "^2.4.0"
   }
 }
