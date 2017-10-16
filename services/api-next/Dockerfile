@@ -4,9 +4,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest} as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
-
-RUN yum install -y make
+FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest}
 
 # Copying generated node_modules from the first stage
 COPY --from=yarn-workspace-builder /app /app

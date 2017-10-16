@@ -5,7 +5,7 @@ const typeDefs = `
   type SshKey {
     id: Int
     name: String
-    key: String
+    keyValue: String
     keyType: String
     created: String
   }
@@ -66,7 +66,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     pullrequests: Boolean
-    openshiftId: Int
+    openshift: String
     sshKeys: [String]
   }
 
