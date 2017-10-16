@@ -9,9 +9,11 @@ const MariaSQL = require('mariasql');
     const { JWTSECRET, JWTAUDIENCE } = process.env;
 
     const sqlClient = new MariaSQL({
-      host: 'mariadb:3306',
+      host: 'mariadb',
+      port: 3306,
       user: 'api',
       password: 'api',
+      db: 'infrastructure'
     });
 
     await createServer({

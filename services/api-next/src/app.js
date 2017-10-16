@@ -7,13 +7,19 @@ const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
 const { createAuthMiddleware } = require('./auth');
+const R = require('ramda');
+
+const daoFns = require('./dao');
 
 const createApp = args => {
   const { store, jwtSecret, jwtAudience, sqlClient } = args;
   const app = express();
 
+  const dao = R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
+
   app.set('context', {
     sqlClient,
+    dao,
   });
 
   // Use compression (gzip) for responses.

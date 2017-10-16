@@ -2,11 +2,16 @@ const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 
 const typeDefs = `
+  enum SshKeyType {
+    SSH_RSA
+    SSH_ED25519
+  }
+
   type SshKey {
     id: Int
     name: String
     keyValue: String
-    keyType: String
+    keyType: SshKeyType
     created: String
   }
 
@@ -57,26 +62,33 @@ const typeDefs = `
     allCustomers(createdAfter: String): [Customer]
   }
 
-  input ProjectInput {
+  input SshKeyInput {
     name: String
-    customer: String
-    git_url: String
-    slackId: Int
-    active_systems_deploy: String
-    active_systems_remove: String
-    branches: String
-    pullrequests: Boolean
-    openshift: String
-    sshKeys: [String]
+    keyValue: String!
+    keyType: SshKeyType
+  }
+
+  input ProjectInput {
+    name: String!
+    customer: String!
+    git_url: String!
+    slackId: Int!
+    active_systems_deploy: String!
+    active_systems_remove: String!
+    branches: String!
+    pullrequests: Boolean!
+    openshift: String!
+    sshKeys: [SshKeyInput]!
   }
 
   type Mutation {
-    addProject(input: ProjectInput!): Project
+    addProject(input: ProjectInput!): Int
   }
 `;
 
 
 const getCtx = (req) => req.app.get('context');
+const getDao = (req) => getCtx(req).dao;
 
 const resolvers = {
   Query: {
@@ -90,16 +102,13 @@ const resolvers = {
     },
   },
   Mutation: {
-    addProject: (root, args, req) => {
+    addProject: async (root, args, req) => {
       // Do database stuff
+      const dao = getDao(req);
 
-      return {
-        id: 123,
-        name: 'My Customer',
-        comment: 'Mock data',
-        private_key: 'some private key',
-        created: Date.now().toString(),
-      };
+      const id = await dao.addProject(args.input)
+
+      return id;
     },
   },
 };
