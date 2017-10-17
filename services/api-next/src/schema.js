@@ -1,5 +1,5 @@
-const R = require('ramda');
-const { makeExecutableSchema } = require('graphql-tools');
+const R = require("ramda");
+const { makeExecutableSchema } = require("graphql-tools");
 
 const typeDefs = `
   enum SshKeyType {
@@ -78,39 +78,34 @@ const typeDefs = `
     branches: String!
     pullrequests: Boolean!
     openshift: String!
-    sshKeys: [SshKeyInput]!
+    sshKeys: [Int]!
   }
 
   type Mutation {
-    addProject(input: ProjectInput!): Int
+    addProject(input: ProjectInput!): Project
   }
 `;
 
-
-const getCtx = (req) => req.app.get('context');
-const getDao = (req) => getCtx(req).dao;
+const getCtx = req => req.app.get("context");
+const getDao = req => getCtx(req).dao;
 
 const resolvers = {
   Query: {
-    projectByName: (root, args, req) => {
-    },
-    projectByGitUrl: (root, args, req) => {
-    },
-    allProjects: (root, args, req) => {
-    },
-    allCustomers: (root, args, req) => {
-    },
+    projectByName: (root, args, req) => {},
+    projectByGitUrl: (root, args, req) => {},
+    allProjects: (root, args, req) => {},
+    allCustomers: (root, args, req) => {}
   },
   Mutation: {
     addProject: async (root, args, req) => {
       // Do database stuff
       const dao = getDao(req);
 
-      const id = await dao.addProject(args.input)
+      const id = await dao.addProject(req.credentials, args.input);
 
       return id;
-    },
-  },
+    }
+  }
 };
 
 module.exports = makeExecutableSchema({ typeDefs, resolvers });
