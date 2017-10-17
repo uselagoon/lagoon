@@ -79,3 +79,10 @@ services:
       type: custom
       template: services/auth-ssh/.amazeeio.app.yml
     image: amazeeiolagoon/auth-ssh:develop
+
+additional-yaml:
+  secrets:
+    path: .amazeeio.secrets.yaml
+    command: create
+    ignore_error: true
+

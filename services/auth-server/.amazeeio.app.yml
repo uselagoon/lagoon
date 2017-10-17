@@ -95,7 +95,7 @@ objects:
             - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: jwtsecret
                   key: JWTSECRET
           resources:
             requests:

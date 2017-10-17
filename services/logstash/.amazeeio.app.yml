@@ -93,12 +93,12 @@ objects:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: rabbitmq-username
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: rabbitmq-password
                   key: RABBITMQ_PASSWORD
           resources:
             requests:

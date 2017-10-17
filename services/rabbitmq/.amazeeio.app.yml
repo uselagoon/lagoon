@@ -104,12 +104,12 @@ objects:
             - name: RABBITMQ_DEFAULT_USER
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: rabbitmq-username
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_DEFAULT_PASS
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: rabbitmq-password
                   key: RABBITMQ_PASSWORD
           resources:
             requests:

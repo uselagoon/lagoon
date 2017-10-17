@@ -30,6 +30,24 @@ DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
 
+ADDITIONAL_YAMLS=($(cat .amazeeio.yml | shyaml keys additional-yaml))
+
+for ADDITIONAL_YAML in "${ADDITIONAL_YAMLS[@]}"
+do
+  ADDITIONAL_YAML_PATH=$(cat .amazeeio.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.path false)
+  if [ $ADDITIONAL_YAML_PATH == "false" ]; then
+    echo "No 'path' defined for additional yaml $ADDITIONAL_YAML"; exit 1;
+  fi
+
+  if [ ! -f $ADDITIONAL_YAML_PATH ]; then
+    echo "$ADDITIONAL_YAML_PATH for additional yaml $ADDITIONAL_YAML not found"; exit 1;
+  fi
+
+  ADDITIONAL_YAML_COMMAND=$(cat .amazeeio.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.command apply)
+  ADDITIONAL_YAML_IGNORE_ERROR=$(cat .amazeeio.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.ignore_error false)
+  . /scripts/exec-additional-yaml.sh
+done
+
 USE_DOCKER_COMPOSE_YAML=($(cat .amazeeio.yml | shyaml get-value docker-compose-yaml false))
 
 if [ ! $USE_DOCKER_COMPOSE_YAML == "false" ]; then
