@@ -23,6 +23,13 @@ if (empty($sitegroup_name)) {
   if ( DRUSH_VERSION >= 9 ) {
      $_d = new \Drush\Drush();
      $path = $_d->getContainer()->get('bootstrap.manager')->getRoot();
+     // _drush_shift_path_up() was part of D8, we define it for D9, borrowed from DrupalFinder->shiftPathUp()
+     if(!function_exists("_drush_shift_path_up")) {
+        function _drush_shift_path_up($path) {
+            $parent = dirname($path);
+            return in_array($parent, ['.', $path]) ? false : $parent;
+        }
+     }     
    } else {
      $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
    }
