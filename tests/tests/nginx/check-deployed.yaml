@@ -1,0 +1,8 @@
+- name: "{{ testname }} - check if {{ sitegroup }} is deployed with searching for 'Hello World!'"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "Hello World!"
+  tasks:
+  - include: ../../checks/check-url-content.yaml

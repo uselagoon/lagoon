@@ -112,7 +112,9 @@ baseimages := centos7 \
 							centos7-php7.0-drupal \
 							centos7-php7.0-drupal-builder \
 							oc-build-deploy-dind \
-							commons
+							commons \
+							nginx \
+							nginx-drupal
 
 # all-images is a variable that will be constantly filled with all image there are, to use for
 # commands like `make build` which need to know all images existing
@@ -149,6 +151,8 @@ build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
 build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
 build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
 build/commons: images/commons/Dockerfile
+build/nginx: build/commons images/nginx/Dockerfile
+build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 
 #######
 ####### PHP Images
@@ -297,7 +301,8 @@ all-tests-list:= 	ssh-auth \
 									gitlab \
 									bitbucket \
 									rest \
-									multisitegroup
+									multisitegroup \
+									nginx
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 # Run all tests
@@ -323,7 +328,7 @@ tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api local-git local-hiera-watcher-pusher
 
 # All Tests that use REST endpoints
-rest-tests = rest node multisitegroup
+rest-tests = rest node multisitegroup nginx
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks

@@ -1,0 +1,22 @@
+version: '2'
+services:
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      com.amazeeio.type: nginx
+    volumes:
+      - ./app:/app:delegated
+    depends_on:
+      - builder
+    expose:
+      - "8080"
+    environment:
+      - AMAZEEIO_URL=nginx.docker.amazee.io
+networks:
+  amazeeio-network:
+    external: true

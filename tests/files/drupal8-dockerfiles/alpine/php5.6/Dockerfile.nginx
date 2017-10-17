@@ -2,7 +2,7 @@ ARG CLI_IMAGE
 ARG IMAGE_REPO
 FROM ${CLI_IMAGE:-builder} as builder
 
-FROM ${IMAGE_REPO:-lagoon}/centos7-nginx1-drupal
+FROM ${IMAGE_REPO:-lagoon}/nginx-drupal
 
 COPY --from=builder /app /app
 
