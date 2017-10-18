@@ -12,7 +12,7 @@
 
 DROP PROCEDURE IF EXISTS CreateProject;
 
-DELIMITER //
+DELIMITER $$
 
 CREATE PROCEDURE
   CreateProject
@@ -25,7 +25,8 @@ CREATE PROCEDURE
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
     IN pullrequests           boolean,
-    IN openshift              varchar(50)
+    IN openshift              varchar(50),
+    IN ssh_key_ids            text
   )
 --   MODIFIES SQL DATA                   /* Data access clause */
   BEGIN
@@ -64,9 +65,9 @@ CREATE PROCEDURE
     WHERE
         id = LAST_INSERT_ID();
 
-    SELECT * FROM customer WHERE id = 1;
+    SELECT id FROM ssh_key WHERE FIND_IN_SET(id, ssh_key_ids) > 0;
   END;
 
-//
+$$
 
 DELIMITER ;

@@ -1,3 +1,5 @@
 #!/usr/bin/bash
 
-for sql_file in `ls /docker-entrypoint-initdb.d`; do mysql -S /tmp/mysql.sock -uapi -papi infrastructure < $sql_file ; done
+INITDB_DIR="/docker-entrypoint-initdb.d"
+
+for sql_file in `ls $INITDB_DIR`; do mysql -S /tmp/mysql.sock -uapi -papi infrastructure < "$INITDB_DIR/$sql_file" ; done

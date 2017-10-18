@@ -20,7 +20,8 @@ const addProject = sqlClient => async (cred, input) => {
       :active_systems_remove,
       :branches,
       IF(STRCMP(:pullrequests, 'true'), 1, 0),
-      :openshift
+      :openshift,
+      '${input.sshKeys.join(',')}'
     );
   `);
 
