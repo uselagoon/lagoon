@@ -4,6 +4,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/mariadb
     volumes:
       - ./services/mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./services/mariadb/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - "3306:3306"
   webhook-handler:
