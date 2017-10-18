@@ -132,13 +132,27 @@ amazeeio_sitegroups:
     client: credentialtestclient
     git_url: 'git@local-git:/git/credentialtest.git'
     slack:
-      webhook: https://hooks.slack.com/services/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º
+      webhook: https://hooks.slack.com/services/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
       channel: lagoon-local-ci
     openshift:
       console: https://192.168.99.100:8443/
       registry: 192.168.99.100:30000
       project_user: developer
       router_pattern: ${sitegroup}.${branch}.192.168.99.100.nip.io
+    active_systems:
+      deploy:
+        lagoon_openshiftBuildDeploy:
+          branches: true
+      remove: lagoon_openshiftRemove
+  lagoon:
+    client: deploytestclient
+    git_url: 'git@github.com:amazeeio/lagoon.git'
+    slack:
+      webhook: https://hooks.slack.com/services/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
+      channel: lagoon-kickstart
+    openshift:
+      console: https://192.168.99.100:8443/
+      token: xxxyyyzzz
     active_systems:
       deploy:
         lagoon_openshiftBuildDeploy:

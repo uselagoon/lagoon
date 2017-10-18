@@ -7,10 +7,13 @@ Luckily we can use the local development environment to kickstart another Lagoon
 This process consists of 3 main stages, which are in short:
 
 1. Configure existing OpenShift
-2. Configure and connect local Lagoon with OpenShift
-3. Deploy!
+2. Setup and Configure Hiera
+3. Configure and connect local Lagoon with OpenShift
+4. Deploy!
 
 ### Configure existing OpenShift
+
+Hint: This also works with the OpenShift provided via MiniShift that can be started via `make openshift`.
 
 In order to create resources inside OpenShift and push into the OpenShift Registry, Lagoon needs a Service Account within OpenShift \([read more about Service Accounts](https://docs.openshift.org/latest/dev_guide/service_accounts.html)\).
 
@@ -86,27 +89,34 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
         oc -n default adm policy add-cluster-role-to-user self-provisioner -z lagoon
         oc -n default adm policy add-cluster-role-to-user system:build-strategy-custom -z lagoon
 
+8. Create docker-host which will be used by the builds for docker layer caching (if you run that with a local OpenShift started via `make openshift`, this step is already done for you)
 
         oc -n default create serviceaccount docker-host
         oc -n default adm policy add-scc-to-user privileged -z docker-host
-        oc -n default create -f docker-host.yaml
+        oc -n default create -f openshift-setup/docker-host.yaml
 
+### Setup and Configure Hiera
 
+As of today, the Lagoon API saves it's data within a system called Hiera, which is basically two yaml files. This has some legacy reasons and we are working on implementing the api storage in a proper database. But for the current situation we need to work with that (sorry).
 
+The API talks with the hiera via GIT, therefore we need to create a new git repository with compatible yaml files in there. There is an example hiera git repo here: https://github.com/amazeeio/lagoon-example-hiera
+
+@TODO: Explain how to clone this repo
 
 
 ### Configure and connect local Lagoon with OpenShift
 
 In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. There are some specific make commands that build and start the needed services for you.
 
-1. Edit `lagoon-kickstart` inside local-dev/hiera/amazeeio/sitegroups.yaml, with:
-   1. `openshift.console` - The URL to the OpenShift Console, without
+1. Edit `lagoon` inside local-dev/hiera/amazeeio/sitegroups.yaml, with:
+   1. `openshift.console` - The URL to the OpenShift Console, without `console` at the end.
+   2. `openshift.token` - The token of the lagoon service account
 
 2. Build required Images and start services:
 
         make lagoon-kickstart
 
-3.
+@TODO explain what to do next
 
 
 
