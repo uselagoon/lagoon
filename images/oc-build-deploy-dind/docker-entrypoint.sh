@@ -4,7 +4,7 @@ set -e
 if docker -H docker-host.default.svc info &> /dev/null; then
     export DOCKER_HOST=docker-host.default.svc
 else
-    dind dockerd --insecure-registry=$OUTPUT_REGISTRY &> /dev/null &
+    echo "could not connect to docker-host.default.svc"; exit 1
 fi
 
 mkdir -p ~/.ssh
