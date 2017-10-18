@@ -101,23 +101,39 @@ As of today, the Lagoon API saves it's data within a system called Hiera, which 
 
 The API talks with the hiera via GIT, therefore we need to create a new git repository with compatible yaml files in there. There is an example hiera git repo here: https://github.com/amazeeio/lagoon-example-hiera
 
-@TODO: Explain how to clone this repo
+For an initial kickstart of Lagoon this git repo will be used, so we can test and verify that the installation fully worked. Btw: If you are currious where this is defined, check `.amazeeio.secrets.yml` (and changing that will not have any affect right now, as the kickstart uses the git code from Lagoon Github).
 
 
 ### Configure and connect local Lagoon with OpenShift
 
-In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. There are some specific make commands that build and start the needed services for you.
+In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. We need to tech this local Lagoon how to connect to the OpenShift:
 
 1. Edit `lagoon` inside local-dev/hiera/amazeeio/sitegroups.yaml, with:
    1. `openshift.console` - The URL to the OpenShift Console, without `console` at the end.
-   2. `openshift.token` - The token of the lagoon service account
+   2. `openshift.token` - The token of the lagoon service account that you created earlier
 
 2. Build required Images and start services:
 
         make lagoon-kickstart
 
-@TODO explain what to do next
+   This will do the following:
+      1. Build all required Lagoon service Images (this can take a while)
+      2. Start all required Lagoon services
+      3. Wait 30 secs for all services to fully start
+      4. Trigger a deployment of the `laggon` sitegroup that you edited further, which will cause your local lagoon to connect to the defined OpenShift and trigger a new deployment
+      5. Show the logs of all Local Lagoon Services
 
+3. As soon as you see messages like `Build lagoon-1 running` in the logs it's time to connect to your OpenShift and check the build. The URL you will use for that depends on your system, but it's most probably the same as in `openshift.console`. Then you should see a new OpenShift Project called `[lagoon] develop` and in there a `Build` that is running. On a local OpenShift you can find that under https://192.168.99.100:8443/console/project/lagoon-develop/browse/builds/lagoon?tab=history. If you see the Build running check the logs and see how the deployment system does it's magic! This is your very first Lagoon deployment running! 🎉 Congrats!
+
+    Short background on what is actually happening here:
+
+    Your local running Lagoon (inside docker-compose) received a deploy command for a sitegroup called `lagoon` that you configured. In this SiteGroup it is defined to which OpenShift that should be deployed (one single Lagoon can deploy into multiple OpenShifts all around the world). So the local running Lagoon service `openshiftBuildDeploy` connects to this OpenShift and creates a new project, some needed configurations (ServiceAccounts, BuildConfigs, etc.) and triggers a new Build. This Build will run and deploy another Lagoon within the OpenShift it runs.
+
+4. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` (for a local OpenShift this will be http://rest2tasks-lagoon-develop.192.168.99.100.nip.io/), if you get `welcome to rest2tasks` as result, you did everything correct, bravo!
+
+@TODO:
+- Document how to change the hiera to a forked hiera
+- how to run a a deployment of drupal-example
 
 
 
