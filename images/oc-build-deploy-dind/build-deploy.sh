@@ -30,7 +30,7 @@ DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
 
-ADDITIONAL_YAMLS=($(cat .amazeeio.yml | shyaml keys additional-yaml))
+ADDITIONAL_YAMLS=($(cat .amazeeio.yml | shyaml keys additional-yaml || echo ""))
 
 for ADDITIONAL_YAML in "${ADDITIONAL_YAMLS[@]}"
 do
