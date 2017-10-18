@@ -45,6 +45,7 @@ do
 
   ADDITIONAL_YAML_COMMAND=$(cat .amazeeio.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.command apply)
   ADDITIONAL_YAML_IGNORE_ERROR=$(cat .amazeeio.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.ignore_error false)
+  ADDITIONAL_YAML_IGNORE_ERROR="${ADDITIONAL_YAML_IGNORE_ERROR,,}" # convert to lowercase, as shyaml returns "True" if the yaml is set to "true"
   . /scripts/exec-additional-yaml.sh
 done
 
