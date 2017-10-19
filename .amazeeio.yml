@@ -39,11 +39,6 @@ services:
       type: custom
       template: services/openshiftremove/.amazeeio.app.yml
     image: amazeeiolagoon/openshiftremove:develop
-  openshiftremove-resources:
-    amazeeio:
-      type: custom
-      template: services/openshiftremove-resources/.amazeeio.app.yml
-    image: amazeeiolagoon/openshiftremove-resources:develop
   rabbitmq:
     amazeeio:
       type: custom
