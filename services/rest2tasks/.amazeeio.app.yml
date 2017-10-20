@@ -96,6 +96,11 @@ objects:
                 secretKeyRef:
                   name: rabbitmq-password
                   key: RABBITMQ_PASSWORD
+            - name: JWTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwtsecret
+                  key: JWTSECRET
           resources:
             requests:
               cpu: 100m
