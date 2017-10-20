@@ -1,5 +1,7 @@
 // @flow
 
+const R = require('ramda');
+
 import type { Action } from './actions';
 import type { SiteGroupsFile, ClientsFile, SiteFiles } from './types';
 
@@ -7,9 +9,16 @@ export type State = {
   siteGroupsFile?: SiteGroupsFile,
   clientsFile?: ClientsFile,
   siteFiles?: SiteFiles,
+
+  // Responsible for deferred action manipulation - needs to be FIFO
+  // actionQueue: Array<Action>,
 };
 
-const reducer = (state: State = {}, action: Action): State => {
+const INITIAL_STATE = {
+  // actionQueue: [],
+};
+
+const reducer = (state: State = INITIAL_STATE, action: Action): State => {
   switch (action.type) {
     case 'SET_SITE_GROUPS_FILE': {
       const { siteGroupsFile } = action;
@@ -23,6 +32,11 @@ const reducer = (state: State = {}, action: Action): State => {
       const { clientsFile } = action;
       return Object.assign({}, state, { clientsFile });
     }
+    case 'CREATE_SITE_GROUP': {
+    }
+    // case 'PUSH_ACTION_QUEUE': {
+    //   return R.assoc('actionQueue', R.append(action.action), state);
+    // }
     default:
       return state;
   }

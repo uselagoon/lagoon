@@ -1,9 +1,11 @@
 // @flow
 
+const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 const getContext = require('../getContext');
 const getCredentials = require('../getCredentials');
-const R = require('ramda');
+
+const actions = require('../actions');
 
 import type { Slack, SshKey } from '../types';
 import type { ClientView, SiteGroupView, SiteView } from '../selectors';
@@ -112,6 +114,20 @@ const typeDefs = `
     allSites(createdAfter: String, environmentType: String): [Site]
     siteByName(name: String!): Site
     allClients(createdAfter: String): [Client]
+  }
+
+  input CreateSiteGroupInput {
+    siteGroupName: String!
+    gitUrl: String
+    client: String
+  }
+
+  type CreateSiteGroupPayload {
+    siteGroupName: String
+  }
+
+  type Mutation {
+    createSiteGroup(input: CreateSiteGroupInput!): CreateSiteGroupPayload
   }
 `;
 
@@ -238,6 +254,19 @@ const resolvers = {
       );
     },
   }),
+  Mutation: {
+    createSiteGroup: (_, args: Object, req) => {
+      const context = getContext(req);
+      const { getState, dispatch } = context.store;
+
+      dispatch(actions.pushActionQueue({
+      }))
+
+      return {
+        siteGroupName: 'foo',
+      };
+    },
+  },
   Client: {
     siteGroups: (client: ClientView, args, req) => {
       const context = getContext(req);

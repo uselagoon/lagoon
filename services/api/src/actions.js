@@ -2,27 +2,26 @@
 
 // ===== ACTION TYPES
 
-import type { Site, SiteGroupsFile, ClientsFile, SiteFiles } from './types';
+import type {
+  Site,
+  SiteGroup,
+  SiteGroupsFile,
+  ClientsFile,
+  SiteFiles,
+} from './types';
 
 type Cb<R> = (err?: Error, res: R) => void;
 
 type Noop = { type: 'NOOP' };
 
+export type CreateSiteGroupAction = {
+  type: 'CREATE_SITEGROUP',
+  siteGroup: SiteGroup,
+};
+
 export type SetSiteFilesAction = {
   type: 'SET_SITE_FILES',
   siteFiles: SiteFiles,
-};
-
-export type CreateSiteAction = {
-  type: 'CREATE_SITE',
-  file: string,
-  cb: Cb<Site>,
-};
-
-export type UpdateFileAction = {
-  type: 'UPDATE_FILE',
-  file: string,
-  content: string,
 };
 
 export type SetSiteGroupsFileAction = {
@@ -35,13 +34,25 @@ export type SetClientsFileAction = {
   clientsFile: ClientsFile,
 };
 
+// export type PushActionQueueAction = {
+//   type: 'PUSH_ACTION_QUEUE',
+//   action: Action,
+// };
+
 export type Action =
+  | CreateSiteGroupAction
+  // | PushActionQueueAction
   | SetSiteFilesAction
   | SetSiteGroupsFileAction
   | SetClientsFileAction
   | Noop;
 
 // ===== ACTION CREATORS
+
+const createSiteGroup = (siteGroup: SiteGroup) => ({
+  type: 'CREATE_SITEGROUP',
+  siteGroup,
+});
 
 const setSiteGroupsFile = (
   siteGroupsFile: SiteGroupsFile
@@ -60,8 +71,15 @@ const setSiteFiles = (siteFiles: SiteFiles): SetSiteFilesAction => ({
   siteFiles,
 });
 
+// const pushActionQueue = (action: Action): PushActionQueueAction => ({
+//   type: 'PUSH_ACTION_QUEUE',
+//   action,
+// });
+
 module.exports = {
   setSiteGroupsFile,
   setClientsFile,
   setSiteFiles,
+  createSiteGroup,
+  // pushActionQueue,
 };
