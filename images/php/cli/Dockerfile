@@ -1,6 +1,6 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm-alpine
+FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
 MAINTAINER amazee.io
 
