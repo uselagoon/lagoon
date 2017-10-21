@@ -83,14 +83,16 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_B
 
 # Build a PHP docker image. Expects as arguments: PHP version, type of image (ie fpm, cli etc),
 # location of Dockerfile, path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(1)-$(2)-alpine -f $(3) $(4)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(1)-$(2) -f $(3) $(4)
 
 
 # Tags and image with the `amazeeio` repository and pushes it
 docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
+docker_publish_amazeeio_php = docker tag $(CI_BUILD_TAG)/php:$(1)-$(2) amazeeio/php:$(1)-$(2) && docker push amazeeio/php:$(1)-$(2) | cat
 
-# Tags and image with the `amazeeio` repository and pushes it
+# Tags and image with the `amazeeiolagoon` repository and pushes it
 docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(1):$(PUBLISH_TAG) && docker push amazeeiolagoon/$(1):$(PUBLISH_TAG) | cat
+docker_publish_amazeeiolagoon_php = docker tag $(CI_BUILD_TAG)/php:$(1)-$(2) amazeeiolagoon/php:$(1)-$(2)-$(PUBLISH_TAG) && docker push amazeeiolagoon/php:$(1)-$(2)-$(PUBLISH_TAG) | cat
 
 
 #######
@@ -116,9 +118,10 @@ baseimages := centos7 \
 							nginx \
 							nginx-drupal
 
-# all-images is a variable that will be constantly filled with all image there are, to use for
+# build-images is a variable that will be constantly filled with all image there are, to use for
 # commands like `make build` which need to know all images existing
-all-images += $(baseimages)
+build-images += $(baseimages)
+push-images += $(baseimages)
 
 # List with all images prefixed with `build/`. Which are the commands to actually build images
 build-baseimages = $(foreach image,$(baseimages),build/$(image))
@@ -174,11 +177,12 @@ $(build-phpimages): build/commons
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
 # Call the docker build
-	$(call docker_build_php,$(version),$(type),images/php/$(type)-alpine/Dockerfile,images/php/$(type)-alpine)
+	$(call docker_build_php,$(version),$(type),images/php/$(type)/Dockerfile,images/php/$(type))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-all-images += $(phpimages)
+build-images += $(phpimages)
+push-phpimages += $(phpimages)
 
 build/php-5.6-fpm build/php-7.0-fpm build/php-7.1-fpm: images/commons
 build/php-5.6-cli: build/php-5.6-fpm
@@ -194,7 +198,8 @@ build/php-7.1-cli: build/php-7.1-fpm
 
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
-all-images += yarn-workspace-builder
+build-images += yarn-workspace-builder
+push-images += yarn-workspace-builder
 build/yarn-workspace-builder: build/centos7-node8-builder images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
@@ -217,7 +222,8 @@ serviceimages :=  api \
 									logstash \
 									postgres
 
-all-images += $(serviceimages)
+build-images += $(serviceimages)
+push-images += $(serviceimages)
 build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
 
 # Recepie for all building service-images
@@ -235,20 +241,21 @@ build/auth-ssh: build/centos7
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
-all-images += auth-ssh
-
+build-images += auth-ssh
+push-images += auth-ssh
 # CLI Image
 build/cli: build/centos7-node8
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
-all-images += cli
-
+build-images += cli
+push-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-hiera-watcher-pusher \
 									local-git
-all-images += $(localdevimages)
+build-images += $(localdevimages)
+push-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
 $(build-localdevimages):
@@ -261,7 +268,8 @@ build/local-hiera-watcher-pusher build/local-git-server: build/centos7
 
 # Images for helpers that exist in another folder than the service images
 helperimages := drush-alias
-all-images += $(helperimages)
+build-images += $(helperimages)
+push-images += $(helperimages)
 build-helperimages = $(foreach image,$(helperimages),build/$(image))
 
 $(build-helperimages):
@@ -276,8 +284,8 @@ build/tests:
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
-all-images += tests
-
+build-images += tests
+push-images += tests
 #######
 ####### Commands
 #######
@@ -285,11 +293,11 @@ all-images += tests
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(all-images),build/$(image))
+build: $(foreach image,$(build-images),build/$(image))
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
-	@for number in $(foreach image,$(all-images),build/$(image)); do \
+	@for number in $(foreach image,$(build-images),build/$(image)); do \
 			echo $$number ; \
 	done
 
@@ -381,9 +389,9 @@ $(push-php-openshift-images):
 	$(eval clean = $(subst [push-php-openshift]-php,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(info pushing php:$(version)-$(type)-alpine to openshift registry)
-	@docker tag $(CI_BUILD_TAG)/php:$(version)-$(type)-alpine $$(cat openshift):30000/lagoon/php:$(version)-$(type)-alpine
-	@docker push $$(cat openshift):30000/lagoon/php:$(version)-$(type)-alpine > /dev/null
+	$(info pushing php:$(version)-$(type) to openshift registry)
+	@docker tag $(CI_BUILD_TAG)/php:$(version)-$(type) $$(cat openshift):30000/lagoon/php:$(version)-$(type)
+	@docker push $$(cat openshift):30000/lagoon/php:$(version)-$(type) > /dev/null
 
 
 local-git-port:
@@ -400,16 +408,23 @@ endif
 
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-image-list := $(baseimages)
-publish-amazeeio-images = $(foreach image,$(publish-image-list),[publish-amazeeio]-$(image))
+publish-amazeeio-images = $(foreach image,$(baseimages),[publish-amazeeio]-$(image))
+publish-amazeeio-phpimages = $(foreach image,$(phpimages),[publish-amazeeio-php]-$(image))
+
 # tag and push all images
 .PHONY: publish-amazeeio
-publish-amazeeio: $(publish-amazeeio-images)
+publish-amazeeio: $(publish-amazeeio-images) $(publish-amazeeio-phpimages)
 # tag and push of each image
 .PHONY: $(publish-amazeeio-images)
 $(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
+.PHONY: $(publish-amazeeio-phpimages)
+$(publish-amazeeio-phpimages):
+		$(eval clean = $(subst [publish-amazeeio-php]-php-,,$@))
+		$(eval version = $(word 1,$(subst -, ,$(clean))))
+		$(eval type = $(word 2,$(subst -, ,$(clean))))
+		$(call docker_publish_amazeeio_php,$(version),$(type))
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
@@ -418,15 +433,26 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	make logs
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
-publish-amazeeiolagoon-images = $(foreach image,$(all-images),[publish-amazeeiolagoon]-$(image))
+publish-amazeeiolagoon-images = $(foreach image,$(build-images),[publish-amazeeiolagoon]-$(image))
+publish-amazeeiolagoon-phpimages = $(foreach image,$(push-phpimages),[publish-amazeeiolagoon-php]-$(image))
+
 # tag and push all images
 .PHONY: publish-amazeeiolagoon
-publish-amazeeiolagoon: $(publish-amazeeiolagoon-images)
+publish-amazeeiolagoon: $(publish-amazeeiolagoon-images) $(publish-amazeeiolagoon-phpimages)
 # tag and push of each image
 .PHONY: $(publish-amazeeiolagoon-images)
 $(publish-amazeeiolagoon-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(call docker_publish_amazeeiolagoon,$(subst [publish-amazeeiolagoon]-,,$@))
+.PHONY: $(publish-amazeeiolagoon-phpimages)
+$(publish-amazeeiolagoon-phpimages):
+		$(eval clean = $(subst [publish-amazeeiolagoon-php]-php-,,$@))
+		$(eval version = $(word 1,$(subst -, ,$(clean))))
+		$(eval type = $(word 2,$(subst -, ,$(clean))))
+#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+		$(call docker_publish_amazeeiolagoon_php,$(version),$(type))
+
+
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)

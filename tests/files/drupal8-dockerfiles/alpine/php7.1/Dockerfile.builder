@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/php:7.1-cli-alpine
+FROM ${IMAGE_REPO:-lagoon}/php:7.1-cli
 
 COPY composer.json composer.lock /app/
 COPY scripts /app/scripts
