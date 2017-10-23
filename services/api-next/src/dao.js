@@ -1,6 +1,7 @@
 // ATTENTION:
 // The `sqlClient` part is usually curried in our application
 
+const R = require('ramda');
 const promisify = require("util").promisify;
 
 const getAllProjects = sqlClient => async () => {};
@@ -72,11 +73,11 @@ const addProject = sqlClient => async (cred, input) => {
         rej(err);
       }
 
-      // TODO: Resolve IDs from customer, slack, openshift, sshKeys
-      const project = rows[0][0];
-      console.log(rows);
+      // TODO: Maybe resolve IDs from customer, slack, openshift, sshKeys?
+      // Not really necessary for a MVP right now IMO
+      const pid = R.path([0, 0], rows);
 
-      res(project);
+      res(pid);
     });
 
     sqlClient.end();

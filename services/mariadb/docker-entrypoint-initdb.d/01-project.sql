@@ -28,8 +28,16 @@ CREATE PROCEDURE
     IN openshift              varchar(50),
     IN ssh_key_ids            text
   )
---   MODIFIES SQL DATA                   /* Data access clause */
   BEGIN
+    DECLARE new_pid int;
+
+    DROP TEMPORARY TABLE IF EXISTS existing_ssh_keys;
+    CREATE TEMPORARY TABLE IF NOT EXISTS existing_ssh_keys AS
+      (SELECT
+        id
+      FROM ssh_key
+      WHERE FIND_IN_SET(id, ssh_key_ids) > 0);
+
     INSERT INTO project (
         name,
         customer,
@@ -58,14 +66,17 @@ CREATE PROCEDURE
         os.name = openshift AND
         c.name = customer;
 
-    SELECT
-        *
-    FROM
-        project
-    WHERE
-        id = LAST_INSERT_ID();
+    -- Now add the ssh-key relation to the newly created project
+    SET new_pid = LAST_INSERT_ID();
 
-    SELECT id FROM ssh_key WHERE FIND_IN_SET(id, ssh_key_ids) > 0;
+    INSERT INTO project_ssh_key (pid, skid)
+    SELECT
+      new_pid,
+      id
+    FROM existing_ssh_keys;
+
+    -- Return the constructed project
+    SELECT * from project WHERE id = new_pid;
   END;
 
 $$
