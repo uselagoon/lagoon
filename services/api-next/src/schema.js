@@ -90,20 +90,52 @@ const getCtx = req => req.app.get("context");
 const getDao = req => getCtx(req).dao;
 
 const resolvers = {
+  Project: {
+    customer: async (project, args, req) => {
+      const dao = getDao(req);
+      return await dao.getCustomerByProjectId(req.credentials, project.customer);
+    },
+    sshKeys: async (project, args, req) => {
+      const dao = getDao(req);
+      return await dao.getSshKeysByProjectId(req.credentials, project.id)
+    },
+    slack: async (project, args, req) => {
+      const dao = getDao(req);
+      return await dao.getSlackByProjectId(req.credentials, project.id)
+    },
+    openshift: async (project, args, req) => {
+      const dao = getDao(req);
+      return await dao.getOpenshiftByProjectId(req.credentials, project.id);
+    }
+  },
   Query: {
-    projectByName: (root, args, req) => {},
-    projectByGitUrl: (root, args, req) => {},
-    allProjects: (root, args, req) => {},
-    allCustomers: (root, args, req) => {}
+    projectByGitUrl: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getProjectByGitUrl(req.credentials, args);
+    },
+    projectByName: async (root, args, req) => {
+      const dao = getDao(req);
+
+      return await dao.getProjectByName(req.credentials, args);
+    },
+    allProjects: async (root, args, req) => {
+      const dao = getDao(req);
+
+      return await dao.getAllProjects(req.credentials, args);
+    },
+    allCustomers: async (root, args, req) => {
+      const dao = getDao(req);
+
+      return await dao.getAllCustomers(req.credentials, args);
+    }
   },
   Mutation: {
     addProject: async (root, args, req) => {
-      // Do database stuff
       const dao = getDao(req);
 
-      const id = await dao.addProject(req.credentials, args.input);
+      const ret = await dao.addProject(req.credentials, args.input);
 
-      return id;
+      return ret;
     }
   }
 };

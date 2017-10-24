@@ -76,7 +76,19 @@ CREATE PROCEDURE
     FROM existing_ssh_keys;
 
     -- Return the constructed project
-    SELECT * from project WHERE id = new_pid;
+    SELECT
+      p.id,
+      p.name,
+      p.customer,
+      p.git_url,
+      p.slack,
+      p.active_systems_deploy,
+      p.active_systems_remove,
+      p.branches,
+      p.pullrequests,
+      p.openshift
+    FROM project p
+    WHERE id = new_pid;
   END;
 
 $$
