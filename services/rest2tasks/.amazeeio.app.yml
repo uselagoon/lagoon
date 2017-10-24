@@ -89,13 +89,18 @@ objects:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: rabbitmq-username
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: rabbitmq-password
                   key: RABBITMQ_PASSWORD
+            - name: JWTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwtsecret
+                  key: JWTSECRET
           resources:
             requests:
               cpu: 100m

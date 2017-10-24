@@ -166,7 +166,6 @@ serviceimages :=  api \
 									openshiftbuilddeploy \
 									openshiftbuilddeploymonitor \
 									openshiftremove \
-									openshiftremove-resources \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
@@ -355,10 +354,9 @@ $(publish-amazeeio-images):
 		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
-	oc process -f openshift-setup/secrets.yaml | oc create -f -
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
-	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon-kickstart", "branchName": "kickstart" }'
+	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon", "branchName": "develop" }'
 	make logs
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment

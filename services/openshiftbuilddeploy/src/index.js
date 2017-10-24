@@ -13,6 +13,7 @@ initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
 
 const ciUseOpenshiftRegistry = process.env.CI_USE_OPENSHIFT_REGISTRY || "false"
+const gitSafeBranch = process.env.AMAZEEIO_GIT_SAFE_BRANCH || "develop"
 
 const messageConsumer = async msg => {
   const {
@@ -76,7 +77,7 @@ const messageConsumer = async msg => {
     // By default we load oc-build-deploy-dind from DockerHub with our current branch as tag
       buildFromImage = {
         "kind": "DockerImage",
-        "name": `amazeeiolagoon/oc-build-deploy-dind:${process.env.AMAZEEIO_GIT_SAFE_BRANCH}`
+        "name": `amazeeiolagoon/oc-build-deploy-dind:${gitSafeBranch}`
       }
     }
 

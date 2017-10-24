@@ -1,4 +1,4 @@
-FROM docker:stable-dind
+FROM docker:stable
 
 ENV OC_VERSION=v3.6.0 \
     OC_HASH=c4dd4cf \

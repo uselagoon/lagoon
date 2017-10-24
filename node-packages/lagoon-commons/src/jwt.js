@@ -4,9 +4,10 @@ const R = require('ramda');
 const jwt = require('jsonwebtoken');
 const sshpk = require('sshpk');
 
-export type Role = 'none' | 'admin' | 'drush';
+/*::
+type Role = 'none' | 'admin' | 'drush';
 
-export type Payload = {|
+type Payload = {|
   // If set, this needs to be a valid ssh key (starting w/ 'ssh-rsa ...')
   sshKey?: string,
 
@@ -36,13 +37,14 @@ type Args = {
   expiresIn?: string, //expressed in seconds or a string describing a time span zeit/ms. Eg: 60, "2 days", "10h", "7d"
   jwtSecret: string, // The passphrase to sign the token with
 };
+*/
 
 // This will create a token from given meta data and sshKey.
 // Note: This function requires a common public ssh key format
 //       starting with the key-type (e.g. ssh-rsa)... the payload
 //       of the token will only contain the base64 part though.
 //       This is because of the way we store keys in hiera
-const createJWT = async (args: Args): Promise<string> => {
+const createJWT = async (args /*:  Args */)/*: Promise<string> */ => {
   return new Promise((res, rej) => {
     const { sshKey } = args.payload;
 
@@ -80,7 +82,7 @@ const createJWT = async (args: Args): Promise<string> => {
 // it's useful for creating service tokens, which will generally
 // get created during startup of services... therefore this function
 // is treated as >sync<... don't use this in heavily async environments!
-const createJWTWithoutSshKey = (args: Args): string => {
+const createJWTWithoutSshKey = (args /*:  Args */)/*: string */ => {
   const { expiresIn, jwtSecret } = args;
 
   // We don't need any sshKey information
@@ -108,7 +110,7 @@ const extractBase64Key /*: string => ?string */ = R.compose(
   R.defaultTo('')
 );
 
-const validateSshKey = (key: string): boolean => {
+const validateSshKey = (key/*: string */)/*: boolean */ => {
   // Validate the format of the ssh key. This fails with an exception
   // if the key is invalid. We are not actually interested in the
   // result of the parsing and just use this for validation.

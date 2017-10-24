@@ -67,11 +67,20 @@ objects:
             timeoutSeconds: 1
           env:
             - name: GIT_REPOSITORY
-              value: https://git.vshn.net/amazee/amazee_hieradata.git
+              valueFrom:
+                secretKeyRef:
+                  name: hiera-git-repository
+                  key: HIERA_GIT_REPOSITORY
             - name: GIT_USERNAME
-              value: michael.schmid
+              valueFrom:
+                secretKeyRef:
+                  name: hiera-git-username
+                  key: HIERA_GIT_USERNAME
             - name: GIT_PASSWORD
-              value: 4ahjnuCiMKb98nmJtr3AVNR
+              valueFrom:
+                secretKeyRef:
+                  name: hiera-git-password
+                  key: HIERA_GIT_PASSWORD
             - name: AMAZEEIO_GIT_BRANCH
               valueFrom:
                 configMapKeyRef:
@@ -95,7 +104,7 @@ objects:
             - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
-                  name: secret-environment
+                  name: jwtsecret
                   key: JWTSECRET
           resources:
             requests:

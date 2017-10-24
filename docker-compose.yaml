@@ -26,17 +26,11 @@ services:
     volumes:
       - ./services/openshiftremove/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
-  openshiftremove-resources:
-    image: ${IMAGE_REPO:-lagoon}/openshiftremove-resources
-    command: yarn run dev
-    volumes:
-      - ./services/openshiftremove-resources/src:/app/services/myself/src
-      - ./node-packages:/app/node-packages:delegated
   openshiftbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
     environment:
-      - CI_USE_OPENSHIFT_REGISTRY=true
+      - CI_USE_OPENSHIFT_REGISTRY=${CI_USE_OPENSHIFT_REGISTRY:-true}
     volumes:
       - ./services/openshiftbuilddeploy/src:/app/services/myself/src
       - ./node-packages:/app/node-packages:delegated
