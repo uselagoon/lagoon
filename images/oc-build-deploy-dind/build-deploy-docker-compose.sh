@@ -124,15 +124,15 @@ done
 
 
 COUNTER=0
-while [ -n "$(cat .amazeeio.yml | shyaml keys tasks.post-deploy.$COUNTER 2> /dev/null)" ]
+while [ -n "$(cat .amazeeio.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
 do
-  TASK_TYPE=$(cat .amazeeio.yml | shyaml keys tasks.post-deploy.$COUNTER)
+  TASK_TYPE=$(cat .amazeeio.yml | shyaml keys tasks.post-rollout.$COUNTER)
   echo $TASK_TYPE
   case "$TASK_TYPE" in
     run)
-        COMMAND=$(cat .amazeeio.yml | shyaml get-value tasks.post-deploy.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .amazeeio.yml | shyaml get-value tasks.post-deploy.$COUNTER.$TASK_TYPE.service)
-        . /scripts/exec-post-deploy-tasks-run.sh
+        COMMAND=$(cat .amazeeio.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
+        SERVICE_NAME=$(cat .amazeeio.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
+        . /scripts/exec-post-rollout-tasks-run.sh
         ;;
     *)
         echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
@@ -141,4 +141,3 @@ do
 
   let COUNTER=COUNTER+1
 done
-
