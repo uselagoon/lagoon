@@ -1,9 +1,5 @@
 version: '3.2'
 services:
-  postgres:
-    image: ${IMAGE_REPO:-lagoon}/postgres
-    volumes:
-      - ./services/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
