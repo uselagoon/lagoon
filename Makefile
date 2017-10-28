@@ -81,9 +81,14 @@ PUBLISH_TAG :=
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
-# Build a PHP docker image. Expects as arguments: PHP version, type of image (ie fpm, cli etc),
-# location of Dockerfile, path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(1)-$(2) -f $(3) $(4)
+# Build a PHP docker image. Expects as arguments:
+# 1. PHP version
+# 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
+# 3. Location of Dockerfile
+# 4. Path of Docker Build Context
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
+
+docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
 
 
 # Tags and image with the `amazeeio` repository and pushes it
@@ -102,17 +107,8 @@ docker_publish_amazeeiolagoon_php = docker tag $(CI_BUILD_TAG)/php:$(1)-$(2) ama
 
 # All Base Images we have
 baseimages := centos7 \
-							centos7-node6 \
-							centos7-node8 \
-							centos7-node6-builder \
-							centos7-node8-builder \
 							centos7-mariadb10 \
 							centos7-mariadb10-drupal \
-							centos7-nginx1 \
-							centos7-nginx1-drupal \
-							centos7-php7.0 \
-							centos7-php7.0-drupal \
-							centos7-php7.0-drupal-builder \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
@@ -121,7 +117,7 @@ baseimages := centos7 \
 # build-images is a variable that will be constantly filled with all image there are, to use for
 # commands like `make build` which need to know all images existing
 build-images += $(baseimages)
-push-images += $(baseimages)
+publish-images += $(baseimages)
 
 # List with all images prefixed with `build/`. Which are the commands to actually build images
 build-baseimages = $(foreach image,$(baseimages),build/$(image))
@@ -142,17 +138,8 @@ $(build-baseimages):
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
 build/centos7: images/centos7/Dockerfile
-build/centos7-node6: build/centos7 images/centos7-node6/Dockerfile
-build/centos7-node8: build/centos7 images/centos7-node8/Dockerfile
-build/centos7-node6-builder: build/centos7-node6 images/centos7-node6/Dockerfile
-build/centos7-node8-builder: build/centos7-node8 images/centos7-node8/Dockerfile
 build/centos7-mariadb10: build/centos7 images/centos7-mariadb10/Dockerfile
 build/centos7-mariadb10-drupal: build/centos7-mariadb10 images/centos7-mariadb10-drupal/Dockerfile
-build/centos7-nginx1: build/centos7 images/centos7-nginx1/Dockerfile
-build/centos7-nginx1-drupal: build/centos7-nginx1 images/centos7-nginx1-drupal/Dockerfile
-build/centos7-php7.0: build/centos7 images/centos7-php7.0/Dockerfile
-build/centos7-php7.0-drupal: build/centos7-php7.0 images/centos7-php7.0-drupal/Dockerfile
-build/centos7-php7.0-drupal-builder: build/centos7-php7.0-drupal images/centos7-php7.0-drupal-builder/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
@@ -162,33 +149,69 @@ build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 #######
 ####### PHP Images are alpine linux based PHP images.
 
-phpimages := php-5.6-fpm \
-	php-7.0-fpm \
-	php-7.1-fpm  \
-	php-5.6-cli \
-	php-7.0-cli \
-	php-7.1-cli
+phpimages := 	php__5.6-fpm \
+							php__7.0-fpm \
+							php__7.1-fpm  \
+							php__5.6-cli \
+							php__7.0-cli \
+							php__7.1-cli
+
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
 
 # Define the make recepie for all base images
 $(build-phpimages): build/commons
-	$(eval clean = $(subst build/php-,,$@))
+	$(eval clean = $(subst build/php__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
+# this fills variables only if $type is existing, if not they are just empty
+	$(eval type_dash = $(if $(type),-$(type)))
+	$(eval type_slash = $(if $(type),/$(type)))
 # Call the docker build
-	$(call docker_build_php,$(version),$(type),images/php/$(type)/Dockerfile,images/php/$(type))
+	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash)))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
 build-images += $(phpimages)
-push-phpimages += $(phpimages)
+publish-images += $(phpimages)
 
-build/php-5.6-fpm build/php-7.0-fpm build/php-7.1-fpm: images/commons
-build/php-5.6-cli: build/php-5.6-fpm
-build/php-7.0-cli: build/php-7.0-fpm
-build/php-7.1-cli: build/php-7.1-fpm
+build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm: images/commons
+build/php__5.6-cli: build/php__5.6-fpm
+build/php__7.0-cli: build/php__7.0-fpm
+build/php__7.1-cli: build/php__7.1-fpm
 
+
+#######
+####### Node Images
+#######
+####### Node Images are alpine linux based Node images.
+
+nodeimages := node__8 \
+							node__6 \
+							node__8-builder \
+							node__6-builder
+
+build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-nodeimages): build/commons
+	$(eval clean = $(subst build/node__,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+# this fills variables only if $type is existing, if not they are just empty
+	$(eval type_dash = $(if $(type),-$(type)))
+	$(eval type_slash = $(if $(type),/$(type)))
+# Call the docker build
+	$(call docker_build_node,$(version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+build-images += $(nodeimages)
+publish-images += $(nodeimages)
+
+build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__8-builder: build/node__8 images/node/builder/Dockerfile
+build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 
 #######
 ####### Service Images
@@ -199,8 +222,7 @@ build/php-7.1-cli: build/php-7.1-fpm
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
 build-images += yarn-workspace-builder
-push-images += yarn-workspace-builder
-build/yarn-workspace-builder: build/centos7-node8-builder images/yarn-workspace-builder/Dockerfile
+build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
 	touch $@
@@ -219,11 +241,9 @@ serviceimages :=  api \
 									rabbitmq \
 									elasticsearch \
 									kibana \
-									logstash \
-									postgres
+									logstash
 
 build-images += $(serviceimages)
-push-images += $(serviceimages)
 build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
 
 # Recepie for all building service-images
@@ -234,7 +254,7 @@ $(build-serviceimages):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
-build/hacky-rest2tasks-ui: build/centos7-node8
+build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/auth-ssh: build/centos7
@@ -242,20 +262,17 @@ build/auth-ssh: build/centos7
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
 build-images += auth-ssh
-push-images += auth-ssh
 # CLI Image
-build/cli: build/centos7-node8
+build/cli: build/node__8
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
 build-images += cli
-push-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-hiera-watcher-pusher \
 									local-git
 build-images += $(localdevimages)
-push-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
 $(build-localdevimages):
@@ -269,7 +286,6 @@ build/local-hiera-watcher-pusher build/local-git-server: build/centos7
 # Images for helpers that exist in another folder than the service images
 helperimages := drush-alias
 build-images += $(helperimages)
-push-images += $(helperimages)
 build-helperimages = $(foreach image,$(helperimages),build/$(image))
 
 $(build-helperimages):
@@ -285,7 +301,6 @@ build/tests:
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
 build-images += tests
-push-images += tests
 #######
 ####### Commands
 #######
@@ -341,12 +356,12 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+$(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/centos7-nginx1-drupal build/centos7-php7.0-drupal-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/nginx-drupal build/php-7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -357,41 +372,25 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): local-git-port openshift build/centos7-node6-builder build/centos7-node8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
+$(run-webhook-tests): local-git-port openshift build/node__6-builder build/node__8-builderbuild/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
 # push command of our base images into openshift
-push-openshift-images-list := $(baseimages)
-push-openshift-images = $(foreach image,$(push-openshift-images-list),[push-openshift]-$(image))
+push-openshift-images = $(foreach image,$(publish-images),[push-openshift]-$(image))
 # tag and push all images
 .PHONY: push-openshift
-push-openshift: $(push-openshift-images)  push-php-openshift
+push-openshift: $(push-openshift-images)
 # tag and push of each image
 .PHONY: $(push-openshift-images)
 $(push-openshift-images):
 	$(eval image = $(subst [push-openshift]-,,$@))
+	$(eval image = $(subst __,:,$(image)))
 	$(info pushing $(image) to openshift registry)
 	@docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
 	@docker push $$(cat openshift):30000/lagoon/$(image) > /dev/null
-
-# push command of our php base images into openshift
-push-php-openshift-images-list := $(phpimages)
-push-php-openshift-images = $(foreach image,$(push-php-openshift-images-list),[push-php-openshift]-$(image))
-# tag and push all images
-.PHONY: push-php-openshift
-push-php-openshift: $(push-php-openshift-images)
-# tag and push of each image
-.PHONY: $(push-php-openshift-images)
-$(push-php-openshift-images):
-	$(eval clean = $(subst [push-php-openshift]-php,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(info pushing php:$(version)-$(type) to openshift registry)
-	@docker tag $(CI_BUILD_TAG)/php:$(version)-$(type) $$(cat openshift):30000/lagoon/php:$(version)-$(type)
-	@docker push $$(cat openshift):30000/lagoon/php:$(version)-$(type) > /dev/null
 
 
 local-git-port:
@@ -408,23 +407,18 @@ endif
 
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeio-images = $(foreach image,$(baseimages),[publish-amazeeio]-$(image))
-publish-amazeeio-phpimages = $(foreach image,$(phpimages),[publish-amazeeio-php]-$(image))
+publish-amazeeio-images = $(foreach image,$(push-images),[publish-amazeeio]-$(image))
 
 # tag and push all images
 .PHONY: publish-amazeeio
-publish-amazeeio: $(publish-amazeeio-images) $(publish-amazeeio-phpimages)
+publish-amazeeio: $(publish-amazeeio-images)
 # tag and push of each image
 .PHONY: $(publish-amazeeio-images)
 $(publish-amazeeio-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(call docker_publish_amazeeio,$(subst [publish-amazeeio]-,,$@))
-.PHONY: $(publish-amazeeio-phpimages)
-$(publish-amazeeio-phpimages):
-		$(eval clean = $(subst [publish-amazeeio-php]-php-,,$@))
-		$(eval version = $(word 1,$(subst -, ,$(clean))))
-		$(eval type = $(word 2,$(subst -, ,$(clean))))
-		$(call docker_publish_amazeeio_php,$(version),$(type))
+		$(eval image = $(subst [publish-amazeeio]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		$(call docker_publish_amazeeio,$(image))
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
@@ -434,24 +428,17 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
 publish-amazeeiolagoon-images = $(foreach image,$(build-images),[publish-amazeeiolagoon]-$(image))
-publish-amazeeiolagoon-phpimages = $(foreach image,$(push-phpimages),[publish-amazeeiolagoon-php]-$(image))
 
 # tag and push all images
 .PHONY: publish-amazeeiolagoon
-publish-amazeeiolagoon: $(publish-amazeeiolagoon-images) $(publish-amazeeiolagoon-phpimages)
+publish-amazeeiolagoon: $(publish-amazeeiolagoon-images)
 # tag and push of each image
 .PHONY: $(publish-amazeeiolagoon-images)
 $(publish-amazeeiolagoon-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(call docker_publish_amazeeiolagoon,$(subst [publish-amazeeiolagoon]-,,$@))
-.PHONY: $(publish-amazeeiolagoon-phpimages)
-$(publish-amazeeiolagoon-phpimages):
-		$(eval clean = $(subst [publish-amazeeiolagoon-php]-php-,,$@))
-		$(eval version = $(word 1,$(subst -, ,$(clean))))
-		$(eval type = $(word 2,$(subst -, ,$(clean))))
-#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(call docker_publish_amazeeiolagoon_php,$(version),$(type))
-
+		$(eval image = $(subst [publish-amazeeiolagoon]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		$(call docker_publish_amazeeio,$(image))
 
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
