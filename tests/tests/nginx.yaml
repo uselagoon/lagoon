@@ -3,6 +3,6 @@
   vars:
     testname: "NGINX"
     git_repo_name: nginx.git
-    sitegroup: ci-nginx
+    project: ci-nginx
     branch: nginx
 

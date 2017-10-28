@@ -1,8 +1,8 @@
-- name: "{{ testname }} - POST rest2task /deploy with target git branch {{ branch }} and sitegroup {{ sitegroup }} (no sha) to {{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}"
+- name: "{{ testname }} - POST rest2task /deploy with target git branch {{ branch }} and project {{ project }} (no sha) to {{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}"
   uri:
     url: "{{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}/deploy"
     method: POST
     follow_redirects: yes
     body_format: json
-    body: '{"branchName": "{{ branch }}","siteGroupName": "{{ sitegroup }}"}'
+    body: '{"branchName": "{{ branch }}","siteGroupName": "{{ project }}"}'
 

@@ -4,15 +4,15 @@
     testname: "NODE 8"
     node_version: 8
     git_repo_name: node.git
-    sitegroup: ci-node
+    project: ci-node
     branch: node8
-    check_url: "http://node.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
 - include: rest/branch.yaml
   vars:
     testname: "NODE 6"
     node_version: 6_subfolder
     git_repo_name: node.git
-    sitegroup: ci-node
+    project: ci-node
     branch: node6
-    check_url: "http://node.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

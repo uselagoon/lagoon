@@ -30,7 +30,7 @@ const withFormHandlers = withHandlers({
   setOpenshiftRessourceAppName: props => event => props.setOpenshiftRessourceAppName(event.target.value),
   doSubmitDeployRequest: props => async (siteGroup, openshiftRessourceAppName) => {
     const data = {
-      siteGroupName: siteGroup,
+      siteGroupname: PROJECT,
       openshiftRessourceAppName: openshiftRessourceAppName,
     };
     const response = await global.fetch(`${process.env.REST2TASKS_URL}/remove`, {

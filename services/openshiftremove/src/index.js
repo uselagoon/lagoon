@@ -21,7 +21,7 @@ const messageConsumer = async function(msg) {
     type
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received RemoveOpenshift task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`);
+  logger.verbose(`Received RemoveOpenshift task for project ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`);
 
   const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
 
@@ -45,7 +45,7 @@ const messageConsumer = async function(msg) {
     }
 
   } catch(error) {
-    logger.warn(`Error while loading openshift information for sitegroup ${siteGroupName}, error ${error}`)
+    logger.warn(`Error while loading openshift information for project ${siteGroupName}, error ${error}`)
     throw(error)
   }
 

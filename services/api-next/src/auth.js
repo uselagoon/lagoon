@@ -34,7 +34,7 @@ const decodeToken = (token, secret) => {
 // of already fetched entity data... if you want to prohibit access to
 // complete group s see `getCredentialsForEntities`
 const createAttributeFilters = role => {
-  let sitegroup;
+  let project;
   let site;
   let client;
 
@@ -49,7 +49,7 @@ const createAttributeFilters = role => {
 
   if (role === 'drush') {
     // For attributes check the SiteGroupView type
-    sitegroup = createFilter([
+    project = createFilter([
       // SiteGroup attributes
       'id',
       'git_url',
@@ -79,13 +79,13 @@ const createAttributeFilters = role => {
 
       // Allow this is well for the
       // nested access
-      'sitegroup',
+      'project',
     ]);
   }
 
   // Only pick filters which are defined
-  return R.pick(['sitegroup', 'site', 'client'], {
-    sitegroup,
+  return R.pick(['project', 'site', 'client'], {
+    project,
     site,
     client,
   });
@@ -151,20 +151,20 @@ const getCredentials = (sshKey, role, state) => {
 
   const siteGroupInClient = (sgName, sg) => R.contains(sg.client, clients);
 
-  const sitegroups = R.compose(
+  const projects = R.compose(
     siteGroups =>
       getCredentialsForEntities(
         sshKey,
         role,
-        'sitegroup',
+        'project',
         siteGroupInClient,
         siteGroups
       ),
-    R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups'])
+    R.pathOr({}, ['siteGroupsFile', 'amazeeio_projects'])
   )(state);
 
   const siteInSiteGroup = (siteName, site) =>
-    R.contains(site.sitegroup, sitegroups);
+    R.contains(site.project, projects);
 
   const sites = R.compose(
     sites =>
@@ -180,7 +180,7 @@ const getCredentials = (sshKey, role, state) => {
 
   return {
     clients,
-    sitegroups,
+    projects,
     sites,
     role,
     attributeFilters: createAttributeFilters(role),

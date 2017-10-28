@@ -11,7 +11,7 @@ oc process --insecure-skip-tls-verify \
   -f ${OPENSHIFT_TEMPLATE} \
   -p SERVICE_NAME="${SERVICE_NAME}" \
   -p SAFE_BRANCH="${SAFE_BRANCH}" \
-  -p SAFE_SITEGROUP="${SAFE_SITEGROUP}" \
+  -p SAFE_PROJECT="${SAFE_PROJECT}" \
   -p BRANCH="${BRANCH}" \
   -p SITEGROUP="${SITEGROUP}" \
   -p AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \

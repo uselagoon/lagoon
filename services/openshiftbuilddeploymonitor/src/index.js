@@ -43,7 +43,7 @@ const messageConsumer = async msg => {
     sha
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received BuildDeployOpenshift monitoring task for sitegroup: ${siteGroupName}, buildName: ${buildName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
+  logger.verbose(`Received BuildDeployOpenshift monitoring task for project: ${siteGroupName}, buildName: ${buildName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
 
   const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
 
@@ -52,7 +52,7 @@ const messageConsumer = async msg => {
     var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console.replace(/\/$/, "");
     var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
   } catch(error) {
-    logger.warn(`Error while loading information for sitegroup ${siteGroupName}: ${error}`)
+    logger.warn(`Error while loading information for project ${siteGroupName}: ${error}`)
     throw(error)
   }
 

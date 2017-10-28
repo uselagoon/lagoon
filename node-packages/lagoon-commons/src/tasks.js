@@ -12,7 +12,7 @@ exports.consumeTasks = consumeTasks;
 
 import type { ChannelWrapper } from './types';
 
-const { getActiveSystemsForSiteGroup } = require('./api');
+const { getActiveSystemForProject } = require('./api');
 
 
 let sendToAmazeeioTasks = exports.sendToAmazeeioTasks = function sendToAmazeeioTasks() {};
@@ -103,130 +103,81 @@ async function createTaskMonitor(task, payload) { return sendToAmazeeioTasksMoni
 
 async function createDeployTask(deployData) {
 	const {
-		siteGroupName,
+		projectName,
 		branchName,
 		sha,
 		type
 	} = deployData
 
-  let activeSystems = await getActiveSystemsForSiteGroup(siteGroupName);
+  let project = await getActiveSystemForProject(projectName, 'deploy');
 
-	if (typeof activeSystems.deploy === 'undefined') {
-    throw new UnknownActiveSystem(`No active system for tasks 'deploy' in for sitegroup ${siteGroupName}`)
+	if (typeof project.active_systems_deploy === 'undefined') {
+    throw new UnknownActiveSystem(`No active system for tasks 'deploy' in for project ${projectName}`)
 	}
 
-	// BC: the given active Systems were just a string in the past, now they are an object with the active system as a key
-	if (typeof activeSystems.deploy === 'string') {
-		const activeSystem = activeSystems.deploy
-		activeSystems.deploy = {}
-		activeSystems.deploy[activeSystem] = {}
-	}
-
-	// We only check the first given System, we could also allow multiple, but it's better to just create another sitegroup with the same gitURL
-	const activeDeploySystem = Object.keys(activeSystems.deploy)[0]
-	let deploySystemConfig = '';
-	switch (activeDeploySystem) {
-		case 'lagoon_openshiftDeploy':
-			deploySystemConfig = activeSystems.deploy['lagoon_openshiftDeploy']
+	switch (project.active_systems_deploy) {
+		case 'lagoon_openshiftBuildDeploy':
 			if (type === 'branch') {
-				switch (deploySystemConfig.branches) {
+				switch (projectName.branches) {
 					case undefined:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
-						return sendToAmazeeioTasks('deploy-openshift', deployData);
-					case true:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
-						return sendToAmazeeioTasks('deploy-openshift', deployData);
-					case false:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
-						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
-					default:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
-						let branchRegex = new RegExp(deploySystemConfig.branches);
-						if (branchRegex.test(branchName)) {
-							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
-							return sendToAmazeeioTasks('deploy-openshift', deployData);
-						} else {
-							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
-							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
-						}
-				}
-			}
-			case 'lagoon_openshiftBuildDeploy':
-			deploySystemConfig = activeSystems.deploy['lagoon_openshiftBuildDeploy']
-			if (type === 'branch') {
-				switch (deploySystemConfig.branches) {
-					case undefined:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
+						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 					case true:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, all branches active, therefore deploying`)
+						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`)
 						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 					case false:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, branch deployments disabled`)
+						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`)
 						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
 					default:
-						logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches}, testing if it matches`)
-						let branchRegex = new RegExp(deploySystemConfig.branches);
+						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches}, testing if it matches`)
+						let branchRegex = new RegExp(project.branches);
 						if (branchRegex.test(branchName)) {
-							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} matched branchname, starting deploy`)
+							logger.debug(`projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} matched branchname, starting deploy`)
 							return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 						} else {
-							logger.debug(`siteGroupName: ${siteGroupName}, branchName: ${branchName}, regex ${deploySystemConfig.branches} did not match branchname, not deploying`)
-							throw new NoNeedToDeployBranch(`configured regex '${deploySystemConfig.branches}' does not match branchname '${branchName}'`)
+							logger.debug(`projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} did not match branchname, not deploying`)
+							throw new NoNeedToDeployBranch(`configured regex '${project.branches}' does not match branchname '${branchName}'`)
 						}
 				}
 			} else if (type === 'pullrequest') {
-				switch (deploySystemConfig.pullrequest) {
+				switch (projectName.pullrequests) {
 					case undefined:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`)
+						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`)
 						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 					case true:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`)
+						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`)
 						return sendToAmazeeioTasks('builddeploy-openshift', deployData);
 					case false:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
+						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:
-						logger.debug(`siteGroupName: ${siteGroupName}, pullrequest: ${branchName}, no pull request pattern matching implemeted yet.`)
+						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, no pull request pattern matching implemeted yet.`)
 						throw new NoNeedToDeployBranch(`No Pull Request pattern matching implemented yet`)
 						// @TODO Implement pullrequest pattern matching
 				}
 			}
 		default:
-      throw new UnknownActiveSystem(`Unknown active system '${activeDeploySystem}' for task 'deploy' in for sitegroup ${siteGroupName}`)
+      throw new UnknownActiveSystem(`Unknown active system '${project.active_systems_deploy}' for task 'deploy' in for project ${projectName}`)
 	}
 }
 
 async function createRemoveTask(removeData) {
 	const {
-		siteGroupName
+		projectName
 	} = removeData
 
-  let activeSystems = await getActiveSystemsForSiteGroup(siteGroupName);
+  let activeSystems = await getActiveSystemForProject(projectName, 'remove');
 
-	if (typeof activeSystems.remove === 'undefined') {
-    throw new UnknownActiveSystem(`No active system for tasks 'deploy' in for sitegroup ${siteGroupName}`)
+	if (typeof project.active_systems_remove === 'undefined') {
+    throw new UnknownActiveSystem(`No active system for tasks 'remove' in for project ${projectName}`)
 	}
 
-	// BC: the given active Systems were just a string in the past, now they are an object with the active system as a key
-	if (typeof activeSystems.remove === 'string') {
-		const activeSystem = activeSystems.remove
-		activeSystems.remove = {}
-		activeSystems.remove[activeSystem] = {}
-	}
-
-	// We only check the first given System, we could also allow multiple, but it's better to just create another sitegroup with the same gitURL
-	const activeRemoveSystem = Object.keys(activeSystems.remove)[0]
-
-	switch (activeRemoveSystem) {
-		case 'lagoon_openshiftRemoveResources':
-			return sendToAmazeeioTasks('remove-openshift-resources', removeData);
-
+	switch (project.active_systems_remove) {
 		case 'lagoon_openshiftRemove':
 			return sendToAmazeeioTasks('remove-openshift', removeData);
 
 		default:
-      throw new UnknownActiveSystem(`Unknown active system '${activeRemoveSystem}' for task 'remove' in for sitegroup ${siteGroupName}`)
+		throw new UnknownActiveSystem(`Unknown active system '${project.active_systems_remove}' for task 'remove' in for project ${projectName}`)
 	}
 }
 

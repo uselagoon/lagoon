@@ -6,6 +6,6 @@
     git_repo_name: bitbucket.git
     git_repo_url: https://10.0.2.2:32768/git/bitbucket
     git_repo_full_name: git/bitbucket
-    sitegroup: ci-bitbucket
+    project: ci-bitbucket
     branch: bitbucket/slash/branch
-    check_url: "http://node.{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

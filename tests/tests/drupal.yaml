@@ -6,7 +6,7 @@
     php_version: 7.0
     target_os: centos
     git_repo_name: drupal.git
-    sitegroup: ci-drupal
+    project: ci-drupal
     branch: drupal8-composer-centos-70
 - include: drupal/drupal.yaml
   vars:
@@ -15,7 +15,7 @@
     php_version: 7.0
     target_os: alpine
     git_repo_name: drupal.git
-    sitegroup: ci-drupal
+    project: ci-drupal
     branch: drupal8-composer-alpine-70
 - include: drupal/drupal.yaml
   vars:
@@ -24,5 +24,5 @@
     php_version: 7.1
     target_os: alpine
     git_repo_name: drupal.git
-    sitegroup: ci-drupal
+    project: ci-drupal
     branch: drupal8-composer-alpine-71

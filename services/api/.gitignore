@@ -1,6 +1,0 @@
-node_modules
-dist
-logs
-.env
-.repository
-.yarn-error.log

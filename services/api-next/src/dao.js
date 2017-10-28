@@ -37,9 +37,9 @@ const getAllProjects = sqlClient => async (cred, args) => {
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
-      SELECT * FROM project ${args.createdAfter
-        ? 'WHERE created >= :createdAfter'
-        : ''}
+      SELECT * FROM project
+        ${args.createdAfter ? 'WHERE created >= :createdAfter' : ''}
+        ${args.gitUrl ? 'WHERE git_url = :gitUrl' : ''}
     `);
 
     sqlClient.query(prep(args), (err, rows) => {

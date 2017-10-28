@@ -7,14 +7,14 @@ parameters:
   - name: SAFE_BRANCH
     description: Which branch this belongs to, special chars replaced with dashes
     required: true
-  - name: SAFE_SITEGROUP
-    description: Which sitegroup this belongs to, special chars replaced with dashes
+  - name: SAFE_PROJECT
+    description: Which project this belongs to, special chars replaced with dashes
     required: true
   - name: BRANCH
     description: Which branch this belongs to, original value
     required: true
-  - name: SITEGROUP
-    description: Which sitegroup this belongs to, original value
+  - name: PROJECT
+    description: Which project this belongs to, original value
     required: true
   - name: AMAZEEIO_GIT_SHA
     description: git hash sha of the current deployment
@@ -27,6 +27,6 @@ objects:
   data:
     AMAZEEIO_GIT_SAFE_BRANCH: ${SAFE_BRANCH}
     AMAZEEIO_GIT_BRANCH: ${BRANCH}
-    AMAZEEIO_SAFE_SITEGROUP: ${SAFE_SITEGROUP}
+    AMAZEEIO_SAFE_PROJECT: ${SAFE_PROJECT}
     AMAZEEIO_GIT_SHA: ${AMAZEEIO_GIT_SHA}
-    AMAZEEIO_SITEGROUP: ${SITEGROUP}
+    AMAZEEIO_PROJECT: ${PROJECT}

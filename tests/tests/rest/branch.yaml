@@ -8,12 +8,12 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ sitegroup }}, which should deploy the first commit"
+- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
@@ -21,7 +21,7 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
 - name: "{{ testname }} - second commit (empty) and git push into same git repo"
@@ -38,12 +38,12 @@
   tasks:
   - include: ../../tasks/git-empty-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post with sha of second commit on {{ sitegroup }}, which should deploy the second commit"
+- name: "{{ testname }} - rest2tasks deploy post with sha of second commit on {{ project }}, which should deploy the second commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     sha: "{{ second_commit_hash }}"
   tasks:
   - include: ../../tasks/rest/deploy-sha.yaml
@@ -53,15 +53,15 @@
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ sitegroup }}, which should deploy the third commit"
+- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}, which should deploy the third commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
@@ -69,15 +69,15 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
-- name: "{{ testname }} - rest2tasks deploy post with sha of second commit on {{ sitegroup }}, which should deploy again the second commit even we had a deployment of the branch before"
+- name: "{{ testname }} - rest2tasks deploy post with sha of second commit on {{ project }}, which should deploy again the second commit even we had a deployment of the branch before"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     sha: "{{ second_commit_hash }}"
   tasks:
   - include: ../../tasks/rest/deploy-sha.yaml
@@ -86,23 +86,23 @@
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
-- name: "{{ testname }} - rest2tasks /remove POST on {{ sitegroup }}, which should remove all resources"
+- name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
   vars:
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
   - include: ../../tasks/rest/remove.yaml
 
-- name: "{{ testname }} - check if site for {{ sitegroup }} does not exist anymore"
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
   - include: ../../checks/check-url-returncode.yaml

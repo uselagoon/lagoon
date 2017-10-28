@@ -5,11 +5,11 @@ This service is called 'openShiftRemove', is part of the amazee.io lagoon deploy
 It does the following:
 1. read message from a rabbitmq queue called `amazeeio-tasks:remove-openshift-resources`, which have the following information:
 
-- `siteGroupName` (name of the sitegroup that should be handled)
+- `siteGroupName` (name of the project that should be handled)
 - `openshiftRessourceAppName` (name of ressource in openshift that should be removed, it use them as an openshift label with the key `app`)
 - `openshiftProject` (name of the openshift project that should be removed)
 
-2. connect to the amazeeio api and load additional openshift information (token and the console url) for the given sitegroup
+2. connect to the amazeeio api and load additional openshift information (token and the console url) for the given project
 3. create a new jenkinsjob which runs `oc delete all -l app={openshiftRessourceAppName}` against the found OpenShift console
 
 It logs the start, success and error of the jenkins jobs into amazeeio-logs.

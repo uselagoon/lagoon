@@ -32,9 +32,9 @@ export type WebhookRequestData = {
   body?: Object,
 };
 
-export type SiteGroup = {
+export type Project = {
   slack: Object,
-  siteGroupName: string,
+  name: string,
   openshift: Object,
 };
 

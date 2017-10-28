@@ -30,8 +30,8 @@ function initSendToAmazeeioLogs() {
 }
 
 
-async function sendToAmazeeioLogs (severity: string, sitegroup: string, uuid: string, event: string, meta: object, message: string): Promise<void> {
-		const payload = {severity, sitegroup, uuid, event, meta, message}
+async function sendToAmazeeioLogs (severity: string, project: string, uuid: string, event: string, meta: object, message: string): Promise<void> {
+		const payload = {severity, project, uuid, event, meta, message}
 
 
 		try {

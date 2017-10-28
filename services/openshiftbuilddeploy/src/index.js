@@ -4,7 +4,7 @@ const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
+const { getOpenShiftInfoForProject } = require('@amazeeio/lagoon-commons/src/api');
 
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { consumeTasks, initSendToAmazeeioTasks, createTaskMonitor } = require('@amazeeio/lagoon-commons/src/tasks');
@@ -17,7 +17,7 @@ const gitSafeBranch = process.env.AMAZEEIO_GIT_SAFE_BRANCH || "develop"
 
 const messageConsumer = async msg => {
   const {
-    siteGroupName,
+    projectName,
     branchName,
     sha,
     type,
@@ -27,34 +27,30 @@ const messageConsumer = async msg => {
     baseSha
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received DeployOpenshift task for sitegroup: ${siteGroupName}, branch: ${branchName}, sha: ${sha}`);
+  logger.verbose(`Received DeployOpenshift task for project: ${projectName}, branch: ${branchName}, sha: ${sha}`);
 
-  const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
-
+  const result = await getOpenShiftInfoForProject(projectName);
+  const projectOpenShift = result.project
 
   const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
   try {
     var safeBranchName = ocsafety(branchName)
-    var safeSiteGroupName = ocsafety(siteGroupName)
+    var safeProjectName = ocsafety(projectName)
     var gitSha = sha
-    var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console.replace(/\/$/, "");
-    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
-    var openshiftRegistry =siteGroupOpenShift.siteGroup.openshift.registry
-    var appuioToken = siteGroupOpenShift.siteGroup.openshift.appuiotoken || ""
-    var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
-    var openshiftFolder = siteGroupOpenShift.siteGroup.openshift.folder || "."
-    var openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
-    var openshiftProjectUser = siteGroupOpenShift.siteGroup.openshift.project_user || ""
-    var deployPrivateKey = siteGroupOpenShift.siteGroup.client.deployPrivateKey
-    var gitUrl = siteGroupOpenShift.siteGroup.gitUrl
-    var routerPattern = siteGroupOpenShift.siteGroup.openshift.router_pattern ? siteGroupOpenShift.siteGroup.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${sitegroup}', safeSiteGroupName) : ""
+    var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
+    var openshiftToken = projectOpenShift.openshift.token || ""
+    var openshiftProject = `${safeProjectName}-${safeBranchName}`
+    var openshiftProjectUser = projectOpenShift.openshift.project_user || ""
+    var deployPrivateKey = projectOpenShift.customer.private_key
+    var gitUrl = projectOpenShift.gitUrl
+    var routerPattern = projectOpenShift.openshift.router_pattern ? projectOpenShift.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
   } catch(error) {
-    logger.error(`Error while loading information for sitegroup ${siteGroupName}`)
+    logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
     throw(error)
   }
@@ -134,12 +130,12 @@ const messageConsumer = async msg => {
                           "value": branchName
                       },
                       {
-                          "name": "SAFE_SITEGROUP",
-                          "value": safeSiteGroupName
+                          "name": "SAFE_PROJECT",
+                          "value": safeProjectName
                       },
                       {
-                          "name": "SITEGROUP",
-                          "value": siteGroupName
+                          "name": "PROJECT",
+                          "value": projectName
                       },
                       {
                           "name": "ROUTER_URL",
@@ -201,7 +197,7 @@ const messageConsumer = async msg => {
     if (err.code == 404 || err.code == 403) {
       logger.info(`${openshiftProject}: Project ${openshiftProject}  does not exist, creating`)
       const projectrequestsPost = Promise.promisify(openshift.projectrequests.post, { context: openshift.projectrequests })
-      await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${siteGroupName}] ${branchName}`} });
+      await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${projectName}] ${branchName}`} });
     } else {
       logger.error(err)
       throw new Error
@@ -312,7 +308,7 @@ const messageConsumer = async msg => {
 
   const monitorPayload = {
     buildName: buildName,
-    siteGroupName: siteGroupName,
+    projectName: projectName,
     openshiftProject: openshiftProject,
     branchName: branchName,
     sha: sha
@@ -327,15 +323,15 @@ const messageConsumer = async msg => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('start', siteGroupName, "", "task:builddeploy-openshift:start", {},
-    `*[${siteGroupName}]* ${logMessage}`
+  sendToAmazeeioLogs('start', projectName, "", "task:builddeploy-openshift:start", {},
+    `*[${projectName}]* ${logMessage}`
   )
 
 }
 
 const deathHandler = async (msg, lastError) => {
   const {
-    siteGroupName,
+    projectName,
     branchName,
     sha
   } = JSON.parse(msg.content.toString())
@@ -347,8 +343,8 @@ const deathHandler = async (msg, lastError) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('error', siteGroupName, "", "task:builddeploy-openshift:error",  {},
-`*[${siteGroupName}]* ${logMessage} ERROR:
+  sendToAmazeeioLogs('error', projectName, "", "task:builddeploy-openshift:error",  {},
+`*[${projectName}]* ${logMessage} ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
@@ -358,7 +354,7 @@ ${lastError}
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
   const {
-    siteGroupName,
+    projectName,
     branchName,
     sha
   } = JSON.parse(msg.content.toString())
@@ -370,8 +366,8 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:builddeploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${siteGroupName}]* ${logMessage} ERROR:
+  sendToAmazeeioLogs('warn', projectName, "", "task:builddeploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+`*[${projectName}]* ${logMessage} ERROR:
 \`\`\`
 ${error}
 \`\`\`

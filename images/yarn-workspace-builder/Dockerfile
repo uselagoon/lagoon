@@ -1,5 +1,10 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/node:8-builder
+
+RUN apk add --no-cache \
+        libexecinfo-dev \
+        python
+
 COPY package.json yarn.lock .env.defaults /app/
 COPY node-packages /app/node-packages
 
@@ -7,7 +12,7 @@ COPY node-packages /app/node-packages
 # package.json files for workspaces, otherwise
 # subdependencies won't be installed
 COPY services /app/services
-RUN BUILD_ONLY=true yarn install --pure-lockfile
+RUN yarn install --frozen-lockfile
 
 # We remove the services afterwards to prevent
 # unnecessary source code in all the other service images

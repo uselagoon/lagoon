@@ -4,9 +4,9 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
+import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
 
-async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function githubPullRequestClosed(webhook: WebhookRequestData, project: Project) {
 
     const {
       webhooktype,
@@ -21,25 +21,25 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: S
     }
 
     const data: removeData = {
-      siteGroupName: siteGroup.siteGroupName,
+      projectName: project.name,
       pullrequestNumber: body.number,
       type: 'pullrequest'
     }
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:closed:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
+      sendToAmazeeioLogs('info', project.name, uuid, `${webhooktype}:${event}:closed:handled`, meta,
+        `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
       switch (error.name) {
-        case "SiteGroupNotFound":
+        case "ProjectNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* PR ${body.number} closed. No remove task created, reason: ${error}`
+          sendToAmazeeioLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${project.name}]* PR ${body.number} closed. No remove task created, reason: ${error}`
           )
           return;
 

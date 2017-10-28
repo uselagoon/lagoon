@@ -20,8 +20,6 @@ RUN apk update \
         git \
         file \
         openssl \
-        libcurl \
-        libgcrypt \
     && rm -rf /var/cache/apk/*
 
 CMD ["/bin/docker-sleep"]

@@ -60,9 +60,9 @@ oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
   -v SAFE_BRANCH="${SAFE_BRANCH}" \
-  -v SAFE_SITEGROUP="${SAFE_SITEGROUP}" \
+  -v SAFE_PROJECT="${SAFE_PROJECT}" \
   -v BRANCH="${BRANCH}" \
-  -v SITEGROUP="${SITEGROUP}" \
+  -v PROJECT="${PROJECT}" \
   -v AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 

@@ -10,8 +10,8 @@ export type ChannelWrapper = {
   ack: (msg: Object) => void,
 }
 
-export type SiteGroup = {
+export type Project = {
   slack: Object,
-  siteGroupName: string,
+  name: string,
   openshift: Object,
 };

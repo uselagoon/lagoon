@@ -22,7 +22,7 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
 - name: "{{ testname }} - second commit (empty) and git push into same git repo"
@@ -44,7 +44,7 @@
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
 - name: "{{ testname }} - third commit (empty) and git push into same git repo - no webhook push yet"
@@ -75,7 +75,7 @@
   vars:
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
 - name: "{{ testname }} - webhook bitbucket delete push"
@@ -86,11 +86,11 @@
   tasks:
   - include: ../../tasks/webhook-bitbucket/push-delete.yaml
 
-- name: "{{ testname }} - check if site for sitegroup does not exist anymore"
+- name: "{{ testname }} - check if site for project does not exist anymore"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ sitegroup | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
   - include: ../../checks/check-url-returncode.yaml

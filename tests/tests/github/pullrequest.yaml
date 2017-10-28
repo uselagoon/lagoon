@@ -49,7 +49,7 @@
   vars:
     expected_head: "{{ pr_commit_hash }}"
     expected_branch: "pr-1"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
 - name: "{{ testname }} - git commit a second time into pull request branch"
@@ -84,7 +84,7 @@
   vars:
     expected_head: "{{ pr_2nd_commit_hash }}"
     expected_branch: "pr-1"
-    sitegroup: "{{ sitegroup }}"
+    project: "{{ project }}"
     url: "{{ check_url }}"
 
 - name: "{{ testname }} - webhook github pull request closed"
@@ -100,7 +100,7 @@
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-closed.yaml
 
-- name: "{{ testname }} - check if site for sitegroup does not exist anymore"
+- name: "{{ testname }} - check if site for project does not exist anymore"
   hosts: localhost
   serial: 1
   vars:

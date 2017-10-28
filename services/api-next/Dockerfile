@@ -4,7 +4,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest} as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest}
+FROM ${IMAGE_REPO:-amazeeiolagoon}/node:8
 
 # Copying generated node_modules from the first stage
 COPY --from=yarn-workspace-builder /app /app
@@ -15,18 +15,12 @@ WORKDIR /app/services/myself/
 # Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
 COPY --from=yarn-workspace-builder /app/.env.defaults .
 
-# Copying our own package.json
-COPY package.json .
-
-# yarn install, our service might need special packages
-RUN yarn install --pure-lockfile && yarn cache clean
-
 # Copying files from our service
 COPY . .
 
-ENV NODE_ENV production
+RUN mkdir -p node_modules \
+    && ln -s /app/node_modules/.bin node_modules/.bin
 
-# building our service
-RUN yarn run build
+ENV NODE_ENV production
 
 CMD ["yarn", "start"]

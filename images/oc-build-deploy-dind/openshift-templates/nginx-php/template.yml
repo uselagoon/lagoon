@@ -10,14 +10,14 @@ parameters:
   - name: SAFE_BRANCH
     description: Which branch this belongs to, special chars replaced with dashes
     required: true
-  - name: SAFE_SITEGROUP
-    description: Which sitegroup this belongs to, special chars replaced with dashes
+  - name: SAFE_PROJECT
+    description: Which project this belongs to, special chars replaced with dashes
     required: true
   - name: BRANCH
     description: Which branch this belongs to, original value
     required: true
-  - name: SITEGROUP
-    description: Which sitegroup this belongs to, original value
+  - name: PROJECT
+    description: Which project this belongs to, original value
     required: true
   - name: AMAZEEIO_GIT_SHA
     description: git hash sha of the current deployment
@@ -25,7 +25,7 @@ parameters:
   - name: SERVICE_ROUTER_URL
     description: URL of the Router for this service
     value: ""
-  - name: PROJECT
+  - name: OPENSHIFT_PROJECT
     description: Name of the Project that this service is in
     required: true
   - name: REGISTRY
@@ -38,7 +38,7 @@ objects:
     creationTimestamp: null
     labels:
       branch: ${SAFE_BRANCH}
-      sitegroup: ${SAFE_SITEGROUP}
+      project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
     replicas: 1
@@ -52,10 +52,10 @@ objects:
         labels:
           service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
-          sitegroup: ${SAFE_SITEGROUP}
+          project: ${SAFE_PROJECT}
       spec:
         containers:
-        - image: ${REGISTRY}/${PROJECT}/nginx:latest
+        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/nginx:latest
           name: nginx
           ports:
           - containerPort: 8080
@@ -91,16 +91,16 @@ objects:
                 configMapKeyRef:
                   name: amazeeio-env
                   key: AMAZEEIO_GIT_SHA
-            - name: AMAZEEIO_SITEGROUP
+            - name: AMAZEEIO_PROJECT
               valueFrom:
                 configMapKeyRef:
                   name: amazeeio-env
-                  key: AMAZEEIO_SITEGROUP
+                  key: AMAZEEIO_PROJECT
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
-        - image: ${REGISTRY}/${PROJECT}/php:latest
+        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/php:latest
           name: php
           ports:
           - containerPort: 9000
@@ -133,11 +133,11 @@ objects:
                 configMapKeyRef:
                   name: amazeeio-env
                   key: AMAZEEIO_GIT_SHA
-            - name: AMAZEEIO_SITEGROUP
+            - name: AMAZEEIO_PROJECT
               valueFrom:
                 configMapKeyRef:
                   name: amazeeio-env
-                  key: AMAZEEIO_SITEGROUP
+                  key: AMAZEEIO_PROJECT
           resources:
             requests:
               cpu: 100m
@@ -169,7 +169,7 @@ objects:
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
-      sitegroup: ${SAFE_SITEGROUP}
+      project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
     ports:
@@ -188,7 +188,7 @@ objects:
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
-      sitegroup: ${SAFE_SITEGROUP}
+      project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
     host: ${SERVICE_ROUTER_URL}

@@ -44,10 +44,10 @@ const transport = new Transport(`${AMAZEEIO_API_HOST}/graphql`, options);
 
 const graphqlapi = new Lokka({ transport });
 
-class SiteGroupNotFound extends Error {
+class ProjectNotFound extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'SiteGroupNotFound';
+    this.name = 'ProjectNotFound';
   }
 }
 
@@ -58,56 +58,38 @@ class NoActiveSystemsDefined extends Error {
   }
 }
 
-async function siteGroupByGitUrl(gitUrl: string): SiteGroup {
+async function getProjectsByGitUrl(gitUrl: string): Project[] {
   const result = await graphqlapi.query(`
     {
-      siteGroup:siteGroupByGitUrl(gitUrl: "${gitUrl}"){
-        siteGroupName
+      allProjects(gitUrl: "${gitUrl}") {
+        name
         slack {
           webhook
           channel
         }
-        openshift
-      }
-    }
-  `);
-
-  if (!result || !result.siteGroup) {
-    throw new SiteGroupNotFound(
-      `Cannot find site information for git repo ${gitUrl}`
-    );
-  }
-
-  return result.siteGroup;
-}
-
-async function getSiteGroupsByGitUrl(gitUrl: string): SiteGroup[] {
-  const result = await graphqlapi.query(`
-    {
-      allSiteGroups(gitUrl: "${gitUrl}") {
-        siteGroupName
-        slack {
-          webhook
-          channel
+        openshift {
+          console_url
+          token
+          project_user
+          router_pattern
         }
-        openshift
       }
     }
   `);
 
-  if (!result || !result.allSiteGroups || !result.allSiteGroups.length) {
-    throw new SiteGroupNotFound(
-      `Cannot find site information for git repo ${gitUrl}`
+  if (!result || !result.allProjects || !result.allProjects.length) {
+    throw new ProjectNotFound(
+      `Cannot find project for git repo ${gitUrl}`
     );
   }
 
-  return result.allSiteGroups;
+  return result.allProjects;
 }
 
-async function getSlackinfoForSiteGroup(siteGroup: string): SiteGroup {
+async function getSlackinfoForProject(project: string): Project {
   const result = await graphqlapi.query(`
     {
-      siteGroup:siteGroupByName(name: "${siteGroup}"){
+      project:projectByName(name: "${project}"){
         slack {
           webhook
           channel
@@ -116,59 +98,64 @@ async function getSlackinfoForSiteGroup(siteGroup: string): SiteGroup {
     }
   `);
 
-  if (!result || !result.siteGroup || !result.siteGroup.slack) {
-    throw new SiteGroupNotFound(
-      `Cannot find site information for siteGroup ${siteGroup}`
+  if (!result || !result.project || !result.project.slack) {
+    throw new ProjectNotFound(
+      `Cannot find slack information for project ${project}`
     );
   }
 
-  return result.siteGroup;
+  return result.project;
 }
 
-async function getActiveSystemsForSiteGroup(
-  siteGroup: string,
+async function getActiveSystemForProject(
+  project: string,
   task: string
 ): Promise<String> {
   const result = await graphqlapi.query(`
     {
-      siteGroup:siteGroupByName(name: "${siteGroup}"){
-        activeSystems
+      project:projectByName(name: "${project}"){
+        active_systems_${task}
       }
     }
   `);
 
   if (!result || !result.siteGroup) {
-    throw new SiteGroupNotFound(
-      `Cannot find site information for siteGroup ${siteGroup}`
+    throw new ProjectNotFound(
+      `Cannot find active-systems information for project ${project}`
     );
   }
 
-  if (!result.siteGroup.activeSystems) {
+  if (!result.project[`active_systems_${task}`]) {
     throw new NoActiveSystemsDefined(
-      `Cannot find active systems for siteGroup ${siteGroup}`
+      `Cannot find active system for task ${task} in project ${project}`
     );
   }
 
-  return result.siteGroup.activeSystems;
+  return result.project[`active_systems_${task}`];
 }
 
-const getOpenShiftInfoForSiteGroup = (siteGroupName: string): Promise<Object> =>
+const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
     {
-      siteGroup:siteGroupByName(name: "${siteGroupName}"){
-        openshift
-        client {
-          deployPrivateKey
+      project:projectByName(name: "${project}"){
+        openshift  {
+          console_url
+          token
+          project_user
+          router_pattern
         }
-        gitUrl
+        customer {
+          private_key
+        }
+        git_url
       }
     }
 `);
 
 module.exports = {
-  siteGroupByGitUrl,
-  getSiteGroupsByGitUrl,
-  getSlackinfoForSiteGroup,
-  getActiveSystemsForSiteGroup,
-  getOpenShiftInfoForSiteGroup
+  projectByGitUrl,
+  getProjectsByGitUrl,
+  getSlackinfoForProject,
+  getActiveSystemForProject,
+  getOpenShiftInfoForProject
 };

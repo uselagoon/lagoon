@@ -4,9 +4,9 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
 
-import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
+import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
 
-async function githubPullRequestSynchronize(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function githubPullRequestSynchronize(webhook: WebhookRequestData, project: Project) {
 
     const {
       webhooktype,
@@ -28,7 +28,7 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, siteGro
 
     const data: deployData = {
       pullrequestNumber: body.number,
-      siteGroupName: siteGroup.siteGroupName,
+      projectName: project.name,
       type: 'pullrequest',
       headBranchName: headBranchName,
       headSha: headSha,
@@ -39,18 +39,18 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, siteGro
 
     try {
       const taskResult = await createDeployTask(data);
-      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
-        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> updated in <${body.repository.html_url}|${body.repository.full_name}>`
+      sendToAmazeeioLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
+        `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> updated in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
       switch (error.name) {
-        case "SiteGroupNotFound":
+        case "ProjectNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* PR ${body.number} opened. No remove task created, reason: ${error}`
+          sendToAmazeeioLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${project.name}]* PR ${body.number} opened. No remove task created, reason: ${error}`
           )
           return;
 

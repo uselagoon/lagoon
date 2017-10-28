@@ -39,7 +39,7 @@ TRUNCATE TABLE `openshift`;
 
 INSERT INTO `openshift` (`id`, `name`, `console_url`, `token`, `router_pattern`, `project_user`)
 VALUES
-	(1,'local','https://192.168.99.100:8443/',NULL,'${sitegroup}.${branch}.192.168.99.100.nip.io','developer');
+	(1,'local','https://192.168.99.100:8443/',NULL,'${project}.${branch}.192.168.99.100.nip.io','developer');
 
 UNLOCK TABLES;
 
@@ -58,8 +58,8 @@ VALUES
 	(3,'ci-bitbucket',2,'ssh://git@10.0.2.2:32768/git/bitbucket.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
 	(4,'ci-rest',2,'ssh://git@10.0.2.2:32768/git/rest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
 	(5,'ci-node',2,'ssh://git@10.0.2.2:32768/git/node.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(6,'ci-multisitegroup1',2,'ssh://git@10.0.2.2:32768/git/multisitegroup1.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(7,'ci-multisitegroup2',2,'ssh://git@10.0.2.2:32768/git/multisitegroup2.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(6,'ci-multiproject1',2,'ssh://git@10.0.2.2:32768/git/multiproject1.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(7,'ci-multiproject2',2,'ssh://git@10.0.2.2:32768/git/multiproject2.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
 	(8,'ci-drupal',2,'ssh://git@10.0.2.2:32768/git/drupal.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
 	(9,'credentialtest',1,'ssh://git@10.0.2.2:32768/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1);
 
@@ -69,9 +69,9 @@ UNLOCK TABLES;
 # Dump of table project_ssh_key
 # ------------------------------------------------------------
 
-LOCK TABLES `project` WRITE;
+LOCK TABLES `project_ssh_key` WRITE;
 
-TRUNCATE TABLE `project`;
+TRUNCATE TABLE `project_ssh_key`;
 
 #### nothing here yet
 

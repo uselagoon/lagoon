@@ -327,7 +327,7 @@ all-tests-list:= 	ssh-auth \
 									gitlab \
 									bitbucket \
 									rest \
-									multisitegroup \
+									multiproject \
 									nginx
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
@@ -354,7 +354,7 @@ tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api local-git local-hiera-watcher-pusher
 
 # All Tests that use REST endpoints
-rest-tests = rest node multisitegroup nginx
+rest-tests = rest node multiproject nginx
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
@@ -397,15 +397,15 @@ $(push-openshift-images):
 
 
 local-git-port:
-	$(info configuring ssh port of local-git server inside sitegroups.yaml, api-data.sql, docker-compose.yaml and bitbucket.yaml)
+	$(info configuring ssh port of local-git server inside projects.yaml, api-data.sql, docker-compose.yaml and bitbucket.yaml)
 ifeq ($(ARCH), Darwin)
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml
+	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml
 else
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml
+	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml
 endif
 
 
@@ -426,7 +426,7 @@ $(publish-amazeeio-images):
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
-	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "siteGroupName": "lagoon", "branchName": "develop" }'
+	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "develop" }'
 	make logs
 
 # Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
@@ -488,12 +488,12 @@ openshift: local-dev/minishift/minishift
 	oc -n default create -f openshift-setup/docker-host.yaml;
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
-	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
+	echo "replacing IP in local-dev/hiera/amazeeio/projects.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
-	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
+	echo "replacing IP in local-dev/hiera/amazeeio/projects.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
 endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 
