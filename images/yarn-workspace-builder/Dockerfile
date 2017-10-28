@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/centos7-node8-builder
+FROM ${IMAGE_REPO:-lagoon}/node:8-builder
 COPY package.json yarn.lock .env.defaults /app/
 COPY node-packages /app/node-packages
 
