@@ -229,6 +229,7 @@ build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builde
 
 # Variables of service images we manage and build
 serviceimages :=  api \
+									api-next \
 									auth-server \
 									logs2slack \
 									openshiftbuilddeploy \
@@ -241,7 +242,8 @@ serviceimages :=  api \
 									rabbitmq \
 									elasticsearch \
 									kibana \
-									logstash
+									logstash \
+									mariadb
 
 build-images += $(serviceimages)
 build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
@@ -253,7 +255,7 @@ $(build-serviceimages):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/api-next: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
@@ -271,7 +273,8 @@ build-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-hiera-watcher-pusher \
-									local-git
+									local-git \
+									local-api-data-watcher-pusher
 build-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -394,15 +397,15 @@ $(push-openshift-images):
 
 
 local-git-port:
-	$(info configuring ssh port of local-git server inside sitegroups.yaml, docker-compose.yaml and bitbucket.yaml)
+	$(info configuring ssh port of local-git server inside sitegroups.yaml, api-data.sql, docker-compose.yaml and bitbucket.yaml)
 ifeq ($(ARCH), Darwin)
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml
+	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml
 else
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml
+	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml
 endif
 
 
@@ -486,11 +489,11 @@ openshift: local-dev/minishift/minishift
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml;
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/hiera/amazeeio/sitegroups.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml docker-compose.yaml;
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/sitegroups.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
 endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 
