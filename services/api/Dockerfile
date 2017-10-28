@@ -4,12 +4,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${AMAZEEIO_GIT_BRANCH:-latest} as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest}
-
-# Copying generated node_modules from the first stage
-# COPY --from=yarn-workspace-builder /app/yarn.lock /app/package.json /app/node_modules /app
-COPY --from=yarn-workspace-builder /app/yarn.lock /app/package.json /app/
-COPY --from=yarn-workspace-builder /app/node_modules/ /app/node_modules/
+FROM amazeeio/centos7-node8-builder
 
 # Copying the common .env.defaults to the lagoon root for later usage
 COPY --from=yarn-workspace-builder /app/.env.defaults .
