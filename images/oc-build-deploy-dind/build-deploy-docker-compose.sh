@@ -39,7 +39,7 @@ do
   #   continue
   # fi
 
-  SERVICE_TYPES+=("${SERVICE_TYPE}:${SERVICE_NAME}")
+  SERVICE_TYPES+=("${SERVICE_TYPE}:${SERVICE_NAME}:${SERVICE}")
 done
 
 IMAGES=()
@@ -86,20 +86,21 @@ do
 
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+  SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
 
-  # OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.template false)
+  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.template false)
 
-  # if [ $OVERRIDE_TEMPLATE == "false" ]; then
+  if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
     fi
-  # else
-  #   OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
-  #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
-  #   fi
-  # fi
+  else
+    OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+    fi
+  fi
 
   . /scripts/exec-openshift-resources.sh
 done
