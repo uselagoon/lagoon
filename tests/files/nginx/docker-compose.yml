@@ -11,8 +11,6 @@ services:
       com.amazeeio.type: nginx
     volumes:
       - ./app:/app:delegated
-    depends_on:
-      - builder
     expose:
       - "8080"
     environment:
