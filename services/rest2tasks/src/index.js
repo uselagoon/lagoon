@@ -30,11 +30,11 @@ app.get('/', (req, res) => {
 app.post('/deploy', async (req, res) => {
 
   req.checkBody({
-    'siteGroupName': {
+    'projectName': {
       notEmpty: true,
       matches: {
         options: [/^[a-zA-Z0-9-_]+$/],
-        errorMessage: 'siteGroupName must be defined and must only contain alphanumeric, dashes and underline'
+        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
       },
     },
     'branchName': {
@@ -67,7 +67,7 @@ app.post('/deploy', async (req, res) => {
   }
 
   const data = {
-    siteGroupName: req.body.siteGroupName,
+    projectName: req.body.projectName,
     branchName: req.body.branchName,
     sha: req.body.sha,
     type: 'branch'
@@ -83,14 +83,14 @@ app.post('/deploy', async (req, res) => {
       logMessage = `\`${data.branchName}\``
     }
 
-    sendToAmazeeioLogs('info', data.siteGroupName, '', `rest:deploy:receive`, {},
-      `*[${data.siteGroupName}]* REST deploy trigger ${logMessage}`
+    sendToAmazeeioLogs('info', data.projectName, '', `rest:deploy:receive`, {},
+      `*[${data.projectName}]* REST deploy trigger ${logMessage}`
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
   } catch (error) {
     switch (error.name) {
-      case "SiteGroupNotFound":
+      case "ProjectNotFound":
       case "ActiveSystemsNotFound":
           res.status(404).type('json').send({ "ok": "false", "message": error.message})
           return;
@@ -113,11 +113,11 @@ app.post('/deploy', async (req, res) => {
 app.post('/remove', async (req, res) => {
 
   req.checkBody({
-    'siteGroupName': {
+    'projectName': {
       notEmpty: true,
       matches: {
         options: [/^[a-zA-Z0-9-_]+$/],
-        errorMessage: 'siteGroupName must be defined and must only contain alphanumeric, dashes and underline'
+        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
       },
     },
     'branch': {
@@ -137,21 +137,21 @@ app.post('/remove', async (req, res) => {
   }
 
   const data = {
-    siteGroupName: req.body.siteGroupName,
+    projectName: req.body.projectName,
     branch: req.body.branch,
     type: 'branch'
   }
 
   try {
     const taskResult = await createRemoveTask(data);
-    sendToAmazeeioLogs('info', data.siteGroupName, '', `rest:remove:receive`, {},
-      `*[${data.siteGroupName}]* REST remove trigger \`${data.branch}\``
+    sendToAmazeeioLogs('info', data.projectName, '', `rest:remove:receive`, {},
+      `*[${data.projectName}]* REST remove trigger \`${data.branch}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
     return;
   } catch (error) {
     switch (error.name) {
-      case "SiteGroupNotFound":
+      case "ProjectpNotFound":
       case "ActiveSystemsNotFound":
           res.status(404).type('json').send({ "ok": "false", "message": error.message})
           return;

@@ -1,9 +1,9 @@
 services:
-  api:
+  api-next:
     amazeeio:
       type: custom
-      template: services/api/.amazeeio.app.yml
-    image: amazeeiolagoon/api:develop
+      template: services/api-next/.amazeeio.app.yml
+    image: amazeeiolagoon/api-next:develop
   elasticsearch:
     amazeeio:
       type: custom

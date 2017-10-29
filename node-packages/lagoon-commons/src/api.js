@@ -1,6 +1,6 @@
 // @flow
 
-import type { SiteGroup } from './types';
+import type { Project } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -8,7 +8,7 @@ const { createJWTWithoutSshKey } = require('./jwt');
 const { logger } = require('./local-logging');
 
 const {
-  AMAZEEIO_API_HOST = 'http://api:3000',
+  AMAZEEIO_API_HOST = 'http://api-next:3000',
   JWTSECRET,
   JWTAUDIENCE,
 } = process.env;
@@ -115,11 +115,13 @@ async function getActiveSystemForProject(
     {
       project:projectByName(name: "${project}"){
         active_systems_${task}
+        branches
+        pullrequests
       }
     }
   `);
 
-  if (!result || !result.siteGroup) {
+  if (!result || !result.project) {
     throw new ProjectNotFound(
       `Cannot find active-systems information for project ${project}`
     );
@@ -131,7 +133,7 @@ async function getActiveSystemForProject(
     );
   }
 
-  return result.project[`active_systems_${task}`];
+  return result.project;
 }
 
 const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
@@ -153,7 +155,6 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
 `);
 
 module.exports = {
-  projectByGitUrl,
   getProjectsByGitUrl,
   getSlackinfoForProject,
   getActiveSystemForProject,

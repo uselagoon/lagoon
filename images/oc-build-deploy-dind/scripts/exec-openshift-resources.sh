@@ -13,9 +13,9 @@ oc process --insecure-skip-tls-verify \
   -p SAFE_BRANCH="${SAFE_BRANCH}" \
   -p SAFE_PROJECT="${SAFE_PROJECT}" \
   -p BRANCH="${BRANCH}" \
-  -p SITEGROUP="${SITEGROUP}" \
+  -p PROJECT="${PROJECT}" \
   -p AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
   -p SERVICE_ROUTER_URL="${SERVICE_ROUTER_URL}" \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
-  -p PROJECT=${OPENSHIFT_PROJECT} \
+  -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -

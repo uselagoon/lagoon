@@ -11,14 +11,14 @@ export type ChannelWrapper = {
 }
 
 export type removeData = {
-  siteGroupName: string,
+  projectName: string,
   branch: ?string,
   pullrequest: ?string,
   type: string,
 }
 
 export type deployData = {
-  siteGroupName: string,
+  projectName: string,
   branchName: string,
   sha: string
 }

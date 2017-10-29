@@ -6,7 +6,7 @@ const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
 const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
 const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
 
-const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
+const { getOpenShiftInfoForProject } = require('@amazeeio/lagoon-commons/src/api');
 
 initSendToAmazeeioLogs();
 initSendToAmazeeioTasks();
@@ -15,37 +15,37 @@ const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
 const messageConsumer = async function(msg) {
   const {
-    siteGroupName,
+    projectName,
     branch,
     pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received RemoveOpenshift task for project ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`);
+  logger.verbose(`Received RemoveOpenshift task for project ${projectName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`);
 
-  const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
+  const result = await getOpenShiftInfoForProject(projectName);
+  const projectOpenShift = result.project
 
   try {
-    var safeSiteGroupName = ocsafety(siteGroupName)
-    var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console.replace(/\/$/, "");
-    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
-    var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
+    var safeProjectName = ocsafety(projectName)
+    var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
+    var openshiftToken = projectOpenShift.openshift.token || ""
 
     var openshiftProject
 
     switch (type) {
       case 'pullrequest':
-        openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-pr-${pullrequestNumber}` : `${safeSiteGroupName}-pr-${pullrequestNumber}`
+        openshiftProject = `${safeProjectName}-pr-${pullrequestNumber}`
         break;
 
       case 'branch':
         const safeBranchName = ocsafety(branch)
-        openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
+        openshiftProject = `${safeProjectName}-${safeBranchName}`
         break;
     }
 
   } catch(error) {
-    logger.warn(`Error while loading openshift information for project ${siteGroupName}, error ${error}`)
+    logger.warn(`Error while loading openshift information for project ${projectName}, error ${error}`)
     throw(error)
   }
 
@@ -65,14 +65,14 @@ const messageConsumer = async function(msg) {
   try {
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
     await projectsDelete()
-    sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift:finished",  {},
-      `*[${siteGroupName}]* remove \`${openshiftProject}\``
+    sendToAmazeeioLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+      `*[${projectName}]* remove \`${openshiftProject}\``
     )
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject} does not exist, assuming it was removed`);
-      sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift:finished",  {},
-        `*[${siteGroupName}]* remove \`${openshiftProject}\``
+      sendToAmazeeioLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+        `*[${projectName}]* remove \`${openshiftProject}\``
       )
       return
     }
@@ -85,16 +85,16 @@ const messageConsumer = async function(msg) {
 const deathHandler = async (msg, lastError) => {
 
   const {
-    siteGroupName,
+    projectName,
     branch,
     pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequestNumber}`)
+  const openshiftProject = ocsafety(`${projectName}-${branch || pullrequestNumber}`)
 
-  sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift:error",  {},
-`*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
+  sendToAmazeeioLogs('error', projectName, "", "task:remove-openshift:error",  {},
+`*[${projectName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
@@ -104,16 +104,16 @@ ${lastError}
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
   const {
-    siteGroupName,
+    projectName,
     branch,
     pullrequestNumber,
     type
   } = JSON.parse(msg.content.toString())
 
-  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequestNumber}`)
+  const openshiftProject = ocsafety(`${projectName}-${branch || pullrequestNumber}`)
 
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
+  sendToAmazeeioLogs('warn', projectName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+`*[${projectName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${error}
 \`\`\`

@@ -4,7 +4,7 @@ This service is called 'webhooks2tasks', is part of the amazee.io lagoon deploym
 
 It does the following:
 1. read message from a rabbitmq queue called `amazeeio-webhooks`
-2. connect to the amazeeio api and load the SiteGroup information for the GitURL in the message (if project cannot be resolved, logs to amazeeio-logs)
+2. connect to the amazeeio api and load the Project information for the GitURL in the message (if project cannot be resolved, logs to amazeeio-logs)
 3. analyzing the message and calls a specific handler for the webhooktype and the event name (like githubPullRequestClosed)
 4. the handler will then create a task in the correct rabbitmq task queue. (In our example, closed pull requests need to remove openshift resources, so it creates a task in `amazeeio-tasks:remove-openshift-resources`)
 5. If no handler is defined for the webhook type or the event, it will log that to `amazeeio-logs`

@@ -33,7 +33,7 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
       return;
     } catch (error) {
       switch (error.name) {
-        case "SiteGroupNotFound":
+        case "ProjectNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
