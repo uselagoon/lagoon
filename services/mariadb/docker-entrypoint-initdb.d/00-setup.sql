@@ -5,7 +5,7 @@ USE infrastructure;
 CREATE TABLE IF NOT EXISTS ssh_key (
        id            int NOT NULL auto_increment PRIMARY KEY,
        name          varchar(100) NOT NULL,
-       keyValue      varchar(500) NOT NULL,
+       keyValue      varchar(5000) NOT NULL,
        keyType       ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
        created       timestamp DEFAULT CURRENT_TIMESTAMP
 );
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS customer (
        id             int NOT NULL auto_increment PRIMARY KEY,
        name           varchar(50) UNIQUE,
        comment        text,
-       private_key    varchar(500),
+       private_key    varchar(5000),
        created        timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
