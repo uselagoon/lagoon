@@ -61,7 +61,8 @@ VALUES
 	(6,'ci-multiproject1',2,'ssh://git@10.0.2.2:32771/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
 	(7,'ci-multiproject2',2,'ssh://git@10.0.2.2:32771/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
 	(8,'ci-drupal',2,'ssh://git@10.0.2.2:32771/git/drupal.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(9,'credentialtest',1,'ssh://git@10.0.2.2:32771/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1);
+	(9,'credentialtest',1,'ssh://git@10.0.2.2:32771/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(10,'ci-nginx',2,'ssh://git@10.0.2.2:32771/git/nginx.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1);
 
 UNLOCK TABLES;
 
