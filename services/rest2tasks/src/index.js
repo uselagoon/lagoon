@@ -102,6 +102,7 @@ app.post('/deploy', async (req, res) => {
         break;
 
       default:
+          logger.error(error)
           res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
           return;
         break;
@@ -151,13 +152,14 @@ app.post('/remove', async (req, res) => {
     return;
   } catch (error) {
     switch (error.name) {
-      case "ProjectpNotFound":
+      case "ProjectNotFound":
       case "ActiveSystemsNotFound":
           res.status(404).type('json').send({ "ok": "false", "message": error.message})
           return;
         break;
 
       default:
+          logger.error(error)
           res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
           return;
         break;
