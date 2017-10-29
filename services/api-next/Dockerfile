@@ -18,6 +18,7 @@ COPY --from=yarn-workspace-builder /app/.env.defaults .
 # Copying files from our service
 COPY . .
 
+# Link your service node_modules/.bin with the yarn workspace node_modules/.bin
 RUN mkdir -p node_modules \
     && ln -s /app/node_modules/.bin node_modules/.bin
 

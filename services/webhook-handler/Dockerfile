@@ -15,14 +15,12 @@ WORKDIR /app/services/myself/
 # Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
 COPY --from=yarn-workspace-builder /app/.env.defaults .
 
-# Copying our own package.json
-COPY package.json .
-
-# yarn install, our service might need special packages
-RUN yarn install --pure-lockfile && yarn cache clean
-
 # Copying files from our service
 COPY . .
+
+# Link your service node_modules/.bin with the yarn workspace node_modules/.bin
+RUN mkdir -p node_modules \
+    && ln -s /app/node_modules/.bin node_modules/.bin
 
 ENV NODE_ENV production
 

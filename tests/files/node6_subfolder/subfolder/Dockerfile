@@ -1,9 +1,9 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/centos7-node6-builder as builder
+FROM ${IMAGE_REPO:-lagoon}/node:6-builder as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM ${IMAGE_REPO:-lagoon}/centos7-node6
+FROM ${IMAGE_REPO:-lagoon}/node:6
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 
@@ -15,4 +15,4 @@ ENV LAGOON_GIT_BRANCH_BUILDTIME ${LAGOON_GIT_BRANCH}
 
 EXPOSE 3000
 
-CMD ["/usr/bin/yarn", "start"]
+CMD ["yarn", "start"]
