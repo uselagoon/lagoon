@@ -18,7 +18,7 @@ const normalizePort = value => {
 const createServer = async args => {
   logger.debug('Starting to boot the server.');
 
-  const port = normalizePort(process.env.PORT || '8080');
+  const port = normalizePort(process.env.PORT || '3000');
   const server = http.createServer(createApp(args));
 
   // $FlowIgnore https://github.com/facebook/flow/pull/4176
