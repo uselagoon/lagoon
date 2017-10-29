@@ -11,9 +11,14 @@ COPY node-packages /app/node-packages
 # We need to copy all services, so we have all
 # package.json files for workspaces, otherwise
 # subdependencies won't be installed
-COPY services /app/services
-RUN yarn install --frozen-lockfile
+COPY services/api-next/package.json /app/services/api-next/
+COPY services/auth-server/package.json /app/services/auth-server/
+COPY services/logs2slack/package.json /app/services/logs2slack/
+COPY services/openshiftbuilddeploy/package.json /app/services/openshiftbuilddeploy/
+COPY services/openshiftbuilddeploymonitor/package.json /app/services/openshiftbuilddeploymonitor/
+COPY services/openshiftremove/package.json /app/services/openshiftremove/
+COPY services/rest2tasks/package.json /app/services/rest2tasks/
+COPY services/webhook-handler/package.json /app/services/webhook-handler/
+COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
 
-# We remove the services afterwards to prevent
-# unnecessary source code in all the other service images
-RUN rm -rf /app/services
+RUN yarn install --frozen-lockfile

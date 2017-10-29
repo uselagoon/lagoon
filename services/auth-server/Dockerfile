@@ -10,7 +10,7 @@ FROM ${IMAGE_REPO:-amazeeiolagoon}/node:8
 COPY --from=yarn-workspace-builder /app /app
 
 # Setting the workdir to the service, all following commands will run from here
-WORKDIR /app/services/myself/
+WORKDIR /app/services/auth-server/
 
 # Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
 COPY --from=yarn-workspace-builder /app/.env.defaults .
@@ -18,13 +18,10 @@ COPY --from=yarn-workspace-builder /app/.env.defaults .
 # Copying files from our service
 COPY . .
 
-# Link your service node_modules/.bin with the yarn workspace node_modules/.bin
-RUN mkdir -p node_modules \
-    && ln -s /app/node_modules/.bin node_modules/.bin
+# Running yarn install in case some dependencies are not here
+RUN yarn install --frozen-lockfile
 
+# Making sure we run in production
 ENV NODE_ENV production
-
-# building our service
-RUN yarn run build
 
 CMD ["yarn", "start"]
