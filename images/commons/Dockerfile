@@ -9,8 +9,8 @@ RUN apk update \
     && apk upgrade \
     && apk add --no-cache curl \
     && rm -rf /var/cache/apk/* \
-    && curl -sLo /bin/ep https://github.com/kreuzwerker/envplate/releases/download/v0.0.8/ep-linux \
-    && echo "167811f4c14976eb3468f9da1a2a153d60bb78765f4a400bb3da42be8489e21859b056305d75b90d3a2721ba686d3bb4be9fd4cba520d544412ab59634826833  /bin/ep" | sha512sum -c \
+    && curl -sLo /bin/ep https://github.com/kreuzwerker/envplate/releases/download/1.0.0-RC1/ep-linux \
+    && echo "48e234e067874a57a4d4bb198b5558d483ee37bcc285287fffb3864818b42f2785be0568faacbc054e97ca1c5047ec70382e1ca0e71182c9dba06649ad83a5f6  /bin/ep" | sha512sum -c \
     && chmod +x /bin/ep \
     && mkdir -p /home \
     && echo "source /lagoon/entrypoints/50-dotenv.sh" > /home/.bashrc
