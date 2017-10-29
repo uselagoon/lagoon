@@ -166,7 +166,7 @@ async function createRemoveTask(removeData) {
 		projectName
 	} = removeData
 
-  let activeSystems = await getActiveSystemForProject(projectName, 'remove');
+  let project = await getActiveSystemForProject(projectName, 'remove');
 
 	if (typeof project.active_systems_remove === 'undefined') {
     throw new UnknownActiveSystem(`No active system for tasks 'remove' in for project ${projectName}`)
