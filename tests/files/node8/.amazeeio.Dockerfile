@@ -15,4 +15,4 @@ ENV AMAZEEIO_GIT_BRANCH_BUILDTIME ${AMAZEEIO_GIT_BRANCH}
 
 EXPOSE 3000
 
-CMD ["/usr/bin/yarn", "start"]
+CMD ["yarn", "run", "start"]
