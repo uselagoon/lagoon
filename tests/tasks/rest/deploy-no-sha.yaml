@@ -4,5 +4,5 @@
     method: POST
     follow_redirects: yes
     body_format: json
-    body: '{"branchName": "{{ branch }}","siteGroupName": "{{ project }}"}'
+    body: '{"branchName": "{{ branch }}","projectName": "{{ project }}"}'
 
