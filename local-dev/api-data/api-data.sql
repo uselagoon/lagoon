@@ -53,15 +53,15 @@ TRUNCATE TABLE `project`;
 
 INSERT INTO `project` (`id`, `name`, `customer`, `git_url`, `slack`, `active_systems_deploy`, `active_systems_remove`, `branches`, `pullrequests`, `openshift`)
 VALUES
-	(1,'ci-github',2,'ssh://git@10.0.2.2:32768/git/github.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(2,'ci-gitlab',2,'ssh://git@10.0.2.2:32768/git/gitlab.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(3,'ci-bitbucket',2,'ssh://git@10.0.2.2:32768/git/bitbucket.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(4,'ci-rest',2,'ssh://git@10.0.2.2:32768/git/rest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(5,'ci-node',2,'ssh://git@10.0.2.2:32768/git/node.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(6,'ci-multiproject1',2,'ssh://git@10.0.2.2:32768/git/multiproject1.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(7,'ci-multiproject2',2,'ssh://git@10.0.2.2:32768/git/multiproject2.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(8,'ci-drupal',2,'ssh://git@10.0.2.2:32768/git/drupal.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(9,'credentialtest',1,'ssh://git@10.0.2.2:32768/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1);
+	(1,'ci-github',2,'ssh://git@10.0.2.2:32771/git/github.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(2,'ci-gitlab',2,'ssh://git@10.0.2.2:32771/git/gitlab.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(3,'ci-bitbucket',2,'ssh://git@10.0.2.2:32771/git/bitbucket.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(4,'ci-rest',2,'ssh://git@10.0.2.2:32771/git/rest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(5,'ci-node',2,'ssh://git@10.0.2.2:32771/git/node.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(6,'ci-multiproject1',2,'ssh://git@10.0.2.2:32771/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(7,'ci-multiproject2',2,'ssh://git@10.0.2.2:32771/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(8,'ci-drupal',2,'ssh://git@10.0.2.2:32771/git/drupal.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(9,'credentialtest',1,'ssh://git@10.0.2.2:32771/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1);
 
 UNLOCK TABLES;
 
