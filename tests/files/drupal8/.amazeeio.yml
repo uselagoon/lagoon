@@ -1,7 +1,7 @@
 docker-compose-yaml: docker-compose.yml
 
 tasks:
-  post-deploy:
+  post-rollout:
     - run:
         name: env variables
         command: env
