@@ -5,11 +5,11 @@ const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { getOpenShiftInfoForProject } = require('@amazeeio/lagoon-commons/src/api');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
 
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { consumeTaskMonitor, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 
 class BuildNotCompletedYet extends Error {
   constructor(message: string) {
@@ -31,8 +31,8 @@ if ( !accessKeyId || !secretAccessKey || !bucket) {
 AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: region});
 const s3 = new AWS.S3();
 
-initSendToAmazeeioLogs();
-initSendToAmazeeioTasks();
+initSendToLagoonLogs();
+initSendToLagoonTasks();
 
 const messageConsumer = async msg => {
   const {
@@ -136,14 +136,14 @@ const messageConsumer = async msg => {
   switch (buildPhase) {
     case "new":
     case "pending":
-      sendToAmazeeioLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` not yet started`
       )
       throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${buildName}\` not yet started`)
       break;
 
     case "running":
-      sendToAmazeeioLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` running`
       )
       throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${buildName}\` running`)
@@ -158,7 +158,7 @@ const messageConsumer = async msg => {
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
       }
-      sendToAmazeeioLogs('warn', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
+      sendToLagoonLogs('warn', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` cancelled. ${logLink}`
       )
       break;
@@ -172,7 +172,7 @@ const messageConsumer = async msg => {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
       }
 
-      sendToAmazeeioLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
+      sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. ${logLink}`
       )
       break;
@@ -188,13 +188,13 @@ const messageConsumer = async msg => {
 
       const routes = await getAllRoutesURLs()
 
-      sendToAmazeeioLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${routes.join("\n")}`
       )
       break;
 
     default:
-      sendToAmazeeioLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` phase ${buildPhase}`
       )
       throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${buildName}\` phase ${buildPhase}`)
@@ -238,7 +238,7 @@ const deathHandler = async (msg, lastError) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('error', projectName, "", "task:builddeploy-openshift:error",  {},
+  sendToLagoonLogs('error', projectName, "", "task:builddeploy-openshift:error",  {},
 `*[${projectName}]* ${logMessage} Build \`${buildName}\` ERROR:
 \`\`\`
 ${lastError}

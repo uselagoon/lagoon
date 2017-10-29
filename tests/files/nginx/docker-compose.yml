@@ -8,7 +8,7 @@ services:
       context: .
       dockerfile: Dockerfile
     labels:
-      com.amazeeio.type: nginx
+      lagoon.type: nginx
     volumes:
       - ./app:/app:delegated
     expose:

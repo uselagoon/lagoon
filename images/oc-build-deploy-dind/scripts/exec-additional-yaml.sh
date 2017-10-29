@@ -7,6 +7,6 @@ oc process --insecure-skip-tls-verify \
   -p SAFE_PROJECT="${SAFE_PROJECT}" \
   -p BRANCH="${BRANCH}" \
   -p PROJECT="${PROJECT}" \
-  -p AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
+  -p LAGOON_GIT_SHA="${LAGOON_GIT_SHA}" \
   -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
   | oc ${ADDITIONAL_YAML_COMMAND} --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f - || ${ADDITIONAL_YAML_IGNORE_ERROR}

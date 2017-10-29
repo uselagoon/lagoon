@@ -1,0 +1,7 @@
+docker-compose-yaml: docker-compose.yml
+
+additional-yaml:
+  secrets:
+    path: .lagoon.secrets.yaml
+    command: create
+    ignore_error: true

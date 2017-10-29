@@ -101,7 +101,7 @@ As of today, the Lagoon API saves it's data within a system called Hiera, which 
 
 The API talks with the hiera via GIT, therefore we need to create a new git repository with compatible yaml files in there. There is an example hiera git repo here: https://github.com/amazeeio/lagoon-example-hiera
 
-For an initial kickstart of Lagoon this git repo will be used, so we can test and verify that the installation fully worked. Btw: If you are currious where this is defined, check `.amazeeio.secrets.yml` (and changing that will not have any affect right now, as the kickstart uses the git code from Lagoon Github).
+For an initial kickstart of Lagoon this git repo will be used, so we can test and verify that the installation fully worked. Btw: If you are currious where this is defined, check `.lagoon.secrets.yml` (and changing that will not have any affect right now, as the kickstart uses the git code from Lagoon Github).
 
 
 ### Configure and connect local Lagoon with OpenShift

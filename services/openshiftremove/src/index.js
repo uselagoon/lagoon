@@ -2,14 +2,14 @@
 
 const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { consumeTasks, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 
-const { getOpenShiftInfoForProject } = require('@amazeeio/lagoon-commons/src/api');
+const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
 
-initSendToAmazeeioLogs();
-initSendToAmazeeioTasks();
+initSendToLagoonLogs();
+initSendToLagoonTasks();
 
 const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
@@ -65,13 +65,13 @@ const messageConsumer = async function(msg) {
   try {
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
     await projectsDelete()
-    sendToAmazeeioLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+    sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
       `*[${projectName}]* remove \`${openshiftProject}\``
     )
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject} does not exist, assuming it was removed`);
-      sendToAmazeeioLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+      sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
         `*[${projectName}]* remove \`${openshiftProject}\``
       )
       return
@@ -93,7 +93,7 @@ const deathHandler = async (msg, lastError) => {
 
   const openshiftProject = ocsafety(`${projectName}-${branch || pullrequestNumber}`)
 
-  sendToAmazeeioLogs('error', projectName, "", "task:remove-openshift:error",  {},
+  sendToLagoonLogs('error', projectName, "", "task:remove-openshift:error",  {},
 `*[${projectName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${lastError}
@@ -112,7 +112,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
 
   const openshiftProject = ocsafety(`${projectName}-${branch || pullrequestNumber}`)
 
-  sendToAmazeeioLogs('warn', projectName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+  sendToLagoonLogs('warn', projectName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${projectName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${error}

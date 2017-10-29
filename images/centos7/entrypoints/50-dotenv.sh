@@ -12,7 +12,7 @@
 # (env variables defined in lower numbers are stronger)
 # 1. Runtime env variables (docker run)
 # 2. Env variables defined in Dockerfile (ENV)
-# 3. Env variables defined in `.amazeeio.env.$BRANCHNAME` (if file exists and where $BRANCHNAME is the Branch this Dockerimage has been built for),
+# 3. Env variables defined in `.lagoon.env.$BRANCHNAME` (if file exists and where $BRANCHNAME is the Branch this Dockerimage has been built for),
 #    use this for overwriting variables for only specific branches
 # 4. Env variables defined in `.env`
 # 5. Env variables defined in `.env.defaults`
@@ -27,9 +27,9 @@ export -p > $TMPFILE
 set -a
 [ -f .env.defaults ] && . ./.env.defaults
 [ -f .env ] && . ./.env
-[ -f .amazeeio.env.$AMAZEEIO_GIT_BRANCH ] && . ./.amazeeio.env.$AMAZEEIO_GIT_BRANCH
+[ -f .lagoon.env.$lagoon_GIT_BRANCH ] && . ./.lagoon.env.$lagoon_GIT_BRANCH
 # Branch names can have weird special chars in them which are not allowed in File names, so we also try the Branch name with special chars replaced by dashes.
-[ -f .amazeeio.env.$AMAZEEIO_GIT_SAFE_BRANCH ] && . ./.amazeeio.env.$AMAZEEIO_GIT_SAFE_BRANCH
+[ -f .lagoon.env.$lagoon_GIT_SAFE_BRANCH ] && . ./.lagoon.env.$lagoon_GIT_SAFE_BRANCH
 set +a
 
 # now export all previously existing environments variables so they are stronger than maybe existing ones in the dotenv files

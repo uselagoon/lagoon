@@ -1,8 +1,8 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { logger } = require('@lagoon/commons/src/local-logging');
 
-const { getSlackinfoForProject } = require('@amazeeio/lagoon-commons/src/api');
+const { getSlackinfoForProject } = require('@lagoon/commons/src/api');
 
 var IncomingWebhook = require('@slack/client').IncomingWebhook;
 

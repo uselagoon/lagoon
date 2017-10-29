@@ -4,10 +4,10 @@ const bl = require('bl');
 const { bufferEq } = require('buffer-equal-constant-time');
 const extractWebhookData = require('./extractWebhookData');
 
-const sendToAmazeeioWebhooks = require('./sendToAmazeeioWebhooks');
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const sendToLagoonWebhooks = require('./sendToLagoonWebhooks');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 
-import type { Logger } from '@amazeeio/lagoon-commons/src/local-logging';
+import type { Logger } from '@lagoon/commons/src/local-logging';
 import type { ChannelWrapper } from './types';
 
 type Req = http$IncomingMessage;
@@ -22,7 +22,7 @@ type Options = {
 
 type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
 
-initSendToAmazeeioLogs();
+initSendToLagoonLogs();
 
 function createReqHandler(options: Options): Handler {
   const {
@@ -70,12 +70,12 @@ function createReqHandler(options: Options): Handler {
           giturl: giturl,
           rawbody: data.toString(),
         }
-        console.log(`Calling sendToAmazeeioLogs`)
-        sendToAmazeeioLogs('info', "", uuid, "webhooks:receive",  meta,
+        console.log(`Calling sendToLagoonLogs`)
+        sendToLagoonLogs('info', "", uuid, "webhooks:receive",  meta,
           `Received new ${webhooktype} webhook,  event: ${event}, giturl: ${giturl}`
         )
 
-        sendToAmazeeioWebhooks(webhookData, channelWrapperWebhooks);
+        sendToLagoonWebhooks(webhookData, channelWrapperWebhooks);
 
         res.writeHead(200, { 'content-type': 'application/json' });
 

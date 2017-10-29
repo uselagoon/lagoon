@@ -13,18 +13,18 @@ oc process --insecure-skip-tls-verify \
   -v SAFE_PROJECT="${SAFE_PROJECT}" \
   -v BRANCH="${BRANCH}" \
   -v PROJECT="${PROJECT}" \
-  -v AMAZEEIO_GIT_SHA="${AMAZEEIO_GIT_SHA}" \
+  -v LAGOON_GIT_SHA="${LAGOON_GIT_SHA}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
-DOCKER_COMPOSE_YAML=($(cat .amazeeio.yml | shyaml get-value docker-compose-yaml))
+DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 SERVICE_TYPES=()
 for SERVICE in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.type custom)
-  SERVICE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.name default)
+  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
+  SERVICE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.name default)
 
   if [ "$SERVICE_NAME" == "default" ]; then
     SERVICE_NAME=$SERVICE
@@ -88,7 +88,7 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
 
-  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.com\\.amazeeio\\.template false)
+  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
 
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
@@ -125,14 +125,14 @@ done
 
 
 COUNTER=0
-while [ -n "$(cat .amazeeio.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
+while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
 do
-  TASK_TYPE=$(cat .amazeeio.yml | shyaml keys tasks.post-rollout.$COUNTER)
+  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
   echo $TASK_TYPE
   case "$TASK_TYPE" in
     run)
-        COMMAND=$(cat .amazeeio.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .amazeeio.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
+        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
+        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
         . /scripts/exec-post-rollout-tasks-run.sh
         ;;
     *)

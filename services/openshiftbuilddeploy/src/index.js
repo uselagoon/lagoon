@@ -3,17 +3,17 @@
 const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { getOpenShiftInfoForProject } = require('@amazeeio/lagoon-commons/src/api');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
 
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { consumeTasks, initSendToAmazeeioTasks, createTaskMonitor } = require('@amazeeio/lagoon-commons/src/tasks');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
 
-initSendToAmazeeioLogs();
-initSendToAmazeeioTasks();
+initSendToLagoonLogs();
+initSendToLagoonTasks();
 
 const ciUseOpenshiftRegistry = process.env.CI_USE_OPENSHIFT_REGISTRY || "false"
-const gitSafeBranch = process.env.AMAZEEIO_GIT_SAFE_BRANCH || "develop"
+const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "develop"
 
 const messageConsumer = async msg => {
   const {
@@ -323,7 +323,7 @@ const messageConsumer = async msg => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('start', projectName, "", "task:builddeploy-openshift:start", {},
+  sendToLagoonLogs('start', projectName, "", "task:builddeploy-openshift:start", {},
     `*[${projectName}]* ${logMessage}`
   )
 
@@ -343,7 +343,7 @@ const deathHandler = async (msg, lastError) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('error', projectName, "", "task:builddeploy-openshift:error",  {},
+  sendToLagoonLogs('error', projectName, "", "task:builddeploy-openshift:error",  {},
 `*[${projectName}]* ${logMessage} ERROR:
 \`\`\`
 ${lastError}
@@ -366,7 +366,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToAmazeeioLogs('warn', projectName, "", "task:builddeploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
+  sendToLagoonLogs('warn', projectName, "", "task:builddeploy-openshift:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
 `*[${projectName}]* ${logMessage} ERROR:
 \`\`\`
 ${error}

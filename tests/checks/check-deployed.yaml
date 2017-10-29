@@ -3,7 +3,7 @@
   serial: 1
   vars:
     url: "{{ url }}"
-    expected_content: "AMAZEEIO_GIT_SHA={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
   tasks:
   - include: check-url-content.yaml
 
@@ -12,7 +12,7 @@
   serial: 1
   vars:
     url: "{{ url }}"
-    expected_content: "AMAZEEIO_GIT_BRANCH={{ expected_branch }}"
+    expected_content: "LAGOON_GIT_BRANCH={{ expected_branch }}"
   tasks:
   - include: check-url-content.yaml
 
@@ -21,7 +21,7 @@
   serial: 1
   vars:
     url: "{{ url }}"
-    expected_content: "AMAZEEIO_GIT_SHA_BUILDTIME={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SHA_BUILDTIME={{ expected_head }}"
   tasks:
   - include: check-url-content.yaml
 
@@ -30,7 +30,7 @@
   serial: 1
   vars:
     url: "{{ url }}"
-    expected_content: "AMAZEEIO_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
+    expected_content: "LAGOON_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
   tasks:
   - include: check-url-content.yaml
 

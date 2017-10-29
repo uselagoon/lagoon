@@ -6,12 +6,12 @@ const express = require('express');
 const cors = require('cors');
 const util = require('util');
 
-const { createDeployTask, createRemoveTask, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { createDeployTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 
-initSendToAmazeeioTasks();
-initSendToAmazeeioLogs();
+initSendToLagoonTasks();
+initSendToLagoonLogs();
 
 const app = express()
 const server = app.listen(process.env.PORT || 3000, () => {
@@ -83,7 +83,7 @@ app.post('/deploy', async (req, res) => {
       logMessage = `\`${data.branchName}\``
     }
 
-    sendToAmazeeioLogs('info', data.projectName, '', `rest:deploy:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:deploy:receive`, {},
       `*[${data.projectName}]* REST deploy trigger ${logMessage}`
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -145,7 +145,7 @@ app.post('/remove', async (req, res) => {
 
   try {
     const taskResult = await createRemoveTask(data);
-    sendToAmazeeioLogs('info', data.projectName, '', `rest:remove:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:remove:receive`, {},
       `*[${data.projectName}]* REST remove trigger \`${data.branch}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})

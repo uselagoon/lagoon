@@ -1,8 +1,8 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createDeployTask } = require('@lagoon/commons/src/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
 
@@ -39,7 +39,7 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
 
     try {
       const taskResult = await createDeployTask(data);
-      sendToAmazeeioLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
         `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> updated in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
@@ -49,7 +49,7 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToAmazeeioLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+          sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
             `*[${project.name}]* PR ${body.number} opened. No remove task created, reason: ${error}`
           )
           return;

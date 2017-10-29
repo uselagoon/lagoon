@@ -13,7 +13,7 @@ This is the Image which contains the actual code that is reponsible for building
 Everything in here is based on Bash scripts. Which in a nutshell do this:
 1. Check out a given Git Repository of a given Git Reference (Branch, Branch & SHA, Tag)
 2. Creates a new project in an OpenShift for the given project and branch
-3. Checks yaml files (either .amazeeio.yml or docker-compose.yml) to learn:
+3. Checks yaml files (either .lagoon.yml or docker-compose.yml) to learn:
    1. Which Docker Images with which context should be built
    2. Which Services and with that wich OpenShift Resources should be created
 4. Builds Docker Images

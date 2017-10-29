@@ -5,7 +5,7 @@ key=$1
 # this will be replaced by envplate inside docker-entrypoint. We need that as during execution
 # time inside the ssh connection we don't have access to the container environment variables.
 # So we replace it during the start of the container.
-server=${AMAZEEIO_AUTH_HOST}
+server=${AUTH_HOST}
 
 header="Content-Type: application/json"
 

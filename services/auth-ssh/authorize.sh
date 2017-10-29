@@ -6,17 +6,17 @@
 # in an OpenSSH readable format back.
 
 # OpenSSH does not pass environment variables into AuthorizedKeysCommand
-# scripts, but we need them for $SERVICE_API_ADMIN_TOKEN and $AMAZEEIO_API_HOST
+# scripts, but we need them for $SERVICE_API_ADMIN_TOKEN and $API_HOST
 # so we source the file /authorize.env which has been filled with env
 # variables during the container entrypoint.
 source /authorize.env
 
 SERVICE_API_ADMIN_TOKEN=$(/create_jwt.sh $JWTSECRET $JWTAUDIENCE)
 
-# This token will be required for accessing the sshKeys in the AmazeeIO api
+# This token will be required for accessing the sshKeys in the lagoon api
 bearer="Authorization: bearer $SERVICE_API_ADMIN_TOKEN"
 
-api=$AMAZEEIO_API_HOST
+api=$API_HOST
 fingerprint=$1
 
 data="{\"fingerprint\": \"$fingerprint\"}"

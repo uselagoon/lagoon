@@ -1,8 +1,8 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { getProjectsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
-const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { getProjectsByGitUrl } = require('@lagoon/commons/src/api');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
 const githubPullRequestOpened = require('./handlers/githubPullRequestOpened');
 const githubPullRequestSynchronize = require('./handlers/githubPullRequestSynchronize');
@@ -36,7 +36,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
       const meta = {
         event: `${webhooktype}:${event}`
       }
-      sendToAmazeeioLogs('warn', 'unresolved', uuid, `unresolvedProject:webhooks2tasks`, meta,
+      sendToLagoonLogs('warn', 'unresolved', uuid, `unresolvedProject:webhooks2tasks`, meta,
         `Unresolved project \`${giturl}\` while handling ${webhooktype}:${event}`
       )
       channelWrapperWebhooks.ack(rabbitMsg)
@@ -46,7 +46,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 			const retryCount = rabbitMsg.properties.headers["x-retry"] ? (rabbitMsg.properties.headers["x-retry"] + 1) : 1
 
 			if (retryCount > 3) {
-        sendToAmazeeioLogs('error', '', uuid, "webhooks2tasks:resolveProject:fail", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading project for GitURL '${giturl}', bailing after 3 retries, error was: ${error}`)
+        sendToLagoonLogs('error', '', uuid, "webhooks2tasks:resolveProject:fail", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading project for GitURL '${giturl}', bailing after 3 retries, error was: ${error}`)
 				channelWrapperWebhooks.ack(rabbitMsg)
 				return
 			}
@@ -54,7 +54,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 			const retryDelaySecs = Math.pow(10, retryCount);
 			const retryDelayMilisecs = retryDelaySecs * 1000;
 
-      sendToAmazeeioLogs('warn', '', uuid, "webhooks2tasks:resolveProject:retry", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading project for GitURL '${giturl}', will try again in ${retryDelaySecs} secs, error was: ${error}`)
+      sendToLagoonLogs('warn', '', uuid, "webhooks2tasks:resolveProject:retry", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading project for GitURL '${giturl}', will try again in ${retryDelaySecs} secs, error was: ${error}`)
 
 			// copying options from the original message
 			const retryMsgOptions = {
@@ -65,9 +65,9 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 				headers: Object.assign({}, rabbitMsg.properties.headers, { 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount}),
 				persistent: true,
 			};
-			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
-			// which will send the message into the original exchange `amazeeio-tasks` after x-delay time.
-			channelWrapperWebhooks.publish(`amazeeio-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
+			// publishing a new message with the same content as the original message but into the `lagoon-tasks-delay` exchange,
+			// which will send the message into the original exchange `lagoon-tasks` after x-delay time.
+			channelWrapperWebhooks.publish(`lagoon-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
 
 			// acknologing the existing message, we cloned it and is not necessary anymore
 			channelWrapperWebhooks.ack(rabbitMsg)
@@ -181,7 +181,7 @@ async function unhandled(webhook: WebhookRequestData, project: Project, fullEven
   const meta = {
     fullEvent: fullEvent
   }
-  sendToAmazeeioLogs('info', project.name, uuid, `unhandledWebhook`, meta,
+  sendToLagoonLogs('info', project.name, uuid, `unhandledWebhook`, meta,
     `Unhandled Webhook \`${fullEvent}\` for \`${project.name}\``
   )
   return
