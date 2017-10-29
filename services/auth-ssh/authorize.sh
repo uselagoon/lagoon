@@ -20,7 +20,7 @@ api=$AMAZEEIO_API_HOST
 fingerprint=$1
 
 data="{\"fingerprint\": \"$fingerprint\"}"
-keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" --content-on-error -q -O -)
+keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" -q -O -)
 
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
 command="/bin/bash /home/get-jwt-token.sh"

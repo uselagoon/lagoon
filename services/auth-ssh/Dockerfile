@@ -1,32 +1,26 @@
-ARG AMAZEEIO_GIT_BRANCH
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest} as builder
+FROM ${IMAGE_REPO:-lagoon}/commons as commons
+FROM alpine:latest
 
-RUN yum install -y rpm-build gcc make wget openssl-devel krb5-devel pam-devel libX11-devel xmkmf libXt-devel
-RUN cd /usr/src && wget http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.5p1.tar.gz && tar -xvzf openssh-7.5p1.tar.gz && \
-    mkdir -p /home/rpmbuild/{SOURCES,SPECS} && cp ./openssh-7.5p1/contrib/redhat/openssh.spec /home/rpmbuild/SPECS/ && \
-    cp /usr/src/openssh-7.5p1.tar.gz /home/rpmbuild/SOURCES/ && \
-    cd /home/rpmbuild/SPECS/ && \
-    sed -i -e "s/%define no_gnome_askpass 0/%define no_gnome_askpass 1/g" openssh.spec && \
-    sed -i -e "s/%define no_x11_askpass 0/%define no_x11_askpass 1/g" openssh.spec && \
-    sed -i -e "s/BuildPreReq/BuildRequires/g" openssh.spec  && \
-    rpmbuild -bb openssh.spec
+MAINTAINER amazee.io
 
-RUN ls -l /home/rpmbuild/RPMS/x86_64/
+# Copying commons files
+COPY --from=commons /lagoon /lagoon
+COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /home/.bashrc /home/.bashrc
 
-ARG AMAZEEIO_GIT_BRANCH
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7:${AMAZEEIO_GIT_BRANCH:-latest}
+RUN chmod g+w /etc/passwd \
+    && mkdir -p /home
 
-COPY --from=builder /home/rpmbuild/RPMS/x86_64 /home/openssh
+# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
+# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
+ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN yum install -y wget openssl-libs openssl
-
-RUN rpm -Uvh --nodeps /home/openssh/*.rpm
+RUN apk add --no-cache openssh openssl curl bash
 
 # Required for our create_jwt.sh
-RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 && \
-    chmod +x ./jq && \
-    cp jq /usr/bin
+RUN curl -sLo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
+    && chmod +x /bin/jq
 
 # Generate ssh server keys
 RUN mkdir .ssh && \
@@ -38,7 +32,7 @@ RUN mkdir .ssh && \
 COPY services/auth-ssh/sshd_config /etc/ssh/sshd_config
 
 RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /var/run/
+    fix-permissions /run/
 
 # This is the script that is run on every ssh login attempt. It
 # calls the authentication server to retrieve a token, it is
@@ -61,16 +55,20 @@ RUN chmod 755 /create_jwt.sh
 # by /authorize.sh
 RUN touch /authorize.env && fix-permissions /authorize.env
 
+# Create empty authorized_keys file, just that openssh does not complain all the time
+RUN mkdir -p /home/.ssh && touch /home/.ssh/authorized_keys
+
 # This will set the username of the random generated user by openshift to 'api' (see 10-passwd.sh)
 ENV USER_NAME api
 
 # Entrypoint file which will replace some environment variables into
 # hardcoded values every time the container is started
-COPY services/auth-ssh/docker-entrypoint.sh /amazeeio/entrypoints/99-envplate.sh
+COPY services/auth-ssh/docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
 
 # Global lagoon default environment variables
 COPY .env.defaults .
 
 EXPOSE 2020
 
+ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]

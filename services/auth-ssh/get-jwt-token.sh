@@ -16,7 +16,7 @@ case $SSH_ORIGINAL_COMMAND in
 
     # Submit the token request as a POST request with the JSON data
     # containing the key.
-    echo $(wget "$server/generate" --header "$header" --post-data "$data" --content-on-error -q -O -)
+    echo $(wget "$server/generate" --header "$header" --post-data "$data" -q -O -)
 
     ;;
   # TODO: Add blacklist stuff
@@ -27,7 +27,7 @@ case $SSH_ORIGINAL_COMMAND in
 
   #   # Submit the token request as a POST request with the JSON data
   #   # containing the key.
-  #   echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+  #   echo $(wget $server/logout --header "$header" --post-data "$data" -q -O -)
 
   #   ;;
   # 'logout '*)
@@ -41,7 +41,7 @@ case $SSH_ORIGINAL_COMMAND in
 
   #   # Submit the token request as a POST request with the JSON data
   #   # containing the key.
-  #   echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+  #   echo $(wget $server/logout --header "$header" --post-data "$data" -q -O -)
 
   #   ;;
   *)
