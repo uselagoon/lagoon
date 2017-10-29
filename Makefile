@@ -168,7 +168,7 @@ $(build-phpimages): build/commons
 	$(eval type_dash = $(if $(type),-$(type)))
 	$(eval type_slash = $(if $(type),/$(type)))
 # Call the docker build
-	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash)))
+	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -228,8 +228,7 @@ build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builde
 	touch $@
 
 # Variables of service images we manage and build
-serviceimages :=  api \
-									api-next \
+serviceimages :=  api-next \
 									auth-server \
 									logs2slack \
 									openshiftbuilddeploy \
@@ -255,11 +254,11 @@ $(build-serviceimages):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/api-next: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api-next: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
-build/auth-ssh: build/centos7
+build/auth-ssh: build/commons
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
@@ -272,8 +271,7 @@ build/cli: build/node__8
 build-images += cli
 
 # Images for local helpers that exist in another folder than the service images
-localdevimages := local-hiera-watcher-pusher \
-									local-git \
+localdevimages := local-git \
 									local-api-data-watcher-pusher
 build-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
@@ -284,7 +282,7 @@ $(build-localdevimages):
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
 	touch $@
 
-build/local-hiera-watcher-pusher build/local-git-server: build/centos7
+build/local-git-server: build/centos7
 
 # Images for helpers that exist in another folder than the service images
 helperimages := drush-alias
@@ -295,8 +293,6 @@ $(build-helperimages):
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),helpers/$(image)/Dockerfile,helpers/$(image))
 	touch $@
-
-build/local-hiera-watcher-pusher build/local-git-server: build/centos7
 
 # Image with ansible test
 build/tests:
@@ -320,8 +316,7 @@ build-list:
 	done
 
 # Define list of all tests
-all-tests-list:= 	ssh-auth \
-									node \
+all-tests-list:= 	node \
 									drupal \
 									github \
 									gitlab \
@@ -345,13 +340,13 @@ tests-list:
 
 # SSH-Auth test
 .PHONY: tests/ssh-auth
-tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
+tests/ssh-auth: build/auth-ssh build/auth-server build/api-next build/tests
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api-next
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api local-git local-hiera-watcher-pusher
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api-next local-git local-api-data-watcher-pusher
 
 # All Tests that use REST endpoints
 rest-tests = rest node multiproject nginx
@@ -364,7 +359,7 @@ $(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/nginx-drupal build/php-7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -401,11 +396,11 @@ local-git-port:
 ifeq ($(ARCH), Darwin)
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml
+	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.sql docker-compose.yaml
 else
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml
+	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.sql docker-compose.yaml
 endif
 
 
@@ -488,12 +483,12 @@ openshift: local-dev/minishift/minishift
 	oc -n default create -f openshift-setup/docker-host.yaml;
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
-	echo "replacing IP in local-dev/hiera/amazeeio/projects.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
+	echo "replacing IP in local-dev/api-data/api-data.sql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.sql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
-	echo "replacing IP in local-dev/hiera/amazeeio/projects.yaml and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/hiera/amazeeio/projects.yaml local-dev/api-data/api-data.sql docker-compose.yaml;
+	echo "replacing IP in local-dev/api-data/api-data.sql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.sql docker-compose.yaml;
 endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 
