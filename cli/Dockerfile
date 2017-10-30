@@ -9,7 +9,7 @@ COPY package.json yarn.lock /app/
 # Run yarn install and remove the .yarn-cache as we don't need that on our image.
 RUN BUILD_ONLY=true yarn install --pure-lockfile
 
-COPY container-entrypoint.sh /amazeeio/entrypoints/80-ssh-key.sh
+COPY container-entrypoint.sh /lagoon/entrypoints/80-ssh-key.sh
 
 # Now copy in our application code.
 COPY . /app

@@ -19,11 +19,11 @@ function _mock(fn: any): JestMockFn {
 
 describe('createConfig', () => {
   it('should write default config to given path', async () => {
-    createConfig('amazeeio.yml', { sitegroup: 'your_sitegroup' });
+    createConfig('lagoon.yml', { sitegroup: 'your_sitegroup' });
 
     const [filename, data] = _mock(fs.writeFile).mock.calls[0];
 
-    expect(filename).toBe('amazeeio.yml');
+    expect(filename).toBe('lagoon.yml');
     expect(data).toMatchSnapshot();
   });
 });
@@ -33,21 +33,21 @@ describe('findConfig', () => {
     // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
     fs.fileExists = jest
       .fn()
-      .mockImplementation(fileExistsMock('/some/project/amazeeio.yml'));
+      .mockImplementation(fileExistsMock('/some/project/lagoon.yml'));
 
     const cwd = path.resolve('/some/project/level1/level2/level3');
-    const result = await findConfig('amazeeio.yml', cwd);
+    const result = await findConfig('lagoon.yml', cwd);
 
-    expect(result).toBe('/some/project/amazeeio.yml');
+    expect(result).toBe('/some/project/lagoon.yml');
   });
 
   it('should start at root, check and return null', async () => {
     // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
     fs.fileExists = jest
       .fn()
-      .mockImplementation(fileExistsMock('/some/project/amazeeio.yml'));
+      .mockImplementation(fileExistsMock('/some/project/lagoon.yml'));
     const cwd = path.resolve('/');
-    const result = await findConfig('amazeeio.yml', cwd);
+    const result = await findConfig('lagoon.yml', cwd);
 
     expect(result).toBeNull();
   });
@@ -56,9 +56,9 @@ describe('findConfig', () => {
     // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
     fs.fileExists = jest
       .fn()
-      .mockImplementation(fileExistsMock('/some/sub/project/amazeeio.yml'));
+      .mockImplementation(fileExistsMock('/some/sub/project/lagoon.yml'));
     const cwd = path.resolve('/some/sub');
-    const result = await findConfig('amazeeio.yml', cwd);
+    const result = await findConfig('lagoon.yml', cwd);
 
     expect(result).toBeNull();
   });
@@ -66,7 +66,7 @@ describe('findConfig', () => {
 
 describe('parseConfig', () => {
   it('should parse the config correctly', async () => {
-    const yamlContent = await fs.readFile(`${__dirname}/amazeeio.yml`);
+    const yamlContent = await fs.readFile(`${__dirname}/lagoon.yml`);
 
     const config = parseConfig(yamlContent.toString());
 

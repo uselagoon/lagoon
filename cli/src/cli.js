@@ -15,10 +15,10 @@ import commands from './commands';
 import type { AmazeeConfig } from './util/config';
 
 /**
- * Finds and reads the amazeeio.yml file
+ * Finds and reads the lagoon.yml file
  */
 async function readConfig(cwd: string): Promise<?AmazeeConfig> {
-  const configPath = await findConfig('.amazeeio.yml', cwd);
+  const configPath = await findConfig('.lagoon.yml', cwd);
 
   if (configPath == null) {
     return null;
@@ -72,7 +72,7 @@ export async function runCLI(cwd: string) {
 
 /**
  * Look to see if the CWD is within an npm project. If it is, and that project
- * has a amazeeio CLI `npm install`ed, use that version instead of the global
+ * has a lagoon CLI `npm install`ed, use that version instead of the global
  * version of the CLI.
  */
 if (require.main === module) {
@@ -85,7 +85,7 @@ if (require.main === module) {
       currDir,
       'node_modules',
       '.bin',
-      'amazee-io-cli',
+      'lagoon-cli',
     );
     try {
       if (fs.statSync(localCLIPath).isFile()) {

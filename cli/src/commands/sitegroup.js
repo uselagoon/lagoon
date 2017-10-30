@@ -41,7 +41,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .usage(`$0 ${name} [sitegroup] - ${description}`)
     .example(
       `$0 ${name}`,
-      'Show information about the sitegroup configured in .amazeeio.yml',
+      'Show information about the sitegroup configured in .lagoon.yml',
     )
     .example(
       `$0 ${name} mysitegroup`,
@@ -143,7 +143,7 @@ export async function run(args: Args): Promise<number> {
   if (sitegroup == null) {
     return printErrors(
       cerr,
-      'No sitegroup configured. Please create a .amazeeio.yml config file with "io init" or pass a sitegroup to this command via the first argument.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+      'No sitegroup configured. Please create a .lagoon.yml config file with "io init" or pass a sitegroup to this command via the first argument.\nOnline documentation: https://github.com/lagoon/lagoon/blob/master/cli/README.md#io-init',
     );
   }
 
