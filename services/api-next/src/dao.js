@@ -90,6 +90,7 @@ const getSlackByProjectId = sqlClient => async (cred, pid) => {
     const prep = sqlClient.prepare(`
       SELECT
         s.id,
+        s.name,
         s.webhook,
         s.channel
       FROM project p, slack s
@@ -126,6 +127,34 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
     `);
 
     sqlClient.query(prep({ pid }), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows);
+    });
+  });
+};
+
+const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT
+        id,
+        name,
+        keyValue,
+        keyType,
+        created
+      FROM customer_ssh_key cs
+      JOIN ssh_key sk ON cs.skid = sk.id
+      WHERE cs.cid = :cid
+    `);
+
+    sqlClient.query(prep({ cid }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -221,18 +250,20 @@ const addProject = sqlClient => async (cred, input) => {
         :name,
         :customer,
         :git_url,
-        :slackId,
-        :active_systems_deploy,
-        :active_systems_remove,
-        :branches,
-        IF(STRCMP(:pullrequests, 'true'), 1, 0),
         :openshift,
-        '${input.sshKeys.join(',')}'
+        ${input.slack ? ':slack' : 'NULL'},
+        ${input.active_systems_deploy ? ':active_systems_deploy' : '"lagoon_openshiftBuildDeploy"'},
+        ${input.active_systems_remove ? ':active_systems_remove' : '"lagoon_openshiftRemove"'},
+        ${input.branches ? ':branches' : '"true"'},
+        ${input.pullrequests ? 'IF(STRCMP(:pullrequests, \'true\'), 1, 0)' : 'NULL'},
+        '${input.sshKeys ? input.sshKeys.join(',') : ''}'
       );
     `);
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
+        console.log(prep(input))
+        console.log(err)
         rej(err);
       }
 
@@ -245,14 +276,156 @@ const addProject = sqlClient => async (cred, input) => {
   });
 };
 
+const addSshKey = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateSshKey(
+        :name,
+        :keyValue,
+        ${input.keyType ? ':keyType' : 'ssh-rsa'}
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err)
+        rej(err);
+      }
+
+      const ssh_key = R.path([0, 0], rows);
+
+      res(ssh_key);
+    });
+  });
+};
+
+const addCustomer = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateCustomer(
+        :name,
+        ${input.comment ? ':comment' : 'NULL'},
+        ${input.private_key ? ':private_key' : 'NULL'},
+        '${input.sshKeys ? input.sshKeys.join(',') : ''}'
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err)
+        rej(err);
+      }
+
+      const ssh_key = R.path([0, 0], rows);
+
+      res(ssh_key);
+    });
+  });
+};
+
+const addOpenshift = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateOpenshift(
+        :name,
+        :console_url,
+        ${input.token ? ':token' : 'NULL'},
+        ${input.router_pattern ? ':router_pattern' : 'NULL'},
+        ${input.project_user ? ':project_user' : 'NULL'}
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err)
+        rej(err);
+      }
+
+      const ssh_key = R.path([0, 0], rows);
+
+      res(ssh_key);
+    });
+  });
+};
+
+const addSlack = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateSlack(
+        :name,
+        :webhook,
+        :channel
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err)
+        rej(err);
+      }
+
+      const ssh_key = R.path([0, 0], rows);
+
+      res(ssh_key);
+    });
+  });
+};
+
+const truncateTable = sqlClient => async (cred, args) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+
+  console.log(args)
+  const { tableName } = args;
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      TRUNCATE table \`${tableName}\`;
+    `);
+
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        console.log(prep(args))
+        rej(err);
+      }
+
+      res("success");
+    });
+  });
+};
+
 module.exports = {
   getAllCustomers,
   getOpenshiftByProjectId,
   getProjectByGitUrl,
   getSlackByProjectId,
   getSshKeysByProjectId,
+  getSshKeysByCustomerId,
   getCustomerByProjectId,
   getProjectByName,
   getAllProjects,
   addProject,
+  addSshKey,
+  addCustomer,
+  addOpenshift,
+  addSlack,
+  truncateTable,
 };

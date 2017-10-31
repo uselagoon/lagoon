@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS openshift (
 
 CREATE TABLE IF NOT EXISTS slack (
        id          int NOT NULL auto_increment PRIMARY KEY,
+       name        varchar(50) UNIQUE,
        webhook     varchar(300),
        channel     varchar(300)
 );
