@@ -39,7 +39,8 @@ TRUNCATE TABLE `openshift`;
 
 INSERT INTO `openshift` (`id`, `name`, `console_url`, `token`, `router_pattern`, `project_user`)
 VALUES
-	(1,'local','https://192.168.99.100:8443/',NULL,'${project}.${branch}.192.168.99.100.nip.io','developer');
+	(1,'local','https://192.168.99.100:8443/',NULL,'${project}.${branch}.192.168.99.100.nip.io','developer'),
+	(2,'kickstart','[replace me with OpenShift console URL]','[replace me with OpenShift Token]',NULL,NULL);
 
 UNLOCK TABLES;
 
@@ -53,16 +54,17 @@ TRUNCATE TABLE `project`;
 
 INSERT INTO `project` (`id`, `name`, `customer`, `git_url`, `slack`, `active_systems_deploy`, `active_systems_remove`, `branches`, `pullrequests`, `openshift`)
 VALUES
-	(1,'ci-github',2,'ssh://git@10.0.2.2:32771/git/github.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(2,'ci-gitlab',2,'ssh://git@10.0.2.2:32771/git/gitlab.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(3,'ci-bitbucket',2,'ssh://git@10.0.2.2:32771/git/bitbucket.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(4,'ci-rest',2,'ssh://git@10.0.2.2:32771/git/rest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(5,'ci-node',2,'ssh://git@10.0.2.2:32771/git/node.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(6,'ci-multiproject1',2,'ssh://git@10.0.2.2:32771/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(7,'ci-multiproject2',2,'ssh://git@10.0.2.2:32771/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(8,'ci-drupal',2,'ssh://git@10.0.2.2:32771/git/drupal.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(9,'credentialtest',1,'ssh://git@10.0.2.2:32771/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
-	(10,'ci-nginx',2,'ssh://git@10.0.2.2:32771/git/nginx.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1);
+	(1,'ci-github',2,'ssh://git@10.0.2.2:32774/git/github.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(2,'ci-gitlab',2,'ssh://git@10.0.2.2:32774/git/gitlab.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(3,'ci-bitbucket',2,'ssh://git@10.0.2.2:32774/git/bitbucket.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(4,'ci-rest',2,'ssh://git@10.0.2.2:32774/git/rest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(5,'ci-node',2,'ssh://git@10.0.2.2:32774/git/node.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(6,'ci-multiproject1',2,'ssh://git@10.0.2.2:32774/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(7,'ci-multiproject2',2,'ssh://git@10.0.2.2:32774/git/multiproject.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(8,'ci-drupal',2,'ssh://git@10.0.2.2:32774/git/drupal.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(9,'credentialtest',1,'ssh://git@10.0.2.2:32774/git/credentialtest.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(10,'ci-nginx',2,'ssh://git@10.0.2.2:32774/git/nginx.git',1,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,1),
+	(11,'lagoon',2,'git@github.com:amazeeio/lagoon.git',2,'lagoon_openshiftBuildDeploy','lagoon_openshiftRemove','true',NULL,2);
 
 UNLOCK TABLES;
 
@@ -85,9 +87,10 @@ LOCK TABLES `slack` WRITE;
 
 TRUNCATE TABLE `slack`;
 
-INSERT INTO `slack` (`id`, `webhook`, `channel`)
+INSERT INTO `slack` (`id`, `name`, `webhook`, `channel`)
 VALUES
-	(1,'https://hooks.slack.com/services/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','lagoon-local-ci');
+	(1,'lagoon-local-ci', 'https://hooks.slack.com/services/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','lagoon-local-ci'),
+	(2,'lagoon-kickstart', 'https://hooks.slack.com/services/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','lagoon-kickstart');
 
 UNLOCK TABLES;
 

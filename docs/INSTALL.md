@@ -7,9 +7,9 @@ Luckily we can use the local development environment to kickstart another Lagoon
 This process consists of 3 main stages, which are in short:
 
 1. Configure existing OpenShift
-2. Setup and Configure Hiera
-3. Configure and connect local Lagoon with OpenShift
-4. Deploy!
+2. Configure and connect local Lagoon with OpenShift
+3. Deploy!
+4. Configure Installed Lagoon
 
 ### Configure existing OpenShift
 
@@ -95,22 +95,13 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
         oc -n default adm policy add-scc-to-user privileged -z docker-host
         oc -n default create -f openshift-setup/docker-host.yaml
 
-### Setup and Configure Hiera
-
-As of today, the Lagoon API saves it's data within a system called Hiera, which is basically two yaml files. This has some legacy reasons and we are working on implementing the api storage in a proper database. But for the current situation we need to work with that (sorry).
-
-The API talks with the hiera via GIT, therefore we need to create a new git repository with compatible yaml files in there. There is an example hiera git repo here: https://github.com/amazeeio/lagoon-example-hiera
-
-For an initial kickstart of Lagoon this git repo will be used, so we can test and verify that the installation fully worked. Btw: If you are currious where this is defined, check `.lagoon.secrets.yml` (and changing that will not have any affect right now, as the kickstart uses the git code from Lagoon Github).
-
-
 ### Configure and connect local Lagoon with OpenShift
 
 In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. We need to tech this local Lagoon how to connect to the OpenShift:
 
-1. Edit `lagoon` inside local-dev/hiera/amazeeio/sitegroups.yaml, with:
-   1. `openshift.console` - The URL to the OpenShift Console, without `console` at the end.
-   2. `openshift.token` - The token of the lagoon service account that you created earlier
+1. Edit `lagoon` inside local-dev/api-data/api-data.sql, in the `INSERT INTO openshift` section:
+   1. `[replace me with OpenShift console URL]` - The URL to the OpenShift Console, without `console` at the end.
+   2. `[replace me with OpenShift Token]` - The token of the lagoon service account that you created earlier
 
 2. Build required Images and start services:
 
@@ -131,17 +122,6 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
 4. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` (for a local OpenShift this will be http://rest2tasks-lagoon-develop.192.168.99.100.nip.io/), if you get `welcome to rest2tasks` as result, you did everything correct, bravo!
 
-@TODO:
-- Document how to change the hiera to a forked hiera
-- how to run a a deployment of drupal-example
+### Configure Installed Lagoon
 
-
-
-
-
-
-
-
-
-
-
+We have now a 
