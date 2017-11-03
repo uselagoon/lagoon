@@ -226,11 +226,11 @@ CREATE OR REPLACE PROCEDURE
 
     INSERT INTO project_notification (
       pid,
-      notificationType,
+      type,
       nid
     ) SELECT
       p.id,
-      type,
+      notificationType,
       ns.id
     FROM
       project AS p,
