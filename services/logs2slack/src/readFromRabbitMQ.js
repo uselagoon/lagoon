@@ -89,7 +89,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     default:
-      logger.warn(`unhandled log message ${event} ${JSON.stringify(logMessage)}`)
+      logger.info(`unhandled log message ${event} ${JSON.stringify(logMessage)}`)
       return channelWrapperLogs.ack(msg)
   }
 
@@ -97,24 +97,25 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
 const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
 
-  let projectSlack;
+  let projectSlacks;
   try {
-    projectSlack = await getSlackinfoForProject(project)
+    projectSlacks = await getSlackinfoForProject(project)
   }
   catch (error) {
     logger.error(`No Slack information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
-
-  await new IncomingWebhook(projectSlack.slack.webhook, {
-    channel: projectSlack.slack.channel,
-  }).send({
-    attachments: [{
-      text: `${emoji} ${message}`,
-      color: color,
-      "mrkdwn_in": ["pretext", "text", "fields"],
-      footer: appId
-    }]
+  projectSlacks.forEach(async (projectSlack) => {
+    await new IncomingWebhook(projectSlack.webhook, {
+      channel: projectSlack.channel,
+    }).send({
+      attachments: [{
+        text: `${emoji} ${message}`,
+        color: color,
+        "mrkdwn_in": ["pretext", "text", "fields"],
+        footer: appId
+      }]
+    });
   });
   channelWrapperLogs.ack(msg)
   return

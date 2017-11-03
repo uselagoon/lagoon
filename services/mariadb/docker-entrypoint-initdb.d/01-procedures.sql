@@ -7,7 +7,6 @@ CREATE OR REPLACE PROCEDURE
     IN customer               varchar(50),
     IN git_url                varchar(300),
     IN openshift              varchar(50),
-    IN slack                  varchar(50),
     IN active_systems_deploy  varchar(300),
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
@@ -21,7 +20,6 @@ CREATE OR REPLACE PROCEDURE
         name,
         customer,
         git_url,
-        slack,
         active_systems_deploy,
         active_systems_remove,
         branches,
@@ -32,7 +30,6 @@ CREATE OR REPLACE PROCEDURE
         name,
         c.id,
         git_url,
-        s.id,
         active_systems_deploy,
         active_systems_remove,
         branches,
@@ -41,8 +38,6 @@ CREATE OR REPLACE PROCEDURE
     FROM
         openshift AS os,
         customer AS c
-    LEFT JOIN
-        slack AS s ON (s.name = slack)
     WHERE
         os.name = openshift AND
         c.name = customer;
@@ -63,7 +58,6 @@ CREATE OR REPLACE PROCEDURE
       p.name,
       p.customer,
       p.git_url,
-      p.slack,
       p.active_systems_deploy,
       p.active_systems_remove,
       p.branches,
@@ -190,7 +184,7 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  CreateSlack
+  CreateNotificationSlack
   (
     IN name        varchar(50),
     IN webhook     varchar(300),
@@ -199,7 +193,7 @@ CREATE OR REPLACE PROCEDURE
   BEGIN
     DECLARE new_sid int;
 
-    INSERT INTO slack (
+    INSERT INTO notification_slack (
       name,
       webhook,
       channel
@@ -216,8 +210,40 @@ CREATE OR REPLACE PROCEDURE
       name,
       webhook,
       channel
-    FROM slack
+    FROM notification_slack
     WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateProjectNotification
+  (
+    IN project            varchar(50),
+    IN notificationType   varchar(300),
+    IN notificationName   varchar(300)
+  )
+  BEGIN
+
+    INSERT INTO project_notification (
+      pid,
+      notificationType,
+      nid
+    ) SELECT
+      p.id,
+      type,
+      ns.id
+    FROM
+      project AS p,
+      notification_slack AS ns
+    WHERE
+      p.name = project AND
+      ns.name = notificationName;
+
+    SELECT
+      *
+    FROM project as p
+    WHERE p.name = project;
+
   END;
 $$
 

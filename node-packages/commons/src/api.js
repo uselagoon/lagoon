@@ -86,25 +86,34 @@ async function getProjectsByGitUrl(gitUrl: string): Project[] {
   return result.allProjects;
 }
 
+
+
 async function getSlackinfoForProject(project: string): Project {
+
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationSlack {
+      webhook
+      channel
+    }
+  `);
+
   const result = await graphqlapi.query(`
     {
-      project:projectByName(name: "${project}"){
-        slack {
-          webhook
-          channel
+      project:projectByName(name: "${project}") {
+        slacks: notifications(type: "slack") {
+          ...${notificationsFragment}
         }
       }
     }
   `);
 
-  if (!result || !result.project || !result.project.slack) {
+  if (!result || !result.project || !result.project.slacks) {
     throw new ProjectNotFound(
       `Cannot find slack information for project ${project}`
     );
   }
 
-  return result.project;
+  return result.project.slacks;
 }
 
 async function getActiveSystemForProject(

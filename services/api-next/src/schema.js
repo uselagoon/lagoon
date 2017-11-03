@@ -34,19 +34,21 @@ const typeDefs = `
     created: String
   }
 
-  type Slack {
+  type NotificationSlack {
     id: Int
     name: String
     webhook: String
     channel: String
   }
 
+  union Notification = NotificationSlack
+
   type Project {
     id: Int
     name: String
     customer: Customer
     git_url: String
-    slack: Slack
+    notifications(type: String): [Notification]
     active_systems_deploy: String
     active_systems_remove: String
     branches: String
@@ -74,7 +76,6 @@ const typeDefs = `
     customer: String!
     git_url: String!
     openshift: String!
-    slack: String
     active_systems_deploy: String
     active_systems_remove: String
     branches: String
@@ -97,10 +98,16 @@ const typeDefs = `
     project_user: String
   }
 
-  input SlackInput {
+  input NotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input NotificationToProjectInput {
+    project: String!
+    notificationType: String!
+    notificationName: String!
   }
 
   type Mutation {
@@ -108,7 +115,8 @@ const typeDefs = `
     addSshKey(input: SshKeyInput!): SshKey
     addCustomer(input: CustomerInput!): Customer
     addOpenshift(input: OpenshiftInput!): Openshift
-    addSlack(input: SlackInput!): Slack
+    addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+    addNotificationToProject(input: NotificationToProjectInput!): Project
     truncateTable(tableName: String!): String
   }
 `;
@@ -126,14 +134,24 @@ const resolvers = {
       const dao = getDao(req);
       return await dao.getSshKeysByProjectId(req.credentials, project.id)
     },
-    slack: async (project, args, req) => {
+    notifications: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getSlackByProjectId(req.credentials, project.id)
+      return await dao.getNotificationsByProjectId(req.credentials, project.id, args)
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
       return await dao.getOpenshiftByProjectId(req.credentials, project.id);
     }
+  },
+  Notification: {
+    __resolveType(obj, context, info){
+      switch (obj.type) {
+        case 'slack':
+          return 'NotificationSlack';
+        default:
+          return null;
+      }
+    },
   },
   Customer: {
     sshKeys: async (customer, args, req) => {
@@ -180,9 +198,14 @@ const resolvers = {
       const ret = await dao.addOpenshift(req.credentials, args.input);
       return ret;
     },
-    addSlack: async (root, args, req) => {
+    addNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSlack(req.credentials, args.input);
+      const ret = await dao.addNotificationSlack(req.credentials, args.input);
+      return ret;
+    },
+    addNotificationToProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addNotificationToProject(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {

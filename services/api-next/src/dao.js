@@ -81,7 +81,8 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
     });
   });
 };
-const getSlackByProjectId = sqlClient => async (cred, pid) => {
+
+const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -89,20 +90,27 @@ const getSlackByProjectId = sqlClient => async (cred, pid) => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
-        s.id,
-        s.name,
-        s.webhook,
-        s.channel
-      FROM project p, slack s
-      WHERE p.id = :pid AND p.slack = s.id
+        ns.id,
+        ns.name,
+        ns.webhook,
+        ns.channel,
+        pn.type
+      FROM
+        project_notification AS pn
+      JOIN
+        notification_slack AS ns ON (pn.nid = ns.id)
+      WHERE
+        pn.pid = :pid
+        ${args.type ? 'AND pn.type = :type' : ''}
     `);
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
+    sqlClient.query(prep({ pid: pid, type: args.type }), (err, rows) => {
       if (err) {
         rej(err);
       }
 
-      const ret = rows ? rows[0] : null;
+      const ret = rows ? rows : null;
+      console.log(ret)
       res(ret);
     });
   });
@@ -251,7 +259,6 @@ const addProject = sqlClient => async (cred, input) => {
         :customer,
         :git_url,
         :openshift,
-        ${input.slack ? ':slack' : 'NULL'},
         ${input.active_systems_deploy ? ':active_systems_deploy' : '"lagoon_openshiftBuildDeploy"'},
         ${input.active_systems_remove ? ':active_systems_remove' : '"lagoon_openshiftRemove"'},
         ${input.branches ? ':branches' : '"true"'},
@@ -324,9 +331,9 @@ const addCustomer = sqlClient => async (cred, input) => {
         rej(err);
       }
 
-      const ssh_key = R.path([0, 0], rows);
+      const customer = R.path([0, 0], rows);
 
-      res(ssh_key);
+      res(customer);
     });
   });
 };
@@ -353,21 +360,21 @@ const addOpenshift = sqlClient => async (cred, input) => {
         rej(err);
       }
 
-      const ssh_key = R.path([0, 0], rows);
+      const openshift = R.path([0, 0], rows);
 
-      res(ssh_key);
+      res(openshift);
     });
   });
 };
 
-const addSlack = sqlClient => async (cred, input) => {
+const addNotificationSlack = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
   }
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
-      CALL CreateSlack(
+      CALL CreateNotificationSlack(
         :name,
         :webhook,
         :channel
@@ -380,9 +387,37 @@ const addSlack = sqlClient => async (cred, input) => {
         rej(err);
       }
 
-      const ssh_key = R.path([0, 0], rows);
+      const slack = R.path([0, 0], rows);
 
-      res(ssh_key);
+      res(slack);
+    });
+  });
+};
+
+const addNotificationToProject = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateProjectNotification(
+        :project,
+        :notificationType,
+        :notificationName
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(prep(input))
+        console.log(err)
+        rej(err);
+      }
+
+      const project = R.path([0, 0], rows);
+
+      res(project);
     });
   });
 };
@@ -392,8 +427,6 @@ const truncateTable = sqlClient => async (cred, args) => {
     throw new Error('Unauthorized');
   }
 
-
-  console.log(args)
   const { tableName } = args;
 
   return new Promise((res, rej) => {
@@ -416,7 +449,7 @@ module.exports = {
   getAllCustomers,
   getOpenshiftByProjectId,
   getProjectByGitUrl,
-  getSlackByProjectId,
+  getNotificationsByProjectId,
   getSshKeysByProjectId,
   getSshKeysByCustomerId,
   getCustomerByProjectId,
@@ -426,6 +459,7 @@ module.exports = {
   addSshKey,
   addCustomer,
   addOpenshift,
-  addSlack,
+  addNotificationSlack,
+  addNotificationToProject,
   truncateTable,
 };

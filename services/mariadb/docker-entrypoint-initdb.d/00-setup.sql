@@ -28,19 +28,19 @@ CREATE TABLE IF NOT EXISTS openshift (
        created         timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS slack (
+CREATE TABLE IF NOT EXISTS notification_slack (
        id          int NOT NULL auto_increment PRIMARY KEY,
        name        varchar(50) UNIQUE,
        webhook     varchar(300),
        channel     varchar(300)
 );
 
+
 CREATE TABLE IF NOT EXISTS project (
        id                     int NOT NULL auto_increment PRIMARY KEY,
        name                   varchar(100) UNIQUE,
        customer               int REFERENCES customer (id),
        git_url                varchar(300),
-       slack                  int REFERENCES slack (id),
        active_systems_deploy  varchar(300),
        active_systems_remove  varchar(300),
        branches               varchar(300),
@@ -51,6 +51,13 @@ CREATE TABLE IF NOT EXISTS project (
 
 
 -- Junction Tables
+
+CREATE TABLE IF NOT EXISTS project_notification (
+       nid              int,
+       pid              int REFERENCES project (id),
+       type             ENUM('slack') NOT NULL,
+       CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
+);
 
 CREATE TABLE IF NOT EXISTS customer_ssh_key (
        cid int REFERENCES customer (id),
