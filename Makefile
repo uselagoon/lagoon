@@ -96,8 +96,7 @@ docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docke
 docker_publish_amazeeio_php = docker tag $(CI_BUILD_TAG)/php:$(1)-$(2) amazeeio/php:$(1)-$(2) && docker push amazeeio/php:$(1)-$(2) | cat
 
 # Tags and image with the `amazeeiolagoon` repository and pushes it
-docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(1):$(PUBLISH_TAG) && docker push amazeeiolagoon/$(1):$(PUBLISH_TAG) | cat
-docker_publish_amazeeiolagoon_php = docker tag $(CI_BUILD_TAG)/php:$(1)-$(2) amazeeiolagoon/php:$(1)-$(2)-$(PUBLISH_TAG) && docker push amazeeiolagoon/php:$(1)-$(2)-$(PUBLISH_TAG) | cat
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(PUBLISH_TAG)--$(1) && docker push amazeeiolagoon/$(PUBLISH_TAG)--$(1) | cat
 
 
 #######
