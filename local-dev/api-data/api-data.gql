@@ -75,14 +75,14 @@ mutation FillAPI {
     id
   }
 
-  CiMultiproject1: addProject(input: {name: "ci-multiproject1", customer: "ci-customer", openshift: "ci-local", git_url: "ssh://git@10.0.2.2:32768/git/multiproject1.git"}) {
+  CiMultiproject1: addProject(input: {name: "ci-multiproject1", customer: "ci-customer", openshift: "ci-local", git_url: "ssh://git@10.0.2.2:32768/git/multiproject.git"}) {
     id
   }
   CiMultiproject1Slack: addNotificationToProject(input: {project: "ci-multiproject1", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiMultiproject2: addProject(input: {name: "ci-multiproject2", customer: "ci-customer", openshift: "ci-local", git_url: "ssh://git@10.0.2.2:32768/git/multiproject2.git"}) {
+  CiMultiproject2: addProject(input: {name: "ci-multiproject2", customer: "ci-customer", openshift: "ci-local", git_url: "ssh://git@10.0.2.2:32768/git/multiproject.git"}) {
     id
   }
   CiMultiproject2Slack: addNotificationToProject(input: {project: "ci-multiproject2", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
