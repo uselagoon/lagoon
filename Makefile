@@ -436,7 +436,7 @@ $(publish-amazeeiolagoon-images):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
 		$(eval image = $(subst [publish-amazeeiolagoon]-,,$@))
 		$(eval image = $(subst __,:,$(image)))
-		$(call docker_publish_amazeeio,$(image))
+		$(call docker_publish_amazeeiolagoon,$(image))
 
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
