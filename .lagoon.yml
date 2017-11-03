@@ -1,4 +1,4 @@
-docker-compose-yaml: docker-compose.yml
+docker-compose-yaml: docker-compose.yaml
 
 additional-yaml:
   secrets:
