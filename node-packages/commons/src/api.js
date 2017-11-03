@@ -63,10 +63,6 @@ async function getProjectsByGitUrl(gitUrl: string): Project[] {
     {
       allProjects(gitUrl: "${gitUrl}") {
         name
-        slack {
-          webhook
-          channel
-        }
         openshift {
           console_url
           token
