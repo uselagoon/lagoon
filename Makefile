@@ -92,11 +92,11 @@ docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$
 
 
 # Tags and image with the `amazeeio` repository and pushes it
-docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
-docker_publish_amazeeio_php = docker tag $(CI_BUILD_TAG)/php:$(1)-$(2) amazeeio/php:$(1)-$(2) && docker push amazeeio/php:$(1)-$(2) | cat
+docker_publish_amazeeio_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
 
 # Tags and image with the `amazeeiolagoon` repository and pushes it
-docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(PUBLISH_TAG)--$(1) && docker push amazeeiolagoon/$(PUBLISH_TAG)--$(1) | cat
+docker_publish_amazeeiolagoon_serviceimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(1):$(PUBLISH_TAG) && docker push amazeeiolagoon/$(1):$(PUBLISH_TAG) | cat
+docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(PUBLISH_TAG)-$(1) && docker push amazeeiolagoon/$(PUBLISH_TAG)-$(1) | cat
 
 
 #######
@@ -104,8 +104,7 @@ docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$
 #######
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
-# All Base Images we have
-baseimages := centos7 \
+images :=     centos7 \
 							centos7-mariadb10 \
 							centos7-mariadb10-drupal \
 							oc-build-deploy-dind \
@@ -113,16 +112,14 @@ baseimages := centos7 \
 							nginx \
 							nginx-drupal
 
-# build-images is a variable that will be constantly filled with all image there are, to use for
-# commands like `make build` which need to know all images existing
-build-images += $(baseimages)
-publish-images += $(baseimages)
+# base-images is a variable that will be constantly filled with all base image there are
+base-images += $(images)
 
 # List with all images prefixed with `build/`. Which are the commands to actually build images
-build-baseimages = $(foreach image,$(baseimages),build/$(image))
+build-images = $(foreach image,$(images),build/$(image))
 
 # Define the make recepie for all base images
-$(build-baseimages):
+$(build-images):
 #	Generate variable image without the prefix `build/`
 	$(eval image = $(subst build/,,$@))
 # Call the docker build
@@ -171,8 +168,7 @@ $(build-phpimages): build/commons
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-build-images += $(phpimages)
-publish-images += $(phpimages)
+base-images += $(phpimages)
 
 build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
@@ -205,8 +201,7 @@ $(build-nodeimages): build/commons
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-build-images += $(nodeimages)
-publish-images += $(nodeimages)
+base-images += $(nodeimages)
 
 build/node__8 build/node__6: images/commons images/node/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
@@ -227,7 +222,7 @@ build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builde
 	touch $@
 
 # Variables of service images we manage and build
-serviceimages :=  api-next \
+services :=       api-next \
 									auth-server \
 									logs2slack \
 									openshiftbuilddeploy \
@@ -243,11 +238,11 @@ serviceimages :=  api-next \
 									logstash \
 									mariadb
 
-build-images += $(serviceimages)
-build-serviceimages = $(foreach image,$(serviceimages),build/$(image))
+service-images += $(services)
+build-services = $(foreach image,$(services),build/$(image))
 
 # Recepie for all building service-images
-$(build-serviceimages):
+$(build-services):
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
 	touch $@
@@ -261,18 +256,18 @@ build/auth-ssh: build/commons
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
-build-images += auth-ssh
+service-images += auth-ssh
 # CLI Image
 build/cli: build/node__8
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
-build-images += cli
+service-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
 									local-api-data-watcher-pusher
-build-images += $(localdevimages)
+service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
 $(build-localdevimages):
@@ -285,7 +280,7 @@ build/local-git-server: build/centos7
 
 # Images for helpers that exist in another folder than the service images
 helperimages := drush-alias
-build-images += $(helperimages)
+service-images += $(helperimages)
 build-helperimages = $(foreach image,$(helperimages),build/$(image))
 
 $(build-helperimages):
@@ -298,7 +293,7 @@ build/tests:
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
-build-images += tests
+service-images += tests
 #######
 ####### Commands
 #######
@@ -403,39 +398,54 @@ else
 endif
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeio-images = $(foreach image,$(push-images),[publish-amazeeio]-$(image))
-
-# tag and push all images
-.PHONY: publish-amazeeio
-publish-amazeeio: $(publish-amazeeio-images)
-# tag and push of each image
-.PHONY: $(publish-amazeeio-images)
-$(publish-amazeeio-images):
-#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(eval image = $(subst [publish-amazeeio]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		$(call docker_publish_amazeeio,$(image))
-
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "develop" }'
 	make logs
 
-# Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
-publish-amazeeiolagoon-images = $(foreach image,$(build-images),[publish-amazeeiolagoon]-$(image))
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
 
 # tag and push all images
-.PHONY: publish-amazeeiolagoon
-publish-amazeeiolagoon: $(publish-amazeeiolagoon-images)
+.PHONY: publish-amazeeio-baseimages
+publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
 # tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-images)
-$(publish-amazeeiolagoon-images):
+.PHONY: $(publish-amazeeio-baseimages)
+$(publish-amazeeio-baseimages):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon]-,,$@))
+		$(eval image = $(subst [publish-amazeeio-baseimages]-,,$@))
 		$(eval image = $(subst __,:,$(image)))
-		$(call docker_publish_amazeeiolagoon,$(image))
+		$(call docker_publish_amazeeio_baseimages,$(image))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
+
+# tag and push all images
+.PHONY: publish-amazeeiolagoon-baseimages
+publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages)
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-baseimages)
+$(publish-amazeeiolagoon-baseimages):
+#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		$(call docker_publish_amazeeiolagoon_baseimages,$(image))
+
+# Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
+publish-amazeeiolagoon-serviceimages = $(foreach image,$(service-images),[publish-amazeeiolagoon-serviceimages]-$(image))
+
+# tag and push all images
+.PHONY: publish-amazeeiolagoon-serviceimages
+publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-serviceimagesimages)
+$(publish-amazeeiolagoon-serviceimages):
+#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		$(call docker_publish_amazeeiolagoon_serviceimages,$(image))
 
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
