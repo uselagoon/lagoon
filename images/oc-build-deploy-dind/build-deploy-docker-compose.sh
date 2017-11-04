@@ -21,6 +21,7 @@ DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 SERVICE_TYPES=()
+IMAGES=()
 for SERVICE in "${SERVICES[@]}"
 do
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
@@ -34,18 +35,14 @@ do
     continue
   fi
 
+  IMAGES+=("${SERVICE}")
+
   # # Check if the servicetype already has been added to the SERVICE_TYPES array
   # if [ containsValue "${SERVICE_TYPE}:${SERVICE_NAME}" "${SERVICE_TYPES[@]}"]; then
   #   continue
   # fi
 
   SERVICE_TYPES+=("${SERVICE_TYPE}:${SERVICE_NAME}:${SERVICE}")
-done
-
-IMAGES=()
-for SERVICE in "${SERVICES[@]}"
-do
-  IMAGES+=("${SERVICE}")
 done
 
 
@@ -55,7 +52,7 @@ do
   IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
   DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
   PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
-  OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.image false)
+  OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
   BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
   TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
