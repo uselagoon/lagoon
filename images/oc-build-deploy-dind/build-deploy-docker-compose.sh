@@ -55,6 +55,7 @@ do
   IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
   DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
   PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
+  OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.image false)
   BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
   TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
@@ -62,6 +63,11 @@ do
   if [ $DOCKERFILE == "false" ]; then
     if [ $PULL_IMAGE == "false" ]; then
       echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
+    fi
+
+    # allow to overwrite image that we pull
+    if [ ! $OVERRIDE_IMAGE == "false" ]; then
+      PULL_IMAGE=$OVERRIDE_IMAGE
     fi
 
     . /scripts/exec-pull-tag.sh
