@@ -371,7 +371,7 @@ $(run-webhook-tests): local-git-port openshift build/node__6-builder build/node_
 
 
 # push command of our base images into openshift
-push-openshift-images = $(foreach image,$(publish-images),[push-openshift]-$(image))
+push-openshift-images = $(foreach image,$(base-images),[push-openshift]-$(image))
 # tag and push all images
 .PHONY: push-openshift
 push-openshift: $(push-openshift-images)
