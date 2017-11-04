@@ -9,6 +9,7 @@ services:
       - "3306:3306"
     labels:
       lagoon.type: mariadb
+      lagoon.image: amazeeiolagoon/mariadb:develop
   webhook-handler:
     image: ${IMAGE_REPO:-amazeeiolagoon}/webhook-handler
     command: yarn run dev
@@ -20,6 +21,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/webhook-handler:develop
   rabbitmq:
     image: ${IMAGE_REPO:-amazeeiolagoon}/rabbitmq
     ports:
@@ -28,6 +30,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rabbitmq/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/rabbitmq:develop
   openshiftremove:
     image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftremove
     command: yarn run dev
@@ -37,6 +40,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftremove/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/openshiftremove:develop
   openshiftbuilddeploy:
     image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftbuilddeploy
     command: yarn run dev
@@ -48,6 +52,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploy/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:develop
   openshiftbuilddeploymonitor:
     image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
@@ -61,6 +66,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:develop
   logs2slack:
     image: ${IMAGE_REPO:-amazeeiolagoon}/logs2slack
     command: yarn run dev
@@ -70,6 +76,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs2slack:develop
   webhooks2tasks:
     image: ${IMAGE_REPO:-amazeeiolagoon}/webhooks2tasks
     command: yarn run dev
@@ -79,6 +86,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/webhooks2tasks:develop
   rest2tasks:
     image: ${IMAGE_REPO:-amazeeiolagoon}/rest2tasks
     command: yarn run dev
@@ -90,6 +98,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rest2tasks/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/rest2tasks:develop
   api-next:
     image: ${IMAGE_REPO:-amazeeiolagoon}/api-next
     command: yarn run dev
@@ -104,6 +113,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/api-next/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/api-next:develop
   auth-ssh:
     image: ${IMAGE_REPO:-amazeeiolagoon}/auth-ssh
       # TODO:
@@ -124,6 +134,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-ssh/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/auth-ssh:develop
   auth-server:
     image: ${IMAGE_REPO:-amazeeiolagoon}/auth-server
     command: yarn run dev
@@ -138,6 +149,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/auth-server:develop
   tests:
     image: ${IMAGE_REPO:-amazeeiolagoon}/tests
     environment:
