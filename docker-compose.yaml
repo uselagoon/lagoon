@@ -233,4 +233,4 @@ services:
     - "8087:8080"
     labels:
       lagoon.type: custom
-      lagoon.template: services/helpers/drush-alias/.lagoon.app.yml
+      lagoon.template: helpers/drush-alias/.lagoon.app.yml
