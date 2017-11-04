@@ -301,7 +301,7 @@ service-images += tests
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(build-images),build/$(image))
+build: $(foreach image,$(base-images) $(service-images),build/$(image))
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
