@@ -73,7 +73,7 @@ const messageConsumer = async msg => {
     // By default we load oc-build-deploy-dind from DockerHub with our current branch as tag
       buildFromImage = {
         "kind": "DockerImage",
-        "name": `amazeeiolagoon/oc-build-deploy-dind:${gitSafeBranch}`
+        "name": `amazeeiolagoon/${gitSafeBranch}-oc-build-deploy-dind`
       }
     }
 
