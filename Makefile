@@ -429,7 +429,7 @@ publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages)
 .PHONY: $(publish-amazeeiolagoon-baseimages)
 $(publish-amazeeiolagoon-baseimages):
 #   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-]-,,$@))
+		$(eval image = $(subst [publish-amazeeiolagoon-baseimages]-,,$@))
 		$(eval image = $(subst __,:,$(image)))
 		$(call docker_publish_amazeeiolagoon_baseimages,$(image))
 
