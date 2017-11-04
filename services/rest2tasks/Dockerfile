@@ -24,4 +24,6 @@ RUN yarn install
 # Making sure we run in production
 ENV NODE_ENV production
 
+RUN yarn run build
+
 CMD ["yarn", "start"]
