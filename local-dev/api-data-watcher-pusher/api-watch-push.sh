@@ -3,7 +3,7 @@
 JWTSECRET=super-secret-string
 JWTAUDIENCE=api.dev
 
-API_ADMIN_JWT_TOKEN=$(/home/create_jwt.sh $JWTSECRET $JWTAUDIENCE)
+API_ADMIN_JWT_TOKEN=$(/home/create_jwt.sh)
 
 bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
