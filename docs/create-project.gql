@@ -1,0 +1,31 @@
+mutation {
+  #
+  addSshKey(input: {name: "my-ssh-key", keyValue: "...", keyType: "ssh-rsa"}) {
+    id
+  }
+  addCustomer(input: {name: "customer-name", private_key: "...", sshKeys: ["my-ssh-key"]}) {
+    id
+  }
+  addOpenshift(input: {name: "my-openshift", console_url:"...", token: "..."}) {
+    id
+  }
+  addProject(input:{name: "first-project", customer:"customer-name", openshift: "my-openshift", git_url: "..."}) {
+    id
+    name
+    customer {
+      name
+      sshKeys {
+        id
+        name
+      }
+    }
+    openshift {
+      name
+    }
+    git_url,
+    active_systems_deploy,
+    active_systems_remove,
+    branches,
+    pullrequests
+  }
+}
