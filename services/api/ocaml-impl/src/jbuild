@@ -2,5 +2,5 @@
 
 (executable
  ((name main)
- (public_name api-next)
+ (public_name api)
  (libraries (cohttp.lwt graphql-lwt yojson))))

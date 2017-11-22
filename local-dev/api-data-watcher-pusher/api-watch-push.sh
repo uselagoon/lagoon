@@ -12,7 +12,7 @@ update() {
     data=$(cat /api-data/api-data.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
     # create a correct json
     json="{\"query\": \"$data\"}"
-    wget --header "Content-Type: application/json" --header "$bearer" api-next:3000/graphql --post-data "$json" -O -
+    wget --header "Content-Type: application/json" --header "$bearer" api:3000/graphql --post-data "$json" -O -
 }
 
 

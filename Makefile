@@ -222,7 +222,7 @@ build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builde
 	touch $@
 
 # Variables of service images we manage and build
-services :=       api-next \
+services :=       api \
 									auth-server \
 									logs2slack \
 									openshiftbuilddeploy \
@@ -248,7 +248,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api-next: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
@@ -334,13 +334,13 @@ tests-list:
 
 # SSH-Auth test
 .PHONY: tests/ssh-auth
-tests/ssh-auth: build/auth-ssh build/auth-server build/api-next build/tests
+tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api-next
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api-next local-git local-api-data-watcher-pusher
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api local-git local-api-data-watcher-pusher
 
 # All Tests that use REST endpoints
 rest-tests = rest node multiproject nginx
