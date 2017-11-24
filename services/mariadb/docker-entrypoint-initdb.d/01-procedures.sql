@@ -14,7 +14,75 @@ CREATE OR REPLACE PROCEDURE
     IN ssh_key_names          text
   )
   BEGIN
-    DECLARE new_pid int;
+    INSERT INTO project (
+        name,
+        customer,
+        git_url,
+        active_systems_deploy,
+        active_systems_remove,
+        branches,
+        pullrequests,
+        openshift
+    )
+    SELECT
+        name,
+        c.id,
+        git_url,
+        active_systems_deploy,
+        active_systems_remove,
+        branches,
+        pullrequests,
+        os.id
+    FROM
+        openshift AS os,
+        customer AS c
+    WHERE
+        os.name = openshift AND
+        c.name = customer;
+
+    -- Now add the ssh-key relation to the newly created project
+    SET new_pid = LAST_INSERT_ID();
+
+    INSERT INTO project_ssh_key (pid, skid)
+    SELECT
+      new_pid,
+      id
+    FROM ssh_key
+    WHERE FIND_IN_SET(ssh_key.name, ssh_key_names) > 0;
+
+    -- Return the constructed project
+    SELECT
+      p.id,
+      p.name,
+      p.customer,
+      p.git_url,
+      p.active_systems_deploy,
+      p.active_systems_remove,
+      p.branches,
+      p.pullrequests,
+      p.openshift
+    FROM project p
+    WHERE id = new_pid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  UpdateProject
+  (
+    IN name                   varchar(100),
+    IN customer               varchar(50),
+    IN git_url                varchar(300),
+    IN openshift              varchar(50),
+    IN active_systems_deploy  varchar(300),
+    IN active_systems_remove  varchar(300),
+    IN branches               varchar(300),
+    IN pullrequests           boolean,
+    IN ssh_key_names          text
+  )
+  BEGIN
+    DECLARE pid int;
+
+    SELECT id INTO pid FROM project p WHERE p.name = name;
 
     INSERT INTO project (
         name,
@@ -67,6 +135,7 @@ CREATE OR REPLACE PROCEDURE
     WHERE id = new_pid;
   END;
 $$
+
 
 CREATE OR REPLACE PROCEDURE
   CreateSshKey

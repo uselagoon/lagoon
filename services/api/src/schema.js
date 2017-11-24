@@ -110,7 +110,20 @@ const typeDefs = `
     notificationName: String!
   }
 
+  input ProjectUpdateInput {
+    name: String
+    customer: String
+    git_url: String
+    openshift: String
+    active_systems_deploy: String
+    active_systems_remove: String
+    branches: String
+    pullrequests: Boolean
+    sshKeys: [String]
+  }
+
   type Mutation {
+    updateProject(input: ProjectUpdateInput!): Project
     addProject(input: ProjectInput!): Project
     addSshKey(input: SshKeyInput!): SshKey
     addCustomer(input: CustomerInput!): Customer

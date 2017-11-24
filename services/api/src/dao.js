@@ -4,6 +4,36 @@
 const R = require('ramda');
 const promisify = require('util').promisify;
 
+const updateProject = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    // const prep = sqlClient.prepare(`
+    //   CALL UpdateProject(
+    //     :name,
+    //     :customer,
+    //     :git_url,
+    //     :openshift,
+    //     ${input.active_systems_deploy ? ':active_systems_deploy' : '"lagoon_openshiftBuildDeploy"'},
+    //     ${input.active_systems_remove ? ':active_systems_remove' : '"lagoon_openshiftRemove"'},
+    //     ${input.branches ? ':branches' : '"true"'},
+    //     ${input.pullrequests ? 'IF(STRCMP(:pullrequests, \'true\'), 1, 0)' : 'NULL'},
+    //     '${input.sshKeys ? input.sshKeys.join(',') : ''}'
+    //   );
+    // `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows);
+    });
+  });
+}
+
 const getCustomerSshKeys = sqlClient => async cred => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -473,8 +503,13 @@ const truncateTable = sqlClient => async (cred, args) => {
   });
 };
 
+<<<<<<< HEAD:services/api/src/dao.js
 const daoFns = {
   getCustomerSshKeys,
+=======
+module.exports = {
+  updateProject,
+>>>>>>> WIP:services/api-next/src/dao.js
   getAllCustomers,
   getOpenshiftByProjectId,
   getProjectByGitUrl,
