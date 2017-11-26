@@ -1,8 +1,5 @@
 #!/bin/bash
 
-JWTSECRET=super-secret-string
-JWTAUDIENCE=api.dev
-
 API_ADMIN_JWT_TOKEN=$(/home/create_jwt.sh)
 
 bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
@@ -12,8 +9,9 @@ update() {
     data=$(cat /api-data/api-data.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
     # create a correct json
     json="{\"query\": \"$data\"}"
-    wget --header "Content-Type: application/json" --header "$bearer" api:3000/graphql --post-data "$json" -O -
+    wget --header "Content-Type: application/json" --header "$bearer" api:3000/graphql --post-data "$json" --content-on-error -O -
 }
+
 
 
 watch_apidatafolder() {

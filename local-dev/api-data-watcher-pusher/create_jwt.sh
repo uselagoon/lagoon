@@ -6,6 +6,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+JWTSECRET=super-secret-string
+JWTAUDIENCE=api.dev
 
 HEADER='{
     "typ": "JWT",
