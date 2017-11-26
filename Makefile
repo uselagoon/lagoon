@@ -60,7 +60,7 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.6.0
+MINISHIFT_VERSION := 1.9.0
 OC_HASH := c4dd4cf
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
@@ -517,7 +517,7 @@ local-dev/minishift/minishift:
 	$(info downloading minishift)
 	@mkdir -p ./local-dev/minishift
 ifeq ($(ARCH), Darwin)
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift
+		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 else
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift
+		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
