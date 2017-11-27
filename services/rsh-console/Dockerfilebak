@@ -36,7 +36,7 @@ RUN mkdir .ssh && \
 
 
 # Add the ssh config
-COPY services/rsh-console/sshd_config /etc/ssh/sshd_config
+COPY services/auth-ssh/sshd_config /etc/ssh/sshd_config
 
 RUN fix-permissions /etc/ssh/ && \
     fix-permissions /run/
@@ -46,12 +46,12 @@ RUN chmod 600 /etc/ssh/ssh_host_rsa_key  /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ss
 # calls the authentication server to retrieve a token, it is
 # envplated during entrypoint so fix permissions
 
-COPY services/rsh-console/get-jwt-token.sh /home/get-jwt-token.sh
+COPY services/auth-ssh/get-jwt-token.sh /home/get-jwt-token.sh
 RUN fix-permissions /home/get-jwt-token.sh
 
 # This is the authorized keys command, which will be defined as AuthorizedKeysCommand
-COPY services/rsh-console/authorize.sh /authorize.sh
-COPY services/rsh-console/create_jwt.sh /create_jwt.sh
+COPY services/auth-ssh/authorize.sh /authorize.sh
+COPY services/auth-ssh/create_jwt.sh /create_jwt.sh
 
 # Files defined in AuthorizedKeysCommand need the specific permissions for
 # root to own and no write permission by group or others
@@ -71,7 +71,7 @@ ENV USER_NAME api
 
 # Entrypoint file which will replace some environment variables into
 # hardcoded values every time the container is started
-COPY services/rsh-console/docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
+COPY services/auth-ssh/docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
 
 RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util && \
 		apk add --update curl && \
