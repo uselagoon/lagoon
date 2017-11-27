@@ -109,7 +109,7 @@ services:
       - mariadb
       - local-api-data-watcher-pusher
     ports:
-      - "3002:3000"
+      - "3000:3000"
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
