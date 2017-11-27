@@ -114,6 +114,21 @@ services:
       lagoon.type: custom
       lagoon.template: services/api-next/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/api-next:develop
+  rsh-console:
+    image: ${IMAGE_REPO:-amazeeiolagoon}/rsh-console
+    depends_on:
+      - api-next
+      - auth-server
+    ports:
+      - "2222:2222"
+    environment:
+      - AUTH_HOST=http://auth-server:3000
+      - API_HOST=http://api-next:3000
+    user: '111111111'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/auth-ssh/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/auth-ssh:develop
   auth-ssh:
     image: ${IMAGE_REPO:-amazeeiolagoon}/auth-ssh
       # TODO:
