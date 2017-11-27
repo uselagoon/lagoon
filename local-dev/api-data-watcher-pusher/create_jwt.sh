@@ -6,8 +6,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-SECRET=$1
-AUD=$2
+JWTSECRET=super-secret-string
+JWTAUDIENCE=api.dev
 
 HEADER='{
     "typ": "JWT",
@@ -17,7 +17,7 @@ HEADER='{
 PAYLOAD='{
     "role": "admin",
     "iss": "api-data-wather-pusher Bash Generator",
-    "aud": "'$AUD'",
+    "aud": "'$JWTAUDIENCE'",
     "sub": "auth-server",
     "iat": '$(date +%s)'
 }'
@@ -41,7 +41,7 @@ function json() {
 function hmacsha256_sign()
 {
     declare INPUT=${1:-$(</dev/stdin)}
-    echo -n "${INPUT}" | openssl dgst -binary -sha256 -hmac "${SECRET}"
+    echo -n "${INPUT}" | openssl dgst -binary -sha256 -hmac "${JWTSECRET}"
 }
 
 HEADER_BASE64=$(echo "${HEADER}" | json | base64_encode)

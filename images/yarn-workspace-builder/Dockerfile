@@ -11,7 +11,7 @@ COPY node-packages /app/node-packages
 # We need to copy all services, so we have all
 # package.json files for workspaces, otherwise
 # subdependencies won't be installed
-COPY services/api-next/package.json /app/services/api-next/
+COPY services/api/package.json /app/services/api/
 COPY services/auth-server/package.json /app/services/auth-server/
 COPY services/logs2slack/package.json /app/services/logs2slack/
 COPY services/openshiftbuilddeploy/package.json /app/services/openshiftbuilddeploy/

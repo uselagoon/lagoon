@@ -1,5 +1,5 @@
 opam-version: "2.0"
-name: "api-next"
+name: "api"
 version: "0.1.0"
 maintainer: "Patrick Stapfer <patrick.stapfer@amazee.com>"
 authors: ["Patrick Stapfer <patrick.stapfer@amazee.com>"]

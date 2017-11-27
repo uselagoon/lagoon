@@ -60,7 +60,7 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.6.0
+MINISHIFT_VERSION := 1.9.0
 OC_HASH := c4dd4cf
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
@@ -222,7 +222,7 @@ build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builde
 	touch $@
 
 # Variables of service images we manage and build
-services :=       api-next \
+services :=       api \
 									auth-server \
 									logs2slack \
 									openshiftbuilddeploy \
@@ -248,7 +248,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api-next: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
@@ -334,13 +334,13 @@ tests-list:
 
 # SSH-Auth test
 .PHONY: tests/ssh-auth
-tests/ssh-auth: build/auth-ssh build/auth-server build/api-next build/tests
+tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api-next
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api-next local-git local-api-data-watcher-pusher
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api local-git local-api-data-watcher-pusher
 
 # All Tests that use REST endpoints
 rest-tests = rest node multiproject nginx
@@ -477,7 +477,7 @@ down:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 openshift: local-dev/minishift/minishift
 	$(info starting openshift with name $(CI_BUILD_TAG))
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v1.5.1"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v3.6.1"
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login -u system:admin; \
 	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -"; \
@@ -517,7 +517,7 @@ local-dev/minishift/minishift:
 	$(info downloading minishift)
 	@mkdir -p ./local-dev/minishift
 ifeq ($(ARCH), Darwin)
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift
+		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 else
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift
+		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
