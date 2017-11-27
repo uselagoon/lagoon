@@ -1,9 +1,9 @@
 // @flow
 
 const amqp = require('amqp-connection-manager');
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { sendToAmazeeioTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonTasks, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 
 const processWebhook = require('./processWebhook');
 
@@ -11,8 +11,8 @@ import type { ChannelWrapper } from './types';
 
 
 
-initSendToAmazeeioLogs();
-initSendToAmazeeioTasks();
+initSendToLagoonLogs();
+initSendToLagoonTasks();
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
@@ -27,19 +27,19 @@ const channelWrapperWebhooks: ChannelWrapper = connection.createChannel({
 	setup: channel => {
 		return Promise.all([
 
-			// Our main Exchange for all amazeeio-webhooks
-			channel.assertExchange('amazeeio-webhooks', 'direct', { durable: true }),
+			// Our main Exchange for all lagoon-webhooks
+			channel.assertExchange('lagoon-webhooks', 'direct', { durable: true }),
 
 			// Queue which is bound to the exachange
-			channel.assertQueue('amazeeio-webhooks:queue', { durable: true }),
-			channel.bindQueue('amazeeio-webhooks:queue', 'amazeeio-webhooks', ''),
+			channel.assertQueue('lagoon-webhooks:queue', { durable: true }),
+			channel.bindQueue('lagoon-webhooks:queue', 'lagoon-webhooks', ''),
 
 			// delay exchnage
-			channel.assertExchange('amazeeio-webhooks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
-			channel.bindExchange('amazeeio-webhooks', 'amazeeio-webhooks-delay', ''),
+			channel.assertExchange('lagoon-webhooks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
+			channel.bindExchange('lagoon-webhooks', 'lagoon-webhooks-delay', ''),
 
 			channel.prefetch(1),
-			channel.consume('amazeeio-webhooks:queue', msg => {processWebhook(msg, channelWrapperWebhooks)}, {noAck: false}),
+			channel.consume('lagoon-webhooks:queue', msg => {processWebhook(msg, channelWrapperWebhooks)}, {noAck: false}),
 
 		]);
 	}

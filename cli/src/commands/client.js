@@ -50,7 +50,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .alias('s', 'sitegroup')
     .example(
       `$0 ${name}`,
-      'Show client information for the sitegroup configured in .amazeeio.yml',
+      'Show client information for the sitegroup configured in .lagoon.yml',
     )
     .example(
       `$0 ${name} -s mysitegroup`,

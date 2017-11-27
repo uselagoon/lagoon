@@ -4,29 +4,22 @@ const express = require('express');
 const morgan = require('morgan');
 const compression = require('compression');
 const { json } = require('body-parser');
-const selectors = require('./selectors');
 const logger = require('./logger');
 const createRouter = require('./routes');
 const { createAuthMiddleware } = require('./auth');
+const R = require('ramda');
 
-import type { $Application } from 'express';
-import type { ApiStore } from './createStore';
+const daoFns = require('./dao');
 
-export type CreateAppArgs = {
-  store: ApiStore,
-  jwtSecret: string,
-  jwtAudience?: string,
-};
-
-const createApp = (args: CreateAppArgs): $Application => {
-  const { store, jwtSecret, jwtAudience } = args;
+const createApp = args => {
+  const { store, jwtSecret, jwtAudience, sqlClient } = args;
   const app = express();
 
-  // Set the global app context (make the state accessible
-  // to the routes and graphql).
+  const dao = R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
+
   app.set('context', {
-    selectors,
-    store,
+    sqlClient,
+    dao,
   });
 
   // Use compression (gzip) for responses.

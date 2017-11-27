@@ -1,0 +1,95 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: docker-host
+    name: docker-host
+  spec:
+    replicas: 1
+    selector:
+      app: docker-host
+      deploymentconfig: docker-host
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: docker-host
+          deploymentconfig: docker-host
+      spec:
+        containers:
+        - command:
+          - sh
+          - /usr/local/bin/dind
+          - /usr/local/bin/dockerd
+          - --host=tcp://0.0.0.0:2375
+          - --host=unix:///var/run/docker.sock
+          - --insecure-registry=docker-registry.default.svc:5000
+          - '--bip=172.29.0.1/16'
+          image: docker:stable-dind
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 2375
+            timeoutSeconds: 1
+          name: docker
+          ports:
+          - containerPort: 2375
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 2375
+            timeoutSeconds: 1
+          resources: {}
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - mountPath: /var/lib/docker
+            name: docker-lib
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        serviceAccount: docker-host
+        serviceAccountName: docker-host
+        volumes:
+        - name: docker-lib
+          persistentVolumeClaim:
+            claimName: docker-host
+    test: false
+    triggers:
+    - type: ConfigChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: docker-host
+    name: docker-host
+  spec:
+    ports:
+    - port: 2375
+      protocol: TCP
+      targetPort: 2375
+    selector:
+      app: docker-host
+      deploymentconfig: docker-host
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: docker-host
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 100Gi
+kind: List

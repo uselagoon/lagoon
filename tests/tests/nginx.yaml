@@ -1,0 +1,8 @@
+---
+- include: nginx/nginx.yaml
+  vars:
+    testname: "NGINX"
+    git_repo_name: nginx.git
+    project: ci-nginx
+    branch: nginx
+

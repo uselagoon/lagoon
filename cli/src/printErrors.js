@@ -30,14 +30,14 @@ export function printErrors(
 export function printNoConfigError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    '.amazeeio.yml config file not found. Please create one with "io init".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    '.lagoon.yml config file not found. Please create one with "io init".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
   );
 }
 
 export function printSitegroupConfigurationError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    'No sitegroup configured. Please create a .amazeeio.yml config file with "io init" or pass a sitegroup to this command via the --sitegroup option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    'No sitegroup configured. Please create a .lagoon.yml config file with "io init" or pass a sitegroup to this command via the --sitegroup option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
   );
 }
 

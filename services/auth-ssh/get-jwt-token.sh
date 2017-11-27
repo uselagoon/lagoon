@@ -5,7 +5,7 @@ key=$1
 # this will be replaced by envplate inside docker-entrypoint. We need that as during execution
 # time inside the ssh connection we don't have access to the container environment variables.
 # So we replace it during the start of the container.
-server=${AMAZEEIO_AUTH_HOST}
+server=${AUTH_HOST}
 
 header="Content-Type: application/json"
 
@@ -16,7 +16,7 @@ case $SSH_ORIGINAL_COMMAND in
 
     # Submit the token request as a POST request with the JSON data
     # containing the key.
-    echo $(wget "$server/generate" --header "$header" --post-data "$data" --content-on-error -q -O -)
+    echo $(wget "$server/generate" --header "$header" --post-data "$data" -q -O -)
 
     ;;
   # TODO: Add blacklist stuff
@@ -27,7 +27,7 @@ case $SSH_ORIGINAL_COMMAND in
 
   #   # Submit the token request as a POST request with the JSON data
   #   # containing the key.
-  #   echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+  #   echo $(wget $server/logout --header "$header" --post-data "$data" -q -O -)
 
   #   ;;
   # 'logout '*)
@@ -41,7 +41,7 @@ case $SSH_ORIGINAL_COMMAND in
 
   #   # Submit the token request as a POST request with the JSON data
   #   # containing the key.
-  #   echo $(wget $server/logout --header "$header" --post-data "$data" --content-on-error -q -O -)
+  #   echo $(wget $server/logout --header "$header" --post-data "$data" -q -O -)
 
   #   ;;
   *)

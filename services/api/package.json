@@ -1,84 +1,34 @@
 {
-  "private": true,
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "clean": "rimraf dist && rimraf logs && rimraf .repository",
-    "lint": "eslint src",
+    "build": "echo 'hi'",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:container": "docker-compose exec api sh -c 'yarn run test:watch'",
-    "build": "flow-remove-types --out-dir dist/ src/",
-    "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config -r flow-remove-types/register' -- src",
-    "start": "node -r dotenv-extended/config dist",
-    "flow": "flow check",
-    "format": "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
+    "start": "node -r dotenv-extended/config src",
+    "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
   },
-  "devDependencies": {
-    "babel-eslint": "^7.2.3",
-    "eslint": "^4.4.1",
-    "eslint-config-airbnb-base": "^11.3.1",
-    "eslint-plugin-flowtype": "^2.35.0",
-    "eslint-plugin-graphql": "^1.0.0",
-    "eslint-plugin-import": "^2.6.0",
-    "flow-bin": "^0.48.0",
-    "jest": "^20.0.4",
-    "lint-staged": "^4.0.0",
-    "nodemon": "^1.11.0",
-    "prettier": "^1.5.3",
-    "remote-redux-devtools": "^0.5.12",
-    "rimraf": "^2.5.4"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "babel-polyfill": "^6.16.0",
-    "body-parser": "^1.15.0",
-    "compression": "^1.6.1",
-    "cors": "^2.7.1",
+    "body-parser": "^1.18.2",
+    "compression": "^1.7.1",
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
-    "dotenv-safe": "^4.0.3",
-    "express": "^4.13.4",
-    "express-graphql": "^0.6.6",
-    "flow-remove-types": "^1.2.1",
-    "glob": "^7.1.2",
-    "graphql": "^0.10.3",
-    "graphql-tools": "^1.0.0",
-    "graphql-type-json": "^0.1.4",
-    "js-yaml": "^3.6.1",
-    "jsonwebtoken": "7.4.1",
-    "morgan": "^1.7.0",
-    "nodegit": "^0.20.1",
-    "normalizr": "^3.2.3",
+    "express": "^4.16.1",
+    "express-graphql": "^0.6.11",
+    "graphql": "^0.11.7",
+    "graphql-tools": "^2.5.0",
+    "jsonwebtoken": "^8.0.1",
+    "mariasql": "^0.2.6",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.12.1",
     "ramda": "^0.24.1",
-    "redux": "^3.7.1",
-    "redux-saga": "^0.15.4",
-    "request": "^2.81.0",
-    "request-promise-native": "^1.0.4",
-    "sshpk": "^1.13.1",
-    "winston": "^2.3.0"
-  },
-  "jest": {
-    "rootDir": ".",
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/?(*.)(spec|test).js?(x)"
-    ],
-    "transform": {
-      "\\.js$": "<rootDir>/jest/flow-transform.js"
-    },
-    "setupFiles": [
-      "<rootDir>/jest/setup.js"
-    ],
-    "moduleNameMapper": {
-      "^nodegit$": "<rootDir>/jest/nodegit.js"
-    }
-  },
-  "lint-staged": {
-    "linters": {
-      "*.js": [
-        "prettier --trailing-comma all --single-quote",
-        "eslint --fix",
-        "git add"
-      ]
-    },
-    "gitDir": "../../"
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
+    "winston": "^2.4.0"
   }
 }

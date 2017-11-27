@@ -1,4 +1,4 @@
-# amazeeio-kibana
+# lagoon-kibana
 
 This is a kibana used inside the amazee.io lagoon deployment system
 

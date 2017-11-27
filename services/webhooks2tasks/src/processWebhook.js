@@ -1,9 +1,11 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { getSiteGroupsByGitUrl } = require('@amazeeio/lagoon-commons/src/api');
-const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { getProjectsByGitUrl } = require('@lagoon/commons/src/api');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
+const githubPullRequestOpened = require('./handlers/githubPullRequestOpened');
+const githubPullRequestSynchronize = require('./handlers/githubPullRequestSynchronize');
 const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
 const bitbucketPush = require('./handlers/bitbucketPush');
@@ -11,12 +13,12 @@ const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
 const gitlabPush = require('./handlers/gitlabPush');
 const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 
-import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, SiteGroup } from './types';
+import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, Project } from './types';
 
 async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
   const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString())
 
-  let siteGroups: SiteGroup[]
+  let projects: Project[]
 
   const {
     webhooktype,
@@ -27,15 +29,15 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
   } = webhook;
 
   try {
-    siteGroups = await getSiteGroupsByGitUrl(giturl)
+    projects = await getProjectsByGitUrl(giturl)
   }
   catch (error) {
-    if (error.name == 'SiteGroupNotFound') {
+    if (error.name == 'ProjectNotFound') {
       const meta = {
         event: `${webhooktype}:${event}`
       }
-      sendToAmazeeioLogs('warn', 'unresolved', uuid, `unresolvedSitegroup:webhooks2tasks`, meta,
-        `Unresolved sitegroup \`${giturl}\` while handling ${webhooktype}:${event}`
+      sendToLagoonLogs('warn', 'unresolved', uuid, `unresolvedProject:webhooks2tasks`, meta,
+        `Unresolved project \`${giturl}\` while handling ${webhooktype}:${event}`
       )
       channelWrapperWebhooks.ack(rabbitMsg)
     } else {
@@ -44,7 +46,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 			const retryCount = rabbitMsg.properties.headers["x-retry"] ? (rabbitMsg.properties.headers["x-retry"] + 1) : 1
 
 			if (retryCount > 3) {
-        sendToAmazeeioLogs('error', '', uuid, "webhooks2tasks:resolveSitegroup:fail", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading sitegroup for GitURL '${giturl}', bailing after 3 retries, error was: ${error}`)
+        sendToLagoonLogs('error', '', uuid, "webhooks2tasks:resolveProject:fail", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading project for GitURL '${giturl}', bailing after 3 retries, error was: ${error}`)
 				channelWrapperWebhooks.ack(rabbitMsg)
 				return
 			}
@@ -52,7 +54,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 			const retryDelaySecs = Math.pow(10, retryCount);
 			const retryDelayMilisecs = retryDelaySecs * 1000;
 
-      sendToAmazeeioLogs('warn', '', uuid, "webhooks2tasks:resolveSitegroup:retry", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading sitegroup for GitURL '${giturl}', will try again in ${retryDelaySecs} secs, error was: ${error}`)
+      sendToLagoonLogs('warn', '', uuid, "webhooks2tasks:resolveProject:retry", {error: error, msg: JSON.parse(rabbitMsg.content.toString()), retryCount: retryCount}, `Error during loading project for GitURL '${giturl}', will try again in ${retryDelaySecs} secs, error was: ${error}`)
 
 			// copying options from the original message
 			const retryMsgOptions = {
@@ -63,9 +65,9 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 				headers: Object.assign({}, rabbitMsg.properties.headers, { 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount}),
 				persistent: true,
 			};
-			// publishing a new message with the same content as the original message but into the `amazeeio-tasks-delay` exchange,
-			// which will send the message into the original exchange `amazeeio-tasks` after x-delay time.
-			channelWrapperWebhooks.publish(`amazeeio-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
+			// publishing a new message with the same content as the original message but into the `lagoon-tasks-delay` exchange,
+			// which will send the message into the original exchange `lagoon-tasks` after x-delay time.
+			channelWrapperWebhooks.publish(`lagoon-webhooks-delay`, rabbitMsg.fields.routingKey, rabbitMsg.content, retryMsgOptions)
 
 			// acknologing the existing message, we cloned it and is not necessary anymore
 			channelWrapperWebhooks.ack(rabbitMsg)
@@ -73,18 +75,28 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
     return
   }
 
-  siteGroups.forEach(async (siteGroup) => {
+  projects.forEach(async (project) => {
 
     switch (`${webhooktype}:${event}`) {
       case "github:pull_request":
 
         switch (body.action) {
           case 'closed':
-            await handle(githubPullRequestClosed, webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
+            await handle(githubPullRequestClosed, webhook, project, `${webhooktype}:${event}:${body.action}`)
+            break;
+
+          case 'opened':
+          case 'reopened':
+            await handle(githubPullRequestOpened, webhook, project, `${webhooktype}:${event}:${body.action}`)
+            break;
+
+          case 'synchronize':
+          case 'edited':
+            await handle(githubPullRequestSynchronize, webhook, project, `${webhooktype}:${event}:${body.action}`)
             break;
 
           default:
-            unhandled(webhook, siteGroup, `${webhooktype}:${event}:${body.action}`)
+            unhandled(webhook, project, `${webhooktype}:${event}:${body.action}`)
             break;
         }
         break;
@@ -93,43 +105,43 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
         switch (body.ref_type) {
           case "branch":
             // We do not handle branch deletes via github delete push event, as github also sends a regular push event with 'deleted=true'. It's handled there (see below inside "github:push")
-            unhandled(webhook, siteGroup, `${webhooktype}:${event}:${body.ref_type}`)
+            unhandled(webhook, project, `${webhooktype}:${event}:${body.ref_type}`)
             break;
 
           default:
-            unhandled(webhook, siteGroup, `${webhooktype}:${event}:${body.ref_type}`)
+            unhandled(webhook, project, `${webhooktype}:${event}:${body.ref_type}`)
             break;
         }
         break;
 
       case "github:push":
         if (body.deleted === true) {
-          await handle(githubBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+          await handle(githubBranchDeleted, webhook, project, `${webhooktype}:${event}`)
         } else {
-          await handle(githubPush, webhook, siteGroup, `${webhooktype}:${event}`)
+          await handle(githubPush, webhook, project, `${webhooktype}:${event}`)
         }
 
         break;
       case "bitbucket:repo:push":
         if (body.push.changes[0].closed === true) {
-          await handle(bitbucketBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+          await handle(bitbucketBranchDeleted, webhook, project, `${webhooktype}:${event}`)
         } else {
-          await handle(bitbucketPush, webhook, siteGroup, `${webhooktype}:${event}`)
+          await handle(bitbucketPush, webhook, project, `${webhooktype}:${event}`)
         }
 
         break;
 
       case "gitlab:push":
         if (body.after == '0000000000000000000000000000000000000000' ) {
-          await handle(gitlabBranchDeleted, webhook, siteGroup, `${webhooktype}:${event}`)
+          await handle(gitlabBranchDeleted, webhook, project, `${webhooktype}:${event}`)
         } else {
-          await handle(gitlabPush, webhook, siteGroup, `${webhooktype}:${event}`)
+          await handle(gitlabPush, webhook, project, `${webhooktype}:${event}`)
         }
 
         break;
 
       default:
-        unhandled(webhook, siteGroup, `${webhooktype}:${event}`)
+        unhandled(webhook, project, `${webhooktype}:${event}`)
         break;
     }
 
@@ -137,7 +149,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
   channelWrapperWebhooks.ack(rabbitMsg)
 }
 
-async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup, fullEvent: string){
+async function handle(handler, webhook: WebhookRequestData, project: Project, fullEvent: string){
   const {
     webhooktype,
     event,
@@ -146,17 +158,18 @@ async function handle(handler, webhook: WebhookRequestData, siteGroup: SiteGroup
     body,
   } = webhook;
 
-  logger.info(`Handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName} `, { uuid, giturl });
+  logger.info(`Handling ${fullEvent} for project ${project.name} `, { uuid, giturl });
 
   try {
-    await handler(webhook, siteGroup)
+    await handler(webhook, project)
   } catch(error) {
-    logger.error(`Error handling ${fullEvent} for sitegroup ${siteGroup.siteGroupName}, error: ${error}`);
+    logger.error(`Error handling ${fullEvent} for project ${project.name}`);
+    logger.error(error)
   }
 }
 
 
-async function unhandled(webhook: WebhookRequestData, siteGroup: SiteGroup, fullEvent: string) {
+async function unhandled(webhook: WebhookRequestData, project: Project, fullEvent: string) {
   const {
     webhooktype,
     event,
@@ -168,8 +181,8 @@ async function unhandled(webhook: WebhookRequestData, siteGroup: SiteGroup, full
   const meta = {
     fullEvent: fullEvent
   }
-  sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `unhandledWebhook`, meta,
-    `Unhandled Webhook \`${fullEvent}\` for \`${siteGroup.siteGroupName}\``
+  sendToLagoonLogs('info', project.name, uuid, `unhandledWebhook`, meta,
+    `Unhandled Webhook \`${fullEvent}\` for \`${project.name}\``
   )
   return
 }

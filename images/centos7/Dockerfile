@@ -16,7 +16,7 @@ RUN curl -sLo /bin/ep https://github.com/kreuzwerker/envplate/releases/download/
 # good in beeing PID 1. They for example can't handle SIGTERM signals or don't keep track of Zombie threads. Here is where `tini` comes into play.
 # Tini is a super slimmed down init system that makes sure that services will work correctly and stop themselves when there is a SIGTERM signal arriving.
 # It is not used by default in our Docker images, as some services like nginx are actually ok in handling beeing PID 1, so we in order to use it a Docker
-# Image needs to change its entrypoing to: ENTRYPOINT ["/bin/tini", "--", "/usr/sbin/amazeeio-entrypoints"]
+# Image needs to change its entrypoing to: ENTRYPOINT ["/bin/tini", "--", "/usr/sbin/lagoon-entrypoints"]
 ENV TINI_VERSION v0.15.0
 RUN curl -sLo /bin/tini  https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini && \
     chmod +x /bin/tini
@@ -33,18 +33,18 @@ ENV TMPDIR=/tmp TMP=/tmp
 RUN fix-permissions /home
 ENV HOME=/home
 
-# The amazeeio entrypoint system
-# This system allows to have multiple entrypoints for a container, the script `/usr/sbin/amazeeio-entrypoints` will source all scripts that exist within
-# `/amazeeio/entrypoints/*`. It is defined as the standard ENTRYPOINT
-# If you create a child image, consider adding your entrypoint within `/amazeeio/entrypoints/` instead of overwriting the ENTRYPOINT
-COPY amazeeio-entrypoints.sh /usr/sbin/amazeeio-entrypoints
-ENTRYPOINT ["/usr/sbin/amazeeio-entrypoints"]
+# The lagoon entrypoint system
+# This system allows to have multiple entrypoints for a container, the script `/usr/sbin/lagoon-entrypoints` will source all scripts that exist within
+# `/lagoon/entrypoints/*`. It is defined as the standard ENTRYPOINT
+# If you create a child image, consider adding your entrypoint within `/lagoon/entrypoints/` instead of overwriting the ENTRYPOINT
+COPY lagoon-entrypoints.sh /usr/sbin/lagoon-entrypoints
+ENTRYPOINT ["/usr/sbin/lagoon-entrypoints"]
 
 # Allow our future random user to change /etc/passwd (needed for 10-passwd.sh)
 RUN chmod g+w /etc/passwd
 
 # We ship with a couple of default entrypoint scripts, copying them in.
-COPY entrypoints /amazeeio/entrypoints
+COPY entrypoints /lagoon/entrypoints
 
 # During a `docker exec <containername> bash` or `docker exec <containername> sh` the ENTRYPOINT is not executed (by design of docker)
 # This means our dotenv script is never called an environment variables are not exposed, this is highly confusing for developers as
@@ -52,10 +52,10 @@ COPY entrypoints /amazeeio/entrypoints
 # With the next lines we make sure our dotenv script is sourced.
 
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
-ENV ENV=/amazeeio/entrypoints/50-dotenv.sh
+ENV ENV=/lagoon/entrypoints/50-dotenv.sh
 
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
-ENV BASH_ENV=/amazeeio/entrypoints/50-dotenv.sh
+ENV BASH_ENV=/lagoon/entrypoints/50-dotenv.sh
 
 # When Bash is invoked as interactive it sources the file it finds in `/$HOME/.bashrc`
 COPY entrypoints/50-dotenv.sh /$HOME/.bashrc
