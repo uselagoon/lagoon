@@ -16,7 +16,7 @@
 const http = require('http');
 const events = require('events');
 const amqp = require('amqp-connection-manager');
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { logger } = require('@lagoon/commons/src/local-logging');
 const createReqHandler = require('./createReqHandler');
 
 import type { ChannelWrapper } from './types';
@@ -34,7 +34,7 @@ connection.on('disconnect', params => logger.error('Not connected, error: %s', p
 const channelWrapperWebhooks: ChannelWrapper = connection.createChannel({
 	setup: channel => {
 		return Promise.all([
-			channel.assertExchange('amazeeio-webhooks', 'direct', { durable: true }),
+			channel.assertExchange('lagoon-webhooks', 'direct', { durable: true }),
 		]);
 	}
 });

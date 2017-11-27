@@ -34,7 +34,7 @@ const withFormHandlers = withHandlers({
   setSha: props => event => props.setSha(event.target.value),
   doSubmitDeployRequest: props => async (siteGroup, branch, sha) => {
     const data = {
-      siteGroupName: siteGroup,
+      siteGroupname: PROJECT,
       branchName: branch,
       sha: sha || false,
     };

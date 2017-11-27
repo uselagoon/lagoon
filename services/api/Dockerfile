@@ -1,19 +1,33 @@
-ARG AMAZEEIO_GIT_BRANCH
+ARG LAGOON_GIT_BRANCH
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8-builder:${AMAZEEIO_GIT_BRANCH:-latest} as builder
+# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
+FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest} as yarn-workspace-builder
 
-# Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.
-COPY package.json yarn.lock /app/
+# STAGE 2: specific service Image
+FROM ${IMAGE_REPO:-amazeeiolagoon}/node:8
 
-# Run yarn install and remove the .yarn-cache as we don't need that on our image.
-RUN BUILD_ONLY=true yarn install --pure-lockfile
+# Copying generated node_modules from the first stage
+COPY --from=yarn-workspace-builder /app /app
 
-FROM ${IMAGE_REPO:-amazeeiolagoon}/centos7-node8:${AMAZEEIO_GIT_BRANCH:-latest}
-COPY --from=builder /app/node_modules /app/node_modules
+# Setting the workdir to the service, all following commands will run from here
+WORKDIR /app/services/api/
 
-# Now copy in our application code.
-COPY . /app
+# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
+COPY --from=yarn-workspace-builder /app/.env.defaults .
+
+# Copying files from our service
+COPY . .
+
+# Running yarn install in case some dependencies are not here
+RUN yarn install --frozen-lockfile
+
+# Making sure we run in production
+ENV NODE_ENV production
 
 RUN yarn run build
 
-CMD yarn run start
+# The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting
+# at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.
+COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
+
+CMD ["yarn", "start"]

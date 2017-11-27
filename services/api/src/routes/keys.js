@@ -5,16 +5,14 @@ const R = require('ramda');
 const sshpk = require('sshpk');
 const bodyParser = require('body-parser');
 
-const getContext = require('../getContext');
-const getCredentials = require('../getCredentials');
+const toFingerprint = sshKey =>
+  sshpk
+    .parseKey(sshKey, 'ssh')
+    .fingerprint()
+    .toString();
 
-import type { $Request, $Response } from 'express';
-
-const toFingerprint = (sshKey: string): string =>
-  sshpk.parseKey(sshKey, 'ssh').fingerprint().toString();
-
-const keysRoute = (req: $Request, res: $Response) => {
-  const { fingerprint } = (req.body: any);
+const keysRoute = (req, res) => {
+  const { fingerprint } = req.body;
 
   if (!fingerprint) {
     return res.status(500).send('Missing parameter "fingerprint"');
@@ -22,9 +20,9 @@ const keysRoute = (req: $Request, res: $Response) => {
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
-  const context = getContext(req);
+  const context = req.context;
 
-  const credentials = getCredentials(req);
+  const credentials = req.credentials;
 
   const { getState } = context.store;
   const {

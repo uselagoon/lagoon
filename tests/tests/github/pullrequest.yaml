@@ -1,0 +1,110 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "node{{ node_version }}/"
+    branch: "pullrequest_base"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - save base branch commit"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - set_fact:
+      base_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - git commit "
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "pullrequest_pr"
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+
+- name: "{{ testname }} - save pr branch commit"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - set_fact:
+      pr_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - webhook github pull request open"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_base_branch: "pullrequest_base"
+    git_base_commit_hash: "{{ base_commit_hash }}"
+    git_pr_branch: "pullrequest_pr"
+    git_pr_commit_hash: "{{ pr_commit_hash }}"
+    git_pr_number: "1"
+    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-github/pullrequest-opened.yaml
+
+
+- include: ../../checks/check-deployed.yaml
+  vars:
+    expected_head: "{{ pr_commit_hash }}"
+    expected_branch: "pr-1"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- name: "{{ testname }} - git commit a second time into pull request branch"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "pullrequest_pr"
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+
+- name: "{{ testname }} - save pr branch commit"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - set_fact:
+      pr_2nd_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - webhook github pull request updated"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_base_branch: "pullrequest_base"
+    git_base_commit_hash: "{{ base_commit_hash }}"
+    git_pr_branch: "pullrequest_pr"
+    git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
+    git_pr_number: "1"
+    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-github/pullrequest-synchronize.yaml
+
+- include: ../../checks/check-deployed.yaml
+  vars:
+    expected_head: "{{ pr_2nd_commit_hash }}"
+    expected_branch: "pr-1"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- name: "{{ testname }} - webhook github pull request closed"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_base_branch: "pullrequest_base"
+    git_base_commit_hash: "00000"
+    git_pr_branch: "pullrequest_pr"
+    git_pr_commit_hash: "00000"
+    git_pr_number: "1"
+    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-github/pullrequest-closed.yaml
+
+- name: "{{ testname }} - check if site for project does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

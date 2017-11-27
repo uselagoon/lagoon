@@ -4,5 +4,6 @@
     testname: "REST - regular branch"
     node_version: 8
     git_repo_name: rest.git
-    sitegroup: ci-rest
+    project: ci-rest
     branch: rest/slash/branch
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

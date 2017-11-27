@@ -1,30 +1,11 @@
 // @flow
 
-const getContext = require('./getContext');
 const request = require('request-promise-native');
 const jwt = require('jsonwebtoken');
 const R = require('ramda');
 const logger = require('./logger');
 
-import type { SshKeys, Clients, SiteGroups, SiteGroup, Site } from './types';
-import type { SiteGroupView, SiteView, ClientView } from './selectors';
-import type { State } from './reducer';
-import type { $Request, $Response, NextFunction } from 'express';
-
-export type Role = 'none' | 'admin' | 'drush';
-
-// Sourced from services/auth-server/src/jwt.js
-export type TokenPayload = {
-  sshKey: string,
-  role: Role,
-  iss: string,
-  sub?: string,
-  aud?: string,
-  iat?: number,
-  exp?: number,
-};
-
-const parseBearerToken /* : (?string) => ?string */ = R.compose(
+const parseBearerToken = R.compose(
   R.ifElse(
     splits =>
       R.length(splits) === 2 &&
@@ -36,36 +17,13 @@ const parseBearerToken /* : (?string) => ?string */ = R.compose(
   R.defaultTo('')
 );
 
-const decodeToken = (token: string, secret: string): ?TokenPayload => {
+const decodeToken = (token, secret) => {
   try {
     const decoded = jwt.verify(token, secret);
     return decoded;
   } catch (e) {
     return null;
   }
-};
-
-// A filter gets an entity and returns a new object with filtered attributes
-// Used for mapping over and remove attributes of a list of entities
-// e.g. R.map(cred.attributeFilters.site)(sites)
-export type AttributeFilter<E> = (entity: E) => Object;
-
-// Collection of AttributeFilters used in Credentials
-export type AttributeFilters = {
-  sitegroup?: AttributeFilter<SiteGroupView>,
-  site?: AttributeFilter<SiteView>,
-  client?: AttributeFilter<ClientView>,
-};
-
-export type Credentials = {
-  clients: Array<string>,
-  sitegroups: Array<string>,
-  sites: Array<string>,
-  role: Role,
-  attributeFilters: AttributeFilters,
-
-  // if this is defined, query filter will apply
-  allowedQueries?: Array<string>,
 };
 
 // Filtering is based on Whitelisting certain attributes of entire Entity groups
@@ -75,8 +33,8 @@ export type Credentials = {
 // Also, AttributeFilter should only be used for filtering attributes
 // of already fetched entity data... if you want to prohibit access to
 // complete group s see `getCredentialsForEntities`
-const createAttributeFilters = (role: Role): AttributeFilters => {
-  let sitegroup;
+const createAttributeFilters = role => {
+  let project;
   let site;
   let client;
 
@@ -91,7 +49,7 @@ const createAttributeFilters = (role: Role): AttributeFilters => {
 
   if (role === 'drush') {
     // For attributes check the SiteGroupView type
-    sitegroup = createFilter([
+    project = createFilter([
       // SiteGroup attributes
       'id',
       'git_url',
@@ -121,19 +79,19 @@ const createAttributeFilters = (role: Role): AttributeFilters => {
 
       // Allow this is well for the
       // nested access
-      'sitegroup',
+      'project',
     ]);
   }
 
   // Only pick filters which are defined
-  return R.pick(['sitegroup', 'site', 'client'], {
-    sitegroup,
+  return R.pick(['project', 'site', 'client'], {
+    project,
     site,
     client,
   });
 };
 
-const hasSshKey = (sshKey: string, entity: { +ssh_keys?: SshKeys }) =>
+const hasSshKey = (sshKey, entity) =>
   R.compose(
     R.compose(R.not, R.isEmpty),
     R.filter(v => v[1] && v[1].key === sshKey),
@@ -142,13 +100,13 @@ const hasSshKey = (sshKey: string, entity: { +ssh_keys?: SshKeys }) =>
   )(entity);
 
 const getCredentialsForEntities = (
-  sshKey: string,
-  role: Role,
-  entityType: 'client' | 'sitegroup' | 'site',
+  sshKey,
+  role,
+  entityType,
   // used for resolving specific relations between entities
-  relationCond: ?(entityName: string, entity: Object) => boolean,
-  entities: { [id: string]: { +ssh_keys?: SshKeys } }
-): Array<string> =>
+  relationCond,
+  entities
+) =>
   R.compose(
     R.reduce((acc, [entityName, entity]) => {
       // If there is an admin role, don't filter at all
@@ -179,39 +137,34 @@ const getCredentialsForEntities = (
   )(entities);
 
 // If this function return void, all queries are allowed
-const createAllowedQueries = (role: Role): void | Array<string> => {
+const createAllowedQueries = role => {
   if (role === 'drush') {
     return ['siteGroupByName'];
   }
 };
 
-const getCredentials = (
-  sshKey: string,
-  role: Role,
-  state: State
-): Credentials => {
+const getCredentials = (sshKey, role, state) => {
   const clients = R.compose(
     clients => getCredentialsForEntities(sshKey, role, 'client', null, clients),
     R.pathOr({}, ['clientsFile', 'amazeeio_clients'])
   )(state);
 
-  const siteGroupInClient = (sgName: string, sg: SiteGroup) =>
-    R.contains(sg.client, clients);
+  const siteGroupInClient = (sgName, sg) => R.contains(sg.client, clients);
 
-  const sitegroups = R.compose(
+  const projects = R.compose(
     siteGroups =>
       getCredentialsForEntities(
         sshKey,
         role,
-        'sitegroup',
+        'project',
         siteGroupInClient,
         siteGroups
       ),
-    R.pathOr({}, ['siteGroupsFile', 'amazeeio_sitegroups'])
+    R.pathOr({}, ['siteGroupsFile', 'amazeeio_projects'])
   )(state);
 
-  const siteInSiteGroup = (siteName: string, site: Site) =>
-    R.contains(site.sitegroup, sitegroups);
+  const siteInSiteGroup = (siteName, site) =>
+    R.contains(site.project, projects);
 
   const sites = R.compose(
     sites =>
@@ -225,10 +178,9 @@ const getCredentials = (
     R.propOr({}, 'siteFiles')
   )(state);
 
-
   return {
     clients,
-    sitegroups,
+    projects,
     sites,
     role,
     attributeFilters: createAttributeFilters(role),
@@ -236,19 +188,9 @@ const getCredentials = (
   };
 };
 
-export type AuthMiddlewareArgs = {
-  baseUri: string,
-  jwtSecret: string,
-  jwtAudience?: string,
-};
-
-const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
-  req: $Request,
-  res: $Response,
-  next: NextFunction
-) => {
+const createAuthMiddleware = args => async (req, res, next) => {
   const { baseUri, jwtSecret, jwtAudience } = args;
-  const ctx = getContext(req);
+  const ctx = req.context;
 
   const token = parseBearerToken(req.get('Authorization'));
 
@@ -260,13 +202,6 @@ const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
   }
 
   try {
-    // TODO: Do we really need this verifictation check?
-
-    // Check if our auth-server knows of this token
-    // await request({
-    //   uri: `${baseUri}/authenticate/${token}`,
-    // });
-
     const decoded = decodeToken(token, jwtSecret);
 
     if (decoded == null) {
@@ -289,15 +224,12 @@ const createAuthMiddleware = (args: AuthMiddlewareArgs) => async (
       });
     }
 
-    // Add credentials to request context
-    const state = ctx.store.getState();
-    const credentials = getCredentials(sshKey, role, state);
-
     // $FlowIgnore
-    req.credentials = credentials;
+    req.credentials = decoded;
 
     next();
   } catch (e) {
+    console.log(e);
     res
       .status(403)
       .send({ errors: [{ message: 'Forbidden - Invalid Auth Token' }] });

@@ -2,9 +2,7 @@
 
 const logger = require('../logger');
 
-import type { $Request, $Response } from 'express';
-
-const statusRoute = (req: $Request, res: $Response) => {
+const statusRoute = (req, res) => {
   logger.debug('Fetching status.');
 
   // @todo Add logic to fetch the status.

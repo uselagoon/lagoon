@@ -1,18 +1,12 @@
 version: '2'
 services:
-  builder:
+  cli:
     build:
       context: .
       dockerfile: Dockerfile.builder
     image: builder
     labels:
-      com.amazeeio.type: none
-  cli:
-    build:
-      context: .
-      dockerfile: Dockerfile.builder
-    labels:
-      com.amazeeio.type: cli
+      lagoon.type: cli
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -25,8 +19,8 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     labels:
-      com.amazeeio.type: nginx-php
-      com.amazeeio.name: nginx-php
+      lagoon.type: nginx-php
+      lagoon.name: nginx-php
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -40,8 +34,8 @@ services:
       context: .
       dockerfile: Dockerfile.php
     labels:
-      com.amazeeio.type: nginx-php
-      com.amazeeio.name: nginx-php
+      lagoon.type: nginx-php
+      lagoon.name: nginx-php
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -51,7 +45,7 @@ services:
       context: .
       dockerfile: Dockerfile.mariadb
     labels:
-      com.amazeeio.type: mariadb
+      lagoon.type: mariadb
 networks:
   amazeeio-network:
     external: true

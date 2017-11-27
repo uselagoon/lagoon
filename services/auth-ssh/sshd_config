@@ -19,10 +19,6 @@ HostbasedAuthentication no
 
 PasswordAuthentication no
 ChallengeResponseAuthentication no
-KerberosAuthentication no
-GSSAPIAuthentication no
-
-UsePAM no
 
 AllowAgentForwarding no
 AllowTcpForwarding no
@@ -31,7 +27,6 @@ X11Forwarding no
 
 PermitTTY no
 PrintMotd no
-PrintLastLog no
 
 PermitUserEnvironment no
 #UseDNS yes

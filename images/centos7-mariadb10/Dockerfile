@@ -13,7 +13,7 @@ RUN { \
     } > /etc/yum.repos.d/mariadb.repo
 
 COPY server.cnf /etc/my.cnf.d/server.cnf
-COPY docker-entrypoint /amazeeio/entrypoints/70-mariadb-entrypoint
+COPY docker-entrypoint /lagoon/entrypoints/70-mariadb-entrypoint
 
 RUN yum install -y epel-release && \
     yum install -y pwgen MariaDB-server MariaDB-client && \
@@ -30,9 +30,9 @@ RUN usermod -G 0 --append mysql
 USER mysql
 
 ENV MYSQL_RANDOM_ROOT_PASSWORD=true \
-    MYSQL_DATABASE=amazeeio \
-    MYSQL_USER=amazeeio \
-    MYSQL_PASSWORD=amazeeio
+    MYSQL_DATABASE=lagoon \
+    MYSQL_USER=lagoon \
+    MYSQL_PASSWORD=lagoon
 
 VOLUME /var/lib/mysql
 CMD ["mysqld"]

@@ -13,3 +13,5 @@ build/*
 !build/.gitkeep
 openshift
 .loopback
+secrets
+

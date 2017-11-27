@@ -1,6 +1,0 @@
-services:
-  node:
-    nginx:
-      dockerfile: .amazeeio.Dockerfile
-    amazeeio:
-      type: nginx:1.12

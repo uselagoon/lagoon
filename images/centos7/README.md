@@ -10,9 +10,9 @@ Check the `Dockerfile` to learn what and why they are installed.
 
 In an hierarchical Docker Image system we sometimes like to have multiple entrypoints. This image has such a system.
 
-Instead of running a single entrypoint script, it sources all scripts that it can find within `/amazeeio/entrypoints/*`.
+Instead of running a single entrypoint script, it sources all scripts that it can find within `/lagoon/entrypoints/*`.
 
-If you create a child image from this image, consider adding your entrypoint within `/amazeeio/entrypoints/` instead of overwriting the ENTRYPOINT
+If you create a child image from this image, consider adding your entrypoint within `/lagoon/entrypoints/` instead of overwriting the ENTRYPOINT
 
 ## dotenv system
 

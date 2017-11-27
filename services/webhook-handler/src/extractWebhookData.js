@@ -57,9 +57,20 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       // Bitbucket does not provide a git-ssh URI to the repo in the webhook payload
       // We the html repo link (example https://bitbucket.org/teamawesome/repository) to extract the correct target domain (bitbucket.org)
       // this could be bitbuck.org(.com) or a private bitbucket server
-      const domain = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)\//i)
-      // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
-      giturl = `git@${domain[1]}:${bodyObj.repository.full_name}.git`
+      // Also the git server could be running on another port than 22, so there is a second regex match for `:[0-9]`
+      const regexmatch = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)(:[0-9]*)?\//i)
+      // The first match is the domain
+      const domain = regexmatch[1]
+      if (!regexmatch[2]) {
+        // If there is no 2nd regex match, ther is no port found and it's not added to the URL
+        // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
+        giturl = `git@${domain}:${bodyObj.repository.full_name}.git`
+      } else {
+        // If there is a second regex match, we add the port to the url and also format the url with `ssh://` in front which is needed for requests with anoter port
+        const port = regexmatch[2]
+        giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
+      }
+
     } else {
       throw new Error('No supported event header found on POST request');
     }
