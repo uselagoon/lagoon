@@ -1,5 +1,5 @@
-const R = require("ramda");
-const { makeExecutableSchema } = require("graphql-tools");
+const R = require('ramda');
+const { makeExecutableSchema } = require('graphql-tools');
 
 const typeDefs = `
   enum SshKeyType {
@@ -121,30 +121,37 @@ const typeDefs = `
   }
 `;
 
-const getCtx = req => req.app.get("context");
+const getCtx = req => req.app.get('context');
 const getDao = req => getCtx(req).dao;
 
 const resolvers = {
   Project: {
     customer: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByProjectId(req.credentials, project.customer);
+      return await dao.getCustomerByProjectId(
+        req.credentials,
+        project.customer,
+      );
     },
     sshKeys: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByProjectId(req.credentials, project.id)
+      return await dao.getSshKeysByProjectId(req.credentials, project.id);
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getNotificationsByProjectId(req.credentials, project.id, args)
+      return await dao.getNotificationsByProjectId(
+        req.credentials,
+        project.id,
+        args,
+      );
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
       return await dao.getOpenshiftByProjectId(req.credentials, project.id);
-    }
+    },
   },
   Notification: {
-    __resolveType(obj, context, info){
+    __resolveType(obj, context, info) {
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
@@ -156,8 +163,8 @@ const resolvers = {
   Customer: {
     sshKeys: async (customer, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByCustomerId(req.credentials, customer.id)
-    }
+      return await dao.getSshKeysByCustomerId(req.credentials, customer.id);
+    },
   },
   Query: {
     projectByGitUrl: async (root, args, req) => {
@@ -175,7 +182,7 @@ const resolvers = {
     allCustomers: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllCustomers(req.credentials, args);
-    }
+    },
   },
   Mutation: {
     addProject: async (root, args, req) => {
@@ -205,15 +212,18 @@ const resolvers = {
     },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationToProject(req.credentials, args.input);
+      const ret = await dao.addNotificationToProject(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     truncateTable: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.truncateTable(req.credentials, args);
       return ret;
-    }
-  }
+    },
+  },
 };
 
 module.exports = makeExecutableSchema({ typeDefs, resolvers });
