@@ -310,7 +310,8 @@ build-list:
 	done
 
 # Define list of all tests
-all-tests-list:= 	node \
+all-tests-list:=	ssh-auth \
+									node \
 									drupal \
 									github \
 									gitlab \
