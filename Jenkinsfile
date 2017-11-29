@@ -1,8 +1,4 @@
 node {
-  // // During creating openshift, 'oc cluster up' creates some config files (for docker login, oc login, etc)
-  // // They are by default put in $HOME, where it could happen that multiple builds put the same files and overwrite each
-  // // other and lead to weird build fails. We're setting the HOME directory to the current workspace to prevent that
-  // env.HOME = env.WORKSPACE
 
   // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
