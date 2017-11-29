@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 # amazee.io lagoon Makefile The main purpose of this Makefile is to provide easier handling of
 # building images and running tests It understands the relation of the different images (like
-# centos7-node6 is based on centos7) and builds them in the correct order Also it knows which
+# nginx-drupal is based on nginx) and builds them in the correct order Also it knows which
 # services in docker-compose.yml are depending on which base images or maybe even other service
 # images
 #
@@ -36,21 +36,16 @@ SHELL := /bin/bash
 
 # make openshift
 # Some tests need a full openshift running in order to test deployments and such. This can be
-# started via openshift`. It will:
-# 1. Download the `oc` cli
-# 2. Create a loopback device on the current machine in order to have preditable IP addresses of
-#    the OpenShift Console and Registry
-# 3. Start an OpenShift Cluster
+# started via openshift. It will:
+# 1. Download minishift cli
+# 2. Start an OpenShift Cluster
+# 3. Configure OpenShift cluster to our needs
 
 # make openshift/stop
 # Removes an OpenShift Cluster
 
 # make openshift/clean
-# Removes all openshift related things: OpenShift itself and the oc cli
-
-# make publish-images
-# Pushes images that will be used by amazee.io clients during local development to the amazeeio
-# dockerhub registry
+# Removes all openshift related things: OpenShift itself and the minishift cli
 
 #######
 ####### Default Variables
@@ -61,7 +56,6 @@ DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.9.0
-OC_HASH := c4dd4cf
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
@@ -508,7 +502,7 @@ openshift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm openshift
 
-# Stop OpenShift, remove downloaded cli, remove loopback
+# Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
 openshift/clean: openshift/stop
 	rm -rf ./local-dev/minishift/minishift

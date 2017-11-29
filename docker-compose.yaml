@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   mariadb:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/mariadb
+    image: ${IMAGE_REPO:-lagoon}/mariadb
     volumes:
       - ./services/mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/mariadb/rerun_initdb.sh:/rerun_initdb.sh
@@ -9,9 +9,9 @@ services:
       - "3306:3306"
     labels:
       lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/mariadb:develop
+      lagoon.image: amazeeiolagoon/mariadb:master
   webhook-handler:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/webhook-handler
+    image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
     ports:
       - "7777:3000"
@@ -21,18 +21,18 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhook-handler:develop
+      lagoon.image: amazeeiolagoon/webhook-handler:master
   rabbitmq:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/rabbitmq
+    image: ${IMAGE_REPO:-lagoon}/rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
     labels:
       lagoon.type: custom
       lagoon.template: services/rabbitmq/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rabbitmq:develop
+      lagoon.image: amazeeiolagoon/rabbitmq:master
   openshiftremove:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftremove
+    image: ${IMAGE_REPO:-lagoon}/openshiftremove
     command: yarn run dev
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
@@ -40,9 +40,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftremove/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftremove:develop
+      lagoon.image: amazeeiolagoon/openshiftremove:master
   openshiftbuilddeploy:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftbuilddeploy
+    image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
     environment:
       - CI_USE_OPENSHIFT_REGISTRY=${CI_USE_OPENSHIFT_REGISTRY:-true}
@@ -52,9 +52,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploy/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:develop
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:master
   openshiftbuilddeploymonitor:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftbuilddeploymonitor
+    image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
     volumes:
       - ./services/openshiftbuilddeploymonitor/src:/app/services/openshiftbuilddeploymonitor/src
@@ -66,9 +66,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:develop
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:master
   logs2slack:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/logs2slack
+    image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
@@ -76,9 +76,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2slack:develop
+      lagoon.image: amazeeiolagoon/logs2slack:master
   webhooks2tasks:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/webhooks2tasks
+    image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
@@ -86,9 +86,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhooks2tasks:develop
+      lagoon.image: amazeeiolagoon/webhooks2tasks:master
   rest2tasks:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/rest2tasks
+    image: ${IMAGE_REPO:-lagoon}/rest2tasks
     command: yarn run dev
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
@@ -98,9 +98,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rest2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rest2tasks:develop
+      lagoon.image: amazeeiolagoon/rest2tasks:master
   api:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/api
+    image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
     volumes:
       - ./services/api/src:/app/services/api/src
@@ -113,9 +113,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:develop
+      lagoon.image: amazeeiolagoon/api:master
   auth-ssh:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/auth-ssh
+    image: ${IMAGE_REPO:-lagoon}/auth-ssh
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume
@@ -134,9 +134,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-ssh:develop
+      lagoon.image: amazeeiolagoon/auth-ssh:master
   auth-server:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/auth-server
+    image: ${IMAGE_REPO:-lagoon}/auth-server
     command: yarn run dev
     environment:
       - JWTISSUER=auth-server.dev
@@ -149,9 +149,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-server:develop
+      lagoon.image: amazeeiolagoon/auth-server:master
   tests:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/tests
+    image: ${IMAGE_REPO:-lagoon}/tests
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
@@ -173,7 +173,7 @@ services:
     labels:
       lagoon.type: none
   local-git:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/local-git
+    image: ${IMAGE_REPO:-lagoon}/local-git
     environment:
       - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw== ansible-testing
     ports: # do not remove with remove-ports-from-yaml
@@ -181,7 +181,7 @@ services:
     labels:
       lagoon.type: none
   hacky-rest2tasks-ui:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/hacky-rest2tasks-ui
+    image: ${IMAGE_REPO:-lagoon}/hacky-rest2tasks-ui
     command: yarn run dev
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -204,14 +204,14 @@ services:
   local-api-data-watcher-pusher:
     depends_on:
       - mariadb
-    image: ${IMAGE_REPO:-amazeeiolagoon}/local-api-data-watcher-pusher
+    image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher
     volumes:
       - ./local-dev/api-data:/api-data
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
   cli:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/cli
+    image: ${IMAGE_REPO:-lagoon}/cli
     depends_on:
       - api
     environment:

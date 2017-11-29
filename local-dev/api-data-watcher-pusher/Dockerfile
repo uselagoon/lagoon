@@ -7,7 +7,9 @@ RUN apk add --no-cache mysql-client tini openssl bash wget curl \
 ENV MYSQL_DATABASE=infrastructure \
     MYSQL_USER=api \
     MYSQL_PASSWORD=api \
-    MYSQL_HOST=mariadb
+    MYSQL_HOST=mariadb \
+    JWTSECRET=super-secret-string \
+    JWTAUDIENCE=api.dev
 
 COPY api-watch-push.sh create_jwt.sh /home/
 
