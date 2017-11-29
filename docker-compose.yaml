@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   mariadb:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/mariadb
+    image: ${IMAGE_REPO:-lagoon}/mariadb
     volumes:
       - ./services/mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/mariadb/rerun_initdb.sh:/rerun_initdb.sh
@@ -9,9 +9,9 @@ services:
       - "3306:3306"
     labels:
       lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/mariadb:develop
+      lagoon.image: amazeeiolagoon/mariadb:master
   webhook-handler:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/webhook-handler
+    image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
     ports:
       - "7777:3000"
@@ -21,18 +21,18 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhook-handler:develop
+      lagoon.image: amazeeiolagoon/webhook-handler:master
   rabbitmq:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/rabbitmq
+    image: ${IMAGE_REPO:-lagoon}/rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
     labels:
       lagoon.type: custom
       lagoon.template: services/rabbitmq/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rabbitmq:develop
+      lagoon.image: amazeeiolagoon/rabbitmq:master
   openshiftremove:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftremove
+    image: ${IMAGE_REPO:-lagoon}/openshiftremove
     command: yarn run dev
     volumes:
       - ./services/openshiftremove/src:/app/services/openshiftremove/src
@@ -40,9 +40,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftremove/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftremove:develop
+      lagoon.image: amazeeiolagoon/openshiftremove:master
   openshiftbuilddeploy:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftbuilddeploy
+    image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
     environment:
       - CI_USE_OPENSHIFT_REGISTRY=${CI_USE_OPENSHIFT_REGISTRY:-true}
@@ -52,9 +52,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploy/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:develop
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:master
   openshiftbuilddeploymonitor:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/openshiftbuilddeploymonitor
+    image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
     volumes:
       - ./services/openshiftbuilddeploymonitor/src:/app/services/openshiftbuilddeploymonitor/src
@@ -66,9 +66,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:develop
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:master
   logs2slack:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/logs2slack
+    image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
@@ -76,9 +76,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2slack:develop
+      lagoon.image: amazeeiolagoon/logs2slack:master
   webhooks2tasks:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/webhooks2tasks
+    image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
@@ -86,9 +86,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhooks2tasks:develop
+      lagoon.image: amazeeiolagoon/webhooks2tasks:master
   rest2tasks:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/rest2tasks
+    image: ${IMAGE_REPO:-lagoon}/rest2tasks
     command: yarn run dev
     volumes:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
@@ -98,9 +98,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rest2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rest2tasks:develop
+      lagoon.image: amazeeiolagoon/rest2tasks:master
   api:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/api
+    image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
     volumes:
       - ./services/api/src:/app/services/api/src
@@ -113,9 +113,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:develop
+      lagoon.image: amazeeiolagoon/api:master
   auth-ssh:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/auth-ssh
+    image: ${IMAGE_REPO:-lagoon}/auth-ssh
       # TODO:
       # Michael, can you fix the uid (has to be root) problem when mounting
       # the authorize.sh file. Currently, we can't mount this as a volume
@@ -134,9 +134,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-ssh:develop
+      lagoon.image: amazeeiolagoon/auth-ssh:master
   auth-server:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/auth-server
+    image: ${IMAGE_REPO:-lagoon}/auth-server
     command: yarn run dev
     environment:
       - JWTISSUER=auth-server.dev
@@ -149,9 +149,9 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-server:develop
+      lagoon.image: amazeeiolagoon/auth-server:master
   tests:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/tests
+    image: ${IMAGE_REPO:-lagoon}/tests
     environment:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
@@ -162,7 +162,7 @@ services:
       - OPENSHIFT_ROUTE_SUFFIX=192.168.99.100.nip.io
       - WEBHOOK_REPO_PREFIX=ssh://git@10.0.2.2:32768/git/
       - GIT_REPO_PREFIX=git@local-git:/git/
-      - SSH_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----
+      - SSH_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----
       - SSH_AUTH_HOST=auth-ssh
       - SSH_AUTH_PORT=2020
       - API_HOST=api
@@ -173,15 +173,15 @@ services:
     labels:
       lagoon.type: none
   local-git:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/local-git
+    image: ${IMAGE_REPO:-lagoon}/local-git
     environment:
-      - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5b9Awb6iwWRz1z+QDwLlSvtpxg/7pR7Rf+kJT3khQGiLuX4Qk2aDCrt1fKndjyUuj55ocRc8OlExrA8FPfZbpnfaNXfVh9TlybhjIWUHtLbc9giCoDuiV2TEb6ZW/esKlVtWomzfY/njwPAuXEU2i3j5YxVQuZ0y+AN4yca4V1y7y2BlUOvp5qSvz/8PcBJegaoesSSuFpQWCR788/i0sURJiaG6+tZN+bGVSnJgtbXQJvc0r45au3PL5jyMcApbHOCDQUIiWyC6ipW2EIYTUBVO80QVEjymmBZpZEQl/0DQPEzBdqCi4X4wmwhoan7hQJQ7dNdqmRL+W4L75yPNyngNgJVNTlIXOHXevpNskH//HUlwEp4WPHuT76BZT3cq1RCatn6iMsFiwpESk9xyDbEVPfxKAr77cRpFIHuJd7amDjTk7/KP0PTliO2ViCyjDudiajwNh7XmY0ZqYrhHI16ebTSESDslh0a0JlZvWlYa4xDBKtKwfINRrcrYmuYUzSF7wn7F1o45cHZ2kuftioOQhLNgx0LqztRMn3RBoeG3QHbxmv9WfO/0hHa4FdkQLErEdzEM9JR4WewRnh04dcjejX1daWKbo2X8ndaCc0BvdNDL/HpSgqfCnJ2Nlq4pM6Pomkvdp5wTWpZwCjDl08UgttAFrQwjYoBy9UpUmDQ== ansible-testing
+      - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw== ansible-testing
     ports: # do not remove with remove-ports-from-yaml
       - "22"
     labels:
       lagoon.type: none
   hacky-rest2tasks-ui:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/hacky-rest2tasks-ui
+    image: ${IMAGE_REPO:-lagoon}/hacky-rest2tasks-ui
     command: yarn run dev
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -204,14 +204,14 @@ services:
   local-api-data-watcher-pusher:
     depends_on:
       - mariadb
-    image: ${IMAGE_REPO:-amazeeiolagoon}/local-api-data-watcher-pusher
+    image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher
     volumes:
       - ./local-dev/api-data:/api-data
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
   cli:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/cli
+    image: ${IMAGE_REPO:-lagoon}/cli
     depends_on:
       - api
     environment:
