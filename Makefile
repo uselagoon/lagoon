@@ -310,7 +310,8 @@ build-list:
 	done
 
 # Define list of all tests
-all-tests-list:= 	node \
+all-tests-list:=	ssh-auth \
+									node \
 									drupal \
 									github \
 									gitlab \
@@ -381,8 +382,8 @@ $(push-openshift-images):
 	$(eval image = $(subst [push-openshift]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
 	$(info pushing $(image) to openshift registry)
-	@docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
-	@docker push $$(cat openshift):30000/lagoon/$(image) > /dev/null
+	docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
+	docker push $$(cat openshift):30000/lagoon/$(image) | cat
 
 
 local-git-port:
