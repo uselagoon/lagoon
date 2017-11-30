@@ -34,7 +34,7 @@ const createApp = args => {
       stream: {
         write: message => logger.info(message),
       },
-    })
+    }),
   );
 
   app.use(
@@ -42,7 +42,7 @@ const createApp = args => {
       baseUri: 'http://auth-server:3000',
       jwtSecret,
       jwtAudience,
-    })
+    }),
   );
 
   // Add routes.
