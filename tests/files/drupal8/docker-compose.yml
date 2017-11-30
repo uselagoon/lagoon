@@ -21,6 +21,8 @@ services:
     labels:
       lagoon.type: varnish
       lagoon.name: varnish
+    depends_on:
+      - nginx
   nginx:
     networks:
       - amazeeio-network
