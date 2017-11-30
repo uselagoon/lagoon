@@ -13,7 +13,7 @@ const MariaSQL = require('mariasql');
       port: 3306,
       user: 'api',
       password: 'api',
-      db: 'infrastructure'
+      db: 'infrastructure',
     });
 
     await createServer({
@@ -28,6 +28,3 @@ const MariaSQL = require('mariasql');
     logger.error(e.stack);
   }
 })();
-
-
-

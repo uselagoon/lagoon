@@ -11,7 +11,6 @@ const toFingerprint = sshKey =>
     .fingerprint()
     .toString();
 
-
 const keysRoute = async (req, res) => {
   const { fingerprint } = req.body;
   const cred = req.credentials;
@@ -24,7 +23,7 @@ const keysRoute = async (req, res) => {
     return res.status(500).send('Missing parameter "fingerprint"');
   }
 
-  const dao = req.app.get("context").dao;
+  const dao = req.app.get('context').dao;
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 

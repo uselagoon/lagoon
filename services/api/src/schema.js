@@ -128,10 +128,7 @@ const resolvers = {
   Project: {
     customer: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByProjectId(
-        req.credentials,
-        project.customer,
-      );
+      return await dao.getCustomerByProjectId(req.credentials, project.customer);
     },
     sshKeys: async (project, args, req) => {
       const dao = getDao(req);
@@ -139,11 +136,7 @@ const resolvers = {
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getNotificationsByProjectId(
-        req.credentials,
-        project.id,
-        args,
-      );
+      return await dao.getNotificationsByProjectId(req.credentials, project.id, args);
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
@@ -212,10 +205,7 @@ const resolvers = {
     },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationToProject(
-        req.credentials,
-        args.input,
-      );
+      const ret = await dao.addNotificationToProject(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {

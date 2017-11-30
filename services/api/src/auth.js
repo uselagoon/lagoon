@@ -11,10 +11,10 @@ const parseBearerToken = R.compose(
       R.length(splits) === 2 &&
       R.compose(R.toLower, R.defaultTo(''), R.head)(splits) === 'bearer',
     R.nth(1),
-    R.always(null)
+    R.always(null),
   ),
   R.split(' '),
-  R.defaultTo('')
+  R.defaultTo(''),
 );
 
 const decodeToken = (token, secret) => {
@@ -44,7 +44,7 @@ const createAttributeFilters = role => {
       // to normalize data
       R.isNil,
       R.always(null),
-      R.pick(attr)
+      R.pick(attr),
     );
 
   if (role === 'drush') {
@@ -96,7 +96,7 @@ const hasSshKey = (sshKey, entity) =>
     R.compose(R.not, R.isEmpty),
     R.filter(v => v[1] && v[1].key === sshKey),
     R.toPairs,
-    R.propOr({}, 'ssh_keys')
+    R.propOr({}, 'ssh_keys'),
   )(entity);
 
 const getCredentialsForEntities = (
@@ -105,7 +105,7 @@ const getCredentialsForEntities = (
   entityType,
   // used for resolving specific relations between entities
   relationCond,
-  entities
+  entities,
 ) =>
   R.compose(
     R.reduce((acc, [entityName, entity]) => {
@@ -133,7 +133,7 @@ const getCredentialsForEntities = (
 
       return acc;
     }, []),
-    R.toPairs
+    R.toPairs,
   )(entities);
 
 // If this function return void, all queries are allowed
@@ -146,7 +146,7 @@ const createAllowedQueries = role => {
 const getCredentials = (sshKey, role, state) => {
   const clients = R.compose(
     clients => getCredentialsForEntities(sshKey, role, 'client', null, clients),
-    R.pathOr({}, ['clientsFile', 'amazeeio_clients'])
+    R.pathOr({}, ['clientsFile', 'amazeeio_clients']),
   )(state);
 
   const siteGroupInClient = (sgName, sg) => R.contains(sg.client, clients);
@@ -158,9 +158,9 @@ const getCredentials = (sshKey, role, state) => {
         role,
         'project',
         siteGroupInClient,
-        siteGroups
+        siteGroups,
       ),
-    R.pathOr({}, ['siteGroupsFile', 'amazeeio_projects'])
+    R.pathOr({}, ['siteGroupsFile', 'amazeeio_projects']),
   )(state);
 
   const siteInSiteGroup = (siteName, site) =>
@@ -172,10 +172,10 @@ const getCredentials = (sshKey, role, state) => {
     R.fromPairs,
     R.unnest,
     R.map(([fileName, siteFile]) =>
-      R.compose(R.toPairs, R.propOr({}, 'drupalsites'))(siteFile)
+      R.compose(R.toPairs, R.propOr({}, 'drupalsites'))(siteFile),
     ),
     R.toPairs,
-    R.propOr({}, 'siteFiles')
+    R.propOr({}, 'siteFiles'),
   )(state);
 
   return {

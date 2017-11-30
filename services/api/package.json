@@ -8,7 +8,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "node -r dotenv-extended/config src",
-    "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
+    "dev":
+      "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
   },
   "keywords": [],
   "author": "",
@@ -30,5 +31,14 @@
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "winston": "^2.4.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.12.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.35.0",
+    "eslint-plugin-import": "^2.8.0",
+    "nodemon": "^1.12.1",
+    "prettier": "^1.8.2"
   }
 }

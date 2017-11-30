@@ -21,7 +21,7 @@ const getCustomerSshKeys = sqlClient => async cred => {
 
         const ret = R.map(R.prop('sshKey'), rows);
         res(ret);
-      }
+      },
     );
   });
 };
@@ -35,9 +35,9 @@ const getAllCustomers = sqlClient => async (cred, args) => {
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
-      SELECT * FROM customer ${args.createdAfter
-        ? 'WHERE created >= :createdAfter'
-        : ''}
+      SELECT * FROM customer ${
+        args.createdAfter ? 'WHERE created >= :createdAfter' : ''
+      }
     `);
 
     sqlClient.query(prep(args), (err, rows) => {
@@ -108,7 +108,6 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
@@ -225,7 +224,7 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
 
 const getProjectByGitUrl = sqlClient => async (cred, args) => {
   if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
+    throw new Error('Unauthsorized');
   }
 
   return new Promise((res, rej) => {
@@ -248,6 +247,7 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
 };
 
 const getProjectByName = sqlClient => async (cred, args) => {
+  console.log(cred);
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -281,16 +281,22 @@ const addProject = sqlClient => async (cred, input) => {
         :customer,
         :git_url,
         :openshift,
-        ${input.active_systems_deploy
-          ? ':active_systems_deploy'
-          : '"lagoon_openshiftBuildDeploy"'},
-        ${input.active_systems_remove
-          ? ':active_systems_remove'
-          : '"lagoon_openshiftRemove"'},
+        ${
+          input.active_systems_deploy
+            ? ':active_systems_deploy'
+            : '"lagoon_openshiftBuildDeploy"'
+        },
+        ${
+          input.active_systems_remove
+            ? ':active_systems_remove'
+            : '"lagoon_openshiftRemove"'
+        },
         ${input.branches ? ':branches' : '"true"'},
-        ${input.pullrequests
-          ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
-          : 'NULL'},
+        ${
+          input.pullrequests
+            ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
+            : 'NULL'
+        },
         '${input.sshKeys ? input.sshKeys.join(',') : ''}'
       );
     `);
