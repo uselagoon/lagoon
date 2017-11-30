@@ -120,7 +120,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
     Your local running Lagoon (inside docker-compose) received a deploy command for a sitegroup called `lagoon` that you configured. In this SiteGroup it is defined to which OpenShift that should be deployed (one single Lagoon can deploy into multiple OpenShifts all around the world). So the local running Lagoon service `openshiftBuildDeploy` connects to this OpenShift and creates a new project, some needed configurations (ServiceAccounts, BuildConfigs, etc.) and triggers a new Build. This Build will run and deploy another Lagoon within the OpenShift it runs.
 
-4. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` (for a local OpenShift this will be http://rest2tasks-lagoon-develop.192.168.99.100.nip.io/), if you get `welcome to rest2tasks` as result, you did everything correct, bravo!
+4. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` (for a local OpenShift this will be http://rest2tasks-lagoon-develop.192.168.99.100.xip.io/), if you get `welcome to rest2tasks` as result, you did everything correct, bravo!
 
 ### Configure Installed Lagoon
 
@@ -170,4 +170,4 @@ Just fill all the `[fill me]` you can find in `create-project.gql`, copy it into
 
 Congrats again 🎉!
 
-#### Connect 
+#### Connect
