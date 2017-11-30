@@ -19,11 +19,12 @@ RUN apk update && apk add varnish@edge
 COPY default.vcl /etc/varnish/default.vcl
 
 RUN fix-permissions /etc/varnish/ \
-    && fix-permissions /var/run/
+    && fix-permissions /var/run/ \
+    && fix-permissions /var/lib/varnish
 
 COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
 
 EXPOSE 7080
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["varnishd", "-F", "-f", "/etc/varnish/default.vcl", ">>", "/var/log/varnish/start.log 2>&1"]
+CMD ["varnishd", "-a", ":8080", "-F", "-f", "/etc/varnish/default.vcl"]

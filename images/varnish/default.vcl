@@ -5,7 +5,7 @@ import directors;
 
 # set backend backend
 backend backend {
-  .host = "${VARNISH_HOST:-127.0.0.1}";
+  .host = "${VARNISH_HOST:-nginx-php}";
   .port = "8080";
   .first_byte_timeout = 35m;
   .between_bytes_timeout = 10m;
@@ -26,8 +26,8 @@ acl purge {
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
 sub vcl_recv {
-  if (req.url ~ "^/varnish_status$ ")  {
-    return (synth(200,"OK"));
+  if (req.url ~ "^/varnish_status$")  {
+    return (synth(700,"OK"));
   }
   # set the backend, which should be used:
   set req.backend_hint = webworker.backend();
@@ -305,6 +305,13 @@ sub vcl_synth {
     synthetic({"XMLRPC Interface is blocked due to SA-CORE-2014-004 - mail support@amazee.io if you need it."});
     return (deliver);
   }
+  if (resp.status == 700) {
+    # Set a status the client will understand
+    set resp.status = 200;
+    # Create our synthetic response
+    synthetic("");
+    return(deliver);
+}
   return (deliver);
 }
 
