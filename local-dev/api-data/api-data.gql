@@ -30,7 +30,7 @@ mutation FillAPI {
   }
 
   # Local OpenShift started via Make, see that there is no token given, as we modify the local openshift during setup that anonymous has access to create objects
-  CiLocalOpenshift: addOpenshift(input: {name: "ci-local", console_url: "https://192.168.99.100:8443/", router_pattern: "${project}.${branch}.192.168.99.100.nip.io", project_user: "developer"}) {
+  CiLocalOpenshift: addOpenshift(input: {name: "ci-local", console_url: "https://192.168.99.100:8443/", router_pattern: "${project}.${branch}.192.168.99.100.xip.io", project_user: "developer"}) {
     id
   }
 
