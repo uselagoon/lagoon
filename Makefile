@@ -104,7 +104,8 @@ images :=     centos7 \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
-							nginx-drupal
+							nginx-drupal \
+							varnish
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -133,6 +134,7 @@ build/centos7-mariadb10-drupal: build/centos7-mariadb10 images/centos7-mariadb10
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
+build/varnish: build/commons images/varnish/Dockerfile
 
 #######
 ####### PHP Images
@@ -348,7 +350,7 @@ $(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: local-git-port openshift build/varnish build/centos7-mariadb10-drupal build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
