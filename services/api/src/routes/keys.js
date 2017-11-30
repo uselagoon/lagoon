@@ -11,36 +11,31 @@ const toFingerprint = sshKey =>
     .fingerprint()
     .toString();
 
-const keysRoute = (req, res) => {
+
+const keysRoute = async (req, res) => {
   const { fingerprint } = req.body;
+  const cred = req.credentials;
+
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
 
   if (!fingerprint) {
     return res.status(500).send('Missing parameter "fingerprint"');
   }
 
+  const dao = req.app.get("context").dao;
+
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
   const context = req.context;
 
-  const credentials = req.credentials;
+  const sshKeys = await dao.getCustomerSshKeys(cred);
 
-  const { getState } = context.store;
-  const {
-    getAllClients,
-    getSshKeysFromClients,
-    toSshKeyStr,
-  } = context.selectors;
-
-  const clients = getAllClients(getState());
-
-  // Creates a fingerprint => sshKey mapping
   const fingerprintKeyMap = R.compose(
     R.fromPairs,
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
-    R.map(toSshKeyStr),
-    getSshKeysFromClients,
-    R.filter(client => R.contains(client.clientName, credentials.clients))
-  )(clients);
+  )(sshKeys);
 
   const result = R.propOr('', fingerprint, fingerprintKeyMap);
 
