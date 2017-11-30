@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "flow": "flow check",
-    "format": "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
+    "format":
+      "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
   },
   "jest": {
     "rootDir": "src",
@@ -21,11 +22,7 @@
   },
   "lint-staged": {
     "linters": {
-      "*.js": [
-        "prettier --trailing-comma all --single-quote",
-        "eslint --fix",
-        "git add"
-      ]
+      "*.js": ["prettier --trailing-comma all --single-quote", "eslint --fix", "git add"]
     },
     "gitDir": "../../"
   },
@@ -36,6 +33,12 @@
     "morgan": "^1.9.0"
   },
   "devDependencies": {
-    "nodemon": "^1.12.1"
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.12.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.35.0",
+    "eslint-plugin-import": "^2.8.0",
+    "nodemon": "^1.12.1",
+    "prettier": "^1.8.2"
   }
 }
