@@ -2,5 +2,6 @@
 
 ep /etc/nginx/*
 ep /etc/nginx/conf.d/*
+ep /etc/nginx/helpers/*
 
 exec "$@"
