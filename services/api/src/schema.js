@@ -71,6 +71,10 @@ const typeDefs = `
     keyType: String
   }
 
+  input DeleteSshKeyInput {
+    name: String!
+  }
+
   input ProjectInput {
     name: String!
     customer: String!
@@ -98,10 +102,22 @@ const typeDefs = `
     project_user: String
   }
 
+  input DeleteOpenshiftInput {
+    name: String!
+  }
+
+  input DeleteCustomerInput {
+    name: String!
+  }
+
   input NotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationSlackInput {
+    name: String!
   }
 
   input NotificationToProjectInput {
@@ -110,26 +126,29 @@ const typeDefs = `
     notificationName: String!
   }
 
-  input ProjectUpdateInput {
-    name: String
-    customer: String
-    git_url: String
-    openshift: String
-    active_systems_deploy: String
-    active_systems_remove: String
-    branches: String
-    pullrequests: Boolean
-    sshKeys: [String]
+  input RemoveNotificationFromProjectInput {
+    project: String!
+    notificationType: String!
+    notificationName: String!
+  }
+
+  input DeleteProjectInput {
+    name: String!
   }
 
   type Mutation {
-    updateProject(input: ProjectUpdateInput!): Project
     addProject(input: ProjectInput!): Project
+    deleteProject(input: DeleteProjectInput!): String
     addSshKey(input: SshKeyInput!): SshKey
+    deleteSshKey(input: DeleteSshKeyInput!): String
     addCustomer(input: CustomerInput!): Customer
+    deleteCustomer(input: DeleteCustomerInput!): String
     addOpenshift(input: OpenshiftInput!): Openshift
+    deleteOpenshift(input: DeleteOpenshiftInput!): String
     addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+    deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
     addNotificationToProject(input: NotificationToProjectInput!): Project
+    removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
     truncateTable(tableName: String!): String
   }
 `;
@@ -196,9 +215,19 @@ const resolvers = {
       const ret = await dao.addProject(req.credentials, args.input);
       return ret;
     },
+    deleteProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteProject(req.credentials, args.input);
+      return ret;
+    },
     addSshKey: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addSshKey(req.credentials, args.input);
+      return ret;
+    },
+    deleteSshKey: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteSshKey(req.credentials, args.input);
       return ret;
     },
     addCustomer: async (root, args, req) => {
@@ -206,9 +235,19 @@ const resolvers = {
       const ret = await dao.addCustomer(req.credentials, args.input);
       return ret;
     },
+    deleteCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteCustomer(req.credentials, args.input);
+      return ret;
+    },
     addOpenshift: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addOpenshift(req.credentials, args.input);
+      return ret;
+    },
+    deleteOpenshift: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteOpenshift(req.credentials, args.input);
       return ret;
     },
     addNotificationSlack: async (root, args, req) => {
@@ -216,9 +255,19 @@ const resolvers = {
       const ret = await dao.addNotificationSlack(req.credentials, args.input);
       return ret;
     },
+    deleteNotificationSlack: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteNotificationSlack(req.credentials, args.input);
+      return ret;
+    },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addNotificationToProject(req.credentials, args.input);
+      return ret;
+    },
+    removeNotificationFromProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeNotificationFromProject(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {
