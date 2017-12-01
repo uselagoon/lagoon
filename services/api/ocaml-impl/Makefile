@@ -5,7 +5,7 @@ doc:
 	jbuilder build @doc
 
 run: build
-	jbuilder exec api-next
+	jbuilder exec api
 
 clean:
 	rm -rf _build
@@ -17,7 +17,7 @@ pin:
 	opam pin add .
 
 repin: build
-	opam upgrade api-next
+	opam upgrade api
 
 build-all:
 	jbuilder build --workspace jbuild-workspace.dev @install

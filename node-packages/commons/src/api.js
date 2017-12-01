@@ -8,7 +8,7 @@ const { createJWTWithoutSshKey } = require('./jwt');
 const { logger } = require('./local-logging');
 
 const {
-  API_HOST = 'http://api-next:3000',
+  API_HOST = 'http://api:3000',
   JWTSECRET,
   JWTAUDIENCE,
 } = process.env;
