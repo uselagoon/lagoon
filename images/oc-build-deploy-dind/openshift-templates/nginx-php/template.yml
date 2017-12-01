@@ -181,3 +181,19 @@ objects:
       service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
+  spec:
+    host: ${SERVICE_ROUTER_URL}
+    port:
+      targetPort: http
+    to:
+      kind: Service
+      name: ${SERVICE_NAME}
