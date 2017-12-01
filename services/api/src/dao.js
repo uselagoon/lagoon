@@ -50,6 +50,27 @@ const getAllCustomers = sqlClient => async (cred, args) => {
   });
 };
 
+const getAllOpenshifts = sqlClient => async (cred, args) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  const { createdAfter } = args;
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT * FROM openshift`);
+
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows);
+    });
+  });
+};
+
 const getAllProjects = sqlClient => async (cred, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -616,6 +637,7 @@ const truncateTable = sqlClient => async (cred, args) => {
 const daoFns = {
   getCustomerSshKeys,
   getAllCustomers,
+  getAllOpenshifts,
   getOpenshiftByProjectId,
   getProjectByGitUrl,
   getNotificationsByProjectId,

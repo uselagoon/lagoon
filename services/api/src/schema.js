@@ -63,6 +63,7 @@ const typeDefs = `
     projectByGitUrl(gitUrl: String!): Project
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
+    allOpenshifts: [Openshift]
   }
 
   input SshKeyInput {
@@ -207,6 +208,10 @@ const resolvers = {
     allCustomers: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllCustomers(req.credentials, args);
+    },
+    allOpenshifts: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getAllOpenshifts(req.credentials, args);
     }
   },
   Mutation: {
