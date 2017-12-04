@@ -215,9 +215,9 @@ sub vcl_backend_response {
   # Allow items to be stale if needed.
   set beresp.grace = 6h;
 
-  ## FIXME: rename X-AMAZEEIO-VARNISH-BYPASS to X-AMAZEEIO-VARNISH-BACKEND-BYPASS to avoid confusion
-  # If the backend sends a X-AMAZEEIO-VARNISH-BYPASS header we directly deliver
-  if(beresp.http.X-AMAZEEIO-VARNISH-BYPASS == "TRUE") {
+  ## FIXME: rename X-LAGOON-VARNISH-BYPASS to X-LAGOON-VARNISH-BACKEND-BYPASS to avoid confusion
+  # If the backend sends a X-LAGOON-VARNISH-BYPASS header we directly deliver
+  if(beresp.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
     return (deliver);
   }
 
@@ -254,7 +254,7 @@ sub vcl_deliver {
   if (req.http.grace) {
     set resp.http.X-Varnish-Grace = req.http.grace;
   }
-  set resp.http.X-AMAZEEIO = "varnish>" + resp.http.X-AMAZEEIO;
+  set resp.http.X-LAGOON = "varnish>" + resp.http.X-LAGOON;
   return (deliver);
 }
 
