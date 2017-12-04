@@ -55,7 +55,7 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/varnish:latest
+        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: varnish
           ports:
           - containerPort: 8080
