@@ -54,32 +54,8 @@ sub vcl_recv {
      set req.url = regsub(req.url, "(\?|&)$", "");
    }
 
-  ## Pass all Requests which are handled via an upstream Varnish
-  if (req.http.X-AMAZEEIO-VARNISH) {
-    set req.http.X-AMAZEEIO-VARNISH =  "d3659c5e113e.amazee.io, " + req.http.X-AMAZEEIO-VARNISH;
-    set req.http.X-AMAZEEIO-VARNISH-BYPASS = "TRUE";
-    return (pass);
-  } else if (req.http.Fastly-FF) {
-    ## Pass all Requests which are handled via Fastly
-    set req.http.X-AMAZEEIO-VARNISH = "d3659c5e113e.amazee.io";
-    set req.http.X-AMAZEEIO-VARNISH-BYPASS = "TRUE";
-    set req.http.X-Forwarded-For = req.http.Fastly-Client-IP;
-    return (pass);
-  } else if (req.http.CF-RAY) {
-    ## Pass all Requests which are handled via CloudFlare
-    set req.http.X-AMAZEEIO-VARNISH = "d3659c5e113e.amazee.io";
-    set req.http.X-AMAZEEIO-VARNISH-BYPASS = "TRUE";
-    set req.http.X-Forwarded-For = req.http.CF-Connecting-IP;
-    return (pass);
-  } else if (req.http.X-Pull) {
-    ## Pass all Requests which are handled via KeyCDN
-    set req.http.X-AMAZEEIO-VARNISH = "d3659c5e113e.amazee.io";
-    set req.http.X-AMAZEEIO-VARNISH-BYPASS = "TRUE";
-    return (pass);
-  } else {
-    # We set a header to let a Varnish Chain know that it already has been varnishcached
-    set req.http.X-AMAZEEIO-VARNISH = "d3659c5e113e.amazee.io";
-  }
+  # We set a header to let a Varnish Chain know that it already has been varnishcached
+  set req.http.X-LAGOON-VARNISH = "d3659c5e113e.amazee.io";
 
   # Bypass a cache hit
   if (req.method == "REFRESH") {
