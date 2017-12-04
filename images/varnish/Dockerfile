@@ -13,8 +13,8 @@ COPY --from=commons /home/.bashrc /home/.bashrc
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
-RUN apk update && apk add varnish@edge
+RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+  && apk --no-cache add varnish@edge
 
 COPY default.vcl /etc/varnish/default.vcl
 
