@@ -28,6 +28,7 @@ RUN apk update \
     && apk add --no-cache fcgi \
         # for gd
         libpng-dev \
+        libjpeg-turbo-dev \
         # for gettext
         gettext-dev \
         # for mcrypt
@@ -45,6 +46,7 @@ RUN apk update \
        fi \
     && yes '' | pecl install -f redis \
     && docker-php-ext-enable apcu redis  \
+    && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap opcache xsl zip \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
