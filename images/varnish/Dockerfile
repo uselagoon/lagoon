@@ -16,6 +16,8 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
   && apk --no-cache add varnish@edge
 
+RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
+
 COPY default.vcl /etc/varnish/default.vcl
 
 RUN fix-permissions /etc/varnish/ \
@@ -27,4 +29,4 @@ COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
 EXPOSE 7080
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["varnishd", "-a", ":8080", "-F", "-f", "/etc/varnish/default.vcl"]
+CMD ["varnishd", "-a", ":8080", "-F", "-f", "/etc/varnish/default.vcl", "-S", "/etc/varnish/secret"]
