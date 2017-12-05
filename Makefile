@@ -348,7 +348,7 @@ $(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/centos7-mariadb10-drupal build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: local-git-port openshift build/alpine-mariadb10 build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
