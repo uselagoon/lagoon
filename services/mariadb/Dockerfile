@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/centos7-mariadb10
+FROM ${IMAGE_REPO:-lagoon}/alpine-mariadb10
 
 ENV MYSQL_DATABASE=infrastructure \
     MYSQL_USER=api \
