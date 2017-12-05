@@ -95,7 +95,7 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
 # Global lagoon default environment variables
 # COPY .env.defaults .
 
-EXPOSE 2020
+EXPOSE 2222
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]

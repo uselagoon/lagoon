@@ -1,4 +1,4 @@
-Port 2020
+Port 2222
 
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_ecdsa_key
