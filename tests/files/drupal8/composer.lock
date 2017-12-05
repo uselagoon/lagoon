@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "f65f32415ee4dec0bc1c39e033058388",
+    "content-hash": "9cb708ddb2ff427fb2e1056786be36b3",
     "packages": [
         {
             "name": "alchemy/zippy",
@@ -1568,6 +1568,65 @@
             ],
             "description": "Drupal is an open source content management platform powering millions of websites and applications.",
             "time": "2017-08-16T17:10:35+00:00"
+        },
+        {
+            "name": "drupal/redis",
+            "version": "1.0.0-rc2",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupal.org/project/redis",
+                "reference": "8.x-1.0-rc2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/redis-8.x-1.0-rc2.zip",
+                "reference": "8.x-1.0-rc2",
+                "shasum": "7eeaa7078e9df6f4bbea1ca90dbc43aa044da346"
+            },
+            "require": {
+                "drupal/core": "~8.0"
+            },
+            "suggest": {
+                "predis/predis": "^1.1.1"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "branch-alias": {
+                    "dev-1.x": "1.x-dev"
+                },
+                "drupal": {
+                    "version": "8.x-1.0-rc2",
+                    "datestamp": "1505390043",
+                    "security-coverage": {
+                        "status": "not-covered",
+                        "message": "RC releases are not covered by Drupal security advisories."
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Drupal\\redis\\": "src"
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Berdir",
+                    "homepage": "https://www.drupal.org/user/214652"
+                },
+                {
+                    "name": "pounard",
+                    "homepage": "https://www.drupal.org/user/240164"
+                }
+            ],
+            "description": "Provide a module placeholder, for using as dependency for module that needs Redis.",
+            "homepage": "https://www.drupal.org/project/redis",
+            "support": {
+                "source": "http://cgit.drupalcode.org/redis"
+            }
         },
         {
             "name": "drush/drush",
