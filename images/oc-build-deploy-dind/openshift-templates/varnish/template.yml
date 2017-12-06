@@ -56,7 +56,7 @@ objects:
       spec:
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
-          name: varnish
+          name: ${SERVICE_NAME}
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -104,10 +104,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - varnish
+        - ${SERVICE_NAME}
         from:
           kind: ImageStreamTag
-          name: varnish:latest
+          name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
 - apiVersion: v1
