@@ -123,7 +123,7 @@ services:
       - "2222:2222"
     environment:
       - AUTH_HOST=http://auth-server:3000
-      - API_HOST=http://api-next:3000
+      - API_HOST=http://api:3000
     user: '111111111'
     labels:
       lagoon.type: custom
