@@ -117,7 +117,7 @@ services:
   rsh-console:
     image: ${IMAGE_REPO:-amazeeiolagoon}/rsh-console
     depends_on:
-      - api-next
+      - api
       - auth-server
     ports:
       - "2222:2222"
