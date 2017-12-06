@@ -8,7 +8,7 @@ startVagrant.sh
 local-dev/oc
 minishift
 **/v8-*
-node_modules
+node_modules/
 build/*
 !build/.gitkeep
 openshift
