@@ -6,6 +6,8 @@ containsValue () {
   return 1
 }
 
+function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
@@ -103,6 +105,14 @@ do
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
     fi
+  fi
+
+  TEMPLATE_PARAMETERS=()
+
+  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent false)
+
+  if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
+    TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_PATH=${PERSISTENT_STORAGE_PATH}")
   fi
 
   . /scripts/exec-openshift-resources.sh

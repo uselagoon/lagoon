@@ -31,7 +31,8 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     labels:
-      lagoon.type: nginx-php
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
       lagoon.name: nginx-php
     volumes:
       - ./web:/app/web:delegated
@@ -46,7 +47,8 @@ services:
       context: .
       dockerfile: Dockerfile.php
     labels:
-      lagoon.type: nginx-php
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
       lagoon.name: nginx-php
     volumes:
       - ./web:/app/web:delegated
@@ -58,6 +60,12 @@ services:
       dockerfile: Dockerfile.mariadb
     labels:
       lagoon.type: mariadb
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile.redis
+    labels:
+      lagoon.type: redis
 networks:
   amazeeio-network:
     external: true
