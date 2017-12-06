@@ -52,9 +52,22 @@ const typeDefs = `
     active_systems_deploy: String
     active_systems_remove: String
     branches: String
+    production_environment: String
     pullrequests: Boolean
     openshift: Openshift
     sshKeys: [SshKey]
+    environments: [Environment]
+    created: String
+  }
+
+  type Environment {
+    id: Int
+    name: String
+    project: Project
+    git_type: String
+    environment_type: String
+    openshift_projectname: String
+    updated: String
     created: String
   }
 
@@ -85,7 +98,16 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     pullrequests: Boolean
+    production_environment: String
     sshKeys: [String]
+  }
+
+  input EnvironmentInput {
+    name: String!
+    project: String!
+    git_type: String!
+    environment_type: String!
+    openshift_projectname: String!
   }
 
   input CustomerInput {
@@ -140,6 +162,7 @@ const typeDefs = `
   type Mutation {
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
+    addOrUpdateEnvironment(input: EnvironmentInput!): Environment
     addSshKey(input: SshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
     addCustomer(input: CustomerInput!): Customer
@@ -174,6 +197,16 @@ const resolvers = {
     openshift: async (project, args, req) => {
       const dao = getDao(req);
       return await dao.getOpenshiftByProjectId(req.credentials, project.id);
+    },
+    environments: async (project, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentsByProjectId(req.credentials, project.id);
+    }
+  },
+  Environment: {
+    project: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getProjectByEnvironmentId(req.credentials, environment.id);
     }
   },
   Notification: {
@@ -273,6 +306,11 @@ const resolvers = {
     removeNotificationFromProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.removeNotificationFromProject(req.credentials, args.input);
+      return ret;
+    },
+    addOrUpdateEnvironment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addOrUpdateEnvironment(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {

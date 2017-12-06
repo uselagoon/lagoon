@@ -11,6 +11,7 @@ CREATE OR REPLACE PROCEDURE
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
     IN pullrequests           boolean,
+    IN production_environment varchar(100),
     IN ssh_key_names          text
   )
   BEGIN
@@ -24,6 +25,7 @@ CREATE OR REPLACE PROCEDURE
         active_systems_deploy,
         active_systems_remove,
         branches,
+        production_environment,
         pullrequests,
         openshift
     )
@@ -34,6 +36,7 @@ CREATE OR REPLACE PROCEDURE
         active_systems_deploy,
         active_systems_remove,
         branches,
+        production_environment,
         pullrequests,
         os.id
     FROM
@@ -55,15 +58,7 @@ CREATE OR REPLACE PROCEDURE
 
     -- Return the constructed project
     SELECT
-      p.id,
-      p.name,
-      p.customer,
-      p.git_url,
-      p.active_systems_deploy,
-      p.active_systems_remove,
-      p.branches,
-      p.pullrequests,
-      p.openshift
+      p.*
     FROM project p
     WHERE id = new_pid;
   END;
@@ -86,6 +81,45 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  CreateOrUpdateEnvironment
+  (
+    IN name                   varchar(100),
+    IN project                varchar(50),
+    IN git_type               ENUM('branch', 'pullrequest'),
+    IN environment_type       ENUM('production', 'development'),
+    IN openshift_projectname  varchar(100)
+  )
+  BEGIN
+    INSERT INTO environment (
+        name,
+        project,
+        git_type,
+        environment_type,
+        openshift_projectname
+    )
+    SELECT
+        name,
+        p.id,
+        git_type,
+        environment_type,
+        openshift_projectname
+    FROM
+        project AS p
+    WHERE
+        p.name = project
+    ON DUPLICATE KEY UPDATE
+        git_type=git_type,
+        environment_type=environment_type,
+        updated=NOW();
+
+    -- Return the constructed project
+    SELECT
+      e.*
+    FROM environment e
+    WHERE e.name = name;
+  END;
+$$
 
 CREATE OR REPLACE PROCEDURE
   CreateSshKey

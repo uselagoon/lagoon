@@ -4,7 +4,7 @@ const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject, addOrUpdateEnvironment } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
@@ -21,6 +21,7 @@ const messageConsumer = async msg => {
     branchName,
     sha,
     type,
+    environmentType,
     headBranchName,
     headSha,
     baseBranchName,
@@ -202,6 +203,15 @@ const messageConsumer = async msg => {
       logger.error(err)
       throw new Error
     }
+  }
+
+  // Update GraphQL API with information about this environment
+  try {
+    await addOrUpdateEnvironment(branchName, projectName, type, environmentType, openshiftProject)
+    logger.info(`${openshiftProject}: Created/Updated Environment in API`)
+  } catch (err) {
+    logger.error(err)
+    throw new Error
   }
 
   // Used to create RoleBindings

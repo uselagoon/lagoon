@@ -45,10 +45,22 @@ CREATE TABLE IF NOT EXISTS project (
        active_systems_remove  varchar(300),
        branches               varchar(300),
        pullrequests           boolean,
+       production_environment varchar(100),
        openshift              int REFERENCES openshift (id),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS environment (
+       id                     int NOT NULL auto_increment PRIMARY KEY,
+       name                   varchar(100),
+       project                int REFERENCES project (id),
+       git_type               ENUM('branch', 'pullrequest') NOT NULL,
+       environment_type       ENUM('production', 'development') NOT NULL,
+       openshift_projectname  varchar(100),
+       updated                timestamp DEFAULT CURRENT_TIMESTAMP,
+       created                timestamp DEFAULT CURRENT_TIMESTAMP,
+       UNIQUE KEY `project_name` (`project`,`name`)
+);
 
 -- Junction Tables
 
