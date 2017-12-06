@@ -160,19 +160,19 @@ const resolvers = {
   Project: {
     customer: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByProjectId(req.credentials, project.customer);
+      return dao.getCustomerByProjectId(req.credentials, project.customer);
     },
     sshKeys: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByProjectId(req.credentials, project.id);
+      return dao.getSshKeysByProjectId(req.credentials, project.id);
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getNotificationsByProjectId(req.credentials, project.id, args);
+      return dao.getNotificationsByProjectId(req.credentials, project.id, args);
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getOpenshiftByProjectId(req.credentials, project.id);
+      return dao.getOpenshiftByProjectId(req.credentials, project.id);
     },
   },
   Notification: {
@@ -188,95 +188,95 @@ const resolvers = {
   Customer: {
     sshKeys: async (customer, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByCustomerId(req.credentials, customer.id);
+      return dao.getSshKeysByCustomerId(req.credentials, customer.id);
     },
   },
   Query: {
     projectByGitUrl: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByGitUrl(req.credentials, args);
+      return dao.getProjectByGitUrl(req.credentials, args);
     },
     projectByName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByName(req.credentials, args);
+      return dao.getProjectByName(req.credentials, args);
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllProjects(req.credentials, args);
+      return dao.getAllProjects(req.credentials, args);
     },
     allCustomers: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllCustomers(req.credentials, args);
+      return dao.getAllCustomers(req.credentials, args);
     },
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllOpenshifts(req.credentials, args);
+      return dao.getAllOpenshifts(req.credentials, args);
     },
   },
   Mutation: {
     addProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addProject(req.credentials, args.input);
+      const ret = dao.addProject(req.credentials, args.input);
       return ret;
     },
     deleteProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteProject(req.credentials, args.input);
+      const ret = dao.deleteProject(req.credentials, args.input);
       return ret;
     },
     addSshKey: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSshKey(req.credentials, args.input);
+      const ret = dao.addSshKey(req.credentials, args.input);
       return ret;
     },
     deleteSshKey: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteSshKey(req.credentials, args.input);
+      const ret = dao.deleteSshKey(req.credentials, args.input);
       return ret;
     },
     addCustomer: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addCustomer(req.credentials, args.input);
+      const ret = dao.addCustomer(req.credentials, args.input);
       return ret;
     },
     deleteCustomer: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteCustomer(req.credentials, args.input);
+      const ret = dao.deleteCustomer(req.credentials, args.input);
       return ret;
     },
     addOpenshift: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addOpenshift(req.credentials, args.input);
+      const ret = dao.addOpenshift(req.credentials, args.input);
       return ret;
     },
     deleteOpenshift: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteOpenshift(req.credentials, args.input);
+      const ret = dao.deleteOpenshift(req.credentials, args.input);
       return ret;
     },
     addNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationSlack(req.credentials, args.input);
+      const ret = dao.addNotificationSlack(req.credentials, args.input);
       return ret;
     },
     deleteNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteNotificationSlack(req.credentials, args.input);
+      const ret = dao.deleteNotificationSlack(req.credentials, args.input);
       return ret;
     },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationToProject(req.credentials, args.input);
+      const ret = dao.addNotificationToProject(req.credentials, args.input);
       return ret;
     },
     removeNotificationFromProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeNotificationFromProject(req.credentials, args.input);
+      const ret = dao.removeNotificationFromProject(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.truncateTable(req.credentials, args);
+      const ret = dao.truncateTable(req.credentials, args);
       return ret;
     },
   },
