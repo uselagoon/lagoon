@@ -11,6 +11,18 @@ services:
       - ./web:/app/web:delegated
     depends_on:
       - builder
+  varnish:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.varnish
+    labels:
+      lagoon.type: varnish
+      lagoon.name: varnish
+    depends_on:
+      - nginx
   nginx:
     networks:
       - amazeeio-network
