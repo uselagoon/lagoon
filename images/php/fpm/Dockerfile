@@ -28,6 +28,7 @@ RUN apk update \
     && apk add --no-cache fcgi \
         # for gd
         libpng-dev \
+        libjpeg-turbo-dev \
         # for gettext
         gettext-dev \
         # for mcrypt
@@ -45,7 +46,8 @@ RUN apk update \
        fi \
     && yes '' | pecl install -f redis \
     && yes '' | pecl install -f xdebug \
-    && docker-php-ext-enable apcu redis xdebug  \
+    && docker-php-ext-enable apcu redis xdebug \    
+    && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap opcache xsl zip \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
