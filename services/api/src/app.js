@@ -9,13 +9,13 @@ const createRouter = require('./routes');
 const { createAuthMiddleware } = require('./auth');
 const R = require('ramda');
 
-const daoFns = require('./dao');
+const Dao = require('./dao');
 
 const createApp = args => {
   const { store, jwtSecret, jwtAudience, sqlClient } = args;
   const app = express();
 
-  const dao = R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
+  const dao = Dao.make(sqlClient);
 
   app.set('context', {
     sqlClient,

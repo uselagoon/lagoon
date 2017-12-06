@@ -1,8 +1,4 @@
 node {
-  // During creating openshift, 'oc cluster up' creates some config files (for docker login, oc login, etc)
-  // They are by default put in $HOME, where it could happen that multiple builds put the same files and overwrite each
-  // other and lead to weird build fails. We're setting the HOME directory to the current workspace to prevent that
-  env.HOME = env.WORKSPACE
 
   // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
@@ -21,72 +17,73 @@ node {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
+        lock('minishift') {
+          notifySlack()
 
-        notifySlack()
+          try {
+            parallel (
+              'build & start services': {
+                stage ('build images') {
+                  sh "make build"
+                }
+                stage ('start services') {
+                  sh "make up-no-ports"
+                }
+              },
+              'start openshift': {
+                stage ('start openshift') {
+                  sh 'make openshift'
+                }
+              }
+            )
+          } catch (e) {
+            echo "Something went wrong, trying to cleanup"
+            cleanup()
+            throw e
+          }
 
-        try {
           parallel (
-            'build & start services': {
-              stage ('build images') {
-                sh "make build"
-              }
-              stage ('start services') {
-                sh "make up-no-ports"
-              }
+            '_tests': {
+                stage ('run tests') {
+                  try {
+                    sh "sleep 30"
+                    sh "make tests -j4"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
+                  cleanup()
+                }
             },
-            'start openshift': {
-              stage ('start openshift') {
-                sh 'make openshift'
-              }
+            'logs': {
+                stage ('all') {
+                  sh "make logs"
+                }
             }
           )
-        } catch (e) {
-          echo "Something went wrong, trying to cleanup"
-          cleanup()
-          throw e
-        }
-
-        parallel (
-          '_tests': {
-              stage ('run tests') {
-                try {
-                  sh "sleep 30"
-                  sh "make tests -j4"
-                } catch (e) {
-                  echo "Something went wrong, trying to cleanup"
-                  cleanup()
-                  throw e
-                }
-                cleanup()
-              }
-          },
-          'logs': {
-              stage ('all') {
-                sh "make logs"
-              }
-          }
-        )
 
 
-        stage ('publish-amazeeiolagoon') {
-          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME}"
-          }
-        }
-
-        if (env.BRANCH_NAME == 'master') {
-          stage ('publish-amazeeio') {
+          stage ('publish-amazeeiolagoon') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeio-baseimages"
+              sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME}"
             }
           }
-        }
 
-        if (env.BRANCH_NAME ==~ /develop|master/) {
-          stage ('start-lagoon-deploy') {
-            sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
+          if (env.BRANCH_NAME == 'master') {
+            stage ('publish-amazeeio') {
+              withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+                sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                sh "make publish-amazeeio-baseimages"
+              }
+            }
+          }
+
+          if (env.BRANCH_NAME ==~ /develop|master/) {
+            stage ('start-lagoon-deploy') {
+              sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
+            }
           }
         }
       } catch (e) {

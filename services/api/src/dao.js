@@ -4,6 +4,28 @@
 const R = require('ramda');
 const promisify = require('util').promisify;
 
+const getCustomerSshKeys = sqlClient => async cred => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    sqlClient.query(
+      `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
+       FROM ssh_key sk, customer c, customer_ssh_key csk
+       WHERE csk.cid = c.id AND csk.skid = sk.id`,
+      (err, rows) => {
+        if (err) {
+          rej(err);
+        }
+
+        const ret = R.map(R.prop('sshKey'), rows);
+        res(ret);
+      }
+    );
+  });
+};
+
 const getAllCustomers = sqlClient => async (cred, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -110,7 +132,7 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
       }
 
       const ret = rows ? rows : null;
-      console.log(ret)
+      console.log(ret);
       res(ret);
     });
   });
@@ -259,18 +281,24 @@ const addProject = sqlClient => async (cred, input) => {
         :customer,
         :git_url,
         :openshift,
-        ${input.active_systems_deploy ? ':active_systems_deploy' : '"lagoon_openshiftBuildDeploy"'},
-        ${input.active_systems_remove ? ':active_systems_remove' : '"lagoon_openshiftRemove"'},
+        ${input.active_systems_deploy
+          ? ':active_systems_deploy'
+          : '"lagoon_openshiftBuildDeploy"'},
+        ${input.active_systems_remove
+          ? ':active_systems_remove'
+          : '"lagoon_openshiftRemove"'},
         ${input.branches ? ':branches' : '"true"'},
-        ${input.pullrequests ? 'IF(STRCMP(:pullrequests, \'true\'), 1, 0)' : 'NULL'},
+        ${input.pullrequests
+          ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
+          : 'NULL'},
         '${input.sshKeys ? input.sshKeys.join(',') : ''}'
       );
     `);
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(prep(input))
-        console.log(err)
+        console.log(prep(input));
+        console.log(err);
         rej(err);
       }
 
@@ -299,7 +327,7 @@ const addSshKey = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         rej(err);
       }
 
@@ -327,7 +355,7 @@ const addCustomer = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         rej(err);
       }
 
@@ -356,7 +384,7 @@ const addOpenshift = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         rej(err);
       }
 
@@ -383,7 +411,7 @@ const addNotificationSlack = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         rej(err);
       }
 
@@ -410,8 +438,8 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(prep(input))
-        console.log(err)
+        console.log(prep(input));
+        console.log(err);
         rej(err);
       }
 
@@ -436,16 +464,17 @@ const truncateTable = sqlClient => async (cred, args) => {
 
     sqlClient.query(prep(args), (err, rows) => {
       if (err) {
-        console.log(prep(args))
+        console.log(prep(args));
         rej(err);
       }
 
-      res("success");
+      res('success');
     });
   });
 };
 
-module.exports = {
+const daoFns = {
+  getCustomerSshKeys,
   getAllCustomers,
   getOpenshiftByProjectId,
   getProjectByGitUrl,
@@ -462,4 +491,13 @@ module.exports = {
   addNotificationSlack,
   addNotificationToProject,
   truncateTable,
+};
+
+// Maps all dao functions to given sqlClient
+// "make" is the FP equivalent of `new Dao()` in OOP
+const make = sqlClient => R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
+
+module.exports = {
+  ...daoFns,
+  make,
 };

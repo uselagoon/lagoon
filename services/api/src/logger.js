@@ -11,16 +11,6 @@ if (!fs.existsSync(directory)) {
 const logger = new winston.Logger({
   exitOnError: false,
   transports: [
-    new winston.transports.File({
-      level: 'info',
-      filename: path.join(directory, 'info.log'),
-      name: 'info-file',
-    }),
-    new winston.transports.File({
-      level: 'error',
-      filename: path.join(directory, 'error.log'),
-      name: 'error-file',
-    }),
     new winston.transports.Console({
       level: 'debug',
       handleExceptions: true,
