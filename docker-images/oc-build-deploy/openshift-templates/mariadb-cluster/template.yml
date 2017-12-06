@@ -25,7 +25,37 @@ parameters:
   - name: ROUTER_URL
     description: URL of the Router
     required: true
+  - name: MYSQL_USER
+    description: MariaDB user
+    required: false
+  - name: MYSQL_PASSWORD
+    description: Password for the MariaDB user
+    required: false
+  - name: MYSQL_DATABASE
+    description: Database to create
+    required: false
+  - name: MYSQL_ROOT_PASSWORD
+    description: Password for the root user
+    required: false
 objects:
+- apiVersion: v1
+  kind: Secret
+  type: Opaque
+  metadata:
+    name: galera
+    labels:
+      app: galera
+      amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
+      branch: ${BRANCH}
+      router_url: ${ROUTER_URL}
+      safe_branch: ${SAFE_BRANCH}
+      safe_sitegroup: ${SAFE_SITEGROUP}
+      service_name: ${SERVICE_NAME}
+      sitegroup: ${SITEGROUP}
+  stringData:
+    MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    MYSQL_USER: ${MYSQL_USER}
 - apiVersion: v1
   kind: Service
   metadata:
@@ -33,7 +63,7 @@ objects:
       service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
     name: galera
     labels:
-      app: mysql
+      app: galera
       amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
       branch: ${BRANCH}
       router_url: ${ROUTER_URL}
@@ -47,18 +77,18 @@ objects:
       name: mysql
     clusterIP: None
     selector:
-      app: mysql
+      app: galera
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: mysql
+    name: galera
   spec:
     serviceName: "galera"
     replicas: 3
     template:
       metadata:
         labels:
-          app: mysql
+          app: galera
           amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
           branch: ${BRANCH}
           router_url: ${ROUTER_URL}
@@ -98,6 +128,23 @@ objects:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
+            - name: MYSQL_USER
+              valueFrom: 
+                secretKeyRef:
+                  name: galera
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: galera
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "${MYSQL_DATABASE}"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: galera
+                  key: MYSQL_ROOT_PASSWORD
     volumeClaimTemplates:
     - metadata:
         name: datadir
@@ -106,3 +153,70 @@ objects:
         resources:
           requests:
             storage: 1Gi
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: galera-metrics
+    labels:
+      app: galera-metrics
+      amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
+      branch: ${BRANCH}
+      router_url: ${ROUTER_URL}
+      safe_branch: ${SAFE_BRANCH}
+      safe_sitegroup: ${SAFE_SITEGROUP}
+      service_name: ${SERVICE_NAME}
+      sitegroup: ${SITEGROUP}
+    annotations:
+      prometheus.io/scrape: "true"
+  spec:
+    type: ClusterIP
+    ports:
+    - port: 9104
+      name: metrics
+    selector:
+      app: galera-metrics
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: galera-metrics
+    labels:
+      app: galera-metrics
+      amazeeio_git_sha: ${AMAZEEIO_GIT_SHA}
+      branch: ${BRANCH}
+      router_url: ${ROUTER_URL}
+      safe_branch: ${SAFE_BRANCH}
+      safe_sitegroup: ${SAFE_SITEGROUP}
+      service_name: ${SERVICE_NAME}
+      sitegroup: ${SITEGROUP}
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: galera-metrics
+      spec:
+        containers:
+        - image: prom/mysqld-exporter:v0.10.0
+          name: mysqld-exporter
+          env:
+          - name: MARIADB_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: galera
+                key: MYSQL_ROOT_PASSWORD
+          command: [ 'sh', '-c', 'DATA_SOURCE_NAME="root:$MARIADB_ROOT_PASSWORD@(galera:3306)/" /bin/mysqld_exporter' ]
+          ports:
+          - name: metrics
+            containerPort: 9104
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
