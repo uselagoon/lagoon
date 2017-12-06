@@ -21,7 +21,6 @@ const messageConsumer = async msg => {
     branchName,
     sha,
     type,
-    environmentType,
     headBranchName,
     headSha,
     baseBranchName,
@@ -50,6 +49,8 @@ const messageConsumer = async msg => {
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
+    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development'
+
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)

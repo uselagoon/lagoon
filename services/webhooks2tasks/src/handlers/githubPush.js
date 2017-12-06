@@ -29,7 +29,6 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
       type: 'branch',
       branchName: branchName,
       sha: sha,
-      environmentType: (branchName === project.production_environment ? 'production': 'development'),
     }
 
     let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``

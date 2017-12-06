@@ -29,7 +29,6 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
       type: 'branch',
       branchName: branchName,
       sha: sha,
-      environmentType: (branchName === project.production_environment ? 'production': 'development'),
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``

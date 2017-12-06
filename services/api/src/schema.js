@@ -71,6 +71,11 @@ const typeDefs = `
     created: String
   }
 
+  input DeleteEnvironmentInput {
+    name: String!
+    project: String!
+  }
+
   type Query {
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
@@ -163,6 +168,7 @@ const typeDefs = `
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+    deleteEnvironment(input: DeleteEnvironmentInput!): String
     addSshKey(input: SshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
     addCustomer(input: CustomerInput!): Customer
@@ -311,6 +317,11 @@ const resolvers = {
     addOrUpdateEnvironment: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addOrUpdateEnvironment(req.credentials, args.input);
+      return ret;
+    },
+    deleteEnvironment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteEnvironment(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {

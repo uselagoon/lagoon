@@ -163,6 +163,12 @@ const addOrUpdateEnvironment = (name: string, project: string, git_type: string,
   }
 `);
 
+const deleteEnvironment = (name: string, project: string): Promise<Object> => graphqlapi.query(`
+  mutation {
+    deleteEnvironment(input: {name: "${name}", project: "${project}"})
+  }
+`);
+
 const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
     {
@@ -177,6 +183,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
           private_key
         }
         git_url
+        production_environment
       }
     }
 `);
@@ -186,5 +193,6 @@ module.exports = {
   getSlackinfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
-  addOrUpdateEnvironment
+  addOrUpdateEnvironment,
+  deleteEnvironment,
 };

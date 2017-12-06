@@ -122,6 +122,27 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  DeleteEnvironment
+  (
+    IN name      varchar(100),
+    IN project   varchar(50)
+  )
+  BEGIN
+
+    DELETE
+      environment
+    FROM
+      environment
+    JOIN
+      project ON environment.project = project.id
+    WHERE
+      environment.name = name AND
+      project.name = project;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   CreateSshKey
   (
     IN name                   varchar(100),

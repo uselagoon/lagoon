@@ -564,6 +564,29 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
   });
 };
 
+const deleteEnvironment = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL DeleteEnvironment(
+        :name,
+        :project
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
+
 const deleteOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -741,6 +764,7 @@ const daoFns = {
   addNotificationToProject,
   removeNotificationFromProject,
   addOrUpdateEnvironment,
+  deleteEnvironment,
   truncateTable,
 };
 

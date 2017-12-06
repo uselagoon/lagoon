@@ -30,7 +30,6 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
-      environmentType: (`pr-${body.number}` === project.production_environment ? 'production': 'development'),
     }
 
     try {
