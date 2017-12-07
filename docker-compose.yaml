@@ -115,7 +115,7 @@ services:
       lagoon.template: services/api/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/api:master
   rsh-console:
-    image: ${IMAGE_REPO:-amazeeiolagoon}/rsh-console
+    image: ${IMAGE_REPO:-lagoon}/rsh-console
     depends_on:
       - api
       - auth-server
