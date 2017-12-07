@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # takes arguments:
-# 1: name of oc projects
+# 1: name of oc project
+# 2(optional): override for deploymentconfig
 
 
 if [[ "$1" =~ ^[A-Za-z0-9]+$ ]]; then
@@ -16,4 +17,6 @@ else
   deployment=cli
 fi
 
+TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+/usr/bin/oc login --insecure-skip-tls-verify --token="${TOKEN}" https://kubernetes.default.svc
 /usr/bin/oc -n ${project} rsh dc/${deployment}
