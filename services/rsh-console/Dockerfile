@@ -51,11 +51,13 @@ RUN fix-permissions /home/get-jwt-token.sh
 # This is the authorized keys command, which will be defined as AuthorizedKeysCommand
 COPY authorize.sh /authorize.sh
 COPY create_jwt.sh /create_jwt.sh
+COPY rsh-console /rsh-console
 
 # Files defined in AuthorizedKeysCommand need the specific permissions for
 # root to own and no write permission by group or others
 RUN chmod 755 /authorize.sh
 RUN chmod 755 /create_jwt.sh
+RUN chmod 555 /rsh-console
 
 # Create /authorize.env file and give api right to write it, it will be filled
 # within docker-entrypoint with all environment variables and then sourced

@@ -27,6 +27,6 @@ command="/bin/bash /rsh-console"
 
 if [ -n "$keys" ]; then
     while read -r key; do
-        printf '%s\n' "$options,command=\"$command '$key'\" $key"
+        printf '%s\n' "$options,command=\"$command\" $key"
     done <<< "$keys"
 fi
