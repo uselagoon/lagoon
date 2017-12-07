@@ -96,7 +96,7 @@ RUN fix-permissions /etc/ssh/ && \
 # Global lagoon default environment variables
 COPY .env.defaults .
 
-EXPOSE 2222
+EXPOSE 2223
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]
