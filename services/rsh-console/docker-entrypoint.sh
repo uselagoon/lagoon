@@ -8,5 +8,3 @@ ep /home/get-jwt-token.sh
 # expects every AuthorizedKeysCommand to be owned by root and nobody can have
 # write access.
 export >> /authorize.env
-
-/usr/sbin/sshd

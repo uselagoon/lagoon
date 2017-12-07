@@ -120,7 +120,7 @@ services:
       - api
       - auth-server
     ports:
-      - "2222:2222"
+      - "20222:2223"
     environment:
       - AUTH_HOST=http://auth-server:3000
       - API_HOST=http://api:3000
