@@ -22,7 +22,7 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN apk add --no-cache openssh openssl curl bash
+RUN apk add --no-cache openssh openssl curl bash wget
 
 # Required for our create_jwt.sh
 RUN curl -sLo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
@@ -38,8 +38,7 @@ RUN mkdir .ssh && \
 # Add the ssh config
 COPY sshd_config /etc/ssh/sshd_config
 
-RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /run/
+
 
 RUN chmod 600 /etc/ssh/ssh_host_rsa_key  /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_ed25519_key
 # This is the script that is run on every ssh login attempt. It
@@ -91,6 +90,8 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
+RUN fix-permissions /etc/ssh/ && \
+    fix-permissions /run/
 
 # Global lagoon default environment variables
 # COPY .env.defaults .
