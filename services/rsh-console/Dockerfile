@@ -94,7 +94,7 @@ RUN fix-permissions /etc/ssh/ && \
     fix-permissions /run/
 
 # Global lagoon default environment variables
-# COPY .env.defaults .
+COPY .env.defaults .
 
 EXPOSE 2222
 
