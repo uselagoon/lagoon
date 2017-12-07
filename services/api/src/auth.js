@@ -5,16 +5,29 @@ const jwt = require('jsonwebtoken');
 const R = require('ramda');
 const logger = require('./logger');
 
+// input: coma separated string with ids // defaults to '' if null
+// output: array of ids
+const parseProjectPermissions = R.compose(
+  R.map(strId => parseInt(strId)),
+  R.filter(R.empty),
+  R.split(','),
+  R.defaultTo(''),
+);
+
+// rows: Result array of permissions table query
+// currently only parses the projects attribute
+const parsePermissions = R.over(R.lensProp('projects'), parseProjectPermissions);
+
 const parseBearerToken = R.compose(
   R.ifElse(
     splits =>
       R.length(splits) === 2 &&
       R.compose(R.toLower, R.defaultTo(''), R.head)(splits) === 'bearer',
     R.nth(1),
-    R.always(null)
+    R.always(null),
   ),
   R.split(' '),
-  R.defaultTo('')
+  R.defaultTo(''),
 );
 
 const decodeToken = (token, secret) => {
@@ -44,7 +57,7 @@ const createAttributeFilters = role => {
       // to normalize data
       R.isNil,
       R.always(null),
-      R.pick(attr)
+      R.pick(attr),
     );
 
   if (role === 'drush') {
@@ -91,110 +104,14 @@ const createAttributeFilters = role => {
   });
 };
 
-const hasSshKey = (sshKey, entity) =>
-  R.compose(
-    R.compose(R.not, R.isEmpty),
-    R.filter(v => v[1] && v[1].key === sshKey),
-    R.toPairs,
-    R.propOr({}, 'ssh_keys')
-  )(entity);
-
-const getCredentialsForEntities = (
-  sshKey,
-  role,
-  entityType,
-  // used for resolving specific relations between entities
-  relationCond,
-  entities
-) =>
-  R.compose(
-    R.reduce((acc, [entityName, entity]) => {
-      // If there is an admin role, don't filter at all
-      if (role === 'admin') {
-        return R.append(entityName, acc);
-      }
-
-      // Drush users should be able to access all entities with read access... with a few exceptions
-      if (role === 'drush') {
-        // Drush users should generally not be allowed to access client information
-        if (entityType === 'client') {
-          return acc;
-        }
-        return R.append(entityName, acc);
-      }
-
-      if (hasSshKey(sshKey, entity)) {
-        return R.append(entityName, acc);
-      }
-
-      if (relationCond && relationCond(entityName, entity)) {
-        return R.append(entityName, acc);
-      }
-
-      return acc;
-    }, []),
-    R.toPairs
-  )(entities);
-
-// If this function return void, all queries are allowed
-const createAllowedQueries = role => {
-  if (role === 'drush') {
-    return ['siteGroupByName'];
-  }
-};
-
-const getCredentials = (sshKey, role, state) => {
-  const clients = R.compose(
-    clients => getCredentialsForEntities(sshKey, role, 'client', null, clients),
-    R.pathOr({}, ['clientsFile', 'amazeeio_clients'])
-  )(state);
-
-  const siteGroupInClient = (sgName, sg) => R.contains(sg.client, clients);
-
-  const projects = R.compose(
-    siteGroups =>
-      getCredentialsForEntities(
-        sshKey,
-        role,
-        'project',
-        siteGroupInClient,
-        siteGroups
-      ),
-    R.pathOr({}, ['siteGroupsFile', 'amazeeio_projects'])
-  )(state);
-
-  const siteInSiteGroup = (siteName, site) =>
-    R.contains(site.project, projects);
-
-  const sites = R.compose(
-    sites =>
-      getCredentialsForEntities(sshKey, role, 'site', siteInSiteGroup, sites),
-    R.fromPairs,
-    R.unnest,
-    R.map(([fileName, siteFile]) =>
-      R.compose(R.toPairs, R.propOr({}, 'drupalsites'))(siteFile)
-    ),
-    R.toPairs,
-    R.propOr({}, 'siteFiles')
-  )(state);
-
-  return {
-    clients,
-    projects,
-    sites,
-    role,
-    attributeFilters: createAttributeFilters(role),
-    allowedQueries: createAllowedQueries(role),
-  };
-};
-
 const createAuthMiddleware = args => async (req, res, next) => {
   const { baseUri, jwtSecret, jwtAudience } = args;
-  const ctx = req.context;
+  const ctx = req.app.get('context');
+  const dao = ctx.dao;
 
   const token = parseBearerToken(req.get('Authorization'));
 
-  if (token == null) {
+  if (!token) {
     res
       .status(401)
       .send({ errors: [{ message: 'Unauthorized - Bearer Token Required' }] });
@@ -224,8 +141,18 @@ const createAuthMiddleware = args => async (req, res, next) => {
       });
     }
 
+    // TODO: Find read / write credentials and set filters
+    const rawPermissions = await dao.getPermissions({ sshKey });
+
+    const permissions = parsePermissions(rawPermissions);
+
+    console.log(permissions);
     // $FlowIgnore
-    req.credentials = decoded;
+    req.credentials = {
+      sshKey,
+      role,
+      permissions, // for read & write
+    };
 
     next();
   } catch (e) {
@@ -237,9 +164,5 @@ const createAuthMiddleware = args => async (req, res, next) => {
 };
 
 module.exports = {
-  createAllowedQueries,
-  createAttributeFilters,
-  getCredentialsForEntities,
-  getCredentials,
   createAuthMiddleware,
 };

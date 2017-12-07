@@ -70,3 +70,19 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
        skid int REFERENCES ssh_key (id),
        CONSTRAINT project_ssh_key_pkey PRIMARY KEY (pid, skid)
 );
+
+
+
+DROP VIEW IF EXISTS permission;
+CREATE VIEW permission
+AS
+  SELECT
+    c.id AS customerId,
+    CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
+    GROUP_CONCAT(psk.pid SEPARATOR ',') AS projects
+  FROM ssh_key sk
+  JOIN customer_ssh_key csk ON sk.id = csk.cid
+  LEFT JOIN customer c ON csk.cid = c.id
+  LEFT JOIN project_ssh_key psk ON sk.id = psk.skid
+  LEFT JOIN project p ON psk.pid = p.id;
+  GROUP BY c.id;
