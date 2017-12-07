@@ -45,10 +45,22 @@ CREATE TABLE IF NOT EXISTS project (
        active_systems_remove  varchar(300),
        branches               varchar(300),
        pullrequests           boolean,
+       production_environment varchar(100),
        openshift              int REFERENCES openshift (id),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS environment (
+       id                     int NOT NULL auto_increment PRIMARY KEY,
+       name                   varchar(100),
+       project                int REFERENCES project (id),
+       git_type               ENUM('branch', 'pullrequest') NOT NULL,
+       environment_type       ENUM('production', 'development') NOT NULL,
+       openshift_projectname  varchar(100),
+       updated                timestamp DEFAULT CURRENT_TIMESTAMP,
+       created                timestamp DEFAULT CURRENT_TIMESTAMP,
+       UNIQUE KEY `project_name` (`project`,`name`)
+);
 
 -- Junction Tables
 
@@ -70,3 +82,27 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
        skid int REFERENCES ssh_key (id),
        CONSTRAINT project_ssh_key_pkey PRIMARY KEY (pid, skid)
 );
+
+
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE
+  add_production_environment_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'production_environment'
+            )  THEN
+      ALTER TABLE `project` ADD `production_environment` varchar(100);
+
+    END IF;
+
+  END;
+$$
+DELIMITER ;
+
+CALL add_production_environment_to_project;

@@ -29,7 +29,7 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
       headSha: headSha,
       baseBranchName: baseBranchName,
       baseSha: baseSha,
-      branchName: `pr-${body.number}`
+      branchName: `pr-${body.number}`,
     }
 
     try {

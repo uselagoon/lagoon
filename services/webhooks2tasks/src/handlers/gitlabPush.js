@@ -28,7 +28,7 @@ async function gitlabPush(webhook: WebhookRequestData, project: Project) {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
-      sha: sha
+      sha: sha,
     }
 
     let logMessage = `\`<${body.project.http_url}/tree/${meta.branch}|${meta.branch}>\``
