@@ -11,7 +11,7 @@
 # variables during the container entrypoint.
 source /authorize.env
 
-SERVICE_API_ADMIN_TOKEN=$(/create_jwt.sh $JWTSECRET $JWTAUDIENCE)
+SERVICE_API_ADMIN_TOKEN=$(/create_jwt.sh)
 
 # This token will be required for accessing the sshKeys in the lagoon api
 bearer="Authorization: bearer $SERVICE_API_ADMIN_TOKEN"
@@ -20,7 +20,7 @@ api=$API_HOST
 fingerprint=$1
 
 data="{\"fingerprint\": \"$fingerprint\"}"
-keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" -q -O --content-on-error -)
+keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" -q --content-on-error -O -)
 
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty"
 command="/bin/bash /home/get-jwt-token.sh"
