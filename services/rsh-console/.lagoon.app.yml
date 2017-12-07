@@ -58,7 +58,7 @@ objects:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 2020
+          - containerPort: 2223
             name: ssh
             protocol: TCP
           readinessProbe:
@@ -135,7 +135,7 @@ objects:
   spec:
     ports:
     - name: ssh-tcp
-      port: 2020
+      port: 2223
       protocol: TCP
       targetPort: ssh
     selector:

@@ -101,4 +101,4 @@ COPY .env.defaults .
 EXPOSE 2223
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]
+CMD ["/usr/sbin/sshd", "-e", "-D", "-ddd", "-f", "/etc/ssh/sshd_config"]
