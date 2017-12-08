@@ -67,7 +67,7 @@ node {
           stage ('publish-amazeeiolagoon') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME}"
+              sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
             }
           }
 
@@ -75,7 +75,7 @@ node {
             stage ('publish-amazeeio') {
               withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
                 sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                sh "make publish-amazeeio-baseimages"
+                sh "make publish-amazeeio-baseimages -j4"
               }
             }
           }
