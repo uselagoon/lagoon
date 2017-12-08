@@ -28,6 +28,7 @@ node {
                 }
                 stage ('start services') {
                   sh "make up-no-ports"
+                  sh "sleep 60"
                 }
               },
               'start openshift': {
@@ -46,7 +47,6 @@ node {
             '_tests': {
                 stage ('run tests') {
                   try {
-                    sh "sleep 30"
                     sh "make tests -j4"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
