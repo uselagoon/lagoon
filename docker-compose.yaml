@@ -127,8 +127,8 @@ services:
     user: '111111111'
     labels:
       lagoon.type: custom
-      lagoon.template: services/auth-ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-ssh:develop
+      lagoon.template: services/rsh-console/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/rsh-console:develop
   auth-ssh:
     image: ${IMAGE_REPO:-lagoon}/auth-ssh
       # TODO:
