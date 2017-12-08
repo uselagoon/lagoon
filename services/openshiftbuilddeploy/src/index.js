@@ -13,7 +13,7 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const ciUseOpenshiftRegistry = process.env.CI_USE_OPENSHIFT_REGISTRY || "false"
-const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "develop"
+const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 
 const messageConsumer = async msg => {
   const {
