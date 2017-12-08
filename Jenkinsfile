@@ -46,7 +46,7 @@ node {
             '_tests': {
                 stage ('run tests') {
                   try {
-                    sh "sleep 30"
+                    sh "sleep 45"
                     sh "make tests -j4"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
