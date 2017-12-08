@@ -187,6 +187,29 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
   });
 };
 
+const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT
+        *
+      FROM environment e
+      WHERE e.project = :pid
+    `);
+
+    sqlClient.query(prep({ pid }), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows);
+    });
+  });
+};
+
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -234,6 +257,31 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
     `);
 
     sqlClient.query(prep({ pid }), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      const ret = rows ? rows[0] : null;
+      res(ret);
+    });
+  });
+};
+
+const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT
+        p.*
+      FROM environment e
+      JOIN project p ON e.project = p.id
+      WHERE e.id = :eid
+    `);
+
+    sqlClient.query(prep({ eid }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -311,6 +359,9 @@ const addProject = sqlClient => async (cred, input) => {
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests
           ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
+          : 'NULL'},
+        ${input.production_environment
+          ? ':production_environment'
           : 'NULL'},
         '${input.sshKeys ? input.sshKeys.join(',') : ''}'
       );
@@ -484,6 +535,58 @@ const addOpenshift = sqlClient => async (cred, input) => {
   });
 };
 
+const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateOrUpdateEnvironment(
+        :name,
+        :project,
+        :git_type,
+        :environment_type,
+        :openshift_projectname
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err);
+        rej(err);
+      }
+
+      const environment = R.path([0, 0], rows);
+
+      res(environment);
+    });
+  });
+};
+
+const deleteEnvironment = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL DeleteEnvironment(
+        :name,
+        :project
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
+
 const deleteOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -639,6 +742,8 @@ const daoFns = {
   getAllCustomers,
   getAllOpenshifts,
   getOpenshiftByProjectId,
+  getProjectByEnvironmentId,
+  getEnvironmentsByProjectId,
   getProjectByGitUrl,
   getNotificationsByProjectId,
   getSshKeysByProjectId,
@@ -658,6 +763,8 @@ const daoFns = {
   deleteNotificationSlack,
   addNotificationToProject,
   removeNotificationFromProject,
+  addOrUpdateEnvironment,
+  deleteEnvironment,
   truncateTable,
 };
 

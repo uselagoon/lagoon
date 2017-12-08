@@ -36,6 +36,7 @@ export type Project = {
   slack: Object,
   name: string,
   openshift: Object,
+  production_environment: string,
 };
 
 export type RabbitMQMsg = {
