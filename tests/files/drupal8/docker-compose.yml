@@ -68,6 +68,15 @@ services:
       dockerfile: Dockerfile.redis
     labels:
       lagoon.type: redis
+  solr:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.solr
+    labels:
+      lagoon.type: solr
 networks:
   amazeeio-network:
     external: true
