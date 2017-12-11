@@ -17,57 +17,57 @@ node {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
+        lock('minishift') {
+          notifySlack()
 
-        notifySlack()
+          try {
+            parallel (
+              'build & start services': {
+                stage ('build images') {
+                  sh "make build"
+                }
+                stage ('start services') {
+                  sh "make up-no-ports"
+                  sh "sleep 60"
+                }
+              },
+              'start openshift': {
+                stage ('start openshift') {
+                  sh 'make openshift'
+                }
+              }
+            )
+          } catch (e) {
+            echo "Something went wrong, trying to cleanup"
+            cleanup()
+            throw e
+          }
 
-        try {
           parallel (
-            'build & start services': {
-              stage ('build images') {
-                sh "make build"
-              }
-              stage ('start services') {
-                sh "make up-no-ports"
-              }
+            '_tests': {
+                stage ('run tests') {
+                  try {
+                    sh "make tests -j4"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
+                  cleanup()
+                }
             },
-            'start openshift': {
-              stage ('start openshift') {
-                sh 'make openshift'
-              }
+            'logs': {
+                stage ('all') {
+                  sh "make logs"
+                }
             }
           )
-        } catch (e) {
-          echo "Something went wrong, trying to cleanup"
-          cleanup()
-          throw e
         }
-
-        parallel (
-          '_tests': {
-              stage ('run tests') {
-                try {
-                  sh "sleep 30"
-                  sh "make tests -j4"
-                } catch (e) {
-                  echo "Something went wrong, trying to cleanup"
-                  cleanup()
-                  throw e
-                }
-                cleanup()
-              }
-          },
-          'logs': {
-              stage ('all') {
-                sh "make logs"
-              }
-          }
-        )
-
 
         stage ('publish-amazeeiolagoon') {
           withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
             sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME}"
+            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
           }
         }
 
@@ -75,7 +75,7 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeio-baseimages"
+              sh "make publish-amazeeio-baseimages -j4"
             }
           }
         }

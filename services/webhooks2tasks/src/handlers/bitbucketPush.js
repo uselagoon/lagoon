@@ -28,7 +28,7 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
-      sha: sha
+      sha: sha,
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``

@@ -18,7 +18,7 @@ We're always interested in fixing issues, therefore issue reports are very welco
 
 Cool! Just create an issue and we're happy to look over it. We can't guarantee though that it will be implemented. But we are always interested in hearing ideas where we can bring Lagoon to.
 
-Another good way is also to talk to us via Slack about your idea. [Join today](https://slack.amazee.io/) in the channel #laggon.
+Another good way is also to talk to us via Slack about your idea. [Join today](https://slack.amazee.io/) in the channel #lagoon.
 
 ## I wrote some code
 
