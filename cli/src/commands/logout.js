@@ -23,14 +23,14 @@ const name = 'logout';
 const description =
   'Invalidate the authentication token in $HOME/.ioauth and delete the file';
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs.usage(`$0 ${name} - ${description}`).options({
     identity: {
       describe: 'Path to identity (private key)',
       type: 'string',
       alias: 'i',
     },
-  }).argv;
+  });
 }
 
 type Args = BaseArgs & {

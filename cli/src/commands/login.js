@@ -20,14 +20,14 @@ import type { BaseArgs } from '.';
 const name = 'login';
 const description = 'Authenticate with amazee.io via an SSH key';
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs.usage(`$0 ${name} - ${description}`).options({
     identity: {
       describe: 'Path to identity (private key)',
       type: 'string',
       alias: 'i',
     },
-  }).argv;
+  });
 }
 
 type Args = BaseArgs & {

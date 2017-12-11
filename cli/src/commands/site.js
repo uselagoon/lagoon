@@ -38,7 +38,7 @@ const onlyValues = ([, value]: [string, string]) =>
 const name = 'site';
 const description = 'Show site information for a sitegroup';
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs
     .usage(`$0 ${name} [site@branch] - ${description}`)
     .options({
@@ -60,7 +60,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(
       `$0 ${name} -s mysitegroup mysite`,
       'Show information about site "mysite" in sitegroup "somesitegroup"',
-    ).argv;
+    );
 }
 
 type SiteInfoArgs = {

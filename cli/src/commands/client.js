@@ -37,7 +37,7 @@ const onlyValues = ([, value]: [string, string]) =>
 const name = 'client';
 const description = 'Show client information for a sitegroup';
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs
     .usage(`$0 ${name} - ${description}`)
     .options({
@@ -55,7 +55,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(
       `$0 ${name} -s mysitegroup`,
       'Show client information for the sitegroup "mysitegroup"',
-    ).argv;
+    );
 }
 
 type GetClientInfoArgs = {
