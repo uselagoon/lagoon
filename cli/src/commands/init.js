@@ -53,7 +53,7 @@ const getOverwriteOption = async (
     ],
   ])(args);
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs
     .usage(`$0 ${name} - ${description}`)
     .options({
@@ -91,7 +91,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(
       `$0 ${name} --overwrite --sitegroup my_sitegroup`,
       'Overwrite existing config files and set sitegroup to "my_sitegroup" (do not confirm with or prompt the user).',
-    ).argv;
+    );
 }
 
 type Args = BaseArgs & {

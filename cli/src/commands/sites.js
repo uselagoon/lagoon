@@ -18,7 +18,7 @@ import type { BaseArgs } from '.';
 const name = 'sites';
 const description = 'List all sites for a sitegroup';
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs
     .usage(`$0 ${name} - ${description}`)
     .options({
@@ -36,7 +36,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(
       `$0 ${name} -s mysitegroup`,
       'List all sites for the sitegroup "mysitegroup"',
-    ).argv;
+    );
 }
 
 type ListSitesArgs = {

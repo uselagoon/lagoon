@@ -36,7 +36,7 @@ const onlyValues = ([, value]: [string, string]) =>
 const name = 'sitegroup';
 const description = 'Show sitegroup info';
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function setup(yargs: Yargs) {
   return yargs
     .usage(`$0 ${name} [sitegroup] - ${description}`)
     .example(
@@ -46,7 +46,7 @@ export async function setup(yargs: Yargs): Promise<Object> {
     .example(
       `$0 ${name} mysitegroup`,
       'Show information about sitegroup "mysitegroup"',
-    ).argv;
+    );
 }
 
 type SiteGroupInfoArgs = {
@@ -62,19 +62,9 @@ export async function sitegroupInfo({
 }: SiteGroupInfoArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {
-      siteGroupByName(name: $sitegroup) {
-        gitUrl
-        siteGroupName
-        slack {
-          webhook
-          channel
-          informStart
-          informChannel
-        }
-        sites {
-          siteName
-          siteBranch
-        }
+      projectByName(name: $sitegroup) {
+        git_url
+        name
       }
     }
   `;
@@ -90,7 +80,7 @@ export async function sitegroupInfo({
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const sitegroupData = R.path(['data', 'siteGroupByName'])(result);
+  const sitegroupData = R.path(['data', 'projectByName'])(result);
 
   if (sitegroupData == null) {
     return printErrors(clog, `No sitegroup '${sitegroup}' found`);
@@ -98,7 +88,7 @@ export async function sitegroupInfo({
 
   const sites = R.compose(
     R.map(({ siteName, siteBranch }) => `${siteName}:${siteBranch}`),
-    R.pathOr([], ['data', 'siteGroupByName', 'sites']),
+    R.pathOr([], ['data', 'projectByName', 'sites']),
   )(result);
 
   const formatSlack = (slack) => {
@@ -113,10 +103,10 @@ export async function sitegroupInfo({
   };
 
   const tableBody = [
-    ['Sitegroup Name', R.prop('siteGroupName', sitegroupData)],
-    ['Git Url', R.prop('gitUrl', sitegroupData)],
-    ['Slack', formatSlack(R.prop('slack', sitegroupData))],
-    ['Sites', R.join(', ', sites)],
+    ['Project Name', R.prop('name', sitegroupData)],
+    ['Git Url', R.prop('git_url', sitegroupData)],
+    // ['Slack', formatSlack(R.prop('slack', sitegroupData))],
+    // ['Sites', R.join(', ', sites)],
   ];
 
   const tableData = R.filter(onlyValues)(tableBody);

@@ -19,16 +19,26 @@ export type CommandModule = {
   run: (argv: Object) => Promise<number>,
 };
 
+import init from './init';
 import login from './login';
 import logout from './logout';
-import sites from './sites';
+// import sites from './sites';
 import client from './client';
-import site from './site';
-import sitegroup from './sitegroup';
-import init from './init';
+// import site from './site';
+// import sitegroup from './sitegroup';
+import project from './project';
+import projects from './projects';
 
 // Disable flowtype linting error because prettier formats to this
 // eslint-disable-next-line flowtype/generic-spacing
-export default ([login, logout, sites, client, init, site, sitegroup]: Array<
-  CommandModule,
->);
+export default ([
+  init,
+  login,
+  logout,
+  // sites,
+  client,
+  // site,
+  // sitegroup,
+  project,
+  projects,
+]: Array<CommandModule>);
