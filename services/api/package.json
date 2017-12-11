@@ -27,6 +27,7 @@
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
     "nodemon": "^1.12.1",
+    "prettier-eslint": "^8.2.5",
     "ramda": "^0.24.1",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
