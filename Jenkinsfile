@@ -62,28 +62,27 @@ node {
                 }
             }
           )
+        }
 
+        stage ('publish-amazeeiolagoon') {
+          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
+          }
+        }
 
-          stage ('publish-amazeeiolagoon') {
+        if (env.BRANCH_NAME == 'master') {
+          stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
+              sh "make publish-amazeeio-baseimages -j4"
             }
           }
+        }
 
-          if (env.BRANCH_NAME == 'master') {
-            stage ('publish-amazeeio') {
-              withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-                sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                sh "make publish-amazeeio-baseimages -j4"
-              }
-            }
-          }
-
-          if (env.BRANCH_NAME ==~ /develop|master/) {
-            stage ('start-lagoon-deploy') {
-              sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
-            }
+        if (env.BRANCH_NAME ==~ /develop|master/) {
+          stage ('start-lagoon-deploy') {
+            sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
           }
         }
       } catch (e) {
