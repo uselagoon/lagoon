@@ -104,7 +104,6 @@ const typeDefs = `
     branches: String
     pullrequests: Boolean
     production_environment: String
-    sshKeys: [String]
   }
 
   input EnvironmentInput {
@@ -119,7 +118,6 @@ const typeDefs = `
     name: String!
     comment: String
     private_key: String
-    sshKeys: [String]
   }
 
   input OpenshiftInput {
@@ -160,6 +158,26 @@ const typeDefs = `
     notificationName: String!
   }
 
+  input SshKeyToProjectInput {
+    project: String!
+    sshKey: String!
+  }
+
+  input RemoveSshKeyFromProjectInput {
+    project: String!
+    sshKey: String!
+  }
+
+  input SshKeyToCustomerInput {
+    customer: String!
+    sshKey: String!
+  }
+
+  input RemoveSshKeyFromCustomerInput {
+    customer: String!
+    sshKey: String!
+  }
+
   input DeleteProjectInput {
     name: String!
   }
@@ -179,6 +197,10 @@ const typeDefs = `
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
     addNotificationToProject(input: NotificationToProjectInput!): Project
     removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
+    addSshKeyToProject(input: SshKeyToProjectInput!): Project
+    removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
+    addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
+    removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
     truncateTable(tableName: String!): String
   }
 `;
@@ -312,6 +334,26 @@ const resolvers = {
     removeNotificationFromProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.removeNotificationFromProject(req.credentials, args.input);
+      return ret;
+    },
+    addSshKeyToProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addSshKeyToProject(req.credentials, args.input);
+      return ret;
+    },
+    removeSshKeyFromProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeSshKeyFromProject(req.credentials, args.input);
+      return ret;
+    },
+    addSshKeyToCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addSshKeyToCustomer(req.credentials, args.input);
+      return ret;
+    },
+    removeSshKeyFromCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeSshKeyFromCustomer(req.credentials, args.input);
       return ret;
     },
     addOrUpdateEnvironment: async (root, args, req) => {

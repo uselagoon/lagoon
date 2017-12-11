@@ -90,15 +90,11 @@ CREATE VIEW permission
 AS
   SELECT
     sk.id AS keyId,
-    c.id AS customerId,
     CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
-    GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') AS projects
-  FROM ssh_key sk
-  LEFT JOIN customer_ssh_key csk ON sk.id = csk.cid
-  LEFT JOIN customer c ON csk.cid = c.id
-  LEFT JOIN project_ssh_key psk ON sk.id = psk.skid
-  LEFT JOIN project p ON psk.pid = p.id
-  GROUP BY c.id;
+    (SELECT GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',') FROM customer_ssh_key csk WHERE csk.skid = sk.id) as customers,
+    (SELECT GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') FROM project_ssh_key psk WHERE psk.skid = sk.id) as projects
+  FROM ssh_key sk;
+  
 
 
 DELIMITER $$

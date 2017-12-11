@@ -5,21 +5,6 @@ const jwt = require('jsonwebtoken');
 const R = require('ramda');
 const logger = require('./logger');
 
-// input: coma separated string with ids // defaults to '' if null
-// output: array of ids
-const parseProjectPermissions = R.compose(
-  R.filter(R.compose(R.not, R.empty)),
-  R.split(','),
-  R.defaultTo(''),
-);
-
-// rows: Result array of permissions table query
-// currently only parses the projects attribute
-const parsePermissions = R.over(
-  R.lensProp('projects'),
-  parseProjectPermissions,
-);
-
 const parseBearerToken = R.compose(
   R.ifElse(
     splits =>
@@ -142,26 +127,24 @@ const createAuthMiddleware = args => async (req, res, next) => {
     }
 
     // We need this, since non-admin credentials are required to have an ssh-key
-    let nonAdminCreds = {};
+    const permissions = {};
+    let nonAdminCreds = { permissions };
 
     if (role !== 'admin') {
-      const rawPermissions = await dao.getPermissions({ sshKey });
+      const permissions = await dao.getPermissions({ sshKey });
 
-      if (rawPermissions == null) {
+      if (permissions == null) {
         res
           .status(401)
           .send({ errors: [{ message: 'Unauthorized - Unknown SSH key' }] });
         return;
       }
 
-      const { customerId } = rawPermissions;
-      const permissions = parsePermissions(rawPermissions);
-
       nonAdminCreds = {
         sshKey,
-        customerId,
         permissions, // for read & write
       };
+
     }
 
     req.credentials = {

@@ -11,8 +11,7 @@ CREATE OR REPLACE PROCEDURE
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
     IN pullrequests           boolean,
-    IN production_environment varchar(100),
-    IN ssh_key_names          text
+    IN production_environment varchar(100)
   )
   BEGIN
 
@@ -46,15 +45,7 @@ CREATE OR REPLACE PROCEDURE
         os.name = openshift AND
         c.name = customer;
 
-    -- Now add the ssh-key relation to the newly created project
     SET new_pid = LAST_INSERT_ID();
-
-    INSERT INTO project_ssh_key (pid, skid)
-    SELECT
-      new_pid,
-      id
-    FROM ssh_key
-    WHERE FIND_IN_SET(ssh_key.name, ssh_key_names) > 0;
 
     -- Return the constructed project
     SELECT
@@ -198,8 +189,7 @@ CREATE OR REPLACE PROCEDURE
   (
     IN name           varchar(50),
     IN comment        text,
-    IN private_key    varchar(5000),
-    IN ssh_key_names  text
+    IN private_key    varchar(5000)
   )
   BEGIN
     DECLARE new_cid int;
@@ -215,13 +205,6 @@ CREATE OR REPLACE PROCEDURE
     );
 
     SET new_cid = LAST_INSERT_ID();
-
-    INSERT INTO customer_ssh_key (cid, skid)
-    SELECT
-      new_cid,
-      id
-    FROM ssh_key
-    WHERE FIND_IN_SET(ssh_key.name, ssh_key_names) > 0;
 
     SELECT
       id,
@@ -427,6 +410,116 @@ CREATE OR REPLACE PROCEDURE
       *
     FROM project as p
     WHERE p.name = project;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateProjectSshKey
+  (
+    IN project            varchar(50),
+    IN ssh_key            varchar(100)
+  )
+  BEGIN
+
+    INSERT INTO project_ssh_key (
+      pid,
+      skid
+    ) SELECT
+      p.id,
+      sk.id
+    FROM
+      project AS p,
+      ssh_key AS sk
+    WHERE
+      p.name = project AND
+      sk.name = ssh_key;
+
+    SELECT
+      *
+    FROM project as p
+    WHERE p.name = project;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteProjectSshKey
+  (
+    IN project            varchar(50),
+    IN ssh_key            varchar(100)
+  )
+  BEGIN
+
+    DELETE
+      project_ssh_key
+    FROM
+      project_ssh_key
+    LEFT JOIN project ON project_ssh_key.pid = project.id
+    LEFT JOIN ssh_key ON project_ssh_key.skid = ssh_key.id
+    WHERE
+      project.name = project AND
+      ssh_key.name = ssh_key;
+
+    SELECT
+      *
+    FROM project as p
+    WHERE p.name = project;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateCustomerSshKey
+  (
+    IN customer            varchar(50),
+    IN ssh_key            varchar(100)
+  )
+  BEGIN
+
+    INSERT INTO customer_ssh_key (
+      cid,
+      skid
+    ) SELECT
+      c.id,
+      sk.id
+    FROM
+      customer AS c,
+      ssh_key AS sk
+    WHERE
+      c.name = customer AND
+      sk.name = ssh_key;
+
+    SELECT
+      *
+    FROM customer as c
+    WHERE c.name = customer;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteCustomerSshKey
+  (
+    IN customer            varchar(50),
+    IN ssh_key            varchar(100)
+  )
+  BEGIN
+
+    DELETE
+      customer_ssh_key
+    FROM
+      customer_ssh_key
+    LEFT JOIN customer ON customer_ssh_key.cid = customer.id
+    LEFT JOIN ssh_key ON customer_ssh_key.skid = ssh_key.id
+    WHERE
+      customer.name = customer AND
+      ssh_key.name = ssh_key;
+
+    SELECT
+      *
+    FROM customer as c
+    WHERE c.name = customer;
 
   END;
 $$
