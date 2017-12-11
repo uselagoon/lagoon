@@ -45,9 +45,6 @@ RUN chmod 600 /etc/ssh/ssh_host_rsa_key  /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ss
 # calls the authentication server to retrieve a token, it is
 # envplated during entrypoint so fix permissions
 
-COPY get-jwt-token.sh /home/get-jwt-token.sh
-RUN fix-permissions /home/get-jwt-token.sh
-
 # This is the authorized keys command, which will be defined as AuthorizedKeysCommand
 COPY authorize.sh /authorize.sh
 COPY create_jwt.sh /create_jwt.sh
