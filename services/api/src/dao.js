@@ -3,10 +3,29 @@
 
 const R = require('ramda');
 
+// Useful for creating extra if-conditions for non-admins
+const ifNotAdmin = (role, str) =>
+  R.ifElse(R.equals('admin'), R.always(''), R.always(str))(role);
+
+// Creates a WHERE statement with AND inbetween non-empty conditions
+const whereAnd = whereConds =>
+  R.compose(
+    R.reduce((ret, str) => {
+      if (ret === '') {
+        return `WHERE ${str}`;
+      } else {
+        return `${ret} AND ${str}`;
+      }
+    }, ''),
+    R.filter(R.compose(R.not, R.isEmpty)),
+  )(whereConds);
+
 const getPermissions = sqlClient => async args => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(
-      `SELECT * FROM permission WHERE sshKey = :sshKey`,
+      `SELECT projects, customerId
+       FROM permission
+       WHERE sshKey = :sshKey`,
     );
     sqlClient.query(prep(args), (err, rows) => {
       if (err) {
@@ -42,58 +61,52 @@ const getCustomerSshKeys = sqlClient => async cred => {
 };
 
 const getAllCustomers = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
-  const { createdAfter } = args;
-
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      SELECT * FROM customer ${
-        args.createdAfter ? 'WHERE created >= :createdAfter' : ''
-      }
-    `);
+    const where = whereAnd([
+      args.createdAfter ? 'created >= :createdAfter' : '',
+      ifNotAdmin(cred.role, 'id = :customerId'),
+    ]);
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+    const prep = sqlClient.prepare(`SELECT * FROM customer ${where}`);
 
-      res(rows);
-    });
+    sqlClient.query(
+      prep({ ...args, customerId: cred.customerId }),
+      (err, rows) => {
+        if (err) {
+          rej(err);
+        }
+
+        res(rows);
+      },
+    );
   });
 };
 
 const getAllProjects = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
-  const { createdAfter } = args;
-
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      SELECT * FROM project
-        ${args.createdAfter ? 'WHERE created >= :createdAfter' : ''}
-        ${args.gitUrl ? 'WHERE git_url = :gitUrl' : ''}
-    `);
+    // We need one "WHERE" keyword, but we have multiple optional conditions
+    const where = whereAnd([
+      args.createdAfter ? 'created >= :createdAfter' : '',
+      args.gitUrl ? 'git_url = :gitUrl' : '',
+      ifNotAdmin(cred.role, 'customer = :customerId'),
+    ]);
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+    const prep = sqlClient.prepare(`SELECT * FROM project ${where}`);
 
-      res(rows);
-    });
+    sqlClient.query(
+      prep({ ...args, customerId: cred.customerId }),
+      (err, rows) => {
+        if (err) {
+          rej(err);
+        }
+
+        res(rows);
+      },
+    );
   });
 };
 
 const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
@@ -104,11 +117,13 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
         o.router_pattern,
         o.project_user,
         o.created
-      FROM project p, openshift o
-      WHERE p.id = :pid AND p.openshift = o.id
+      FROM project p
+      JOIN openshift o ON o.id = p.openshift
+      WHERE p.id = :pid
+      ${ifNotAdmin(cred.role, 'AND p.customer = :customerId')}
     `);
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
+    sqlClient.query(prep({ pid, customerId: cred.customerId }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -120,10 +135,6 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
 };
 
 const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
@@ -132,46 +143,52 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
         ns.webhook,
         ns.channel,
         pn.type
-      FROM
-        project_notification AS pn
-      JOIN
-        notification_slack AS ns ON (pn.nid = ns.id)
+      FROM project_notification pn
+      JOIN project p ON p.id = pn.pid
+      JOIN notification_slack ns ON pn.nid = ns.id
       WHERE
         pn.pid = :pid
         ${args.type ? 'AND pn.type = :type' : ''}
+        ${ifNotAdmin(cred.role, 'AND p.customer = :customerId')}
     `);
 
-    sqlClient.query(prep({ pid: pid, type: args.type }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+    sqlClient.query(
+      prep({
+        pid: pid,
+        type: args.type,
+        customerId: cred.customerId,
+      }),
+      (err, rows) => {
+        if (err) {
+          rej(err);
+        }
 
-      const ret = rows ? rows : null;
-      console.log(ret);
-      res(ret);
-    });
+        const ret = rows ? rows : null;
+        res(ret);
+      },
+    );
   });
 };
 
 const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
+    const str = `
       SELECT
-        id,
-        name,
-        keyValue,
-        keyType,
-        created
+        sk.id,
+        sk.name,
+        sk.keyValue,
+        sk.keyType,
+        sk.created
       FROM project_ssh_key ps
       JOIN ssh_key sk ON ps.skid = sk.id
+      JOIN project p ON ps.pid = p.id
       WHERE ps.pid = :pid
-    `);
+      ${ifNotAdmin(cred.role, 'AND p.customer = :customerId')}
+    `;
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
+    const prep = sqlClient.prepare(str);
+
+    sqlClient.query(prep({ pid, customerId: cred.customerId }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -182,10 +199,6 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
 };
 
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
@@ -197,9 +210,10 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
       FROM customer_ssh_key cs
       JOIN ssh_key sk ON cs.skid = sk.id
       WHERE cs.cid = :cid
+      ${ifNotAdmin(cred.role, 'AND cs.cid = :customerId')}
     `);
 
-    sqlClient.query(prep({ cid }), (err, rows) => {
+    sqlClient.query(prep({ cid, customerId: cred.customerId }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -210,10 +224,6 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
 };
 
 const getCustomerByProjectId = sqlClient => async (cred, pid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
@@ -225,9 +235,10 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
       FROM project p
       JOIN customer c ON p.customer = c.id
       WHERE p.id = :pid
+      ${ifNotAdmin(cred.role, 'AND c.id = :customerId')}
     `);
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
+    sqlClient.query(prep({ pid, customerId: cred.customerId }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -239,48 +250,49 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
 };
 
 const getProjectByGitUrl = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
         *
       FROM project
-      WHERE git_url = :gitUrl LIMIT 1
+      WHERE git_url = :gitUrl
+      ${ifNotAdmin(cred.role, 'AND customer = :customerId')}
+      LIMIT 1
     `);
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+    sqlClient.query(
+      prep({ ...args, customerId: cred.customerId }),
+      (err, rows) => {
+        if (err) {
+          rej(err);
+        }
 
-      const ret = rows ? rows[0] : null;
-      res(ret);
-    });
+        const ret = rows ? rows[0] : null;
+        res(ret);
+      },
+    );
   });
 };
 
 const getProjectByName = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
         *
       FROM project
-      WHERE name = :name`);
+      WHERE name = :name
+      ${ifNotAdmin(cred.role, 'AND customer = :customerId')}`);
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+    sqlClient.query(
+      prep({ ...args, customerId: cred.customerId }),
+      (err, rows) => {
+        if (err) {
+          rej(err);
+        }
 
-      res(rows[0]);
-    });
+        res(rows[0]);
+      },
+    );
   });
 };
 
@@ -318,8 +330,6 @@ const addProject = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(prep(input));
-        console.log(err);
         rej(err);
       }
 
@@ -348,7 +358,6 @@ const addSshKey = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
@@ -376,7 +385,6 @@ const addCustomer = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
@@ -405,7 +413,6 @@ const addOpenshift = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
@@ -432,7 +439,6 @@ const addNotificationSlack = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
@@ -459,8 +465,6 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(prep(input));
-        console.log(err);
         rej(err);
       }
 
@@ -479,13 +483,10 @@ const truncateTable = sqlClient => async (cred, args) => {
   const { tableName } = args;
 
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      TRUNCATE table \`${tableName}\`;
-    `);
+    const prep = sqlClient.prepare(`TRUNCATE table \`${tableName}\``);
 
     sqlClient.query(prep(args), (err, rows) => {
       if (err) {
-        console.log(prep(args));
         rej(err);
       }
 

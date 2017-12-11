@@ -8,15 +8,17 @@ const logger = require('./logger');
 // input: coma separated string with ids // defaults to '' if null
 // output: array of ids
 const parseProjectPermissions = R.compose(
-  R.map(strId => parseInt(strId)),
-  R.filter(R.empty),
+  R.filter(R.compose(R.not, R.empty)),
   R.split(','),
   R.defaultTo(''),
 );
 
 // rows: Result array of permissions table query
 // currently only parses the projects attribute
-const parsePermissions = R.over(R.lensProp('projects'), parseProjectPermissions);
+const parsePermissions = R.over(
+  R.lensProp('projects'),
+  parseProjectPermissions,
+);
 
 const parseBearerToken = R.compose(
   R.ifElse(
@@ -49,12 +51,10 @@ const decodeToken = (token, secret) => {
 const createAttributeFilters = role => {
   let project;
   let site;
-  let client;
+  let customer;
 
   let createFilter = attr =>
     R.ifElse(
-      // Note: we need id & siteGroupName to be able
-      // to normalize data
       R.isNil,
       R.always(null),
       R.pick(attr),
@@ -97,10 +97,10 @@ const createAttributeFilters = role => {
   }
 
   // Only pick filters which are defined
-  return R.pick(['project', 'site', 'client'], {
+  return R.pick(['project', 'site', 'customer'], {
     project,
     site,
-    client,
+    customer,
   });
 };
 
@@ -141,22 +141,36 @@ const createAuthMiddleware = args => async (req, res, next) => {
       });
     }
 
-    // TODO: Find read / write credentials and set filters
-    const rawPermissions = await dao.getPermissions({ sshKey });
+    // We need this, since non-admin credentials are required to have an ssh-key
+    let nonAdminCreds = {};
 
-    const permissions = parsePermissions(rawPermissions);
+    if (role !== 'admin') {
+      const rawPermissions = await dao.getPermissions({ sshKey });
 
-    console.log(permissions);
-    // $FlowIgnore
+      if (rawPermissions == null) {
+        res
+          .status(401)
+          .send({ errors: [{ message: 'Unauthorized - Unknown SSH key' }] });
+        return;
+      }
+
+      const { customerId } = rawPermissions;
+      const permissions = parsePermissions(rawPermissions);
+
+      nonAdminCreds = {
+        sshKey,
+        customerId,
+        permissions, // for read & write
+      };
+    }
+
     req.credentials = {
-      sshKey,
       role,
-      permissions, // for read & write
+      ...nonAdminCreds,
     };
 
     next();
   } catch (e) {
-    console.log(e);
     res
       .status(403)
       .send({ errors: [{ message: 'Forbidden - Invalid Auth Token' }] });
