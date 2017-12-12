@@ -20,7 +20,7 @@ acl purge {
 # Respond to incoming requests.
 sub vcl_recv {
   if (req.url ~ "^/varnish_status$")  {
-    return (synth(700,"OK"));
+    return (synth(200,"OK"));
   }
   # set the backend, which should be used:
   set req.backend_hint = default;

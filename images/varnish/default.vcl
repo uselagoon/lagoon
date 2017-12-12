@@ -31,7 +31,7 @@ sub vcl_recv {
 
   # Needed for Readyness and Liveness checks - do not remove
   if (req.url ~ "^/varnish_status$")  {
-    return (synth(700,"OK"));
+    return (synth(200,"OK"));
   }
 
 }
