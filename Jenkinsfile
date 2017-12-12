@@ -47,6 +47,7 @@ node {
             '_tests': {
                 stage ('run tests') {
                   try {
+                    sh "make push-openshift"
                     sh "make tests -j4"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
