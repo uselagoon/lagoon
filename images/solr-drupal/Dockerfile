@@ -21,6 +21,8 @@ ADD solr${SOLR_VERSION} /solr-conf
 
 VOLUME /opt/solr/server/solr/mycores/
 
-ENV AMAZEEIO_AUTODISCOVERY_SOLR true
+COPY docker-entrypoint /lagoon/entrypoints/70-solr-entrypoint
+
+ENTRYPOINT ["/lagoon/entrypoints.sh"]
 
 CMD ["solr-precreate", "drupal", "/solr-conf"]
