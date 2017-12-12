@@ -170,7 +170,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: nginx
+    name: ${SERVICE_NAME}
   spec:
     ports:
     - name: http
@@ -189,7 +189,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: nginx
+    name: ${SERVICE_NAME}
   spec:
     host: ${SERVICE_ROUTER_URL}
     port:
