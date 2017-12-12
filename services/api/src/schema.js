@@ -190,7 +190,7 @@ const resolvers = {
   Project: {
     customer: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByProjectId(req.credentials, project.customer);
+      return await dao.getCustomerByProjectId(req.credentials, project.id);
     },
     sshKeys: async (project, args, req) => {
       const dao = getDao(req);
