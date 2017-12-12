@@ -197,7 +197,7 @@ $(build-solrimages): build/commons
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 # Call the docker build
-	$(call docker_build_solr,$(version),$(version)$(type_dash),images/solr/Dockerfile,images/solr)
+	$(call docker_build_solr,$(version),$(version)$(type_dash),images/solr$(type_dash)/Dockerfile,images/solr$(type_dash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
