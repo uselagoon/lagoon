@@ -16,7 +16,7 @@ SERVICE_API_ADMIN_TOKEN=$(/create_jwt.sh)
 # This token will be required for accessing the sshKeys in the lagoon api
 bearer="Authorization: bearer $SERVICE_API_ADMIN_TOKEN"
 
-api=$API_HOST
+api=${API_HOST:-http://api:3000}
 fingerprint=$1
 
 data="{\"fingerprint\": \"$fingerprint\"}"
