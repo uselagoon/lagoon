@@ -24,53 +24,6 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN apk add --no-cache openssh openssl curl bash wget
 
-# Required for our create_jwt.sh
-RUN curl -sLo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
-    && chmod +x /bin/jq
-
-# Generate ssh server keys
-RUN mkdir .ssh && \
-    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' && \
-    ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
-    ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
-
-
-# Add the ssh config
-COPY sshd_config /etc/ssh/sshd_config
-
-
-
-RUN chmod 600 /etc/ssh/ssh_host_rsa_key  /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_ed25519_key
-# This is the script that is run on every ssh login attempt. It
-# calls the authentication server to retrieve a token, it is
-# envplated during entrypoint so fix permissions
-
-# This is the authorized keys command, which will be defined as AuthorizedKeysCommand
-COPY authorize.sh /authorize.sh
-COPY create_jwt.sh /create_jwt.sh
-COPY rsh-console /rsh-console
-
-# Files defined in AuthorizedKeysCommand need the specific permissions for
-# root to own and no write permission by group or others
-RUN chmod 755 /authorize.sh
-RUN chmod 755 /create_jwt.sh
-RUN chmod 555 /rsh-console
-
-# Create /authorize.env file and give api right to write it, it will be filled
-# within docker-entrypoint with all environment variables and then sourced
-# by /authorize.sh
-RUN touch /authorize.env && fix-permissions /authorize.env
-
-# Create empty authorized_keys file, just that openssh does not complain all the time
-RUN mkdir -p /home/.ssh && touch /home/.ssh/authorized_keys
-
-# This will set the username of the random generated user by openshift to 'api' (see 10-passwd.sh)
-ENV USER_NAME api
-
-# Entrypoint file which will replace some environment variables into
-# hardcoded values every time the container is started
-COPY docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
-
 RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util && \
 		apk add --update curl && \
 		curl -Lo /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub && \
@@ -89,6 +42,53 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
+# Required for our create_jwt.sh
+RUN curl -sLo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
+    && chmod +x /bin/jq
+
+# Generate ssh server keys
+RUN mkdir .ssh && \
+    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' && \
+    ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
+    ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
+
+
+# Add the ssh config
+COPY sshd_config /etc/ssh/sshd_config
+
+RUN chmod 600 /etc/ssh/ssh_host_rsa_key  /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_ed25519_key
+# This is the script that is run on every ssh login attempt. It
+# calls the authentication server to retrieve a token, it is
+# envplated during entrypoint so fix permissions
+
+# This is the authorized keys command, which will be defined as AuthorizedKeysCommand
+COPY authorize.sh /authorize.sh
+COPY create_jwt.sh /create_jwt.sh
+COPY rsh-console.sh /rsh-console.sh
+
+# Files defined in AuthorizedKeysCommand need the specific permissions for
+# root to own and no write permission by group or others
+RUN chmod 755 /authorize.sh
+RUN chmod 755 /create_jwt.sh
+RUN chmod 555 /rsh-console.sh
+
+# Create /authorize.env file and give cli user right to write it, it will be filled
+# within docker-entrypoint with all environment variables and then sourced
+# by /authorize.sh
+RUN touch /authorize.env && fix-permissions /authorize.env
+
+# Create empty authorized_keys file, just that openssh does not complain all the time
+RUN mkdir -p /home/.ssh && touch /home/.ssh/authorized_keys
+
+RUN mkdir -p /home/.kube && fix-permissions /home/.kube
+
+# This will set the username of the random generated user by openshift to 'cli' (see 10-passwd.sh)
+ENV USER_NAME cli
+
+# Entrypoint file which will replace some environment variables into
+# hardcoded values every time the container is started
+COPY docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
+
 RUN fix-permissions /etc/ssh/ && \
     fix-permissions /run/
 
@@ -98,4 +98,4 @@ COPY .env.defaults .
 EXPOSE 2223
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["/usr/sbin/sshd", "-e", "-D", "-ddd", "-f", "/etc/ssh/sshd_config"]
+CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]

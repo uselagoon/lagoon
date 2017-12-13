@@ -13,9 +13,7 @@ PermitRootLogin no
 AuthorizedKeysFile .ssh/authorized_keys
 
 AuthorizedKeysCommand /authorize.sh %f
-AuthorizedKeysCommandUser api
-
-ForceCommand /rsh-console $SSH_ORIGINAL_COMMAND
+AuthorizedKeysCommandUser cli
 
 HostbasedAuthentication no
 
@@ -27,7 +25,7 @@ AllowTcpForwarding no
 GatewayPorts no
 X11Forwarding no
 
-PermitTTY no
+PermitTTY yes
 PrintMotd no
 
 PermitUserEnvironment no

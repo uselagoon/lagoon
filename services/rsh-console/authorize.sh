@@ -23,7 +23,7 @@ data="{\"fingerprint\": \"$fingerprint\"}"
 keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" -q --content-on-error -O -)
 
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding"
-command="/bin/bash /rsh-console"
+command="/bin/bash /rsh-console.sh \$SSH_ORIGINAL_COMMAND"
 
 if [ -n "$keys" ]; then
     while read -r key; do
