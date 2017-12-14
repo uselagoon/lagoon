@@ -28,6 +28,7 @@ node {
                 }
                 stage ('start services') {
                   sh "make up-no-ports"
+                  sh "sleep 60"
                 }
               },
               'start openshift': {
@@ -46,7 +47,7 @@ node {
             '_tests': {
                 stage ('run tests') {
                   try {
-                    sh "sleep 30"
+                    sh "make push-openshift"
                     sh "make tests -j4"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
@@ -62,28 +63,27 @@ node {
                 }
             }
           )
+        }
 
+        stage ('publish-amazeeiolagoon') {
+          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
+          }
+        }
 
-          stage ('publish-amazeeiolagoon') {
+        if (env.BRANCH_NAME == 'master') {
+          stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME}"
+              sh "make publish-amazeeio-baseimages -j4"
             }
           }
+        }
 
-          if (env.BRANCH_NAME == 'master') {
-            stage ('publish-amazeeio') {
-              withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-                sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                sh "make publish-amazeeio-baseimages"
-              }
-            }
-          }
-
-          if (env.BRANCH_NAME ==~ /develop|master/) {
-            stage ('start-lagoon-deploy') {
-              sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
-            }
+        if (env.BRANCH_NAME ==~ /develop|master/) {
+          stage ('start-lagoon-deploy') {
+            sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
           }
         }
       } catch (e) {

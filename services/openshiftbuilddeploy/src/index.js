@@ -4,7 +4,7 @@ const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject, addOrUpdateEnvironment } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
@@ -13,7 +13,7 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const ciUseOpenshiftRegistry = process.env.CI_USE_OPENSHIFT_REGISTRY || "false"
-const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "develop"
+const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 
 const messageConsumer = async msg => {
   const {
@@ -49,6 +49,8 @@ const messageConsumer = async msg => {
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
+    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development'
+
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -204,6 +206,15 @@ const messageConsumer = async msg => {
     }
   }
 
+  // Update GraphQL API with information about this environment
+  try {
+    await addOrUpdateEnvironment(branchName, projectName, type, environmentType, openshiftProject)
+    logger.info(`${openshiftProject}: Created/Updated Environment in API`)
+  } catch (err) {
+    logger.error(err)
+    throw new Error
+  }
+
   // Used to create RoleBindings
   const rolebindingsPost = Promise.promisify(openshift.ns(openshiftProject).rolebindings.post, { context: openshift.ns(openshiftProject).rolebindings })
 
@@ -236,7 +247,7 @@ const messageConsumer = async msg => {
       const serviceaccountsPost = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
       await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
       await sleep(2000); // sleep a bit after creating the ServiceAccount for OpenShift to create all the secrets
-      await rolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":"laggon-deployer-edit","namespace":openshiftProject},"roleRef":{"name":"edit"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+      await rolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":"lagoon-deployer-edit","namespace":openshiftProject},"roleRef":{"name":"edit"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
     } else {
       logger.error(err)
       throw new Error

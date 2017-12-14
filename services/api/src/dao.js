@@ -50,6 +50,27 @@ const getAllCustomers = sqlClient => async (cred, args) => {
   });
 };
 
+const getAllOpenshifts = sqlClient => async (cred, args) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  const { createdAfter } = args;
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT * FROM openshift`);
+
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows);
+    });
+  });
+};
+
 const getAllProjects = sqlClient => async (cred, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -166,6 +187,29 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
   });
 };
 
+const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT
+        *
+      FROM environment e
+      WHERE e.project = :pid
+    `);
+
+    sqlClient.query(prep({ pid }), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows);
+    });
+  });
+};
+
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -213,6 +257,31 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
     `);
 
     sqlClient.query(prep({ pid }), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      const ret = rows ? rows[0] : null;
+      res(ret);
+    });
+  });
+};
+
+const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      SELECT
+        p.*
+      FROM environment e
+      JOIN project p ON e.project = p.id
+      WHERE e.id = :eid
+    `);
+
+    sqlClient.query(prep({ eid }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -291,6 +360,9 @@ const addProject = sqlClient => async (cred, input) => {
         ${input.pullrequests
           ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
           : 'NULL'},
+        ${input.production_environment
+          ? ':production_environment'
+          : 'NULL'},
         '${input.sshKeys ? input.sshKeys.join(',') : ''}'
       );
     `);
@@ -310,6 +382,28 @@ const addProject = sqlClient => async (cred, input) => {
     });
   });
 };
+
+const deleteProject = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL DeleteProject(
+        :name
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
 
 const addSshKey = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -338,6 +432,29 @@ const addSshKey = sqlClient => async (cred, input) => {
   });
 };
 
+const deleteSshKey = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL deleteSshKey(
+        :name
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err);
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
+
 const addCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
@@ -365,6 +482,29 @@ const addCustomer = sqlClient => async (cred, input) => {
     });
   });
 };
+
+const deleteCustomer = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL deleteCustomer(
+        :name
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err);
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
 
 const addOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -395,6 +535,80 @@ const addOpenshift = sqlClient => async (cred, input) => {
   });
 };
 
+const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL CreateOrUpdateEnvironment(
+        :name,
+        :project,
+        :git_type,
+        :environment_type,
+        :openshift_projectname
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(err);
+        rej(err);
+      }
+
+      const environment = R.path([0, 0], rows);
+
+      res(environment);
+    });
+  });
+};
+
+const deleteEnvironment = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL DeleteEnvironment(
+        :name,
+        :project
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
+
+const deleteOpenshift = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL deleteOpenshift(
+        :name
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+}
+
 const addNotificationSlack = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
@@ -422,6 +636,28 @@ const addNotificationSlack = sqlClient => async (cred, input) => {
   });
 };
 
+const deleteNotificationSlack = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL DeleteNotificationSlack(
+        :name
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res('success');
+    });
+  });
+};
+
 const addNotificationToProject = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
@@ -430,6 +666,34 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       CALL CreateProjectNotification(
+        :project,
+        :notificationType,
+        :notificationName
+      );
+    `);
+
+    sqlClient.query(prep(input), (err, rows) => {
+      if (err) {
+        console.log(prep(input));
+        console.log(err);
+        rej(err);
+      }
+
+      const project = R.path([0, 0], rows);
+
+      res(project);
+    });
+  });
+};
+
+const removeNotificationFromProject = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('unauthorized.');
+  }
+
+  return new Promise((res, rej) => {
+    const prep = sqlClient.prepare(`
+      CALL DeleteProjectNotification(
         :project,
         :notificationType,
         :notificationName
@@ -476,7 +740,10 @@ const truncateTable = sqlClient => async (cred, args) => {
 const daoFns = {
   getCustomerSshKeys,
   getAllCustomers,
+  getAllOpenshifts,
   getOpenshiftByProjectId,
+  getProjectByEnvironmentId,
+  getEnvironmentsByProjectId,
   getProjectByGitUrl,
   getNotificationsByProjectId,
   getSshKeysByProjectId,
@@ -485,11 +752,19 @@ const daoFns = {
   getProjectByName,
   getAllProjects,
   addProject,
+  deleteProject,
   addSshKey,
+  deleteSshKey,
   addCustomer,
+  deleteCustomer,
   addOpenshift,
+  deleteOpenshift,
   addNotificationSlack,
+  deleteNotificationSlack,
   addNotificationToProject,
+  removeNotificationFromProject,
+  addOrUpdateEnvironment,
+  deleteEnvironment,
   truncateTable,
 };
 

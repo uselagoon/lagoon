@@ -1,7 +1,5 @@
 #!/bin/bash
 
-function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
-
 if [ ${#BUILD_ARGS[@]} -eq 0 ]; then
     BUILD_ARGS_JOINED=""
 else
