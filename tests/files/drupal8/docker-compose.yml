@@ -33,7 +33,7 @@ services:
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
-      lagoon.name: nginx-php
+      lagoon.name: nginx
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -49,7 +49,7 @@ services:
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
-      lagoon.name: nginx-php
+      lagoon.name: nginx
     volumes:
       - ./web:/app/web:delegated
     depends_on:
