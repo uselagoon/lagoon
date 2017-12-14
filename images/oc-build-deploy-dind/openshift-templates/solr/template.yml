@@ -31,7 +31,20 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: PERSISTENT_STORAGE_PATH
+    description: Full path to which should be mounted into persistent storage
+    required: true
 objects:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${SERVICE_NAME}-persistent
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -54,6 +67,10 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        volumes:
+          - name: ${SERVICE_NAME}-persistent
+            persistentVolumeClaim:
+              claimName: ${SERVICE_NAME}-persistent
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
@@ -94,6 +111,9 @@ objects:
                 configMapKeyRef:
                   name: lagoon-env
                   key: LAGOON_PROJECT
+          volumeMounts:
+            - name: ${SERVICE_NAME}-persistent
+              mountPath: ${PERSISTENT_STORAGE_PATH}
           resources:
             requests:
               cpu: 100m
