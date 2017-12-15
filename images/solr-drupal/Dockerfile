@@ -17,14 +17,4 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 COPY solr${SOLR_MAJ_MIN_VERSION} /solr-conf
 
-RUN mkdir -p /opt/solr/server/solr/mycores/
-
-
-
-RUN fix-permissions /opt/solr \
-    && fix-permissions /opt/docker-solr \
-    && fix-permissions /solr-conf
-
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
-
 CMD ["solr-precreate", "drupal", "/solr-conf"]

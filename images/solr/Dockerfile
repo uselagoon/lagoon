@@ -14,13 +14,18 @@ COPY --from=commons /home/.bashrc /home/.bashrc
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
+# we need root for the fix-permissions to work
 USER root
 
-RUN mkdir -p /opt/solr/server/solr/mycores/
+RUN fix-permissions /opt/solr/server/solr/mycores/ \
+    && fix-permissions /opt/solr/server/logs
 
-RUN fix-permissions /opt/solr \
-    && fix-permissions /opt/docker-solr
+# solr really doesn't like to be run as root, so we define the default user agin
+USER solr
+
+# Define Volume so locally we get persistent cores
+VOLUME /opt/solr/server/solr/mycores/
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 
-CMD ["solr-precreate", "drupal", "/solr-conf"]
+CMD ["solr-precreate", "mycore"]
