@@ -1,17 +1,35 @@
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, nginx route"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-php.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for branch name"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for branch name, nginx route"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-php.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "LAGOON_GIT_BRANCH={{ expected_branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, varnish route"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://varnish.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for branch name, varnish route"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://varnish.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_content: "LAGOON_GIT_BRANCH={{ expected_branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml

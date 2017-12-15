@@ -27,7 +27,6 @@ items:
           - --host=tcp://0.0.0.0:2375
           - --host=unix:///var/run/docker.sock
           - --insecure-registry=docker-registry.default.svc:5000
-          - '--bip=172.29.0.1/16'
           image: docker:stable-dind
           imagePullPolicy: Always
           livenessProbe:
@@ -60,8 +59,7 @@ items:
         serviceAccountName: docker-host
         volumes:
         - name: docker-lib
-          persistentVolumeClaim:
-            claimName: docker-host
+          emptyDir: {}
     test: false
     triggers:
     - type: ConfigChange
@@ -82,14 +80,4 @@ items:
       deploymentconfig: docker-host
   status:
     loadBalancer: {}
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: docker-host
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 100Gi
 kind: List

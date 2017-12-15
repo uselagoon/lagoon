@@ -32,12 +32,12 @@ The included php config contains sane values that will make the creation of php 
 
 Hint: If you don't like any of these configs, you have three possibilities:
 1. If they are changeable via environment variables, use them (prefeered version, see list of environment variables below)
-2. Create your own fpm-pool config and set configs them via `php_admin_value` and `php_admin_flag` in there (learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes this refeers to Apache, but it is also the case for php-fpm). _Important:_ 
+2. Create your own fpm-pool config and set configs them via `php_admin_value` and `php_admin_flag` in there (learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes this refeers to Apache, but it is also the case for php-fpm). _Important:_
     1. If you like to provide your own php-fpm pool, overwrite the file `/etc/php-fpm.d/www.conf` with your own config or remove this file if you like another name. If you don't do that the provided pool will be started!
     2. PHP Values with the [`PHP_INI_SYSTEM` changeable mode](http://php.net/manual/en/configuration.changes.modes.php) cannot be changed via an fpm-pool config. They need to changed either via already provided Environment variables or:
 3. Provide your own `php.ini` or `php-fpm.conf` file (least prefeered version)
 
-## default fpm-pool 
+## default fpm-pool
 
 This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](./php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000. This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :) Here a short description of what this file does:
 
@@ -52,7 +52,7 @@ This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](./php-fpm.
 
 Environment variables are meant to do common behavior changes of php.
 
-| Environment Variable | Default | Description  | 
+| Environment Variable | Default | Description  |
 |--------|---------|---|
 | `PHP_MAX_EXECUTION_TIME` | `900` | Maximum execution time of each script, in seconds,  [see php.net](http://php.net/max-execution-time) |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume,   [see php.net](http://php.net/memory-limit) |
@@ -60,3 +60,4 @@ Environment variables are meant to do common behavior changes of php.
 | `PHP_DISPLAY_STARTUP_ERRORS` | `Off` | Even when display_errors is on, errors that occur during PHP's startup sequence are not displayed. It's strongly recommended to keep it off, except for debugging., [see php.net](http://php.net/display-startup-errors) |
 | `PHP_APC_SHM_SIZE` | `32m` | The size of each shared memory segment given, [see php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.shm-size) |
 | `PHP_APC_ENABLED` | `1` | Can be set to 0 to disable APC, [see php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled) |
+| `XDEBUG_ENABLED` | (not set) | Used to enable xdebug module, [see php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled) |

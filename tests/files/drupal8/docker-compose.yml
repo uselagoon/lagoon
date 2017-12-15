@@ -11,6 +11,18 @@ services:
       - ./web:/app/web:delegated
     depends_on:
       - builder
+  varnish:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.varnish
+    labels:
+      lagoon.type: varnish
+      lagoon.name: varnish
+    depends_on:
+      - nginx
   nginx:
     networks:
       - amazeeio-network
@@ -19,8 +31,9 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     labels:
-      lagoon.type: nginx-php
-      lagoon.name: nginx-php
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -34,8 +47,9 @@ services:
       context: .
       dockerfile: Dockerfile.php
     labels:
-      lagoon.type: nginx-php
-      lagoon.name: nginx-php
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -46,6 +60,12 @@ services:
       dockerfile: Dockerfile.mariadb
     labels:
       lagoon.type: mariadb
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile.redis
+    labels:
+      lagoon.type: redis
 networks:
   amazeeio-network:
     external: true

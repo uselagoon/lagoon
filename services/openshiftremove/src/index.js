@@ -6,7 +6,7 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTasks, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject, deleteEnvironment } = require('@lagoon/commons/src/api');
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -32,14 +32,17 @@ const messageConsumer = async function(msg) {
     var openshiftToken = projectOpenShift.openshift.token || ""
 
     var openshiftProject
+    var environmentName
 
     switch (type) {
       case 'pullrequest':
+        environmentName = `pr-${pullrequestNumber}`
         openshiftProject = `${safeProjectName}-pr-${pullrequestNumber}`
         break;
 
       case 'branch':
         const safeBranchName = ocsafety(branch)
+        environmentName = branch
         openshiftProject = `${safeProjectName}-${safeBranchName}`
         break;
     }
@@ -76,6 +79,15 @@ const messageConsumer = async function(msg) {
       )
       return
     }
+    logger.error(err)
+    throw new Error
+  }
+
+  // Update GraphQL API that the Environment has been deleted
+  try {
+    await deleteEnvironment(environmentName, projectName)
+    logger.info(`${openshiftProject}: Deleted Environment '${environmentName}' in API`)
+  } catch (err) {
     logger.error(err)
     throw new Error
   }

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-API_ADMIN_JWT_TOKEN=$(/home/create_jwt.sh)
-
-bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
-
 update() {
+    API_ADMIN_JWT_TOKEN=$(/home/create_jwt.sh)
+
+    bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
+
     # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
     data=$(cat /api-data/api-data.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
     # create a correct json

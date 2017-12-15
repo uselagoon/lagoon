@@ -18,7 +18,7 @@ RUN chmod g+w /etc/passwd \
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 COPY check_fcgi /usr/sbin/
-COPY entrypoints/70-php-config.sh /lagoon/entrypoints
+COPY entrypoints/70-php-config.sh entrypoints/60-php-xdebug.sh /lagoon/entrypoints/
 
 COPY php.ini /usr/local/etc/php/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
@@ -28,6 +28,7 @@ RUN apk update \
     && apk add --no-cache fcgi \
         # for gd
         libpng-dev \
+        libjpeg-turbo-dev \
         # for gettext
         gettext-dev \
         # for mcrypt
@@ -44,8 +45,11 @@ RUN apk update \
         yes '' | pecl install -f apcu-4.0.11; \
        fi \
     && yes '' | pecl install -f redis \
-    && docker-php-ext-enable apcu redis  \
+    && yes '' | pecl install -f xdebug \
+    && docker-php-ext-enable apcu redis xdebug \    
+    && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap opcache xsl zip \
+    && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
     && mkdir -p /app \

@@ -104,7 +104,10 @@ images :=     centos7 \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
-							nginx-drupal
+							nginx-drupal \
+							varnish \
+							varnish-drupal \
+							redis
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -133,6 +136,9 @@ build/alpine-mariadb10-drupal: images/alpine-mariadb10/Dockerfile images/alpine-
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
+build/varnish: build/commons images/varnish/Dockerfile
+build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
+build/redis: build/commons images/redis/Dockerfile
 
 #######
 ####### PHP Images
@@ -226,6 +232,7 @@ services :=       api \
 									webhook-handler \
 									webhooks2tasks \
 									hacky-rest2tasks-ui \
+									rsh-console \
 									rabbitmq \
 									elasticsearch \
 									kibana \
@@ -242,7 +249,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/rsh-console build/api: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
@@ -348,7 +355,7 @@ $(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/alpine-mariadb10 build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: local-git-port openshift build/varnish-drupal build/redis build/alpine-mariadb10 build/alpine-mariadb10-drupal build/nginx-drupal build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -396,7 +403,7 @@ endif
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
-	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "develop" }'
+	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
