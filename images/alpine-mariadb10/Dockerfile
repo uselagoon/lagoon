@@ -1,9 +1,27 @@
+FROM alpine
+
+MAINTAINER amazee.io
+
 ARG ALPINE_VER=3.6
 ARG MARIADB_VER=10.2.11
+ARG IMAGE_REPO
 
 ENV MARIADB_VER="${MARIADB_VER}" \
     MARIADB_URL="https://downloads.mariadb.org/interstitial/mariadb-${MARIADB_VER}/source/mariadb-${MARIADB_VER}.tar.gz" \
     BACKUPS_DIR="/mnt/backups"
+
+RUN set -xe && \
+    \
+    apk add --update --no-cache \
+        bash \
+        ca-certificates \
+        curl \
+        gzip \
+        tar \
+        unzip \
+        wget; \
+    \
+    rm -rf /var/cache/apk/*
 
 COPY patches /tmp/patches
 
@@ -126,11 +144,19 @@ RUN set -xe; \
     rm -rf /tmp/*; \
     rm -rf /var/cache/apk/*
 
+ENV GOTPL_URL "https://github.com/wodby/gotpl/releases/download/0.1.5/gotpl-alpine-linux-amd64-0.1.5.tar.gz"
+RUN wget -qO- ${GOTPL_URL} | tar xz -C /usr/local/bin;
+
 USER mysql
 
 COPY actions /usr/local/bin
 COPY templates /etc/gotpl/
 COPY docker-entrypoint.sh /
+
+RUN ls -la /usr/local/bin
+RUN chmod 755 /usr/local/bin/*.sh || ls -la /usr/local/bin
+
+RUN mkdir -p /run/mysqld || ls -la / /run
 
 WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql

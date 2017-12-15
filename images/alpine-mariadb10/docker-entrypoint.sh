@@ -1,19 +1,14 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
-if [[ -n "${DEBUG}" ]]; then
-    set -x
+gotpl "/etc/gotpl/my.cnf.tpl" > "/etc/mysql/my.cnf"
+
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+	echo "Configure first time mysql"
+	/usr/local/bin/configure-mysql.sh
 fi
 
-sudo fix-permissions.sh mysql mysql /var/lib/mysql "${BACKUPS_DIR}"
-
-gotpl "/etc/gotpl/${MARIADB_VER:0:4}/my.cnf.tpl" > "/etc/mysql/my.cnf"
-
-init-mariadb.sh "${@}"
-
-if [[ $1 == 'make' ]]; then
-    exec "${@}" -f /usr/local/bin/actions.mk
-else
-    exec "${@}"
-fi
+exec mysqld
+#exec bash
