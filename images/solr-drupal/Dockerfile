@@ -19,9 +19,7 @@ COPY solr${SOLR_MAJ_MIN_VERSION} /solr-conf
 
 RUN mkdir -p /opt/solr/server/solr/mycores/
 
-COPY docker-entrypoint /lagoon/entrypoints/70-solr-entrypoint
 
-USER root
 
 RUN fix-permissions /opt/solr \
     && fix-permissions /opt/docker-solr \
