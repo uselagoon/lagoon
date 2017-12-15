@@ -114,6 +114,22 @@ services:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/api:master
+  rsh-console:
+    image: ${IMAGE_REPO:-lagoon}/rsh-console
+    depends_on:
+      - api
+      - auth-server
+    ports:
+      - "20222:2223"
+    environment:
+      - AUTH_HOST=http://auth-server:3000
+      - API_HOST=http://api:3000
+      - OPENSHIFT_CONSOLE_URL=https://192.168.99.100:8443
+    user: '111111111'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/rsh-console/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/rsh-console:develop
   auth-ssh:
     image: ${IMAGE_REPO:-lagoon}/auth-ssh
       # TODO:
