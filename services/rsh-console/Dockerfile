@@ -22,10 +22,7 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN apk add --no-cache openssh openssl curl bash wget
-
-RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util && \
-		apk add --update curl && \
+RUN apk add --no-cache openssh openssl curl bash wget nodejs && \
 		curl -Lo /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub && \
 		curl -Lo glibc.apk "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk" && \
 		curl -Lo glibc-bin.apk "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-bin-${GLIBC_VERSION}.apk" && \
@@ -33,8 +30,6 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
 		/usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
 		echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
 		rm -rf glibc.apk glibc-bin.apk /var/cache/apk/*  && \
-    apk add --no-cache bash git && \
-    git config --global user.email "lagoon@lagoon.io" && git config --global user.name lagoon && \
     mkdir -p /openshift-origin-client-tools && \
     curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz && \
     echo "$OC_SHA256  /tmp/openshift-origin-client-tools.tar" | sha256sum -c -  && \
@@ -42,9 +37,8 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
-# Required for our create_jwt.sh
-RUN curl -sLo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
-    && chmod +x /bin/jq
+# Needed for jwt generation
+RUN npm -g install jwtgen
 
 # Generate ssh server keys
 RUN mkdir .ssh && \

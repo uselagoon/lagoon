@@ -16,11 +16,10 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN apk add --no-cache openssh openssl curl bash wget
+RUN apk add --no-cache openssh openssl curl bash wget nodejs
 
-# Required for our create_jwt.sh
-RUN curl -sLo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
-    && chmod +x /bin/jq
+# Needed for jwt generation
+RUN npm -g install jwtgen
 
 # Generate ssh server keys
 RUN mkdir .ssh && \
