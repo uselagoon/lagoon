@@ -1,5 +1,12 @@
 #!/bin/bash
 
+ep /home/token.sh
+
+chmod g-w /home/token.sh
+
+# generating a JWT Token with Role Admin to contact to the api
+export API_ADMIN_TOKEN=$(/create_jwt.sh)
+
 # filling /authorize.env with all our current env variables, this file
 # will be sourced by /authorize.sh in order to have all environment variables.
 # We can't use `ep /authorize.sh` as we are not running as root, but openssh

@@ -1,4 +1,4 @@
-Port 2223
+Port 2020
 
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_ecdsa_key
@@ -13,7 +13,7 @@ PermitRootLogin no
 AuthorizedKeysFile .ssh/authorized_keys
 
 AuthorizedKeysCommand /authorize.sh %f
-AuthorizedKeysCommandUser cli
+AuthorizedKeysCommandUser lagoon
 
 HostbasedAuthentication no
 

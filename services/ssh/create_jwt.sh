@@ -4,9 +4,9 @@ set -euo pipefail
 
 PAYLOAD='{
   "role": "admin",
-  "iss": "rsh-console Bash JWT Generator",
+  "iss": "ssh Bash JWT Generator",
   "aud": "'$JWTAUDIENCE'",
-  "sub": "remote-shell"
+  "sub": "ssh"
 }'
 
 jwtgen -a HS256 -s "${JWTSECRET}" --claims "${PAYLOAD}" $@

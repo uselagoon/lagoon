@@ -2,12 +2,6 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM alpine:latest
 
-ENV OC_VERSION=v3.6.0 \
-    OC_HASH=c4dd4cf \
-		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389 \
-		GLIBC_VERSION=2.25-r0
-
-
 MAINTAINER amazee.io
 
 # Copying commons files
@@ -21,6 +15,11 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
+
+ENV OC_VERSION=v3.6.0 \
+    OC_HASH=c4dd4cf \
+		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389 \
+		GLIBC_VERSION=2.25-r0
 
 RUN apk add --no-cache openssh openssl curl bash wget nodejs && \
 		curl -Lo /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub && \
@@ -46,27 +45,34 @@ RUN mkdir .ssh && \
     ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
     ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
 
-
 # Add the ssh config
-COPY sshd_config /etc/ssh/sshd_config
+COPY services/ssh/sshd_config /etc/ssh/sshd_config
 
-RUN chmod 600 /etc/ssh/ssh_host_rsa_key  /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_ed25519_key
-# This is the script that is run on every ssh login attempt. It
-# calls the authentication server to retrieve a token, it is
-# envplated during entrypoint so fix permissions
+RUN fix-permissions /etc/ssh/ && \
+    fix-permissions /run/
+
+# This is the script that is forced to run on every ssh attempt. It checks which command
+# the user wants to run and runs it.
+COPY services/ssh/command.sh /home/command.sh
+
+# scripts with Commands
+COPY services/ssh/token.sh /home/token.sh
+COPY services/ssh/rsh.sh /home/rsh.sh
+
+# token.sh needs some envplating, so we fix permissions
+RUN fix-permissions /home/token.sh
 
 # This is the authorized keys command, which will be defined as AuthorizedKeysCommand
-COPY authorize.sh /authorize.sh
-COPY create_jwt.sh /create_jwt.sh
-COPY rsh-console.sh /rsh-console.sh
+COPY services/ssh/authorize.sh /authorize.sh
+
+# create_jwt to create a JWT Admin Token
+COPY services/ssh/create_jwt.sh /create_jwt.sh
 
 # Files defined in AuthorizedKeysCommand need the specific permissions for
 # root to own and no write permission by group or others
 RUN chmod 755 /authorize.sh
-RUN chmod 755 /create_jwt.sh
-RUN chmod 555 /rsh-console.sh
 
-# Create /authorize.env file and give cli user right to write it, it will be filled
+# Create /authorize.env file and give api right to write it, it will be filled
 # within docker-entrypoint with all environment variables and then sourced
 # by /authorize.sh
 RUN touch /authorize.env && fix-permissions /authorize.env
@@ -74,22 +80,20 @@ RUN touch /authorize.env && fix-permissions /authorize.env
 # Create empty authorized_keys file, just that openssh does not complain all the time
 RUN mkdir -p /home/.ssh && touch /home/.ssh/authorized_keys
 
+# Setup folder for oc to save it's credentials
 RUN mkdir -p /home/.kube && fix-permissions /home/.kube
 
-# This will set the username of the random generated user by openshift to 'cli' (see 10-passwd.sh)
-ENV USER_NAME cli
+# This will set the username of the random generated user by openshift to 'api' (see 10-passwd.sh)
+ENV USER_NAME lagoon
 
 # Entrypoint file which will replace some environment variables into
 # hardcoded values every time the container is started
-COPY docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
-
-RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /run/
+COPY services/ssh/docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
 
 # Global lagoon default environment variables
 COPY .env.defaults .
 
-EXPOSE 2223
+EXPOSE 2020
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]
