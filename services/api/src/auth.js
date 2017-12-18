@@ -26,68 +26,25 @@ const decodeToken = (token, secret) => {
   }
 };
 
-// Filtering is based on Whitelisting certain attributes of entire Entity groups
-// ... be vary that there is no consideration on subattribute entities (e.g. Slack), unless
-// they are also part of the resulting AttributeFilter object (e.g. Site, SiteGroup,..)
-//
-// Also, AttributeFilter should only be used for filtering attributes
-// of already fetched entity data... if you want to prohibit access to
-// complete group s see `getCredentialsForEntities`
-const createAttributeFilters = role => {
-  let project;
-  let site;
-  let customer;
+const notEmpty = R.compose(R.not, R.isEmpty);
+const notNaN = R.compose(R.not, R.equals(NaN));
 
-  let createFilter = attr =>
-    R.ifElse(
-      R.isNil,
-      R.always(null),
-      R.pick(attr),
-    );
+// input: coma separated string with ids // defaults to '' if null
+// output: array of ids
+const parseCommaSeparatedInts = R.compose(
+  R.filter(R.allPass([notEmpty, notNaN])),
+  R.map(strId => parseInt(strId)),
+  R.split(','),
+  R.defaultTo(''),
+);
 
-  if (role === 'drush') {
-    // For attributes check the SiteGroupView type
-    project = createFilter([
-      // SiteGroup attributes
-      'id',
-      'git_url',
-      'slack',
-
-      // SiteGroupView attributes
-      'siteGroupName',
-    ]);
-
-    // For attributes check the SiteView type
-    site = createFilter([
-      // Site attributes
-      'id',
-      'site_branch',
-      'site_environment',
-      'deploy_strategy',
-      'webroot',
-      'domains',
-
-      // SiteView attributes
-      'siteHost',
-      'siteName',
-      'jumpHost',
-      'serverInfrastructure',
-      'serverIdentifier',
-      'serverNames',
-
-      // Allow this is well for the
-      // nested access
-      'project',
-    ]);
-  }
-
-  // Only pick filters which are defined
-  return R.pick(['project', 'site', 'customer'], {
-    project,
-    site,
-    customer,
-  });
-};
+// rows: Result array of permissions table query
+// currently only parses the projects attribute
+const parsePermissions = R.compose(
+  R.over(R.lensProp('customers'), parseCommaSeparatedInts),
+  R.over(R.lensProp('projects'), parseCommaSeparatedInts),
+  R.defaultTo({}),
+);
 
 const createAuthMiddleware = args => async (req, res, next) => {
   const { baseUri, jwtSecret, jwtAudience } = args;
@@ -127,28 +84,29 @@ const createAuthMiddleware = args => async (req, res, next) => {
     }
 
     // We need this, since non-admin credentials are required to have an ssh-key
-    const permissions = {};
-    let nonAdminCreds = { permissions };
+    let nonAdminCreds = {};
 
     if (role !== 'admin') {
-      const permissions = await dao.getPermissions({ sshKey });
+      const rawPermissions = await dao.getPermissions({ sshKey });
 
-      if (permissions == null) {
+      if (rawPermissions == null) {
         res
           .status(401)
           .send({ errors: [{ message: 'Unauthorized - Unknown SSH key' }] });
         return;
       }
 
+      const permissions = parsePermissions(rawPermissions);
+
       nonAdminCreds = {
         sshKey,
         permissions, // for read & write
       };
-
     }
 
     req.credentials = {
       role,
+      permissions: {},
       ...nonAdminCreds,
     };
 
@@ -162,4 +120,5 @@ const createAuthMiddleware = args => async (req, res, next) => {
 
 module.exports = {
   createAuthMiddleware,
+  parseCommaSeparatedInts,
 };

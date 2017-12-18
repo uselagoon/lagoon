@@ -1,6 +1,24 @@
 // ATTENTION:
 // The `sqlClient` part is usually curried in our application
 
+// A WORD ABOUT DB SECURITY:
+// ---
+// We are heavily relying on building manual SQL strings,
+// so of course, there is a certain risk of SQL injections.
+// We try to tackle this issue by using prepared statements and
+// input validation via GraphQL schema.
+//
+// So whenever you are writing new functions, ask yourself:
+// - Am I passing in unvalidated input?
+// - Is the user capable of injecting sql code via the cred object?
+// - Even as an api developer, is it possible to pass in malicious SQL code?
+//
+// We will progressively iterate on security here, there are multiple
+// ways to make this module more secure, e.g.:
+// - Create higher order validation functions for args / cred and
+//   apply those to the later exported daoFns
+// - Use a sql-string builder, additionally with our prepared statements
+
 const R = require('ramda');
 
 // Useful for creating extra if-conditions for non-admins
@@ -20,6 +38,27 @@ const whereAnd = whereConds =>
     R.filter(R.compose(R.not, R.isEmpty)),
   )(whereConds);
 
+// Creates an IN clause like this: $field IN (val1,val2,val3)
+// or on empty values: $field IN (NULL)
+const inClause = (field, values) =>
+  R.compose(
+    str => `${field} IN (${str})`,
+    R.ifElse(R.isEmpty, R.always('NULL'), R.identity),
+    R.join(','),
+    R.defaultTo([]),
+  )(values);
+
+const inClauseOr = conds =>
+  R.compose(
+    R.reduce((ret, str) => {
+      if (ret === '') {
+        return str;
+      } else {
+        return `${ret} OR ${str}`;
+      }
+    }, ''),
+    R.map(([field, values]) => inClause(field, values)),
+  )(conds);
 
 const getPermissions = sqlClient => async args => {
   return new Promise((res, rej) => {
@@ -32,7 +71,7 @@ const getPermissions = sqlClient => async args => {
       if (err) {
         rej(err);
       }
-      const permissions = R.prop(0, rows);
+      const permissions = R.propOr(null, 0, rows);
 
       res(permissions);
     });
@@ -65,20 +104,17 @@ const getAllCustomers = sqlClient => async (cred, args) => {
   return new Promise((res, rej) => {
     const where = whereAnd([
       args.createdAfter ? 'created >= :createdAfter' : '',
-      ifNotAdmin(cred.role, `id IN (${cred.permissions.customers})`),
+      ifNotAdmin(cred.role, `${inClause('id', cred.permissions.customers)}`),
     ]);
 
     const prep = sqlClient.prepare(`SELECT * FROM customer ${where}`);
-    sqlClient.query(
-      prep(args),
-      (err, rows) => {
-        if (err) {
-          rej(err);
-        }
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
 
-        res(rows);
-      },
-    );
+      res(rows);
+    });
   });
 };
 
@@ -105,30 +141,34 @@ const getAllOpenshifts = sqlClient => async (cred, args) => {
 
 const getAllProjects = sqlClient => async (cred, args) => {
   return new Promise((res, rej) => {
+    const { customers, projects } = cred.permissions;
+
     // We need one "WHERE" keyword, but we have multiple optional conditions
     const where = whereAnd([
       args.createdAfter ? 'created >= :createdAfter' : '',
       args.gitUrl ? 'git_url = :gitUrl' : '',
-      ifNotAdmin(cred.role, `(customer IN (${cred.permissions.customers}) OR project.id IN (${cred.permissions.projects}))`),
+      ifNotAdmin(
+        cred.role,
+        inClauseOr([['customer', customers], ['project.id', projects]]),
+      ),
     ]);
 
     const prep = sqlClient.prepare(`SELECT * FROM project ${where}`);
 
-    sqlClient.query(
-      prep(args),
-      (err, rows) => {
-        if (err) {
-          rej(err);
-        }
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
 
-        res(rows);
-      },
-    );
+      res(rows);
+    });
   });
 };
 
 const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
   return new Promise((res, rej) => {
+    const { customers, projects } = cred.permissions;
+
     const prep = sqlClient.prepare(`
       SELECT
         o.id,
@@ -141,10 +181,13 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
       FROM project p
       JOIN openshift o ON o.id = p.openshift
       WHERE p.id = :pid
-      ${ifNotAdmin(cred.role, `AND (p.customer IN (${cred.permissions.customers}) OR p.id IN (${cred.permissions.projects}))`)}
+      ${ifNotAdmin(
+        cred.role,
+        `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+      )}
     `);
 
-    sqlClient.query(prep({pid}), (err, rows) => {
+    sqlClient.query(prep({ pid }), (err, rows) => {
       if (err) {
         rej(err);
       }
@@ -157,6 +200,8 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
 
 const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   return new Promise((res, rej) => {
+    const { customers, projects } = cred.permissions;
+
     const prep = sqlClient.prepare(`
       SELECT
         ns.id,
@@ -170,7 +215,13 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
       WHERE
         pn.pid = :pid
         ${args.type ? 'AND pn.type = :type' : ''}
-        ${ifNotAdmin(cred.role, `AND (p.customer IN (${cred.permissions.customers}) OR p.id IN (${cred.permissions.projects}))`)}
+        ${ifNotAdmin(
+          cred.role,
+          `AND (${inClauseOr([
+            ['p.customer', customers],
+            ['p.id', projects],
+          ])})`,
+        )}
     `);
 
     sqlClient.query(
@@ -192,6 +243,7 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
 
 const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
   return new Promise((res, rej) => {
+    const { customers, projects } = cred.permissions;
     const str = `
       SELECT
         sk.id,
@@ -203,7 +255,10 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
       JOIN ssh_key sk ON ps.skid = sk.id
       JOIN project p ON ps.pid = p.id
       WHERE ps.pid = :pid
-      ${ifNotAdmin(cred.role, `AND (p.customer IN (${cred.permissions.customers}) OR p.id IN (${cred.permissions.projects}))`)}
+      ${ifNotAdmin(
+        cred.role,
+        `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+      )}
     `;
 
     const prep = sqlClient.prepare(str);
@@ -243,6 +298,8 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
 
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
   return new Promise((res, rej) => {
+    const { customers } = cred.permissions;
+
     const prep = sqlClient.prepare(`
       SELECT
         id,
@@ -253,7 +310,7 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
       FROM customer_ssh_key cs
       JOIN ssh_key sk ON cs.skid = sk.id
       WHERE cs.cid = :cid
-      ${ifNotAdmin(cred.role, `AND cs.cid IN (${cred.permissions.customers})`)}
+      ${ifNotAdmin(cred.role, `AND ${inClause('cs.cid', customers)}`)}
     `);
 
     sqlClient.query(prep({ cid }), (err, rows) => {
@@ -268,7 +325,8 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
 
 const getCustomerByProjectId = sqlClient => async (cred, pid) => {
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
+    const { customers, projects } = cred.permissions;
+    const str = `
       SELECT
         c.id,
         c.name,
@@ -278,8 +336,13 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
       FROM project p
       JOIN customer c ON p.customer = c.id
       WHERE p.id = :pid
-      ${ifNotAdmin(cred.role, `AND (c.id IN (${cred.permissions.customers}) OR p.id IN (${cred.permissions.projects}))`)}
-    `);
+      ${ifNotAdmin(
+        cred.role,
+        `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
+      )}
+    `;
+
+    const prep = sqlClient.prepare(str);
 
     sqlClient.query(prep({ pid }), (err, rows) => {
       if (err) {
@@ -319,49 +382,61 @@ const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
 
 const getProjectByGitUrl = sqlClient => async (cred, args) => {
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
+    const { customers, projects } = cred.permissions;
+    const str = `
       SELECT
         *
       FROM project
       WHERE git_url = :gitUrl
-      ${ifNotAdmin(cred.role, `AND (customer IN (${cred.permissions.customers}) OR project.id IN (${cred.permissions.projects}))`)}
+      ${ifNotAdmin(
+        cred.role,
+        `AND (${inClauseOr([
+          ['customer', customers],
+          ['project.id', projects],
+        ])})`,
+      )}
       LIMIT 1
-    `);
+    `;
 
-    sqlClient.query(
-      prep(args),
-      (err, rows) => {
-        if (err) {
-          rej(err);
-        }
+    const prep = sqlClient.prepare(str);
 
-        const ret = rows ? rows[0] : null;
-        res(ret);
-      },
-    );
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      const ret = rows ? rows[0] : null;
+      res(ret);
+    });
   });
 };
 
 const getProjectByName = sqlClient => async (cred, args) => {
   return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
+    const { customers, projects } = cred.permissions;
+    const str = `
       SELECT
         *
       FROM project
       WHERE name = :name
-      ${ifNotAdmin(cred.role, `AND (customer IN (${cred.permissions.customers}) OR project.id IN (${cred.permissions.projects}))`)}
-    `);
+      ${ifNotAdmin(
+        cred.role,
+        `AND (${inClauseOr([
+          ['customer', customers],
+          ['project.id', projects],
+        ])})`,
+      )}
+    `;
 
-    sqlClient.query(
-      prep(args),
-      (err, rows) => {
-        if (err) {
-          rej(err);
-        }
+    const prep = sqlClient.prepare(str);
 
-        res(rows[0]);
-      },
-    );
+    sqlClient.query(prep(args), (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+
+      res(rows[0]);
+    });
   });
 };
 
@@ -393,11 +468,7 @@ const addProject = sqlClient => async (cred, input) => {
             ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
             : 'NULL'
         },
-        ${
-          input.production_environment
-            ? ':production_environment'
-            : 'NULL'
-        }
+        ${input.production_environment ? ':production_environment' : 'NULL'}
       );
     `);
 
@@ -435,7 +506,7 @@ const deleteProject = sqlClient => async (cred, input) => {
       res('success');
     });
   });
-}
+};
 
 const addSshKey = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -477,14 +548,13 @@ const deleteSshKey = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
       res('success');
     });
   });
-}
+};
 
 const addCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -526,14 +596,13 @@ const deleteCustomer = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
       res('success');
     });
   });
-}
+};
 
 const addOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -581,7 +650,6 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(err);
         rej(err);
       }
 
@@ -613,7 +681,7 @@ const deleteEnvironment = sqlClient => async (cred, input) => {
       res('success');
     });
   });
-}
+};
 
 const deleteOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -635,7 +703,7 @@ const deleteOpenshift = sqlClient => async (cred, input) => {
       res('success');
     });
   });
-}
+};
 
 const addNotificationSlack = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -727,8 +795,6 @@ const removeNotificationFromProject = sqlClient => async (cred, input) => {
 
     sqlClient.query(prep(input), (err, rows) => {
       if (err) {
-        console.log(prep(input));
-        console.log(err);
         rej(err);
       }
 
@@ -902,4 +968,8 @@ const make = sqlClient => R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
 module.exports = {
   ...daoFns,
   make,
+  ifNotAdmin,
+  whereAnd,
+  inClause,
+  inClauseOr,
 };

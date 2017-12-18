@@ -94,7 +94,7 @@ AS
     (SELECT GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',') FROM customer_ssh_key csk WHERE csk.skid = sk.id) as customers,
     (SELECT GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') FROM project_ssh_key psk WHERE psk.skid = sk.id) as projects
   FROM ssh_key sk;
-  
+
 
 
 DELIMITER $$
