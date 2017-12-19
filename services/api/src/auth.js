@@ -30,8 +30,12 @@ const notEmpty = R.compose(R.not, R.isEmpty);
 const notNaN = R.compose(R.not, R.equals(NaN));
 
 // input: coma separated string with ids // defaults to '' if null
-// output: array of ids
+// output: array of ids (as strings again..)
 const parseCommaSeparatedInts = R.compose(
+  // mariadb returns number ids as strings,...
+  // it's hard to compare ints with strings later on,
+  // so to stay compatible we keep the numbers as strings
+  R.map(R.toString),
   R.filter(R.allPass([notEmpty, notNaN])),
   R.map(strId => parseInt(strId)),
   R.split(','),

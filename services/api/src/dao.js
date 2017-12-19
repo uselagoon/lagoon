@@ -60,6 +60,20 @@ const inClauseOr = conds =>
     R.map(([field, values]) => inClause(field, values)),
   )(conds);
 
+// Promise wrapper for doing sql queries
+const query = (sqlClient, sql) =>
+  new Promise((res, rej) => {
+    sqlClient.query(sql, (err, rows) => {
+      if (err) {
+        rej(err);
+      }
+      res(rows);
+    });
+  });
+
+// We use this just for consistency of the api calls
+const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
+
 const getPermissions = sqlClient => async args => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(
@@ -274,7 +288,9 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
 };
 
 const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
-  if (cred.role !== 'admin') {
+  const { projects } = cred.permissions;
+
+  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
     throw new Error('Unauthorized');
   }
 
@@ -441,13 +457,17 @@ const getProjectByName = sqlClient => async (cred, args) => {
 };
 
 const addProject = sqlClient => async (cred, input) => {
-  if (cred.role !== 'admin') {
+  const { customers } = cred.permissions;
+  const cid = input.customer.toString();
+
+  if (cred.role !== 'admin' && !R.contains(cid, customers)) {
     throw new Error('Project creation unauthorized.');
   }
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       CALL CreateProject(
+        :id,
         :name,
         :customer,
         :git_url,
@@ -477,8 +497,6 @@ const addProject = sqlClient => async (cred, input) => {
         rej(err);
       }
 
-      // TODO: Maybe resolve IDs from customer, slack, openshift, sshKeys?
-      // Not really necessary for a MVP right now IMO
       const project = R.path([0, 0], rows);
 
       res(project);
@@ -487,25 +505,17 @@ const addProject = sqlClient => async (cred, input) => {
 };
 
 const deleteProject = sqlClient => async (cred, input) => {
-  if (cred.role !== 'admin') {
+  const { projects } = cred.permissions;
+  const pid = input.id.toString();
+
+  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
     throw new Error('Unauthorized');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL DeleteProject(
-        :name
-      );
-    `);
+  const prep = prepare(sqlClient, 'CALL DeleteProject(:id)');
+  const rows = await query(sqlClient, prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res('success');
-    });
-  });
+  return 'success';
 };
 
 const addSshKey = sqlClient => async (cred, input) => {
@@ -516,6 +526,7 @@ const addSshKey = sqlClient => async (cred, input) => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       CALL CreateSshKey(
+        :id,
         :name,
         :keyValue,
         ${input.keyType ? ':keyType' : 'ssh-rsa'}
@@ -564,6 +575,7 @@ const addCustomer = sqlClient => async (cred, input) => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       CALL CreateCustomer(
+        :id,
         :name,
         ${input.comment ? ':comment' : 'NULL'},
         ${input.private_key ? ':private_key' : 'NULL'}
@@ -612,6 +624,7 @@ const addOpenshift = sqlClient => async (cred, input) => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       CALL CreateOpenshift(
+        :id,
         :name,
         :console_url,
         ${input.token ? ':token' : 'NULL'},
@@ -633,7 +646,10 @@ const addOpenshift = sqlClient => async (cred, input) => {
 };
 
 const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
-  if (cred.role !== 'admin') {
+  const { projects } = cred.permissions;
+  const pid = input.project.toString();
+
+  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
     throw new Error('Project creation unauthorized.');
   }
 
@@ -963,6 +979,7 @@ const daoFns = {
 
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
+// sqlClient: the mariadb client instance provided by the node-mariadb module
 const make = sqlClient => R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
 
 module.exports = {

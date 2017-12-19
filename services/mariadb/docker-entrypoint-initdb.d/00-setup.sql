@@ -91,10 +91,33 @@ AS
   SELECT
     sk.id AS keyId,
     CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
-    (SELECT GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',') FROM customer_ssh_key csk WHERE csk.skid = sk.id) as customers,
-    (SELECT GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') FROM project_ssh_key psk WHERE psk.skid = sk.id) as projects
+    (SELECT
+      GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
+      FROM customer_ssh_key csk
+      WHERE csk.skid = sk.id) as customers,
+    (SELECT
+      GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') AS projects
+      FROM (SELECT skid FROM project_ssh_key  UNION DISTINCT SELECT skid FROM customer_ssh_key) su
+            JOIN project_ssh_key psk ON psk.skid = su.skid) AS projects
   FROM ssh_key sk;
 
+
+/*
+    (SELECT
+      GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',')
+      FROM project_ssh_key psk
+      LEFT JOIN ssh_key sk ON psk.sl
+      LEFT JOIN customer_ssh_key csk ON csk.skid = sk.id
+      WHERE psk.skid = sk.id
+      ) as projects
+
+(SELECT
+  su.skid,
+  GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') AS projects
+  FROM (SELECT skid FROM project_ssh_key  UNION DISTINCT SELECT skid FROM customer_ssh_key) su
+        JOIN project_ssh_key psk ON psk.skid = su.skid);
+
+      */
 
 
 DELIMITER $$

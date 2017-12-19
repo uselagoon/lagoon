@@ -3,10 +3,11 @@ DELIMITER $$
 CREATE OR REPLACE PROCEDURE
   CreateProject
   (
+    IN id                     int,
     IN name                   varchar(100),
-    IN customer               varchar(50),
+    IN customer               int,
     IN git_url                varchar(300),
-    IN openshift              varchar(50),
+    IN openshift              int,
     IN active_systems_deploy  varchar(300),
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
@@ -14,10 +15,10 @@ CREATE OR REPLACE PROCEDURE
     IN production_environment varchar(100)
   )
   BEGIN
-
     DECLARE new_pid int;
 
     INSERT INTO project (
+        id,
         name,
         customer,
         git_url,
@@ -29,6 +30,7 @@ CREATE OR REPLACE PROCEDURE
         openshift
     )
     SELECT
+        id,
         name,
         c.id,
         git_url,
@@ -42,10 +44,16 @@ CREATE OR REPLACE PROCEDURE
         openshift AS os,
         customer AS c
     WHERE
-        os.name = openshift AND
-        c.name = customer;
+        os.id = openshift AND
+        c.id = customer;
 
-    SET new_pid = LAST_INSERT_ID();
+    -- id = 0 explicitly tells auto-increment field
+    -- to auto-generate a value
+    IF (id = 0) THEN
+      SET new_pid = LAST_INSERT_ID();
+    ELSE
+      SET new_pid = id;
+    END IF;
 
     -- Return the constructed project
     SELECT
@@ -58,13 +66,9 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteProject
   (
-    IN name varchar(100)
+    IN pid int
   )
   BEGIN
-    DECLARE pid int;
-
-    SELECT id INTO pid FROM project p WHERE p.name = name;
-
     DELETE FROM project WHERE id = pid;
     DELETE FROM project_notification WHERE pid = pid;
     DELETE FROM project_ssh_key WHERE pid = pid;
@@ -76,7 +80,7 @@ CREATE OR REPLACE PROCEDURE
   CreateOrUpdateEnvironment
   (
     IN name                   varchar(100),
-    IN project                varchar(50),
+    IN pid                    int,
     IN git_type               ENUM('branch', 'pullrequest'),
     IN environment_type       ENUM('production', 'development'),
     IN openshift_projectname  varchar(100)
@@ -98,7 +102,7 @@ CREATE OR REPLACE PROCEDURE
     FROM
         project AS p
     WHERE
-        p.name = project
+        p.id = pid
     ON DUPLICATE KEY UPDATE
         git_type=git_type,
         environment_type=environment_type,
@@ -136,6 +140,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateSshKey
   (
+    IN id                     int,
     IN name                   varchar(100),
     IN keyValue               varchar(5000),
     IN keyType                varchar(300)
@@ -144,16 +149,24 @@ CREATE OR REPLACE PROCEDURE
     DECLARE new_sid int;
 
     INSERT INTO ssh_key (
+      id,
       name,
       keyValue,
       keyType
     ) VALUES (
+      id,
       name,
       keyValue,
       keyType
     );
 
     SET new_sid = LAST_INSERT_ID();
+
+    IF (id = 0) THEN
+      SET new_sid = LAST_INSERT_ID();
+    ELSE
+      SET new_sid = id;
+    END IF;
 
     SELECT
       id,
@@ -187,6 +200,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateCustomer
   (
+    IN id             int,
     IN name           varchar(50),
     IN comment        text,
     IN private_key    varchar(5000)
@@ -195,16 +209,24 @@ CREATE OR REPLACE PROCEDURE
     DECLARE new_cid int;
 
     INSERT INTO customer (
+      id,
       name,
       comment,
       private_key
     ) VALUES (
+      id,
       name,
       comment,
       private_key
     );
 
     SET new_cid = LAST_INSERT_ID();
+
+    IF (id = 0) THEN
+      SET new_cid = LAST_INSERT_ID();
+    ELSE
+      SET new_cid = id;
+    END IF;
 
     SELECT
       id,
@@ -246,6 +268,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateOpenshift
   (
+    IN id              int,
     IN name            varchar(50),
     IN console_url     varchar(300),
     IN token           varchar(1000),
@@ -256,12 +279,14 @@ CREATE OR REPLACE PROCEDURE
     DECLARE new_oid int;
 
     INSERT INTO openshift (
+      id,
       name,
       console_url,
       token,
       router_pattern,
       project_user
     ) VALUES (
+      id,
       name,
       console_url,
       token,
@@ -270,6 +295,12 @@ CREATE OR REPLACE PROCEDURE
     );
 
     SET new_oid = LAST_INSERT_ID();
+
+    IF (id = 0) THEN
+      SET new_oid = LAST_INSERT_ID();
+    ELSE
+      SET new_oid = id;
+    END IF;
 
     SELECT
       id,
