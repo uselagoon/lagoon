@@ -103,13 +103,7 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
       SELECT
-        o.id,
-        o.name,
-        o.console_url,
-        o.token,
-        o.router_pattern,
-        o.project_user,
-        o.created
+        *
       FROM project p, openshift o
       WHERE p.id = :pid AND p.openshift = o.id
     `);
@@ -518,7 +512,9 @@ const addOpenshift = sqlClient => async (cred, input) => {
         :console_url,
         ${input.token ? ':token' : 'NULL'},
         ${input.router_pattern ? ':router_pattern' : 'NULL'},
-        ${input.project_user ? ':project_user' : 'NULL'}
+        ${input.project_user ? ':project_user' : 'NULL'},
+        ${input.ssh_host ? ':ssh_host' : 'NULL'},
+        ${input.ssh_port ? ':ssh_host' : 'NULL'}
       );
     `);
 

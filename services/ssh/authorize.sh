@@ -25,6 +25,6 @@ command="/bin/bash /home/command.sh"
 
 if [ -n "$keys" ]; then
     while read -r key; do
-        printf '%s\n' "$options,command=\"$command '$key'\" $key"
+        printf '%s\n' "$options $key"
     done <<< "$keys"
 fi

@@ -2,8 +2,6 @@
 
 ep /home/token.sh
 
-chmod g-w /home/token.sh
-
 # generating a JWT Token with Role Admin to contact to the api
 export API_ADMIN_TOKEN=$(/create_jwt.sh)
 

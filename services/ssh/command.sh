@@ -1,5 +1,6 @@
 #!/bin/bash
 set -- $SSH_ORIGINAL_COMMAND "$@"
+echo "$1"
 case $1 in
   'token')
     shift

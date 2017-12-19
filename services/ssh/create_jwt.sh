@@ -9,4 +9,4 @@ PAYLOAD='{
   "sub": "ssh"
 }'
 
-jwtgen -a HS256 -s "${JWTSECRET}" --claims "${PAYLOAD}" $@
+/usr/bin/nodejs /usr/local/bin/jwtgen -a HS256 -s "${JWTSECRET}" --claims "${PAYLOAD}" $@

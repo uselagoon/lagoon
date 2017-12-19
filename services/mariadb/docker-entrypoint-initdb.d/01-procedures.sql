@@ -267,7 +267,9 @@ CREATE OR REPLACE PROCEDURE
     IN console_url     varchar(300),
     IN token           varchar(1000),
     IN router_pattern  varchar(300),
-    IN project_user    varchar(100)
+    IN project_user    varchar(100),
+    IN ssh_host        varchar(300),
+    IN ssh_port        varchar(50)
   )
   BEGIN
     DECLARE new_oid int;
@@ -277,25 +279,23 @@ CREATE OR REPLACE PROCEDURE
       console_url,
       token,
       router_pattern,
-      project_user
+      project_user,
+      ssh_host,
+      ssh_port
     ) VALUES (
       name,
       console_url,
       token,
       router_pattern,
-      project_user
+      project_user,
+      ssh_host,
+      ssh_port
     );
 
     SET new_oid = LAST_INSERT_ID();
 
     SELECT
-      id,
-      name,
-      console_url,
-      token,
-      router_pattern,
-      project_user,
-      created
+      *
     FROM openshift
     WHERE id = new_oid;
   END;
