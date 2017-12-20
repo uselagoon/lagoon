@@ -20,7 +20,7 @@ ENV OC_VERSION=v3.6.0 \
     OC_HASH=c4dd4cf \
 		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389
 
-RUN apt-get update && apt-get install -y build-essential ssh libmysqlclient-dev curl npm \
+RUN apt-get update && apt-get install -y build-essential ssh libmysqlclient-dev curl npm vim \
     && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
     && curl -Lo /tmp/libnss-mysql.tar.gz "https://downloads.sourceforge.net/project/libnss-mysql/libnss-mysql/1.5/libnss-mysql-1.5.tar.gz" \
     && mkdir /tmp/libnss-mysql \
@@ -39,55 +39,30 @@ RUN mkdir -p /openshift-origin-client-tools && \
 
 
 
-# RUN apk add --no-cache --virtual .build-deps \
-#         binutils-gold \
-#         curl \
-#         g++ \
-#         gcc \
-#         gnupg \
-#         libgcc \
-#         linux-headers \
-#         make
-# RUN curl -SLO "https://github.com/jeroennijhof/pam_script/archive/1.1.9.tar.gz" \
-#     && tar -xf "1.1.9.tar.gz" \
-#     && cd "pam_script-1.1.9"
-#     && ./configure \
-#     && make \
-#     && make install
-
 # Needed for jwt generation
 RUN npm -g install jwtgen
 
-# Add the ssh config
-COPY services/ssh/sshd_config /etc/ssh/sshd_config
-COPY services/ssh/libnss-mysql.cfg services/ssh/libnss-mysql-root.cfg services/ssh/nsswitch.conf /etc/
-
-
-RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /run/
-
-RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
-
-# This is the script that is forced to run on every ssh attempt. It checks which command
-# the user wants to run and runs it.
-COPY services/ssh/command.sh /home/command.sh
-
-# scripts with Commands
-COPY services/ssh/token.sh /home/token.sh
-COPY services/ssh/rsh.sh /home/rsh.sh
+COPY services/ssh/etc/ /etc/
+COPY services/ssh/home/ /home/
 
 # token.sh needs some envplating, so we fix permissions
 RUN fix-permissions /home/token.sh
 
+RUN fix-permissions /etc/ssh/ && \
+    fix-permissions /run/ && \
+    fix-permissions /etc/libnss-mysql.cfg
+
+RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
+
 # This is the authorized keys command, which will be defined as AuthorizedKeysCommand
 COPY services/ssh/authorize.sh /authorize.sh
-
-# create_jwt to create a JWT Admin Token
-COPY services/ssh/create_jwt.sh /create_jwt.sh
 
 # Files defined in AuthorizedKeysCommand need the specific permissions for
 # root to own and no write permission by group or others
 RUN chmod 755 /authorize.sh
+
+# create_jwt to create a JWT Admin Token
+COPY services/ssh/create_jwt.sh /create_jwt.sh
 
 # Create /authorize.env file and give api right to write it, it will be filled
 # within docker-entrypoint with all environment variables and then sourced
@@ -96,8 +71,6 @@ RUN touch /authorize.env && fix-permissions /authorize.env
 
 # Setup folder for oc to save it's credentials
 RUN mkdir -p /home/.kube && fix-permissions /home/.kube
-
-RUN useradd -u 1000 -d /home --no-create-home -p "*" -s /bin/bash user
 
 # This will set the username of the random generated user by openshift to 'api' (see 10-passwd.sh)
 ENV USER_NAME lagoon
@@ -112,4 +85,4 @@ COPY .env.defaults .
 EXPOSE 2020
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["/usr/sbin/sshd", "-e", "-D", "-ddd", "-f", "/etc/ssh/sshd_config"]
+CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]
