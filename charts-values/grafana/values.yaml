@@ -1,6 +1,9 @@
 server:
   adminPassword: changeme
 
+  persistentVolume:
+    enabled: true
+
   service:
     annotations:
       prometheus.io/scrape: 'true'
