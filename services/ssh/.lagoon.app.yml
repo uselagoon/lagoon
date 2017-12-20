@@ -140,5 +140,6 @@ objects:
       targetPort: ssh
     selector:
       service: ${SERVICE_NAME}
+    type: NodePort
   status:
     loadBalancer: {}

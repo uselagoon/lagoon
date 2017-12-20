@@ -1,22 +1,23 @@
-global $sitegroup_name;
+<?php
+global $project_name;
 
 use Symfony\Component\Yaml\Yaml;
 
 // For CI: allow to completely disable amazee.io alias loading
-if (getenv('AMAZEEIO_DISABLE_ALIASES')) {
-  drush_log('AMAZEEIO_DISABLE_ALIASES is set, bailing out of loading amazeeio aliases');
+if (getenv('LAGOON_DISABLE_ALIASES')) {
+  drush_log('LAGOON_DISABLE_ALIASES is set, bailing out of loading lagoon aliases');
   return;
 }
 
-// Allow to override sitegroup via environment variable
-if (getenv('AMAZEEIO_OVERRIDE_SITEGROUP')) {
-  $sitegroup_name = getenv('AMAZEEIO_OVERRIDE_SITEGROUP');
-  drush_log("AMAZEEIO_OVERRIDE_SITEGROUP is set, using '$sitegroup_name' as sitegroup");
+// Allow to override project via environment variable
+if (getenv('LAGOON_OVERRIDE_PROJECT')) {
+  $project_name = getenv('LAGOON_OVERRIDE_PROJECT');
+  drush_log("LAGOON_OVERRIDE_PROJECT is set, using '$project_name' as project");
 }
 
-if (empty($sitegroup_name)) {
+if (empty($project_name)) {
   // You know nothing, John amazee.io
-  $amazeeioyml_path = $amazeeioyml = $sitegroup_name = FALSE;
+  $lagoonyml_path = $lagoonyml = $project_name = FALSE;
 
   drush_log('Finding Drupal Root');
 
@@ -29,13 +30,13 @@ if (empty($sitegroup_name)) {
             $parent = dirname($path);
             return in_array($parent, ['.', $path]) ? false : $parent;
         }
-     }     
+     }
    } else {
      $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
    }
 
-  // No sitegroup name could be found, let's search for it via the .amazeeio.yml file
-  drush_log("Starting to search for .amazeeio.yml file to extract sitegroup name within '$path' and parent directories");
+  // No project name could be found, let's search for it via the .lagoon.yml file
+  drush_log("Starting to search for .lagoon.yml file to extract project name within '$path' and parent directories");
 
   // Borrowed from drush_locate_root() - thank you
   foreach (array(TRUE, FALSE) as $follow_symlinks) {
@@ -43,8 +44,8 @@ if (empty($sitegroup_name)) {
       $path = realpath($path);
     }
     // Check the start path.
-    if (file_exists("$path/.amazeeio.yml")) {
-      $amazeeioyml_path = "$path/.amazeeio.yml";
+    if (file_exists("$path/.lagoon.yml")) {
+      $lagoonyml_path = "$path/.lagoon.yml";
       break;
     }
     else {
@@ -53,56 +54,48 @@ if (empty($sitegroup_name)) {
         if ($follow_symlinks && is_link($path)) {
           $path = realpath($path);
         }
-        if (file_exists("$path/.amazeeio.yml")) {
-          $amazeeioyml_path = "$path/.amazeeio.yml";
+        if (file_exists("$path/.lagoon.yml")) {
+          $lagoonyml_path = "$path/.lagoon.yml";
           break 2;
         }
       }
     }
   }
 
-  // An .amazeeio.yml file has been found, let's try to load the sitegroup from it.
-  if ($amazeeioyml_path) {
-    drush_log("Using .amazeeio.yml file at: '$amazeeioyml_path'");
+  // An .lagoon.yml file has been found, let's try to load the project from it.
+  if ($lagoonyml_path) {
+    drush_log("Using .lagoon.yml file at: '$lagoonyml_path'");
 
-    $amazeeioyml = Yaml::parse( file_get_contents($amazeeioyml_path) );
+    $lagoonyml = Yaml::parse( file_get_contents($lagoonyml_path) );
 
-    if ($amazeeioyml['sitegroup']) {
-      $sitegroup_name = $amazeeioyml['sitegroup'];
-      drush_log("Discovered sitegroup name '$sitegroup_name' from .amazeeio.yml file");
-    } else {
-      drush_log('No sitegroup defined in .amazeeio.yml file, will try to fall back to deprecated $sitename variable.');
+    if ($lagoonyml['project']) {
+      $project_name = $lagoonyml['project'];
+      drush_log("Discovered project name '$project_name' from .lagoon.yml file");
     }
   } else {
-    drush_log('Could not find .amazeeio.yml file.');
+    drush_log('Could not find .lagoon.yml file.');
   }
 
-  // Sitegroup still not defined, last try: using the deprecated variable $sitename directly inside aliases.drushrc.php
-  if ($sitegroup_name === FALSE) {
-    if ($sitename && $sitename != 'CHANGEME') {
-      $sitegroup_name = $sitename;
-      drush_log("Using sitegroup name '$sitegroup_name' from deprecated \$sitename variable within aliases.drushrc.php. You should define the sitegroup within .amazeeio.yml for future compatibility.", 'warning');
-    } else {
-      // No $sitename defined either (or never changed), fully bail here.
-      drush_log('ERROR: Could not discover sitegroup name, you should define it inside your .amazeeio.yml file', 'warning');
-      exit;
-    }
+  // Sitegroup still not defined, trhow a warning.
+  if ($project_name === FALSE) {
+    drush_log('ERROR: Could not discover project name, you should define it inside your .lagoon.yml file', 'warning');
+    exit;
   }
 }
 
 // Some special things to make sure Jenkins does never cache the aliases.
 $suffix = getenv('JENKINS_HOME') ? '_' . getenv('BUILD_NUMBER') : '';
-$cid = "amazeeio_aliases_$sitegroup_name$suffix";
+$cid = "lagoon_aliases_$project_name$suffix";
 
 // Try to pull the aliases from the cache.
 $cache = drush_cache_get($cid);
 
 // Drush does not respect the cache expire, so we need to check it ourselves.
-if (isset($cache->data) && time() < $cache->expire && getenv('AMAZEEIO_IGNORE_DRUSHCACHE') === FALSE) {
-  drush_log('Hit amazee.io sitegroup cache');
+if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUSHCACHE') === FALSE) {
+  drush_log('Hit amazee.io project cache');
   $aliases = $cache->data;
 
-  if (getenv('AMAZEEIO_DEBUG')) {
+  if (getenv('LAGOON_DEBUG')) {
     drush_log("Aliases found in cache: " . var_export($aliases, true));
   }
 
@@ -110,38 +103,24 @@ if (isset($cache->data) && time() < $cache->expire && getenv('AMAZEEIO_IGNORE_DR
 }
 
 // The aliases haven't been cached yet. Load them from the API.
-drush_log("Loading site configuration for '$sitegroup_name' from the API.");
+drush_log("Loading site configuration for '$project_name' from the API.");
 
 $query = sprintf('{
-  siteGroup:siteGroupByName(name: "%s") {
-  gitUrl
-    slack {
-      webhook
-      channel
-      informStart
-      informChannel
+  project:projectByName(name: "%s") {
+    environments {
+      name
+      openshift_projectname
     }
-    client {
-      clientName
-    }
-    sites {
-      siteName
-      siteBranch
-      siteEnvironment
-      siteHost
-      serverInfrastructure
-      serverIdentifier
-      serverNames
-      deployStrategy
-      webRoot
-      domains
-      jumpHost
+    openshift {
+      ssh_host
+      ssh_port
     }
   }
-}', $sitegroup_name);
+}
+', $project_name);
 
-$api = getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') ? getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') : 'https://api.amazeeio.services/graphql';
-$jwt_token = getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') ? getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc2hLZXkiOiJBQUFBQzNOemFDMWxaREkxTlRFNUFBQUFJTU9XTkg4VFpITGlFamJZNzNlbC9PNGp4cUdaczVzQjZ1MFdRTTFWZUVreiIsImlzcyI6ImF1dGgtc2VydmVyLmRldiIsInJvbGUiOiJkcnVzaCIsImF1ZCI6ImFwaS5kZXYiLCJpYXQiOjE1MDQ0MzA2NDh9.mpQKsKaA4WgriFQvzz2cgggG_8OBY0G9VpKpKx3uhas';
+$api = getenv('LAGOON_OVERRIDE_API_ENDPOINT') ? getenv('LAGOON_OVERRIDE_API_ENDPOINT') : 'http://localhost:3000/graphql';
+$jwt_token = getenv('LAGOON_OVERRIDE_JWT_TOKEN') ? getenv('LAGOON_OVERRIDE_JWT_TOKEN') : 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4iLCJpc3MiOiJhdXRoLXNzaCBCYXNoIEdlbmVyYXRvciIsImF1ZCI6ImFwaS5kZXYiLCJzdWIiOiJhdXRoLXNlcnZlciIsImlhdCI6MTUwOTIyMzE2N30.gGjSuPdmUchMPzGvg_xdUfVUDXtOqm-p1KmlsPFPOHc';
 
 drush_log("Using $api as amazee.io API endpoint");
 
@@ -161,7 +140,7 @@ curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
 
 $response = curl_exec($curl);
 
-if (getenv('AMAZEEIO_DEBUG')) {
+if (getenv('LAGOON_DEBUG')) {
   drush_log("Response from api: " . var_export($response, true));
 }
 
@@ -180,22 +159,18 @@ if ($response === FALSE) {
 curl_close($curl);
 $response = json_decode($response);
 
-if (getenv('AMAZEEIO_DEBUG')) {
+if (getenv('LAGOON_DEBUG')) {
   drush_log("Decoded response from api: " . var_export($response, true));
 }
 
 // Check if the query returned any data for the requested site group.
-if (empty($response->data->siteGroup->sites)) {
-  drush_log("Curl request didn't return any sites for the given site group '$sitegroup_name'.", 'warning');
+if (empty($response->data->project->environments)) {
+  drush_log("Curl request didn't return any environments for the given site group '$project_name'.", 'warning');
   return;
 }
 
-$sites = $response->data->siteGroup->sites;
-
-$git_url = $response->data->siteGroup->gitUrl;
-$slack = $response->data->siteGroup->slack;
-$client_name = $response->data->siteGroup->client->clientName;
-
+$environments = $response->data->project->environments;
+$openshift = $response->data->project->openshift;
 // Default server definition, which has no site specific elements
 $defaults = [
   'command-specific' => [
@@ -203,74 +178,28 @@ $defaults = [
       'no-ordered-dump' => TRUE
     ],
   ],
-  'deploy-repository' => $git_url,
-  'slack' => $slack,
-  'client' => $client_name,
-  'sitegroup' => $sitegroup_name,
   'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
 ];
 
-$aliases = array_reduce($sites, function ($carry, $item) use ($defaults) {
-  $server_infrastructure = $item->serverInfrastructure;
-  $server_names = $item->serverNames;
-  $site_name = $item->siteName;
-  $site_branch = str_replace('/', '_', $item->siteBranch); # siteBranches can have / in them, which is confusing for drush, so we replace them with a _
-  $site_environment = $item->siteEnvironment ?: 'production'; # siteEnvironment can be null, which means it's production
-  $deploy_strategy = $item->deployStrategy ?: ($site_environment == 'production' ? "RemoteCache" : "Pull"); # if deployStrategy is set use that or define it based on the environment type
-  $site_host = $item->siteHost;
-  $web_root = $item->webRoot;
-  $forced_jump_host = $item->jumpHost;
+$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $openshift) {
+  $site_name = $environment->name;
+  $site_host = 'localhost';
 
-  if ($site_environment == 'production') {
-    $site_url = 'http://' . $item->domains[0];
-  } else {
-    $site_url = 'http://' . implode('.', [$item->domains[0], $site_branch, $server_names[0], 'amazee.io']);
-  }
+  $alias = [];
 
-  $aliases = [];
-  foreach ($server_names as $key => $server_name) {
-    $human_key = ++$key;
-    $conditional = [];
-    if (in_array($server_infrastructure, ['single', 'cluster'])) {
-      $jump_host = "frontend1.$site_host.amazee.io";
-    }
+  $alias[$site_name] = [
+    'remote-host' => "$openshift->ssh_host",
+    'remote-user' => 'lagoon',
+    'ssh-options' => "-p $openshift->ssh_port -o ProxyCommand='ssh -p $openshift->ssh_port lagoon@$openshift->ssh_host rsh default'"
+  ] + $defaults;
 
-    if (isset($forced_jump_host)) {
-      $jump_host = $forced_jump_host;
-    }
-
-    if (isset($jump_host)) {
-      $conditional = [
-        'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"ssh -W %h:%p $jump_host -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $LC_AMAZEEIO_SSH_OPTIONS -o USER=$site_name 2> /dev/null\"",
-      ];
-    }
-
-    $aliases["${site_branch}${human_key}"] = [
-      'remote-host' => "$server_name.amazee.io",
-      'remote-user' => $site_name,
-      'root' => "/var/www/$site_name/public_html/$web_root",
-      'branch' => $site_branch,
-      'deploy-via' => $deploy_strategy, # BC compatibility
-      'deploy-strategy' => $deploy_strategy,
-      'uri' => $site_url
-    ] + $conditional + $defaults;
-  }
-
-  if (count($aliases) === 1) {
-    return $carry + [$site_branch => reset($aliases)];
-  }
-
-  // Add another alias containing all of the aliases for this site's servers.
-  $aliases[$site_branch] = [
-    'site-list' => array_map(function ($alias) { return "@${alias}"; }, array_keys($aliases))
-  ];
-
-  return $carry + $aliases;
+  return $carry + $alias;
 }, []);
 
-if (getenv('AMAZEEIO_DEBUG')) {
+if (getenv('LAGOON_DEBUG')) {
   drush_log("Generated aliases: " . var_export($aliases, true));
 }
 
 // Caching the aliases for 10 minutes.
 drush_cache_set($cid, $aliases, 'default', time() + 600);
+
