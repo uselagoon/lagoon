@@ -1,9 +1,8 @@
-<?php
 global $project_name;
 
 use Symfony\Component\Yaml\Yaml;
 
-// For CI: allow to completely disable amazee.io alias loading
+// For CI: allow to completely disable lagoon alias loading
 if (getenv('LAGOON_DISABLE_ALIASES')) {
   drush_log('LAGOON_DISABLE_ALIASES is set, bailing out of loading lagoon aliases');
   return;
@@ -15,8 +14,13 @@ if (getenv('LAGOON_OVERRIDE_PROJECT')) {
   drush_log("LAGOON_OVERRIDE_PROJECT is set, using '$project_name' as project");
 }
 
+if (getenv('LAGOON_OVERRIDE_ENDPOINT')) {
+  $endpoint = getenv('LAGOON_OVERRIDE_ENDPOINT');
+  drush_log("LAGOON_OVERRIDE_ENDPOINT is set, using '$endpoint' as endpoint");
+}
+
 if (empty($project_name)) {
-  // You know nothing, John amazee.io
+  // You know nothing, John Snow
   $lagoonyml_path = $lagoonyml = $project_name = FALSE;
 
   drush_log('Finding Drupal Root');
@@ -71,7 +75,19 @@ if (empty($project_name)) {
     if ($lagoonyml['project']) {
       $project_name = $lagoonyml['project'];
       drush_log("Discovered project name '$project_name' from .lagoon.yml file");
+    } else {
+      drush_log('ERROR: Could not discover project name from .lagoon.yml file', 'warning');
+      return;
     }
+
+    if (!$endpoint && $lagoonyml['endpoint']) {
+      $endpoint = $lagoonyml['endpoint'];
+      drush_log("Discovered endpoint '$endpoint' from .lagoon.yml file");
+    } else {
+      drush_log('ERROR: Could not discover endpoint from .lagoon.yml file', 'warning');
+      return;
+    }
+
   } else {
     drush_log('Could not find .lagoon.yml file.');
   }
@@ -83,16 +99,21 @@ if (empty($project_name)) {
   }
 }
 
-// Some special things to make sure Jenkins does never cache the aliases.
-$suffix = getenv('JENKINS_HOME') ? '_' . getenv('BUILD_NUMBER') : '';
-$cid = "lagoon_aliases_$project_name$suffix";
+if (count(explode(":", $endpoint)) == 2) {
+  list ($endpoint_host, $endpoint_port) = explode(":", $endpoint);
+} else {
+  drush_log('ERROR: Wrong formatted endpoint, it should be in form "[host]:[port]"', 'warning');
+  return;
+}
+
+$cid = "lagoon_aliases_$project_name";
 
 // Try to pull the aliases from the cache.
 $cache = drush_cache_get($cid);
 
 // Drush does not respect the cache expire, so we need to check it ourselves.
 if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUSHCACHE') === FALSE) {
-  drush_log('Hit amazee.io project cache');
+  drush_log('Hit lagoon project cache');
   $aliases = $cache->data;
 
   if (getenv('LAGOON_DEBUG')) {
@@ -100,6 +121,31 @@ if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUS
   }
 
   return;
+}
+
+$jwttoken_cache = drush_cache_get("lagoon_jwttoken");
+
+if (getenv('LAGOON_OVERRIDE_JWT_TOKEN')) {
+  $jwt_token = getenv('LAGOON_OVERRIDE_JWT_TOKEN');
+} else if (isset($jwttoken_cache->data) && time() < $jwttoken_cache->expire && getenv('LAGOON_IGNORE_DRUSHCACHE') === FALSE) {
+  drush_log('Hit lagoon jwttoken cache');
+  $jwt_token = $cache->data;
+
+  if (getenv('LAGOON_DEBUG')) {
+    drush_log("JWT Token found in cache: " . var_export($jwt_token, true));
+  }
+
+} else {
+  exec("ssh -p $endpoint_port -t lagoon@$endpoint_host token 2>&1", $token_array, $rc);
+  if ($rc !== 0) {
+    drush_log("Could not load API JWT Token, error was: '" . implode(",", $token_array), 'warning');
+    return;
+  }
+
+  if (getenv('LAGOON_DEBUG')) {
+    drush_log("JWT Token loaded via ssh: " . $token_array[0]);
+  }
+  $jwt_token = $token_array[0];
 }
 
 // The aliases haven't been cached yet. Load them from the API.
@@ -119,10 +165,9 @@ $query = sprintf('{
 }
 ', $project_name);
 
-$api = getenv('LAGOON_OVERRIDE_API_ENDPOINT') ? getenv('LAGOON_OVERRIDE_API_ENDPOINT') : 'http://localhost:3000/graphql';
-$jwt_token = getenv('LAGOON_OVERRIDE_JWT_TOKEN') ? getenv('LAGOON_OVERRIDE_JWT_TOKEN') : 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4iLCJpc3MiOiJhdXRoLXNzaCBCYXNoIEdlbmVyYXRvciIsImF1ZCI6ImFwaS5kZXYiLCJzdWIiOiJhdXRoLXNlcnZlciIsImlhdCI6MTUwOTIyMzE2N30.gGjSuPdmUchMPzGvg_xdUfVUDXtOqm-p1KmlsPFPOHc';
+$api = getenv('LAGOON_OVERRIDE_API_ENDPOINT') ? getenv('LAGOON_OVERRIDE_API_ENDPOINT') : "http://$endpoint_host/graphql";
 
-drush_log("Using $api as amazee.io API endpoint");
+drush_log("Using $api as lagoon API endpoint");
 
 $curl = curl_init($api);
 
@@ -189,8 +234,8 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
 
   $alias[$site_name] = [
     'remote-host' => "$openshift->ssh_host",
-    'remote-user' => 'lagoon',
-    'ssh-options' => "-p $openshift->ssh_port -o ProxyCommand='ssh -p $openshift->ssh_port lagoon@$openshift->ssh_host rsh default'"
+    'remote-user' => "$environment->openshift_projectname",
+    'ssh-options' => "-p $openshift->ssh_port"
   ] + $defaults;
 
   return $carry + $alias;
