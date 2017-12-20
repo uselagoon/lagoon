@@ -84,6 +84,20 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
 );
 
 
+DROP view IF EXISTS foo;
+CREATE VIEW foo
+AS
+  SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+  FROM
+  (SELECT
+    p.id as pid, csk.skid as skid
+  FROM customer_ssh_key csk
+  INNER JOIN customer c ON csk.cid = c.id
+  INNER JOIN project p ON p.customer = c.id
+  UNION DISTINCT
+  SELECT psk.pid AS pid, psk.skid as skid
+  FROM project_ssh_key psk) r;
+
 
 DROP VIEW IF EXISTS permission;
 CREATE VIEW permission
@@ -95,30 +109,19 @@ AS
       GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
       FROM customer_ssh_key csk
       WHERE csk.skid = sk.id) as customers,
-    (SELECT
-      GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') AS projects
-      FROM (SELECT skid FROM project_ssh_key  UNION DISTINCT SELECT skid FROM customer_ssh_key) su
-            JOIN project_ssh_key psk ON psk.skid = su.skid) AS projects
+    (SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+      FROM
+      (SELECT DISTINCT
+        p.id as pid, csk.skid as skid
+      FROM customer_ssh_key csk
+      INNER JOIN customer c ON csk.cid = c.id
+      INNER JOIN project p ON p.customer = c.id
+      UNION DISTINCT
+      SELECT psk.pid AS pid, psk.skid as skid
+      FROM project_ssh_key psk) r
+      WHERE r.skid = sk.id
+    ) AS projects
   FROM ssh_key sk;
-
-
-/*
-    (SELECT
-      GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',')
-      FROM project_ssh_key psk
-      LEFT JOIN ssh_key sk ON psk.sl
-      LEFT JOIN customer_ssh_key csk ON csk.skid = sk.id
-      WHERE psk.skid = sk.id
-      ) as projects
-
-(SELECT
-  su.skid,
-  GROUP_CONCAT(DISTINCT psk.pid SEPARATOR ',') AS projects
-  FROM (SELECT skid FROM project_ssh_key  UNION DISTINCT SELECT skid FROM customer_ssh_key) su
-        JOIN project_ssh_key psk ON psk.skid = su.skid);
-
-      */
-
 
 DELIMITER $$
 
