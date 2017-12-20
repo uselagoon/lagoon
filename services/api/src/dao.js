@@ -96,9 +96,6 @@ const getAllProjects = sqlClient => async (cred, args) => {
 };
 
 const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
@@ -182,9 +179,6 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
 };
 
 const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
@@ -311,9 +305,6 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
 };
 
 const getProjectByName = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
 
   return new Promise((res, rej) => {
     const prep = sqlClient.prepare(`
