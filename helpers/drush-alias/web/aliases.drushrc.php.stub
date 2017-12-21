@@ -1,4 +1,5 @@
 global $project_name;
+global $endpoint;
 
 use Symfony\Component\Yaml\Yaml;
 
