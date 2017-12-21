@@ -87,13 +87,13 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
 DROP view IF EXISTS foo;
 CREATE VIEW foo
 AS
-  SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+  SELECT skid, GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
   FROM
   (SELECT
     p.id as pid, csk.skid as skid
-  FROM customer_ssh_key csk
-  INNER JOIN customer c ON csk.cid = c.id
-  INNER JOIN project p ON p.customer = c.id
+  FROM project p
+  INNER JOIN customer c ON p.customer = c.id
+  INNER JOIN customer_ssh_key csk ON csk.cid = c.id
   UNION DISTINCT
   SELECT psk.pid AS pid, psk.skid as skid
   FROM project_ssh_key psk) r;
