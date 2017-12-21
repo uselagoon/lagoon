@@ -236,7 +236,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   $alias[$site_name] = [
     'remote-host' => "$openshift->ssh_host",
     'remote-user' => "$environment->openshift_projectname",
-    'ssh-options' => "-p $openshift->ssh_port"
+    'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $openshift->ssh_port"
   ] + $defaults;
 
   return $carry + $alias;
