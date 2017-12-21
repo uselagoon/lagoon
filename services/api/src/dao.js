@@ -75,21 +75,14 @@ const query = (sqlClient, sql) =>
 const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
 
 const getPermissions = sqlClient => async args => {
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(
-      `SELECT projects, customers
-       FROM permission
-       WHERE sshKey = :sshKey`,
-    );
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-      const permissions = R.propOr(null, 0, rows);
+  const prep = prepare(
+    sqlClient,
+    'SELECT projects, customers FROM permission WHERE sshKey = :sshKey',
+  );
 
-      res(permissions);
-    });
-  });
+  const rows = await query(sqlClient, prep(args));
+
+  return R.propOr(null, 0, rows);
 };
 
 const getCustomerSshKeys = sqlClient => async cred => {
@@ -97,39 +90,24 @@ const getCustomerSshKeys = sqlClient => async cred => {
     throw new Error('Unauthorized');
   }
 
-  return new Promise((res, rej) => {
-    sqlClient.query(
-      `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
+  const rows = await query(
+    sqlClient,
+    `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
        FROM ssh_key sk, customer c, customer_ssh_key csk
        WHERE csk.cid = c.id AND csk.skid = sk.id`,
-      (err, rows) => {
-        if (err) {
-          rej(err);
-        }
+  );
 
-        const ret = R.map(R.prop('sshKey'), rows);
-        res(ret);
-      },
-    );
-  });
+  return R.map(R.prop('sshKey'), rows);
 };
 
 const getAllCustomers = sqlClient => async (cred, args) => {
-  return new Promise((res, rej) => {
-    const where = whereAnd([
-      args.createdAfter ? 'created >= :createdAfter' : '',
-      ifNotAdmin(cred.role, `${inClause('id', cred.permissions.customers)}`),
-    ]);
-
-    const prep = sqlClient.prepare(`SELECT * FROM customer ${where}`);
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res(rows);
-    });
-  });
+  const where = whereAnd([
+    args.createdAfter ? 'created >= :createdAfter' : '',
+    ifNotAdmin(cred.role, `${inClause('id', cred.permissions.customers)}`),
+  ]);
+  const prep = prepare(sqlClient, `SELECT * FROM customer ${where}`);
+  const rows = await query(sqlClient, prep(args));
+  return rows;
 };
 
 const getAllOpenshifts = sqlClient => async (cred, args) => {
@@ -138,53 +116,37 @@ const getAllOpenshifts = sqlClient => async (cred, args) => {
   }
 
   const { createdAfter } = args;
+  const prep = prepare(sqlClient, 'SELECT * FROM openshift');
+  const rows = await query(sqlClient, prep(args));
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      SELECT * FROM openshift`);
-
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res(rows);
-    });
-  });
+  return rows;
 };
 
 const getAllProjects = sqlClient => async (cred, args) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
+  const { customers, projects } = cred.permissions;
 
-    // We need one "WHERE" keyword, but we have multiple optional conditions
-    const where = whereAnd([
-      args.createdAfter ? 'created >= :createdAfter' : '',
-      args.gitUrl ? 'git_url = :gitUrl' : '',
-      ifNotAdmin(
-        cred.role,
-        inClauseOr([['customer', customers], ['project.id', projects]]),
-      ),
-    ]);
+  // We need one "WHERE" keyword, but we have multiple optional conditions
+  const where = whereAnd([
+    args.createdAfter ? 'created >= :createdAfter' : '',
+    args.gitUrl ? 'git_url = :gitUrl' : '',
+    ifNotAdmin(
+      cred.role,
+      inClauseOr([['customer', customers], ['project.id', projects]]),
+    ),
+  ]);
 
-    const prep = sqlClient.prepare(`SELECT * FROM project ${where}`);
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
+  const rows = query(sqlClient, prep(args));
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res(rows);
-    });
-  });
+  return rows;
 };
 
 const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
+  const { customers, projects } = cred.permissions;
 
-    const prep = sqlClient.prepare(`
-      SELECT
+  const prep = prepare(
+    sqlClient,
+    `SELECT
         o.id,
         o.name,
         o.console_url,
@@ -199,25 +161,19 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
         cred.role,
         `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
       )}
-    `);
+    `,
+  );
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep({ pid }));
 
-      const ret = rows ? rows[0] : null;
-      res(ret);
-    });
-  });
+  return rows ? rows[0] : null;
 };
 
 const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
-
-    const prep = sqlClient.prepare(`
-      SELECT
+  const { customers, projects } = cred.permissions;
+  const prep = prepare(
+    sqlClient,
+    `SELECT
         ns.id,
         ns.name,
         ns.webhook,
@@ -236,23 +192,18 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
             ['p.id', projects],
           ])})`,
         )}
-    `);
+    `,
+  );
 
-    sqlClient.query(
-      prep({
-        pid: pid,
-        type: args.type,
-      }),
-      (err, rows) => {
-        if (err) {
-          rej(err);
-        }
+  const rows = query(
+    sqlClient,
+    prep({
+      pid: pid,
+      type: args.type,
+    }),
+  );
 
-        const ret = rows ? rows : null;
-        res(ret);
-      },
-    );
-  });
+  return rows ? rows : null;
 };
 
 const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
@@ -294,29 +245,24 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
     throw new Error('Unauthorized');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      SELECT
+  const prep = prepare(
+    sqlClient,
+    `SELECT
         *
       FROM environment e
       WHERE e.project = :pid
-    `);
+    `,
+  );
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep({ pid }));
 
-      res(rows);
-    });
-  });
+  return rows;
 };
 
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
-  return new Promise((res, rej) => {
-    const { customers } = cred.permissions;
+  const { customers } = cred.permissions;
 
-    const prep = sqlClient.prepare(`
+  const prep = sqlClient.prepare(`
       SELECT
         id,
         name,
@@ -329,20 +275,14 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
       ${ifNotAdmin(cred.role, `AND ${inClause('cs.cid', customers)}`)}
     `);
 
-    sqlClient.query(prep({ cid }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep({ cid }));
 
-      res(rows);
-    });
-  });
+  return rows;
 };
 
 const getCustomerByProjectId = sqlClient => async (cred, pid) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
-    const str = `
+  const { customers, projects } = cred.permissions;
+  const str = `
       SELECT
         c.id,
         c.name,
@@ -357,49 +297,35 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
         `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
       )}
     `;
+  const prep = prepare(sqlClient, str);
 
-    const prep = sqlClient.prepare(str);
+  const rows = await query(prep({ pid }));
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const ret = rows ? rows[0] : null;
-      res(ret);
-    });
-  });
+  return rows ? rows[0] : null;
 };
 
 const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
-
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      SELECT
+  const prep = prepare(
+    sqlClient,
+    `SELECT
         p.*
       FROM environment e
       JOIN project p ON e.project = p.id
       WHERE e.id = :eid
-    `);
+    `,
+  );
 
-    sqlClient.query(prep({ eid }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep({ eid }));
 
-      const ret = rows ? rows[0] : null;
-      res(ret);
-    });
-  });
+  return rows ? rows[0] : null;
 };
 
 const getProjectByGitUrl = sqlClient => async (cred, args) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
-    const str = `
+  const { customers, projects } = cred.permissions;
+  const str = `
       SELECT
         *
       FROM project
@@ -414,23 +340,15 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
       LIMIT 1
     `;
 
-    const prep = sqlClient.prepare(str);
+  const prep = prepare(sqlClient, str);
+  const rows = await query(sqlClient, prep(args));
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const ret = rows ? rows[0] : null;
-      res(ret);
-    });
-  });
+  return rows ? rows[0] : null;
 };
 
 const getProjectByName = sqlClient => async (cred, args) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
-    const str = `
+  const { customers, projects } = cred.permissions;
+  const str = `
       SELECT
         *
       FROM project
@@ -444,16 +362,11 @@ const getProjectByName = sqlClient => async (cred, args) => {
       )}
     `;
 
-    const prep = sqlClient.prepare(str);
+  const prep = prepare(sqlClient, str);
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep(args));
 
-      res(rows[0]);
-    });
-  });
+  return rows[0];
 };
 
 const addProject = sqlClient => async (cred, input) => {
@@ -464,9 +377,9 @@ const addProject = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateProject(
+  const prep = prepare(
+    sqlClient,
+    `CALL CreateProject(
         :id,
         :name,
         :customer,
@@ -490,18 +403,13 @@ const addProject = sqlClient => async (cred, input) => {
         },
         ${input.production_environment ? ':production_environment' : 'NULL'}
       );
-    `);
+    `,
+  );
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep(input));
+  const project = R.path([0, 0], rows);
 
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return project;
 };
 
 const deleteProject = sqlClient => async (cred, input) => {
@@ -523,26 +431,20 @@ const addSshKey = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateSshKey(
+  const prep = prepare(
+    sqlClient,
+    `CALL CreateSshKey(
         :id,
         :name,
         :keyValue,
         ${input.keyType ? ':keyType' : 'ssh-rsa'}
       );
-    `);
+    `,
+  );
+  const rows = await query(sqlClient, prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const ssh_key = R.path([0, 0], rows);
-
-      res(ssh_key);
-    });
-  });
+  const ssh_key = R.path([0, 0], rows);
+  return ssh_key;
 };
 
 const deleteSshKey = sqlClient => async (cred, input) => {
@@ -550,21 +452,11 @@ const deleteSshKey = sqlClient => async (cred, input) => {
     throw new Error('Unauthorized');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL deleteSshKey(
-        :name
-      );
-    `);
+  const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
+  const rows = await query(sqlClient, prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res('success');
-    });
-  });
+  //TODO: maybe check rows for any changed rows?
+  return 'success';
 };
 
 const addCustomer = sqlClient => async (cred, input) => {
@@ -572,58 +464,41 @@ const addCustomer = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateCustomer(
+  const prep = prepare(
+    sqlClient,
+    `CALL CreateCustomer(
         :id,
         :name,
         ${input.comment ? ':comment' : 'NULL'},
         ${input.private_key ? ':private_key' : 'NULL'}
       );
-    `);
+    `,
+  );
+  const rows = await query(sqlClient, prep(input));
+  const customer = R.path([0, 0], rows);
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const customer = R.path([0, 0], rows);
-
-      res(customer);
-    });
-  });
+  return customer;
 };
 
 const deleteCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
+  const prep = prepare(sqlClient, 'CALL deleteCustomer(:name)');
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL deleteCustomer(
-        :name
-      );
-    `);
+  const rows = await query(prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res('success');
-    });
-  });
+  // TODO: maybe check rows for changed values
+  return 'success';
 };
 
 const addOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
   }
-
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateOpenshift(
+  const prep = prepare(
+    sqlClient,
+    `CALL CreateOpenshift(
         :id,
         :name,
         :console_url,
@@ -631,18 +506,13 @@ const addOpenshift = sqlClient => async (cred, input) => {
         ${input.router_pattern ? ':router_pattern' : 'NULL'},
         ${input.project_user ? ':project_user' : 'NULL'}
       );
-    `);
+    `,
+  );
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep(input));
+  const openshift = R.path([0, 0], rows);
 
-      const openshift = R.path([0, 0], rows);
-
-      res(openshift);
-    });
-  });
+  return openshift;
 };
 
 const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
@@ -652,28 +522,22 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
     throw new Error('Project creation unauthorized.');
   }
-
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateOrUpdateEnvironment(
+  const prep = prepare(
+    sqlClient,
+    `CALL CreateOrUpdateEnvironment(
         :name,
         :project,
         :git_type,
         :environment_type,
         :openshift_projectname
       );
-    `);
+    `,
+  );
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep(input));
+  const environment = R.path([0, 0], rows);
 
-      const environment = R.path([0, 0], rows);
-
-      res(environment);
-    });
-  });
+  return environment;
 };
 
 const deleteEnvironment = sqlClient => async (cred, input) => {
@@ -681,22 +545,11 @@ const deleteEnvironment = sqlClient => async (cred, input) => {
     throw new Error('Unauthorized');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL DeleteEnvironment(
-        :name,
-        :project
-      );
-    `);
+  const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
+  const rows = await query(sqlClient, prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res('success');
-    });
-  });
+  // TODO: maybe check rows for changed result
+  return 'success';
 };
 
 const deleteOpenshift = sqlClient => async (cred, input) => {
@@ -704,21 +557,11 @@ const deleteOpenshift = sqlClient => async (cred, input) => {
     throw new Error('Unauthorized');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL deleteOpenshift(
-        :name
-      );
-    `);
+  const prep = prepare(sqlClient, 'CALL deleteOpenshift(:name)');
+  const rows = await query(sqlClient, prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res('success');
-    });
-  });
+  // TODO: maybe check rows for changed result
+  return 'success';
 };
 
 const addNotificationSlack = sqlClient => async (cred, input) => {
@@ -726,25 +569,15 @@ const addNotificationSlack = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateNotificationSlack(
-        :name,
-        :webhook,
-        :channel
-      );
-    `);
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateNotificationSlack(:name, :webhook, :channel)',
+  );
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep(input));
+  const slack = R.path([0, 0], rows);
 
-      const slack = R.path([0, 0], rows);
-
-      res(slack);
-    });
-  });
+  return slack;
 };
 
 const deleteNotificationSlack = sqlClient => async (cred, input) => {
@@ -752,21 +585,11 @@ const deleteNotificationSlack = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL DeleteNotificationSlack(
-        :name
-      );
-    `);
+  const prep = prepare(sqlClient, 'CALL DeleteNotificationSlack(:name)');
+  const rows = await query(sqlClient, prep(input));
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res('success');
-    });
-  });
+  // TODO: maybe check rows for changed result
+  return 'success';
 };
 
 const addNotificationToProject = sqlClient => async (cred, input) => {
@@ -774,51 +597,28 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateProjectNotification(
-        :project,
-        :notificationType,
-        :notificationName
-      );
-    `);
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateProjectNotification(:project, :notificationType, :notificationName)',
+  );
+  const rows = await query(sqlClient, prep(input));
+  const project = R.path([0, 0], rows);
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return project;
 };
 
 const removeNotificationFromProject = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('unauthorized.');
   }
+  const prep = prepare(
+    sqlClient,
+    'CALL DeleteProjectNotification(:project, :notificationType, :notificationName)',
+  );
+  const rows = await query(sqlClient, prep(input));
+  const project = R.path([0, 0], rows);
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL DeleteProjectNotification(
-        :project,
-        :notificationType,
-        :notificationName
-      );
-    `);
-
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return project;
 };
 
 const addSshKeyToProject = sqlClient => async (cred, input) => {
@@ -826,24 +626,14 @@ const addSshKeyToProject = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateProjectSshKey(
-        :project,
-        :sshKey
-      );
-    `);
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateProjectSshKey(:project, :sshKey)',
+  );
+  const rows = await query(sqlClient, prep(input));
+  const project = R.path([0, 0], rows);
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return project;
 };
 
 const removeSshKeyFromProject = sqlClient => async (cred, input) => {
@@ -851,24 +641,14 @@ const removeSshKeyFromProject = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL DeleteProjectSshKey(
-        :project,
-        :sshKey
-      );
-    `);
+  const prep = prepare(
+    sqlClient,
+    'CALL DeleteProjectSshKey(:project, :sshKey)',
+  );
+  const rows = await query(sqlClient, prep(input));
+  const project = R.path([0, 0], rows);
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return project;
 };
 
 const addSshKeyToCustomer = sqlClient => async (cred, input) => {
@@ -876,49 +656,29 @@ const addSshKeyToCustomer = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL CreateCustomerSshKey(
-        :customer,
-        :sshKey
-      );
-    `);
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateCustomerSshKey(:customer, :sshKey)',
+  );
+  const rows = await query(sqlClient, prep(input));
+  const customer = R.path([0, 0], rows);
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return customer;
 };
 
 const removeSshKeyFromCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
-    throw new Error('unauthorized.');
+    throw new Error('Unauthorized.');
   }
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`
-      CALL DeleteCustomerSshKey(
-        :customer,
-        :sshKey
-      );
-    `);
+  const prep = prepare(
+    sqlClient,
+    'CALL DeleteCustomerSshKey(:customer, :sshKey)',
+  );
+  const rows = await query(sqlClient, prep(input));
+  const customer = R.path([0, 0], rows);
 
-    sqlClient.query(prep(input), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      const project = R.path([0, 0], rows);
-
-      res(project);
-    });
-  });
+  return customer;
 };
 
 const truncateTable = sqlClient => async (cred, args) => {
@@ -928,17 +688,12 @@ const truncateTable = sqlClient => async (cred, args) => {
 
   const { tableName } = args;
 
-  return new Promise((res, rej) => {
-    const prep = sqlClient.prepare(`TRUNCATE table \`${tableName}\``);
+  const prep = prepare(sqlClient, `TRUNCATE table \`${tableName}\``);
 
-    sqlClient.query(prep(args), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
+  const rows = await query(sqlClient, prep(args));
 
-      res('success');
-    });
-  });
+  // TODO: eventually check rows for success
+  return 'success';
 };
 
 const daoFns = {

@@ -1,3 +1,4 @@
+
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 
@@ -98,7 +99,7 @@ const typeDefs = `
     id: Int
     name: String!
     keyValue: String!
-    keyType: String
+    keyType: SshKeyType
   }
 
   input DeleteSshKeyInput {
@@ -219,6 +220,12 @@ const typeDefs = `
   }
 `;
 
+const sshKeyTypeToString = R.cond([
+  [R.equals('SSH_RSA'), R.always('ssh-rsa')],
+  [R.equals('SSH_ED25519'), R.always('ssh-ed25519')],
+  [R.T, R.identity],
+]);
+
 const gitTypeToString = R.cond([
   [R.equals('BRANCH'), R.toLower],
   [R.equals('PULLREQUEST'), R.toLower],
@@ -322,7 +329,8 @@ const resolvers = {
     },
     addSshKey: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSshKey(req.credentials, args.input);
+      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(args.input);
+      const ret = await dao.addSshKey(req.credentials, input);
       return ret;
     },
     deleteSshKey: async (root, args, req) => {

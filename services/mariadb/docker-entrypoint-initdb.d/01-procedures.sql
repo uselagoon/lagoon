@@ -194,20 +194,18 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  deleteSshKey
+  DeleteSshKey
   (
-    IN name varchar(100)
+    IN p_name varchar(100)
   )
   BEGIN
-    DECLARE skid int;
+    DECLARE v_skid int;
 
-    SELECT id INTO skid FROM ssh_key WHERE ssh_key.name = name;
+    SELECT id INTO v_skid FROM ssh_key WHERE ssh_key.name = p_name;
 
-    DELETE FROM customer_ssh_key WHERE skid = skid;
-    DELETE FROM project_ssh_key WHERE skid = skid;
-    DELETE FROM ssh_key WHERE id = skid;
-
-
+    DELETE FROM customer_ssh_key WHERE skid = v_skid;
+    DELETE FROM project_ssh_key WHERE skid = v_skid;
+    DELETE FROM ssh_key WHERE id = v_skid;
   END;
 $$
 
@@ -498,8 +496,8 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteProjectSshKey
   (
-    IN project            varchar(50),
-    IN ssh_key            varchar(100)
+    IN p_project            varchar(50),
+    IN p_ssh_key            varchar(100)
   )
   BEGIN
 
