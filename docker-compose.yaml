@@ -122,8 +122,6 @@ services:
     ports:
       - "2020:2020"
     environment:
-      - AUTH_SERVER=http://auth-server:3000
-      - API_HOST=http://api:3000
       - OPENSHIFT_CONSOLE_URL=https://192.168.99.100:8443
     user: '111111111'
     volumes:

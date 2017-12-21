@@ -86,6 +86,9 @@ COPY services/ssh/docker-entrypoint.sh /lagoon/entrypoints/99-envplate.sh
 # Global lagoon default environment variables
 COPY .env.defaults .
 
+ENV AUTH_SERVER=http://auth-server:3000 \
+    API_HOST=http://api:3000
+
 EXPOSE 2020
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
