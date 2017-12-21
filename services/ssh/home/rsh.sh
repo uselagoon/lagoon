@@ -17,4 +17,4 @@ else
   deploymentconfig=cli
 fi
 
-exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig}
+exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} $SSH_ORIGINAL_COMMAND
