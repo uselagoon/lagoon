@@ -18,8 +18,8 @@ export >> /authorize.env
 
 set -x
 
-if [ ! -z ${LAGOON_SERVICEACCOUNT_TOKEN+x} ]; then
-  /usr/bin/oc login --insecure-skip-tls-verify --token="${LAGOON_SERVICEACCOUNT_TOKEN}" ${OPENSHIFT_CONSOLE_URL:-https://kubernetes.default.svc}
+if [ ! -z ${OPENSHIFT_LAGOON_SERVICEACCOUNT_TOKEN+x} ]; then
+  /usr/bin/oc login --insecure-skip-tls-verify --token="${OPENSHIFT_LAGOON_SERVICEACCOUNT_TOKEN}" ${OPENSHIFT_CONSOLE_URL:-https://kubernetes.default.svc}
 else
   # this will be used only for local development
   /usr/bin/oc login --insecure-skip-tls-verify -u developer -p developer ${OPENSHIFT_CONSOLE_URL:-https://kubernetes.default.svc}
