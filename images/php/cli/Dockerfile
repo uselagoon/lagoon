@@ -23,7 +23,12 @@ RUN apk update \
         /usr/local/bin/drupal \
     && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo drush/drush
 
-ENV PATH="/home/.composer/vendor/bin:${PATH}"
+# Adding Composer vendor bin path to $PATH. We don't use "export $PATH" as this could be overwritten again
+# like it happens in /etc/profile of alpine Images.
+COPY 90-composer-path.sh /lagoon/entrypoints/
+
+# Making sure the path is not only added during entrypoint, but also when creating a new shell
+RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]
