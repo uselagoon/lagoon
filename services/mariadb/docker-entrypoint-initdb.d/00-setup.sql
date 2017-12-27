@@ -106,7 +106,7 @@ CREATE VIEW permission
 AS
   SELECT
     sk.id AS keyId,
-    CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
+    sk.keyValue AS sshKey,
     (SELECT
       GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
       FROM customer_ssh_key csk
