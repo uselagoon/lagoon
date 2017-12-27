@@ -64,6 +64,10 @@ objects:
           - name: ${PERSISTENT_STORAGE_NAME}
             persistentVolumeClaim:
               claimName: ${PERSISTENT_STORAGE_NAME}
+          - name: lagoon-sshkey
+            secret:
+              defaultMode: 420
+              secretName: lagoon-sshkey
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
@@ -90,6 +94,9 @@ objects:
           volumeMounts:
             - name: ${PERSISTENT_STORAGE_NAME}
               mountPath: ${PERSISTENT_STORAGE_PATH}
+            - mountPath: /var/run/secrets/lagoon/sshkey/
+              name: lagoon-sshkey
+              readOnly: true
           resources:
             requests:
               cpu: 100m
