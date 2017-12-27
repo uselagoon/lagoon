@@ -391,11 +391,11 @@ local-git-port:
 ifeq ($(ARCH), Darwin)
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.gql docker-compose.yaml
+	sed -i '' -e "s/192\.168\.99\.1:[0-9]\{0,5\}\//192\.168\.99\.1:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.gql docker-compose.yaml
 else
 	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
 	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.gql docker-compose.yaml
+	sed -i "s/192\.168\.99\.1:[0-9]\{0,5\}\//192\.168\.99\.1:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.gql docker-compose.yaml
 endif
 
 
@@ -494,11 +494,11 @@ openshift: local-dev/minishift/minishift
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 
