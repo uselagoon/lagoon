@@ -42,6 +42,8 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
+    ssh_host: String
+    ssh_port: String
     created: String
   }
 
@@ -141,6 +143,8 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
+    ssh_host: String
+    ssh_port: String
   }
 
   input DeleteOpenshiftInput {

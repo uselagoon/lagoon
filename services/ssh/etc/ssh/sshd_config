@@ -10,10 +10,10 @@ PermitRootLogin no
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile .ssh/authorized_keys
+AuthorizedKeysFile /dev/null
 
-AuthorizedKeysCommand /authorize.sh %f
-AuthorizedKeysCommandUser api
+AuthorizedKeysCommand /authorize.sh %u %f
+AuthorizedKeysCommandUser lagoon
 
 HostbasedAuthentication no
 
@@ -25,10 +25,13 @@ AllowTcpForwarding no
 GatewayPorts no
 X11Forwarding no
 
-PermitTTY no
+PermitTTY yes
 PrintMotd no
+
+UsePAM no
 
 PermitUserEnvironment no
 #UseDNS yes
 PermitTunnel no
 Banner none
+UsePrivilegeSeparation yes

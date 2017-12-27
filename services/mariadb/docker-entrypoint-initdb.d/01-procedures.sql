@@ -290,7 +290,9 @@ CREATE OR REPLACE PROCEDURE
     IN p_console_url     varchar(300),
     IN p_token           varchar(1000),
     IN p_router_pattern  varchar(300),
-    IN p_project_user    varchar(100)
+    IN p_project_user    varchar(100),
+    IN p_ssh_host        varchar(300),
+    IN p_ssh_port        varchar(50)
   )
   BEGIN
     DECLARE new_oid int;
@@ -305,14 +307,18 @@ CREATE OR REPLACE PROCEDURE
       console_url,
       token,
       router_pattern,
-      project_user
+      project_user,
+      ssh_host,
+      ssh_port
     ) VALUES (
       p_id,
       p_name,
       p_console_url,
       p_token,
       p_router_pattern,
-      p_project_user
+      p_project_user,
+      p_ssh_host,
+      p_ssh_port
     );
 
     IF (p_id = 0) THEN
@@ -322,13 +328,7 @@ CREATE OR REPLACE PROCEDURE
     END IF;
 
     SELECT
-      o.id,
-      o.name,
-      o.console_url,
-      o.token,
-      o.router_pattern,
-      o.project_user,
-      o.created
+      o.*
     FROM openshift o
     WHERE o.id = new_oid;
   END;

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-cli
+  name: lagoon-openshift-template-ssh
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -54,14 +54,23 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
-        volumes:
-          - name: lagoon-sshkey
-            secret:
-              defaultMode: 420
-              secretName: lagoon-sshkey
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
+          ports:
+          - containerPort: 2020
+            name: ssh
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: ssh
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: ssh
+            timeoutSeconds: 1
+            initialDelaySeconds: 120
           env:
             - name: LAGOON_GIT_BRANCH
               valueFrom:
@@ -73,19 +82,31 @@ objects:
                 configMapKeyRef:
                   name: lagoon-env
                   key: LAGOON_GIT_SAFE_BRANCH
-            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
-              value: ${LAGOON_GIT_SHA}
+              valueFrom:
+                configMapKeyRef:
+                  name: lagoon-env
+                  key: LAGOON_GIT_SHA
             - name: LAGOON_PROJECT
               valueFrom:
                 configMapKeyRef:
                   name: lagoon-env
                   key: LAGOON_PROJECT
-          volumeMounts:
-            - mountPath: /var/run/secrets/lagoon/sshkey/
-              name: lagoon-sshkey
-              readOnly: true
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-username
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-password
+                  key: RABBITMQ_PASSWORD
+            - name: JWTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwtsecret
+                  key: JWTSECRET
           resources:
             requests:
               cpu: 100m
@@ -102,3 +123,23 @@ objects:
           name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
+  spec:
+    ports:
+    - name: ssh-tcp
+      port: 2020
+      protocol: TCP
+      targetPort: ssh
+    selector:
+      service: ${SERVICE_NAME}
+    type: NodePort
+  status:
+    loadBalancer: {}

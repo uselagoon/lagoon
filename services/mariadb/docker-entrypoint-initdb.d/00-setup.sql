@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS openshift (
        token           varchar(1000),
        router_pattern  varchar(300),
        project_user    varchar(100),
+       ssh_host        varchar(300),
+       ssh_port        varchar(50),
        created         timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -143,6 +145,28 @@ CREATE OR REPLACE PROCEDURE
 
   END;
 $$
+
+CREATE OR REPLACE PROCEDURE
+  add_ssh_to_openshift()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'openshift'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'ssh_host'
+            )  THEN
+      ALTER TABLE `openshift` ADD `ssh_host` varchar(300);
+      ALTER TABLE `openshift` ADD `ssh_port` varchar(50);
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
+CALL add_ssh_to_openshift;

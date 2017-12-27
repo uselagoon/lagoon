@@ -34,17 +34,24 @@ parameters:
   - name: PERSISTENT_STORAGE_PATH
     description: Full path to which should be mounted into persistent storage
     required: true
+  - name: PERSISTENT_STORAGE_CLASS
+    description: Name of the Storage Class to use
+    value: ""
+  - name: PERSISTENT_STORAGE_SIZE
+    description: Size of the Storage to request
+    value: "5Gi"
 objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${SERVICE_NAME}-persistent
+    name: ${SERVICE_NAME}
   spec:
     accessModes:
     - ReadWriteOnce
+    storageClassName: "${PERSISTENT_STORAGE_CLASS}"
     resources:
       requests:
-        storage: 5Gi
+        storage: ${PERSISTENT_STORAGE_SIZE}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -68,9 +75,9 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         volumes:
-          - name: ${SERVICE_NAME}-persistent
+          - name: ${SERVICE_NAME}
             persistentVolumeClaim:
-              claimName: ${SERVICE_NAME}-persistent
+              claimName: ${SERVICE_NAME}
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/nginx:latest
           name: nginx
@@ -114,7 +121,7 @@ objects:
                   name: lagoon-env
                   key: LAGOON_PROJECT
           volumeMounts:
-            - name: ${SERVICE_NAME}-persistent
+            - name: ${SERVICE_NAME}
               mountPath: ${PERSISTENT_STORAGE_PATH}
           resources:
             requests:
@@ -159,7 +166,7 @@ objects:
                   name: lagoon-env
                   key: LAGOON_PROJECT
           volumeMounts:
-            - name: ${SERVICE_NAME}-persistent
+            - name: ${SERVICE_NAME}
               mountPath: ${PERSISTENT_STORAGE_PATH}
           resources:
             requests:

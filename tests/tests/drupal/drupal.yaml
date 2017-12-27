@@ -60,7 +60,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-php.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
   - include: ../../checks/check-url-returncode.yaml

@@ -57,28 +57,31 @@ const createAuthMiddleware = args => async (req, res, next) => {
 
   const token = parseBearerToken(req.get('Authorization'));
 
-  if (!token) {
+  if (token == null) {
+    logger.debug(`No Bearer Token`)
     res
       .status(401)
       .send({ errors: [{ message: 'Unauthorized - Bearer Token Required' }] });
     return;
   }
 
+  let decoded = '';
   try {
-    const decoded = decodeToken(token, jwtSecret);
+    decoded = jwt.verify(token, jwtSecret);
+  } catch (e) {
+    logger.debug(`Error while decoding auth token: ${e.message}`);
+    res.status(500).send({
+      errors: [
+        {
+          message: `Error while decoding auth token: ${e.message}`,
+        },
+      ],
+    });
+    return;
+  }
 
-    if (decoded == null) {
-      res.status(500).send({
-        errors: [
-          {
-            message: 'Error while decoding auth token',
-          },
-        ],
-      });
-      return;
-    }
-
-    const { sshKey, role = 'none', aud } = decoded;
+  try {
+    const { aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
       logger.info(`Invalid token with aud attribute: "${aud || ''}"`);

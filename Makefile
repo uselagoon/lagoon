@@ -106,6 +106,7 @@ images :=     centos7 \
 							nginx \
 							nginx-drupal \
 							varnish \
+							varnish-drupal \
 							redis
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -136,6 +137,7 @@ build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
+build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 
 #######
@@ -250,11 +252,11 @@ build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbui
 build/hacky-rest2tasks-ui: build/node__8
 
 # Auth SSH needs the context of the root folder, so we have it individually
-build/auth-ssh: build/commons
+build/ssh: build/commons
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
-service-images += auth-ssh
+service-images += ssh
 # CLI Image
 build/cli: build/node__8
 	$(eval image = $(subst build/,,$@))
@@ -308,7 +310,7 @@ build-list:
 	done
 
 # Define list of all tests
-all-tests-list:=	ssh-auth \
+all-tests-list:=	ssh \
 									node \
 									drupal \
 									github \
@@ -332,10 +334,10 @@ tests-list:
 #### Definition of tests
 
 # SSH-Auth test
-.PHONY: tests/ssh-auth
-tests/ssh-auth: build/auth-ssh build/auth-server build/api build/tests
+.PHONY: tests/ssh
+tests/ssh: build/ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d auth-ssh auth-server api
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d ssh auth-server api
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
@@ -352,7 +354,7 @@ $(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/varnish build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: local-git-port openshift build/varnish-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
