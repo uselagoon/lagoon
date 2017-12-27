@@ -77,7 +77,7 @@ const typeDefs = `
     id: Int
     name: String
     project: Project
-    git_type: GitType
+    git_type: String
     environment_type: String
     openshift_projectname: String
     updated: String
