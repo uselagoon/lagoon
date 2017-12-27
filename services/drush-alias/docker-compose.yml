@@ -1,11 +1,5 @@
 version: '2'
 services:
-  nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-    - "8087:8080"
   testing:
     build:
       context: ../..
@@ -13,9 +7,9 @@ services:
     environment:
       # Make sure to run lagoon with properly configured hiera repo
       # otherwise the script will not find any data for the sitegroup
-      - LAGOON_OVERRIDE_PROJECT=ci-drupal
+      - LAGOON_PROJECT=ci-drupal
       - LAGOON_OVERRIDE_ENDPOINT=192.168.99.1:2020
-      - LAGOON_OVERRIDE_API_ENDPOINT=http://api:3000/graphql
+      - LAGOON_OVERRIDE_API=api:3000
       - LAGOON_DEBUG=true
       #- LAGOON_IGNORE_DRUSHCACHE=true
     volumes:

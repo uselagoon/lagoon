@@ -236,7 +236,8 @@ services :=       api \
 									elasticsearch \
 									kibana \
 									logstash \
-									mariadb
+									mariadb \
+									drush-alias
 
 service-images += $(services)
 build-services = $(foreach image,$(services),build/$(image))
@@ -277,16 +278,6 @@ $(build-localdevimages):
 	touch $@
 
 build/local-git-server: build/centos7
-
-# Images for helpers that exist in another folder than the service images
-helperimages := drush-alias
-service-images += $(helperimages)
-build-helperimages = $(foreach image,$(helperimages),build/$(image))
-
-$(build-helperimages):
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),helpers/$(image)/Dockerfile,helpers/$(image))
-	touch $@
 
 # Image with ansible test
 build/tests:
@@ -354,9 +345,9 @@ $(run-rest-tests): openshift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: openshift build/varnish-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: openshift build/varnish-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints

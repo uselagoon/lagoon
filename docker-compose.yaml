@@ -221,11 +221,12 @@ services:
     labels:
       lagoon.type: none
   drush-alias:
-    build:
-      context: helpers/drush-alias
-      dockerfile: Dockerfile
+    image: ${IMAGE_REPO:-lagoon}/drush-alias
+    volumes:
+      - ./services/drush-alias/web/aliases.drushrc.php.stub:/app/aliases.drushrc.php.stub
     ports:
     - "8087:8080"
     labels:
       lagoon.type: custom
       lagoon.template: helpers/drush-alias/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/drush-alias:master
