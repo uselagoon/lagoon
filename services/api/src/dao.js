@@ -293,7 +293,7 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
     `;
   const prep = prepare(sqlClient, str);
 
-  const rows = await query(prep({ pid }));
+  const rows = await query(sqlClient, prep({ pid }));
 
   return rows ? rows[0] : null;
 };
@@ -480,7 +480,7 @@ const deleteCustomer = sqlClient => async (cred, input) => {
   }
   const prep = prepare(sqlClient, 'CALL deleteCustomer(:name)');
 
-  const rows = await query(prep(input));
+  const rows = await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed values
   return 'success';
