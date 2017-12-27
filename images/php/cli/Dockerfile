@@ -23,7 +23,8 @@ RUN apk update \
         /usr/local/bin/drupal \
     && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo drush/drush \
     && mkdir -p /home/.ssh \
-    && fix-permissions /home/.ssh
+    && fix-permissions /home/.ssh \
+    && fix-permissions /home/
 
 # Adding Composer vendor bin path to $PATH. We don't use "export $PATH" as this could be overwritten again
 # like it happens in /etc/profile of alpine Images.
