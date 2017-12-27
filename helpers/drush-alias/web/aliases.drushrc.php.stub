@@ -137,7 +137,7 @@ if (getenv('LAGOON_OVERRIDE_JWT_TOKEN')) {
   }
 
 } else {
-  exec("ssh -p $endpoint_port -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t lagoon@$endpoint_host token 2>&1", $token_array, $rc);
+  exec("ssh -p $endpoint_port -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t lagoon@$endpoint_host token 2>&1", $token_array, $rc);
   if ($rc !== 0) {
     drush_log("Could not load API JWT Token, error was: '" . implode(",", $token_array), 'warning');
     return;
@@ -183,6 +183,10 @@ curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', "Autho
 curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
   'query' => $query,
 )));
+
+if (getenv('LAGOON_DEBUG')) {
+  drush_log("Sending to api: " . $query);
+}
 
 $response = curl_exec($curl);
 
@@ -236,7 +240,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   $alias[$site_name] = [
     'remote-host' => "$openshift->ssh_host",
     'remote-user' => "$environment->openshift_projectname",
-    'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $openshift->ssh_port"
+    'ssh-options' => "-o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $openshift->ssh_port"
   ] + $defaults;
 
   return $carry + $alias;
