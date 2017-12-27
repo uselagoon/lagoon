@@ -67,7 +67,7 @@ const createAuthMiddleware = args => async (req, res, next) => {
 
   let decoded = '';
   try {
-    decoded = jwt.verify(token, jwtSecret);
+    decoded = decodeToken(token, jwtSecret);
   } catch (e) {
     logger.debug(`Error while decoding auth token: ${e.message}`);
     res.status(500).send({
@@ -81,7 +81,7 @@ const createAuthMiddleware = args => async (req, res, next) => {
   }
 
   try {
-    const { aud } = decoded;
+    const { sshKey, role = 'none', aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
       logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
@@ -121,7 +121,7 @@ const createAuthMiddleware = args => async (req, res, next) => {
   } catch (e) {
     res
       .status(403)
-      .send({ errors: [{ message: 'Forbidden - Invalid Auth Token' }] });
+      .send({ errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }] });
   }
 };
 
