@@ -25,10 +25,10 @@ mutation FillAPI {
   }
 
   ### Projects
-  CredentialstestProject1: addProject(input: {id: 1, name: "credentialstest-project1", customer: 1, openshift: 1, git_url: "ssh://git@192.168.99.1:32771/git/project1.git"}) {
+  CredentialstestProject1: addProject(input: {id: 1, name: "credentialstest-project1", customer: 1, openshift: 1, git_url: "ssh://git@192.168.99.1:2222/git/project1.git"}) {
     id
   }
-  CredentialstestProject2: addProject(input: {id: 2, name: "credentialstest-project2", customer: 2, openshift: 1, git_url: "ssh://git@192.168.99.1:32771/git/project2.git"}) {
+  CredentialstestProject2: addProject(input: {id: 2, name: "credentialstest-project2", customer: 2, openshift: 1, git_url: "ssh://git@192.168.99.1:2222/git/project2.git"}) {
     id
   }
 
@@ -89,63 +89,63 @@ mutation FillAPI {
   }
 
   # Projects for CI
-  CiGithub: addProject(input: {id: 3, name: "ci-github", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/github.git"}) {
+  CiGithub: addProject(input: {id: 3, name: "ci-github", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/github.git"}) {
     id
   }
   CiGithubSlack: addNotificationToProject(input: {project: "ci-github", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiGitlab: addProject(input: {id: 4, name: "ci-gitlab", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/gitlab.git"}) {
+  CiGitlab: addProject(input: {id: 4, name: "ci-gitlab", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/gitlab.git"}) {
     id
   }
   CiGitlabSlack: addNotificationToProject(input: {project: "ci-gitlab", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiBitbucket: addProject(input: {id: 5, name: "ci-bitbucket", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/bitbucket.git"}) {
+  CiBitbucket: addProject(input: {id: 5, name: "ci-bitbucket", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/bitbucket.git"}) {
     id
   }
   CiBitbucketSlack: addNotificationToProject(input: {project: "ci-bitbucket", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiRest: addProject(input: {id: 6, name: "ci-rest", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/rest.git"}) {
+  CiRest: addProject(input: {id: 6, name: "ci-rest", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/rest.git"}) {
     id
   }
   CiRestSlack: addNotificationToProject(input: {project: "ci-rest", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiNode: addProject(input: {id: 7, name: "ci-node", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/node.git"}) {
+  CiNode: addProject(input: {id: 7, name: "ci-node", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/node.git"}) {
     id
   }
   CiNodeSlack: addNotificationToProject(input: {project: "ci-node", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiMultiproject1: addProject(input: {id: 8, name: "ci-multiproject1", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/multiproject.git"}) {
+  CiMultiproject1: addProject(input: {id: 8, name: "ci-multiproject1", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"}) {
     id
   }
   CiMultiproject1Slack: addNotificationToProject(input: {project: "ci-multiproject1", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiMultiproject2: addProject(input: {id: 9, name: "ci-multiproject2", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/multiproject.git"}) {
+  CiMultiproject2: addProject(input: {id: 9, name: "ci-multiproject2", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"}) {
     id
   }
   CiMultiproject2Slack: addNotificationToProject(input: {project: "ci-multiproject2", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiDrupal: addProject(input: {id: 10, name: "ci-drupal", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/drupal.git"}) {
+  CiDrupal: addProject(input: {id: 10, name: "ci-drupal", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal.git"}) {
     id
   }
   CiDrupalSlack: addNotificationToProject(input: {project: "ci-drupal", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiNginx: addProject(input: {id: 11, name: "ci-nginx", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:32771/git/nginx.git"}) {
+  CiNginx: addProject(input: {id: 11, name: "ci-nginx", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/nginx.git"}) {
     id
   }
   CiDrupalSlack: addNotificationToProject(input: {project: "ci-drupal", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
