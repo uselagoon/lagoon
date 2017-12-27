@@ -86,7 +86,47 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
 );
 
 
+DROP view IF EXISTS foo;
+CREATE VIEW foo
+AS
+  SELECT skid, GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+  FROM
+  (SELECT
+    p.id as pid, csk.skid as skid
+  FROM project p
+  INNER JOIN customer c ON p.customer = c.id
+  INNER JOIN customer_ssh_key csk ON csk.cid = c.id
+  UNION DISTINCT
+  SELECT psk.pid AS pid, psk.skid as skid
+  FROM project_ssh_key psk) r;
+
+
+DROP VIEW IF EXISTS permission;
+CREATE VIEW permission
+AS
+  SELECT
+    sk.id AS keyId,
+    CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
+    (SELECT
+      GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
+      FROM customer_ssh_key csk
+      WHERE csk.skid = sk.id) as customers,
+    (SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+      FROM
+      (SELECT DISTINCT
+        p.id as pid, csk.skid as skid
+      FROM customer_ssh_key csk
+      INNER JOIN customer c ON csk.cid = c.id
+      INNER JOIN project p ON p.customer = c.id
+      UNION DISTINCT
+      SELECT psk.pid AS pid, psk.skid as skid
+      FROM project_ssh_key psk) r
+      WHERE r.skid = sk.id
+    ) AS projects
+  FROM ssh_key sk;
+
 DELIMITER $$
+
 CREATE OR REPLACE PROCEDURE
   add_production_environment_to_project()
 

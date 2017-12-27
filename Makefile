@@ -236,7 +236,8 @@ services :=       api \
 									elasticsearch \
 									kibana \
 									logstash \
-									mariadb
+									mariadb \
+									drush-alias
 
 service-images += $(services)
 build-services = $(foreach image,$(services),build/$(image))
@@ -277,16 +278,6 @@ $(build-localdevimages):
 	touch $@
 
 build/local-git-server: build/centos7
-
-# Images for helpers that exist in another folder than the service images
-helperimages := drush-alias
-service-images += $(helperimages)
-build-helperimages = $(foreach image,$(helperimages),build/$(image))
-
-$(build-helperimages):
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),helpers/$(image)/Dockerfile,helpers/$(image))
-	touch $@
 
 # Image with ansible test
 build/tests:
@@ -349,14 +340,14 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): local-git-port openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+$(run-rest-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: local-git-port openshift build/varnish-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+tests/drupal: openshift build/varnish-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
@@ -365,7 +356,7 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): local-git-port openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
+$(run-webhook-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -384,20 +375,6 @@ $(push-openshift-images):
 	$(info pushing $(image) to openshift registry)
 	docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
 	docker push $$(cat openshift):30000/lagoon/$(image) | cat
-
-
-local-git-port:
-	$(info configuring ssh port of local-git server inside projects.yaml, api-data.gql, docker-compose.yaml and bitbucket.yaml)
-ifeq ($(ARCH), Darwin)
-	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
-	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i '' -e "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.gql docker-compose.yaml
-else
-	@IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-git; \
-	LOCAL_GIT_EXPOSED_PORT=$$(docker-compose -p $(CI_BUILD_TAG) port local-git 22 | sed -e "s/0.0.0.0://"); \
-	sed -i "s/10\.0\.2\.2:[0-9]\{0,5\}\//10\.0\.2\.2:$${LOCAL_GIT_EXPOSED_PORT}\//g" tests/tests/bitbucket.yaml local-dev/api-data/api-data.gql docker-compose.yaml
-endif
-
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
@@ -462,15 +439,6 @@ logs:
 up:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 
-remove-ports-from-yaml:
-ifeq ($(ARCH), Darwin)
-		$(error this command only works on Linux as Mac does not have a proper new version of awk)
-else
-		awk 's{if(/\s*-\s*"[^"]*"/) next; else s=0} /ports:\s*$$/{s=1;next;}1' docker-compose.yaml > docker-compose-no-ports.yaml && mv docker-compose-no-ports.yaml docker-compose.yaml
-endif
-
-up-no-ports: remove-ports-from-yaml up
-
 down:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v
 
@@ -494,11 +462,11 @@ openshift: local-dev/minishift/minishift
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 

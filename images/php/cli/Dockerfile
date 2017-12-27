@@ -21,9 +21,22 @@ RUN apk update \
     && echo "f458e13dfb4e33c1296435dcedb7d4ca56d5027d3b7461c3114a932d434553dc563bf835f8090e9d2037b29a9f605e9bdef0e920a73b4e865f3eef82dbf5a4ff  /usr/local/bin/drupal" | sha512sum \
     && chmod +x /usr/local/bin/composer \
         /usr/local/bin/drupal \
-    && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo drush/drush
+    && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo drush/drush \
+    && mkdir -p /home/.ssh \
+    && fix-permissions /home/.ssh \
+    && fix-permissions /home/
 
-ENV PATH="/home/.composer/vendor/bin:${PATH}"
+# Adding Composer vendor bin path to $PATH. We don't use "export $PATH" as this could be overwritten again
+# like it happens in /etc/profile of alpine Images.
+COPY 90-composer-path.sh /lagoon/entrypoints/
+
+# Making sure the path is not only added during entrypoint, but also when creating a new shell
+RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
+
+# SSH Key and Agent Setup
+COPY 10-ssh-agent.sh /lagoon/entrypoints/
+COPY ssh_config /home/.ssh/config
+ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]

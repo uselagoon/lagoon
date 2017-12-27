@@ -26,7 +26,7 @@ const createServer = async args => {
   await listen(port);
 
   logger.debug(
-    `Finished booting the server. The server is reachable at Port ${port.toString()}.`
+    `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
   );
 
   // eslint-disable-line

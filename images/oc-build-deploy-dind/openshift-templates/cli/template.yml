@@ -54,6 +54,11 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        volumes:
+          - name: lagoon-sshkey
+            secret:
+              defaultMode: 420
+              secretName: lagoon-sshkey
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
@@ -77,6 +82,10 @@ objects:
                 configMapKeyRef:
                   name: lagoon-env
                   key: LAGOON_PROJECT
+          volumeMounts:
+            - mountPath: /var/run/secrets/lagoon/sshkey/
+              name: lagoon-sshkey
+              readOnly: true
           resources:
             requests:
               cpu: 100m

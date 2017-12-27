@@ -1,5 +1,6 @@
-global $project_name;
+// <?php // small hack so our IDE syntax highlighting still works
 global $endpoint;
+global $api;
 
 use Symfony\Component\Yaml\Yaml;
 
@@ -10,9 +11,9 @@ if (getenv('LAGOON_DISABLE_ALIASES')) {
 }
 
 // Allow to override project via environment variable
-if (getenv('LAGOON_OVERRIDE_PROJECT')) {
-  $project_name = getenv('LAGOON_OVERRIDE_PROJECT');
-  drush_log("LAGOON_OVERRIDE_PROJECT is set, using '$project_name' as project");
+if (getenv('LAGOON_PROJECT')) {
+  $project_name = getenv('LAGOON_PROJECT');
+  drush_log("LAGOON_PROJECT is set, using '$project_name' as project");
 }
 
 if (getenv('LAGOON_OVERRIDE_ENDPOINT')) {
@@ -20,59 +21,67 @@ if (getenv('LAGOON_OVERRIDE_ENDPOINT')) {
   drush_log("LAGOON_OVERRIDE_ENDPOINT is set, using '$endpoint' as endpoint");
 }
 
-if (empty($project_name)) {
-  // You know nothing, John Snow
-  $lagoonyml_path = $lagoonyml = $project_name = FALSE;
+if (getenv('LAGOON_OVERRIDE_API')) {
+  $api = getenv('LAGOON_OVERRIDE_API');
+  drush_log("LAGOON_OVERRIDE_API is set, using '$api' as endpoint");
+}
 
-  drush_log('Finding Drupal Root');
+// You know nothing, John Snow
+$lagoonyml_path = $lagoonyml = FALSE;
 
-  if ( DRUSH_VERSION >= 9 ) {
-     $_d = new \Drush\Drush();
-     $path = $_d->getContainer()->get('bootstrap.manager')->getRoot();
-     // _drush_shift_path_up() was part of D8, we define it for D9, borrowed from DrupalFinder->shiftPathUp()
-     if(!function_exists("_drush_shift_path_up")) {
-        function _drush_shift_path_up($path) {
-            $parent = dirname($path);
-            return in_array($parent, ['.', $path]) ? false : $parent;
-        }
-     }
-   } else {
-     $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
-   }
+drush_log('Finding Drupal Root');
 
-  // No project name could be found, let's search for it via the .lagoon.yml file
-  drush_log("Starting to search for .lagoon.yml file to extract project name within '$path' and parent directories");
-
-  // Borrowed from drush_locate_root() - thank you
-  foreach (array(TRUE, FALSE) as $follow_symlinks) {
-    if ($follow_symlinks && is_link($path)) {
-      $path = realpath($path);
+if ( DRUSH_VERSION >= 9 ) {
+  $_d = new \Drush\Drush();
+  $path = $_d->getContainer()->get('bootstrap.manager')->getRoot();
+  // _drush_shift_path_up() was part of D8, we define it for D9, borrowed from DrupalFinder->shiftPathUp()
+  if(!function_exists("_drush_shift_path_up")) {
+    function _drush_shift_path_up($path) {
+        $parent = dirname($path);
+        return in_array($parent, ['.', $path]) ? false : $parent;
     }
-    // Check the start path.
-    if (file_exists("$path/.lagoon.yml")) {
-      $lagoonyml_path = "$path/.lagoon.yml";
-      break;
-    }
-    else {
-      // Move up dir by dir and check each.
-      while ($path = _drush_shift_path_up($path)) {
-        if ($follow_symlinks && is_link($path)) {
-          $path = realpath($path);
-        }
-        if (file_exists("$path/.lagoon.yml")) {
-          $lagoonyml_path = "$path/.lagoon.yml";
-          break 2;
-        }
+  }
+} else {
+  $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
+}
+
+$drupal_path = realpath($path);
+
+// No project name could be found, let's search for it via the .lagoon.yml file
+drush_log("Starting to search for .lagoon.yml file to extract project name within '$path' and parent directories");
+
+// Borrowed from drush_locate_root() - thank you
+foreach (array(TRUE, FALSE) as $follow_symlinks) {
+  if ($follow_symlinks && is_link($path)) {
+    $path = realpath($path);
+  }
+  // Check the start path.
+  if (file_exists("$path/.lagoon.yml")) {
+    $lagoonyml_path = "$path/.lagoon.yml";
+    break;
+  }
+  else {
+    // Move up dir by dir and check each.
+    while ($path = _drush_shift_path_up($path)) {
+      if ($follow_symlinks && is_link($path)) {
+        $path = realpath($path);
+      }
+      if (file_exists("$path/.lagoon.yml")) {
+        $lagoonyml_path = "$path/.lagoon.yml";
+        break 2;
       }
     }
   }
+}
 
-  // An .lagoon.yml file has been found, let's try to load the project from it.
-  if ($lagoonyml_path) {
-    drush_log("Using .lagoon.yml file at: '$lagoonyml_path'");
+// An .lagoon.yml file has been found, let's try to load the project from it.
+if ($lagoonyml_path) {
+  drush_log("Using .lagoon.yml file at: '$lagoonyml_path'");
 
-    $lagoonyml = Yaml::parse( file_get_contents($lagoonyml_path) );
+  $lagoonyml = Yaml::parse( file_get_contents($lagoonyml_path) );
 
+
+  if (empty($project_name)) {
     if ($lagoonyml['project']) {
       $project_name = $lagoonyml['project'];
       drush_log("Discovered project name '$project_name' from .lagoon.yml file");
@@ -80,30 +89,50 @@ if (empty($project_name)) {
       drush_log('ERROR: Could not discover project name from .lagoon.yml file', 'warning');
       return;
     }
+  }
 
-    if (!$endpoint && $lagoonyml['endpoint']) {
+  if (empty($endpoint)) {
+    if ($lagoonyml['endpoint']) {
       $endpoint = $lagoonyml['endpoint'];
       drush_log("Discovered endpoint '$endpoint' from .lagoon.yml file");
     } else {
       drush_log('ERROR: Could not discover endpoint from .lagoon.yml file', 'warning');
       return;
     }
-
-  } else {
-    drush_log('Could not find .lagoon.yml file.');
   }
 
-  // Sitegroup still not defined, trhow a warning.
-  if ($project_name === FALSE) {
-    drush_log('ERROR: Could not discover project name, you should define it inside your .lagoon.yml file', 'warning');
-    exit;
+  if (empty($api)) {
+    if ($lagoonyml['api']) {
+      $api = $lagoonyml['api'];
+      drush_log("Discovered api '$api' from .lagoon.yml file");
+    } else {
+      drush_log('ERROR: Could not discover api from .lagoon.yml file', 'warning');
+      return;
+    }
   }
+
+} else {
+  drush_log('Could not find .lagoon.yml file.');
 }
+
+// Sitegroup still not defined, trhow a warning.
+if ($project_name === FALSE) {
+  drush_log('ERROR: Could not discover project name, you should define it inside your .lagoon.yml file', 'warning');
+  return;
+}
+
 
 if (count(explode(":", $endpoint)) == 2) {
   list ($endpoint_host, $endpoint_port) = explode(":", $endpoint);
 } else {
   drush_log('ERROR: Wrong formatted endpoint, it should be in form "[host]:[port]"', 'warning');
+  return;
+}
+
+if (count(explode(":", $api)) == 2) {
+  list ($api_host, $api_port) = explode(":", $api);
+} else {
+  drush_log('ERROR: Wrong formatted api, it should be in form "[host]:[port]"', 'warning');
   return;
 }
 
@@ -137,7 +166,7 @@ if (getenv('LAGOON_OVERRIDE_JWT_TOKEN')) {
   }
 
 } else {
-  exec("ssh -p $endpoint_port -t lagoon@$endpoint_host token 2>&1", $token_array, $rc);
+  exec("ssh -p $endpoint_port -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t lagoon@$endpoint_host token 2>&1", $token_array, $rc);
   if ($rc !== 0) {
     drush_log("Could not load API JWT Token, error was: '" . implode(",", $token_array), 'warning');
     return;
@@ -166,11 +195,11 @@ $query = sprintf('{
 }
 ', $project_name);
 
-$api = getenv('LAGOON_OVERRIDE_API_ENDPOINT') ? getenv('LAGOON_OVERRIDE_API_ENDPOINT') : "http://$endpoint_host/graphql";
+$api_url = "$api_host:$api_port/graphql";
 
 drush_log("Using $api as lagoon API endpoint");
 
-$curl = curl_init($api);
+$curl = curl_init($api_url);
 
 // Build up the curl options for the GraphQL query. When using the content type
 // 'application/json', graphql-express expects the query to be in the json
@@ -183,6 +212,10 @@ curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', "Autho
 curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
   'query' => $query,
 )));
+
+if (getenv('LAGOON_DEBUG')) {
+  drush_log("Sending to api: " . $query);
+}
 
 $response = curl_exec($curl);
 
@@ -227,7 +260,7 @@ $defaults = [
   'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
 ];
 
-$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $openshift) {
+$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $openshift, $drupal_path) {
   $site_name = $environment->name;
   $site_host = 'localhost';
 
@@ -236,7 +269,8 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   $alias[$site_name] = [
     'remote-host' => "$openshift->ssh_host",
     'remote-user' => "$environment->openshift_projectname",
-    'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $openshift->ssh_port"
+    'ssh-options' => "-o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $openshift->ssh_port",
+    'root' => "$drupal_path",
   ] + $defaults;
 
   return $carry + $alias;
