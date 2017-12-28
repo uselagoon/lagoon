@@ -228,5 +228,5 @@ services:
     - "8087:8080"
     labels:
       lagoon.type: custom
-      lagoon.template: helpers/drush-alias/.lagoon.app.yml
+      lagoon.template: services/drush-alias/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/drush-alias:master
