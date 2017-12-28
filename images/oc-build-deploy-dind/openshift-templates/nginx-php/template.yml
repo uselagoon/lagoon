@@ -184,6 +184,8 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
+    annotations:
+      kubernetes.io/tls-acme: "true"
     creationTimestamp: null
     labels:
       service: ${SERVICE_NAME}
@@ -197,3 +199,6 @@ objects:
     to:
       kind: Service
       name: ${SERVICE_NAME}
+    tls:
+      insecureEdgeTerminationPolicy: Allow
+      termination: edge
