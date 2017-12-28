@@ -31,5 +31,7 @@ RUN mkdir -p /app \
 
 COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint
 
+EXPOSE 8080
+
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["nginx", "-g", "daemon off;"]
