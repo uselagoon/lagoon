@@ -22,6 +22,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
 COPY fastcgi.conf /etc/nginx/fastcgi_params
 COPY static-files.conf /etc/nginx/conf.d/app.conf
+COPY redirects.conf /etc/nginx/redirects.conf
 
 RUN mkdir -p /app \
     && rm -f /etc/nginx/conf.d/default.conf \
