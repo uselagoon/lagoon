@@ -42,3 +42,23 @@
     expected_redirect_location: "foo.com/should/be/existing\\?arg1$"
   tasks:
   - include: ../../checks/check-url-redirect.yaml
+
+- name: "{{ testname }} - check if {{ project }} is requesting a basic auth"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 401
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Hello World!'"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "Hello World!"
+    user: "username"
+    password: "password"
+  tasks:
+  - include: ../../checks/check-url-content-basic-auth.yaml
