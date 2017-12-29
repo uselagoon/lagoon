@@ -19,9 +19,7 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN apk add --no-cache openssl \
     && mkdir -p /app \
-    && rm -f /etc/nginx/conf.d/default.conf /usr/local/openresty/nginx/conf/fastcgi* \
-    && fix-permissions /etc/nginx/ \
-    && fix-permissions /var/run/
+    && rm -f /etc/nginx/conf.d/default.conf /usr/local/openresty/nginx/conf/fastcgi*
 
 COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
@@ -29,6 +27,11 @@ COPY fastcgi.conf /etc/nginx/fastcgi_params
 COPY lua/ /etc/nginx/lua/
 COPY static-files.conf /etc/nginx/conf.d/app.conf
 COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint
+
+RUN fix-permissions /etc/nginx/ \
+    && fix-permissions /usr/local/openresty/nginx/conf \
+    && fix-permissions  /usr/local/openresty/nginx/logs/ \
+    && fix-permissions /var/run/
 
 EXPOSE 8080
 
