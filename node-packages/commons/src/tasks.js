@@ -120,6 +120,7 @@ async function createDeployTask(deployData) {
 			if (type === 'branch') {
 				switch (project.branches) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
 					case "true":
