@@ -55,6 +55,9 @@ const createAuthMiddleware = args => async (req, res, next) => {
   const ctx = req.app.get('context');
   const dao = ctx.dao;
 
+  // allow access to status withouth auth
+  if (req.url == "/status") { next(); return; }
+
   const token = parseBearerToken(req.get('Authorization'));
 
   if (token == null) {

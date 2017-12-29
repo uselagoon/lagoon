@@ -69,6 +69,9 @@ const query = (sqlClient, sql) =>
       }
       res(rows);
     });
+    setTimeout(() => {
+      rej('Timeout while talking to the Database');
+    }, 2000);
   });
 
 // We use this just for consistency of the api calls
@@ -136,7 +139,7 @@ const getAllProjects = sqlClient => async (cred, args) => {
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
-  const rows = query(sqlClient, prep(args));
+  const rows = await query(sqlClient, prep(args));
 
   return rows;
 };
@@ -189,7 +192,7 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
     `,
   );
 
-  const rows = query(
+  const rows = await query(
     sqlClient,
     prep({
       pid: pid,
@@ -201,35 +204,29 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
 };
 
 const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
-  return new Promise((res, rej) => {
-    const { customers, projects } = cred.permissions;
-    const str = `
-      SELECT
-        sk.id,
-        sk.name,
-        sk.keyValue,
-        sk.keyType,
-        sk.created
-      FROM project_ssh_key ps
-      JOIN ssh_key sk ON ps.skid = sk.id
-      JOIN project p ON ps.pid = p.id
-      WHERE ps.pid = :pid
+  const { customers, projects } = cred.permissions;
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+      sk.id,
+      sk.name,
+      sk.keyValue,
+      sk.keyType,
+      sk.created
+    FROM project_ssh_key ps
+    JOIN ssh_key sk ON ps.skid = sk.id
+    JOIN project p ON ps.pid = p.id
+    WHERE ps.pid = :pid
       ${ifNotAdmin(
         cred.role,
         `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
       )}
-    `;
+    `
+  );
 
-    const prep = sqlClient.prepare(str);
+  const rows = await query(sqlClient, prep({ pid }));
 
-    sqlClient.query(prep({ pid }), (err, rows) => {
-      if (err) {
-        rej(err);
-      }
-
-      res(rows);
-    });
-  });
+  return rows ? rows : null;
 };
 
 const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
@@ -357,7 +354,7 @@ const getProjectByName = sqlClient => async (cred, args) => {
     `;
 
   const prep = prepare(sqlClient, str);
-
+  console.log("here")
   const rows = await query(sqlClient, prep(args));
 
   return rows[0];
