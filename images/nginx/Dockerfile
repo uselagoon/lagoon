@@ -16,12 +16,14 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-
+RUN apk add --no-cache openssl
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
 COPY fastcgi.conf /etc/nginx/fastcgi_params
+COPY helpers/ /etc/nginx/helpers/
 COPY static-files.conf /etc/nginx/conf.d/app.conf
+COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 RUN mkdir -p /app \
     && rm -f /etc/nginx/conf.d/default.conf \
