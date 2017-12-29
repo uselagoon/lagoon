@@ -21,6 +21,7 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
 COPY fastcgi.conf /etc/nginx/fastcgi_params
+COPY helpers/ /etc/nginx/helpers/
 COPY static-files.conf /etc/nginx/conf.d/app.conf
 COPY redirects.conf /etc/nginx/redirects.conf
 
