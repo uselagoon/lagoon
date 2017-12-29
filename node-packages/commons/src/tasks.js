@@ -120,6 +120,7 @@ async function createDeployTask(deployData) {
 			if (type === 'branch') {
 				switch (project.branches) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
 					case "true":
@@ -142,6 +143,7 @@ async function createDeployTask(deployData) {
 			} else if (type === 'pullrequest') {
 				switch (project.pullrequests) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
 					case "true":
