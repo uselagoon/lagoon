@@ -9,6 +9,8 @@ services:
       lagoon.type: cli-persistent
       lagoon.persistent: /app/web/sites/default/files/
       lagoon.persistent.name: nginx
+    environment:
+      LAGOON_PROJECT: ci-drupal
     volumes:
       - ./web:/app/web:delegated
     depends_on:
