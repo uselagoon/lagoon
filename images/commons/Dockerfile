@@ -2,6 +2,8 @@ FROM alpine
 
 MAINTAINER amazee.io
 
+ENV LAGOON=LAGOON
+
 COPY lagoon/ /lagoon/
 COPY fix-permissions docker-sleep /bin/
 

@@ -4,6 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM node:${NODE_VERSION}-alpine
 
 MAINTAINER amazee.io
+ENV LAGOON=LAGOON
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon

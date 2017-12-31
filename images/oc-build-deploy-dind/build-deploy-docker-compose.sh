@@ -15,7 +15,6 @@ oc process --insecure-skip-tls-verify \
   -v SAFE_PROJECT="${SAFE_PROJECT}" \
   -v BRANCH="${BRANCH}" \
   -v PROJECT="${PROJECT}" \
-  -v LAGOON_GIT_SHA="${LAGOON_GIT_SHA}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
