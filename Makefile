@@ -84,6 +84,7 @@ docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(
 
 docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
 
+docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
 
 # Tags and image with the `amazeeio` repository and pushes it
 docker_publish_amazeeio_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
@@ -175,6 +176,36 @@ build/php__5.6-cli: build/php__5.6-fpm
 build/php__7.0-cli: build/php__7.0-fpm
 build/php__7.1-cli: build/php__7.1-fpm
 
+#######
+####### Solr Images
+#######
+####### Solr Images are alpine linux based Solr images.
+
+solrimages := 	solr__5.5 \
+								solr__6.6 \
+								solr__5.5-drupal \
+								solr__6.6-drupal
+
+
+build-solrimages = $(foreach image,$(solrimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-solrimages): build/commons
+	$(eval clean = $(subst build/solr__,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+# this fills variables only if $type is existing, if not they are just empty
+	$(eval type_dash = $(if $(type),-$(type)))
+# Call the docker build
+	$(call docker_build_solr,$(version),$(version)$(type_dash),images/solr$(type_dash)/Dockerfile,images/solr$(type_dash))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images += $(solrimages)
+
+build/solr__5.5  build/solr__6.6: images/commons
+build/solr__5.5-drupal: build/solr__5.5
+build/solr__6.6-drupal: build/solr__6.6
 
 #######
 ####### Node Images
@@ -345,7 +376,7 @@ $(run-rest-tests): openshift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: openshift build/varnish-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/php__7.1-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
+tests/drupal: openshift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/php__7.1-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
