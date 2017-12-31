@@ -25,5 +25,5 @@ $config['system.performance']['js']['preprocess'] = 0;
 
 // Stage file proxy URL from production URL
 if(getenv('AMAZEEIO_PRODUCTION_URL')){
-  $config['stage_file_proxy.settings']['origin'] = getenv('AMAZEEIO_PRODUCTION_URL');
+  $config['stage_file_proxy.settings']['origin'] = getenv('PRODUCTION_URL');
 }
