@@ -100,6 +100,9 @@ objects:
           envFrom:
           - configMapRef:
               name: lagoon-env
+          env:
+            - name: NGINX_FASTCGI_PASS
+              value: '127.0.0.1'
           volumeMounts:
             - name: ${SERVICE_NAME}
               mountPath: ${PERSISTENT_STORAGE_PATH}
