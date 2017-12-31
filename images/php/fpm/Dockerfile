@@ -4,6 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM php:${PHP_VERSION}-fpm-alpine
 
 MAINTAINER amazee.io
+ENV LAGOON=LAGOON
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
@@ -60,14 +61,16 @@ EXPOSE 9000
 
 ENV AMAZEEIO_DB_HOST=mariadb \
     AMAZEEIO_DB_PORT=3306 \
-    AMAZEEIO_DB_USERNAME=drupal \
-    AMAZEEIO_DB_PASSWORD=drupal \
-    AMAZEEIO_SITENAME=drupal \
-    AMAZEEIO_SITE_NAME=drupal \
+    AMAZEEIO_DB_USERNAME=lagoon \
+    AMAZEEIO_DB_PASSWORD=lagoon \
+    AMAZEEIO_SITENAME=lagoon \
+    AMAZEEIO_SITE_NAME=lagoon \
     AMAZEEIO_SITE_ENVIRONMENT=development \
     AMAZEEIO_HASH_SALT=0000000000000000000000000 \
     AMAZEEIO_TMP_PATH=/tmp \
     AMAZEEIO_LOCATION=docker
+
+ENV LAGOON_ENVIRONMENT_TYPE=development
 
 WORKDIR /app
 
