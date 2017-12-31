@@ -73,6 +73,11 @@ objects:
           envFrom:
           - configMapRef:
               name: lagoon-env
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: ${LAGOON_GIT_SHA}
           resources:
             requests:
               cpu: 100m
