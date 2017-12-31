@@ -38,7 +38,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${SERVICE_NAME}-persistent
+    name: ${SERVICE_NAME}
   spec:
     accessModes:
     - ReadWriteOnce
@@ -68,9 +68,9 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         volumes:
-          - name: ${SERVICE_NAME}-persistent
+          - name: ${SERVICE_NAME}
             persistentVolumeClaim:
-              claimName: ${SERVICE_NAME}-persistent
+              claimName: ${SERVICE_NAME}
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
@@ -90,29 +90,11 @@ objects:
             initialDelaySeconds: 90
             timeoutSeconds: 3
             failureThreshold: 5
-          env:
-            - name: LAGOON_GIT_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_BRANCH
-            - name: LAGOON_GIT_SAFE_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SAFE_BRANCH
-            - name: LAGOON_GIT_SHA
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SHA
-            - name: LAGOON_PROJECT
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_PROJECT
+          envFrom:
+          - configMapRef:
+              name: lagoon-env
           volumeMounts:
-            - name: ${SERVICE_NAME}-persistent
+            - name: ${SERVICE_NAME}
               mountPath: ${PERSISTENT_STORAGE_PATH}
           resources:
             requests:
