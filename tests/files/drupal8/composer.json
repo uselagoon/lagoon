@@ -22,7 +22,9 @@
         "drupal/core": "~8.0",
         "drush/drush": "~8.0",
         "drupal/console": "~1.0",
-        "drupal/redis": "^1.0"
+        "drupal/redis": "^1.0",
+        "drupal/search_api": "^1.5",
+        "drupal/search_api_solr": "^1.2"
     },
     "require-dev": {
         "behat/mink": "~1.7",
