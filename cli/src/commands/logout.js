@@ -63,9 +63,9 @@ export async function run({
   );
 
   const connection = await sshConnect({
-    host: process.env.SSH_AUTH_HOST || 'auth.amazee.io',
-    port: Number(process.env.SSH_AUTH_PORT) || 2020,
-    username: process.env.SSH_AUTH_USER || 'api',
+    host: process.env.SSH_HOST || 'auth.amazee.io',
+    port: Number(process.env.SSH_PORT) || 2020,
+    username: process.env.SSH_USER || 'api',
     privateKey,
     passphrase,
   });

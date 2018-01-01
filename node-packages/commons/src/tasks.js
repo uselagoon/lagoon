@@ -118,14 +118,15 @@ async function createDeployTask(deployData) {
 	switch (project.active_systems_deploy) {
 		case 'lagoon_openshiftBuildDeploy':
 			if (type === 'branch') {
-				switch (projectName.branches) {
+				switch (project.branches) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case true:
+					case "true":
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case false:
+					case "false":
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`)
 						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
 					default:
@@ -140,14 +141,15 @@ async function createDeployTask(deployData) {
 						}
 				}
 			} else if (type === 'pullrequest') {
-				switch (projectName.pullrequests) {
+				switch (project.pullrequests) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case true:
+					case "true":
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case false:
+					case "false":
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:

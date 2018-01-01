@@ -3,11 +3,12 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM redis:alpine
 
 MAINTAINER amazee.io
+ENV LAGOON=LAGOON
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
-COPY --from=commons /home/.bashrc /home/.bashrc
+COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home

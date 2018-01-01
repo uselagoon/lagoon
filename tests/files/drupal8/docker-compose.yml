@@ -6,7 +6,11 @@ services:
       dockerfile: Dockerfile.builder
     image: builder
     labels:
-      lagoon.type: cli
+      lagoon.type: cli-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.persistent.name: nginx
+    environment:
+      LAGOON_PROJECT: ci-drupal
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -66,6 +70,16 @@ services:
       dockerfile: Dockerfile.redis
     labels:
       lagoon.type: redis
+  solr:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.solr
+    labels:
+      lagoon.type: solr
+      lagoon.persistent: /opt/solr/server/solr/mycores
 networks:
   amazeeio-network:
     external: true

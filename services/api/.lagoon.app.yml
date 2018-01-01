@@ -61,9 +61,18 @@ objects:
           - containerPort: 3000
             protocol: TCP
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /status
               port: 3000
-            initialDelaySeconds: 15
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 30
             timeoutSeconds: 1
           env:
             - name: LAGOON_GIT_BRANCH

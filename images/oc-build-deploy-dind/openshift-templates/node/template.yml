@@ -70,27 +70,14 @@ objects:
               port: 3000
             initialDelaySeconds: 60
             periodSeconds: 5
+          envFrom:
+          - configMapRef:
+              name: lagoon-env
           env:
-            - name: LAGOON_GIT_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_BRANCH
-            - name: LAGOON_GIT_SAFE_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SAFE_BRANCH
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SHA
-            - name: LAGOON_PROJECT
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_PROJECT
+              value: ${LAGOON_GIT_SHA}
           resources:
             requests:
               cpu: 100m

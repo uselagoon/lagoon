@@ -27,7 +27,7 @@ node {
                   sh "make build"
                 }
                 stage ('start services') {
-                  sh "make up-no-ports"
+                  sh "make up"
                   sh "sleep 60"
                 }
               },
