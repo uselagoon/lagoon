@@ -74,27 +74,9 @@ objects:
                 port: 27017
               initialDelaySeconds: 15
               timeoutSeconds: 1
-          env:
-            - name: AMAZEEIO_GIT_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: amazeeio-env
-                  key: AMAZEEIO_GIT_BRANCH
-            - name: AMAZEEIO_GIT_SAFE_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: amazeeio-env
-                  key: AMAZEEIO_GIT_SAFE_BRANCH
-            - name: AMAZEEIO_GIT_SHA
-              valueFrom:
-                configMapKeyRef:
-                  name: amazeeio-env
-                  key: AMAZEEIO_GIT_SHA
-            - name: AMAZEEIO_SITEGROUP
-              valueFrom:
-                configMapKeyRef:
-                  name: amazeeio-env
-                  key: AMAZEEIO_SITEGROUP
+          envFrom:
+          - configMapRef:
+             name: lagoon-env
           volumeMounts:
             - name: ${SERVICE_NAME}-persistent
               mountPath: ${PERSISTENT_STORAGE_PATH}
