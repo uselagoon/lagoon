@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk add --no-cache mysql-client tini openssl bash wget curl nodejs \
+RUN apk add --no-cache mysql-client tini openssl bash wget curl nodejs nodejs-npm \
     && npm -g install jwtgen
 
 ENV MYSQL_DATABASE=infrastructure \
