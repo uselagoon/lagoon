@@ -63,6 +63,7 @@ async function getProjectsByGitUrl(gitUrl: string): Project[] {
     {
       allProjects(gitUrl: "${gitUrl}") {
         name
+        production_environment
         openshift {
           console_url
           token
@@ -141,10 +142,38 @@ async function getActiveSystemForProject(
   return result.project;
 }
 
+const addOrUpdateEnvironment = (name: string, projectId: number, git_type: string, environment_type: string, openshift_projectname: string ): Promise<Object> => graphqlapi.query(`
+  mutation {
+    addOrUpdateEnvironment(input: {
+        name: "${name}",
+        project: ${projectId},
+        git_type: ${git_type},
+        environment_type: ${environment_type},
+        openshift_projectname: "${openshift_projectname}"
+    }) {
+      id
+      name
+      project {
+        name
+      }
+      git_type
+      environment_type
+      openshift_projectname
+    }
+  }
+`);
+
+const deleteEnvironment = (name: string, project: string): Promise<Object> => graphqlapi.query(`
+  mutation {
+    deleteEnvironment(input: {name: "${name}", project: "${project}"})
+  }
+`);
+
 const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
+        id
         openshift  {
           console_url
           token
@@ -155,6 +184,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
           private_key
         }
         git_url
+        production_environment
       }
     }
 `);
@@ -163,5 +193,7 @@ module.exports = {
   getProjectsByGitUrl,
   getSlackinfoForProject,
   getActiveSystemForProject,
-  getOpenShiftInfoForProject
+  getOpenShiftInfoForProject,
+  addOrUpdateEnvironment,
+  deleteEnvironment,
 };

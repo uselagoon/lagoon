@@ -58,10 +58,9 @@ const createJWT = async (args /*:  Args */)/*: Promise<string> */ => {
     }
 
     const { jwtSecret, expiresIn } = args;
-    const parsedSshKey = extractBase64Key(sshKey);
 
-    // We use a different "format" of the sshKey... we just use the base64 part
-    const payload = R.assoc('sshKey', parsedSshKey, args.payload);
+    // We now use the common public key format, to prevent confusion when consuming this attribute
+    const payload = R.assoc('sshKey', sshKey, args.payload);
 
     // Sometimes we want some expiresIn values, if we don't know an exact payload.exp
     const options = expiresIn ? { expiresIn } : null;
