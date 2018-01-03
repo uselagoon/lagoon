@@ -13,3 +13,5 @@ git config remote.origin.url $REMOTE
 git fetch --depth=10 --tags --progress $REMOTE +refs/heads/*:refs/remotes/origin/*
 
 git checkout --force "${REF}"
+
+git submodule update --init --recursive --depth 1
