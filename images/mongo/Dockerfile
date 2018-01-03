@@ -15,7 +15,7 @@ COPY --from=commons /home /home
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
-  && apk --no-cache add mongodb@edge bash
+  && apk --no-cache add mongodb@edge
 
 RUN mkdir -p /data/db /data/configdb && \
     fix-permissions /data/db && \
