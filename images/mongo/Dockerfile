@@ -21,7 +21,6 @@ RUN mkdir -p /data/db /data/configdb && \
     fix-permissions /data/db && \
     fix-permissions /data/configdb
 
-COPY docker-entrypoint /lagoon/entrypoints/70-mongo-entrypoint
 
 CMD ["mongod"]
 
