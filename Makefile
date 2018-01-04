@@ -108,7 +108,8 @@ images :=     centos7 \
 							nginx-drupal \
 							varnish \
 							varnish-drupal \
-							redis
+							redis \
+							mongo
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -140,6 +141,7 @@ build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
+build/mongo: build/centos7 images/mongo/Dockerfile
 
 #######
 ####### PHP Images
