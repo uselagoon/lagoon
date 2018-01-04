@@ -24,9 +24,8 @@ RUN apk update \
         /usr/local/bin/drupal \
     && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo drush/drush \
     && mkdir -p /home/.ssh \
-    && fix-permissions /home/.ssh \
-    && fix-permissions /home/ \
-    && mkdir -p /home/.drush
+    && mkdir -p /home/.drush \
+    && fix-permissions /home/
 
 COPY drushrc.php /home/.drush/drushrc.php
 
