@@ -29,7 +29,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: ${SERVICE_NAME}-persistent
+    name: ${SERVICE_NAME}
   spec:
     accessModes:
     - ReadWriteOnce
@@ -60,9 +60,9 @@ objects:
           sitegroup: ${SAFE_SITEGROUP}
       spec:
         volumes:
-          - name: ${SERVICE_NAME}-persistent
+          - name: ${SERVICE_NAME}
             persistentVolumeClaim:
-              claimName: ${SERVICE_NAME}-persistent
+              claimName: ${SERVICE_NAME}
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
@@ -78,8 +78,8 @@ objects:
           - configMapRef:
              name: lagoon-env
           volumeMounts:
-            - name: ${SERVICE_NAME}-persistent
-              mountPath: ${PERSISTENT_STORAGE_PATH}
+            - name: ${SERVICE_NAME}
+              mountPath: /data/db
           resources:
             requests:
               cpu: 100m
