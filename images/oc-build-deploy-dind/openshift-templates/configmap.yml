@@ -16,6 +16,9 @@ parameters:
   - name: PROJECT
     description: Which project this belongs to, original value
     required: true
+  - name: ENVIRONMENT_TYPE
+    description: Which environment type this project is
+    required: true
 objects:
 - kind: ConfigMap
   apiVersion: v1
@@ -26,3 +29,4 @@ objects:
     LAGOON_GIT_BRANCH: ${BRANCH}
     LAGOON_SAFE_PROJECT: ${SAFE_PROJECT}
     LAGOON_PROJECT: ${PROJECT}
+    LAGOON_ENVIRONMENT_TYPE: ${ENVIRONMENT_TYPE}

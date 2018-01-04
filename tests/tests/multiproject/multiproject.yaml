@@ -32,6 +32,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project1 }}"
     url: "{{ check_url1 }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - include: ../../checks/check-deployed.yaml
   vars:
@@ -39,6 +40,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project2 }}"
     url: "{{ check_url2 }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - rest2tasks /remove POST on {{ project1 }}, which should remove all resources"
   hosts: localhost
