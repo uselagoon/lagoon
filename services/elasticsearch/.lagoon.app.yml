@@ -68,27 +68,9 @@ objects:
             httpGet:
               port: 9200
             initialDelaySeconds: 120
-          env:
-            - name: LAGOON_GIT_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_BRANCH
-            - name: LAGOON_GIT_SAFE_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SAFE_BRANCH
-            - name: LAGOON_GIT_SHA
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SHA
-            - name: LAGOON_PROJECT
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_PROJECT
+          envFrom:
+          - configMapRef:
+              name: lagoon-env
           resources:
             requests:
               cpu: 100m

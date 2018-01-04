@@ -37,7 +37,9 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(branchName)
     var safeProjectName = ocsafety(projectName)
+    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development';
     var gitSha = sha
+    var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
     var openshiftProject = `${safeProjectName}-${safeBranchName}`
@@ -49,8 +51,8 @@ const messageConsumer = async msg => {
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
-    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development'
-
+    var graphqlEnvironmentType = environmentType.toUpperCase()
+    var graphqlGitType = type.toUpperCase()
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -142,6 +144,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "ROUTER_URL",
                           "value": routerPattern
+                      },
+                      {
+                          "name": "ENVIRONMENT_TYPE",
+                          "value": environmentType
                       }
                   ],
                   "forcePull": true,
@@ -208,7 +214,7 @@ const messageConsumer = async msg => {
 
   // Update GraphQL API with information about this environment
   try {
-    await addOrUpdateEnvironment(branchName, projectName, type, environmentType, openshiftProject)
+    await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, graphqlEnvironmentType, openshiftProject)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(err)

@@ -15,7 +15,7 @@ oc process --insecure-skip-tls-verify \
   -v SAFE_PROJECT="${SAFE_PROJECT}" \
   -v BRANCH="${BRANCH}" \
   -v PROJECT="${PROJECT}" \
-  -v LAGOON_GIT_SHA="${LAGOON_GIT_SHA}" \
+  -v ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
@@ -113,6 +113,21 @@ do
 
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
     TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_PATH=${PERSISTENT_STORAGE_PATH}")
+
+    PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.class false)
+    if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
+      TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_CLASS=${PERSISTENT_STORAGE_CLASS}")
+    fi
+
+    PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.name false)
+    if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
+      TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_NAME=${PERSISTENT_STORAGE_NAME}")
+    fi
+
+    PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.size false)
+    if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
+      TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE}")
+    fi
   fi
 
   . /scripts/exec-openshift-resources.sh

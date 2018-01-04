@@ -1,6 +1,10 @@
-#!/bin/bash
+#!/bin/sh
+
+if [ ! -z ${BASIC_AUTH_USERNAME+x} ] && [ ! -z ${BASIC_AUTH_PASSWORD+x} ]; then
+  printf "${BASIC_AUTH_USERNAME}:$(openssl passwd -crypt ${BASIC_AUTH_PASSWORD})\n" >> /etc/nginx/.htpasswd
+  export BASIC_AUTH="restricted"
+fi
 
 ep /etc/nginx/*
 ep /etc/nginx/conf.d/*
-
-exec "$@"
+ep /etc/nginx/helpers/*

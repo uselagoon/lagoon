@@ -127,6 +127,12 @@ app.post('/remove', async (req, res) => {
         options: [/^[a-zA-Z0-9-\/]+$/],
         errorMessage: 'branch must be defined and must only contain alphanumeric, dashes and slashes'
       },
+    },
+    'forceDeleteProductionEnvironment': {
+      optional: {},
+      isBoolean: {
+        errorMessage: 'should be a boolean'
+      }
     }
   });
 
@@ -140,8 +146,11 @@ app.post('/remove', async (req, res) => {
   const data = {
     projectName: req.body.projectName,
     branch: req.body.branch,
-    type: 'branch'
+    type: 'branch',
+    forceDeleteProductionEnvironment: req.body.forceDeleteProductionEnvironment,
   }
+
+  console.log(data)
 
   try {
     const taskResult = await createRemoveTask(data);

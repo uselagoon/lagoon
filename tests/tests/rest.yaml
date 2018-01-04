@@ -6,4 +6,15 @@
     git_repo_name: rest.git
     project: ci-rest
     branch: rest/slash/branch
+    environment_type: development
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: rest/production-environment-protection.yaml
+  vars:
+    testname: "REST - Protected Production Environment"
+    node_version: 8
+    git_repo_name: rest.git
+    project: ci-rest
+    branch: master
+    environment_type: production
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

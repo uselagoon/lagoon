@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export SSH_AUTH_HOST=localhost
-export SSH_AUTH_PORT="2020"
-export SSH_AUTH_USER="api"
+export SSH_HOST=localhost
+export SSH_PORT="2020"
+export SSH_USER="lagoon"
 export API_URL="http://localhost:3000/graphql"
 
 # Set the identity option to the local private key for the `login` and `logout`

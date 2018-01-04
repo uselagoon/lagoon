@@ -77,6 +77,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       sendToSlack(project, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 
+    case "github:pull_request:closed:CannotDeleteProductionEnvironment":
+    case "github:push:CannotDeleteProductionEnvironment":
+    case "bitbucket:repo:push:CannotDeleteProductionEnvironment":
+    case "gitlab:push:CannotDeleteProductionEnvironment":
+    case "rest:remove:CannotDeleteProductionEnvironment":
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
+      break;
+
     case "unresolvedProject:webhooks2tasks":
     case "unhandledWebhook":
     case "webhooks:receive":

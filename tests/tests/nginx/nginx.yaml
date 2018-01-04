@@ -22,6 +22,7 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
   hosts: localhost

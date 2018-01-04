@@ -51,6 +51,7 @@
     expected_branch: "pr-1"
     project: "{{ project }}"
     url: "{{ check_url }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - git commit a second time into pull request branch"
   hosts: localhost
@@ -86,6 +87,7 @@
     expected_branch: "pr-1"
     project: "{{ project }}"
     url: "{{ check_url }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - webhook github pull request closed"
   hosts: localhost

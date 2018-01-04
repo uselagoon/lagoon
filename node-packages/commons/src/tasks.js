@@ -12,7 +12,7 @@ exports.consumeTasks = consumeTasks;
 
 import type { ChannelWrapper } from './types';
 
-const { getActiveSystemForProject } = require('./api');
+const { getActiveSystemForProject, getProductionEnvironmentForProject } = require('./api');
 
 
 let sendToLagoonTasks = exports.sendToLagoonTasks = function sendToLagoonTasks() {};
@@ -38,6 +38,14 @@ class NoNeedToDeployBranch extends Error {
     this.name = 'NoNeedToDeployBranch';
   }
 }
+
+class CannotDeleteProductionEnvironment extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CannotDeleteProductionEnvironment';
+  }
+}
+
 
 function initSendToLagoonTasks() {
 	connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
@@ -118,14 +126,15 @@ async function createDeployTask(deployData) {
 	switch (project.active_systems_deploy) {
 		case 'lagoon_openshiftBuildDeploy':
 			if (type === 'branch') {
-				switch (projectName.branches) {
+				switch (project.branches) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case true:
+					case "true":
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case false:
+					case "false":
 						logger.debug(`projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`)
 						throw new NoNeedToDeployBranch(`Branch deployments disabled`)
 					default:
@@ -140,14 +149,15 @@ async function createDeployTask(deployData) {
 						}
 				}
 			} else if (type === 'pullrequest') {
-				switch (projectName.pullrequests) {
+				switch (project.pullrequests) {
 					case undefined:
+					case null:
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case true:
+					case "true":
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`)
 						return sendToLagoonTasks('builddeploy-openshift', deployData);
-					case false:
+					case "false":
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:
@@ -163,8 +173,18 @@ async function createDeployTask(deployData) {
 
 async function createRemoveTask(removeData) {
 	const {
-		projectName
+		projectName,
+		branch,
+		forceDeleteProductionEnvironment
 	} = removeData
+
+	let production_environment = await getProductionEnvironmentForProject(projectName);
+
+	if (branch === production_environment.project.production_environment) {
+		if (forceDeleteProductionEnvironment !== true) {
+			throw new CannotDeleteProductionEnvironment(`'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`)
+		}
+	}
 
   let project = await getActiveSystemForProject(projectName, 'remove');
 

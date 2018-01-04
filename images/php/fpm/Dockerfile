@@ -4,11 +4,12 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM php:${PHP_VERSION}-fpm-alpine
 
 MAINTAINER amazee.io
+ENV LAGOON=LAGOON
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
-COPY --from=commons /home/.bashrc /home/.bashrc
+COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -46,9 +47,9 @@ RUN apk update \
        fi \
     && yes '' | pecl install -f redis \
     && yes '' | pecl install -f xdebug \
-    && docker-php-ext-enable apcu redis xdebug \    
+    && docker-php-ext-enable apcu redis xdebug \
     && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap opcache xsl zip \
+    && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap sockets opcache xsl zip \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
@@ -68,6 +69,8 @@ ENV AMAZEEIO_DB_HOST=mariadb \
     AMAZEEIO_HASH_SALT=0000000000000000000000000 \
     AMAZEEIO_TMP_PATH=/tmp \
     AMAZEEIO_LOCATION=docker
+
+ENV LAGOON_ENVIRONMENT_TYPE=development
 
 WORKDIR /app
 
