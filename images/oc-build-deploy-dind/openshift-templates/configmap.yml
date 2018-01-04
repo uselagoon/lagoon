@@ -18,7 +18,7 @@ parameters:
     required: true
   - name: ENVIRONMENT_TYPE
     description: Which environment type this project is
-    required: true
+    value: development
 objects:
 - kind: ConfigMap
   apiVersion: v1
