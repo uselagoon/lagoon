@@ -6,4 +6,5 @@
     git_repo_name: gitlab.git
     project: ci-gitlab
     branch: gitlab/slash/branch
+    environment_type: development
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

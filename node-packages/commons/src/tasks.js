@@ -12,7 +12,7 @@ exports.consumeTasks = consumeTasks;
 
 import type { ChannelWrapper } from './types';
 
-const { getActiveSystemForProject } = require('./api');
+const { getActiveSystemForProject, getProductionEnvironmentForProject } = require('./api');
 
 
 let sendToLagoonTasks = exports.sendToLagoonTasks = function sendToLagoonTasks() {};
@@ -38,6 +38,14 @@ class NoNeedToDeployBranch extends Error {
     this.name = 'NoNeedToDeployBranch';
   }
 }
+
+class CannotDeleteProductionEnvironment extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CannotDeleteProductionEnvironment';
+  }
+}
+
 
 function initSendToLagoonTasks() {
 	connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
@@ -165,8 +173,18 @@ async function createDeployTask(deployData) {
 
 async function createRemoveTask(removeData) {
 	const {
-		projectName
+		projectName,
+		branch,
+		forceDeleteProductionEnvironment
 	} = removeData
+
+	let production_environment = await getProductionEnvironmentForProject(projectName);
+
+	if (branch === production_environment.project.production_environment) {
+		if (forceDeleteProductionEnvironment !== true) {
+			throw new CannotDeleteProductionEnvironment(`'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`)
+		}
+	}
 
   let project = await getActiveSystemForProject(projectName, 'remove');
 
