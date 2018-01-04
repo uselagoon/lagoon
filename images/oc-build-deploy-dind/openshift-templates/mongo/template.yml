@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: amazeeio-openshift-template-mongo
+  name: lagoon-openshift-template-mongo
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -10,20 +10,26 @@ parameters:
   - name: SAFE_BRANCH
     description: Which branch this belongs to, special chars replaced with dashes
     required: true
-  - name: SAFE_SITEGROUP
-    description: Which sitegroup this belongs to, special chars replaced with dashes
+  - name: SAFE_PROJECT
+    description: Which project this belongs to, special chars replaced with dashes
     required: true
   - name: BRANCH
     description: Which branch this belongs to, original value
     required: true
-  - name: SITEGROUP
-    description: Which sitegroup this belongs to, original value
+  - name: PROJECT
+    description: Which project this belongs to, original value
     required: true
-  - name: AMAZEEIO_GIT_SHA
+  - name: LAGOON_GIT_SHA
     description: git hash sha of the current deployment
     required: true
-  - name: ROUTER_URL
-    description: URL of the Router
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: OPENSHIFT_PROJECT
+    description: Name of the Project that this service is in
+    required: true
+  - name: REGISTRY
+    description: Registry where Images are pushed to
     required: true
 objects:
 - apiVersion: v1
