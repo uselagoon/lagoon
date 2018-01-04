@@ -100,8 +100,8 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
 images :=     centos7 \
-							alpine-mariadb10 \
-							alpine-mariadb10-drupal \
+							centos7-mariadb10 \
+							centos7-mariadb10-drupal \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
@@ -132,8 +132,8 @@ $(build-images):
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
 build/centos7: images/centos7/Dockerfile
-build/alpine-mariadb10: images/alpine-mariadb10/Dockerfile
-build/alpine-mariadb10-drupal: images/alpine-mariadb10/Dockerfile images/alpine-mariadb10-drupal/Dockerfile
+build/centos7-mariadb10: build/centos7 images/centos7-mariadb10/Dockerfile
+build/centos7-mariadb10-drupal: build/centos7-mariadb10 images/centos7-mariadb10-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
