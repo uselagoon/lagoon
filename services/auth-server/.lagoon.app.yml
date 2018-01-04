@@ -66,37 +66,14 @@ objects:
             initialDelaySeconds: 15
             timeoutSeconds: 1
           env:
-            - name: GIT_REPOSITORY
-              value: https://git.vshn.net/amazee/amazee_hieradata.git
-            - name: GIT_USERNAME
-              value: michael.schmid
-            - name: GIT_PASSWORD
-              value: 4ahjnuCiMKb98nmJtr3AVNR
-            - name: LAGOON_GIT_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_BRANCH
-            - name: LAGOON_GIT_SAFE_BRANCH
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SAFE_BRANCH
-            - name: LAGOON_GIT_SHA
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_GIT_SHA
-            - name: LAGOON_PROJECT
-              valueFrom:
-                configMapKeyRef:
-                  name: lagoon-env
-                  key: LAGOON_PROJECT
             - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
                   name: jwtsecret
                   key: JWTSECRET
+          envFrom:
+          - configMapRef:
+              name: lagoon-env
           resources:
             requests:
               cpu: 100m

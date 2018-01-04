@@ -23,6 +23,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - second commit (empty) and git push into same git repo"
   hosts: localhost
@@ -55,6 +56,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}, which should deploy the third commit"
   hosts: localhost
@@ -71,6 +73,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - rest2tasks deploy post with sha of second commit on {{ project }}, which should deploy again the second commit even we had a deployment of the branch before"
   hosts: localhost
@@ -88,6 +91,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
   hosts: localhost

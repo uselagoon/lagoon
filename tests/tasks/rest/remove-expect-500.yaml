@@ -1,0 +1,8 @@
+- name: "{{ testname }} - POST rest2task /remove with project {{ project }} and branch {{ branch }} to {{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }} expecting an 500 error"
+  uri:
+    url: "{{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}/remove"
+    method: POST
+    follow_redirects: yes
+    status_code: 500
+    body_format: json
+    body: '{"branch": "{{ branch }}","projectName": "{{ project }}"}'

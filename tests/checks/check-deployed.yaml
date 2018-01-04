@@ -34,6 +34,15 @@
   tasks:
   - include: check-url-content.yaml
 
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the correct environment type"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_ENVIRONMENT_TYPE={{ expected_enviornment_type }}"
+  tasks:
+  - include: check-url-content.yaml
+
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the env variable set by .env file"
   hosts: localhost
   serial: 1

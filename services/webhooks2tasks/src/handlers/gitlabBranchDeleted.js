@@ -43,6 +43,13 @@ async function gitlabBranchDeleted(webhook: WebhookRequestData, project: Project
           )
           return;
 
+        case "CannotDeleteProductionEnvironment":
+          // These are not real errors and also they will happen many times. We just log them locally but not throw an error
+          sendToLagoonLogs('warning', project.name, uuid, `${webhooktype}:${event}:CannotDeleteProductionEnvironment`, meta,
+            `*[${project.name}]* \`${meta.branch}\` not deleted. ${error}`
+          )
+          return;
+          
         default:
           // Other messages are real errors and should reschedule the message in RabbitMQ in order to try again
           throw error
