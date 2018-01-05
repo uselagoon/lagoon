@@ -48,7 +48,7 @@ objects:
     creationTimestamp: null
     labels:
       branch: ${SAFE_BRANCH}
-      sitegroup: ${SAFE_SITEGROUP}
+      project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
     replicas: 1
@@ -63,7 +63,7 @@ objects:
         labels:
           service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
-          sitegroup: ${SAFE_SITEGROUP}
+          project: ${SAFE_PROJECT}
       spec:
         volumes:
           - name: ${SERVICE_NAME}
@@ -109,7 +109,7 @@ objects:
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
-      sitegroup: ${SAFE_SITEGROUP}
+      project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
     ports:
