@@ -1,5 +1,5 @@
 - name: "{{ testname }} - create new branch {{ branch }} in {{git_repo_name}}"
-  command: git checkout -b {{ branch }}
+  shell: git checkout -b {{ branch }} || git checkout {{ branch }}
   args:
     chdir: /{{git_repo_name}}
 

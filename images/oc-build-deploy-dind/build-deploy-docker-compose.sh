@@ -8,63 +8,64 @@ containsValue () {
 
 function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
-oc process --insecure-skip-tls-verify \
-  -n ${OPENSHIFT_PROJECT} \
-  -f /openshift-templates/configmap.yml \
-  -v SAFE_BRANCH="${SAFE_BRANCH}" \
-  -v SAFE_PROJECT="${SAFE_PROJECT}" \
-  -v BRANCH="${BRANCH}" \
-  -v PROJECT="${PROJECT}" \
-  -v ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" \
-  | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
+##############################################
+### PREPARATION
+##############################################
 
+# Load path of docker-compose that should be used
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
+# Load all Services that are defined
 SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
+# Figure out which services should we handle
 SERVICE_TYPES=()
 IMAGES=()
 for SERVICE in "${SERVICES[@]}"
 do
-  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
+  # The name of the service can be overridden, if not we use the actual servicename
   SERVICE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.name default)
-
   if [ "$SERVICE_NAME" == "default" ]; then
     SERVICE_NAME=$SERVICE
   fi
 
+  # Load the servicetype. If it's "none" we will not care about this service at all
+  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
 
+  # We build all images
   IMAGES+=("${SERVICE}")
 
-  # # Check if the servicetype already has been added to the SERVICE_TYPES array
-  # if [ containsValue "${SERVICE_TYPE}:${SERVICE_NAME}" "${SERVICE_TYPES[@]}"]; then
-  #   continue
-  # fi
-
+  # Create an array with all Service Types, Names and Original Service Name
   SERVICE_TYPES+=("${SERVICE_TYPE}:${SERVICE_NAME}:${SERVICE}")
 done
 
+##############################################
+### BUILD IMAGES
+##############################################
 
 BUILD_ARGS=()
 for IMAGE_NAME in "${IMAGES[@]}"
 do
+  # We need the Image Name uppercase sometimes, so we create that here
   IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
-  DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
-  PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
-  OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
-  BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
+  # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
   TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
 
+  DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
   if [ $DOCKERFILE == "false" ]; then
+    # No Dockerfile defined, assuming to download the Image directly
+
+    PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
     if [ $PULL_IMAGE == "false" ]; then
       echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
     fi
 
     # allow to overwrite image that we pull
+    OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
     if [ ! $OVERRIDE_IMAGE == "false" ]; then
       PULL_IMAGE=$OVERRIDE_IMAGE
     fi
@@ -72,6 +73,9 @@ do
     . /scripts/exec-pull-tag.sh
 
   else
+    # Dockerfile defined, load the context and build it
+
+    BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
     if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
       echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
     fi
@@ -81,8 +85,11 @@ do
 
   # adding the build image to the list of arguments passed into the next image builds
   BUILD_ARGS+=("${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME}")
-
 done
+
+##############################################
+### CREATE OPENSHIFT SERVICES AND ROUTES
+##############################################
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -93,22 +100,114 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
 
-  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
-
-  if [ $OVERRIDE_TEMPLATE == "false" ]; then
-    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/template.yml"
-    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-      echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
-    fi
-  else
-    OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
-    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
-    fi
+  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    . /scripts/exec-openshift-resources.sh
   fi
 
-  TEMPLATE_PARAMETERS=()
+  OPENSHIFT_ROUTES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/routes.yml"
+  if [ -f $OPENSHIFT_ROUTES_TEMPLATE ]; then
 
+    # The very first generated route is set as MAIN_GENERATED_ROUTE
+    if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
+      MAIN_GENERATED_ROUTE=$SERVICE_NAME
+    fi
+
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
+    . /scripts/exec-openshift-resources.sh
+  fi
+done
+
+##############################################
+### CUSTOM ROUTES FROM .lagoon.yml
+##############################################
+
+# Two while loops as we have multiple services that want routes and each service has multiple routes
+ROUTES_SERVICE_COUNTER=0
+while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+  ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER)
+
+  ROUTE_DOMAIN_COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+    # Routes can either be a key (when the have additional settings) or just a value
+    if cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+      # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+      ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+      ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+      ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+    else
+      # Only a value given, assuming some defaults
+      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+      ROUTE_TLS_ACME=true
+      ROUTE_INSECURE=Redirect
+    fi
+
+    # The very first found route is set as MAIN_CUSTOM_ROUTE
+    if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+      MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+    fi
+
+    ROUTE_SERVICE=$ROUTES_SERVICE
+
+    . /scripts/exec-openshift-create-route.sh
+
+    let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+  done
+
+  let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
+done
+
+
+##############################################
+### PROJECT WIDE ENV VARIABLES
+##############################################
+
+# If we have a custom route, we use that as main route
+if [ "$MAIN_CUSTOM_ROUTE" ]; then
+  MAIN_ROUTE_NAME=$MAIN_CUSTOM_ROUTE
+# no custom route, we use the first generated route
+elif [ "$MAIN_GENERATED_ROUTE" ]; then
+  MAIN_ROUTE_NAME=$MAIN_GENERATED_ROUTE
+fi
+
+# Load the found main routes with correct schema
+if [ "$MAIN_ROUTE_NAME" ]; then
+  ROUTE=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get route "$MAIN_ROUTE_NAME" -o=go-template --template='{{if .spec.tls.termination}}https://{{else}}http://{{end}}{{.spec.host}}')
+fi
+
+# Load all routes with correct schema and comma separated
+ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
+
+# Generate a Config Map with project wide env variables
+oc process --insecure-skip-tls-verify \
+  -n ${OPENSHIFT_PROJECT} \
+  -f /openshift-templates/configmap.yml \
+  -p SAFE_BRANCH="${SAFE_BRANCH}" \
+  -p SAFE_PROJECT="${SAFE_PROJECT}" \
+  -p BRANCH="${BRANCH}" \
+  -p PROJECT="${PROJECT}" \
+  -p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" \
+  -p ROUTE="${ROUTE}" \
+  -p ROUTES="${ROUTES}" \
+  | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
+
+
+##############################################
+### CREATE PVC AND DEPLOYMENT CONFIGS
+##############################################
+
+for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
+do
+  IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
+
+  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
+  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+  SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
+
+  # Some Templates need additonal Parameters, like where persistent storage can be found.
+  TEMPLATE_PARAMETERS=()
   PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent false)
 
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
@@ -130,15 +229,47 @@ do
     fi
   fi
 
+  # Generate PVC if service type defines one
+  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/pvc.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    . /scripts/exec-openshift-resources.sh
+  fi
+
+  # Deployment template can be overwritten in docker-compose
+  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
+
+  if [ $OVERRIDE_TEMPLATE == "false" ]; then
+    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
+    fi
+  else
+    OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+    fi
+  fi
+
   . /scripts/exec-openshift-resources.sh
 done
 
+
+##############################################
+### PUSH IMAGES TO OPENSHIFT REGISTRY
+##############################################
+
 for IMAGE_NAME in "${IMAGES[@]}"
 do
+  # Before the push the temporary name is resolved to the future tag with the registry in the image name
   TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
   . /scripts/exec-push.sh
-
 done
+
+
+##############################################
+### WAIT FOR DEPLOYMENTS TO BE FINISHED
+##############################################
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -151,6 +282,9 @@ do
   . /scripts/exec-monitor-deploy.sh
 done
 
+##############################################
+### RUN POST-ROLLOUT tasks defined in .lagoon.yml
+##############################################
 
 COUNTER=0
 while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]

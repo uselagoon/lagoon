@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-mongo
+  name: lagoon-openshift-template-nginx
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -33,16 +33,6 @@ parameters:
     required: true
 objects:
 - apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: ${SERVICE_NAME}
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 5Gi
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     creationTimestamp: null
@@ -55,7 +45,6 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      type: Recreate
       resources: {}
     template:
       metadata:
@@ -65,27 +54,33 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
-        volumes:
-          - name: ${SERVICE_NAME}
-            persistentVolumeClaim:
-              claimName: ${SERVICE_NAME}
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 27017
+          - containerPort: 8080
             protocol: TCP
-            readinessProbe:
-              tcpSocket:
-                port: 27017
-              initialDelaySeconds: 15
-              timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /nginx_status
+              port: 50000
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /nginx_status
+              port: 50000
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            failureThreshold: 5
           envFrom:
           - configMapRef:
-             name: lagoon-env
-          volumeMounts:
-            - name: ${SERVICE_NAME}
-              mountPath: /data/db
+              name: lagoon-env
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: ${LAGOON_GIT_SHA}
           resources:
             requests:
               cpu: 100m
@@ -102,22 +97,3 @@ objects:
           name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: 27017-tcp
-      port: 27017
-      protocol: TCP
-      targetPort: 27017
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}

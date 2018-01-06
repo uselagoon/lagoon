@@ -3,6 +3,7 @@
   uri:
     url: "{{ url }}"
     return_content: yes
+    validate_certs: no
   register: result
   until: result.content | search(expected_content)
   retries: 60

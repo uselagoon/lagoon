@@ -25,3 +25,12 @@ tasks:
         name: drush cr
         command: cd web && drush -y cr
         service: cli
+
+environments:
+  master:
+    routes:
+        - nginx:
+            - "domain.com":
+                tls-acme: 'true'
+                insecure: Allow
+            - www.domain.com

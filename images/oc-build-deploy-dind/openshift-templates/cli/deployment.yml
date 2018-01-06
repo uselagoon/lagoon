@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-varnish
+  name: lagoon-openshift-template-cli
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -54,28 +54,26 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        volumes:
+          - name: lagoon-sshkey
+            secret:
+              defaultMode: 420
+              secretName: lagoon-sshkey
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-          readinessProbe:
-            httpGet:
-              path: /varnish_status
-              port: 8080
-            initialDelaySeconds: 5
-            timeoutSeconds: 3
-          livenessProbe:
-            httpGet:
-              path: /varnish_status
-              port: 8080
-            initialDelaySeconds: 90
-            timeoutSeconds: 3
-            failureThreshold: 5
           envFrom:
           - configMapRef:
               name: lagoon-env
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: ${LAGOON_GIT_SHA}
+          volumeMounts:
+            - mountPath: /var/run/secrets/lagoon/sshkey/
+              name: lagoon-sshkey
+              readOnly: true
           resources:
             requests:
               cpu: 100m
@@ -91,39 +89,3 @@ objects:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
       type: ImageChange
-  status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: varnish-http
-      port: 8080
-      protocol: TCP
-      targetPort: 8080
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Route
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    host: ${SERVICE_ROUTER_URL}
-    port:
-      targetPort: varnish-http
-    to:
-      kind: Service
-      name: ${SERVICE_NAME}
