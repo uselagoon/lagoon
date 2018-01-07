@@ -43,6 +43,24 @@
   tasks:
   - include: check-url-content.yaml
 
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the environment variable LAGOON_ROUTE"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_ROUTE=https://customdomain-will-be-main-domain.com"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the environment variable LAGOON_ROUTES"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_ROUTES=https://customdomain-will-be-main-domain.com,https://customdomain-will-be-not-be-main-domain.com,http://node.ci-node.node8.192.168.99.100.xip.io"
+  tasks:
+  - include: check-url-content.yaml
+
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the env variable set by .env file"
   hosts: localhost
   serial: 1
