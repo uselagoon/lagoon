@@ -3,7 +3,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM alpine
 
 MAINTAINER amazee.io
-
+ENV LAGOON=mongo
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
