@@ -475,6 +475,10 @@ up:
 down:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v
 
+# kill all containers containing the name "lagoon"
+kill:
+	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
+
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 openshift: local-dev/minishift/minishift
