@@ -43,10 +43,14 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: varnish-http
+    - name: http
       port: 8080
       protocol: TCP
       targetPort: 8080
+    - name: control
+      port: 6082
+      protocol: TCP
+      targetPort: 6082
     selector:
       service: ${SERVICE_NAME}
   status:
