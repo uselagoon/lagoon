@@ -18,13 +18,12 @@
   - include: ../../tasks/webhook-gitlab/push.yaml
 
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - second commit (empty) and git push into same git repo"
   hosts: localhost
@@ -41,13 +40,12 @@
   tasks:
   - include: ../../tasks/webhook-gitlab/push.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - third commit (empty) and git push into same git repo - no webhook push yet"
   hosts: localhost
@@ -73,13 +71,12 @@
   tasks:
   - include: ../../tasks/webhook-gitlab/push.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - webhook gitlab delete push"
   hosts: localhost

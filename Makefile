@@ -334,14 +334,14 @@ build-list:
 	done
 
 # Define list of all tests
-all-tests-list:=	ssh \
+all-tests-list:=	features \
+									ssh \
 									node \
 									drupal \
 									github \
 									gitlab \
 									bitbucket \
 									rest \
-									multiproject \
 									nginx
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
@@ -368,7 +368,7 @@ tests/ssh: build/ssh build/auth-server build/api build/tests
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh local-git local-api-data-watcher-pusher
 
 # All Tests that use REST endpoints
-rest-tests = rest node multiproject nginx
+rest-tests = rest node features nginx
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks

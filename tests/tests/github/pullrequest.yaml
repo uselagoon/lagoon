@@ -45,13 +45,12 @@
   - include: ../../tasks/webhook-github/pullrequest-opened.yaml
 
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ pr_commit_hash }}"
     expected_branch: "pr-1"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - git commit a second time into pull request branch"
   hosts: localhost
@@ -81,13 +80,12 @@
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-synchronize.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ pr_2nd_commit_hash }}"
     expected_branch: "pr-1"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - webhook github pull request closed"
   hosts: localhost
