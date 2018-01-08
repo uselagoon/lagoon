@@ -11,7 +11,7 @@ if [ "$PS1" ]; then
   YELLOW="\[\e[1;33m\]"
   BLUE="\[\e[1;34m\]"
   WHITE="\[\e[1;37m\]"
-  PS1="${YELLOW}\w${NORMAL} #"
+  PS1="${YELLOW}\w${NORMAL}$ "
   if [ "$LAGOON" ]; then
     PS1="${GREEN}$LAGOON${NORMAL}:$PS1"
   fi
