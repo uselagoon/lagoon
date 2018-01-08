@@ -110,7 +110,7 @@ mutation FillAPI {
     id
   }
 
-  CiRest: addProject(input: {id: 6, name: "ci-rest", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/rest.git", production_environment:"master"}) {
+  CiRest: addProject(input: {id: 6, name: "ci-rest", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/rest.git"}) {
     id
   }
   CiRestSlack: addNotificationToProject(input: {project: "ci-rest", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
@@ -148,10 +148,16 @@ mutation FillAPI {
   CiNginx: addProject(input: {id: 11, name: "ci-nginx", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/nginx.git"}) {
     id
   }
-  CiDrupalSlack: addNotificationToProject(input: {project: "ci-drupal", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiNginxSlack: addNotificationToProject(input: {project: "ci-nginx", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
+  CiFeatures: addProject(input: {id: 12, name: "ci-features", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/features.git", production_environment:"master"}) {
+    id
+  }
+ CiFeaturesSlack: addNotificationToProject(input: {project: "ci-features", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+    id
+  }
 
   #### Lagoon Kickstart Objects
   KickstartCustomer: addCustomer(input: {id: 4, name: "kickstart-customer"}) {

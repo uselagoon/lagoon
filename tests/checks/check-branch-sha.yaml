@@ -33,21 +33,3 @@
     expected_content: "LAGOON_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
   tasks:
   - include: check-url-content.yaml
-
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the env variable set by .env file"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "{{ url }}"
-    expected_content: "VARIABLE_SET_BY_DOTENV=true"
-  tasks:
-  - include: check-url-content.yaml
-
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the env variable set by .env.defaults file"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "{{ url }}"
-    expected_content: "VARIABLE_SET_BY_DOTENV_DEFAULTS=true"
-  tasks:
-  - include: check-url-content.yaml
