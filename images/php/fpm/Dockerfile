@@ -4,7 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM php:${PHP_VERSION}-fpm-alpine
 
 MAINTAINER amazee.io
-ENV LAGOON=LAGOON
+ENV LAGOON=php
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
