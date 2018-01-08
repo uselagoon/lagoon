@@ -44,7 +44,7 @@ objects:
   spec:
     host: ${SERVICE_ROUTER_URL}
     port:
-      targetPort: varnish-http
+      targetPort: http
     to:
       kind: Service
       name: ${SERVICE_NAME}
