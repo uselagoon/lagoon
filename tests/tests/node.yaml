@@ -6,7 +6,6 @@
     git_repo_name: node.git
     project: ci-node
     branch: node8
-    environment_type: development
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
 - include: rest/branch.yaml
@@ -16,5 +15,4 @@
     git_repo_name: node.git
     project: ci-node
     branch: node6
-    environment_type: development
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

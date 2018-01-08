@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-mariadb
+  name: lagoon-openshift-template-mongo
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -33,16 +33,6 @@ parameters:
     required: true
 objects:
 - apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: ${SERVICE_NAME}-data
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 5Gi
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     creationTimestamp: null
@@ -56,6 +46,7 @@ objects:
       service: ${SERVICE_NAME}
     strategy:
       type: Recreate
+      resources: {}
     template:
       metadata:
         creationTimestamp: null
@@ -65,31 +56,26 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         volumes:
-          - name: ${SERVICE_NAME}-data
+          - name: ${SERVICE_NAME}
             persistentVolumeClaim:
-              claimName: ${SERVICE_NAME}-data
+              claimName: ${SERVICE_NAME}
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 3306
+          - containerPort: 27017
             protocol: TCP
-          readinessProbe:
-            tcpSocket:
-              port: 3306
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
-          livenessProbe:
-            tcpSocket:
-              port: 3306
-            initialDelaySeconds: 120
-            periodSeconds: 5
-          volumeMounts:
-            - name: ${SERVICE_NAME}-data
-              mountPath: /var/lib/mysql
+            readinessProbe:
+              tcpSocket:
+                port: 27017
+              initialDelaySeconds: 15
+              timeoutSeconds: 1
           envFrom:
           - configMapRef:
-              name: lagoon-env
+             name: lagoon-env
+          volumeMounts:
+            - name: ${SERVICE_NAME}
+              mountPath: /data/db
           resources:
             requests:
               cpu: 100m
@@ -105,23 +91,3 @@ objects:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
       type: ImageChange
-  status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: 3306-tcp
-      port: 3306
-      protocol: TCP
-      targetPort: 3306
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}

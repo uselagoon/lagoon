@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-cli
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -31,6 +31,12 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: PERSISTENT_STORAGE_PATH
+    description: Full path to which should be mounted into persistent storage
+    required: true
+  - name: PERSISTENT_STORAGE_NAME
+    description: Name of the Persistent Volume Claim to use
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -54,22 +60,17 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        volumes:
+          - name: ${PERSISTENT_STORAGE_NAME}
+            persistentVolumeClaim:
+              claimName: ${PERSISTENT_STORAGE_NAME}
+          - name: lagoon-sshkey
+            secret:
+              defaultMode: 420
+              secretName: lagoon-sshkey
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
-          ports:
-          - containerPort: 3000
-            protocol: TCP
-          readinessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
-          livenessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 60
-            periodSeconds: 5
           envFrom:
           - configMapRef:
               name: lagoon-env
@@ -78,6 +79,12 @@ objects:
             ## This will cause the cli to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: ${LAGOON_GIT_SHA}
+          volumeMounts:
+            - name: ${PERSISTENT_STORAGE_NAME}
+              mountPath: ${PERSISTENT_STORAGE_PATH}
+            - mountPath: /var/run/secrets/lagoon/sshkey/
+              name: lagoon-sshkey
+              readOnly: true
           resources:
             requests:
               cpu: 100m
@@ -93,39 +100,3 @@ objects:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
       type: ImageChange
-  status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: http
-      port: 3000
-      protocol: TCP
-      targetPort: 3000
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Route
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    host: ${SERVICE_ROUTER_URL}
-    port:
-      targetPort: http
-    to:
-      kind: Service
-      name: ${SERVICE_NAME}

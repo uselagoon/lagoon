@@ -1,0 +1,35 @@
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the branch name"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_GIT_BRANCH={{ expected_branch }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash inside an environment variable set during buildtime"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_GIT_SHA_BUILDTIME={{ expected_head }}"
+  tasks:
+  - include: check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the branch name inside an environment variable set during buildtime"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_content: "LAGOON_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
+  tasks:
+  - include: check-url-content.yaml

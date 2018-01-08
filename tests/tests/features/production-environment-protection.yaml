@@ -3,12 +3,12 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "node{{ node_version }}/"
+    git_files: "features/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}, which should deploy the first commit"
+- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}"
   hosts: localhost
   serial: 1
   vars:
@@ -17,15 +17,14 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
-- name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
+- name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, expect an 500 as this branch is protected"
   hosts: localhost
   serial: 1
   vars:
@@ -42,13 +41,12 @@
   tasks:
   - include: ../../tasks/pause.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
-    expected_enviornment_type: "{{ environment_type }}"
 
 - name: "{{ testname }} - rest2tasks /remove POST on {{ project }} with forceDeleteProductionEnvironment true, which should remove all resources"
   hosts: localhost
