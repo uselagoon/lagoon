@@ -30,4 +30,4 @@ COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
 EXPOSE 8080
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["varnishd", "-a", ":8080", "-F", "-f", "/etc/varnish/default.vcl", "-S", "/etc/varnish/secret"]
+CMD ["varnishd", "-a", ":8080", "-T", ":6082", "-F", "-f", "/etc/varnish/default.vcl", "-S", "/etc/varnish/secret"]
