@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: lagoon-openshift-template-route
+parameters:
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    required: true
+  - name: SAFE_PROJECT
+    description: Which project this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
+    required: true
+  - name: PROJECT
+    description: Which project this belongs to, original value
+    required: true
+  - name: LAGOON_GIT_SHA
+    description: git hash sha of the current deployment
+    required: true
+  - name: OPENSHIFT_PROJECT
+    description: Name of the Project that this route is in
+    required: true
+  - name: ROUTE_DOMAIN
+    description: URL of the Router for this route
+    required: true
+  - name: ROUTE_SERVICE
+    description: Name of the Service that this route should forward to
+    required: true
+  - name: ROUTE_TLS_ACME
+    description: Setting of kubernetes.io/tls-acme annotation
+    required: true
+  - name: ROUTE_INSECURE
+    description: Setting of insecureEdgeTerminationPolicy
+    required: true
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      kubernetes.io/tls-acme: '${ROUTE_TLS_ACME}'
+    creationTimestamp: null
+    labels:
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${ROUTE_DOMAIN}
+  spec:
+    host: ${ROUTE_DOMAIN}
+    port:
+      targetPort: http
+    to:
+      kind: Service
+      name: ${ROUTE_SERVICE}
+    tls:
+      insecureEdgeTerminationPolicy: ${ROUTE_INSECURE}
+      termination: edge

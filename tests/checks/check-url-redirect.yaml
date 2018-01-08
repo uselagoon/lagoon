@@ -4,6 +4,7 @@
     url: "{{ url }}"
     follow_redirects: none
     status_code: "301"
+    validate_certs: no
   register: result
   until: result.location | regex_search(expected_redirect_location)
   retries: 5

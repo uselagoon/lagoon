@@ -4,7 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM solr:${SOLR_MAJ_MIN_VERSION}-alpine
 
 MAINTAINER amazee.io
-ENV LAGOON=LAGOON
+ENV LAGOON=solr
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon

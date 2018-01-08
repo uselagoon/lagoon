@@ -110,7 +110,8 @@ images :=     centos7 \
 							nginx-drupal \
 							varnish \
 							varnish-drupal \
-							redis
+							redis \
+							mongo
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -144,6 +145,7 @@ build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
+build/mongo: build/centos7 images/mongo/Dockerfile
 
 #######
 ####### PHP Images
@@ -336,14 +338,14 @@ build-list:
 	done
 
 # Define list of all tests
-all-tests-list:=	ssh \
+all-tests-list:=	features \
+									ssh \
 									node \
 									drupal \
 									github \
 									gitlab \
 									bitbucket \
 									rest \
-									multiproject \
 									nginx
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
@@ -370,7 +372,7 @@ tests/ssh: build/ssh build/auth-server build/api build/tests
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh local-git local-api-data-watcher-pusher
 
 # All Tests that use REST endpoints
-rest-tests = rest node multiproject nginx
+rest-tests = rest node features nginx
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
@@ -476,6 +478,10 @@ up:
 
 down:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v
+
+# kill all containers containing the name "lagoon"
+kill:
+	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it

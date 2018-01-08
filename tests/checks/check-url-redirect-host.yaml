@@ -1,0 +1,14 @@
+---
+- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} redirects to the location {{expected_redirect_location}}"
+  uri:
+    url: "{{ url }}"
+    follow_redirects: none
+    status_code: "301,302"
+    HEADER_Host: "{{ host }}"
+    validate_certs: no
+  register: result
+  until: result.location | regex_search(expected_redirect_location)
+  retries: 5
+  delay: 10
+- debug: msg="Success!!!"
+

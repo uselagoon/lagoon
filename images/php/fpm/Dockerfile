@@ -4,7 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM php:${PHP_VERSION}-fpm-alpine
 
 MAINTAINER amazee.io
-ENV LAGOON=LAGOON
+ENV LAGOON=php
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
@@ -19,14 +19,16 @@ RUN chmod g+w /etc/passwd \
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 COPY check_fcgi /usr/sbin/
-COPY entrypoints/70-php-config.sh entrypoints/60-php-xdebug.sh /lagoon/entrypoints/
+COPY entrypoints/70-php-config.sh entrypoints/60-php-xdebug.sh entrypoints/50-ssmtp.sh /lagoon/entrypoints/
 
 COPY php.ini /usr/local/etc/php/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache fcgi \
+        ssmtp \
         # for gd
         libpng-dev \
         libjpeg-turbo-dev \
@@ -55,7 +57,8 @@ RUN apk update \
     && apk del .phpize-deps \
     && mkdir -p /app \
     && fix-permissions /usr/local/etc/ \
-    && fix-permissions /app
+    && fix-permissions /app \
+    && fix-permissions /etc/ssmtp/ssmtp.conf
 
 EXPOSE 9000
 
