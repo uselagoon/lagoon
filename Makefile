@@ -153,7 +153,10 @@ phpimages := 	php__5.6-fpm \
 							php__7.1-fpm  \
 							php__5.6-cli \
 							php__7.0-cli \
-							php__7.1-cli
+							php__7.1-cli \
+							php__5.6-cli-drupal \
+							php__7.0-cli-drupal \
+							php__7.1-cli-drupal
 
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
@@ -163,9 +166,13 @@ $(build-phpimages): build/commons
 	$(eval clean = $(subst build/php__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
+	$(eval subtype = $(word 3,$(subst -, ,$(clean))))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 	$(eval type_slash = $(if $(type),/$(type)))
+# if there is a subtype, add it. If not, just keep what we already had
+	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
+	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
 # Call the docker build
 	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
@@ -177,6 +184,9 @@ build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
 build/php__7.0-cli: build/php__7.0-fpm
 build/php__7.1-cli: build/php__7.1-fpm
+build/php__5.6-cli-drupal: build/php__5.6-cli
+build/php__7.0-cli-drupal: build/php__7.0-cli
+build/php__7.1-cli-drupal: build/php__7.1-cli
 
 #######
 ####### Solr Images
@@ -378,7 +388,7 @@ $(run-rest-tests): openshift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: openshift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__7.0-cli build/php__7.1-cli build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
+tests/drupal: openshift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
