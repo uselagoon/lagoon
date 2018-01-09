@@ -193,7 +193,7 @@ oc process --insecure-skip-tls-verify \
 
 
 ##############################################
-### CREATE PVC AND DEPLOYMENT CONFIGS
+### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
@@ -251,6 +251,10 @@ do
 
   . /scripts/exec-openshift-resources.sh
 
+
+  ### CRONJOBS
+
+  # Save the current deployment template parameters so we can reuse them for cronjobs
   DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
 
   CRONJOB_COUNTER=0
@@ -261,7 +265,6 @@ do
 
     # Only implement the cronjob for the services we are currently handling
     if [ $CRONJOB_SERVICE == $SERVICE ]; then
-
 
       # loading original $TEMPLATE_PARAMETERS as multiple cronjobs use the same values
       TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
@@ -281,12 +284,10 @@ do
       fi
 
       . /scripts/exec-openshift-resources.sh
-
     fi
 
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
   done
-
 
 done
 
@@ -317,13 +318,6 @@ do
 
   . /scripts/exec-monitor-deploy.sh
 done
-
-
-##############################################
-### CRONJOBS
-##############################################
-
-
 
 
 ##############################################
