@@ -34,3 +34,9 @@ environments:
                 tls-acme: 'true'
                 insecure: Allow
             - www.domain.com
+
+cronjobs:
+  - name: drush cron
+    schedule: "* * * * *"
+    command: drush cron
+    service: cli

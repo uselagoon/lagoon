@@ -21,10 +21,10 @@ parameters:
     value: development
   - name: ROUTE
     description: The main route of this project
-    required: true
+    value: ""
   - name: ROUTES
     description: All routes of this project
-    required: true
+    value: ""
 objects:
 - kind: ConfigMap
   apiVersion: v1
