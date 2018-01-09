@@ -6,3 +6,13 @@ environments:
     - node:
       - customdomain-will-be-main-domain.com
       - customdomain-will-be-not-be-main-domain.com
+
+cronjobs:
+  - name: echo /files/cron.txt multi
+    schedule: "* * * * *"
+    command: echo "$(date)" >> /files/cron.txt && echo "CRONJOB_MULTI" >> /files/cron.txt
+    service: node
+  - name: echo /files/cron.txt single
+    schedule: "* * * * *"
+    command: echo "CRONJOB_SINGLE" >> /files/cron.txt
+    service: node

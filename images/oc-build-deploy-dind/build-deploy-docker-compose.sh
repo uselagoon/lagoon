@@ -6,8 +6,6 @@ containsValue () {
   return 1
 }
 
-function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
-
 ##############################################
 ### PREPARATION
 ##############################################
@@ -84,7 +82,7 @@ do
   fi
 
   # adding the build image to the list of arguments passed into the next image builds
-  BUILD_ARGS+=("${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME}")
+  BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
 done
 
 ##############################################
@@ -195,7 +193,7 @@ oc process --insecure-skip-tls-verify \
 
 
 ##############################################
-### CREATE PVC AND DEPLOYMENT CONFIGS
+### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
@@ -211,21 +209,21 @@ do
   PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent false)
 
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
-    TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_PATH=${PERSISTENT_STORAGE_PATH}")
+    TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_PATH="${PERSISTENT_STORAGE_PATH}")
 
     PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.class false)
     if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
-      TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_CLASS=${PERSISTENT_STORAGE_CLASS}")
+      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_CLASS="${PERSISTENT_STORAGE_CLASS}")
     fi
 
     PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.name false)
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
-      TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_NAME=${PERSISTENT_STORAGE_NAME}")
+      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_NAME="${PERSISTENT_STORAGE_NAME}")
     fi
 
     PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.size false)
     if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
-      TEMPLATE_PARAMETERS+=("PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE}")
+      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
     fi
   fi
 
@@ -252,6 +250,45 @@ do
   fi
 
   . /scripts/exec-openshift-resources.sh
+
+
+  ### CRONJOBS
+
+  # Save the current deployment template parameters so we can reuse them for cronjobs
+  DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
+
+  CRONJOB_COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
+  do
+
+    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.service)
+
+    # Only implement the cronjob for the services we are currently handling
+    if [ $CRONJOB_SERVICE == $SERVICE ]; then
+
+      # loading original $TEMPLATE_PARAMETERS as multiple cronjobs use the same values
+      TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
+
+      # Creating a save name (special characters removed )
+      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.command)
+
+      TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME}")
+      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
+      TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjob.yml"
+      if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+        echo "No cronjob Template for service type ${SERVICE_TYPE} found"; exit 1;
+      fi
+
+      . /scripts/exec-openshift-resources.sh
+    fi
+
+    let CRONJOB_COUNTER=CRONJOB_COUNTER+1
+  done
+
 done
 
 
@@ -281,6 +318,7 @@ do
 
   . /scripts/exec-monitor-deploy.sh
 done
+
 
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
