@@ -7,6 +7,7 @@ pages:
   - Administering Lagoon: administering_lagoon/index.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
+  - Tests: developing_lagoon/tests.md
   - Contributing: developing_lagoon/contributing.md
 - Code Of Conduct: code_of_conduct.md
 theme: readthedocs
