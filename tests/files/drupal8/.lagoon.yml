@@ -37,6 +37,6 @@ environments:
 
 cronjobs:
   - name: drush cron
-    schedule: "* * * * *"
+    schedule: "1 * * * *"
     command: drush cron
     service: cli
