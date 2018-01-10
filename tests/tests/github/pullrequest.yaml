@@ -45,7 +45,7 @@
   - include: ../../tasks/webhook-github/pullrequest-opened.yaml
 
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ pr_commit_hash }}"
     expected_branch: "pr-1"
@@ -80,7 +80,7 @@
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-synchronize.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ pr_2nd_commit_hash }}"
     expected_branch: "pr-1"

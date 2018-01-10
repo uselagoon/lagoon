@@ -3,7 +3,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM nginx:alpine
 
 MAINTAINER amazee.io
-ENV LAGOON=LAGOON
+ENV LAGOON=nginx
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon

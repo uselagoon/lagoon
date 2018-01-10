@@ -6,14 +6,6 @@ else
   SERVICE_ROUTER_URL=""
 fi
 
-if [ ${#TEMPLATE_PARAMETERS[@]} -eq 0 ]; then
-    TEMPLATE_PARAMETERS_JOINED=""
-else
-    TEMPLATE_PARAMETERS_JOINED=$(join_by " -p " "${TEMPLATE_PARAMETERS[@]}")
-    # TEMPLATE_PARAMETERS_JOINED has '-p' only between the array elements, but we need it also in the beginning
-    TEMPLATE_PARAMETERS_JOINED=" -p ${TEMPLATE_PARAMETERS_JOINED}"
-fi
-
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
@@ -26,5 +18,5 @@ oc process --insecure-skip-tls-verify \
   -p SERVICE_ROUTER_URL="${SERVICE_ROUTER_URL}" \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
   -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
-  ${TEMPLATE_PARAMETERS_JOINED} \
+  "${TEMPLATE_PARAMETERS[@]}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -

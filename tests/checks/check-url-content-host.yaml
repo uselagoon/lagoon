@@ -1,0 +1,12 @@
+---
+- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} contains content {{expected_content}}"
+  uri:
+    url: "{{ url }}"
+    return_content: yes
+    HEADER_Host: "{{ host }}"
+    validate_certs: no
+  register: result
+  until: result.content | search(expected_content)
+  retries: 60
+  delay: 10
+- debug: msg="Success!!!"

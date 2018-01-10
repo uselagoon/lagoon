@@ -79,7 +79,6 @@ services:
       dockerfile: Dockerfile.solr
     labels:
       lagoon.type: solr
-      lagoon.persistent: /opt/solr/server/solr/mycores
 networks:
   amazeeio-network:
     external: true

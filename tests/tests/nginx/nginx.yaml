@@ -3,7 +3,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "nginx/"
+    git_files: "nginx/first/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
@@ -17,7 +17,30 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: check-deployed.yaml
+- include: check-first.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+
+- name: "{{ testname }} - second files: add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "nginx/second/"
+  tasks:
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - rest2tasks /deploy POST for just git branch on {{ project }}, which should deploy the second commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/rest/deploy-no-sha.yaml
+
+- include: check-second.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"

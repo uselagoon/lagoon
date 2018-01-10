@@ -1,0 +1,13 @@
+---
+- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} returns with resturn code {{expected_returncode}}"
+  uri:
+    url: "{{ url }}"
+    status_code: "{{ expected_returncode }}"
+    HEADER_Host: "{{ host }}"
+    validate_certs: no
+  register: result
+  until: result.status == expected_returncode
+  retries: 20
+  delay: 10
+- debug: msg="Success!!!"
+

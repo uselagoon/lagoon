@@ -1,0 +1,70 @@
+---
+- include: features/cronjobs.yaml
+  vars:
+    testname: "CRONJOBS"
+    git_repo_name: features.git
+    project: ci-features
+    branch: cronjobs
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/multiproject.yaml
+  vars:
+    testname: "MULTIPROJECT - two projects with same git url"
+    git_repo_name: multiproject.git
+    project1: ci-multiproject1
+    project2: ci-multiproject2
+    branch: multiproject
+    check_url1: "http://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url2: "http://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/production-environment-protection.yaml
+  vars:
+    testname: "PROTECTED PRODUCTION ENVIRONMENT"
+    git_repo_name: features.git
+    project: ci-features
+    branch: master
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/environment-type.yaml
+  vars:
+    testname: "ENVIRONMENT TYPE DEVELOPMENT"
+    git_repo_name: features.git
+    project: ci-features
+    branch: develop
+    environment_type: development
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/environment-type.yaml
+  vars:
+    testname: "ENVIRONMENT TYPE PRODUCTION"
+    git_repo_name: features.git
+    project: ci-features
+    branch: master
+    environment_type: production
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/route-env-variables.yaml
+  vars:
+    testname: "ROUTE ENV VARIABLES"
+    git_repo_name: features.git
+    project: ci-features
+    branch: branch/routes
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/dot-env.yaml
+  vars:
+    testname: "DOT-ENV VARIABLES"
+    git_repo_name: features.git
+    project: ci-features
+    branch: slash/branch1
+    expected_dot_env: slash/branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/dot-env.yaml
+  vars:
+    testname: "DOT-ENV VARIABLES"
+    git_repo_name: features.git
+    project: ci-features
+    branch: branch1
+    expected_dot_env: branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

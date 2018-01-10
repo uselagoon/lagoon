@@ -2,7 +2,7 @@
 
 /**
  * @file
- * amazee.io Drupal 8 configuration file.
+ * Lagoon Drupal 8 configuration file.
  *
  * You should not edit this file, please use environment specific files!
  * They are loaded in this order:
@@ -25,7 +25,7 @@
  *
  */
 
-### amazee.io Database connection
+### Lagoon Database connection
 if(getenv('LAGOON')){
   $databases['default']['default'] = array(
     'driver' => 'mysql',
@@ -38,7 +38,7 @@ if(getenv('LAGOON')){
   );
 }
 
-### amazee.io Solr connection
+### Lagoon Solr connection
 // WARNING: you have to create a search_api server having "solr" machine name at
 // /admin/config/search/search-api/add-server to make this work.
 if (getenv('LAGOON')) {
@@ -53,16 +53,37 @@ if (getenv('LAGOON')) {
   $config['search_api.server.solr']['name'] = 'Lagoon Solr - Environment: ' . getenv('LAGOON_PROJECT');
 }
 
-### amazee.io Varnish & Reverse proxy settings
+### Lagoon Redis connection
+if (getenv('LAGOON')){
+  $settings['redis.connection']['interface'] = 'PhpRedis';
+  $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
+  $settings['redis.connection']['port'] = getenv('REDIS_PORT') ?: '6379';
+
+  // # Do not set the cache during installations of Drupal
+  // if (!drupal_installation_attempted()) {
+  //   $settings['cache']['default'] = 'cache.backend.redis';
+  // }
+}
+
+### Lagoon Varnish & Reverse proxy settings
 if (getenv('LAGOON')) {
   $settings['reverse_proxy'] = TRUE;
+
+  $varnish_hosts = explode(',', getenv('VARNISH_HOSTS') ?: 'varnish');
+  array_walk($varnish_hosts, function(&$value, $key) { $value .= ':6082'; });
+
+  $config['varnish.settings']['varnish_control_terminal'] = implode($varnish_hosts, " ");
+  $config['varnish.settings']['varnish_control_key'] = getenv('VARNISH_SECRET') ?: 'lagoon_default_secret';
+  $config['varnish.settings']['varnish_version'] = 4;
 }
 
 ### Trusted Host Patterns, see https://www.drupal.org/node/2410395 for more information.
 ### If your site runs on multiple domains, you need to add these domains here
-//$settings['trusted_host_patterns'] = array(
-//  '^' . str_replace('.', '\.', getenv('ROUTE_URLS')) . '$',
-//);
+if (getenv('LAGOON_ROUTES')) {
+  $settings['trusted_host_patterns'] = array(
+    '^' . str_replace(['.', 'https://', 'http://', ','], ['\.', '', '', '|'], getenv('LAGOON_ROUTES')) . '$', // escape dots, remove schema, use commas as regex separator
+   );
+}
 
 ### Temp directory
 if (getenv('TMP')) {

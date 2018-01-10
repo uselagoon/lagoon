@@ -5,6 +5,7 @@
     return_content: yes
     user: "{{ user }}"
     password: "{{ password }}"
+    validate_certs: no
   register: result
   until: result.content | search(expected_content)
   retries: 60

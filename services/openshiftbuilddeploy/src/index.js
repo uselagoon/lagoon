@@ -37,6 +37,7 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(branchName)
     var safeProjectName = ocsafety(projectName)
+    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
@@ -50,7 +51,7 @@ const messageConsumer = async msg => {
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
-    var graphqlEnvironmentType = branchName === projectOpenShift.production_environment ? 'PRODUCTION' : 'DEVELOPMENT'
+    var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
@@ -143,6 +144,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "ROUTER_URL",
                           "value": routerPattern
+                      },
+                      {
+                          "name": "ENVIRONMENT_TYPE",
+                          "value": environmentType
                       }
                   ],
                   "forcePull": true,

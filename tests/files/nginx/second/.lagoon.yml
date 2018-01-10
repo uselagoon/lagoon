@@ -1,0 +1,19 @@
+docker-compose-yaml: docker-compose.yml
+
+
+environments:
+  nginx:
+    routes:
+    - nginx:
+      - insecure-allow.com:
+          tls-acme: 'false'
+          insecure: None
+      - insecure-redirect.com:
+          tls-acme: 'false'
+          insecure: Redirect
+      - insecure-none.com:
+          tls-acme: 'false'
+          insecure: Allow
+    - nginx-basic-auth:
+      - nginx-basic-auth.com
+      - moving-route.com

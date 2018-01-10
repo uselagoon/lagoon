@@ -17,7 +17,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -49,7 +49,7 @@
   - include: ../../tasks/rest/deploy-sha.yaml
 
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
@@ -65,7 +65,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -82,7 +82,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-sha.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"

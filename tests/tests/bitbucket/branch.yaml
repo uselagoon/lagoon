@@ -18,7 +18,7 @@
   - include: ../../tasks/webhook-bitbucket/push.yaml
 
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -40,7 +40,7 @@
   tasks:
   - include: ../../tasks/webhook-bitbucket/push.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -71,7 +71,7 @@
   tasks:
   - include: ../../tasks/webhook-bitbucket/push.yaml
 
-- include: ../../checks/check-deployed.yaml
+- include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"
