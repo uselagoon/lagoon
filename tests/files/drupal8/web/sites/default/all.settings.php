@@ -12,4 +12,4 @@
 // the Drupal root, which is protected by amazee.io nginx configs, so it cannot be read
 // via the browser. If your Drupal root is inside a subfolder (like 'web') you can put the config
 // folder outside this subfolder for an advanced security measure: '../config/sync'.
-$config_directories[CONFIG_SYNC_DIRECTORY] = 'sites/default/config/sync';
+$config_directories[CONFIG_SYNC_DIRECTORY] = '../config/sync';
