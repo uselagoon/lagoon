@@ -10,8 +10,8 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 
 ## Links
 
-- [Developing Lagoon](/developing_lagoon/index.md)
-- [How Lagoon is tested](/developing_lagoon/tests.md)
+- [Developing Lagoon](developing_lagoon/index.md)
+- [How Lagoon is tested](developing_lagoon/tests.md)
 - Slack channel where the maintainers hang out: #lagoon in the amazee.io Slack [https://slack.amazee.io]()
 - Schema of Lagoon: [https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac]()
 
