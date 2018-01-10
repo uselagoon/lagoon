@@ -1,0 +1,7 @@
+site_name: Lagoon
+
+pages:
+  - Home: index.md
+  - Using Lagoon: using_lagoon/index.md
+  - Administering Lagoon: administering_lagoon/index.md
+  - Developing Lagoon: developing_lagoon/index.md
