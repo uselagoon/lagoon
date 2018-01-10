@@ -16,7 +16,8 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-ENV OC_VERSION=v3.6.0 \
+ENV LAGOON=ssh \
+    OC_VERSION=v3.6.0 \
     OC_HASH=c4dd4cf \
 		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389
 
@@ -41,7 +42,8 @@ RUN mkdir -p /openshift-origin-client-tools && \
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
-
+# Reproduce behavior of Alpine: Run Bash as sh
+RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 
 # Needed for jwt generation
 RUN npm -g install jwtgen

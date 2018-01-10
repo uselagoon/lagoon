@@ -24,6 +24,6 @@ $config['system.performance']['css']['preprocess'] = 0;
 $config['system.performance']['js']['preprocess'] = 0;
 
 // Stage file proxy URL from production URL
-if(getenv('AMAZEEIO_PRODUCTION_URL')){
-  $config['stage_file_proxy.settings']['origin'] = getenv('PRODUCTION_URL');
+if (getenv('LAGOON_PRODUCTION_URL')){
+  $config['stage_file_proxy.settings']['origin'] = getenv('LAGOON_PRODUCTION_URL');
 }
