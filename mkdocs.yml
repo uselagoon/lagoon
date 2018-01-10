@@ -5,3 +5,4 @@ pages:
   - Using Lagoon: using_lagoon/index.md
   - Administering Lagoon: administering_lagoon/index.md
   - Developing Lagoon: developing_lagoon/index.md
+theme: readthedocs
