@@ -1,8 +1,12 @@
 site_name: Lagoon
 
 pages:
-  - Home: index.md
-  - Using Lagoon: using_lagoon/index.md
+- Home: index.md
+- Using Lagoon: using_lagoon/index.md
+- Administration:
   - Administering Lagoon: administering_lagoon/index.md
+- Development:
   - Developing Lagoon: developing_lagoon/index.md
+  - Contributing: developing_lagoon/contributing.md
+- Code Of Conduct: code_of_conduct.md
 theme: readthedocs
