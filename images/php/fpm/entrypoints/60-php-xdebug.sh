@@ -20,8 +20,8 @@ get_dockerhost() {
     return
   fi
 
-  # Fallback to localhost
-  echo "localhost"
+  # Fallback to default gateway (should work on Linux) see https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach
+  echo $(route -n | awk '/UG[ \t]/{print $2}')
   return
 }
 
