@@ -13,4 +13,4 @@ build/*
 openshift
 .loopback
 secrets
-
+docs/_build
