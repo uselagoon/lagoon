@@ -1,5 +1,30 @@
 # Example GraphQL queries
 
+## List Projects and Clients
+```
+query whatIsThereAlready{
+  allProjects {
+    name
+    git_url
+    notifications {
+      ...slack
+    }
+  }
+  allOpenshifts {
+    name
+    id
+  }
+  allCustomers {
+    name
+    id
+  }
+}
+
+fragment slack on NotificationSlack {
+  name
+}
+```
+
 ## Add New Client and Project
 ```
 mutation {
