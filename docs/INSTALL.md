@@ -84,10 +84,10 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 6. We are interested in the `token`, keep that for now somewhere safe.
 
-7. Add Service Account `lagoon` to cluster role self-provisioner \(this will allow lagoon to create new projects in OpenShift\)
+7. Create new ClusterRole `lagoon` and add Service Account `lagoon` to it \(this will allow lagoon to create new projects in OpenShift\)
 
-        oc -n default adm policy add-cluster-role-to-user self-provisioner -z lagoon
-        oc -n default adm policy add-cluster-role-to-user system:build-strategy-custom -z lagoon
+        oc -n default create -f openshift-setup/clusterrole-lagoon.yaml
+        oc -n default adm policy add-cluster-role-to-user lagoon -z lagoon
 
 8. Create docker-host which will be used by the builds for docker layer caching (if you run that with a local OpenShift started via `make openshift`, this step is already done for you)
 

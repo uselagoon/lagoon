@@ -64,7 +64,25 @@ const messageConsumer = async function(msg) {
   });
 
 
-  let projectStatus = {}
+  // Check if project exists
+  try {
+    const projectsGet = Promise.promisify(openshift.projects(openshiftProject).get, { context: openshift.projects(openshiftProject) })
+    await projectsGet()
+  } catch (err) {
+    // a non existing project also throws an error, we check if it's a 404, means it does not exist, and we assume it's already removed
+    if (err.code == 404) {
+      logger.info(`${openshiftProject} does not exist, assuming it was removed`);
+      sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+        `*[${projectName}]* remove \`${openshiftProject}\``
+      )
+      return
+    } else {
+      logger.error(err)
+      throw new Error
+    }
+  }
+
+  // Project exists, let's remove it
   try {
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
     await projectsDelete()
@@ -72,13 +90,6 @@ const messageConsumer = async function(msg) {
       `*[${projectName}]* remove \`${openshiftProject}\``
     )
   } catch (err) {
-    if (err.code == 404) {
-      logger.info(`${openshiftProject} does not exist, assuming it was removed`);
-      sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
-        `*[${projectName}]* remove \`${openshiftProject}\``
-      )
-      return
-    }
     logger.error(err)
     throw new Error
   }
