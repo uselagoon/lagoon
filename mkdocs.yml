@@ -2,7 +2,9 @@ site_name: Lagoon
 
 pages:
 - Home: index.md
-- Using Lagoon: using_lagoon/index.md
+- Using Lagoon:
+  - Running Lagoon Projects Locally: using_lagoon/index.md
+  - Deploying Lagoon Projects: using_lagoon/deploying.md
 - Administration:
   - Administering Lagoon: administering_lagoon/index.md
 - Development:
