@@ -1,6 +1,7 @@
 # Example GraphQL queries
 
 ## Add New Client and Project
+```
 mutation {
   # The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup),
   # or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone
@@ -35,3 +36,4 @@ mutation {
     pullrequests
   }
 }
+```
