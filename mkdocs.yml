@@ -8,6 +8,7 @@ pages:
 - Administration:
   - Administering Lagoon: administering_lagoon/index.md
   - Installing Lagoon: administering_lagoon/install.md
+  - Example GraphQL Queries: administering_lagoon/graphql_examples.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md
