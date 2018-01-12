@@ -68,7 +68,8 @@ export async function getClientInfo({
   sitegroup,
   clog,
   cerr,
-}: GetClientInfoArgs): Promise<number> {
+}: 
+GetClientInfoArgs): Promise<number> {
   const query = gql`
     query queryClient($sitegroup: String!) {
       siteGroupByName(name: $sitegroup) {

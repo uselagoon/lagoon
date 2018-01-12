@@ -49,11 +49,19 @@ export async function runCLI(cwd: string) {
     // eslint-disable-next-line no-unused-expressions
     commands
       .reduce((cmdYargs, cmd) => {
-        const { name, description, run, setup } = cmd;
+        const {
+          name, description, run, setup,
+        } = cmd;
 
         const runFn = args =>
           // eslint-disable-next-line no-console
-          run({ ...args, cwd, config, clog: console.log, cerr: console.error })
+          run({
+            ...args,
+            cwd,
+            config,
+            clog: console.log,
+            cerr: console.error,
+          })
             .catch(err => errorQuit(err, `Uncaught error in ${name} command:`))
             .then(code => process.exit(code));
 

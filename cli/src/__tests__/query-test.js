@@ -34,8 +34,7 @@ describe('runGQLQuery', () => {
 
   it('should do a POST request ala GraphQL', async () => {
     _mock(request).mockImplementationOnce(() =>
-      Promise.resolve({ data: 'data' }),
-    );
+      Promise.resolve({ data: 'data' }));
 
     const result = await runGQLQuery({
       cerr: jest.fn(),

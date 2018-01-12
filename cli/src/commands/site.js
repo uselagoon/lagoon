@@ -77,7 +77,8 @@ export async function siteInfo({
   branch,
   clog,
   cerr,
-}: SiteInfoArgs): Promise<number> {
+}: 
+SiteInfoArgs): Promise<number> {
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
 
@@ -165,12 +166,9 @@ export async function siteInfo({
 
   // For the case if there was no branch name given to begin with
   if (nodes.length > 1) {
-    clog(
-      'Multiple sites found with the same name but different branches. The branch can be specified with the "siteName@siteBranch" syntax. For example:',
-    );
+    clog('Multiple sites found with the same name but different branches. The branch can be specified with the "siteName@siteBranch" syntax. For example:');
     R.forEach(({ siteName, siteBranch }) =>
-      clog(`-> ${siteName}@${siteBranch}`),
-    )(nodes);
+      clog(`-> ${siteName}@${siteBranch}`))(nodes);
     return 0;
   }
 

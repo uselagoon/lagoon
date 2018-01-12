@@ -83,9 +83,7 @@ export async function sshExec(
   });
 }
 
-async function promptUntilValidPath(
-  cerr: typeof console.error,
-): Promise<String> {
+async function promptUntilValidPath(cerr: typeof console.error): Promise<String> {
   const { privateKeyPath } = await inquirer.prompt([
     {
       type: 'input',
