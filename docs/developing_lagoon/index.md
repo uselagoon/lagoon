@@ -36,7 +36,7 @@ make up
 make logs
 ```
 
-5. run tests (read [TESTS.md](./TESTS.md) to learn more about testing)
+5. run tests (read [Tests](tests.md) to learn more about testing)
 ```sh
 make tests
 ```
