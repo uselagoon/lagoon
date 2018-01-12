@@ -34,7 +34,7 @@ const args = ['<name>'];
 const fullName = `${name} ${args.join(' ')}`;
 const description = 'Show project details';
 
-export function setup(yargs: Yargs) {
+export function setup(yargs: Yargs): Yargs {
   return yargs
     .usage(`$0 ${fullName} - ${description}`)
     .positional('name', {
