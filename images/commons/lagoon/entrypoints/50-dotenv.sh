@@ -25,15 +25,15 @@ export -p > $TMPFILE
 
 # set -a is short for `set -o allexport` which will export all variables in a file
 set -a
-[ -f .env.defaults ] && . ./.env.defaults
-[ -f .env ] && . ./.env
-[ -f .lagoon.env.$LAGOON_GIT_BRANCH ] && . ./.lagoon.env.$LAGOON_GIT_BRANCH
+[ -f .env.defaults ] && . ./.env.defaults  || true
+[ -f .env ] && . ./.env  || true
+[ -f .lagoon.env.$LAGOON_GIT_BRANCH ] && . ./.lagoon.env.$LAGOON_GIT_BRANCH  || true
 # Branch names can have weird special chars in them which are not allowed in File names, so we also try the Branch name with special chars replaced by dashes.
-[ -f .lagoon.env.$LAGOON_GIT_SAFE_BRANCH ] && . ./.lagoon.env.$LAGOON_GIT_SAFE_BRANCH
+[ -f .lagoon.env.$LAGOON_GIT_SAFE_BRANCH ] && . ./.lagoon.env.$LAGOON_GIT_SAFE_BRANCH  || true
 set +a
 
 # now export all previously existing environments variables so they are stronger than maybe existing ones in the dotenv files
-. $TMPFILE
+. $TMPFILE || true
 
 # remove the tmpfile
 rm $TMPFILE
