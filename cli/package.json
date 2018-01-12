@@ -57,7 +57,7 @@
     "pre-commit": "^1.2.2",
     "prettier": "^1.8.2",
     "rimraf": "^2.6.1",
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "file:../node-packages/commons/",
     "dotenv-extended": "^2.0.1"
   },
   "dependencies": {
