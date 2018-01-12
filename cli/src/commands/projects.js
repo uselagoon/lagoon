@@ -28,7 +28,8 @@ type ListProjectsArgs = {
 export async function listProjects({
   clog,
   cerr,
-}: ListProjectsArgs): Promise<number> {
+}: 
+ListProjectsArgs): Promise<number> {
   const query = gql`
     query queryProjects {
       allProjects {
@@ -54,30 +55,26 @@ export async function listProjects({
 
   const sortByName = R.sortBy(R.compose(R.toLower, R.propOr('', 'name')));
 
-  const projects = R.compose(sortByName, R.pathOr([], ['data', 'allProjects']))(
-    result,
-  );
+  const projects = R.compose(sortByName, R.pathOr([], ['data', 'allProjects']))(result);
 
   if (projects.length === 0) {
     clog(red('No projects found.'));
     return 0;
   }
 
-  clog(
-    table([
-      ['Project', 'Git URL', 'Branches', 'Pull Requests', 'Created'],
-      ...R.map(
-        project => [
-          project.name,
-          project.git_url,
-          String(project.branches),
-          String(project.pullrequests),
-          project.created,
-        ],
-        projects,
-      ),
-    ]),
-  );
+  clog(table([
+    ['Project', 'Git URL', 'Branches', 'Pull Requests', 'Created'],
+    ...R.map(
+      project => [
+        project.name,
+        project.git_url,
+        String(project.branches),
+        String(project.pullrequests),
+        project.created,
+      ],
+      projects,
+    ),
+  ]));
 
   return 0;
 }

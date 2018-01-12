@@ -28,8 +28,7 @@ const mockResponse = {
 describe('getClientInfo', () => {
   it('should show client information', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+      Promise.resolve(mockResponse));
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -48,8 +47,7 @@ describe('getClientInfo', () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'Something, something missing parameter X' }],
-      }),
-    );
+      }));
 
     const clog = jest.fn();
     const cerr = jest.fn();
