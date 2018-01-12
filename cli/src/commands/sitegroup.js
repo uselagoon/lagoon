@@ -59,7 +59,7 @@ export async function sitegroupInfo({
   sitegroup,
   clog,
   cerr,
-}: 
+}:
 SiteGroupInfoArgs): Promise<number> {
   const query = gql`
     query querySites($sitegroup: String!) {

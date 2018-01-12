@@ -105,7 +105,7 @@ export async function run({
   sitegroup,
   clog,
   cerr,
-}: 
+}:
 Args): Promise<number> {
   const filepath = path.join(cwd, '.lagoon.yml');
 

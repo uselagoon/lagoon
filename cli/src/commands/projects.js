@@ -28,7 +28,7 @@ type ListProjectsArgs = {
 export async function listProjects({
   clog,
   cerr,
-}: 
+}:
 ListProjectsArgs): Promise<number> {
   const query = gql`
     query queryProjects {
