@@ -54,7 +54,7 @@ export async function projectDetails({
   projectName,
   clog,
   cerr,
-}: 
+}:
 projectDetailsArgs): Promise<number> {
   const query = gql`
     query queryProject($project: String!) {
@@ -121,7 +121,7 @@ export async function run({
   clog,
   cerr,
   name: projectName,
-}: 
+}:
 Args): Promise<number> {
   return projectDetails({ projectName, clog, cerr });
 }

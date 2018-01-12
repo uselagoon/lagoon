@@ -77,7 +77,7 @@ export async function siteInfo({
   branch,
   clog,
   cerr,
-}: 
+}:
 SiteInfoArgs): Promise<number> {
   // site[@branch]
   const siteBranchStr = `${site}${branch != null ? `@${branch}` : ''}`;
