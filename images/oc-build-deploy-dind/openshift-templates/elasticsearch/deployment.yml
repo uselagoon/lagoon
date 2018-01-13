@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-elasticsearch
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -58,28 +58,16 @@ objects:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 9600
-            name: http
+          - containerPort: 9200
             protocol: TCP
           readinessProbe:
             httpGet:
-              port: http
+              port: 9200
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              port: http
+              port: 9200
             initialDelaySeconds: 120
-          env:
-            - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-username
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-password
-                  key: RABBITMQ_PASSWORD
           envFrom:
           - configMapRef:
               name: lagoon-env
@@ -87,6 +75,13 @@ objects:
             requests:
               cpu: 100m
               memory: 100Mi
+          volumeMounts:
+          - mountPath: /usr/share/elasticsearch/data
+            name: ${SERVICE_NAME}
+        volumes:
+        - name: ${SERVICE_NAME}
+          persistentVolumeClaim:
+            claimName: ${SERVICE_NAME}
     test: false
     triggers:
     - type: ConfigChange

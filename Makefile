@@ -109,7 +109,10 @@ images :=     centos7 \
 							varnish \
 							varnish-drupal \
 							redis \
-							mongo
+							mongo \
+							elasticsearch \
+							kibana \
+							logstash
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -276,9 +279,9 @@ services :=       api \
 									webhooks2tasks \
 									hacky-rest2tasks-ui \
 									rabbitmq \
-									elasticsearch \
-									kibana \
-									logstash \
+									logs-db \
+									logs-db-ui \
+									logs2logs-db \
 									mariadb \
 									drush-alias
 
