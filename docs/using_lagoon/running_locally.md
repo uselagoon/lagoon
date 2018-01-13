@@ -1,6 +1,4 @@
-# Using Lagoon
-
-## Running a Project Locally
+# Running a Lagoon Project Locally
 
 ### `docker-compose.yml`
 
