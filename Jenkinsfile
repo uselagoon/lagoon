@@ -35,6 +35,7 @@ node {
               'start openshift': {
                 stage ('start openshift') {
                   sh 'make openshift'
+                  sh "sleep 60"
                 }
               }
             )
