@@ -145,6 +145,9 @@ build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/mongo: build/centos7 images/mongo/Dockerfile
+build/elasticsearch: build/commons images/elasticsearch/Dockerfile
+build/logstash: build/commons images/logstash/Dockerfile
+build/kibana: build/commons images/kibana/Dockerfile
 
 #######
 ####### PHP Images
