@@ -12,6 +12,7 @@ RUN { \
       echo 'gpgcheck=1'; \
     } > /etc/yum.repos.d/mariadb.repo
 
+
 COPY server.cnf /etc/my.cnf.d/server.cnf
 COPY docker-entrypoint /lagoon/entrypoints/70-mariadb-entrypoint
 
@@ -24,6 +25,9 @@ RUN yum install -y epel-release && \
     fix-permissions /var/run/mysqld && \
     fix-permissions /var/log/ && \
     fix-permissions /etc/my.cnf.d/
+
+COPY cronjob.sh /lagoon/cronjob.sh
+COPY mysql-backup.sh /lagoon/
 
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 RUN usermod -G 0 --append mysql
