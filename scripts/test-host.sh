@@ -125,6 +125,7 @@ echo "Host response code:             $RESPONSE_CODE"
 
 # Get the response code for the service shortname
 RESPONSE_CODE=`oc run \
+               -n $NAMESPACE \
                --attach --rm --restart=Never \
                alpine-curl --image=appropriate/curl \
                --env="SERVICE_NAME=$SERVICE_NAME" \
