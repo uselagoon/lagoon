@@ -250,4 +250,5 @@ services:
     user: '111111111'
     labels:
       lagoon.type: logstash
+      lagoon.template: services/logs2logs-db/.lagoon.yml
       lagoon.image: amazeeiolagoon/logs2logs-db:${SAFE_BRANCH:-master}
