@@ -18,6 +18,8 @@
 # CUSTOM SETTINGS
 #==============================================================================
 
+set -eu -o pipefail
+
 # directory to put the backup files
 BACKUP_DIR=/var/lib/mysql/backup
 
@@ -25,7 +27,7 @@ BACKUP_DIR=/var/lib/mysql/backup
 MYSQL_USER=${MYSQL_USER:-lagoon}
 MYSQL_PASSWORD=${MYSQL_PASSWORD:-lagoon}
 
-export MYSQL_UNIX_PORT=/tmp/mysql.sock
+MYSQL_HOST=$1
 
 # Don't backup databases with these names
 # Example: starts with mysql (^mysql) or ends with _schema (_schema$)
@@ -53,7 +55,7 @@ function delete_old_backups()
 }
 
 function mysql_login() {
-  local mysql_login="-u $MYSQL_USER"
+  local mysql_login="-u $MYSQL_USER -h $MYSQL_HOST"
   if [ -n "$MYSQL_PASSWORD" ]; then
     local mysql_login+=" -p$MYSQL_PASSWORD"
   fi

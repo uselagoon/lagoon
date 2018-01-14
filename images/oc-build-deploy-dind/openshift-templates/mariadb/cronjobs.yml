@@ -31,13 +31,16 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: RANDOM_MINUTE
+    generate: expression
+    from: "[0-5]{1}[0-9]{1}"
 objects:
 - apiVersion: batch/v2alpha1
   kind: CronJob
   metadata:
     name: cronjob-${SERVICE_NAME}-backup
   spec:
-    schedule: "${CRONJOB_SCHEDULE}"
+    schedule: "${RANDOM_MINUTE} 1 * * *"
     jobTemplate:
       spec:
         template:
@@ -50,13 +53,20 @@ objects:
               project: ${SAFE_PROJECT}
               parent: cronjob-${SERVICE_NAME}-backup
           spec:
+            volumes:
+              - name: ${SERVICE_NAME}-data
+                persistentVolumeClaim:
+                  claimName: ${SERVICE_NAME}-data
             containers:
             - name: cronjob-${SERVICE_NAME}-backup
               image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
               command:
                 - /lagoon/cronjob.sh
-                - /lagoon/mysql-backup.sh
+                - "/lagoon/mysql-backup.sh ${SERVICE_NAME}"
               envFrom:
               - configMapRef:
                   name: lagoon-env
+              volumeMounts:
+                - name: ${SERVICE_NAME}-data
+                  mountPath: /var/lib/mysql
             restartPolicy: Never
