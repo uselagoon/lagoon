@@ -420,7 +420,7 @@ $(push-openshift-images):
 	$(eval image = $(subst __,:,$(image)))
 	$(info pushing $(image) to openshift registry)
 	docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
-	docker push $$(cat openshift):30000/lagoon/$(image) | cat
+	docker push $$(cat openshift):30000/lagoon/$(image)
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
