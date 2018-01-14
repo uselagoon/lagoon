@@ -23,4 +23,4 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN fix-permissions /usr/share/kibana
 
-RUN echo "xpack.security.enabled: false" >> config/kibana.yml
+ENV NODE_OPTIONS="--max-old-space-size=200"
