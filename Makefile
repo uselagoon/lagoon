@@ -404,12 +404,15 @@ $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder buil
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
+.PHONY: wait-for-openshift-registry
+wait-for-openshift-registry:
+	./local-dev/wait-for-openshift-registry.sh
 
 # push command of our base images into openshift
 push-openshift-images = $(foreach image,$(base-images),[push-openshift]-$(image))
 # tag and push all images
 .PHONY: push-openshift
-push-openshift: $(push-openshift-images)
+push-openshift: wait-for-openshift-registry $(push-openshift-images)
 # tag and push of each image
 .PHONY: $(push-openshift-images)
 $(push-openshift-images):
