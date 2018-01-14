@@ -9,7 +9,7 @@ services:
       - "3306:3306"
     labels:
       lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/mariadb:master
+      lagoon.image: amazeeiolagoon/mariadb:${LAGOON_GIT_SAFE_BRANCH:-master}
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
@@ -21,7 +21,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhook-handler:master
+      lagoon.image: amazeeiolagoon/webhook-handler:${LAGOON_GIT_SAFE_BRANCH:-master}
   rabbitmq:
     image: ${IMAGE_REPO:-lagoon}/rabbitmq
     ports:
@@ -30,7 +30,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rabbitmq/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rabbitmq:master
+      lagoon.image: amazeeiolagoon/rabbitmq:${LAGOON_GIT_SAFE_BRANCH:-master}
   openshiftremove:
     image: ${IMAGE_REPO:-lagoon}/openshiftremove
     command: yarn run dev
@@ -40,7 +40,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftremove/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftremove:master
+      lagoon.image: amazeeiolagoon/openshiftremove:${LAGOON_GIT_SAFE_BRANCH:-master}
   openshiftbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
@@ -52,7 +52,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploy/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:master
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:${LAGOON_GIT_SAFE_BRANCH:-master}
   openshiftbuilddeploymonitor:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
@@ -66,7 +66,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:master
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${LAGOON_GIT_SAFE_BRANCH:-master}
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
@@ -76,7 +76,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2slack:master
+      lagoon.image: amazeeiolagoon/logs2slack:${LAGOON_GIT_SAFE_BRANCH:-master}
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
@@ -86,7 +86,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhooks2tasks:master
+      lagoon.image: amazeeiolagoon/webhooks2tasks:${LAGOON_GIT_SAFE_BRANCH:-master}
   rest2tasks:
     image: ${IMAGE_REPO:-lagoon}/rest2tasks
     command: yarn run dev
@@ -98,7 +98,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rest2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rest2tasks:master
+      lagoon.image: amazeeiolagoon/rest2tasks:${LAGOON_GIT_SAFE_BRANCH:-master}
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
@@ -113,7 +113,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:master
+      lagoon.image: amazeeiolagoon/api:${LAGOON_GIT_SAFE_BRANCH:-master}
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
@@ -129,7 +129,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ssh:master
+      lagoon.image: amazeeiolagoon/ssh:${LAGOON_GIT_SAFE_BRANCH:-master}
   auth-server:
     image: ${IMAGE_REPO:-lagoon}/auth-server
     command: yarn run dev
@@ -144,7 +144,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-server:master
+      lagoon.image: amazeeiolagoon/auth-server:${LAGOON_GIT_SAFE_BRANCH:-master}
   tests:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -229,4 +229,25 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/drush-alias/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/drush-alias:master
+      lagoon.image: amazeeiolagoon/drush-alias:${LAGOON_GIT_SAFE_BRANCH:-master}
+      version: '2'
+  logs-db:
+    image: ${IMAGE_REPO:-lagoon}/logs-db
+    user: '111111111'
+    labels:
+      lagoon.type: elasticsearch
+      lagoon.image: amazeeiolagoon/logs-db:${LAGOON_GIT_SAFE_BRANCH:-master}
+  logs-db-ui:
+    image: ${IMAGE_REPO:-lagoon}/logs-db-ui
+    user: '111111111'
+    ports:
+      - "5601:5601"
+    labels:
+      lagoon.type: kibana
+      lagoon.image: amazeeiolagoon/logs-db-ui:${LAGOON_GIT_SAFE_BRANCH:-master}
+  logs2logs-db:
+    image: ${IMAGE_REPO:-lagoon}/logs2logs-db
+    user: '111111111'
+    labels:
+      lagoon.type: logstash
+      lagoon.image: amazeeiolagoon/logs2logs-db:${LAGOON_GIT_SAFE_BRANCH:-master}

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-kibana
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -58,15 +58,15 @@ objects:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 9200
+          - containerPort: 5601
             protocol: TCP
           readinessProbe:
             httpGet:
-              port: 9200
+              port: 5601
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              port: 9200
+              port: 5601
             initialDelaySeconds: 120
           envFrom:
           - configMapRef:
@@ -75,12 +75,6 @@ objects:
             requests:
               cpu: 100m
               memory: 100Mi
-          volumeMounts:
-          - mountPath: /usr/share/elasticsearch/data
-            name: ${SERVICE_NAME}-data-volume
-        volumes:
-        - name: ${SERVICE_NAME}-data-volume
-          emptyDir: {}
     test: false
     triggers:
     - type: ConfigChange
@@ -93,22 +87,3 @@ objects:
           name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: 9200-tcp
-      port: 9200
-      protocol: TCP
-      targetPort: 9200
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}
