@@ -10,6 +10,7 @@ COPY . /ansible
 COPY hosts /etc/ansible/hosts
 
 ENV ANSIBLE_FORCE_COLOR=true
+ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
