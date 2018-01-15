@@ -20,5 +20,6 @@ COPY services/openshiftremove/package.json /app/services/openshiftremove/
 COPY services/rest2tasks/package.json /app/services/rest2tasks/
 COPY services/webhook-handler/package.json /app/services/webhook-handler/
 COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
+COPY cli/package.json /app/cli/
 
 RUN yarn install --frozen-lockfile
