@@ -13,7 +13,7 @@ type DeployTask = {
 
 // TODO: Type the rest of the config
 export type AmazeeConfig = {
-  sitegroup: string,
+  project: string,
   deploy_tasks: {
     [name: string]: DeployTask,
   },

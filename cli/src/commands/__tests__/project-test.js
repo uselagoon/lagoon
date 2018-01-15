@@ -1,7 +1,7 @@
 // @flow
 
 import { runGQLQuery } from '../../query';
-import { sitegroupInfo } from '../sitegroup';
+import { projectDetails } from '../project';
 
 jest.mock('../../query');
 
@@ -11,29 +11,23 @@ const mockErrorResponse = {
   errors: [{ message: 'something something error' }],
 };
 
-describe('siteGroupInfo', () => {
+describe('projectDetails', () => {
   const mockResponse1 = {
     data: {
-      siteGroupByName: {
-        gitUrl: 'sitegroup.git',
-        siteGroupName: 'mysitegroup',
-        slack: {
-          webhook: 'https://slack-webhook.something',
-          channel: 'myslack',
+      projectByName: {
+        name: 'credentialstest-project1',
+        customer: {
+          name: 'credentialtest-customer1',
         },
-        client: {
-          clientName: 'me',
+        git_url: 'project1.git',
+        active_systems_deploy: 'lagoon_openshiftBuildDeploy',
+        active_systems_remove: 'lagoon_openshiftRemove',
+        branches: 'true',
+        pullrequests: null,
+        openshift: {
+          name: 'credentialtest-openshift',
         },
-        sites: [
-          {
-            siteName: 'site1',
-            siteBranch: 'dev',
-          },
-          {
-            siteName: 'site1',
-            siteBranch: 'prod',
-          },
-        ],
+        created: '2018-01-15 11:09:35',
       },
     },
   };
@@ -45,8 +39,8 @@ describe('siteGroupInfo', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await sitegroupInfo({
-      sitegroup: 'some_sitegroup',
+    const code = await projectDetails({
+      project: 'some_project',
       clog,
       cerr,
     });
@@ -55,14 +49,14 @@ describe('siteGroupInfo', () => {
     expect(cerr.mock.calls).toMatchSnapshot();
   });
 
-  it('should show error on missing sitegroup', async () => {
+  it('should show error on missing project', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await sitegroupInfo({
-      sitegroup: 'not_existing',
+    const code = await projectDetails({
+      project: 'not_existing',
       clog,
       cerr,
     });
@@ -71,15 +65,15 @@ describe('siteGroupInfo', () => {
     expect(clog.mock.calls).toMatchSnapshot();
   });
 
-  it('should list found information for given sitegroup', async () => {
+  it('should list found information for given project', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve(mockResponse1));
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await sitegroupInfo({
-      sitegroup: 'mysitegroup',
+    const code = await projectDetails({
+      project: 'myproject',
       clog,
       cerr,
     });

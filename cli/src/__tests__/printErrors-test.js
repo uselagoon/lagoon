@@ -3,7 +3,7 @@
 import {
   printErrors,
   printNoConfigError,
-  printSitegroupConfigurationError,
+  printProjectConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
 
@@ -55,10 +55,10 @@ describe('printNoConfigError', () => {
   });
 });
 
-describe('printSitegroupConfigurationError', () => {
-  it('should print an error about missing sitegroup configuration', () => {
+describe('printProjectConfigurationError', () => {
+  it('should print an error about missing project configuration', () => {
     const cerr = jest.fn();
-    const code = printSitegroupConfigurationError(cerr);
+    const code = printProjectConfigurationError(cerr);
     expect(code).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
   });

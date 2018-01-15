@@ -31,7 +31,7 @@ const tableConfig = {
 };
 
 const name = 'customer';
-const description = 'Show customer information for a given project name';
+const description = 'Show customer details for a given project name';
 
 export function setup(yargs: Yargs) {
   return yargs
@@ -46,26 +46,26 @@ export function setup(yargs: Yargs) {
     .alias('p', 'project')
     .example(
       `$0 ${name}`,
-      'Show customer information for the project configured in .lagoon.yml',
+      'Show customer details for the project configured in .lagoon.yml',
     )
     .example(
       `$0 ${name} -p myproject`,
-      'Show customer information for the project "myproject"',
+      'Show customer details for the project "myproject"',
     );
 }
 
-type GetCustomerInfoArgs = {
+type GetCustomerDetailsArgs = {
   project: string,
   clog: typeof console.log,
   cerr: typeof console.error,
 };
 
-export async function getCustomerInfo({
+export async function getCustomerDetails({
   project,
   clog,
   cerr,
 }:
-GetCustomerInfoArgs): Promise<number> {
+GetCustomerDetailsArgs): Promise<number> {
   const query = gql`
     query queryCustomer($project: String!) {
       projectByName(name: $project) {
@@ -99,7 +99,7 @@ GetCustomerInfoArgs): Promise<number> {
   const customer = R.path(['data', 'projectByName', 'customer'], result);
 
   if (customer == null) {
-    clog(red(`No customer found for project '${project}'`));
+    clog(red(`No customer found for project '${project}'!`));
     return 0;
   }
 
@@ -117,11 +117,14 @@ GetCustomerInfoArgs): Promise<number> {
       'Deploy Private Key',
       formatDeployPrivateKey(R.prop('private_key', customer)),
     ],
-    ['SSH Keys', R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer)))],
+    [
+      'SSH Keys',
+      R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer))),
+    ],
     ['Created', R.prop('created', customer)],
   ];
 
-  clog(`Customer information for project '${project}'`);
+  clog(`Customer details for project '${project}':`);
   clog(table(tableBody, tableConfig));
 
   return 0;
@@ -144,7 +147,7 @@ export async function run(args: Args): Promise<number> {
     return printProjectConfigurationError(cerr);
   }
 
-  return getCustomerInfo({ project, clog, cerr });
+  return getCustomerDetails({ project, clog, cerr });
 }
 
 export default {

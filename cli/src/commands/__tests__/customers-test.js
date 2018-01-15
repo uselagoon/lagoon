@@ -1,7 +1,7 @@
 // @flow
 
 import { runGQLQuery } from '../../query';
-import { getClientInfo } from '../client';
+import { getCustomerDetails } from '../customer';
 
 jest.mock('../../query');
 
@@ -9,17 +9,17 @@ const _mock = (mockFn: any): JestMockFn => mockFn;
 
 const mockResponse = {
   data: {
-    siteGroupByName: {
-      client: {
-        clientName: 'client1',
-        deployPrivateKey: 'PRIVATE_KEY',
-        created: 'Wed May 18 2011 00:00:00 GMT+0000 (UTC)',
-        siteGroups: [{}],
+    projectByName: {
+      customer: {
+        name: 'customer1',
+        comment: 'Comment about customer1',
+        private_key: 'PRIVATE_KEY',
         sshKeys: [
           {
-            owner: 'a@example.com',
+            name: 'a@example.com',
           },
         ],
+        created: 'Wed May 18 2011 00:00:00 GMT+0000 (UTC)',
       },
     },
   },
@@ -33,8 +33,8 @@ describe('getClientInfo', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getClientInfo({
-      sitegroup: 'some_sitegroup',
+    const code = await getCustomerDetails({
+      project: 'some_project',
       clog,
       cerr,
     });
@@ -52,8 +52,8 @@ describe('getClientInfo', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getClientInfo({
-      sitegroup: 'some_sitegroup',
+    const code = await getCustomerDetails({
+      project: 'some_project',
       clog,
       cerr,
     });
@@ -68,8 +68,8 @@ describe('getClientInfo', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getClientInfo({
-      sitegroup: 'some_sitegroup',
+    const code = await getCustomerDetails({
+      project: 'some_project',
       clog,
       cerr,
     });
