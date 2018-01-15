@@ -5,7 +5,12 @@ import R from 'ramda';
 
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import { printErrors, printGraphQLErrors } from '../printErrors';
+import {
+  printErrors,
+  printGraphQLErrors,
+  printNoConfigError,
+  printProjectConfigurationError,
+} from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
@@ -30,17 +35,23 @@ const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
 const name = 'project';
-const args = ['<name>'];
-const fullName = `${name} ${args.join(' ')}`;
 const description = 'Show project details';
 
 export function setup(yargs: Yargs): Yargs {
   return yargs
-    .usage(`$0 ${fullName} - ${description}`)
-    .positional('name', {
-      describe: 'Name of project to display details',
-      type: 'string',
+    .usage(`$0 ${name} - ${description}`)
+    .options({
+      project: {
+        demandOption: false,
+        describe: 'Name of project to display details',
+        type: 'string',
+      },
     })
+    .alias('p', 'project')
+    .example(
+      `$0 ${name}`,
+      'Show details for the project configured in .lagoon.yml',
+    )
     .example(`$0 ${name} myproject`, 'Show details of project "myproject"');
 }
 
@@ -120,15 +131,26 @@ type Args = BaseArgs & {
 export async function run({
   clog,
   cerr,
-  name: projectName,
+  config,
+  project: projectOption,
 }:
 Args): Promise<number> {
+  if (config == null) {
+    return printNoConfigError(cerr);
+  }
+
+  const projectName = projectOption || config.project;
+
+  if (projectName == null) {
+    return printProjectConfigurationError(cerr);
+  }
+
   return projectDetails({ projectName, clog, cerr });
 }
 
 export default {
   setup,
-  name: fullName,
+  name,
   description,
   run,
 };
