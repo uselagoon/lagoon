@@ -65,7 +65,8 @@ do
     # allow to overwrite image that we pull
     OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
     if [ ! $OVERRIDE_IMAGE == "false" ]; then
-      PULL_IMAGE=$OVERRIDE_IMAGE
+      # expand environment variables from ${OVERRIDE_IMAGE}
+      PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
     fi
 
     . /scripts/exec-pull-tag.sh

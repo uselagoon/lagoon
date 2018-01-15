@@ -1,4 +1,11 @@
+FROM golang:alpine as golang
+
+RUN apk add --no-cache git
+RUN go get github.com/a8m/envsubst/cmd/envsubst
+
 FROM docker:stable
+
+COPY --from=golang /go/bin/envsubst /bin/envsubst
 
 ENV OC_VERSION=v3.6.0 \
     OC_HASH=c4dd4cf \

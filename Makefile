@@ -371,11 +371,11 @@ tests-list:
 .PHONY: tests/ssh
 tests/ssh: build/ssh build/auth-server build/api build/tests
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d ssh auth-server api
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d ssh auth-server api tests
+		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx
@@ -386,12 +386,12 @@ deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 $(run-rest-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 tests/drupal: openshift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab bitbucket
@@ -402,8 +402,7 @@ deployment-test-services-webhooks = $(deployment-test-services-main) webhook-han
 $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --name tests-$(testname)-$(CI_BUILD_TAG) --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
-
+		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # push command of our base images into openshift
 push-openshift-images = $(foreach image,$(base-images),[push-openshift]-$(image))
