@@ -8,7 +8,7 @@ import gql from '../gql';
 import { runGQLQuery } from '../query';
 import {
   printNoConfigError,
-  printSitegroupConfigurationError,
+  printProjectConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
 
@@ -34,58 +34,56 @@ const tableConfig = {
 const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
-const name = 'client';
-const description = 'Show client information for a sitegroup';
+const name = 'customer';
+const description = 'Show customer information for a given project id';
 
 export function setup(yargs: Yargs) {
   return yargs
     .usage(`$0 ${name} - ${description}`)
     .options({
-      sitegroup: {
+      project: {
         demandOption: false,
-        describe: 'Specify a sitegroup for the client information',
+        describe: 'Specify a project for the customer',
         type: 'string',
       },
     })
-    .alias('s', 'sitegroup')
+    .alias('p', 'project')
     .example(
       `$0 ${name}`,
-      'Show client information for the sitegroup configured in .lagoon.yml',
+      'Show customer information for the project configured in .lagoon.yml',
     )
     .example(
-      `$0 ${name} -s mysitegroup`,
-      'Show client information for the sitegroup "mysitegroup"',
+      `$0 ${name} -p myproject`,
+      'Show customer information for the project "myproject"',
     );
 }
 
-type GetClientInfoArgs = {
-  sitegroup: string,
+type GetCustomerInfoArgs = {
+  project: string,
   clog: typeof console.log,
   cerr: typeof console.error,
 };
 
-export async function getClientInfo({
-  sitegroup,
+export async function getCustomerInfo({
+  project,
   clog,
   cerr,
 }:
-GetClientInfoArgs): Promise<number> {
+GetCustomerInfoArgs): Promise<number> {
   const query = gql`
-    query queryClient($sitegroup: String!) {
-      siteGroupByName(name: $sitegroup) {
-        client {
-          clientName
-          deployPrivateKey
-          created
+    query queryCustomer($project: String!) {
+      projectByName(name: $project) {
+        customer {
+          name
           comment
-          siteGroups {
-            siteGroupName
-          }
+          private_key
           sshKeys {
-            owner
-            key
-            type
+            name
+            keyValue
+            keyType
+            created
           }
+          created
         }
       }
     }
@@ -94,7 +92,7 @@ GetClientInfoArgs): Promise<number> {
   const result = await runGQLQuery({
     cerr,
     query,
-    variables: { sitegroup },
+    variables: { project },
   });
 
   const { errors } = result;
@@ -102,10 +100,10 @@ GetClientInfoArgs): Promise<number> {
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const client = R.path(['data', 'siteGroupByName', 'client'], result);
+  const customer = R.path(['data', 'projectByName', 'customer'], result);
 
-  if (client == null) {
-    clog(red(`No client found for sitegroup '${sitegroup}'`));
+  if (customer == null) {
+    clog(red(`No customer found for project '${project}'`));
     return 0;
   }
 
@@ -114,33 +112,28 @@ GetClientInfoArgs): Promise<number> {
     R.always('\u221A'),
     R.always(''),
   );
-  const formatSiteGroups = R.map(R.prop('siteGroupName'));
-  const formatSshKeys = R.map(R.prop('owner'));
+  const formatSshKeys = R.map(R.prop('name'));
 
   const tableBody = [
-    ['Client Name', R.prop('clientName', client)],
+    ['customer Name', R.prop('name', customer)],
     [
       'Deploy Private Key',
-      formatDeployPrivateKey(R.prop('deployPrivateKey', client)),
+      formatDeployPrivateKey(R.prop('private_key', customer)),
     ],
-    ['Created', R.prop('created', client)],
-    ['Comment', R.prop('comment', client)],
-    [
-      'Site Groups',
-      R.join(', ', formatSiteGroups(R.propOr([], 'siteGroups', client))),
-    ],
-    ['SSH Keys', R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', client)))],
+    ['Comment', R.prop('comment', customer)],
+    ['SSH Keys', R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer)))],
+    ['Created', R.prop('created', customer)],
   ];
   const tableData = R.filter(onlyValues)(tableBody);
 
-  clog(`Client information for sitegroup '${sitegroup}'`);
+  clog(`Customer information for project '${project}'`);
   clog(table(tableData, tableConfig));
 
   return 0;
 }
 
 type Args = BaseArgs & {
-  sitegroup: ?string,
+  project: ?string,
 };
 
 export async function run(args: Args): Promise<number> {
@@ -150,13 +143,13 @@ export async function run(args: Args): Promise<number> {
     return printNoConfigError(cerr);
   }
 
-  const sitegroup = args.sitegroup || config.sitegroup;
+  const project = args.project || config.project;
 
-  if (sitegroup == null) {
-    return printSitegroupConfigurationError(cerr);
+  if (project == null) {
+    return printProjectConfigurationError(cerr);
   }
 
-  return getClientInfo({ sitegroup, clog, cerr });
+  return getCustomerInfo({ project, clog, cerr });
 }
 
 export default {

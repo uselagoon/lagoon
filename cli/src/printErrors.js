@@ -34,10 +34,10 @@ export function printNoConfigError(cerr: Cerr): number {
   );
 }
 
-export function printSitegroupConfigurationError(cerr: Cerr): number {
+export function printProjectConfigurationError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    'No sitegroup configured. Please create a .lagoon.yml config file with "io init" or pass a sitegroup to this command via the --sitegroup option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    'No project configured. Please create a .lagoon.yml config file with "io init" or pass a project to this command via the --project option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
   );
 }
 
