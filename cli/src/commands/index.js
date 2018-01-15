@@ -22,23 +22,12 @@ export type CommandModule = {
 import init from './init';
 import login from './login';
 import logout from './logout';
-// import sites from './sites';
 import customer from './customer';
-// import site from './site';
-// import sitegroup from './sitegroup';
 import project from './project';
 import projects from './projects';
 
 // Disable flowtype linting error because prettier formats to this
 // eslint-disable-next-line flowtype/generic-spacing
-export default ([
-  init,
-  login,
-  logout,
-  // sites,
-  customer,
-  // site,
-  // sitegroup,
-  project,
-  projects,
-]: Array<CommandModule>);
+export default ([init, login, logout, customer, project, projects]: Array<
+  CommandModule,
+>);

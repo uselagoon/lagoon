@@ -43,7 +43,7 @@ export function setup(yargs: Yargs): Yargs {
     .options({
       project: {
         demandOption: false,
-        describe: 'Name of project to display details',
+        describe: 'Name of project',
         type: 'string',
       },
     })
@@ -101,7 +101,7 @@ projectDetailsArgs): Promise<number> {
   const project = R.path(['data', 'projectByName'])(result);
 
   if (project == null) {
-    return printErrors(clog, `No project '${projectName}' found`);
+    return printErrors(clog, `No project '${projectName}' found!`);
   }
 
   const tableBody = [
@@ -125,7 +125,7 @@ projectDetailsArgs): Promise<number> {
 }
 
 type Args = BaseArgs & {
-  name: ?string,
+  project: ?string,
 };
 
 export async function run({
