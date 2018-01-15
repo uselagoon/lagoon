@@ -96,8 +96,8 @@ objects:
                   key: RABBITMQ_PASSWORD
           resources:
             requests:
-              cpu: 100m
-              memory: 100Mi
+              cpu: 10m
+              memory: 10Mi
           volumeMounts:
           - mountPath: /var/lib/rabbitmq
             name: ${SERVICE_NAME}-volume

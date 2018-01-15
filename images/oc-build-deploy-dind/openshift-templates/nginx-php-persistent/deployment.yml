@@ -101,8 +101,8 @@ objects:
               mountPath: ${PERSISTENT_STORAGE_PATH}
           resources:
             requests:
-              cpu: 100m
-              memory: 100Mi
+              cpu: 10m
+              memory: 10Mi
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/php:latest
           name: php
           ports:
@@ -133,8 +133,8 @@ objects:
               mountPath: ${PERSISTENT_STORAGE_PATH}
           resources:
             requests:
-              cpu: 100m
-              memory: 100Mi
+              cpu: 10m
+              memory: 10Mi
     test: false
     triggers:
     - type: ConfigChange
