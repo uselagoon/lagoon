@@ -30,12 +30,8 @@ const tableConfig = {
   },
 };
 
-// Common filter
-const onlyValues = ([, value]: [string, string]) =>
-  value != null && value !== '';
-
 const name = 'customer';
-const description = 'Show customer information for a given project id';
+const description = 'Show customer information for a given project name';
 
 export function setup(yargs: Yargs) {
   return yargs
@@ -110,24 +106,23 @@ GetCustomerInfoArgs): Promise<number> {
   const formatDeployPrivateKey = R.ifElse(
     R.identity,
     R.always('\u221A'),
-    R.always(''),
+    R.always('\u2717'),
   );
   const formatSshKeys = R.map(R.prop('name'));
 
   const tableBody = [
-    ['customer Name', R.prop('name', customer)],
+    ['Name', R.prop('name', customer)],
+    ['Comment', R.prop('comment', customer)],
     [
       'Deploy Private Key',
       formatDeployPrivateKey(R.prop('private_key', customer)),
     ],
-    ['Comment', R.prop('comment', customer)],
     ['SSH Keys', R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer)))],
     ['Created', R.prop('created', customer)],
   ];
-  const tableData = R.filter(onlyValues)(tableBody);
 
   clog(`Customer information for project '${project}'`);
-  clog(table(tableData, tableConfig));
+  clog(table(tableBody, tableConfig));
 
   return 0;
 }
