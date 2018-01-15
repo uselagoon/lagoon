@@ -109,7 +109,10 @@ images :=     centos7 \
 							varnish \
 							varnish-drupal \
 							redis \
-							mongo
+							mongo \
+							elasticsearch \
+							kibana \
+							logstash
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -142,6 +145,9 @@ build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/mongo: build/centos7 images/mongo/Dockerfile
+build/elasticsearch: build/commons images/elasticsearch/Dockerfile
+build/logstash: build/commons images/logstash/Dockerfile
+build/kibana: build/commons images/kibana/Dockerfile
 
 #######
 ####### PHP Images
@@ -276,9 +282,9 @@ services :=       api \
 									webhooks2tasks \
 									hacky-rest2tasks-ui \
 									rabbitmq \
-									elasticsearch \
-									kibana \
-									logstash \
+									logs-db \
+									logs-db-ui \
+									logs2logs-db \
 									mariadb \
 									drush-alias
 
@@ -294,6 +300,9 @@ $(build-services):
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
+build/logs2logs-db: build/logstash
+build/logs-db: build/elasticsearch
+build/logs-db-ui: build/kibana
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
