@@ -23,7 +23,7 @@ import init from './init';
 import login from './login';
 import logout from './logout';
 // import sites from './sites';
-import client from './client';
+import customer from './customer';
 // import site from './site';
 // import sitegroup from './sitegroup';
 import project from './project';
@@ -36,7 +36,7 @@ export default ([
   login,
   logout,
   // sites,
-  client,
+  customer,
   // site,
   // sitegroup,
   project,
