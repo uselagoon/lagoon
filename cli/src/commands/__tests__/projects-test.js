@@ -1,7 +1,7 @@
 // @flow
 
 import { runGQLQuery } from '../../query';
-import { projectDetails } from '../project';
+import { listProjects } from '../projects';
 
 jest.mock('../../query');
 
@@ -11,24 +11,25 @@ const mockErrorResponse = {
   errors: [{ message: 'something something error' }],
 };
 
-describe('projectDetails', () => {
+describe('listProjects', () => {
   const mockResponse1 = {
     data: {
-      projectByName: {
-        name: 'credentialstest-project1',
-        customer: {
-          name: 'credentialtest-customer1',
+      allProjects: [
+        {
+          name: 'credentialstest-project1',
+          git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+          branches: 'true',
+          pullrequests: null,
+          created: '2018-01-15 11:09:35',
         },
-        git_url: 'project1.git',
-        active_systems_deploy: 'lagoon_openshiftBuildDeploy',
-        active_systems_remove: 'lagoon_openshiftRemove',
-        branches: 'true',
-        pullrequests: null,
-        openshift: {
-          name: 'credentialtest-openshift',
+        {
+          name: 'credentialstest-project2',
+          git_url: 'ssh://git@192.168.99.1:2222/git/project2.git',
+          branches: 'true',
+          pullrequests: null,
+          created: '2018-01-15 11:09:35',
         },
-        created: '2018-01-15 11:09:35',
-      },
+      ],
     },
   };
 
@@ -39,8 +40,7 @@ describe('projectDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
-      project: 'some_project',
+    const code = await listProjects({
       clog,
       cerr,
     });
@@ -49,31 +49,29 @@ describe('projectDetails', () => {
     expect(cerr.mock.calls).toMatchSnapshot();
   });
 
-  it('should show error on missing project', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
+  it('should print notice on empty projects array', async () => {
+    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve([]));
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
-      project: 'not_existing',
+    const code = await listProjects({
       clog,
       cerr,
     });
 
-    expect(code).toBe(1);
+    expect(code).toBe(0);
     expect(clog.mock.calls).toMatchSnapshot();
   });
 
-  it('should show details for given project', async () => {
+  it('should list details for multiple projects', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve(mockResponse1));
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
-      project: 'myproject',
+    const code = await listProjects({
       clog,
       cerr,
     });
