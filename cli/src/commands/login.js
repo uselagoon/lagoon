@@ -73,7 +73,7 @@ Args): Promise<number> {
 
   const output = await sshExec(connection, 'login');
   const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
-  const tokenFilePath = path.join(homeDir, '.ioauth');
+  const tokenFilePath = path.join(homeDir, '.lagu-token');
   await writeFile(tokenFilePath, token);
 
   clog(green('Logged in successfully.'));
