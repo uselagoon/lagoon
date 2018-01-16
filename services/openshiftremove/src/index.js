@@ -13,6 +13,13 @@ initSendToLagoonTasks();
 
 const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
+const pause = (duration) => new Promise(res => setTimeout(res, duration));
+
+const retry = (retries, fn, delay = 1000) =>
+  fn().catch(err => retries > 1
+    ? pause(delay).then(() => retry(retries - 1, fn, delay))
+    : Promise.reject(err));
+
 const messageConsumer = async function(msg) {
   const {
     projectName,
@@ -84,6 +91,32 @@ const messageConsumer = async function(msg) {
 
   // Project exists, let's remove it
   try {
+    const deploymentconfigsGet = Promise.promisify(openshift.ns(openshiftProject).deploymentconfigs.get, { context: openshift.ns(openshiftProject).deploymentconfigs })
+    const deploymentconfigs = await deploymentconfigsGet()
+
+    for (let deploymentconfig of deploymentconfigs.items) {
+      const deploymentconfigsDelete = Promise.promisify(openshift.ns(openshiftProject).deploymentconfigs(deploymentconfig.metadata.name).delete, { context: openshift.ns(openshiftProject).deploymentconfigs(deploymentconfig.metadata.name) })
+      await deploymentconfigsDelete()
+      logger.info(`${openshiftProject}: Deleted DeploymentConfig ${deploymentconfig.metadata.name}`);
+    }
+
+    const hasZeroDeploymentConfigs = () => new Promise(async (resolve, reject) => {
+      const deploymentconfigs = await deploymentconfigsGet()
+      if (deploymentconfigs.items.length === 0) {
+        logger.info(`${openshiftProject}: All DeploymentConfigs deleted`);
+        resolve()
+      } else {
+        logger.info(`${openshiftProject}: Deploymentconfigs not deleted yet, will try again in 1sec`);
+        reject()
+      }
+    })
+
+    try {
+      await retry(10, hasZeroDeploymentConfigs, 1000)
+    } catch (err) {
+      throw new Error(`${openshiftProject}: Deploymentconfigs not deleted`)
+    }
+
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
     await projectsDelete()
     sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
