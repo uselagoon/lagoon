@@ -6,7 +6,7 @@ services:
       dockerfile: services/drush-alias/testing/Dockerfile
     environment:
       # Make sure to run lagoon with properly configured hiera repo
-      # otherwise the script will not find any data for the sitegroup
+      # otherwise the script will not find any data for the project
       - LAGOON_PROJECT=ci-drupal
       - LAGOON_OVERRIDE_SSH=192.168.99.1:2020
       - LAGOON_OVERRIDE_API=http://api:3000
