@@ -19,7 +19,7 @@ function _mock(fn: any): JestMockFn {
 
 describe('createConfig', () => {
   it('should write default config to given path', async () => {
-    createConfig('lagoon.yml', { sitegroup: 'your_sitegroup' });
+    createConfig('lagoon.yml', { project: 'your_project' });
 
     const [filename, data] = _mock(fs.writeFile).mock.calls[0];
 
@@ -71,7 +71,7 @@ describe('parseConfig', () => {
     const config = parseConfig(yamlContent.toString());
 
     const expected = {
-      sitegroup: 'amazee_io',
+      project: 'amazee_io',
       deploy_tasks: {
         development: {
           before_deploy: ['cmd1', 'cmd2'],
