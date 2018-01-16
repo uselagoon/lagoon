@@ -19,12 +19,12 @@ import { printErrors } from '../printErrors';
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
 
-const name = 'logout';
-const description =
+export const command = 'logout';
+export const description =
   'Invalidate the authentication token in $HOME/.ioauth and delete the file';
 
-export function setup(yargs: Yargs) {
-  return yargs.usage(`$0 ${name} - ${description}`).options({
+export function builder(yargs: Yargs) {
+  return yargs.usage(`$0 ${command} - ${description}`).options({
     identity: {
       describe: 'Path to identity (private key)',
       type: 'string',
@@ -37,7 +37,7 @@ type Args = BaseArgs & {
   identity: string,
 };
 
-export async function run({
+export async function handler({
   clog,
   cerr,
   identity: identityOption,
@@ -82,10 +82,3 @@ Args): Promise<number> {
 
   return 0;
 }
-
-export default {
-  setup,
-  name,
-  description,
-  run,
-};

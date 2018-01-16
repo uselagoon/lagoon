@@ -34,12 +34,12 @@ const tableConfig = {
 const onlyValues = ([, value]: [string, string]) =>
   value != null && value !== '';
 
-const name = 'project';
-const description = 'Show project details';
+export const command = 'project';
+export const description = 'Show project details';
 
-export function setup(yargs: Yargs): Yargs {
+export function builder(yargs: Yargs): Yargs {
   return yargs
-    .usage(`$0 ${name} - ${description}`)
+    .usage(`$0 ${command} - ${description}`)
     .options({
       project: {
         demandOption: false,
@@ -49,10 +49,10 @@ export function setup(yargs: Yargs): Yargs {
     })
     .alias('p', 'project')
     .example(
-      `$0 ${name}`,
+      `$0 ${command}`,
       'Show details for the project configured in .lagoon.yml',
     )
-    .example(`$0 ${name} myproject`, 'Show details of project "myproject"');
+    .example(`$0 ${command} myproject`, 'Show details of project "myproject"');
 }
 
 type projectDetailsArgs = {
@@ -128,7 +128,7 @@ type Args = BaseArgs & {
   project: ?string,
 };
 
-export async function run({
+export async function handler({
   clog,
   cerr,
   config,
@@ -147,10 +147,3 @@ Args): Promise<number> {
 
   return projectDetails({ projectName, clog, cerr });
 }
-
-export default {
-  setup,
-  name,
-  description,
-  run,
-};

@@ -11,8 +11,8 @@ import { printErrors } from '../printErrors';
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
 
-const name = 'init';
-const description =
+export const command = 'init';
+export const description =
   'Create a .lagoon.yml config file in the current working directory';
 
 type GetOverwriteOptionArgs = {
@@ -53,9 +53,9 @@ const getOverwriteOption = async (
     ],
   ])(args);
 
-export function setup(yargs: Yargs) {
+export function builder(yargs: Yargs) {
   return yargs
-    .usage(`$0 ${name} - ${description}`)
+    .usage(`$0 ${command} - ${description}`)
     .options({
       overwrite: {
         describe: 'Overwrite the configuration file if it exists',
@@ -69,27 +69,27 @@ export function setup(yargs: Yargs) {
       },
     })
     .example(
-      `$0 ${name}`,
+      `$0 ${command}`,
       'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a project name to add to the config.\n',
     )
     .example(
-      `$0 ${name} --overwrite`,
+      `$0 ${command} --overwrite`,
       'Overwrite existing config file (do not confirm with the user).\n',
     )
     .example(
-      `$0 ${name} --overwrite false`,
+      `$0 ${command} --overwrite false`,
       'Prevent overwriting of existing config file (do not confirm with user).\n',
     )
     .example(
-      `$0 ${name} --project my_project`,
+      `$0 ${command} --project my_project`,
       'Set project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${name} -s my_project`,
+      `$0 ${command} -s my_project`,
       'Short form for setting project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${name} --overwrite --project my_project`,
+      `$0 ${command} --overwrite --project my_project`,
       'Overwrite existing config files and set project to "my_project" (do not confirm with or prompt the user).',
     );
 }
@@ -99,7 +99,7 @@ type Args = BaseArgs & {
   project: ?string,
 };
 
-export async function run({
+export async function handler({
   cwd,
   overwrite: overwriteOption,
   project,
@@ -143,10 +143,3 @@ Args): Promise<number> {
 
   return 0;
 }
-
-export default {
-  setup,
-  name,
-  description,
-  run,
-};

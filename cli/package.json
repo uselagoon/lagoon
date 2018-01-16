@@ -74,7 +74,7 @@
     "table": "^4.0.1",
     "untildify": "^3.0.2",
     "util.promisify": "^1.0.0",
-    "yargs": "^10.0.3"
+    "yargs": "^10.1.1"
   },
   "jest": {
     "rootDir": "src"
