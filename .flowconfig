@@ -1,0 +1,19 @@
+# Keep this file in the root of the project to enable proper module resolution.
+# https://twitter.com/ryyppy/status/917287307912339456
+# https://github.com/thejameskyle/__flow-with-yarn-workspaces
+[ignore]
+.*node_modules/fbjs.*
+<PROJECT_ROOT>/images/
+<PROJECT_ROOT>/tests/
+# Too many errors as of now. Enable again when errors fixed.
+<PROJECT_ROOT>/services/
+<PROJECT_ROOT>/node-packages/
+
+[include]
+
+[libs]
+cli/flow-typed
+
+[options]
+suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
+suppress_comment=\\(.\\|\n\\)*\\$FlowIgnore
