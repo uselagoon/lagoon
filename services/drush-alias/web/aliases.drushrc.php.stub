@@ -115,7 +115,7 @@ if ($lagoonyml_path) {
   drush_log('Could not find .lagoon.yml file.');
 }
 
-// Sitegroup still not defined, trhow a warning.
+// Project still not defined, throw a warning.
 if ($project_name === FALSE) {
   drush_log('ERROR: Could not discover project name, you should define it inside your .lagoon.yml file', 'warning');
   return;

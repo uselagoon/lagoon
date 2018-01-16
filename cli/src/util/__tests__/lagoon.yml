@@ -1,4 +1,4 @@
-sitegroup: amazee_io
+project: amazee_io
 deploy_tasks:
   development:
     before_deploy:

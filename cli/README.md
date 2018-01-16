@@ -35,13 +35,13 @@ directory
 Options:
   --help           Show help                                           [boolean]
   --overwrite      Overwrite the configuration file if it exists       [boolean]
-  --sitegroup, -s  Name of sitegroup to configure                       [string]
+  --project, -s    Name of project to configure                       [string]
 
 Examples:
   io init                           Create a config file at ./.lagoon.yml.
                                     This will confirm with the user whether to
                                     overwrite the config if it already exists
-                                    and also prompt for a sitegroup name to add
+                                    and also prompt for a project name to add
                                     to the config.
 
   io init --overwrite               Overwrite existing config file (do not
@@ -50,14 +50,14 @@ Examples:
   io init --overwrite false         Prevent overwriting of existing config file
                                     (do not confirm with user).
 
-  io init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do not
+  io init --project my_project      Set project to "my_project" (do not
                                     prompt the user).
 
-  io init -s my_sitegroup           Short form for setting sitegroup to
-                                    "my_sitegroup" (do not prompt the user).
+  io init -s my_project             Short form for setting project to
+                                    "my_project" (do not prompt the user).
 
-  io init --overwrite --sitegroup   Overwrite existing config files and set
-  my_sitegroup                      sitegroup to "my_sitegroup" (do not confirm
+  io init --overwrite --project     Overwrite existing config files and set
+  my_project                        project to "my_project" (do not confirm
                                     with or prompt the user).
 ```
 
@@ -66,7 +66,7 @@ Examples:
 ```text
 $ io init
 ? File '/Users/Claudine/Projects/developermentify/.lagoon.yml' already exists! Overwrite? (y/N) y
-? Enter the name of the sitegroup to configure. my_sitegroup
+? Enter the name of the project to configure. my_project
 Creating file '/Users/Claudine/Projects/developermentify/.lagoon.yml'...
 Configuration file created!
 Done in 10.56s.
@@ -76,7 +76,7 @@ This will generate the following file:
 
 ```text
 $ cat .lagoon.yml
-sitegroup: my_sitegroup
+project: my_project
 deploy_tasks:
   task1:
     before_deploy: []
@@ -135,9 +135,9 @@ Done in 4.15s.
 ### `io sites`
 
 ```sh
-# List sites for the configured / given sitegroup
+# List sites for the configured / given project
 io sites
-io sites -s my_sitegroup
+io sites -s my_project
 ```
 
 #### `io sites` Examples
@@ -155,7 +155,7 @@ The `runCli.sh` script injects the necessary environment variables such as `proc
 For example:
 
 ```sh
-../runCli.sh -- init --overwrite false --sitegroup my_sitegroup
+../runCli.sh -- init --overwrite false --project my_project
 ```
 
 ## Development - inside docker
