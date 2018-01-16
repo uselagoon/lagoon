@@ -15,7 +15,7 @@ export type BaseArgs = {
 export type CommandModule = {
   name: string,
   description: string,
-  setup?: (yargs: Yargs) => Promise<Object>,
+  setup?: (yargs: Yargs) => Yargs,
   run: (argv: Object) => Promise<number>,
 };
 
