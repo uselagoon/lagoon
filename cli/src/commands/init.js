@@ -18,7 +18,7 @@ const description =
 type GetOverwriteOptionArgs = {
   exists: boolean,
   filepath: string,
-  overwriteOption?: boolean,
+  overwriteOption: ?boolean,
 };
 
 const getOverwriteOption = async (
