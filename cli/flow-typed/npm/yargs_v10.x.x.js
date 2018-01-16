@@ -93,6 +93,8 @@ declare module "yargs" {
 
     command(module: ModuleObject): this;
 
+    commandDir(dir: string, opts?: Object): this;
+
     completion(
       cmd: string,
       description?: string,
@@ -128,7 +130,7 @@ declare module "yargs" {
 
     demandOption(key: string | Array<string>, msg?: string | boolean): this;
 
-    demandCommand(min: number, minMsg?: string): this;
+    demandCommand(min?: number, minMsg?: string): this;
     demandCommand(
       min: number,
       max: number,
