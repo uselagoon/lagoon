@@ -1,7 +1,7 @@
 // @flow
 
 import { fileExists } from '../../util/fs';
-import { run } from '../init';
+import { handler } from '../init';
 
 jest.mock('fs');
 jest.mock('../../util/config');
@@ -11,7 +11,7 @@ function _mock(fn: any): JestMockFn {
   return fn;
 }
 
-describe('run', () => {
+describe('handler', () => {
   // TODO: Also write a test where it bails
   it('should overwrite existing config file if overwrite option passed as true', async () => {
     _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
@@ -20,7 +20,7 @@ describe('run', () => {
     const cerr = jest.fn();
     const cwd = 'some/path';
 
-    const code = await run({
+    const code = await handler({
       config: null,
       _: [],
       $0: '',
@@ -42,7 +42,7 @@ describe('run', () => {
     const cerr = jest.fn();
     const cwd = 'some/path';
 
-    const code = await run({
+    const code = await handler({
       config: null,
       _: [],
       $0: '',
@@ -64,7 +64,7 @@ describe('run', () => {
     const cerr = jest.fn();
     const cwd = 'some/path';
 
-    const code = await run({
+    const code = await handler({
       config: null,
       _: [],
       $0: '',

@@ -11,12 +11,12 @@ import { printGraphQLErrors } from '../printErrors';
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
 
-const name = 'projects';
-const description = 'List all projects';
+export const command = 'projects';
+export const description = 'List all projects';
 
-export function setup(yargs: Yargs) {
+export function builder(yargs: Yargs) {
   return yargs
-    .usage(`$0 ${name} - ${description}`)
+    .usage(`$0 ${command} - ${description}`)
     .example('$0', 'List all projects');
 }
 
@@ -79,13 +79,6 @@ ListProjectsArgs): Promise<number> {
   return 0;
 }
 
-export async function run({ clog, cerr }: BaseArgs): Promise<number> {
+export async function handler({ clog, cerr }: BaseArgs): Promise<number> {
   return listProjects({ clog, cerr });
 }
-
-export default {
-  setup,
-  name,
-  description,
-  run,
-};
