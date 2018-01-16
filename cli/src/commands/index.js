@@ -26,8 +26,6 @@ import customer from './customer';
 import project from './project';
 import projects from './projects';
 
-// Disable flowtype linting error because prettier formats to this
-// eslint-disable-next-line flowtype/generic-spacing
 export default ([init, login, logout, customer, project, projects]: Array<
   CommandModule,
 >);
