@@ -8,15 +8,15 @@ import styled from 'styled-components';
 import Subtitle from 'Subtitle';
 
 type RemoveFormProps = {
-  siteGroup: string,
-  setSiteGroup: Function,
+  project: string,
+  setProject: Function,
   openshiftRessourceAppName: string,
   setOpenshiftRessourceAppName: Function,
   doSubmitDeployRequest: Function,
   response: string,
 };
 
-const withSiteGroupState = withState('siteGroup', 'setSiteGroup', '');
+const withProjectState = withState('project', 'setProject', '');
 const withOpenshiftRessourceAppNameState = withState('openshiftRessourceAppName', 'setOpenshiftRessourceAppName', '');
 const withResponseState = withState('response', 'setResponse', '');
 
@@ -26,11 +26,11 @@ const Input = styled.input`
 `;
 
 const withFormHandlers = withHandlers({
-  setSiteGroup: props => event => props.setSiteGroup(event.target.value),
+  setProject: props => event => props.setProject(event.target.value),
   setOpenshiftRessourceAppName: props => event => props.setOpenshiftRessourceAppName(event.target.value),
-  doSubmitDeployRequest: props => async (siteGroup, openshiftRessourceAppName) => {
+  doSubmitDeployRequest: props => async (project, openshiftRessourceAppName) => {
     const data = {
-      siteGroupname: PROJECT,
+      projectname: PROJECT,
       openshiftRessourceAppName: openshiftRessourceAppName,
     };
     const response = await global.fetch(`${process.env.REST2TASKS_URL}/remove`, {
@@ -50,8 +50,8 @@ const withFormHandlers = withHandlers({
 });
 
 const RemoveForm = ({
-  siteGroup,
-  setSiteGroup,
+  project,
+  setProject,
   openshiftRessourceAppName,
   setOpenshiftRessourceAppName,
   response,
@@ -62,16 +62,16 @@ const RemoveForm = ({
     <form
       onSubmit={e => {
         e.preventDefault();
-        doSubmitDeployRequest(siteGroup, openshiftRessourceAppName);
+        doSubmitDeployRequest(project, openshiftRessourceAppName);
       }}
     >
-      <label name="siteGroup" htmlFor="siteGroup">Sitegroup Name:</label>
+      <label name="project" htmlFor="project">Project Name:</label>
       <Input
         type="text"
-        name="siteGroup"
-        id="siteGroup"
-        value={siteGroup}
-        onChange={setSiteGroup}
+        name="project"
+        id="project"
+        value={project}
+        onChange={setProject}
         required
       />
       <label name="openshiftRessourceAppName" htmlFor="openshiftRessourceAppName">OpenshiftRessourceAppName:</label>
@@ -92,7 +92,7 @@ const RemoveForm = ({
 );
 
 export default compose(
-  withSiteGroupState,
+  withProjectState,
   withOpenshiftRessourceAppNameState,
   withResponseState,
   withFormHandlers,
