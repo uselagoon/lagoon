@@ -21,7 +21,7 @@ import type { BaseArgs } from '.';
 
 export const command = 'logout';
 export const description =
-  'Invalidate the authentication token in $HOME/.ioauth and delete the file';
+  'Invalidate the authentication token in $HOME/.lagu-token and delete the file';
 
 export function builder(yargs: Yargs) {
   return yargs.usage(`$0 ${command} - ${description}`).options({
@@ -70,7 +70,7 @@ Args): Promise<number> {
   });
 
   await sshExec(connection, 'logout');
-  const tokenFilePath = path.join(homeDir, '.ioauth');
+  const tokenFilePath = path.join(homeDir, '.lagu-token');
   if (await fileExists(tokenFilePath)) {
     await unlink(tokenFilePath);
   }
