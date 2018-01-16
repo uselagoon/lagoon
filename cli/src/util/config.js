@@ -20,7 +20,7 @@ export type AmazeeConfig = {
 };
 
 export type AmazeeConfigInput = {
-  sitegroup: string,
+  project: string,
 };
 
 export function createConfig(

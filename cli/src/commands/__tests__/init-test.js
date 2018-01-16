@@ -28,7 +28,7 @@ describe('run', () => {
       clog,
       cerr,
       overwrite: true,
-      sitegroup: 'test',
+      project: 'test_project',
     });
 
     expect(code).toBe(0);
@@ -50,7 +50,7 @@ describe('run', () => {
       clog,
       cerr,
       overwrite: false,
-      sitegroup: 'test',
+      project: 'test_project',
     });
 
     expect(code).toBe(1);
@@ -72,7 +72,7 @@ describe('run', () => {
       clog,
       cerr,
       overwrite: false,
-      sitegroup: 'test',
+      project: 'test_project',
     });
 
     expect(code).toBe(0);

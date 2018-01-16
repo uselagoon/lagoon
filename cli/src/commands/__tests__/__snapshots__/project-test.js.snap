@@ -16,7 +16,7 @@ Array [
 exports[`projectDetails should show details for given project 1`] = `
 Array [
   Array [
-    "Project details for 'undefined':",
+    "Project details for 'myproject':",
   ],
   Array [
     "╔═══════════════════════╤═════════════════════════════╗
@@ -46,7 +46,7 @@ Array [
 exports[`projectDetails should show error on missing project 1`] = `
 Array [
   Array [
-    "[31mNo project 'undefined' found![39m",
+    "[31mNo project 'not_existing' found![39m",
   ],
 ]
 `;

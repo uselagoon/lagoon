@@ -40,7 +40,7 @@ describe('projectDetails', () => {
     const cerr = jest.fn();
 
     const code = await projectDetails({
-      project: 'some_project',
+      projectName: 'some_project',
       clog,
       cerr,
     });
@@ -56,7 +56,7 @@ describe('projectDetails', () => {
     const cerr = jest.fn();
 
     const code = await projectDetails({
-      project: 'not_existing',
+      projectName: 'not_existing',
       clog,
       cerr,
     });
@@ -73,7 +73,7 @@ describe('projectDetails', () => {
     const cerr = jest.fn();
 
     const code = await projectDetails({
-      project: 'myproject',
+      projectName: 'myproject',
       clog,
       cerr,
     });

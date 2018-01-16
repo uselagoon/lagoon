@@ -62,15 +62,15 @@ export function setup(yargs: Yargs) {
         type: 'boolean',
         default: undefined,
       },
-      sitegroup: {
-        describe: 'Name of sitegroup to configure',
+      project: {
+        describe: 'Name of project to configure',
         type: 'string',
         alias: 's',
       },
     })
     .example(
       `$0 ${name}`,
-      'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a sitegroup name to add to the config.\n',
+      'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a project name to add to the config.\n',
     )
     .example(
       `$0 ${name} --overwrite`,
@@ -81,28 +81,28 @@ export function setup(yargs: Yargs) {
       'Prevent overwriting of existing config file (do not confirm with user).\n',
     )
     .example(
-      `$0 ${name} --sitegroup my_sitegroup`,
-      'Set sitegroup to "my_sitegroup" (do not prompt the user).\n',
+      `$0 ${name} --project my_project`,
+      'Set project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${name} -s my_sitegroup`,
-      'Short form for setting sitegroup to "my_sitegroup" (do not prompt the user).\n',
+      `$0 ${name} -s my_project`,
+      'Short form for setting project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${name} --overwrite --sitegroup my_sitegroup`,
-      'Overwrite existing config files and set sitegroup to "my_sitegroup" (do not confirm with or prompt the user).',
+      `$0 ${name} --overwrite --project my_project`,
+      'Overwrite existing config files and set project to "my_project" (do not confirm with or prompt the user).',
     );
 }
 
 type Args = BaseArgs & {
   overwrite: ?boolean,
-  sitegroup: ?string,
+  project: ?string,
 };
 
 export async function run({
   cwd,
   overwrite: overwriteOption,
-  sitegroup,
+  project,
   clog,
   cerr,
 }:
@@ -121,15 +121,15 @@ Args): Promise<number> {
     return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
   }
 
-  const configInput = sitegroup
-    ? { sitegroup }
+  const configInput = project
+    ? { project }
     : await inquirer.prompt([
       {
         type: 'input',
-        name: 'sitegroup',
-        message: 'Enter the name of the sitegroup to configure.',
+        name: 'project',
+        message: 'Enter the name of the project to configure.',
         validate: input =>
-          input ? Boolean(input) : 'Please enter a sitegroup.',
+          input ? Boolean(input) : 'Please enter a project.',
       },
     ]);
 
