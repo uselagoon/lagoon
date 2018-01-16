@@ -210,7 +210,7 @@ declare module "yargs" {
 
     pkgConf(key: string, cwd?: string): this;
 
-    positional(message: string, opts?: object): this;
+    positional(message: string, opts?: Object): this;
 
     recommendCommands(): this;
 
