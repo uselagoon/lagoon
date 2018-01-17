@@ -51,11 +51,13 @@ EOF
 		echo "FLUSH PRIVILEGES;" >> $tfile
 	fi
 
-echo $tfile
-cat $tfile
-
 	/usr/bin/mysqld --bootstrap --verbose=0 < $tfile
 	rm -v -f $tfile
+
+	echo "[client]" >> /var/lib/mysql/.my.cnf
+	echo "user=root" >> /var/lib/mysql/.my.cnf
+	echo "password=$MYSQL_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
+
 fi
 
 # execute any pre-exec scripts, useful for images
