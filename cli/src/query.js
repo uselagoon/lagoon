@@ -34,7 +34,7 @@ export async function runGQLQuery(args: QLQueryArgs): Object {
   };
 
   if (!headers.Authorization) {
-    const tokenFile = path.join(os.homedir(), '.lagu-token');
+    const tokenFile = path.join(os.homedir(), '.lagoon-token');
     const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {

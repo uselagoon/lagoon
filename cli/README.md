@@ -2,7 +2,7 @@
 
 ## Installation
 
-Install `io` with either `npm` or `yarn`.
+Install the CLI with either `npm` or `yarn`.
 
 ```sh
 # Either npm...
@@ -14,22 +14,22 @@ yarn global add @lagoon/cli
 
 ## Setup
 
-`io` needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#io-init):
+The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagoon-init):
 
 ```sh
 # Initialize project configuration
-io init
+lagoon init
 ```
 
-For more options, see the [`io init` documentation](#io-init).
+For more options, see the [`lagoon init` documentation](#lagoon-init).
 
 ## Commands
 
-### `io init`
+### `lagoon init`
 
 ```text
-$ io init --help
-io init - Create a .lagoon.yml config file in the current working
+$ lagoon init --help
+lagoon init - Create a .lagoon.yml config file in the current working
 directory
 
 Options:
@@ -38,33 +38,33 @@ Options:
   --project, -s    Name of project to configure                       [string]
 
 Examples:
-  io init                           Create a config file at ./.lagoon.yml.
+  lagoon init                           Create a config file at ./.lagoon.yml.
                                     This will confirm with the user whether to
                                     overwrite the config if it already exists
                                     and also prompt for a project name to add
                                     to the config.
 
-  io init --overwrite               Overwrite existing config file (do not
+  lagoon init --overwrite               Overwrite existing config file (do not
                                     confirm with the user).
 
-  io init --overwrite false         Prevent overwriting of existing config file
+  lagoon init --overwrite false         Prevent overwriting of existing config file
                                     (do not confirm with user).
 
-  io init --project my_project      Set project to "my_project" (do not
+  lagoon init --project my_project      Set project to "my_project" (do not
                                     prompt the user).
 
-  io init -s my_project             Short form for setting project to
+  lagoon init -s my_project             Short form for setting project to
                                     "my_project" (do not prompt the user).
 
-  io init --overwrite --project     Overwrite existing config files and set
+  lagoon init --overwrite --project     Overwrite existing config files and set
   my_project                        project to "my_project" (do not confirm
                                     with or prompt the user).
 ```
 
-#### `io init` Examples
+#### `lagoon init` Examples
 
 ```text
-$ io init
+$ lagoon init
 ? File '/Users/Claudine/Projects/developermentify/.lagoon.yml' already exists! Overwrite? (y/N) y
 ? Enter the name of the project to configure. my_project
 Creating file '/Users/Claudine/Projects/developermentify/.lagoon.yml'...
@@ -83,11 +83,11 @@ deploy_tasks:
     after_deploy: []
 ```
 
-### `io login`
+### `lagoon login`
 
 ```text
-$ io login --help
-io login - Authenticate with amazee.io via an SSH key
+$ lagoon login --help
+lagoon login - Authenticate with amazee.io via an SSH key
 
 Options:
   --help          Show help                                            [boolean]
@@ -96,12 +96,12 @@ Options:
 Done in 1.86s.
 ```
 
-#### `io login` Examples
+#### `lagoon login` Examples
 
 By default, the login command uses the SSH private key at `$HOME/.ssh/id_rsa`.
 
 ```text
-$ io login
+$ lagoon login
 Login successful
 Done in 1.28s.
 ```
@@ -109,7 +109,7 @@ Done in 1.28s.
 If that file does not exist, the user will be prompted for the path:
 
 ```text
-$ io login
+$ lagoon login
 ? Path to private key file /path/to/id_rsa
 Login successful
 Done in 3.42s.
@@ -118,7 +118,7 @@ Done in 3.42s.
 The path to the key can be also passed in via the `--identity` option (short form `-i`):
 
 ```text
-$ io login -i /path/to/id_rsa
+$ lagoon login -i /path/to/id_rsa
 Login successful
 Done in 1.70s.
 ```
@@ -126,21 +126,21 @@ Done in 1.70s.
 If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
-$ io login -i /path/to/id_rsa
+$ lagoon login -i /path/to/id_rsa
 ? Private key passphrase (never saved) [hidden]
 Login successful
 Done in 4.15s.
 ```
 
-### `io sites`
+### `lagoon sites`
 
 ```sh
 # List sites for the configured / given project
-io sites
-io sites -s my_project
+lagoon sites
+lagoon sites -s my_project
 ```
 
-#### `io sites` Examples
+#### `lagoon sites` Examples
 
 TODO: Make examples
 

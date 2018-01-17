@@ -1,10 +1,10 @@
 {
-  "name": "@lagoon/lagoon-cli",
+  "name": "@lagoon/cli",
   "version": "0.1.0",
-  "description": "Lagoon Commandline Tool",
+  "description": "Lagoon Command Line Interface",
   "main": "./dist/cli.js",
   "bin": {
-    "io": "./dist/cli.js"
+    "lagoon": "./dist/cli.js"
   },
   "files": ["dist"],
   "scripts": {
