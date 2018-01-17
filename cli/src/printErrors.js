@@ -30,14 +30,14 @@ export function printErrors(
 export function printNoConfigError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    '.lagoon.yml config file not found. Please create one with "io init".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    '.lagoon.yml config file not found. Please create one with "lagoon init".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-init',
   );
 }
 
 export function printProjectConfigurationError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    'No project configured. Please create a .lagoon.yml config file with "io init" or pass a project to this command via the --project option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    'No project configured. Please create a .lagoon.yml config file with "lagoon init" or pass a project to this command via the --project option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-init',
   );
 }
 
@@ -50,7 +50,7 @@ export function printGraphQLErrors(
   ) {
     return printErrors(
       cerr,
-      'No authentication token found. Please log in first with "io login".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login',
+      'No authentication token found. Please log in first with "lagoon login".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-login',
     );
   }
   const errorMessage =
