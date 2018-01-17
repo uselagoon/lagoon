@@ -15,7 +15,7 @@ if [ -d /var/lib/mysql/mysql ]; then
 else
 	echo "[i] MySQL data directory not found, creating initial DBs"
 
-	mysql_install_db
+	mysql_install_db --skip-name-resolve
 
 	if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
 		MYSQL_ROOT_PASSWORD=`pwgen 16 1`
@@ -33,11 +33,10 @@ else
 
 	cat << EOF > $tfile
 USE mysql;
+
+UPDATE user SET PASSWORD=PASSWORD("$MYSQL_ROOT_PASSWORD") WHERE user="root";
 FLUSH PRIVILEGES;
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-UPDATE user SET password=PASSWORD("$MYSQL_ROOT_PASSWORD") WHERE user='root';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
-UPDATE user SET password=PASSWORD("") WHERE user='root' AND host='localhost';
+
 EOF
 
 	if [ "$MYSQL_DATABASE" != "" ]; then
@@ -48,10 +47,15 @@ EOF
 		echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
 		echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
 	    fi
+
+		echo "FLUSH PRIVILEGES;" >> $tfile
 	fi
 
+echo $tfile
+cat $tfile
+
 	/usr/bin/mysqld --bootstrap --verbose=0 < $tfile
-	rm -f $tfile
+	rm -v -f $tfile
 fi
 
 # execute any pre-exec scripts, useful for images
