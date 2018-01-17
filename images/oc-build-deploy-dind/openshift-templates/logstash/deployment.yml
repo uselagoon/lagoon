@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-logstash
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -58,15 +58,15 @@ objects:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 5601
+          - containerPort: 9600
             protocol: TCP
           readinessProbe:
             httpGet:
-              port: 5601
+              port: 9600
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              port: 5601
+              port: 9600
             initialDelaySeconds: 120
           envFrom:
           - configMapRef:
@@ -87,38 +87,3 @@ objects:
           name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: 5601-tcp
-      port: 5601
-      protocol: TCP
-      targetPort: 5601
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Route
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    host: ${SERVICE_ROUTER_URL}
-    port:
-      targetPort: 5601-tcp
-    to:
-      kind: Service
-      name: ${SERVICE_NAME}

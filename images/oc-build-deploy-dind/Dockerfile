@@ -1,4 +1,11 @@
+FROM golang:alpine as golang
+
+RUN apk add --no-cache git
+RUN go get github.com/a8m/envsubst/cmd/envsubst
+
 FROM docker:stable
+
+COPY --from=golang /go/bin/envsubst /bin/envsubst
 
 ENV OC_VERSION=v3.6.0 \
     OC_HASH=c4dd4cf \
@@ -15,7 +22,6 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
 		/usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
 		echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
 		rm -rf glibc.apk glibc-bin.apk /var/cache/apk/*  && \
-
 		apk add --no-cache bash git openssh py-pip && \
 		git config --global user.email "lagoon@lagoon.io" && git config --global user.name lagoon && \
     pip install shyaml && \
