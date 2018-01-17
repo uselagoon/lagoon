@@ -15,8 +15,6 @@ if [ -d /var/lib/mysql/mysql ]; then
 else
 	echo "[i] MySQL data directory not found, creating initial DBs"
 
-	# chown -R mysql:mysql /var/lib/mysql
-
 	mysql_install_db
 
 	if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
