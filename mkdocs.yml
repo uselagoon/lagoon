@@ -4,12 +4,11 @@ pages:
 - Home: index.md
 - Using Lagoon:
   - Getting Started: using_lagoon/getting_started.md
-  - Running Lagoon Projects Locally: using_lagoon/running_locally.md
   - Deploying Lagoon Projects: using_lagoon/deploying.md
 - Administration:
   - Administering Lagoon: administering_lagoon/index.md
   - Installing Lagoon: administering_lagoon/install.md
-  - GraphQL API: administering_lagoon/graphql_examples.md
+  - GraphQL API: administering_lagoon/graphql_api.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md
