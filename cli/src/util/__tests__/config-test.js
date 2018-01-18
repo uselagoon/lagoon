@@ -1,7 +1,7 @@
 // @flow
 
 import path from 'path';
-import { createConfig, findConfig, parseConfig } from '../config';
+import { createConfig, parseConfig } from '../config';
 
 const fs = require('../fs');
 
@@ -25,42 +25,6 @@ describe('createConfig', () => {
 
     expect(filename).toBe('lagoon.yml');
     expect(data).toMatchSnapshot();
-  });
-});
-
-describe('findConfig', () => {
-  it('should find config several levels above cwd', async () => {
-    // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
-    fs.fileExists = jest
-      .fn()
-      .mockImplementation(fileExistsMock('/some/project/lagoon.yml'));
-
-    const cwd = path.resolve('/some/project/level1/level2/level3');
-    const result = await findConfig('lagoon.yml', cwd);
-
-    expect(result).toBe('/some/project/lagoon.yml');
-  });
-
-  it('should start at root, check and return null', async () => {
-    // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
-    fs.fileExists = jest
-      .fn()
-      .mockImplementation(fileExistsMock('/some/project/lagoon.yml'));
-    const cwd = path.resolve('/');
-    const result = await findConfig('lagoon.yml', cwd);
-
-    expect(result).toBeNull();
-  });
-
-  it('should step through subfolders until root and return null', async () => {
-    // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
-    fs.fileExists = jest
-      .fn()
-      .mockImplementation(fileExistsMock('/some/sub/project/lagoon.yml'));
-    const cwd = path.resolve('/some/sub');
-    const result = await findConfig('lagoon.yml', cwd);
-
-    expect(result).toBeNull();
   });
 });
 

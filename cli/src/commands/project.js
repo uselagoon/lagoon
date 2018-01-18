@@ -3,6 +3,7 @@
 import { table } from 'table';
 import R from 'ramda';
 
+import { visit } from '../cli';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
 import {
@@ -52,7 +53,8 @@ export function builder(yargs: Yargs): Yargs {
       `$0 ${command}`,
       'Show details for the project configured in .lagoon.yml',
     )
-    .example(`$0 ${command} myproject`, 'Show details of project "myproject"');
+    .example(`$0 ${command} myproject`, 'Show details of project "myproject"')
+    .commandDir('projectCommands', { visit });
 }
 
 type projectDetailsArgs = {
@@ -68,7 +70,7 @@ export async function projectDetails({
 }:
 projectDetailsArgs): Promise<number> {
   const query = gql`
-    query queryProject($project: String!) {
+    query ProjectByName($project: String!) {
       projectByName(name: $project) {
         name
         customer {

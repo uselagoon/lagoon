@@ -31,7 +31,7 @@ export async function listProjects({
 }:
 ListProjectsArgs): Promise<number> {
   const query = gql`
-    query queryProjects {
+    query AllProjects {
       allProjects {
         name
         git_url

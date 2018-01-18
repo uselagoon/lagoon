@@ -26,5 +26,7 @@ module.exports = {
     'no-mixed-operators': 'off',
     // Rule to prevent prefixing of underscores on variable names. We disable this because we use some underscore prefixes in our code.
     'no-underscore-dangle': 'off',
+    // Disable stylistic rule
+    'no-use-before-define': 'off',
   },
 };
