@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-varnish
+  name: lagoon-openshift-template-elasticsearch
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -58,21 +58,16 @@ objects:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 8080
+          - containerPort: 9200
             protocol: TCP
           readinessProbe:
             httpGet:
-              path: /varnish_status
-              port: 8080
-            initialDelaySeconds: 5
-            timeoutSeconds: 3
+              port: 9200
+            initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              path: /varnish_status
-              port: 8080
-            initialDelaySeconds: 90
-            timeoutSeconds: 3
-            failureThreshold: 5
+              port: 9200
+            initialDelaySeconds: 120
           envFrom:
           - configMapRef:
               name: lagoon-env
@@ -80,6 +75,13 @@ objects:
             requests:
               cpu: 10m
               memory: 10Mi
+          volumeMounts:
+          - mountPath: /usr/share/elasticsearch/data
+            name: ${SERVICE_NAME}
+        volumes:
+        - name: ${SERVICE_NAME}
+          persistentVolumeClaim:
+            claimName: ${SERVICE_NAME}
     test: false
     triggers:
     - type: ConfigChange
@@ -91,3 +93,4 @@ objects:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
       type: ImageChange
+  status: {}

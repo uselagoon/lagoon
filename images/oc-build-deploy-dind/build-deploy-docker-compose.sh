@@ -65,7 +65,8 @@ do
     # allow to overwrite image that we pull
     OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
     if [ ! $OVERRIDE_IMAGE == "false" ]; then
-      PULL_IMAGE=$OVERRIDE_IMAGE
+      # expand environment variables from ${OVERRIDE_IMAGE}
+      PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
     fi
 
     . /scripts/exec-pull-tag.sh
@@ -251,8 +252,14 @@ do
 
   . /scripts/exec-openshift-resources.sh
 
+  # Generate cronjobs if service type defines them
+  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    . /scripts/exec-openshift-resources.sh
+  fi
 
-  ### CRONJOBS
+  ### CUSTOM CRONJOBS
 
   # Save the current deployment template parameters so we can reuse them for cronjobs
   DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
@@ -278,7 +285,7 @@ do
       TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
       TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
 
-      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjob.yml"
+      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
       if [ ! -f $OPENSHIFT_TEMPLATE ]; then
         echo "No cronjob Template for service type ${SERVICE_TYPE} found"; exit 1;
       fi
