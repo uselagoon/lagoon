@@ -23,19 +23,8 @@ export async function createProject({
 }:
 createProjectArgs): Promise<number> {
   const mutation = gql`
-    mutation AddProject($name: String!) {
-      addProject(
-        input: {
-          name: $name
-          customer: 1
-          git_url: "https://example.com"
-          active_systems_deploy: ""
-          active_systems_remove: ""
-          branches: "master"
-          pullrequests: false
-          openshift: 1
-        }
-      ) {
+    mutation AddProject($input: ProjectInput!) {
+      addProject(input: $input) {
         id
         name
         customer {
@@ -64,12 +53,25 @@ createProjectArgs): Promise<number> {
       message: 'Project name:',
       validate: input => Boolean(input) || 'Please enter a project name.',
     },
+    {
+      type: 'input',
+      name: 'git_url',
+      message: 'Git URL:',
+      validate: input => Boolean(input) || 'Please enter a Git URL.',
+    },
   ]);
 
   // TODO: Also add a mutation property
   const result = await runGQLQuery({
     query: mutation,
-    variables: { name: projectInput.name },
+    variables: {
+      input: {
+        ...projectInput,
+        // FIXME: Get the customer ID from the JWT or config or something
+        customer: 1,
+        openshift: 1,
+      },
+    },
   });
 
   console.log(result);
