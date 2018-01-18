@@ -3,10 +3,7 @@ FROM alpine
 MAINTAINER amazee.io
 ENV BACKUPS_DIR="/mnt/backups"
 
-RUN touch /amazeeio
-
-RUN apk add --update --no-cache bash ca-certificates curl gzip tar unzip wget && rm -rf /var/cache/apk/*
-RUN apk add --update --no-cache mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
+RUN apk add --no-cache mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
 
 RUN set -xe; \
     mkdir -p      /var/run/mysqld /var/lib/mysql /etc/mysql /etc/mysql/conf.d /etc/mysql/ "${BACKUPS_DIR}"; \
