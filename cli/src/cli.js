@@ -5,11 +5,12 @@
 import 'babel-polyfill';
 import fs from 'fs';
 import path from 'path';
+import findup from 'findup-sync';
 import yargs from 'yargs';
-import { readFile } from './util/fs';
-import { findConfig, parseConfig } from './util/config';
+import { parseConfig } from './util/config';
 import { printErrors } from './printErrors';
 
+import type { Argv } from 'yargs';
 import type { AmazeeConfig } from './util/config';
 
 type Yargs = typeof yargs;
@@ -21,17 +22,20 @@ export type CommandModule = {
   handler: (argv: Object) => Promise<number>,
 };
 
+const cwd = process.cwd();
+const config = readConfig();
+
 /**
  * Finds and reads the lagoon.yml file
  */
-async function readConfig(cwd: string): Promise<?AmazeeConfig> {
-  const configPath = await findConfig('.lagoon.yml', cwd);
+function readConfig(): ?AmazeeConfig {
+  const configPath = findup('.lagoon.yml');
 
   if (configPath == null) {
     return null;
   }
 
-  const yamlContent = await readFile(configPath);
+  const yamlContent = fs.readFileSync(configPath);
   return parseConfig(yamlContent.toString());
 }
 
@@ -48,46 +52,41 @@ function errorQuit(err: Error | Object | string, prefix: string) {
   process.exit(exitCode);
 }
 
-export async function runCLI(cwd: string) {
-  try {
-    const config = await readConfig(cwd);
+// Use the visit option (of `node-require-directory`) to provide a visitor function
+// Ref: https://github.com/yargs/yargs/blob/0942a1518aad77656c135439194f8f825bd8b33a/test/command.js#L570-L599
+// Ref (node-require-directory): https://github.com/troygoode/node-require-directory#visiting-objects-as-theyre-loaded
+// Ref (node-require-directory): https://github.com/troygoode/node-require-directory/blob/f043664108f4a4cdb9a1c10e42268d6db754c855/test/test.js#L161-L171
+export function visit(cmd: CommandModule) {
+  return JSON.stringify(cmd) === '{}'
+    ? // If the cmd module is an empty object, just return the object
+    cmd
+    : // If the cmd module isn't empty, modify the handler function by currying in some
+    // parameters that we need and providing fulfillment and rejection callback
+    // functions for the promise.
+    {
+      ...cmd,
+      handler: (argv: Argv) =>
+        cmd
+          .handler({
+            ...argv,
+            cwd,
+            config,
+            clog: console.log,
+            cerr: console.error,
+          })
+          .catch(err =>
+            errorQuit(err, `Uncaught error in ${cmd.command} command:`))
+          .then(code => process.exit(code)),
+    };
+}
 
+export async function runCLI() {
+  try {
     // eslint-disable-next-line no-unused-expressions
     yargs
       // Use yargs.commandDir method to initialize a directory of commands
       // Ref: https://github.com/yargs/yargs/blob/e87f4873012e3541325e7ec6dafb11a93b5717e0/docs/advanced.md#commanddirdirectory-opts
-      .commandDir('commands', {
-        // Use the visit option (of `node-require-directory`) to provide a visitor function
-        // Ref: https://github.com/yargs/yargs/blob/0942a1518aad77656c135439194f8f825bd8b33a/test/command.js#L570-L599
-        // Ref (node-require-directory): https://github.com/troygoode/node-require-directory#visiting-objects-as-theyre-loaded
-        // Ref (node-require-directory): https://github.com/troygoode/node-require-directory/blob/f043664108f4a4cdb9a1c10e42268d6db754c855/test/test.js#L161-L171
-        visit(cmd: CommandModule) {
-          return JSON.stringify(cmd) === '{}'
-            ? // If the cmd module is an empty object, just return the object
-            cmd
-            : // If the cmd module isn't empty, modify the handler function by currying in some
-            // parameters that we need and providing fulfillment and rejection callback
-            // functions for the promise.
-            {
-              ...cmd,
-              handler: argv =>
-                cmd
-                  .handler({
-                    ...argv,
-                    cwd,
-                    config,
-                    clog: console.log,
-                    cerr: console.error,
-                  })
-                  .catch(err =>
-                    errorQuit(
-                      err,
-                      `Uncaught error in ${cmd.command} command:`,
-                    ))
-                  .then(code => process.exit(code)),
-            };
-        },
-      })
+      .commandDir('commands', { visit })
       .demandCommand()
       .strict()
       .help().argv;
@@ -102,10 +101,10 @@ export async function runCLI(cwd: string) {
  * version of the CLI.
  */
 if (require.main === module) {
-  const cwd = process.cwd();
   let currDir = cwd;
   let lastDir = null;
   let main = runCLI;
+
   while (currDir !== lastDir) {
     const localCLIPath = path.join(
       currDir,
@@ -125,5 +124,5 @@ if (require.main === module) {
     currDir = path.resolve(currDir, '..');
   }
 
-  main(cwd);
+  main();
 }

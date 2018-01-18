@@ -67,7 +67,7 @@ export async function getCustomerDetails({
 }:
 GetCustomerDetailsArgs): Promise<number> {
   const query = gql`
-    query queryCustomer($project: String!) {
+    query CustomerByProjectName($project: String!) {
       projectByName(name: $project) {
         customer {
           name
