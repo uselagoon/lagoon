@@ -25,7 +25,7 @@ RUN set -xe; \
 
 # USER mysql
 
-COPY docker-entrypoint.sh /
+COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
 COPY my.cnf /etc/mysql/my.cnf
 
 
@@ -34,4 +34,4 @@ WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
 EXPOSE 3306
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/lagoon/entrypoints.sh"]
