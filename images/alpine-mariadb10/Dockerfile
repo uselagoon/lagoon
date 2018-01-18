@@ -16,7 +16,7 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 MAINTAINER amazee.io
 ENV BACKUPS_DIR="/var/lib/mysql/backup"
 
-RUN apk add --no-cache mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
+RUN apk add --no-cache bash mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
 
 RUN set -xe; \
     mkdir -p      /var/run/mysqld /var/lib/mysql /etc/mysql /etc/mysql/conf.d /etc/mysql/ "${BACKUPS_DIR}"; \
