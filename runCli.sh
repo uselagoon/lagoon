@@ -27,7 +27,8 @@ function version_gt() {
 if [[ $@ =~ login|logout && ! $@ =~ ^.*(--identity\ |-i\ ).*$ ]]; then
   ARGS="--identity $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/local-dev/cli_id_rsa"
 
-  if version_gt "$(yarn -v)" 2 && [[ $@ =~ ^[^-][^-] ]]; then
+  # Only use `--` prefix if the Yarn version is less than 1
+  if version_gt 1 "$(yarn -v)" && [[ $@ =~ ^[^-][^-] ]]; then
     PREFIX="--"
   fi
 fi
