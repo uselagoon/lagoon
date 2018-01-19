@@ -1,6 +1,8 @@
 // @flow
 
 import inquirer from 'inquirer';
+import urlRegex from 'url-regex';
+
 import gql from '../../gql';
 import { runGQLQuery } from '../../query';
 
@@ -57,7 +59,13 @@ createProjectArgs): Promise<number> {
       type: 'input',
       name: 'git_url',
       message: 'Git URL:',
-      validate: input => Boolean(input) || 'Please enter a Git URL.',
+      validate: input =>
+        // Verify that it is a valid URL and...
+        (urlRegex({ exact: true }).test(input) &&
+          // ...that it is either a URL from the big three git hosts or includes `.git` at the end of the string.
+          /(github\.com|bitbucket\.org|gitlab\.com|\.git$)/.test(input)) ||
+        // If the input is invalid, prompt the user to enter a valid Git URL
+        'Please enter a valid Git URL.',
     },
   ]);
 
