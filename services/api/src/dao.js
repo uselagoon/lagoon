@@ -22,8 +22,7 @@
 const R = require('ramda');
 
 // Useful for creating extra if-conditions for non-admins
-const ifNotAdmin = (role, str) =>
-  R.ifElse(R.equals('admin'), R.always(''), R.always(str))(role);
+const ifNotAdmin = (role, str) => R.ifElse(R.equals('admin'), R.always(''), R.always(str))(role);
 
 // Creates a WHERE statement with AND inbetween non-empty conditions
 const whereAnd = whereConds =>
@@ -31,9 +30,8 @@ const whereAnd = whereConds =>
     R.reduce((ret, str) => {
       if (ret === '') {
         return `WHERE ${str}`;
-      } else {
-        return `${ret} AND ${str}`;
       }
+      return `${ret} AND ${str}`;
     }, ''),
     R.filter(R.compose(R.not, R.isEmpty)),
   )(whereConds);
@@ -53,9 +51,8 @@ const inClauseOr = conds =>
     R.reduce((ret, str) => {
       if (ret === '') {
         return str;
-      } else {
-        return `${ret} OR ${str}`;
       }
+      return `${ret} OR ${str}`;
     }, ''),
     R.map(([field, values]) => inClause(field, values)),
   )(conds);
@@ -77,7 +74,7 @@ const query = (sqlClient, sql) =>
 // We use this just for consistency of the api calls
 const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
 
-const getPermissions = sqlClient => async args => {
+const getPermissions = sqlClient => async (args) => {
   const prep = prepare(
     sqlClient,
     'SELECT projects, customers FROM permission WHERE sshKey = :sshKey',
@@ -88,7 +85,7 @@ const getPermissions = sqlClient => async args => {
   return R.propOr(null, 0, rows);
 };
 
-const getCustomerSshKeys = sqlClient => async cred => {
+const getCustomerSshKeys = sqlClient => async (cred) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -132,10 +129,7 @@ const getAllProjects = sqlClient => async (cred, args) => {
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
     args.gitUrl ? 'git_url = :gitUrl' : '',
-    ifNotAdmin(
-      cred.role,
-      inClauseOr([['customer', customers], ['project.id', projects]]),
-    ),
+    ifNotAdmin(cred.role, inClauseOr([['customer', customers], ['project.id', projects]])),
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
@@ -154,10 +148,7 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
       FROM project p
       JOIN openshift o ON o.id = p.openshift
       WHERE p.id = :pid
-      ${ifNotAdmin(
-        cred.role,
-        `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
-      )}
+      ${ifNotAdmin(cred.role, `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`)}
     `,
   );
 
@@ -183,24 +174,21 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
         pn.pid = :pid
         ${args.type ? 'AND pn.type = :type' : ''}
         ${ifNotAdmin(
-          cred.role,
-          `AND (${inClauseOr([
-            ['p.customer', customers],
-            ['p.id', projects],
-          ])})`,
-        )}
+    cred.role,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+  )}
     `,
   );
 
   const rows = await query(
     sqlClient,
     prep({
-      pid: pid,
+      pid,
       type: args.type,
     }),
   );
 
-  return rows ? rows : null;
+  return rows || null;
 };
 
 const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
@@ -218,15 +206,15 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
     JOIN project p ON ps.pid = p.id
     WHERE ps.pid = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-      )}
-    `
+    cred.role,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+  )}
+    `,
   );
 
   const rows = await query(sqlClient, prep({ pid }));
 
-  return rows ? rows : null;
+  return rows || null;
 };
 
 const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
@@ -283,10 +271,7 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
       FROM project p
       JOIN customer c ON p.customer = c.id
       WHERE p.id = :pid
-      ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
-      )}
+      ${ifNotAdmin(cred.role, `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`)}
     `;
   const prep = prepare(sqlClient, str);
 
@@ -322,12 +307,9 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
       FROM project
       WHERE git_url = :gitUrl
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['customer', customers],
-          ['project.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['customer', customers], ['project.id', projects]])})`,
+  )}
       LIMIT 1
     `;
 
@@ -345,12 +327,9 @@ const getProjectByName = sqlClient => async (cred, args) => {
       FROM project
       WHERE name = :name
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['customer', customers],
-          ['project.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['customer', customers], ['project.id', projects]])})`,
+  )}
     `;
 
   const prep = prepare(sqlClient, str);
@@ -376,22 +355,10 @@ const addProject = sqlClient => async (cred, input) => {
         :customer,
         :git_url,
         :openshift,
-        ${
-          input.active_systems_deploy
-            ? ':active_systems_deploy'
-            : '"lagoon_openshiftBuildDeploy"'
-        },
-        ${
-          input.active_systems_remove
-            ? ':active_systems_remove'
-            : '"lagoon_openshiftRemove"'
-        },
+        ${input.active_systems_deploy ? ':active_systems_deploy' : '"lagoon_openshiftBuildDeploy"'},
+        ${input.active_systems_remove ? ':active_systems_remove' : '"lagoon_openshiftRemove"'},
         ${input.branches ? ':branches' : '"true"'},
-        ${
-          input.pullrequests
-            ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
-            : 'NULL'
-        },
+        ${input.pullrequests ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)" : 'NULL'},
         ${input.production_environment ? ':production_environment' : 'NULL'}
       );
     `,
@@ -446,7 +413,7 @@ const deleteSshKey = sqlClient => async (cred, input) => {
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
   const rows = await query(sqlClient, prep(input));
 
-  //TODO: maybe check rows for any changed rows?
+  // TODO: maybe check rows for any changed rows?
   return 'success';
 };
 
@@ -562,10 +529,7 @@ const addNotificationSlack = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  const prep = prepare(
-    sqlClient,
-    'CALL CreateNotificationSlack(:name, :webhook, :channel)',
-  );
+  const prep = prepare(sqlClient, 'CALL CreateNotificationSlack(:name, :webhook, :channel)');
 
   const rows = await query(sqlClient, prep(input));
   const slack = R.path([0, 0], rows);
@@ -619,10 +583,7 @@ const addSshKeyToProject = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  const prep = prepare(
-    sqlClient,
-    'CALL CreateProjectSshKey(:project, :sshKey)',
-  );
+  const prep = prepare(sqlClient, 'CALL CreateProjectSshKey(:project, :sshKey)');
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
@@ -634,10 +595,7 @@ const removeSshKeyFromProject = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  const prep = prepare(
-    sqlClient,
-    'CALL DeleteProjectSshKey(:project, :sshKey)',
-  );
+  const prep = prepare(sqlClient, 'CALL DeleteProjectSshKey(:project, :sshKey)');
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
@@ -649,10 +607,7 @@ const addSshKeyToCustomer = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  const prep = prepare(
-    sqlClient,
-    'CALL CreateCustomerSshKey(:customer, :sshKey)',
-  );
+  const prep = prepare(sqlClient, 'CALL CreateCustomerSshKey(:customer, :sshKey)');
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);
 
@@ -664,10 +619,7 @@ const removeSshKeyFromCustomer = sqlClient => async (cred, input) => {
     throw new Error('Unauthorized.');
   }
 
-  const prep = prepare(
-    sqlClient,
-    'CALL DeleteCustomerSshKey(:customer, :sshKey)',
-  );
+  const prep = prepare(sqlClient, 'CALL DeleteCustomerSshKey(:customer, :sshKey)');
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);
 
