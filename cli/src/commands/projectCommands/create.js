@@ -72,6 +72,36 @@ createProjectArgs): Promise<number> {
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
     },
+    {
+      type: 'input',
+      name: 'active_systems_deploy',
+      message: 'Active system for task "deploy":',
+      default: 'lagoon_openshiftBuildDeploy',
+    },
+    {
+      type: 'input',
+      name: 'active_systems_remove',
+      message: 'Active system for task "remove":',
+      default: 'lagoon_openshiftBuildRemove',
+    },
+    {
+      type: 'input',
+      name: 'branches',
+      message: 'Deploy branches:',
+      default: 'true',
+    },
+    {
+      type: 'input',
+      name: 'pullrequests',
+      message: 'Pull requests:',
+      default: null,
+    },
+    {
+      type: 'input',
+      name: 'production_environment',
+      message: 'Production environment:',
+      default: null,
+    },
   ]);
 
   const result = await runGQLQuery({
@@ -82,6 +112,7 @@ createProjectArgs): Promise<number> {
         ...projectInput,
         // FIXME: Get the customer ID from the JWT or config or something
         customer: 1,
+        // FIXME: Get the openshift ID from the JWT or config or something
         openshift: 1,
       },
     },
