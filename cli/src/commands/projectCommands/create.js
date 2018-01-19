@@ -1,9 +1,13 @@
 // @flow
 
+import { green } from 'chalk';
 import inquirer from 'inquirer';
+import R from 'ramda';
+import { table } from 'table';
 import urlRegex from 'url-regex';
 
 import gql from '../../gql';
+import { printGraphQLErrors } from '../../printErrors';
 import { runGQLQuery } from '../../query';
 
 import typeof Yargs from 'yargs';
@@ -12,7 +16,11 @@ import type { BaseArgs } from '..';
 export const command = 'create';
 export const description = 'Create new project';
 
-export function builder(yargs: Yargs): Yargs {}
+export function builder(yargs: Yargs): Yargs {
+  return yargs
+    .usage(`$0 ${command} - ${description}`)
+    .example('$0', 'Create new project');
+}
 
 type createProjectArgs = {
   clog: typeof console.log,
@@ -24,13 +32,13 @@ export async function createProject({
   cerr,
 }:
 createProjectArgs): Promise<number> {
-  const mutation = gql`
+  const query = gql`
     mutation AddProject($input: ProjectInput!) {
       addProject(input: $input) {
         id
         name
         customer {
-          id
+          name
         }
         git_url
         active_systems_deploy
@@ -38,10 +46,7 @@ createProjectArgs): Promise<number> {
         branches
         pullrequests
         openshift {
-          id
-        }
-        sshKeys {
-          id
+          name
         }
         created
       }
@@ -69,9 +74,9 @@ createProjectArgs): Promise<number> {
     },
   ]);
 
-  // TODO: Also add a mutation property
   const result = await runGQLQuery({
-    query: mutation,
+    query,
+    cerr,
     variables: {
       input: {
         ...projectInput,
@@ -82,7 +87,30 @@ createProjectArgs): Promise<number> {
     },
   });
 
-  console.log(result);
+  const { errors } = result;
+  if (errors != null) {
+    return printGraphQLErrors(cerr, ...errors);
+  }
+
+  const project = R.path(['data', 'addProject'], result);
+
+  const projectName = R.prop('name', project);
+
+  clog(green(`Project "${projectName}" created successfully:`));
+
+  clog(table([
+    ['Project Name', projectName],
+    ['Customer', R.path(['customer', 'name'], project)],
+    ['Git URL', R.prop('git_url', project)],
+    ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
+    ['Active Systems Remove', R.prop('active_systems_remove', project)],
+    ['Branches', String(R.prop('branches', project))],
+    ['Pull Requests', String(R.prop('pullrequests', project))],
+    ['Openshift', R.path(['openshift', 'name'], project)],
+    ['Created', R.path(['created'], project)],
+  ]));
+
+  return 0;
 }
 
 export async function handler({
