@@ -39,19 +39,6 @@ function readConfig(): ?AmazeeConfig {
   return parseConfig(yamlContent.toString());
 }
 
-/**
- * Used for logging unexpected errors raised by subcommands
- */
-function errorQuit(err: Error | Object | string, prefix: string) {
-  const exitCode = printErrors(
-    // eslint-disable-next-line no-console
-    console.error,
-    prefix,
-    err,
-  );
-  process.exit(exitCode);
-}
-
 // Use the visit option (of `node-require-directory`) to provide a visitor function
 // Ref: https://github.com/yargs/yargs/blob/0942a1518aad77656c135439194f8f825bd8b33a/test/command.js#L570-L599
 // Ref (node-require-directory): https://github.com/troygoode/node-require-directory#visiting-objects-as-theyre-loaded
@@ -74,8 +61,15 @@ export function visit(cmd: CommandModule) {
             clog: console.log,
             cerr: console.error,
           })
-          .catch(err =>
-            errorQuit(err, `Uncaught error in ${cmd.command} command:`))
+          .catch((err) => {
+            const exitCode = printErrors(
+              // eslint-disable-next-line no-console
+              console.error,
+              `Uncaught error in ${cmd.command} command:`,
+              err,
+            );
+            process.exit(exitCode);
+          })
           .then(code => process.exit(code)),
     };
 }
@@ -91,7 +85,13 @@ export async function runCLI() {
       .strict()
       .help().argv;
   } catch (err) {
-    errorQuit(err, 'Uncaught error:');
+    const exitCode = printErrors(
+      // eslint-disable-next-line no-console
+      console.error,
+      'Uncaught error:',
+      err,
+    );
+    process.exit(exitCode);
   }
 }
 
