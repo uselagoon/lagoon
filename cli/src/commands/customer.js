@@ -15,21 +15,6 @@ import {
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
 
-const tableConfig = {
-  columns: {
-    // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
-    0: {
-      alignment: 'left',
-      minWidth: 15,
-    },
-    // $FlowIssue: Flow doesn't understand numbers as keys https://github.com/facebook/flow/issues/380
-    1: {
-      alignment: 'left',
-      minWidth: 15,
-    },
-  },
-};
-
 export const command = 'customer';
 export const description = 'Show customer details for a given project name';
 
@@ -110,7 +95,8 @@ GetCustomerDetailsArgs): Promise<number> {
   );
   const formatSshKeys = R.map(R.prop('name'));
 
-  const tableBody = [
+  clog(`Customer details for project '${project}':`);
+  clog(table([
     ['Name', R.prop('name', customer)],
     ['Comment', R.prop('comment', customer)],
     [
@@ -122,10 +108,7 @@ GetCustomerDetailsArgs): Promise<number> {
       R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer))),
     ],
     ['Created', R.prop('created', customer)],
-  ];
-
-  clog(`Customer details for project '${project}':`);
-  clog(table(tableBody, tableConfig));
+  ]));
 
   return 0;
 }
