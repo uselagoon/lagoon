@@ -17,7 +17,7 @@ export const description = 'List all projects';
 export function builder(yargs: Yargs) {
   return yargs
     .usage(`$0 ${command} - ${description}`)
-    .example('$0', 'List all projects');
+    .example(`$0 ${command}`, 'List all projects');
 }
 
 type ListProjectsArgs = {
