@@ -65,7 +65,7 @@ export function visit(cmd: CommandModule) {
     // functions for the promise.
     {
       ...cmd,
-      handler: (argv: Argv) =>
+      handler: (argv: Argv): Promise<void> =>
         cmd
           .handler({
             ...argv,
