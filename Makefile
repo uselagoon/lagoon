@@ -531,12 +531,15 @@ endif
 	$(MAKE) openshift-lagoon-setup push-docker-host-image
 
 minishift/login-docker-registry:
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login --insecure-skip-tls-verify -u developer -p developer $$(cat minishift):8443; \
 	oc whoami -t | docker login --username developer --password-stdin $$(cat minishift):30000
 
 # Configures an openshift to use with Lagoon
 .PHONY: openshift-lagoon-setup
 openshift-lagoon-setup:
+# Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
+	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
 	oc new-project lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
@@ -549,15 +552,16 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount cronjob; \
 	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
-	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
-	@echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:"
-	@oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
+	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -"; \
+	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
+	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
 
 # This calles the regular openshift-lagoon-setup first, which configures our minishift like we configure a real openshift for laggon
 # It then overwrite the docker-host deploymentconfig and cronjobs to use our own just builded docker-host images
 .PHONY: openshift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -"; \
 	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
 
