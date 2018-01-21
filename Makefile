@@ -34,17 +34,17 @@ SHELL := /bin/bash
 # make logs
 # Shows logs of Lagoon Services (aka docker-compose logs -f)
 
-# make openshift
+# make minishift
 # Some tests need a full openshift running in order to test deployments and such. This can be
 # started via openshift. It will:
 # 1. Download minishift cli
 # 2. Start an OpenShift Cluster
 # 3. Configure OpenShift cluster to our needs
 
-# make openshift/stop
+# make minishift/stop
 # Removes an OpenShift Cluster
 
-# make openshift/clean
+# make minishift/clean
 # Removes all openshift related things: OpenShift itself and the minishift cli
 
 #######
@@ -394,12 +394,12 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
+$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: openshift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
+tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-openshift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -415,23 +415,23 @@ $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder buil
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-# push command of our base images into openshift
-push-openshift-images = $(foreach image,$(base-images),[push-openshift]-$(image))
+# push command of our base images into minishift
+push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
 # tag and push all images
-.PHONY: push-openshift
-push-openshift: $(push-openshift-images)
+.PHONY: push-minishift
+push-minishift: minishift/login-docker-registry $(push-openshift-images)
 # tag and push of each image
-.PHONY: $(push-openshift-images)
-$(push-openshift-images):
-	$(eval image = $(subst [push-openshift]-,,$@))
+.PHONY: $(push-minishift-images)
+$(push-minishift-images):
+	$(eval image = $(subst [push-minishift]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
-	$(info pushing $(image) to openshift registry)
-	docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
-	docker push $$(cat openshift):30000/lagoon/$(image) | cat
+	$(info pushing $(image) to minishift registry)
+	docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image)
+	docker push $$(cat minishift):30000/lagoon/$(image) | cat
 
-push-docker-host-image:
-	docker tag $(CI_BUILD_TAG)/docker-host $$(cat openshift):30000/lagoon/docker-host
-	docker push $$(cat openshift):30000/lagoon/docker-host | cat
+push-docker-host-image: build/docker-host minishift/login-docker-registry
+	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
+	docker push $$(cat minishift):30000/lagoon/docker-host | cat
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
@@ -503,11 +503,13 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+openshift:
+	$(info the openshift command has been renamed to minishift)
 
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
-openshift: local-dev/minishift/minishift
-	$(info starting openshift with name $(CI_BUILD_TAG))
+minishift: local-dev/minishift/minishift
+	$(info starting minishift with name $(CI_BUILD_TAG))
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v3.6.1"
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
@@ -518,41 +520,56 @@ else
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 endif
-	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
-	$(MAKE) openshift/configure-local openshift/docker-host
-
-.PHONY: openshift/configure-local
-openshift/configure-local:
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login -u system:admin; \
 	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -"; \
 	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	oc adm policy add-cluster-role-to-user cluster-admin developer; \
+	oc adm policy add-cluster-role-to-user cluster-admin developer;
+	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
+	@echo "wait 60secs in order to give openshift time to setup it's registry"
+	sleep 60
+	$(MAKE) openshift-lagoon-setup push-docker-host-image
+
+minishift/login-docker-registry:
+	oc login --insecure-skip-tls-verify -u developer -p developer $$(cat minishift):8443; \
+	oc whoami -t | docker login --username developer --password-stdin $$(cat minishift):30000
+
+# Configures an openshift to use with Lagoon
+.PHONY: openshift-lagoon-setup
+openshift-lagoon-setup:
 	oc new-project lagoon; \
-	bash -c "oc export role shared-resource-viewer -n openshift | oc create -f -"; \
-	oc create policybinding lagoon -n lagoon; \
-	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon; \
+	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
+	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
+	oc -n lagoon create -f openshift-setup/policybinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z docker-host \
+	oc -n lagoon policy add-role-to-user system:image-pusher -z docker-host; \
 	oc -n lagoon create serviceaccount cronjob; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob
+	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob; \
+	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
+	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
+	@echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:"
+	@oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
-.PHONY: openshift/docker-host
-openshift/docker-host: build/docker-host
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
+
+# This calles the regular openshift-lagoon-setup first, which configures our minishift like we configure a real openshift for laggon
+# It then overwrite the docker-host deploymentconfig and cronjobs to use our own just builded docker-host images
+.PHONY: openshift/configure-lagoon-local
+minishift/configure-lagoon-local: openshift-lagoon-setup
+	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -"; \
 	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
 
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
-openshift/stop: local-dev/minishift/minishift
+minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
-	rm openshift
+	rm minishift
 
 # Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
-openshift/clean: openshift/stop
+minishift/clean: openshift/stop
 	rm -rf ./local-dev/minishift/minishift
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
