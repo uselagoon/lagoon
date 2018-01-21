@@ -112,7 +112,8 @@ images :=     centos7 \
 							mongo \
 							elasticsearch \
 							kibana \
-							logstash
+							logstash \
+							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -148,6 +149,7 @@ build/mongo: build/centos7 images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
+build/docker-host:build/commons images/docker-host/Dockerfile
 
 #######
 ####### PHP Images
@@ -427,6 +429,10 @@ $(push-openshift-images):
 	docker tag $(CI_BUILD_TAG)/$(image) $$(cat openshift):30000/lagoon/$(image)
 	docker push $$(cat openshift):30000/lagoon/$(image) | cat
 
+push-docker-host-image:
+	docker tag $(CI_BUILD_TAG)/docker-host $$(cat openshift):30000/lagoon/docker-host
+	docker push $$(cat openshift):30000/lagoon/docker-host | cat
+
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
@@ -497,23 +503,12 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 openshift: local-dev/minishift/minishift
 	$(info starting openshift with name $(CI_BUILD_TAG))
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v3.6.1"
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	oc login -u system:admin; \
-	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -"; \
-	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	oc adm policy add-cluster-role-to-user cluster-admin developer; \
-	oc new-project lagoon; \
-	bash -c "oc export role shared-resource-viewer -n openshift | oc create -f -"; \
-	oc create policybinding lagoon -n lagoon; \
-	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon; \
-	oc -n default create serviceaccount docker-host; \
-	oc -n default adm policy add-scc-to-user privileged -z docker-host; \
-	oc -n default create -f openshift-setup/docker-host.yaml;
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
@@ -524,6 +519,30 @@ else
 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
+	$(MAKE) openshift/configure-local openshift/docker-host
+
+.PHONY: openshift/configure-local
+openshift/configure-local:
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	oc login -u system:admin; \
+	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -"; \
+	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	oc adm policy add-cluster-role-to-user cluster-admin developer; \
+	oc new-project lagoon; \
+	bash -c "oc export role shared-resource-viewer -n openshift | oc create -f -"; \
+	oc create policybinding lagoon -n lagoon; \
+	oc policy add-role-to-group shared-resource-viewer system:authenticated --role-namespace=lagoon; \
+	oc -n lagoon create serviceaccount docker-host; \
+	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
+	oc -n lagoon policy add-role-to-user system:image-pusher -z docker-host \
+	oc -n lagoon create serviceaccount cronjob; \
+	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob
+
+.PHONY: openshift/docker-host
+openshift/docker-host: build/docker-host
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
+	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
 
 # Stop OpenShift Cluster
 .PHONY: openshift/stop
