@@ -15,3 +15,7 @@ pages:
   - Contributing: developing_lagoon/contributing.md
 - Code Of Conduct: code_of_conduct.md
 theme: readthedocs
+
+markdown_extensions:
+    - toc:
+        permalink: 
