@@ -5,6 +5,7 @@ pages:
 - Using Lagoon:
   - Getting Started: using_lagoon/getting_started.md
   - Deploying Lagoon Projects: using_lagoon/deploying.md
+  - Image Types: using_lagoon/types.md
 - Administration:
   - Administering Lagoon: administering_lagoon/index.md
   - Installing Lagoon: administering_lagoon/install.md
