@@ -11,3 +11,12 @@ Currently it is simplest to run Lagoon projects via the amazee.io [pygmy](https:
 `pygmy` is a Ruby gem, so simply `gem install pygmy`. For detailed usage info on `pygmy`, see the [amazee.io docs](https://docs.amazee.io/local_docker_development/pygmy.html)
 
 ## Preparing the site
+
+### Drupal Settings Files
+The containers of Lagoon provide all the configuration variables that Drupal requires via environment variables. We have provided a set of example Drupal settings files for you to use [here](https://github.com/amazeeio/drupal-setting-files/tree/lagoon). Copy these into your site. Don't forget to make sure you `.gitignore` will allow you to commit the settings files.
+
+### Docker Configuration
+
+#### `docker-compose.yml`
+
+#### Dockerfiles
