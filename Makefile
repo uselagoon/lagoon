@@ -141,7 +141,7 @@ $(build-images):
 build/centos7: images/centos7/Dockerfile
 build/centos7-mariadb10: build/centos7 images/centos7-mariadb10/Dockerfile
 build/centos7-mariadb10-drupal: build/centos7-mariadb10 images/centos7-mariadb10-drupal/Dockerfile
-build/alpine-mariadb10: images/alpine-mariadb10/Dockerfile
+build/alpine-mariadb10: build/commons images/alpine-mariadb10/Dockerfile
 build/alpine-mariadb10-drupal: build/alpine-mariadb10 images/alpine-mariadb10-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
