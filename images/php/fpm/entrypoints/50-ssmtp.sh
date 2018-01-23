@@ -25,6 +25,16 @@ else
     echo -e "\nmailhub=172.17.0.1:1025" >> /etc/ssmtp/ssmtp.conf
     return
   fi
+  # check if mxout.lagoon.svc can do smtp TLS
+  if nc -z -w 1 mxout.lagoon.svc 465 &> /dev/null; then
+    echo -e "UseTLS=Yes\nmailhub=mxout.lagoon.svc:465" >> /etc/ssmtp/ssmtp.conf
+    return
+  fi
+  # Fallback: check if mxout.lagoon.svc can do regular 25 smtp
+  if nc -z -w 1 mxout.lagoon.svc 25 &> /dev/null; then
+    echo -e "\nmailhub=mxout.lagoon.svc:25" >> /etc/ssmtp/ssmtp.conf
+    return
+  fi
   # check if mxout.default.svc can do smtp TLS
   if nc -z -w 1 mxout.default.svc 465 &> /dev/null; then
     echo -e "UseTLS=Yes\nmailhub=mxout.default.svc:465" >> /etc/ssmtp/ssmtp.conf

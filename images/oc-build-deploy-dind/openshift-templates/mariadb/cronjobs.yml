@@ -69,4 +69,4 @@ objects:
               volumeMounts:
                 - name: ${SERVICE_NAME}-data
                   mountPath: /var/lib/mysql
-            restartPolicy: Never
+            restartPolicy: OnFailure

@@ -96,4 +96,4 @@ objects:
                 - mountPath: /var/run/secrets/lagoon/sshkey/
                   name: lagoon-sshkey
                   readOnly: true
-            restartPolicy: Never
+            restartPolicy: OnFailure

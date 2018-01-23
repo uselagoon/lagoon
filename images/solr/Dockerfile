@@ -24,6 +24,8 @@ RUN fix-permissions /opt/solr/server/solr/mycores/ \
 # solr really doesn't like to be run as root, so we define the default user agin
 USER solr
 
+COPY 10-solr-port.sh /lagoon/entrypoints/
+
 # Define Volume so locally we get persistent cores
 VOLUME /opt/solr/server/solr/mycores/
 
