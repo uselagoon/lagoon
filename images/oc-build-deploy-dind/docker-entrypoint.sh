@@ -1,10 +1,15 @@
 #!/bin/bash
 set -e
 
-if docker -H docker-host.default.svc info &> /dev/null; then
-    export DOCKER_HOST=docker-host.default.svc
+if docker -H docker-host.lagoon.svc info &> /dev/null; then
+    export DOCKER_HOST=docker-host.lagoon.svc
 else
-    echo "could not connect to docker-host.default.svc"; exit 1
+    echo "could not connect to docker-host.lagoon.svc, trying fallback of docker-host.default.svc";
+    if docker -H docker-host.default.svc info &> /dev/null; then
+        export DOCKER_HOST=docker-host.default.svc
+    else
+        echo "could not connect to docker-host.default.svc";
+    fi
 fi
 
 mkdir -p ~/.ssh

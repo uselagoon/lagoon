@@ -3,7 +3,7 @@ kind: ClusterRole
 metadata:
   annotations:
     authorization.openshift.io/system-only: "true"
-  name: lagoon
+  name: openshiftbuilddeploy
   resourceVersion: "10"
 rules:
 - apiGroups:

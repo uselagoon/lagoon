@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: lagoon-image-updater-cronjob
+parameters:
+  - name: IMAGE
+    description: Image that should be used
+    value: amazeeiolagoon/docker-host:master
+  - name: REPOSITORY_TO_UPDATE
+    description: Repository that should be updated by the cronjob
+    value: amazeeio
+objects:
+- apiVersion: batch/v2alpha1
+  kind: CronJob
+  metadata:
+    name: cronjob-update-push-images
+  spec:
+    schedule: "* * * * *"
+    concurrencyPolicy: Forbid
+    jobTemplate:
+      spec:
+        template:
+          metadata:
+            annotations:
+              alpha.image.policy.openshift.io/resolve-names: "*"
+            labels:
+              cronjob: update-images
+              parent: cronjob-update-push-images
+          spec:
+            containers:
+            - name: update-push-images
+              image: ${IMAGE}
+              command:
+                - /lagoon/cronjob.sh
+                - "/update-push-images.sh"
+              env:
+                - name: REPOSITORY_TO_UPDATE
+                  value: ${REPOSITORY_TO_UPDATE}
+            serviceAccount: cronjob
+            serviceAccountName: cronjob
+            restartPolicy: OnFailure
+- apiVersion: batch/v2alpha1
+  kind: CronJob
+  metadata:
+    name: cronjob-prune-images
+  spec:
+    schedule: "22 1 * * *"
+    concurrencyPolicy: Forbid
+    jobTemplate:
+      spec:
+        template:
+          metadata:
+            annotations:
+              alpha.image.policy.openshift.io/resolve-names: "*"
+            labels:
+              cronjob: prune-images
+              parent: cronjob-prune-images
+          spec:
+            containers:
+            - name: prune-dangling
+              image: ${IMAGE}
+              command:
+                - /lagoon/cronjob.sh
+                - /prune-images.sh"
+              env:
+                - name: REPOSITORY_TO_UPDATE
+                  value: ${REPOSITORY_TO_UPDATE}
+            serviceAccount: cronjob
+            serviceAccountName: cronjob
+            restartPolicy: OnFailure
