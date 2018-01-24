@@ -33,7 +33,7 @@ parameters:
     required: true
 objects:
 - apiVersion: v1
-  kind: Route
+  kind: Service
   metadata:
     creationTimestamp: null
     labels:
@@ -42,9 +42,10 @@ objects:
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
-    host: ${SERVICE_ROUTER_URL}
-    port:
-      targetPort: http
-    to:
-      kind: Service
-      name: ${SERVICE_NAME}
+    ports:
+    - name: http
+      port: 5601
+      protocol: TCP
+      targetPort: 5601
+    selector:
+      service: ${SERVICE_NAME}
