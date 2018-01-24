@@ -24,6 +24,8 @@ do mkdir -p $i; /bin/fix-permissions $i; done
 # USER mysql
 
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
+COPY mysql-backup.sh /lagoon/
+
 COPY my.cnf /etc/mysql/my.cnf
 
 
