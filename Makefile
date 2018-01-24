@@ -541,6 +541,7 @@ openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
 	oc new-project lagoon; \
+	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
@@ -573,7 +574,7 @@ minishift/stop: local-dev/minishift/minishift
 
 # Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
-minishift/clean: openshift/stop
+minishift/clean: minishift/stop
 	rm -rf ./local-dev/minishift/minishift
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
