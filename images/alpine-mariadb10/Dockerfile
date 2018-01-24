@@ -18,10 +18,8 @@ ENV BACKUPS_DIR="/var/lib/mysql/backup"
 
 RUN apk add --no-cache bash mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
 
-RUN set -xe; \
-    mkdir -p      /var/run/mysqld /var/lib/mysql /etc/mysql /etc/mysql/conf.d /etc/mysql/ "${BACKUPS_DIR}"; \
-    chgrp -R root /var/run/mysqld /var/lib/mysql /etc/mysql /etc/mysql/conf.d /etc/mysql/ "${BACKUPS_DIR}"; \
-    chmod 770     /var/run/mysqld /var/lib/mysql /etc/mysql /etc/mysql/conf.d /etc/mysql/ "${BACKUPS_DIR}";
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d "${BACKUPS_DIR}"; \
+do mkdir -p $i; /bin/fix-permissions $i; done
 
 # USER mysql
 
