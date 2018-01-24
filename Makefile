@@ -291,7 +291,7 @@ services :=       api \
 									logs-db \
 									logs-db-ui \
 									logs2logs-db \
-									mariadb \
+									api-db \
 									drush-alias
 
 service-images += $(services)
