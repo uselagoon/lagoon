@@ -239,7 +239,7 @@ do
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
 
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
-    # Only if SERVICE_TYPE is custom we search for default deployment.yml
+    # Only if SERVICE_TYPE is not custom we search for a default deployment.yml
     if [ ! $SERVICE_TYPE == "custom" ]; then
       OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
       if [ ! -f $OPENSHIFT_TEMPLATE ]; then
