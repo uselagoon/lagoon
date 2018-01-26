@@ -39,6 +39,7 @@ objects:
   kind: Route
   metadata:
     annotations:
+      haproxy.router.openshift.io/disable_cookies: 'true'
       kubernetes.io/tls-acme: '${ROUTE_TLS_ACME}'
     creationTimestamp: null
     labels:

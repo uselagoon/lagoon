@@ -33,8 +33,10 @@ parameters:
     required: true
 objects:
 - apiVersion: v1
-  kind: Service
+  kind: Route
   metadata:
+    annotations:
+      haproxy.router.openshift.io/disable_cookies: 'true'
     creationTimestamp: null
     labels:
       service: ${SERVICE_NAME}
@@ -42,10 +44,9 @@ objects:
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
-    ports:
-    - name: http
-      port: 5601
-      protocol: TCP
-      targetPort: 5601
-    selector:
-      service: ${SERVICE_NAME}
+    host: ${SERVICE_ROUTER_URL}
+    port:
+      targetPort: http
+    to:
+      kind: Service
+      name: ${SERVICE_NAME}
