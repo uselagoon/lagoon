@@ -68,6 +68,28 @@ do
 	fi
 done
 
-( sleep 10; cat /docker-entrypoint-initdb.d/*.sql | mysql -uroot -p${MARIADB_ROOT_PASSWORD} )&
+echo "starting mysql for initdb.d import."
+/usr/bin/mysqld &
+pid="$!"
+echo "pid is $pid"
+
+for i in {30..0}; do
+			if echo 'SELECT 1' | mysql -u root -p${MARIADB_ROOT_PASSWORD} &> /dev/null; then
+				break
+			fi
+			echo 'MySQL init process in progress...'
+			sleep 1
+		done
+
+for f in /docker-entrypoint-initdb.d/*; do
+	echo "importing $f";
+  mysql -v -u root -p${MARIADB_ROOT_PASSWORD} < "$f";
+done;
+
+if ! kill -s TERM "$pid" || ! wait "$pid"; then
+	echo >&2 'MySQL init process failed.'
+	exit 1
+fi
+echo "done, now starting daemon"
 
 exec /usr/bin/mysqld --console
