@@ -22,7 +22,7 @@ ENV MARIADB_DATABASE=lagoon \
 
 RUN apk add --no-cache bash mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
 
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d "${BACKUPS_DIR}"; \
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; /bin/fix-permissions $i; done
 
 # USER mysql
