@@ -81,10 +81,15 @@ for i in {30..0}; do
 			sleep 1
 		done
 
-for f in /docker-entrypoint-initdb.d/*; do
-	echo "importing $f";
-  mysql -v -u root -p${MARIADB_ROOT_PASSWORD} < "$f";
-done;
+		for f in /docker-entrypoint-initdb.d/*; do
+				case "$f" in
+					*.sh)     echo "$0: running $f"; . "$f" ;;
+					*.sql)    echo "$0: running $f"; mysql -v -u root -p${MARIADB_ROOT_PASSWORD} < "$f"; echo ;;
+					*)        echo "$0: ignoring $f" ;;
+				esac
+				echo
+			done
+
 
 if ! kill -s TERM "$pid" || ! wait "$pid"; then
 	echo >&2 'MySQL init process failed.'
