@@ -32,7 +32,7 @@ COPY mysql-backup.sh /lagoon/
 
 COPY my.cnf /etc/mysql/my.cnf
 
-
+RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
 
 WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
