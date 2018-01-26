@@ -1,3 +1,5 @@
+USE infrastructure;
+
 DELIMITER $$
 
 CREATE OR REPLACE PROCEDURE
