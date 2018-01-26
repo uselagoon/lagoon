@@ -528,6 +528,7 @@ endif
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 	@echo "wait 60secs in order to give openshift time to setup it's registry"
 	sleep 60
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	for i in {10..30}; do oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
 	$(MAKE) minishift/configure-lagoon-local push-docker-host-image
 
