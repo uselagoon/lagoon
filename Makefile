@@ -527,9 +527,9 @@ else
 endif
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login -u system:admin; \
-	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc create -n default -f -"; \
-	oc adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	oc adm policy add-cluster-role-to-user cluster-admin developer;
+	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
+	oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 	@echo "wait 60secs in order to give openshift time to setup it's registry"
 	sleep 60
@@ -546,6 +546,7 @@ openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
 	oc new-project lagoon; \
+	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
@@ -571,14 +572,14 @@ minishift/configure-lagoon-local: openshift-lagoon-setup
 	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
 
 # Stop OpenShift Cluster
-.PHONY: openshift/stop
+.PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm minishift
 
 # Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
-minishift/clean: openshift/stop
+minishift/clean: minishift/stop
 	rm -rf ./local-dev/minishift/minishift
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
