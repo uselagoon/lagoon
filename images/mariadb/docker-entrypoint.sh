@@ -68,4 +68,6 @@ do
 	fi
 done
 
+( sleep 10; cat /docker-entrypoint-initdb.d/*.sql | mysql -uroot -p${MARIADB_ROOT_PASSWORD} )&
+
 exec /usr/bin/mysqld --console
