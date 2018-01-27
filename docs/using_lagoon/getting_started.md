@@ -49,3 +49,14 @@ Some of the containers need changes beyond the Lagoon defaults. Things like addi
 The important change is the `build` section, this tells `docker-compose` to look for the specified Dockerfile to build the image for this service.
 
 #### Dockerfiles
+Any service which defines a build in the `docker-compose.yml` file must also have a Dockerfile in the repo. These are used to run pre-deploy/build tasks, define which image a service will use, and perform any needed customizations to the containers. Here is a sample of the `cli` service from drupal-example showing how to build the site with Composer:
+```
+FROM amazeeio/php:7.1-cli-drupal
+
+COPY composer.json composer.lock /app/
+COPY scripts /app/scripts
+RUN composer install --no-dev
+COPY . /app
+
+ENV WEBROOT=web
+```
