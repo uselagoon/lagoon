@@ -15,6 +15,7 @@ RUN apk update \
         openssh-client \
         rsync \
         patch \
+        procps \
     && apk add nodejs-current yarn --update-cache  --repository http://dl-3.alpinelinux.org/alpine/edge/main/ --repository http://dl-3.alpinelinux.org/alpine/edge/community/ \
     && rm -rf /var/cache/apk/* \
     && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.5.2/composer.phar \
@@ -29,6 +30,10 @@ ENV PATH="/home/.composer/vendor/bin:${PATH}"
 # We not only use "export $PATH" as this could be overwritten again
 # like it happens in /etc/profile of alpine Images.
 COPY 90-composer-path.sh /lagoon/entrypoints/
+
+# Make sure shells are not running forever
+COPY 80-shell-timeout.sh /
+RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh.sh" >> /home/.bashrc
 
 # Making sure the path is not only added during entrypoint, but also when creating a new shell
 RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
