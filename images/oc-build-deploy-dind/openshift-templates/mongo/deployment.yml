@@ -37,6 +37,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
