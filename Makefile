@@ -102,7 +102,9 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 images :=     centos7 \
 							centos7-mariadb10 \
 							centos7-mariadb10-drupal \
+							oc \
 							oc-build-deploy-dind \
+							auto-idler \
 							commons \
 							nginx \
 							nginx-drupal \
@@ -149,7 +151,9 @@ build/mongo: build/centos7 images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
-build/docker-host:build/commons images/docker-host/Dockerfile
+build/docker-host: build/commons images/docker-host/Dockerfile
+build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
+build/auto-idler: build/oc images/auto-idler
 
 #######
 ####### PHP Images
