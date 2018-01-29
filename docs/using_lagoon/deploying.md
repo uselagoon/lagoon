@@ -1,6 +1,7 @@
 # Deploying Lagoon Projects
 
 ## `.lagoon.yml`
+The other files in our project (`docker-compose.yml`, `Dockerfile`s, and any included configuration) handle all of the pre-deploy setup and configuration, the `.lagoon.yml` file takes care of things after the code has been deployed. Using this file we can set up custom routes, enable SSL, run tools like `drush`, and more.
 
 ## Repository Configuration
 To allow Lagoon to deploy your project there are a few things which need configuring on the repository itself. Namely, an SSH key which Lagoon will use to authenticate, and a webhook which will send event notifications.
