@@ -112,7 +112,7 @@ images :=     centos7 \
 							mongo \
 							elasticsearch \
 							kibana \
-							logstash \
+						f	logstash \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -495,6 +495,8 @@ logs:
 
 # Start all Lagoon Services
 up:
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api-db
+	sleep 20
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 
 down:
