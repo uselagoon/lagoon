@@ -112,7 +112,7 @@ images :=     centos7 \
 							mongo \
 							elasticsearch \
 							kibana \
-						f	logstash \
+							logstash \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
