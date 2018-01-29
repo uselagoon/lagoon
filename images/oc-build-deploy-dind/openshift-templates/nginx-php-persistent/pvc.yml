@@ -36,7 +36,7 @@ parameters:
     required: true
   - name: PERSISTENT_STORAGE_CLASS
     description: Name of the Storage Class to use
-    value: ""
+    value: "bulk"
   - name: PERSISTENT_STORAGE_SIZE
     description: Size of the Storage to request
     value: "5Gi"

@@ -45,7 +45,7 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      resources: {}
+      type: Recreate
     template:
       metadata:
         creationTimestamp: null

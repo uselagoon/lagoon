@@ -6,7 +6,7 @@ metadata:
 parameters:
   - name: IMAGE
     description: Image that should be used
-    value: docker.io/amazeeiolagoon/docker-host:master
+    value: docker.io/amazeeiolagoon/master-docker-host
   - name: REPOSITORY_TO_UPDATE
     description: Repository that should be updated by the cronjob
     value: amazeeio

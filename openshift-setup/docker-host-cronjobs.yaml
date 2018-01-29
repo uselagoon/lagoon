@@ -6,7 +6,7 @@ metadata:
 parameters:
   - name: IMAGE
     description: Image that should be used
-    value: amazeeiolagoon/docker-host:master
+    value: amazeeiolagoon/master-docker-host
   - name: REPOSITORY_TO_UPDATE
     description: Repository that should be updated by the cronjob
     value: amazeeio
@@ -16,14 +16,12 @@ objects:
   metadata:
     name: cronjob-update-push-images
   spec:
-    schedule: "* * * * *"
+    schedule: "*/15 * * * *"
     concurrencyPolicy: Forbid
     jobTemplate:
       spec:
         template:
           metadata:
-            annotations:
-              alpha.image.policy.openshift.io/resolve-names: "*"
             labels:
               cronjob: update-images
               parent: cronjob-update-push-images
@@ -51,8 +49,6 @@ objects:
       spec:
         template:
           metadata:
-            annotations:
-              alpha.image.policy.openshift.io/resolve-names: "*"
             labels:
               cronjob: prune-images
               parent: cronjob-prune-images
