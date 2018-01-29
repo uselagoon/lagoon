@@ -239,21 +239,18 @@ do
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
 
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
-    # Only if SERVICE_TYPE is not custom we search for a default deployment.yml
-    if [ ! $SERVICE_TYPE == "custom" ]; then
-      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
-      if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-        echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
-      fi
+    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    if [ -f $OPENSHIFT_TEMPLATE ]; then
+      . /scripts/exec-openshift-resources.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+    else
+      . /scripts/exec-openshift-resources.sh
     fi
   fi
-
-  . /scripts/exec-openshift-resources.sh
 
   # Generate cronjobs if service type defines them
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
