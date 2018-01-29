@@ -232,7 +232,7 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /scripts/exec-openshift-resources.sh
+    . /scripts/exec-openshift-create-pvc.sh
   fi
 
   # Deployment template can be overwritten in docker-compose
