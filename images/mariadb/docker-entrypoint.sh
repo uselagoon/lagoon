@@ -81,10 +81,11 @@ for i in {30..0}; do
 			sleep 1
 		done
 
-		for f in /docker-entrypoint-initdb.d/*; do
+		for f in `ls /docker-entrypoint-initdb.d/*`; do
+
 				case "$f" in
 					*.sh)     echo "$0: running $f"; . "$f" ;;
-					*.sql)    echo "$0: running $f"; mysql -v -u root -p${MARIADB_ROOT_PASSWORD} < "$f"; echo ;;
+					*.sql)    echo "$0: running $f"; cat $f | mysql -u root -p${MARIADB_ROOT_PASSWORD} ; echo ;;
 					*)        echo "$0: ignoring $f" ;;
 				esac
 				echo
