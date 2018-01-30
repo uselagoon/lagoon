@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e -o pipefail
-
 # Create an JWT Admin Token to talk to the API
 API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
@@ -22,8 +20,8 @@ GRAPHQL='query developmentEnvironments {
   }
 }'
 # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-query=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-DEVELOPMENT_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
+query=$(set -e -o pipefail; echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+DEVELOPMENT_ENVIRONMENTS=$(set -e -o pipefail; curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
 
 # Load all hits of all environments of the last hour
 ALL_ENVIRONMENT_HITS=$(curl -s -XGET "http://logs-db:9200/router-logs-*/_search" -H 'Content-Type: application/json' -d'

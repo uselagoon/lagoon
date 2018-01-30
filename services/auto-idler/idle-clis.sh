@@ -51,7 +51,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
         fi
 
         # Check for Deploymentconfigs wich are clis
-        DEPLOYMENTCONFIGS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get dc -l service=cli -o name)
+        DEPLOYMENTCONFIGS=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get dc -l service=cli -o name)
         if [ "$DEPLOYMENTCONFIGS" == "" ]; then
           echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: No deploymentconfigs for cli found"
           continue;
