@@ -104,7 +104,6 @@ images :=     centos7 \
 							centos7-mariadb10-drupal \
 							oc \
 							oc-build-deploy-dind \
-							auto-idler \
 							commons \
 							nginx \
 							nginx-drupal \
@@ -152,8 +151,8 @@ build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
+build/oc: build/commons images/oc/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/auto-idler: build/oc images/auto-idler
 
 #######
 ####### PHP Images
@@ -292,7 +291,8 @@ services :=       api \
 									logs-db-ui \
 									logs2logs-db \
 									mariadb \
-									drush-alias
+									drush-alias \
+									auto-idler
 
 service-images += $(services)
 build-services = $(foreach image,$(services),build/$(image))
@@ -309,6 +309,7 @@ build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
+build/auto-idler: build/oc
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
