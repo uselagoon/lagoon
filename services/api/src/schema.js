@@ -69,7 +69,7 @@ const typeDefs = `
     pullrequests: Boolean
     openshift: Openshift
     sshKeys: [SshKey]
-    environments: [Environment]
+    environments(type: EnvType): [Environment]
     created: String
   }
 
@@ -269,8 +269,10 @@ const resolvers = {
     },
     environments: async (project, args, req) => {
       const dao = getDao(req);
-      console.log(project);
-      return await dao.getEnvironmentsByProjectId(req.credentials, project.id);
+      const input = R.compose(
+        R.over(R.lensProp('type'), envTypeToString),
+      )(args);
+      return await dao.getEnvironmentsByProjectId(req.credentials, project.id, input);
     },
   },
   Environment: {

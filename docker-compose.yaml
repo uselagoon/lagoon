@@ -248,7 +248,19 @@ services:
   logs2logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
+    ports:
+    - "5140:5140/udp"
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
       lagoon.image: amazeeiolagoon/logs2logs-db:${SAFE_BRANCH:-master}
+  auto-idler:
+    image: ${IMAGE_REPO:-lagoon}/auto-idler
+    user: '111111111'
+    volumes:
+    - "./images/auto-idler/idle-services.sh:/idle-services.sh"
+    - "./images/auto-idler/idle-clis.sh:/idle-clis.sh"
+    - "./images/auto-idler/create_jwt.sh:/create_jwt.sh"
+    labels:
+      lagoon.type: cli
+      lagoon.image: amazeeiolagoon/auto-idler:${SAFE_BRANCH:-master}

@@ -229,7 +229,7 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
   return rows ? rows : null;
 };
 
-const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
+const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
   const { projects } = cred.permissions;
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
@@ -242,10 +242,11 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
         *
       FROM environment e
       WHERE e.project = :pid
+      ${args.type ? 'AND e.environment_type = :type' : ''}
     `,
   );
 
-  const rows = await query(sqlClient, prep({ pid }));
+  const rows = await query(sqlClient, prep({ pid: pid, type: args.type, }));
 
   return rows;
 };
