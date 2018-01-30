@@ -42,17 +42,23 @@ RUN apk update \
         libxslt-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
-        yes '' | pecl install -f apcu; \
+        yes '' | pecl install -f apcu xdebug; \
        fi \
     && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
         yes '' | pecl install -f apcu-4.0.11; \
        fi \
     && yes '' | pecl install -f redis \
-    && yes '' | pecl install -f xdebug \
-    && docker-php-ext-enable apcu redis xdebug \
+    && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
+        docker-php-ext-enable apcu redis xdebug; \
+       fi \
+    && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
+        docker-php-ext-enable apcu redis; \
+       fi \
     && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap sockets opcache xsl zip \
-    && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
+        sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
+       fi \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
     && mkdir -p /app \
