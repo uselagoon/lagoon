@@ -262,5 +262,5 @@ services:
     - "./images/auto-idler/idle-clis.sh:/idle-clis.sh"
     - "./images/auto-idler/create_jwt.sh:/create_jwt.sh"
     labels:
-      lagoon.type: custom
+      lagoon.type: cli
       lagoon.image: amazeeiolagoon/auto-idler:${SAFE_BRANCH:-master}
