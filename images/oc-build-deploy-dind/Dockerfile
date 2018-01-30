@@ -1,6 +1,8 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/oc
 
+ENV LAGOON=oc-build-deploy-dind
+
 RUN	mkdir -p /git
 
 WORKDIR /git
