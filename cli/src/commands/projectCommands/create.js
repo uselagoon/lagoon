@@ -110,9 +110,9 @@ createProjectArgs): Promise<number> {
     variables: {
       input: {
         ...projectInput,
-        // FIXME: Get the customer ID from the JWT or config or something
+        // FIXME: Get customer ID via allCustomers query
         customer: 1,
-        // FIXME: Get the openshift ID from the JWT or config or something
+        // FIXME: Get the openshift ID via new allOpenshifts query
         openshift: 1,
       },
     },
