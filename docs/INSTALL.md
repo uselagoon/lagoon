@@ -25,75 +25,11 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
         oc login <openshift console>
 
-2. Switch to the project default
+2. Run the openshift-lagoon-setup script
 
-        oc project default
+        make openshift-lagoon-setup
 
-3. Create Service Account `lagoon`.
-
-        oc create serviceaccount lagoon
-
-4. Describe lagoon \(we are interested in the first token\):
-
-        oc describe serviceaccount lagoon
-
-   example output:
-
-        $ oc describe serviceaccount lagoon
-
-        Name:		lagoon
-        Namespace:	default
-        Labels:		none;
-        Annotations:	none;
-        Image pull secrets:	lagoon-dockercfg-9q303
-
-        Mountable secrets: 	lagoon-token-kvlv0
-                              lagoon-dockercfg-9q303
-
-        Tokens:            	lagoon-token-dkgwz
-                              lagoon-token-kvlv0
-
-5. Describe first token \(token are random generated, so yours will probably have another name\)
-
-        oc describe secret lagoon-token-dkgwz
-
-  example:
-
-        Name:		lagoon-token-dkgwz
-
-        Namespace:	default
-
-        Labels:		&lt;none&gt;
-
-        Annotations:	kubernetes.io/created-by=openshift.io/create-dockercfg-secrets
-            kubernetes.io/service-account.name=lagoon
-            kubernetes.io/service-account.uid=190342fc-99db-11e7-8e14-005056a1ae62
-
-        Type:	kubernetes.io/service-account-token
-
-        Data
-        ====
-
-        service-ca.crt:	2186 bytes
-
-        token:		eyJhbGciOiJdfasdfNiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImxhZ29vbi10b2tlbi1kadasdfasdfasfV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIxOTA3NDlmYy05OWRiLTExZTctOGUxNC0wMDUwNTZhMWFlNjIiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpsYWdvb24ifQ.TD6zFNtxgSzpQV3IpF5uXDm96XWUqseMqxabPA3cLh9V5qrqoolJ73ZW3a8lx2klzTY20XDV4HpiTIMuqayjrljkc46\_JaWpkPwsDLl61jQdldVrO7PtAXZ-UD4AgDqVfchLhObDn1azlkudohYPtPvYsh8Qv8F1RPWQTpMaFywSLEza8MmrJWrnTCZ6d9V48Duzsmu5Jn2luS8NgmAN2375l5vYYD2fA4CLOUuOqBFrGjQasdfasdffq3np5ZsBMlg0piOREJEwul7hKfPxxMEblHZw7VZUvMleod9jCQmnwrrr5h8rprRV5wfHmpTFiC5JPV6UZGhA\_2gjOVw
-
-        ca.crt:		1070 bytes
-
-        namespace:	7 bytes
-
-6. We are interested in the `token`, keep that for now somewhere safe.
-
-7. Create new ClusterRole `lagoon` and add Service Account `lagoon` to it \(this will allow lagoon to create new projects in OpenShift\)
-
-        oc -n default create -f openshift-setup/clusterrole-lagoon.yaml
-        oc -n default adm policy add-cluster-role-to-user lagoon -z lagoon
-
-8. Create docker-host which will be used by the builds for docker layer caching (if you run that with a local OpenShift started via `make openshift`, this step is already done for you)
-
-        oc -n default create serviceaccount docker-host
-        oc -n default adm policy add-scc-to-user privileged -z docker-host
-        oc -n default create -f openshift-setup/docker-host.yaml
+3. At the end of this script it will give you a serviceaccount token, keep that somewhere safe.
 
 ### Configure and connect local Lagoon with OpenShift
 
@@ -101,7 +37,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
 1. Edit `lagoon` inside local-dev/api-data/api-data.sql, in the `INSERT INTO openshift` section:
    1. `[replace me with OpenShift console URL]` - The URL to the OpenShift Console, without `console` at the end.
-   2. `[replace me with OpenShift Token]` - The token of the lagoon service account that you created earlier
+   2. `[replace me with OpenShift Token]` - The token of the lagoon service account that was shown to you during `make openshift-lagoon-setup`
 
 2. Build required Images and start services:
 

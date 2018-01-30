@@ -89,4 +89,4 @@ objects:
               volumeMounts:
                 - name: ${SERVICE_NAME}
                   mountPath: ${PERSISTENT_STORAGE_PATH}
-            restartPolicy: Never
+            restartPolicy: OnFailure

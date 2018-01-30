@@ -232,7 +232,7 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /scripts/exec-openshift-resources.sh
+    . /scripts/exec-openshift-create-pvc.sh
   fi
 
   # Deployment template can be overwritten in docker-compose
@@ -240,17 +240,17 @@ do
 
   if [ $OVERRIDE_TEMPLATE == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
-    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-      echo "No Template for service type ${SERVICE_TYPE} found"; exit 1;
+    if [ -f $OPENSHIFT_TEMPLATE ]; then
+      . /scripts/exec-openshift-resources.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+    else
+      . /scripts/exec-openshift-resources.sh
     fi
   fi
-
-  . /scripts/exec-openshift-resources.sh
 
   # Generate cronjobs if service type defines them
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
@@ -312,7 +312,7 @@ done
 
 
 ##############################################
-### WAIT FOR DEPLOYMENTS TO BE FINISHED
+### WAIT FOR POST-ROLLOUT TO BE FINISHED
 ##############################################
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
@@ -323,7 +323,11 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  . /scripts/exec-monitor-deploy.sh
+  SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.rollout deploymentconfigs)
+
+  if [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
+    . /scripts/exec-monitor-deploy.sh
+  fi
 done
 
 

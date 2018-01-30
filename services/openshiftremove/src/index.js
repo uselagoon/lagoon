@@ -70,6 +70,15 @@ const messageConsumer = async function(msg) {
     },
   });
 
+  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
+  // the OpenShift API does not support them.
+  const kubernetes = new OpenShiftClient.Core({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
+    },
+  });
 
   // Check if project exists
   try {
@@ -100,25 +109,35 @@ const messageConsumer = async function(msg) {
       logger.info(`${openshiftProject}: Deleted DeploymentConfig ${deploymentconfig.metadata.name}`);
     }
 
-    const hasZeroDeploymentConfigs = () => new Promise(async (resolve, reject) => {
-      const deploymentconfigs = await deploymentconfigsGet()
-      if (deploymentconfigs.items.length === 0) {
-        logger.info(`${openshiftProject}: All DeploymentConfigs deleted`);
+    const podsGet = Promise.promisify(kubernetes.ns(openshiftProject).pods.get, { context: kubernetes.ns(openshiftProject).pods })
+    const pods = await podsGet()
+    for (let pod of pods.items) {
+      const podDelete = Promise.promisify(kubernetes.ns(openshiftProject).pods(pod.metadata.name).delete, { context: kubernetes.ns(openshiftProject).pods(pod.metadata.name) })
+      await podDelete()
+      logger.info(`${openshiftProject}: Deleted Pod ${pod.metadata.name}`);
+    }
+
+    const hasZeroPods = () => new Promise(async (resolve, reject) => {
+      const pods = await podsGet()
+      console.log(pods)
+      if (pods.items.length === 0) {
+        logger.info(`${openshiftProject}: All Pods deleted`);
         resolve()
       } else {
-        logger.info(`${openshiftProject}: Deploymentconfigs not deleted yet, will try again in 1sec`);
+        logger.info(`${openshiftProject}: Pods not deleted yet, will try again in 2sec`);
         reject()
       }
     })
 
     try {
-      await retry(10, hasZeroDeploymentConfigs, 1000)
+      await retry(10, hasZeroPods, 2000)
     } catch (err) {
-      throw new Error(`${openshiftProject}: Deploymentconfigs not deleted`)
+      throw new Error(`${openshiftProject}: Pods not deleted`)
     }
 
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
     await projectsDelete()
+    logger.info(`${openshiftProject}: Project deleted`);
     sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
       `*[${projectName}]* remove \`${openshiftProject}\``
     )
