@@ -43,7 +43,7 @@ RUN apk update \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug \
+        && yes '' | pecl install -f xdebug; \
        fi \
     && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
         yes '' | pecl install -f apcu-4.0.11 \
