@@ -42,13 +42,14 @@ RUN apk update \
         libxslt-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
-        yes '' | pecl install -f apcu; \
+        yes '' | pecl install -f apcu \
+        && yes '' | pecl install -f xdebug \
        fi \
     && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
-        yes '' | pecl install -f apcu-4.0.11; \
+        yes '' | pecl install -f apcu-4.0.11 \
+        && yes '' | pecl install -f xdebug-2.5.5; \
        fi \
     && yes '' | pecl install -f redis \
-    && yes '' | pecl install -f xdebug \
     && docker-php-ext-enable apcu redis xdebug \
     && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql shmop soap sockets opcache xsl zip \
