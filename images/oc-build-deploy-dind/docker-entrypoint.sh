@@ -15,6 +15,8 @@ fi
 mkdir -p ~/.ssh
 
 cp /var/run/secrets/lagoon/ssh/ssh-privatekey ~/.ssh/id_rsa
-chmod 400 ~/.ssh/id_rsa
-
 echo -e "Host * \n    StrictHostKeyChecking no" > ~/.ssh/config
+chmod 400 ~/.ssh/*
+
+eval $(ssh-agent)
+ssh-add ~/.ssh/id_rsa

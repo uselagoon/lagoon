@@ -1,6 +1,8 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/oc
 
+# the oc image comes with an HOME=/home which is needed to run as unpriviledged, but oc-build-deploy-dind will run as root
+ENV HOME=/root
 ENV LAGOON=oc-build-deploy-dind
 
 RUN	mkdir -p /git
