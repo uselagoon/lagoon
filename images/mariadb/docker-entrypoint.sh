@@ -2,6 +2,8 @@
 
 set -e
 set -x
+set -eo pipefail
+shopt -s nullglob
 
 if [ ! -d "/run/mysqld" ]; then
 	mkdir -p /run/mysqld
