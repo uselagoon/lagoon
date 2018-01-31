@@ -2,3 +2,5 @@
   path.config: "pipeline/lagoon-logs.conf"
 - pipeline.id: router-logs
   path.config: "pipeline/router-logs.conf"
+- pipeline.id: service-logs
+  path.config: "pipeline/service-logs.conf"

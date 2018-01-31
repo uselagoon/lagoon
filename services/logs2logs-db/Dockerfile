@@ -4,8 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/logstash
 # Remove default shipped pipeline
 RUN rm -f pipeline/logstash.conf
 
-COPY lagoon-logs.conf pipeline/lagoon-logs.conf
-COPY router-logs.conf pipeline/router-logs.conf
+COPY pipeline/ pipeline/
 COPY pipelines.yml config/pipelines.yml
 
 # https://github.com/elastic/logstash-docker/issues/64
