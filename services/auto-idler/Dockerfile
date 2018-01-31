@@ -6,7 +6,7 @@ ENV LAGOON=auto-idler
 RUN apk add --no-cache tini jq openssl bash curl nodejs nodejs-npm \
     && npm -g install jwtgen
 
-COPY create_jwt.sh idle-services.sh /
+COPY create_jwt.sh idle-services.sh idle-clis.sh /
 
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
