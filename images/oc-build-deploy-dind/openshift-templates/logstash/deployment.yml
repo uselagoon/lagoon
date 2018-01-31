@@ -88,3 +88,30 @@ objects:
           name: ${SERVICE_NAME}:latest
       type: ImageChange
   status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
+  spec:
+    ports:
+    - name: logstash-mgmt
+      port: 9600
+      protocol: TCP
+      targetPort: 9600
+    - name: udp-input-module
+      port: 5140
+      protocol: UDP
+      targetPort: 5140
+    - name: tcp-input-module
+      port: 28777
+      protocol: TCP
+      targetPort: 28777
+    selector:
+      service: ${SERVICE_NAME}
+  status:
+    loadBalancer: {}
