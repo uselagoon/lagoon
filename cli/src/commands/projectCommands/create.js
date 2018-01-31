@@ -82,7 +82,7 @@ createProjectArgs): Promise<number> {
       type: 'input',
       name: 'active_systems_remove',
       message: 'Active system for task "remove":',
-      default: 'lagoon_openshiftBuildRemove',
+      default: 'lagoon_openshiftRemove',
     },
     {
       type: 'input',
