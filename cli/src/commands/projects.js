@@ -48,7 +48,6 @@ ListProjectsArgs): Promise<number> {
   });
 
   const { errors } = result;
-
   if (errors != null) {
     return printGraphQLErrors(cerr, ...errors);
   }
