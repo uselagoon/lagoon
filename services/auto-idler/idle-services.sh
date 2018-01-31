@@ -30,7 +30,8 @@ ALL_ENVIRONMENT_HITS=$(curl -s -XGET "http://logs-db:9200/router-logs-*/_search"
   "aggs": {
     "group_by_openshift_project": {
       "terms": {
-        "field": "openshift_project.keyword"
+        "field": "openshift_project.keyword",
+        "size" : 1000000
       }
     }
   },
@@ -69,7 +70,10 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
         # Check if this environment has hits
         HAS_HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count | if . > 0 then true else false end")
 
-        if [ "$HAS_HITS" == "true" ]; then
+        if [ ! $? -eq 0 ]; then
+          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
+          continue
+        elif [ "$HAS_HITS" == "true" ]; then
           HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
           echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last hour, no idleing"
         else
