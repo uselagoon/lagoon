@@ -1,15 +1,16 @@
 version: '3.2'
 services:
-  mariadb:
-    image: ${IMAGE_REPO:-lagoon}/mariadb
+  api-db:
+    image: ${IMAGE_REPO:-lagoon}/api-db
+    user: '111111111'
     volumes:
-      - ./services/mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./services/mariadb/rerun_initdb.sh:/rerun_initdb.sh
+      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - "3306:3306"
     labels:
-      lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/mariadb:${SAFE_BRANCH:-master}
+      lagoon.type: api-db
+      lagoon.image: amazeeiolagoon/api-db:${SAFE_BRANCH:-master}
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
@@ -106,7 +107,7 @@ services:
       - ./services/api/src:/app/services/api/src
       - ./node-packages:/app/node-packages:delegated
     depends_on:
-      - mariadb
+      - api-db
       - local-api-data-watcher-pusher
     ports:
       - "3000:3000"
@@ -198,7 +199,7 @@ services:
       lagoon.type: none
   local-api-data-watcher-pusher:
     depends_on:
-      - mariadb
+      - api-db
     image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher
     volumes:
       - ./local-dev/api-data:/api-data
