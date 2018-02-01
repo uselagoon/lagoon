@@ -104,21 +104,23 @@ projectDetailsArgs): Promise<number> {
 }
 
 type Args = BaseArgs & {
-  project: ?string,
+  argv: {
+    project: ?string,
+  },
 };
 
 export async function handler({
   clog,
   cerr,
   config,
-  project: projectOption,
+  argv,
 }:
 Args): Promise<number> {
   if (config == null) {
     return printNoConfigError(cerr);
   }
 
-  const projectName = projectOption || config.project;
+  const projectName = argv.project || config.project;
 
   if (projectName == null) {
     return printProjectConfigurationError(cerr);

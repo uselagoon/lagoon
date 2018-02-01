@@ -27,8 +27,10 @@ describe('handler', () => {
       cwd,
       clog,
       cerr,
-      overwrite: true,
-      project: 'test_project',
+      argv: {
+        overwrite: true,
+        project: 'test_project',
+      },
     });
 
     expect(code).toBe(0);
@@ -49,8 +51,10 @@ describe('handler', () => {
       cwd,
       clog,
       cerr,
-      overwrite: false,
-      project: 'test_project',
+      argv: {
+        overwrite: false,
+        project: 'test_project',
+      },
     });
 
     expect(code).toBe(1);
@@ -71,8 +75,10 @@ describe('handler', () => {
       cwd,
       clog,
       cerr,
-      overwrite: false,
-      project: 'test_project',
+      argv: {
+        overwrite: false,
+        project: 'test_project',
+      },
     });
 
     expect(code).toBe(0);

@@ -55,7 +55,7 @@ export function visit(cmd: CommandModule) {
       handler: (argv: Argv): Promise<void> =>
         cmd
           .handler({
-            ...argv,
+            argv,
             cwd,
             config,
             /* eslint-disable no-console */

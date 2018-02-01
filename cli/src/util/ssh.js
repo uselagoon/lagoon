@@ -101,7 +101,7 @@ async function promptUntilValidPath(cerr: typeof console.error): Promise<String>
 type GetPrivateKeyPathArgs = {
   fileExistsAtDefaultPath: boolean,
   defaultPrivateKeyPath: string,
-  identityOption?: string,
+  identity?: string,
   cerr: typeof console.error,
 };
 
@@ -114,9 +114,9 @@ export const getPrivateKeyPath = async (
       R.propSatisfies(
         // Option is not null or undefined
         R.complement(R.isNil),
-        'identityOption',
+        'identity',
       ),
-      R.prop('identityOption'),
+      R.prop('identity'),
     ],
     // If a file exists at the default private key path, use that
     [R.prop('fileExistsAtDefaultPath'), R.prop('defaultPrivateKeyPath')],
