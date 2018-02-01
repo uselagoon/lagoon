@@ -1,2 +1,2 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/centos7-mariadb10-drupal
+FROM ${IMAGE_REPO:-lagoon}/mariadb-drupal
