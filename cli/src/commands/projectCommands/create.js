@@ -45,6 +45,7 @@ createProjectArgs): Promise<number> {
         }
       }
     `,
+    cerr,
   });
 
   const { errors } = customersAndOpenshiftsResults;
