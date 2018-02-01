@@ -58,8 +58,10 @@ export function visit(cmd: CommandModule) {
             ...argv,
             cwd,
             config,
+            /* eslint-disable no-console */
             clog: console.log,
             cerr: console.error,
+            /* eslint-enable no-console */
           })
           .catch((err) => {
             const exitCode = printErrors(
