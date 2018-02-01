@@ -12,7 +12,7 @@
 # Changing one sql file after initial load will sync the sql scripts.
 
 rerun-initdb:
-		docker-compose exec mariadb bash rerun_initdb.sh
+		docker-compose exec api-db bash rerun_initdb.sh
 
 watch:
 		watchman-make -p 'docker-entrypoint-initdb.d/*.sql' 'Makefile' -t rerun-initdb
