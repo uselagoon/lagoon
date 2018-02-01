@@ -65,7 +65,7 @@ export function builder(yargs: Yargs) {
       project: {
         describe: 'Name of project to configure',
         type: 'string',
-        alias: 's',
+        alias: 'p',
       },
     })
     .example(
@@ -85,7 +85,7 @@ export function builder(yargs: Yargs) {
       'Set project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} -s my_project`,
+      `$0 ${command} -p my_project`,
       'Short form for setting project to "my_project" (do not prompt the user).\n',
     )
     .example(
