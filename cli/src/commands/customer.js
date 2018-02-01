@@ -114,17 +114,23 @@ GetCustomerDetailsArgs): Promise<number> {
 }
 
 type Args = BaseArgs & {
-  project: ?string,
+  argv: {
+    project: ?string,
+  },
 };
 
-export async function handler(args: Args): Promise<number> {
-  const { config, clog, cerr } = args;
-
+export async function handler({
+  argv,
+  config,
+  clog,
+  cerr,
+}:
+Args): Promise<number> {
   if (config == null) {
     return printNoConfigError(cerr);
   }
 
-  const project = args.project || config.project;
+  const project = argv.project || config.project;
 
   if (project == null) {
     return printProjectConfigurationError(cerr);

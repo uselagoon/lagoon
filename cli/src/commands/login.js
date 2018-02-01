@@ -31,16 +31,13 @@ export function builder(yargs: Yargs) {
 }
 
 type Args = BaseArgs & {
-  identity: string,
+  argv: {
+    identity: string,
+  },
 };
 
-export async function handler({
-  clog,
-  cerr,
-  identity: identityOption,
-}:
-Args): Promise<number> {
-  if (identityOption != null && !await fileExists(identityOption)) {
+export async function handler({ clog, cerr, argv }: Args): Promise<number> {
+  if (argv.identity != null && !await fileExists(argv.identity)) {
     return printErrors(cerr, 'File does not exist at identity option path!');
   }
 
@@ -51,7 +48,7 @@ Args): Promise<number> {
   const privateKeyPath = await getPrivateKeyPath({
     fileExistsAtDefaultPath,
     defaultPrivateKeyPath,
-    identityOption,
+    identity: argv.identity,
     cerr,
   });
 

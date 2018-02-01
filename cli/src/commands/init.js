@@ -18,7 +18,7 @@ export const description =
 type GetOverwriteOptionArgs = {
   exists: boolean,
   filepath: string,
-  overwriteOption: ?boolean,
+  overwrite: ?boolean,
 };
 
 const getOverwriteOption = async (
@@ -32,9 +32,9 @@ const getOverwriteOption = async (
       R.propSatisfies(
         // Option is not null or undefined
         R.complement(R.isNil),
-        'overwriteOption',
+        'overwrite',
       ),
-      R.prop('overwriteOption'),
+      R.prop('overwrite'),
     ],
     // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
     [
@@ -95,14 +95,15 @@ export function builder(yargs: Yargs) {
 }
 
 type Args = BaseArgs & {
-  overwrite: ?boolean,
-  project: ?string,
+  argv: {
+    overwrite: ?boolean,
+    project: ?string,
+  },
 };
 
 export async function handler({
   cwd,
-  overwrite: overwriteOption,
-  project,
+  argv,
   clog,
   cerr,
 }:
@@ -114,15 +115,15 @@ Args): Promise<number> {
   const overwrite = await getOverwriteOption({
     exists,
     filepath,
-    overwriteOption,
+    overwrite: argv.overwrite,
   });
 
   if (exists && !overwrite) {
     return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
   }
 
-  const configInput = project
-    ? { project }
+  const configInput = argv.project
+    ? { project: argv.project }
     : await inquirer.prompt([
       {
         type: 'input',
