@@ -24,7 +24,7 @@
     "watch": "babel --watch=src -d dist",
     "execute": "node -r babel-core/register src/cli.js",
     "lint-staged": "lint-staged",
-    "flow": "flow check"
+    "flow": "glow check"
   },
   "repository": {
     "type": "git",
@@ -53,6 +53,7 @@
     "eslint-plugin-flowtype": "^2.41.0",
     "eslint-plugin-import": "^2.7.0",
     "flow-bin": "^0.63.1",
+    "glow": "^1.1.1",
     "jest": "^22.1.1",
     "lint-staged": "^6.0.0",
     "node-fetch": "^1.7.2",
