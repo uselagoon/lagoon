@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS project (
        active_systems_deploy  varchar(300),
        active_systems_remove  varchar(300),
        branches               varchar(300),
-       pullrequests           boolean,
+       pullrequests           varchar(300),
        production_environment varchar(100),
        openshift              int REFERENCES openshift (id),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
@@ -156,7 +156,25 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  convert_project_pullrequest_to_varchar()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+    SELECT DATA_TYPE into column_type
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'pullrequests';
+    IF (column_type = 'tinyint') THEN
+      ALTER TABLE project MODIFY pullrequests varchar(300);
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
 CALL add_ssh_to_openshift;
+CALL convert_project_pullrequest_to_varchar;
