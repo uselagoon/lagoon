@@ -46,6 +46,7 @@ objects:
           project: ${SAFE_PROJECT}
         annotations:
           pod.alpha.kubernetes.io/initialized: "true"
+          alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
         - name: mariadb
