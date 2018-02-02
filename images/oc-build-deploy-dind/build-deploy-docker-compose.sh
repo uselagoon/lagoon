@@ -45,6 +45,20 @@ done
 ##############################################
 
 BUILD_ARGS=()
+BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
+BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
+BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
+BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
+
+if [ "$TYPE" == "pullrequest" ]; then
+  BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_SHA="${PR_BASE_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_TITLE="${PR_TITLE}")
+fi
+
 for IMAGE_NAME in "${IMAGES[@]}"
 do
   # We need the Image Name uppercase sometimes, so we create that here
