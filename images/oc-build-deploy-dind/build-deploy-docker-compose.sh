@@ -323,7 +323,7 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.rollout deploymentconfigs)
+  SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
   if [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /scripts/exec-monitor-deploy.sh
