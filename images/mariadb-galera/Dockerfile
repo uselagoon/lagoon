@@ -45,3 +45,6 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
 RUN cd /tmp; git clone https://github.com/libcheck/check.git ; cd check; mkdir build ; cd build ; cmake ../ ; make ; make install ;
 
 COPY root /
+
+COPY docker-entrypoint.sh /lagoon/entrypoints/85-mariadb-entrypoint
+RUN rm /lagoon/entrypoints/90-mariadb-entrypoint
