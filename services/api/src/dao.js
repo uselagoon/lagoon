@@ -388,11 +388,7 @@ const addProject = sqlClient => async (cred, input) => {
             : '"lagoon_openshiftRemove"'
         },
         ${input.branches ? ':branches' : '"true"'},
-        ${
-          input.pullrequests
-            ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)"
-            : 'NULL'
-        },
+        ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.production_environment ? ':production_environment' : 'NULL'}
       );
     `,

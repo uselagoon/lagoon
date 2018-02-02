@@ -24,7 +24,8 @@ const messageConsumer = async msg => {
     headBranchName,
     headSha,
     baseBranchName,
-    baseSha
+    baseSha,
+    pullrequestTitle
   } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received DeployOpenshift task for project: ${projectName}, branch: ${branchName}, sha: ${sha}`);
@@ -51,6 +52,7 @@ const messageConsumer = async msg => {
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
+    var prPullrequestTitle = pullrequestTitle || ""
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
   } catch(error) {
@@ -165,6 +167,7 @@ const messageConsumer = async msg => {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_HEAD_SHA","value": prHeadSha})
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_BASE_BRANCH","value": prBaseBranchName})
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_BASE_SHA","value": prBaseSha})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_TITLE","value": prPullrequestTitle})
     }
     return buildconfig
   }
