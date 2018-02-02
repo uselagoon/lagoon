@@ -55,6 +55,7 @@
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
+    url: "{{ check_url }}"
     expected_build_type: "pullrequest"
     expected_pr_base_branch: "pullrequest_base"
     expected_pr_base_sha: "{{ base_commit_hash }}"
@@ -100,6 +101,7 @@
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
+    url: "{{ check_url }}"
     expected_build_type: "pullrequest"
     expected_pr_base_branch: "pullrequest_base"
     expected_pr_base_sha: "{{ base_commit_hash }}"
