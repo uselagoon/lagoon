@@ -41,6 +41,7 @@
     git_pr_commit_hash: "{{ pr_commit_hash }}"
     git_pr_number: "1"
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_pr_title: "PR Title"
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-opened.yaml
 
@@ -51,6 +52,15 @@
     expected_branch: "pr-1"
     project: "{{ project }}"
     url: "{{ check_url }}"
+
+- include: ../../checks/check-pullrequest.yaml
+  vars:
+    expected_build_type: "pullrequest"
+    expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_sha: "{{ base_commit_hash }}"
+    expected_pr_head_branch: "pullrequest_pr"
+    expected_pr_head_sha: "{{ pr_commit_hash }}"
+    expected_pr_title: "PR Title"
 
 - name: "{{ testname }} - git commit a second time into pull request branch"
   hosts: localhost
@@ -77,6 +87,7 @@
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
     git_pr_number: "1"
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_pr_title: "PR Title - UPDATE"
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-synchronize.yaml
 
@@ -86,6 +97,15 @@
     expected_branch: "pr-1"
     project: "{{ project }}"
     url: "{{ check_url }}"
+
+- include: ../../checks/check-pullrequest.yaml
+  vars:
+    expected_build_type: "pullrequest"
+    expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_sha: "{{ base_commit_hash }}"
+    expected_pr_head_branch: "pullrequest_pr"
+    expected_pr_head_sha: "{{ pr_2nd_commit_hash }}"
+    expected_pr_title: "PR Title - UPDATE"
 
 - name: "{{ testname }} - webhook github pull request closed"
   hosts: localhost
