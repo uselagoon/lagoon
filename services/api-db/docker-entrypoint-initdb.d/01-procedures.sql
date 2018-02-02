@@ -13,7 +13,7 @@ CREATE OR REPLACE PROCEDURE
     IN active_systems_deploy  varchar(300),
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
-    IN pullrequests           boolean,
+    IN pullrequests           varchar(300),
     IN production_environment varchar(100)
   )
   BEGIN

@@ -114,7 +114,8 @@ async function createDeployTask(deployData) {
 		projectName,
 		branchName,
 		sha,
-		type
+		type,
+		pullrequestTitle,
 	} = deployData
 
   let project = await getActiveSystemForProject(projectName, 'deploy');
@@ -161,9 +162,17 @@ async function createDeployTask(deployData) {
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:
-						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, no pull request pattern matching implemeted yet.`)
-						throw new NoNeedToDeployBranch(`No Pull Request pattern matching implemented yet`)
-						// @TODO Implement pullrequest pattern matching
+						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`)
+
+						let branchRegex = new RegExp(project.pullrequests);
+						if (branchRegex.test(pullrequestTitle)) {
+							logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests} matched PR Title '${pullrequestTitle}', starting deploy`)
+							return sendToLagoonTasks('builddeploy-openshift', deployData);
+						} else {
+							logger.debug(`projectName: ${projectName}, branchName: ${branchName}, regex ${project.pullrequests} did not match PR Title, not deploying`)
+							throw new NoNeedToDeployBranch(`configured regex '${project.pullrequests}' does not match PR Title '${pullrequestTitle}'`)
+						}
+
 				}
 			}
 		default:

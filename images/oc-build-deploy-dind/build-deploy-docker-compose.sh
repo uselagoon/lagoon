@@ -45,6 +45,20 @@ done
 ##############################################
 
 BUILD_ARGS=()
+BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
+BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
+BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
+BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
+
+if [ "$TYPE" == "pullrequest" ]; then
+  BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_SHA="${PR_BASE_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_PR_TITLE="${PR_TITLE}")
+fi
+
 for IMAGE_NAME in "${IMAGES[@]}"
 do
   # We need the Image Name uppercase sometimes, so we create that here
@@ -183,6 +197,7 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
+  -p NAME="lagoon-env" \
   -p SAFE_BRANCH="${SAFE_BRANCH}" \
   -p SAFE_PROJECT="${SAFE_PROJECT}" \
   -p BRANCH="${BRANCH}" \
@@ -192,6 +207,12 @@ oc process --insecure-skip-tls-verify \
   -p ROUTES="${ROUTES}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
+if [ "$TYPE" == "pullrequest" ]; then
+  oc patch --insecure-skip-tls-verify \
+    -n ${OPENSHIFT_PROJECT} \
+    configmap lagoon-env \
+    -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":\"${PR_TITLE}\"}}"
+fi
 
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
