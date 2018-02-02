@@ -1,4 +1,4 @@
-- name: "{{ testname }} - check if {{ project }} is correctly deployed with searching for LAGOON_BUILD_TYPE_BUILDTIME={{ expected_build_type }"
+- name: "{{ testname }} - check if {{ project }} is correctly deployed with searching for LAGOON_BUILD_TYPE_BUILDTIME={{ expected_build_type }}"
   hosts: localhost
   serial: 1
   vars:
