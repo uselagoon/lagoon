@@ -27,6 +27,7 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
     const baseSha = body.pull_request.base.sha
 
     const data: deployData = {
+      pullrequestTitle: body.pull_request.title,
       pullrequestNumber: body.number,
       projectName: project.name,
       type: 'pullrequest',

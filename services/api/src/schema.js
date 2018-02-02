@@ -66,7 +66,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
-    pullrequests: Boolean
+    pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
     environments: [Environment]
@@ -117,7 +117,7 @@ const typeDefs = `
     active_systems_deploy: String
     active_systems_remove: String
     branches: String
-    pullrequests: Boolean
+    pullrequests: String
     production_environment: String
   }
 
