@@ -35,9 +35,9 @@ objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: mysql
+    name: mariadb
   spec:
-    serviceName: "mariadb-galera"
+    serviceName: "mariadb"
     replicas: 3
     template:
       metadata:
@@ -49,7 +49,7 @@ objects:
       spec:
         containers:
         - name: mariadb
-          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/mariadb-galera:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 3306

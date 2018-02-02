@@ -35,12 +35,14 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
+    annotations:
+      service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
     creationTimestamp: null
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
+    name: mariadb
   spec:
     ports:
     - name: 3306-tcp
@@ -48,6 +50,6 @@ objects:
       protocol: TCP
       targetPort: 3306
     selector:
-      service: ${SERVICE_NAME}
+      service: mariadb
   status:
     loadBalancer: {}
