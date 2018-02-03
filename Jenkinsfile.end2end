@@ -10,10 +10,10 @@ node {
         sh "make end2end-tests -j4"
       } catch (e) {
         echo "Something went wrong, trying to cleanup"
-        sh "end2end-tests/clean"
+        sh "make end2end-tests/clean"
         throw e
       }
-      sh "end2end-tests/clean"
+      sh "make end2end-tests/clean"
     }
   }
 
