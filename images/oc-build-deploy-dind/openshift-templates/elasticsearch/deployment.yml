@@ -62,10 +62,12 @@ objects:
             protocol: TCP
           readinessProbe:
             httpGet:
+              path: /_cluster/health?local=true
               port: 9200
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
+              path: /_cluster/health?local=true
               port: 9200
             initialDelaySeconds: 120
           envFrom:
