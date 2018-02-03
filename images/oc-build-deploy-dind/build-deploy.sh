@@ -1,4 +1,5 @@
-#!/bin/bash -x
+#!/bin/bash
+set -x
 set -eo pipefail
 
 OPENSHIFT_REGISTRY=docker-registry.default.svc:5000
