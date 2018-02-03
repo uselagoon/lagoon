@@ -4,6 +4,9 @@ metadata:
   creationTimestamp: null
   name: lagoon-openshift-template-configmap
 parameters:
+  - name: NAME
+    description: Name of this configmap
+    required: true
   - name: SAFE_BRANCH
     description: Which branch this belongs to, special chars replaced with dashes
     required: true
@@ -29,7 +32,7 @@ objects:
 - kind: ConfigMap
   apiVersion: v1
   metadata:
-    name: lagoon-env
+    name: ${NAME}
   data:
     LAGOON_GIT_SAFE_BRANCH: ${SAFE_BRANCH}
     LAGOON_GIT_BRANCH: ${BRANCH}
