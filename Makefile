@@ -422,7 +422,7 @@ end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
 end2end-tests: $(end2end-all-tests)
 
 .PHONY: start-end2end-ansible
-start-end2end-ansible:
+start-end2end-ansible: build/tests
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end up -d tests
 
 $(end2end-all-tests): start-end2end-ansible
