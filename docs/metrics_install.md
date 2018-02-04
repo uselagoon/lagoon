@@ -161,9 +161,6 @@ $ helm upgrade grafana-dpc \
   charts/grafana-dpc/
 ```
 
-
-
-
 To get the password for the `admin` user.
 
 ```console
@@ -174,4 +171,9 @@ $ oc get secret --namespace metrics grafana-dpc-grafana \
 If your MiniShift IP address was `192.168.99.100` then you would now be able to access Prometheus using the following URL.<br/>
 
 [http://grafana-dpc.192.168.99.100.nip.io](http://grafana-dpc.192.168.99.100.nip.io)
+
+
+**Notifications**
+
+The Grafana Helm Chart creates a Slack notification channel as part of the install.  However, the webhook URL is a dummy value as the proper value is private.  Therefore you must manually add the webhook URL.  To do this navigate to the Notification channels screen `-> Alerting -> Notification channels`.  Then click `edit` on the `salsa_dpc #bay-build` notification channel.  Finally, add the proper URL into the `Url` field and save.
 
