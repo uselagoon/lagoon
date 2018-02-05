@@ -57,18 +57,6 @@ EOF
 	echo "user=root" >> /var/lib/mysql/.my.cnf
 	echo "password=$MARIADB_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
 
-fi
-
-# execute any pre-exec scripts, useful for images
-# based on this image
-for i in /scripts/pre-exec.d/*sh
-do
-	if [ -e "${i}" ]; then
-		echo "[i] pre-exec.d - processing $i"
-		. ${i}
-	fi
-done
-
 echo "starting mysql for initdb.d import."
 /usr/bin/mysqld &
 pid="$!"
@@ -96,6 +84,8 @@ for i in {30..0}; do
 if ! kill -s TERM "$pid" || ! wait "$pid"; then
 	echo >&2 'MySQL init process failed.'
 	exit 1
+fi
+
 fi
 echo "done, now starting daemon"
 
