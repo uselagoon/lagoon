@@ -39,3 +39,4 @@ VOLUME /var/lib/mysql
 EXPOSE 3306
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
+CMD ["mysqld --console"]
