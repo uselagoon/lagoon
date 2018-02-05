@@ -31,12 +31,13 @@ ENV PATH="/home/.composer/vendor/bin:${PATH}"
 # like it happens in /etc/profile of alpine Images.
 COPY 90-composer-path.sh /lagoon/entrypoints/
 
-# Make sure shells are not running forever
-COPY 80-shell-timeout.sh /
-RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh.sh" >> /home/.bashrc
-
 # Making sure the path is not only added during entrypoint, but also when creating a new shell
 RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
+
+# Make sure shells are not running forever
+COPY 80-shell-timeout.sh /lagoon/entrypoints/
+RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
+
 
 # SSH Key and Agent Setup
 COPY 10-ssh-agent.sh /lagoon/entrypoints/
