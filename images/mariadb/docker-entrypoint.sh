@@ -4,32 +4,47 @@ set -e
 set -x
 set -eo pipefail
 
-if [ ! -d "/run/mysqld" ]; then
-	mkdir -p /run/mysqld
-	chown -R mysql:mysql /run/mysqld
+if [ "${1:0:1}" = '-' ]; then
+	set -- mysqld "$@"
 fi
 
-if [ -d /var/lib/mysql/mysql ]; then
-	echo "[i] MySQL directory already present, skipping creation"
-else
-	echo "[i] MySQL data directory not found, creating initial DBs"
+wantHelp=
+for arg; do
+	case "$arg" in
+		-'?'|--help|--print-defaults|-V|--version)
+			wantHelp=1
+			break
+			;;
+	esac
+done
 
-	mysql_install_db --skip-name-resolve
 
-	echo "starting mysql for initdb.d import."
-	/usr/bin/mysqld &
-	pid="$!"
-	echo "pid is $pid"
 
-for i in {30..0}; do
+if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+  if [ ! -d "/run/mysqld" ]; then
+  	mkdir -p /run/mysqld
+  	chown -R mysql:mysql /run/mysqld
+  fi
+
+  if [ -d /var/lib/mysql/mysql ]; then
+  	echo "MySQL directory already present, skipping creation"
+  else
+	  echo "MySQL data directory not found, creating initial DBs"
+
+	  mysql_install_db --skip-name-resolve
+
+	  echo "starting mysql for initdb.d import."
+    /usr/bin/mysqld &
+    pid="$!"
+    echo "pid is $pid"
+
+    for i in {30..0}; do
 			if echo 'SELECT 1' | mysql &> /dev/null; then
 				break
 			fi
 			echo 'MySQL init process in progress...'
 			sleep 1
 		done
-
-
 
 		if [ "$MARIADB_ROOT_PASSWORD" = "" ]; then
 			MARIADB_ROOT_PASSWORD=`pwgen 16 1`
@@ -41,14 +56,14 @@ for i in {30..0}; do
 		MARIADB_PASSWORD=${MARIADB_PASSWORD:-""}
 
 		tfile=`mktemp`
-		if [ ! -f "$tfile" ]; then
+    if [ ! -f "$tfile" ]; then
 		    return 1
-		fi
+    fi
 
 		cat << EOF > $tfile
-	USE mysql;
-	UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
-	FLUSH PRIVILEGES;
+USE mysql;
+UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
+FLUSH PRIVILEGES;
 
 EOF
 
@@ -62,32 +77,33 @@ EOF
 		fi
 
 
-			cat $tfile
-			cat $tfile | mysql -v -u root 
-			rm -v -f $tfile
+		cat $tfile
+		cat $tfile | mysql -v -u root
+		rm -v -f $tfile
 
-			for f in `ls /docker-entrypoint-initdb.d/*`; do
-					case "$f" in
-						*.sh)     echo "$0: running $f"; . "$f" ;;
-						*.sql)    echo "$0: running $f"; cat $f| tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
-						*)        echo "$0: ignoring $f" ;;
-					esac
-					echo
-				done
+		for f in `ls /docker-entrypoint-initdb.d/*`; do
+		  case "$f" in
+		  	*.sh)     echo "$0: running $f"; . "$f" ;;
+				*.sql)    echo "$0: running $f"; cat $f| tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
+				*)        echo "$0: ignoring $f" ;;
+			esac
+		echo
+		done
 
-				echo "[client]" >> /var/lib/mysql/.my.cnf
-				echo "database=mysql" >> /var/lib/mysql/.my.cnf
-				echo "user=root" >> /var/lib/mysql/.my.cnf
-				echo "password=$MARIADB_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
+		echo "[client]" >> /var/lib/mysql/.my.cnf
+		echo "database=mysql" >> /var/lib/mysql/.my.cnf
+		echo "user=root" >> /var/lib/mysql/.my.cnf
+		echo "password=$MARIADB_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
 
+		if ! kill -s TERM "$pid" || ! wait "$pid"; then
+			echo >&2 'MySQL init process failed.'
+			exit 1
+		fi
 
-if ! kill -s TERM "$pid" || ! wait "$pid"; then
-	echo >&2 'MySQL init process failed.'
-	exit 1
-fi
+	fi
 
-
-fi
 echo "done, now starting daemon"
 
-exec /usr/bin/mysqld --console
+fi
+
+exec $@
