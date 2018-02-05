@@ -39,7 +39,7 @@ objects:
       service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
     creationTimestamp: null
     labels:
-      service: ${SERVICE_NAME}
+      service: mariadb
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
     name: mariadb

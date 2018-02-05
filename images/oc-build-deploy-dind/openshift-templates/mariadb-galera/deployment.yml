@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-mariadb
+  name: lagoon-openshift-template-mariadb-galera
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -39,13 +39,16 @@ objects:
   spec:
     serviceName: "mariadb"
     replicas: 3
+    selector:
+      matchLabels:
+        service: mariadb
     template:
       metadata:
         labels:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
+          service: mariadb
         annotations:
-          pod.alpha.kubernetes.io/initialized: "true"
           alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
