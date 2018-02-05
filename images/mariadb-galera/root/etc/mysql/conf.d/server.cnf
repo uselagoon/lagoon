@@ -1,0 +1,31 @@
+# this is read by the standalone daemon and embedded servers
+[server]
+bind-address                      = 0.0.0.0
+
+# this is only for the mysqld standalone daemon
+[mysqld]
+datadir = /var/lib/mysql
+ignore_db_dirs=lost+found
+socket = /run/mysqld/mysqld.sock 
+
+#
+# * Galera-related settings
+#
+[galera]
+# Mandatory settings
+wsrep_on = ON
+wsrep_provider = /usr/lib64/galera/libgalera_smm.so
+binlog_format = ROW
+
+# this is only for embedded server
+[embedded]
+
+# This group is only read by MariaDB servers, not by MySQL.
+# If you use the same .cnf file for MySQL and MariaDB,
+# you can put MariaDB-only options here
+[mariadb]
+
+# This group is only read by MariaDB-10.1 servers.
+# If you use the same .cnf file for MariaDB of different versions,
+# use this group for options that older servers don't understand
+[mariadb-10.1]
