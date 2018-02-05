@@ -32,8 +32,8 @@ ENV PATH="/home/.composer/vendor/bin:${PATH}"
 COPY 90-composer-path.sh /lagoon/entrypoints/
 
 # Make sure shells are not running forever
-COPY 80-shell-timeout.sh /
-RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh.sh" >> /home/.bashrc
+COPY 80-shell-timeout.sh /lagoon/entrypoints/80-shell-timeout.sh
+RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
 
 # Making sure the path is not only added during entrypoint, but also when creating a new shell
 RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
