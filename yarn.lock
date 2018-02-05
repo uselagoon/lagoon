@@ -4639,6 +4639,10 @@ window-size@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.1.0.tgz#5438cd2ea93b202efa3a19fe8887aee7c94f9c9d"
 
+winston-logstash@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/winston-logstash/-/winston-logstash-0.4.0.tgz#fbb618235a056fbea7acf2bec78018e9a5238138"
+
 winston@^2.1.1, winston@^2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/winston/-/winston-2.4.0.tgz#808050b93d52661ed9fb6c26b3f0c826708b0aee"
