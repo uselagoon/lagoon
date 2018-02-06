@@ -56,6 +56,7 @@ objects:
     name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
   spec:
     schedule: "${CRONJOB_SCHEDULE}"
+    concurrencyPolicy: Forbid
     jobTemplate:
       spec:
         template:
