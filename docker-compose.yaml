@@ -9,7 +9,7 @@ services:
     ports:
       - "3306:3306"
     labels:
-      lagoon.type: api-db
+      lagoon.type: mariadb
       lagoon.image: amazeeiolagoon/api-db:${SAFE_BRANCH:-master}
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
