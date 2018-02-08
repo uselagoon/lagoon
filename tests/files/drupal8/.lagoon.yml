@@ -35,8 +35,8 @@ environments:
                 insecure: Allow
             - www.domain.com
 
-cronjobs:
-  - name: drush cron
-    schedule: "1 * * * *"
-    command: drush cron
-    service: cli
+    cronjobs:
+        - name: drush cron
+          schedule: "1 * * * *"
+          command: drush cron
+          service: cli

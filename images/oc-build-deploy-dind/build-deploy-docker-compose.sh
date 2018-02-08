@@ -138,21 +138,21 @@ done
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
-  ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER)
+while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+  ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER)
 
   ROUTE_DOMAIN_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+  while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
     # Routes can either be a key (when the have additional settings) or just a value
-    if cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
-      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+    if cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
       # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
-      ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-      ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-      ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+      ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+      ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+      ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
     else
       # Only a value given, assuming some defaults
-      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
       ROUTE_TLS_ACME=true
       ROUTE_INSECURE=Redirect
     fi
@@ -286,10 +286,10 @@ do
   DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
 
   CRONJOB_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
+  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
   do
 
-    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.service)
+    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
 
     # Only implement the cronjob for the services we are currently handling
     if [ $CRONJOB_SERVICE == $SERVICE ]; then
@@ -298,13 +298,16 @@ do
       TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
 
       # Creating a save name (special characters removed )
-      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.schedule)
-      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.command)
+      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
       TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME}")
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
       TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$(/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
 
       OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
       if [ ! -f $OPENSHIFT_TEMPLATE ]; then
