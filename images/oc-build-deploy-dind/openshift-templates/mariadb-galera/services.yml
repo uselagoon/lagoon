@@ -44,6 +44,7 @@ objects:
       project: ${SAFE_PROJECT}
     name: mariadb
   spec:
+    clusterIP: None
     ports:
     - name: 3306-tcp
       port: 3306
