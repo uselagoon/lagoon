@@ -1,90 +1,100 @@
-#!/bin/bash
-#
-# Adfinis SyGroup AG
-# openshift-mariadb-galera: mysql setup script
-#
+#!/usr/bin/env bash
 
-set -eox pipefail
+set -e
+set -x
+set -eo pipefail
 
-echo 'Running mysql_install_db ...'
-mysql_install_db --datadir=/var/lib/mysql
-echo 'Finished mysql_install_db'
-
-MARIADB_ROOT_PASSWORD=`pwgen 16 1`
-echo "MySQL root Password: $MARIADB_ROOT_PASSWORD"
-
-mysqld --skip-networking --socket=/var/run/mysql/mysql-init.sock --wsrep_on=OFF &
-pid="$!"
-
-mysql=( mysql --protocol=socket -uroot -hlocalhost --socket=/var/run/mysql/mysql-init.sock )
-
-for i in {30..0}; do
-  if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
-    break
-  fi
-  echo 'MySQL init process in progress...'
-  sleep 1
-done
-if [ "$i" = 0 ]; then
-  echo >&2 'MySQL init process failed.'
-  exit 1
+if [ ! -d "/run/mysqld" ]; then
+	mkdir -p /run/mysqld
+	chown -R mysql:mysql /run/mysqld
 fi
 
-if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
-	# sed is for https://bugs.mysql.com/bug.php?id=20545
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
-fi
+find /var/lib/mysql
 
-# add MariaDB root user
-"${mysql[@]}" <<-EOSQL
--- What's done in this file shouldn't be replicated
---  or products like mysql-fabric won't work
-SET @@SESSION.SQL_LOG_BIN=0;
+if [ -d /var/lib/mysql/mysql ]; then
+	echo "[i] MySQL directory already present, skipping creation"
+else
+	echo "[i] MySQL data directory not found, creating initial DBs"
 
-DELETE FROM mysql.user ;
-CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
-GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-DROP DATABASE IF EXISTS test ;
-FLUSH PRIVILEGES ;
-EOSQL
+	mysql_install_db --skip-name-resolve
 
-# add root password for subsequent calls to mysql
-if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
-	mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
-fi
-
-# add users require for Galera
-# TODO: make them somehow configurable
-"${mysql[@]}" <<-EOSQL
-CREATE USER 'xtrabackup_sst'@'localhost' IDENTIFIED BY 'xtrabackup_sst' ;
-GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO 'xtrabackup_sst'@'localhost' ;
-EOSQL
-
-if [ "$MYSQL_DATABASE" ]; then
-	echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
-	mysql+=( "$MYSQL_DATABASE" )
-fi
-
-if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-	echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
-
-	if [ "$MYSQL_DATABASE" ]; then
-		echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
+	if [ "$MARIADB_ROOT_PASSWORD" = "" ]; then
+		MARIADB_ROOT_PASSWORD=`pwgen 16 1`
+		echo "[i] MySQL root Password: $MARIADB_ROOT_PASSWORD"
 	fi
 
-	echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
+	MARIADB_DATABASE=${MARIADB_DATABASE:-""}
+	MARIADB_USER=${MARIADB_USER:-""}
+	MARIADB_PASSWORD=${MARIADB_PASSWORD:-""}
+
+	tfile=`mktemp`
+	if [ ! -f "$tfile" ]; then
+	    return 1
+	fi
+
+	cat << EOF > $tfile
+USE mysql;
+
+UPDATE user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
+FLUSH PRIVILEGES;
+
+EOF
+
+	if [ "$MARIADB_DATABASE" != "" ]; then
+	  echo "[i] Creating database: $MARIADB_DATABASE"
+	  echo "CREATE DATABASE IF NOT EXISTS \`$MARIADB_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
+	  if [ "$MARIADB_USER" != "" ]; then
+	    echo "[i] Creating user: $MARIADB_USER with password $MARIADB_PASSWORD"
+		  echo "GRANT ALL ON \`$MARIADB_DATABASE\`.* to '$MARIADB_USER'@'%' IDENTIFIED BY '$MARIADB_PASSWORD';" >> $tfile
+	  fi
+		echo "FLUSH PRIVILEGES;" >> $tfile
+	fi
+
+	/usr/bin/mysqld --bootstrap --verbose=0 < $tfile
+	rm -v -f $tfile
+
+	echo "[client]" >> /var/lib/mysql/.my.cnf
+	echo "user=root" >> /var/lib/mysql/.my.cnf
+	echo "password=$MARIADB_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
+
 fi
+
+# execute any pre-exec scripts, useful for images
+# based on this image
+for i in /scripts/pre-exec.d/*sh
+do
+	if [ -e "${i}" ]; then
+		echo "[i] pre-exec.d - processing $i"
+		. ${i}
+	fi
+done
+
+echo "starting mysql for initdb.d import."
+/usr/bin/mysqld &
+pid="$!"
+echo "pid is $pid"
+
+for i in {30..0}; do
+			if echo 'SELECT 1' | mysql -u root -p${MARIADB_ROOT_PASSWORD} &> /dev/null; then
+				break
+			fi
+			echo 'MySQL init process in progress...'
+			sleep 1
+		done
+
+		for f in `ls /docker-entrypoint-initdb.d/*`; do
+
+				case "$f" in
+					*.sh)     echo "$0: running $f"; . "$f" ;;
+					*.sql)    echo "$0: running $f"; cat $f | mysql -u root -p${MARIADB_ROOT_PASSWORD} ; echo ;;
+					*)        echo "$0: ignoring $f" ;;
+				esac
+				echo
+			done
+
 
 if ! kill -s TERM "$pid" || ! wait "$pid"; then
 	echo >&2 'MySQL init process failed.'
 	exit 1
 fi
-
-echo
-echo 'MySQL init process done. Ready for start up.'
-echo
-
-
-echo "[client]" >> /var/lib/mysql/.my.cnf
-echo "user=root" >> /var/lib/mysql/.my.cnf
-echo "password=$MARIADB_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
+echo "done, now starting daemon"

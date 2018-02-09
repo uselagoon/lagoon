@@ -42,9 +42,23 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
 
 
 
+
+# fix some environmental items
+RUN mkdir -p /usr/include/bits; mkdir -p /usr/
+COPY wordsize.h /usr/include/bits/wordsize.h
+# replace poll.h with one that doesn't break the build
+RUN mkdir /usr/include/sys/ ; echo "#include <poll.h>" > /usr/include/sys/poll.h
+RUN cat /usr/include/sys/poll.h
+
+
 RUN cd /tmp; git clone https://github.com/libcheck/check.git ; cd check; mkdir build ; cd build ; cmake ../ ; make ; make install ;
+#RUN cd /tmp && git clone -b mariadb-3.x qhttps://github.com/MariaDB/galera.git && cd galera && ./scripts/build.sh
+# RUN find /tmp/galera ; find \*.so
 
-COPY root /
 
-COPY docker-entrypoint.sh /lagoon/entrypoints/85-mariadb-entrypoint
-RUN rm /lagoon/entrypoints/90-mariadb-entrypoint
+# COPY root /
+
+# COPY docker-entrypoint.sh /lagoon/entrypoints/85-mariadb-entrypoint
+# RUN rm /lagoon/entrypoints/90-mariadb-entrypoint
+
+ENTRYPOINT /bin/sh
