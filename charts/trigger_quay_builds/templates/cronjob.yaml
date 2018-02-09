@@ -1,0 +1,30 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: trigger-quay-builds
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: trigger-quay-builds
+            image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+            env:
+              - name:  REPOSITORY
+                value: desdrury/builder
+              - name:  TRIGGER_UUID
+                value: 64dbbb60-25b7-40e7-9b18-93fc497ee34c
+              - name:  ROBOT_TOKEN
+                valueFrom:
+                  secretKeyRef: 
+                    name: trigger-quay-builds
+                    key:  ROBOT_TOKEN
+
+          restartPolicy: OnFailure
+          # volumes:
+          # - name: trigger_quay_builds
+          #   secret:
+          #     secretName: trigger_quay_builds
+

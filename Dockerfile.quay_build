@@ -1,0 +1,8 @@
+FROM appropriate/curl
+
+RUN apk add --no-cache bash
+
+COPY /scripts/trigger_quay_builds.sh /
+CMD chmod +x /trigger_quay_builds.sh
+
+ENTRYPOINT /trigger_quay_builds.sh
