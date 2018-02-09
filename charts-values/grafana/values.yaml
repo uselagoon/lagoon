@@ -1,5 +1,13 @@
+openshift: true
+
 server:
   adminPassword: changeme
+
+  image: "grafana/grafana:4.6.3"
+
+  ingress:
+    hosts:
+      - grafana.lagoon.vicsdp.amazee.io
 
   persistentVolume:
     enabled: true

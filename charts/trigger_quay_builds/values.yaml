@@ -1,0 +1,6 @@
+# Default values for trigger_quay_builds.
+
+image:
+  repository: desdrury/quay_build
+  tag: latest
+  pullPolicy: Always
