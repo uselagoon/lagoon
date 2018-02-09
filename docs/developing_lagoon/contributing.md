@@ -1,6 +1,6 @@
 # Contributing to Lagoon
 
-You would like to hack Lagoon? Yay 🎉! That's how we all started. At Lagoon we take pride in being able to run everything in a local environement, see  [DEVELOPMENT.md](./DEVELOPMENT.md) how this works.
+You would like to hack Lagoon? Yay 🎉! That's how we all started. At Lagoon we take pride in being able to run everything in a local environement, see [Developing Lagoon](/developing_lagoon/index.md) how this works.
 
 ## I found a security issue
 
@@ -16,7 +16,7 @@ We're always interested in fixing issues, therefore issue reports are very welco
 
 ## I got a feature request or idea
 
-Cool! Just create an issue and we're happy to look over it. We can't guarantee though that it will be implemented. But we are always interested in hearing ideas where we can bring Lagoon to.
+Cool! Just create an [issue](https://github.com/amazeeio/lagoon/issues) and we're happy to look over it. We can't guarantee though that it will be implemented. But we are always interested in hearing ideas where we can bring Lagoon to.
 
 Another good way is also to talk to us via Slack about your idea. [Join today](https://slack.amazee.io/) in the channel #lagoon.
 
