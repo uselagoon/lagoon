@@ -44,61 +44,66 @@ done
 ### BUILD IMAGES
 ##############################################
 
-BUILD_ARGS=()
-BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
-BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
-BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
-BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
-BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
+# we only need to build images for pullrequests and branches
+if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-if [ "$TYPE" == "pullrequest" ]; then
-  BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
-  BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
-  BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
-  BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_SHA="${PR_BASE_SHA}")
-  BUILD_ARGS+=(--build-arg LAGOON_PR_TITLE="${PR_TITLE}")
-fi
+  BUILD_ARGS=()
+  BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+  BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
 
-for IMAGE_NAME in "${IMAGES[@]}"
-do
-  # We need the Image Name uppercase sometimes, so we create that here
-  IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
-
-  # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
-  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-
-  DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
-  if [ $DOCKERFILE == "false" ]; then
-    # No Dockerfile defined, assuming to download the Image directly
-
-    PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
-    if [ $PULL_IMAGE == "false" ]; then
-      echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
-    fi
-
-    # allow to overwrite image that we pull
-    OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
-    if [ ! $OVERRIDE_IMAGE == "false" ]; then
-      # expand environment variables from ${OVERRIDE_IMAGE}
-      PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
-    fi
-
-    . /scripts/exec-pull-tag.sh
-
-  else
-    # Dockerfile defined, load the context and build it
-
-    BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
-    if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
-      echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
-    fi
-
-    . /scripts/exec-build.sh
+  if [ "$TYPE" == "pullrequest" ]; then
+    BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_SHA="${PR_BASE_SHA}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_TITLE="${PR_TITLE}")
   fi
 
-  # adding the build image to the list of arguments passed into the next image builds
-  BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
-done
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # We need the Image Name uppercase sometimes, so we create that here
+    IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
+
+    # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+
+    DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
+    if [ $DOCKERFILE == "false" ]; then
+      # No Dockerfile defined, assuming to download the Image directly
+
+      PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
+      if [ $PULL_IMAGE == "false" ]; then
+        echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
+      fi
+
+      # allow to overwrite image that we pull
+      OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
+      if [ ! $OVERRIDE_IMAGE == "false" ]; then
+        # expand environment variables from ${OVERRIDE_IMAGE}
+        PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
+      fi
+
+      . /scripts/exec-pull-tag.sh
+
+    else
+      # Dockerfile defined, load the context and build it
+
+      BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
+      if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
+        echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
+      fi
+
+      . /scripts/exec-build.sh
+    fi
+
+    # adding the build image to the list of arguments passed into the next image builds
+    BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
+  done
+
+fi
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES AND ROUTES
@@ -327,12 +332,21 @@ done
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
 
-for IMAGE_NAME in "${IMAGES[@]}"
-do
-  # Before the push the temporary name is resolved to the future tag with the registry in the image name
-  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-  . /scripts/exec-push.sh
-done
+if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # Before the push the temporary name is resolved to the future tag with the registry in the image name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+    . /scripts/exec-push.sh
+  done
+elif [ "$TYPE" == "promote" ]; then
+
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    . /scripts/exec-openshift-tag.sh
+  done
+
+fi
 
 
 ##############################################

@@ -384,6 +384,11 @@ const addProject = sqlClient => async (cred, input) => {
             : '"lagoon_openshiftBuildDeploy"'
         },
         ${
+          input.active_systems_promote
+            ? ':active_systems_promote'
+            : '"lagoon_openshiftBuildDeploy"'
+        },
+        ${
           input.active_systems_remove
             ? ':active_systems_remove'
             : '"lagoon_openshiftRemove"'
@@ -518,7 +523,7 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
     `CALL CreateOrUpdateEnvironment(
         :name,
         :project,
-        :git_type,
+        :deploy_type,
         :environment_type,
         :openshift_projectname
       );

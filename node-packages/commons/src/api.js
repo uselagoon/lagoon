@@ -142,12 +142,12 @@ async function getActiveSystemForProject(
   return result.project;
 }
 
-const addOrUpdateEnvironment = (name: string, projectId: number, git_type: string, environment_type: string, openshift_projectname: string ): Promise<Object> => graphqlapi.query(`
+const addOrUpdateEnvironment = (name: string, projectId: number, deploy_type: string, environment_type: string, openshift_projectname: string ): Promise<Object> => graphqlapi.query(`
   mutation {
     addOrUpdateEnvironment(input: {
         name: "${name}",
         project: ${projectId},
-        git_type: ${git_type},
+        deploy_type: ${deploy_type},
         environment_type: ${environment_type},
         openshift_projectname: "${openshift_projectname}"
     }) {
@@ -156,7 +156,7 @@ const addOrUpdateEnvironment = (name: string, projectId: number, git_type: strin
       project {
         name
       }
-      git_type
+      deploy_type
       environment_type
       openshift_projectname
     }

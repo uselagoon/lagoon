@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS project (
        customer               int REFERENCES customer (id),
        git_url                varchar(300),
        active_systems_deploy  varchar(300),
+       active_systems_promote varchar(300),
        active_systems_remove  varchar(300),
        branches               varchar(300),
        pullrequests           varchar(300),
@@ -56,7 +57,7 @@ CREATE TABLE IF NOT EXISTS environment (
        id                     int NOT NULL auto_increment PRIMARY KEY,
        name                   varchar(100),
        project                int REFERENCES project (id),
-       git_type               ENUM('branch', 'pullrequest') NOT NULL,
+       deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
        environment_type       ENUM('production', 'development') NOT NULL,
        openshift_projectname  varchar(100),
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -173,8 +174,68 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_active_systems_promote_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'active_systems_promote'
+            )  THEN
+      ALTER TABLE `project` ADD `active_systems_promote` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  rename_git_type_to_deploy_type_in_environment()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'environment'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'deploy_type'
+            )  THEN
+      ALTER TABLE `environment` CHANGE `git_type` `deploy_type` ENUM('branch','pullrequest');
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_enum_promote_to_deploy_type_in_environment()
+
+  BEGIN
+    DECLARE column_type_enum_deploy_type varchar(50);
+
+    SELECT COLUMN_TYPE into column_type_enum_deploy_type
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deploy_type';
+
+	  IF (column_type_enum_deploy_type = "enum('branch','pullrequest')") THEN
+      ALTER TABLE environment MODIFY deploy_type ENUM('branch','pullrequest','promote');
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
 CALL add_ssh_to_openshift;
 CALL convert_project_pullrequest_to_varchar;
+CALL add_active_systems_promote_to_project;
+CALL rename_git_type_to_deploy_type_in_environment;
+CALL add_enum_promote_to_deploy_type_in_environment;
