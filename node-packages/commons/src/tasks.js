@@ -163,7 +163,7 @@ async function createDeployTask(deployData) {
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:
-						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`)
+					logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`)
 
 						let branchRegex = new RegExp(project.pullrequests);
 						if (branchRegex.test(pullrequestTitle)) {
