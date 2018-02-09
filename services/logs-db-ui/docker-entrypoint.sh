@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-wait 30
+sleep 30
 
 # test for lagoon-logs-* index pattern, create and set to default if it does not exist
 if ! [ $(curl --silent 'http://logs-db-ui:5601/api/saved_objects/index-pattern' | grep "lagoon-logs") ]
