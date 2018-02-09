@@ -11,6 +11,7 @@ const typeDefs = `
   enum GitType {
     BRANCH
     PULLREQUEST
+    PROMOTE
   }
 
   enum EnvType {
@@ -63,6 +64,7 @@ const typeDefs = `
     git_url: String
     notifications(type: String): [Notification]
     active_systems_deploy: String
+    active_systems_promote: String
     active_systems_remove: String
     branches: String
     production_environment: String
@@ -115,6 +117,7 @@ const typeDefs = `
     git_url: String!
     openshift: Int!
     active_systems_deploy: String
+    active_systems_promote: String
     active_systems_remove: String
     branches: String
     pullrequests: String
@@ -233,6 +236,7 @@ const sshKeyTypeToString = R.cond([
 const gitTypeToString = R.cond([
   [R.equals('BRANCH'), R.toLower],
   [R.equals('PULLREQUEST'), R.toLower],
+  [R.equals('PROMOTE'), R.toLower],
   [R.T, R.identity],
 ]);
 

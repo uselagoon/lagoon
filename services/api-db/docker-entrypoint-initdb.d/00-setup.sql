@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS project (
        customer               int REFERENCES customer (id),
        git_url                varchar(300),
        active_systems_deploy  varchar(300),
+       active_systems_promote varchar(300),
        active_systems_remove  varchar(300),
        branches               varchar(300),
        pullrequests           varchar(300),

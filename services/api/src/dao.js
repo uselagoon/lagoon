@@ -383,6 +383,11 @@ const addProject = sqlClient => async (cred, input) => {
             : '"lagoon_openshiftBuildDeploy"'
         },
         ${
+          input.active_systems_promote
+            ? ':active_systems_promote'
+            : '"lagoon_openshiftBuildDeploy"'
+        },
+        ${
           input.active_systems_remove
             ? ':active_systems_remove'
             : '"lagoon_openshiftRemove"'
