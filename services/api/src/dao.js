@@ -522,7 +522,7 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
     `CALL CreateOrUpdateEnvironment(
         :name,
         :project,
-        :git_type,
+        :deploy_type,
         :environment_type,
         :openshift_projectname
       );

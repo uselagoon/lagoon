@@ -98,7 +98,7 @@ CREATE OR REPLACE PROCEDURE
   (
     IN name                   varchar(100),
     IN pid                    int,
-    IN git_type               ENUM('branch', 'pullrequest', 'promote'),
+    IN deploy_type               ENUM('branch', 'pullrequest', 'promote'),
     IN environment_type       ENUM('production', 'development'),
     IN openshift_projectname  varchar(100)
   )
@@ -106,14 +106,14 @@ CREATE OR REPLACE PROCEDURE
     INSERT INTO environment (
         name,
         project,
-        git_type,
+        deploy_type,
         environment_type,
         openshift_projectname
     )
     SELECT
         name,
         p.id,
-        git_type,
+        deploy_type,
         environment_type,
         openshift_projectname
     FROM
@@ -121,7 +121,7 @@ CREATE OR REPLACE PROCEDURE
     WHERE
         p.id = pid
     ON DUPLICATE KEY UPDATE
-        git_type=git_type,
+        deploy_type=deploy_type,
         environment_type=environment_type,
         updated=NOW();
 
