@@ -22,10 +22,8 @@ ENV MARIADB_DATABASE=lagoon \
 
 RUN apk add --no-cache bash mariadb-client mariadb mariadb-common pwgen && rm -rf /var/cache/apk/*
 
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
-do mkdir -p $i; /bin/fix-permissions $i; done
-
-# USER mysql
+RUN for i in /run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
+do mkdir -p $i; chown mysql $i;  /bin/fix-permissions $i; done
 
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
 COPY mysql-backup.sh /lagoon/
@@ -33,6 +31,9 @@ COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
 RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
+
+### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
+USER mysql
 
 WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
