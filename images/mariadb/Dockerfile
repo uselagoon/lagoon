@@ -25,8 +25,6 @@ RUN apk add --no-cache bash mariadb-client mariadb mariadb-common pwgen && rm -r
 RUN for i in /run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; chown mysql $i;  /bin/fix-permissions $i; done
 
-# USER mysql
-
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
 COPY mysql-backup.sh /lagoon/
 
