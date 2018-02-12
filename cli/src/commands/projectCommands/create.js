@@ -7,9 +7,10 @@ import { table } from 'table';
 import urlRegex from 'url-regex';
 
 import gql from '../../gql';
-import { printGraphQLErrors } from '../../printErrors';
+import { printGraphQLErrors, printErrors } from '../../printErrors';
 import { runGQLQuery } from '../../query';
 
+import type Inquirer from 'inquirer';
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '..';
 
@@ -22,16 +23,7 @@ export function builder(yargs: Yargs): Yargs {
     .example('$0', 'Create new project');
 }
 
-type createProjectArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
-
-export async function createProject({
-  clog,
-  cerr,
-}:
-createProjectArgs): Promise<number> {
+export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.error) {
   const customersAndOpenshiftsResults = await runGQLQuery({
     query: gql`
       query AllCustomersAndOpenshiftsForProjectCreate {
@@ -48,19 +40,85 @@ createProjectArgs): Promise<number> {
     cerr,
   });
 
-  const { errors } = customersAndOpenshiftsResults;
+  return {
+    allCustomers: R.path(
+      ['data', 'allCustomers'],
+      customersAndOpenshiftsResults,
+    ),
+    allOpenshifts: R.path(
+      ['data', 'allOpenshifts'],
+      customersAndOpenshiftsResults,
+    ),
+    errors: R.prop('errors', customersAndOpenshiftsResults),
+  };
+}
+
+export function answerFromOptionsPropCond(
+  option: string,
+  answers: Inquirer.answers,
+  clog: typeof console.log,
+) {
+  return [
+    R.compose(
+      // Option is set
+      R.has(option),
+      R.prop('options'),
+    ),
+    (objectWithOptions: { options: Object }) => {
+      const propVal = R.path(['options', option], objectWithOptions);
+      clog(`${blue('!')} Using "${option}" option from arguments or config`);
+      // eslint-disable-next-line no-param-reassign
+      answers[option] = propVal;
+    },
+  ];
+}
+
+export function answerFromOptions(
+  option: string,
+  options: Object,
+  clog: typeof console.log,
+) {
+  return (answers: Inquirer.answers) => {
+    const [predicate, transform] = answerFromOptionsPropCond(
+      option,
+      answers,
+      clog,
+    );
+    return R.ifElse(predicate, transform, R.T)({ options });
+  };
+}
+
+type createProjectArgs = {
+  clog: typeof console.log,
+  cerr: typeof console.error,
+  options: {
+    customer: ?string,
+  },
+};
+
+export async function createProject({
+  clog,
+  cerr,
+  options,
+}:
+createProjectArgs): Promise<number> {
+  const {
+    allCustomers,
+    allOpenshifts,
+    errors,
+  } = await getAllowedCustomersAndOpenshifts(cerr);
+
   if (errors != null) {
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const allCustomers = R.path(
-    ['data', 'allCustomers'],
-    customersAndOpenshiftsResults,
-  );
-  const allOpenshifts = R.path(
-    ['data', 'allOpenshifts'],
-    customersAndOpenshiftsResults,
-  );
+  if (R.equals(R.length(allCustomers), 0)) {
+    return printErrors(cerr, 'No authorized customers found!');
+  }
+
+  if (R.equals(R.length(allOpenshifts), 0)) {
+    return printErrors(cerr, 'No authorized openshifts found!');
+  }
 
   const projectInput = await inquirer.prompt([
     {
@@ -68,24 +126,28 @@ createProjectArgs): Promise<number> {
       name: 'customer',
       message: 'Customer:',
       choices: allCustomers,
-      // Using the `when` method of the question object, decide whether to skip the question and trigger some side effects based on the number of customers returned
+      // Using the `when` method of the question object, decide where to get the customer based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
       when(answers) {
-        return R.ifElse(
-          R.compose(R.gte(1), R.length),
-          // If there is only one customer in the customers list, use that customer as the answer to the question and tell the user, not prompting them to choose.
-          (customers) => {
-            const firstCustomer = R.head(customers);
-            clog(`${blue('!')} Using only authorized customer "${R.prop(
-              'name',
-              firstCustomer,
-            )}"`);
-            // eslint-disable-next-line no-param-reassign
-            answers.customer = R.prop('value', firstCustomer);
-          },
-          // If there is more than one customer, return true in order to trigger the list prompt
-          R.T,
-        )(allCustomers);
+        return R.cond([
+          // 1. If the `customer` is set in the command line arguments or the config, use that customer
+          answerFromOptionsPropCond('customer', answers, clog),
+          // 2. If only one customer was returned from the allCustomers query, use that customer as the answer to the question and tell the user, not prompting them to choose.
+          [
+            R.compose(R.equals(1), R.length, R.prop('allCustomers')),
+            (customersAndOptions) => {
+              const firstCustomer = R.compose(R.head, R.prop('allCustomers'))(customersAndOptions);
+              clog(`${blue('!')} Using only authorized customer "${R.prop(
+                'name',
+                firstCustomer,
+              )}"`);
+              // eslint-disable-next-line no-param-reassign
+              answers.customer = R.prop('value', firstCustomer);
+            },
+          ],
+          // 3. If more than one customer was returned from the allCustomers query, return true to prompt the user to choose from a list
+          [R.T, R.T],
+        ])({ allCustomers, options });
       },
     },
     {
@@ -105,30 +167,35 @@ createProjectArgs): Promise<number> {
           /(github\.com|bitbucket\.org|gitlab\.com|\.git$)/.test(input)) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
+      when: answerFromOptions('git_url', options, clog),
     },
     {
       type: 'list',
       name: 'openshift',
       message: 'Openshift:',
       choices: allOpenshifts,
-      // Using the `when` method of the question object, decide whether to skip the question and trigger some side effects based on the number of openshifts returned
+      // Using the `when` method of the question object, decide where to get the openshift based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
       when(answers) {
-        return R.ifElse(
-          R.compose(R.gte(1), R.length),
-          // If there is only one openshift in the openshifts list, use that openshift as the answer to the question and tell the user, not prompting them to choose.
-          (openshifts) => {
-            const firstOpenshift = R.head(openshifts);
-            clog(`${blue('!')} Using only authorized openshift "${R.prop(
-              'name',
-              firstOpenshift,
-            )}"`);
-            // eslint-disable-next-line no-param-reassign
-            answers.openshift = R.prop('value', firstOpenshift);
-          },
-          // If there is more than one openshift, return true in order to trigger the list prompt
-          R.T,
-        )(allOpenshifts);
+        return R.cond([
+          // 1. If the `openshift` is set in the command line arguments or the config, use that openshift
+          answerFromOptionsPropCond('openshift', answers, clog),
+          // 2. If only one openshift was returned from the allOpenshifts query, use that openshift as the answer to the question and tell the user, not prompting them to choose.
+          [
+            R.compose(R.equals(1), R.length, R.prop('allOpenshifts')),
+            (openshiftsAndOptions) => {
+              const firstOpenshift = R.compose(R.head, R.prop('allOpenshifts'))(openshiftsAndOptions);
+              clog(`${blue('!')} Using only authorized openshift "${R.prop(
+                'name',
+                firstOpenshift,
+              )}"`);
+              // eslint-disable-next-line no-param-reassign
+              answers.openshift = R.prop('value', firstOpenshift);
+            },
+          ],
+          // 3. If more than one openshift was returned from the allOpenshifts query, return true to prompt the user to choose from a list
+          [R.T, R.T],
+        ])({ allOpenshifts, options });
       },
     },
     {
@@ -136,30 +203,35 @@ createProjectArgs): Promise<number> {
       name: 'active_systems_deploy',
       message: 'Active system for task "deploy":',
       default: 'lagoon_openshiftBuildDeploy',
+      when: answerFromOptions('active_systems_deploy', options, clog),
     },
     {
       type: 'input',
       name: 'active_systems_remove',
       message: 'Active system for task "remove":',
       default: 'lagoon_openshiftRemove',
+      when: answerFromOptions('active_systems_remove', options, clog),
     },
     {
       type: 'input',
       name: 'branches',
       message: 'Deploy branches:',
       default: 'true',
+      when: answerFromOptions('branches', options, clog),
     },
     {
       type: 'input',
       name: 'pullrequests',
       message: 'Pull requests:',
       default: null,
+      when: answerFromOptions('pullrequests', options, clog),
     },
     {
       type: 'input',
       name: 'production_environment',
       message: 'Production environment:',
       default: null,
+      when: answerFromOptions('production_environment', options, clog),
     },
   ]);
 
@@ -210,17 +282,28 @@ createProjectArgs): Promise<number> {
     ['Branches', String(R.prop('branches', project))],
     ['Pull Requests', String(R.prop('pullrequests', project))],
     ['Openshift', R.path(['openshift', 'name'], project)],
-    ['Created', R.path(['created'], project)],
+    ['Created', R.prop('created', project)],
   ]));
 
   return 0;
 }
 
+type Args = BaseArgs & {
+  argv: {
+    customer: ?string,
+  },
+};
+
 export async function handler({
   clog,
   cerr,
   config,
+  argv,
 }:
-BaseArgs): Promise<number> {
-  return createProject({ clog, cerr });
+Args): Promise<number> {
+  const options = {
+    ...config,
+    ...argv,
+  };
+  return createProject({ clog, cerr, options });
 }
