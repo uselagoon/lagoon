@@ -1,0 +1,7 @@
+# this is only for the mysqld standalone daemon
+[mysqld]
+datadir = /var/lib/mysql
+ignore_db_dirs=lost+found
+socket = /run/mysqld/mysqld.sock
+
+!includedir /var/lib/mysql/.conf.d/
