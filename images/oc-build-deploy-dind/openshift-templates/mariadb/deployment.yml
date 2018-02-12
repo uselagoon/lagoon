@@ -66,17 +66,13 @@ objects:
           - containerPort: 3306
             protocol: TCP
           readinessProbe:
-            exec:
-              command:
-              - mysqladmin
-              - ping
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 15
             timeoutSeconds: 1
           livenessProbe:
-            exec:
-              command:
-              - mysqladmin
-              - ping
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 120
             periodSeconds: 5
           volumeMounts:
