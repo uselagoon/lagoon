@@ -187,6 +187,7 @@ CREATE OR REPLACE PROCEDURE
                 AND column_name = 'active_systems_promote'
             )  THEN
       ALTER TABLE `project` ADD `active_systems_promote` varchar(300);
+      UPDATE project SET active_systems_promote = 'lagoon_openshiftBuildDeploy';
 
     END IF;
 
