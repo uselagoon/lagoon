@@ -1,7 +1,7 @@
 const { Sql } = require('./project');
 
 describe('Queries', () => {
-  describe('updateProjectQuery', () => {
+  describe('updateProject', () => {
     it('should return proper update statement', () => {
       const cred = {
         role: 'user',
@@ -15,7 +15,7 @@ describe('Queries', () => {
           name: 'test',
         },
       };
-      const ret = Sql.updateProjectQuery(cred, input);
+      const ret = Sql.updateProject(cred, input);
 
       expect(ret).toMatchSnapshot();
     });

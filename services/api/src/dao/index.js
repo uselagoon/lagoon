@@ -70,7 +70,7 @@ const daoFns = {
   ...require('./notification'),
   ...require('./openshift'),
   ...require('./environment'),
-  ...require('./customer'),
+  ...require('./customer').Queries,
   ...require('./project').Queries,
   ...require('./sshKey'),
 };

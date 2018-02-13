@@ -220,7 +220,20 @@ const typeDefs = `
     patch: UpdateProjectPatchInput
   }
 
+  input UpdateCustomerPatchInput {
+    name: String
+    comment: String
+    private_key: String
+    created: String
+  }
+
+  input UpdateCustomerInput {
+    id: Int!
+    patch: UpdateCustomerPatchInput
+  }
+
   type Mutation {
+    updateCustomer(input: UpdateCustomerInput!): Customer
     updateProject(input: UpdateProjectInput!): Project
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
@@ -348,6 +361,11 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateCustomer(req.credentials, args.input);
+      return ret;
+    },
     updateProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.updateProject(req.credentials, args.input);

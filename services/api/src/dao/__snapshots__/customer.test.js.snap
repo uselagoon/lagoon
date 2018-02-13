@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sql selectCustomer should create a proper query 1`] = `"select * from \`customer\` where \`id\` = 1"`;
+
+exports[`Sql updateCustomer should create a proper query 1`] = `"update \`customer\` set \`name\` = 'test' where \`id\` = 1 and \`id\` in (1, 2, 3)"`;

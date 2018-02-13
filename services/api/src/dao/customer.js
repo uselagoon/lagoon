@@ -1,13 +1,30 @@
 const R = require('ramda');
 const {
-  knex,
   ifNotAdmin,
-  whereAnd,
   inClause,
   inClauseOr,
-  query,
+  isPatchEmpty,
+  knex,
   prepare,
+  query,
+  whereAnd,
 } = require('./utils');
+
+const Sql = {
+  updateCustomer: (cred, input) => {
+    const { id, patch } = input;
+    const { customers } = cred.permissions;
+
+    return knex('customer')
+      .where('id', '=', id)
+      .whereIn('id', customers)
+      .update(patch)
+      .toString();
+  },
+  selectCustomer: (id) => {
+    return knex('customer').where('id', '=', id).toString();
+  }
+};
 
 const addCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -29,7 +46,6 @@ const addCustomer = sqlClient => async (cred, input) => {
 
   return customer;
 };
-
 
 const getCustomerByProjectId = sqlClient => async (cred, pid) => {
   const { customers, projects } = cred.permissions;
@@ -77,9 +93,34 @@ const getAllCustomers = sqlClient => async (cred, args) => {
   return rows;
 };
 
-module.exports = {
+const updateCustomer = sqlClient => async (cred, input) => {
+  const { customers } = cred.permissions;
+  const cid = input.id.toString();
+
+  if (cred.role !== 'admin' && !R.contains(cid, customers)) {
+    throw new Error('Unauthorized');
+  }
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  await query(sqlClient, Sql.updateCustomer(cred, input));
+  const rows = await query(sqlClient, Sql.selectCustomer(cid));
+
+  const customer = R.prop(0, rows);
+  return customer;
+};
+
+const Queries = {
   addCustomer,
   deleteCustomer,
   getAllCustomers,
   getCustomerByProjectId,
+  updateCustomer,
+};
+
+module.exports = {
+  Sql,
+  Queries,
 };

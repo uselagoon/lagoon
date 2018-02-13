@@ -11,7 +11,7 @@ const {
 
 // This contains the sql query generation logic
 const Sql = {
-  updateProjectQuery: (cred, input) => {
+  updateProject: (cred, input) => {
     const { id, patch } = input;
     const { projects } = cred.permissions;
 
@@ -182,7 +182,7 @@ const updateProject = sqlClient => async (cred, input) => {
     throw new Error('input.patch requires at least 1 attribute')
   }
 
-  await query(sqlClient, Sql.updateProjectQuery(cred, input));
+  await query(sqlClient, Sql.updateProject(cred, input));
   const rows = await query(sqlClient, Sql.selectProject(pid));
   const project = R.path([0], rows);
 
