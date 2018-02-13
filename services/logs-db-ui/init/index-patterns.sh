@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-sleep 30
-
 # test for lagoon-logs-* index pattern, create and set to default if it does not exist
 if ! [ $(curl --silent 'http://logs-db-ui:5601/api/saved_objects/index-pattern' | grep "lagoon-logs") ]
 then
@@ -15,5 +13,3 @@ if ! [ $(curl --silent 'http://logs-db-ui:5601/api/saved_objects/index-pattern' 
 then
   curl 'http://logs-db-ui:5601/api/saved_objects/index-pattern' -H 'kbn-version: 6.1.1' -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept: application/json, text/plain, */*' --data-binary '{"attributes":{"title":"service-logs-*","timeFieldName":"@timestamp"}}' --compressed
 fi
-
-exec "$@"
