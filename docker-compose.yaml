@@ -206,6 +206,15 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
+  local-es-kibana-watcher-pusher:
+    depends_on:
+      - logs-db
+      - logs-db-ui
+    image: ${IMAGE_REPO:-lagoon}/local-es-kibana-watcher-pusher
+    volumes:
+      - ./services/logs-db-ui/init:/kibana-init
+    labels:
+      lagoon.type: none
   cli:
     image: ${IMAGE_REPO:-lagoon}/cli
     depends_on:
