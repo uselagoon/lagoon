@@ -112,9 +112,6 @@ const getAllCustomers = sqlClient => async (cred, args) => {
 };
 
 const getAllOpenshifts = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
 
   const { createdAfter } = args;
   const prep = prepare(sqlClient, 'SELECT * FROM openshift');
