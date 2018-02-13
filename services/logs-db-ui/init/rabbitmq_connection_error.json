@@ -1,0 +1,51 @@
+{
+  "trigger" : { "schedule" : { "interval" : "30s" }},
+  "input" : {
+    "search" : {
+      "request" : {
+        "indices" : [ "service-logs-*" ],
+        "body" : {
+          "query" : {
+            "bool" : {
+              "filter": {
+                "range": {
+                  "@timestamp": {
+                    "gte":"now-5m"
+                  }
+                }
+              },
+              "must" : [
+              { "term" : { "action" : "disconnected" }},
+              { "term" : { "reason.err.cause.host":"rabbitmq"}}
+              ]
+            }
+          },
+          "aggs": {
+            "group_by_service": {
+              "terms": {
+                "field": "label.keyword",
+                "size": 5
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "condition" : {
+    "compare" : { "ctx.payload.hits.total" : { "gt" : 2 }}
+  },
+  "actions" : {
+  "notify-slack" : {
+    "throttle_period" : "5m",
+    "slack" : {
+      "account" : "monitoring",
+      "message" : {
+        "from" : "lagoon-xpack",
+        "to" : [ "@twardnw" ],
+        "text" : "RabbitMQ connection errors from Lagoon services"
+        }
+      }
+    }
+  }
+}
