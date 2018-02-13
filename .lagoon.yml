@@ -5,3 +5,12 @@ additional-yaml:
     path: .lagoon.secrets.yaml
     command: create
     ignore_error: true
+tasks:
+  post-rollout:
+    - run:
+        name: 'check\set kibana index patterns'
+        command: /lagoon/kibana-init/index-patterns.sh
+        service: logs-db-ui
+    - run:
+        name: 'check\set elasticsearch watchers'
+        command: /lagoon/kibana-init/watchers.sh
