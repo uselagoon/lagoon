@@ -68,7 +68,7 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
     return printErrors(cerr, err);
   }
 
-  const output = await sshExec(connection, 'login');
+  const output = await sshExec(connection, 'token');
   const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
   const tokenFilePath = path.join(homeDir, '.lagoon-token');
   await writeFile(tokenFilePath, token);
