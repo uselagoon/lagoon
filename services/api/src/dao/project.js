@@ -1,11 +1,30 @@
 const R = require('ramda');
-const { knex, whereAnd, prepare, query, inClauseOr } = require('./utils');
+const {
+  ifNotAdmin,
+  inClauseOr,
+  knex,
+  prepare,
+  query,
+  whereAnd,
+} = require('./utils');
 
 // This contains the sql query generation logic
 const Sql = {
   updateProjectQuery: (cred, input) => {
-    knex('project');
+    const { id, patch } = input;
+    const { projects } = cred.permissions;
+
+    const ret = knex('project')
+      .where('id', '=', id)
+      .whereIn('id', projects)
+      .update(patch);
+
+    return ret.toString();
   },
+  selectProject: id =>
+    knex('project')
+      .where('id', id)
+      .toString(),
 };
 
 const getAllProjects = sqlClient => async (cred, args) => {
@@ -147,17 +166,17 @@ const deleteProject = sqlClient => async (cred, input) => {
 
 const updateProject = sqlClient => async (cred, input) => {
   const { projects } = cred.permissions;
-  const { patch } = input;
+  const pid = input.id.toString();
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
     throw new Error('Unauthorized');
   }
 
-  const query = Sql.updateProjectQuery(cred, input);
+  await query(sqlClient, Sql.updateProjectQuery(cred, input));
+  const rows = await query(sqlClient, Sql.selectProject(pid));
+  const project = R.path([0], rows);
 
-  const rows = await query(sqlClient, query);
-
-  return rows;
+  return project;
 };
 
 const Queries = {

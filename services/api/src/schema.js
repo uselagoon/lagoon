@@ -1,4 +1,3 @@
-
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 
@@ -201,7 +200,25 @@ const typeDefs = `
     id: Int!
   }
 
+  input UpdateProjectPatchInput {
+    name: String
+    customer: Int
+    git_url: String
+    active_systems_deploy: String
+    active_systems_remove: String
+    branches: String
+    production_environment: String
+    pullrequests: String
+    openshift: Int
+  }
+
+  input UpdateProjectInput {
+    id: Int!
+    patch: UpdateProjectPatchInput
+  }
+
   type Mutation {
+    updateProject(input: UpdateProjectInput!): Project
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
@@ -269,10 +286,14 @@ const resolvers = {
     },
     environments: async (project, args, req) => {
       const dao = getDao(req);
-      const input = R.compose(
-        R.over(R.lensProp('type'), envTypeToString),
-      )(args);
-      return await dao.getEnvironmentsByProjectId(req.credentials, project.id, input);
+      const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
+        args,
+      );
+      return await dao.getEnvironmentsByProjectId(
+        req.credentials,
+        project.id,
+        input,
+      );
     },
   },
   Environment: {
@@ -323,6 +344,11 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateProject(req.credentials, args.input);
+      return ret;
+    },
     addProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addProject(req.credentials, args.input);
@@ -335,7 +361,9 @@ const resolvers = {
     },
     addSshKey: async (root, args, req) => {
       const dao = getDao(req);
-      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(args.input);
+      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(
+        args.input,
+      );
       const ret = await dao.addSshKey(req.credentials, input);
       return ret;
     },

@@ -5,6 +5,13 @@ const knex = require('knex')({ client: 'mysql' });
 const ifNotAdmin = (role, str) =>
   R.ifElse(R.equals('admin'), R.always(''), R.always(str))(role);
 
+/**
+  ATTENTION:
+  all those SQL-esque helpers like whereAnd, inClause, etc.
+  are subject to be obsolete. We are planning to migrate to
+  a dedicated SQL-builder lib (knex)
+**/
+
 // Creates a WHERE statement with AND inbetween non-empty conditions
 const whereAnd = whereConds =>
   R.compose(
@@ -59,10 +66,10 @@ const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
 
 module.exports = {
   ifNotAdmin,
-  whereAnd,
   inClause,
   inClauseOr,
-  query,
-  prepare,
   knex,
+  prepare,
+  query,
+  whereAnd,
 };
