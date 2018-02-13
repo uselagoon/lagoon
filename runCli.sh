@@ -33,4 +33,4 @@ if [[ $@ =~ login|logout && ! $@ =~ ^.*(--identity\ |-i\ ).*$ ]]; then
   fi
 fi
 
-cd "$(dirname "${BASH_SOURCE[0]}")/cli" && yarn run execute $PREFIX "$@" $ARGS
+cd "$(dirname "${BASH_SOURCE[0]}")/cli" && yarn --silent run execute $PREFIX "$@" $ARGS
