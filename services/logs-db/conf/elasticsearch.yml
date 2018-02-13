@@ -1,0 +1,32 @@
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+
+# minimum_master_nodes need to be explicitly set when bound on a public IP
+# set to 1 to allow single node clusters
+# Details: https://github.com/elastic/elasticsearch/pull/17288
+discovery.zen.minimum_master_nodes: 1
+xpack.license.self_generated.type: trial
+xpack.security.enabled: false
+xpack.notification:
+  slack:
+    account:
+      monitoring:
+        url: "${ELASTICSEARCH_SLACK_WEBHOOK_URL:replace_me}"
+        message_defaults:
+          from: "${ELASTICSEARCH_SLACK_USERNAME:x-pack}"
+          to: notifications
+          attachment:
+            fallback: "X-Pack Notification"
+            color: "#a63636"
+            title: "X-Pack Notification"
+            title_link: "https://www.elastic.co/guide/en/x-pack/current/index.html"
+            text: "One of your watches generated this notification."
+            mrkdwn_in: "pretext, text"
+  pagerduty:
+    account:
+      my_pagerduty_account:
+        service_api_key: "${ELASTICSEARCH_PAGERDUTY_KEY:replace_this_key}"
+        event_defaults:
+          description: "Elasticsearch Watch notification"
+          incident_key: "lagoon_logs_key"
+          event_type: trigger
