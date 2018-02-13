@@ -126,6 +126,7 @@ services:
     user: '111111111'
     volumes:
       - ./services/ssh/home/command.sh:/home/command.sh
+      - ./services/ssh/home/rsh.sh:/home/rsh.sh
     labels:
       lagoon.type: custom
       lagoon.template: services/ssh/.lagoon.app.yml
