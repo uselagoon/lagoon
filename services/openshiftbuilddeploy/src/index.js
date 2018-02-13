@@ -24,7 +24,9 @@ const messageConsumer = async msg => {
     headBranchName,
     headSha,
     baseBranchName,
-    baseSha
+    baseSha,
+    pullrequestTitle,
+    promoteSourceEnvironment,
   } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received DeployOpenshift task for project: ${projectName}, branch: ${branchName}, sha: ${sha}`);
@@ -51,16 +53,32 @@ const messageConsumer = async msg => {
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
     var prBaseSha = baseSha || ""
+    var prPullrequestTitle = pullrequestTitle || ""
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
+    var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
     throw(error)
   }
 
-  // Deciding which git REF we would like deployed, if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`)
-  var gitRef = gitSha ? gitSha : `origin/${branchName}`
+  // Deciding which git REF we would like deployed
+  switch (type) {
+    case "branch":
+      // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
+      var gitRef = gitSha ? gitSha : `origin/${branchName}`
+      break;
+
+    case "pullrequest":
+      var gitRef = gitSha
+      break;
+
+    case "promote":
+      var gitRef = `origin/${promoteSourceEnvironment}`
+      break;
+  }
+
 
   // Generates a buildconfig object
   const buildconfig = (resourceVersion, secret, type) => {
@@ -165,6 +183,11 @@ const messageConsumer = async msg => {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_HEAD_SHA","value": prHeadSha})
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_BASE_BRANCH","value": prBaseBranchName})
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_BASE_SHA","value": prBaseSha})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_TITLE","value": prPullrequestTitle})
+    }
+    if (type == "promote") {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PROMOTION_SOURCE_ENVIRONMENT","value": promoteSourceEnvironment})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "PROMOTION_SOURCE_OPENSHIFT_PROJECT","value": openshiftPromoteSourceProject})
     }
     return buildconfig
   }
@@ -193,6 +216,19 @@ const messageConsumer = async msg => {
   openshift.ns.addResource('buildconfigs');
   openshift.ns.addResource('rolebindings');
   openshift.addResource('projectrequests');
+
+  // If we should promote, first check if the source project does exist
+  if (type == "promote") {
+    try {
+      const promotionSourceProjectsGet = Promise.promisify(openshift.projects(openshiftPromoteSourceProject).get, { context: openshift.projects(openshiftPromoteSourceProject) })
+      await promotionSourceProjectsGet()
+      logger.info(`${openshiftProject}: Promotion Source Project ${openshiftPromoteSourceProject} exists, continuing`)
+    } catch (err) {
+      const error = `${openshiftProject}: Promotion Source Project ${openshiftPromoteSourceProject} does not exists, ${err}`
+      logger.error(error)
+      throw new Error(error)
+    }
+  }
 
   // Create a new Project if it does not exist
   let projectStatus = {}
@@ -257,6 +293,38 @@ const messageConsumer = async msg => {
     } else {
       logger.error(err)
       throw new Error
+    }
+  }
+
+  // Give the ServiceAccount access to the Promotion Source Project, it needs two roles: 'view' and 'system:image-puller'
+  if (type == "promote") {
+    try {
+      const promotionSourcRolebindingsGet = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`).get, { context: openshift.ns(openshiftProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`) })
+      await promotionSourcRolebindingsGet()
+      logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does already exist, continuing`)
+    } catch (err) {
+      if (err.code == 404) {
+        logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does not exists, creating`)
+        const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
+        await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-view`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"view"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+      } else {
+        logger.error(err)
+        throw new Error
+      }
+    }
+    try {
+      const promotionSourceRolebindingsGet = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-image-puller`).get, { context: openshift.ns(openshiftProject).rolebindings(`${openshiftProject}-lagoon-deployer-image-puller`) })
+      await promotionSourceRolebindingsGet()
+      logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does already exist, continuing`)
+    } catch (err) {
+      if (err.code == 404) {
+        logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does not exists, creating`)
+        const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
+        await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+      } else {
+        logger.error(err)
+        throw new Error
+      }
     }
   }
 

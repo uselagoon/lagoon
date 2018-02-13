@@ -41,6 +41,7 @@ objects:
     name: cronjob-${SERVICE_NAME}-backup
   spec:
     schedule: "${RANDOM_MINUTE} 1 * * *"
+    concurrencyPolicy: Forbid
     jobTemplate:
       spec:
         template:

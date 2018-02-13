@@ -27,6 +27,7 @@ mutation {
     }
     git_url,
     active_systems_deploy,
+    active_systems_promote,
     active_systems_remove,
     branches,
     pullrequests

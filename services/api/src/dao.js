@@ -19,6 +19,7 @@
 //   apply those to the later exported daoFns
 // - Use a sql-string builder, additionally with our prepared statements
 
+const attrFilter = require('./attrFilter');
 const R = require('ramda');
 
 // Useful for creating extra if-conditions for non-admins
@@ -119,7 +120,7 @@ const getAllOpenshifts = sqlClient => async (cred, args) => {
   const prep = prepare(sqlClient, 'SELECT * FROM openshift');
   const rows = await query(sqlClient, prep(args));
 
-  return rows;
+  return rows.map(attrFilter.openshift(cred));
 };
 
 const getAllProjects = sqlClient => async (cred, args) => {
@@ -154,7 +155,7 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
 
   const rows = await query(sqlClient, prep({ pid }));
 
-  return rows ? rows[0] : null;
+  return rows ? (attrFilter.openshift(cred, rows[0])) : null;
 };
 
 const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
@@ -217,7 +218,7 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
   return rows || null;
 };
 
-const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
+const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
   const { projects } = cred.permissions;
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
@@ -230,10 +231,11 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid) => {
         *
       FROM environment e
       WHERE e.project = :pid
+      ${args.type ? 'AND e.environment_type = :type' : ''}
     `,
   );
 
-  const rows = await query(sqlClient, prep({ pid }));
+  const rows = await query(sqlClient, prep({ pid: pid, type: args.type, }));
 
   return rows;
 };
@@ -355,10 +357,23 @@ const addProject = sqlClient => async (cred, input) => {
         :customer,
         :git_url,
         :openshift,
-        ${input.active_systems_deploy ? ':active_systems_deploy' : '"lagoon_openshiftBuildDeploy"'},
-        ${input.active_systems_remove ? ':active_systems_remove' : '"lagoon_openshiftRemove"'},
+        ${
+          input.active_systems_deploy
+            ? ':active_systems_deploy'
+            : '"lagoon_openshiftBuildDeploy"'
+        },
+        ${
+          input.active_systems_promote
+            ? ':active_systems_promote'
+            : '"lagoon_openshiftBuildDeploy"'
+        },
+        ${
+          input.active_systems_remove
+            ? ':active_systems_remove'
+            : '"lagoon_openshiftRemove"'
+        },
         ${input.branches ? ':branches' : '"true"'},
-        ${input.pullrequests ? "IF(STRCMP(:pullrequests, 'true'), 1, 0)" : 'NULL'},
+        ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.production_environment ? ':production_environment' : 'NULL'}
       );
     `,
@@ -487,7 +502,7 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
     `CALL CreateOrUpdateEnvironment(
         :name,
         :project,
-        :git_type,
+        :deploy_type,
         :environment_type,
         :openshift_projectname
       );

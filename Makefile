@@ -100,8 +100,9 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
 images :=     centos7 \
-							centos7-mariadb10 \
-							centos7-mariadb10-drupal \
+							oc \
+							mariadb \
+							mariadb-drupal \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
@@ -137,8 +138,8 @@ $(build-images):
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
 build/centos7: images/centos7/Dockerfile
-build/centos7-mariadb10: build/centos7 images/centos7-mariadb10/Dockerfile
-build/centos7-mariadb10-drupal: build/centos7-mariadb10 images/centos7-mariadb10-drupal/Dockerfile
+build/mariadb: build/commons images/mariadb/Dockerfile
+build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
@@ -149,7 +150,9 @@ build/mongo: build/centos7 images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
-build/docker-host:build/commons images/docker-host/Dockerfile
+build/docker-host: build/commons images/docker-host/Dockerfile
+build/oc: build/commons images/oc/Dockerfile
+build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 
 #######
 ####### PHP Images
@@ -287,7 +290,8 @@ services :=       api \
 									logs-db \
 									logs-db-ui \
 									logs2logs-db \
-									mariadb \
+									auto-idler \
+									api-db \
 									drush-alias
 
 service-images += $(services)
@@ -305,6 +309,7 @@ build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
+build/auto-idler: build/oc
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -393,7 +398,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/centos7-mariadb10-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal  build/mariadb build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -408,6 +413,23 @@ $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder buil
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+
+
+end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
+
+.PHONY: end2end-tests
+end2end-tests: $(end2end-all-tests)
+
+.PHONY: start-end2end-ansible
+start-end2end-ansible: build/tests
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end up -d tests
+
+$(end2end-all-tests): start-end2end-ansible
+		$(eval testname = $(subst end2end-tests/,,$@))
+		docker exec -i $$(docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
+
+end2end-tests/clean:
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
 
 # push command of our base images into minishift
 push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
@@ -488,6 +510,8 @@ logs:
 
 # Start all Lagoon Services
 up:
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api-db
+	sleep 20
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 
 down:
@@ -545,9 +569,9 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/policybinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z docker-host; \
+	oc -n lagoon policy add-role-to-user edit -z docker-host; \
 	oc -n lagoon create serviceaccount cronjob; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob; \
+	oc -n lagoon policy add-role-to-user edit -z cronjob; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -"; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \

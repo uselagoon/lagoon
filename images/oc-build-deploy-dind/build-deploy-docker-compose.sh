@@ -44,47 +44,66 @@ done
 ### BUILD IMAGES
 ##############################################
 
-BUILD_ARGS=()
-for IMAGE_NAME in "${IMAGES[@]}"
-do
-  # We need the Image Name uppercase sometimes, so we create that here
-  IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
+# we only need to build images for pullrequests and branches
+if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-  # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
-  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+  BUILD_ARGS=()
+  BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+  BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
 
-  DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
-  if [ $DOCKERFILE == "false" ]; then
-    # No Dockerfile defined, assuming to download the Image directly
-
-    PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
-    if [ $PULL_IMAGE == "false" ]; then
-      echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
-    fi
-
-    # allow to overwrite image that we pull
-    OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
-    if [ ! $OVERRIDE_IMAGE == "false" ]; then
-      # expand environment variables from ${OVERRIDE_IMAGE}
-      PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
-    fi
-
-    . /scripts/exec-pull-tag.sh
-
-  else
-    # Dockerfile defined, load the context and build it
-
-    BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
-    if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
-      echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
-    fi
-
-    . /scripts/exec-build.sh
+  if [ "$TYPE" == "pullrequest" ]; then
+    BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_SHA="${PR_BASE_SHA}")
+    BUILD_ARGS+=(--build-arg LAGOON_PR_TITLE="${PR_TITLE}")
   fi
 
-  # adding the build image to the list of arguments passed into the next image builds
-  BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
-done
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # We need the Image Name uppercase sometimes, so we create that here
+    IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
+
+    # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+
+    DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
+    if [ $DOCKERFILE == "false" ]; then
+      # No Dockerfile defined, assuming to download the Image directly
+
+      PULL_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.image false)
+      if [ $PULL_IMAGE == "false" ]; then
+        echo "No Dockerfile or Image for service ${IMAGE_NAME} defined"; exit 1;
+      fi
+
+      # allow to overwrite image that we pull
+      OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
+      if [ ! $OVERRIDE_IMAGE == "false" ]; then
+        # expand environment variables from ${OVERRIDE_IMAGE}
+        PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
+      fi
+
+      . /scripts/exec-pull-tag.sh
+
+    else
+      # Dockerfile defined, load the context and build it
+
+      BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
+      if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
+        echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
+      fi
+
+      . /scripts/exec-build.sh
+    fi
+
+    # adding the build image to the list of arguments passed into the next image builds
+    BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
+  done
+
+fi
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES AND ROUTES
@@ -124,21 +143,21 @@ done
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
-  ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER)
+while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+  ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER)
 
   ROUTE_DOMAIN_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+  while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
     # Routes can either be a key (when the have additional settings) or just a value
-    if cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
-      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+    if cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
       # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
-      ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-      ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-      ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+      ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+      ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+      ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
     else
       # Only a value given, assuming some defaults
-      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
       ROUTE_TLS_ACME=true
       ROUTE_INSECURE=Redirect
     fi
@@ -183,6 +202,7 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-
 oc process --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
+  -p NAME="lagoon-env" \
   -p SAFE_BRANCH="${SAFE_BRANCH}" \
   -p SAFE_PROJECT="${SAFE_PROJECT}" \
   -p BRANCH="${BRANCH}" \
@@ -192,6 +212,12 @@ oc process --insecure-skip-tls-verify \
   -p ROUTES="${ROUTES}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
+if [ "$TYPE" == "pullrequest" ]; then
+  oc patch --insecure-skip-tls-verify \
+    -n ${OPENSHIFT_PROJECT} \
+    configmap lagoon-env \
+    -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":\"${PR_TITLE}\"}}"
+fi
 
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
@@ -265,10 +291,10 @@ do
   DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
 
   CRONJOB_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
+  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
   do
 
-    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.service)
+    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
 
     # Only implement the cronjob for the services we are currently handling
     if [ $CRONJOB_SERVICE == $SERVICE ]; then
@@ -277,13 +303,16 @@ do
       TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
 
       # Creating a save name (special characters removed )
-      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.schedule)
-      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value cronjobs.$CRONJOB_COUNTER.command)
+      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
       TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME}")
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
       TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$(/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
 
       OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
       if [ ! -f $OPENSHIFT_TEMPLATE ]; then
@@ -303,12 +332,21 @@ done
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
 
-for IMAGE_NAME in "${IMAGES[@]}"
-do
-  # Before the push the temporary name is resolved to the future tag with the registry in the image name
-  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-  . /scripts/exec-push.sh
-done
+if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # Before the push the temporary name is resolved to the future tag with the registry in the image name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+    . /scripts/exec-push.sh
+  done
+elif [ "$TYPE" == "promote" ]; then
+
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    . /scripts/exec-openshift-tag.sh
+  done
+
+fi
 
 
 ##############################################

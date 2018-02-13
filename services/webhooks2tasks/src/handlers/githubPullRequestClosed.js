@@ -23,6 +23,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, project: Pro
     const data: removeData = {
       projectName: project.name,
       pullrequestNumber: body.number,
+      pullrequestTitle: body.pull_request.title,
       type: 'pullrequest'
     }
 
@@ -49,7 +50,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, project: Pro
             `*[${project.name}]* \`${meta.branch}\` not deleted. ${error}`
           )
           return;
-          
+
         default:
           // Other messages are real errors and should reschedule the message in RabbitMQ in order to try again
           throw error

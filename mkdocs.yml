@@ -1,0 +1,23 @@
+site_name: Lagoon
+
+pages:
+- Home: index.md
+- Using Lagoon:
+  - Getting Started: using_lagoon/getting_started.md
+  - Deploying Lagoon Projects: using_lagoon/deploying.md
+  - Image Types: using_lagoon/types.md
+- Administration:
+  - Administering Lagoon: administering_lagoon/index.md
+  - Installing Lagoon: administering_lagoon/install.md
+  - GraphQL API: administering_lagoon/graphql_api.md
+- Development:
+  - Developing Lagoon: developing_lagoon/index.md
+  - Tests: developing_lagoon/tests.md
+  - Contributing: developing_lagoon/contributing.md
+- Code Of Conduct: code_of_conduct.md
+theme: readthedocs
+
+markdown_extensions:
+    - toc:
+        permalink: true
+        baselevel: 5
