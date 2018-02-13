@@ -8,7 +8,7 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 ## Start Services
 
-1. Add `192.168.99.0/24 to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
+1. Add `192.168.99.0/24` to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
 
 
 Important: Lagoon consists of a lot of Services and Docker Images, building and running them locally might not even be necessary.
@@ -36,12 +36,12 @@ make up
 make logs
 ```
 
-5. run tests (read [TESTS.md](./TESTS.md) to learn more about testing)
+5. run tests (read [Tests](tests.md) to learn more about testing)
 ```sh
 make tests
 ```
 
-6. Look what happens in OpenShift: https://192.168.99.100:8443/console (developer/developer)
+6. Look what happens in OpenShift: [https://192.168.99.100:8443/console]() (developer/developer)
 
 ## Local Development
 

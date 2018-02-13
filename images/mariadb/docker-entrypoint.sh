@@ -91,9 +91,10 @@ EOF
 		done
 
 		echo "[client]" >> /var/lib/mysql/.my.cnf
-		echo "database=mysql" >> /var/lib/mysql/.my.cnf
 		echo "user=root" >> /var/lib/mysql/.my.cnf
 		echo "password=$MARIADB_ROOT_PASSWORD"  >> /var/lib/mysql/.my.cnf
+		echo "[mysql]" >> /var/lib/mysql/.my.cnf
+		echo "database=${MARIADB_DATABASE}" >> /var/lib/mysql/.my.cnf
 
 		if ! kill -s TERM "$pid" || ! wait "$pid"; then
 			echo >&2 'MySQL init process failed.'

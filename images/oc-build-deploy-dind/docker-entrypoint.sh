@@ -14,9 +14,13 @@ fi
 
 mkdir -p ~/.ssh
 
-cp /var/run/secrets/lagoon/ssh/ssh-privatekey ~/.ssh/id_rsa
+cp /var/run/secrets/lagoon/ssh/ssh-privatekey ~/.ssh/key
+
+# Add a new line to the key, as some ssh key formats need a new line
+echo "" >> ~/.ssh/key
+
 echo -e "Host * \n    StrictHostKeyChecking no" > ~/.ssh/config
 chmod 400 ~/.ssh/*
 
 eval $(ssh-agent)
-ssh-add ~/.ssh/id_rsa
+ssh-add ~/.ssh/key

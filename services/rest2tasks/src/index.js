@@ -6,7 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const util = require('util');
 
-const { createDeployTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { createDeployTask, createPromoteTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 
@@ -110,6 +110,80 @@ app.post('/deploy', async (req, res) => {
   }
 
 })
+
+app.post('/promote', async (req, res) => {
+
+  req.checkBody({
+    'projectName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_]+$/],
+        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
+      },
+    },
+    'sourceEnvironmentName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_\/]+$/],
+        errorMessage: 'sourceEnvironmentName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+      },
+    },
+    'branchName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_\/]+$/],
+        errorMessage: 'branchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+      },
+    },
+  });
+
+  const result = await req.getValidationResult()
+
+  if (!result.isEmpty()) {
+    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
+    return;
+  }
+
+  const data = {
+    projectName: req.body.projectName,
+    branchName: req.body.branchName,
+    promoteSourceEnvironment: req.body.sourceEnvironmentName,
+    type: 'promote'
+  }
+
+  try {
+    const taskResult = await createPromoteTask(data);
+
+    const logMessage = `\`${data.branchName}\` -> \`${data.promoteSourceEnvironment}\``
+
+    sendToLagoonLogs('info', data.projectName, '', `rest:promote:receive`, {},
+      `*[${data.projectName}]* REST promote trigger ${logMessage}`
+    )
+    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
+    return;
+  } catch (error) {
+    switch (error.name) {
+      case "ProjectNotFound":
+      case "ActiveSystemsNotFound":
+          res.status(404).type('json').send({ "ok": "false", "message": error.message})
+          return;
+        break;
+
+      case "NoNeedToDeployBranch":
+          res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          return;
+        break;
+
+      default:
+          logger.error(error)
+          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
+          return;
+        break;
+    }
+  }
+
+})
+
 
 app.post('/remove', async (req, res) => {
 

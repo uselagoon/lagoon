@@ -5,6 +5,7 @@ const { logger } = require('./local-logging');
 
 exports.initSendToLagoonTasks = initSendToLagoonTasks;
 exports.createDeployTask = createDeployTask;
+exports.createPromoteTask = createPromoteTask;
 exports.createRemoveTask = createRemoveTask;
 exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
@@ -162,7 +163,7 @@ async function createDeployTask(deployData) {
 						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`)
 						throw new NoNeedToDeployBranch(`PullRequest deployments disabled`)
 					default:
-						logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`)
+					logger.debug(`projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`)
 
 						let branchRegex = new RegExp(project.pullrequests);
 						if (branchRegex.test(pullrequestTitle)) {
@@ -177,6 +178,29 @@ async function createDeployTask(deployData) {
 			}
 		default:
       throw new UnknownActiveSystem(`Unknown active system '${project.active_systems_deploy}' for task 'deploy' in for project ${projectName}`)
+	}
+}
+
+async function createPromoteTask(promoteData) {
+	const {
+		projectName,
+		branchName,
+		promoteSourceEnvironment,
+		type,
+	} = promoteData
+
+  let project = await getActiveSystemForProject(projectName, 'promote');
+
+	if (typeof project.active_systems_promote === 'undefined') {
+    throw new UnknownActiveSystem(`No active system for tasks 'deploy' in for project ${projectName}`)
+	}
+
+	switch (project.active_systems_promote) {
+		case 'lagoon_openshiftBuildDeploy':
+			return sendToLagoonTasks('builddeploy-openshift', promoteData);
+
+		default:
+      throw new UnknownActiveSystem(`Unknown active system '${project.active_systems_promote}' for task 'deploy' in for project ${projectName}`)
 	}
 }
 
