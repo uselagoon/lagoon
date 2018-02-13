@@ -405,7 +405,6 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal  build/mariadb build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
-
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -420,6 +419,23 @@ $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder buil
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+
+
+end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
+
+.PHONY: end2end-tests
+end2end-tests: $(end2end-all-tests)
+
+.PHONY: start-end2end-ansible
+start-end2end-ansible: build/tests
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end up -d tests
+
+$(end2end-all-tests): start-end2end-ansible
+		$(eval testname = $(subst end2end-tests/,,$@))
+		docker exec -i $$(docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
+
+end2end-tests/clean:
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
 
 # push command of our base images into minishift
 push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
@@ -559,9 +575,9 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/policybinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z docker-host; \
+	oc -n lagoon policy add-role-to-user edit -z docker-host; \
 	oc -n lagoon create serviceaccount cronjob; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob; \
+	oc -n lagoon policy add-role-to-user edit -z cronjob; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -"; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \

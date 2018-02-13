@@ -64,6 +64,11 @@ const query = (sqlClient, sql) =>
 // We use this just for consistency of the api calls
 const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
 
+const isPatchEmpty = R.compose(
+  R.isEmpty,
+  R.propOr({}, 'patch')
+);
+
 module.exports = {
   ifNotAdmin,
   inClause,
@@ -72,4 +77,5 @@ module.exports = {
   prepare,
   query,
   whereAnd,
+  isPatchEmpty,
 };

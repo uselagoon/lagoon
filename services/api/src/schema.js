@@ -7,9 +7,10 @@ const typeDefs = `
     SSH_ED25519
   }
 
-  enum GitType {
+  enum DeployType {
     BRANCH
     PULLREQUEST
+    PROMOTE
   }
 
   enum EnvType {
@@ -62,6 +63,7 @@ const typeDefs = `
     git_url: String
     notifications(type: String): [Notification]
     active_systems_deploy: String
+    active_systems_promote: String
     active_systems_remove: String
     branches: String
     production_environment: String
@@ -76,7 +78,7 @@ const typeDefs = `
     id: Int
     name: String
     project: Project
-    git_type: String
+    deploy_type: String
     environment_type: String
     openshift_projectname: String
     updated: String
@@ -114,6 +116,7 @@ const typeDefs = `
     git_url: String!
     openshift: Int!
     active_systems_deploy: String
+    active_systems_promote: String
     active_systems_remove: String
     branches: String
     pullrequests: String
@@ -123,7 +126,7 @@ const typeDefs = `
   input EnvironmentInput {
     name: String!
     project: Int!
-    git_type: GitType!
+    deploy_type: DeployType!
     environment_type: EnvType!
     openshift_projectname: String!
   }
@@ -247,9 +250,10 @@ const sshKeyTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const gitTypeToString = R.cond([
+const deployTypeToString = R.cond([
   [R.equals('BRANCH'), R.toLower],
   [R.equals('PULLREQUEST'), R.toLower],
+  [R.equals('PROMOTE'), R.toLower],
   [R.T, R.identity],
 ]);
 
@@ -452,7 +456,7 @@ const resolvers = {
 
       const input = R.compose(
         R.over(R.lensProp('environment_type'), envTypeToString),
-        R.over(R.lensProp('git_type'), gitTypeToString),
+        R.over(R.lensProp('deploy_type'), deployTypeToString),
       )(args.input);
 
       const ret = await dao.addOrUpdateEnvironment(req.credentials, input);
@@ -472,7 +476,7 @@ const resolvers = {
 };
 
 module.exports = {
-  gitTypeToString,
+  deployTypeToString,
   envTypeToString,
   schema: makeExecutableSchema({ typeDefs, resolvers }),
 };

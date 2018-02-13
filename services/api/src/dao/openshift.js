@@ -1,4 +1,5 @@
 const R = require('ramda');
+const attrFilter = require('./attrFilter');
 const {
   knex,
   ifNotAdmin,

@@ -6,6 +6,7 @@ const {
   prepare,
   query,
   whereAnd,
+  isPatchEmpty,
 } = require('./utils');
 
 // This contains the sql query generation logic
@@ -133,6 +134,11 @@ const addProject = sqlClient => async (cred, input) => {
             : '"lagoon_openshiftBuildDeploy"'
         },
         ${
+          input.active_systems_promote
+            ? ':active_systems_promote'
+            : '"lagoon_openshiftBuildDeploy"'
+        },
+        ${
           input.active_systems_remove
             ? ':active_systems_remove'
             : '"lagoon_openshiftRemove"'
@@ -170,6 +176,10 @@ const updateProject = sqlClient => async (cred, input) => {
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
     throw new Error('Unauthorized');
+  }
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute')
   }
 
   await query(sqlClient, Sql.updateProjectQuery(cred, input));
