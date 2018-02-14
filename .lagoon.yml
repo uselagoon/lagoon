@@ -14,3 +14,4 @@ tasks:
     - run:
         name: 'check\set elasticsearch watchers'
         command: /lagoon/kibana-init/watchers.sh
+        service: logs-db-ui
