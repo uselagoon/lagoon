@@ -72,16 +72,16 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has running pods, checking if they are non-busy"
 
             # Now check if the container has only the entrypoint processes running (done with `ps --no-headers a` which only shows processes that have a tty)
-            RUNNING_PROCESSES=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig ps --no-headers a | grep -v ps | wc -l | tr -d ' ')
+            RUNNING_PROCESSES=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig sh -c "ps --no-headers a | wc -l | tr -d ' '")
+
             if [ ! $? -eq 0 ]; then
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: error checking for busy-ness of pods"
               continue
+            # we check for 1 process as the ps itself will also report
             elif [ "$RUNNING_PROCESSES" == "0" ]; then
               # Now we can scale
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: not busy, scaling to 0"
-              set -x
               oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" scale --replicas=0 $deploymentconfig
-              set +x
             else
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has $RUNNING_PROCESSES running processes, skipping"
             fi
