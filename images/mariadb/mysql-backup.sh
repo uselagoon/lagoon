@@ -90,7 +90,7 @@ function backup_databases(){
     backup_database
     local count=$((count+1))
   done
-  echo -ne $output | column -t
+  echo -ne $output
 }
 
 function hr(){
