@@ -68,11 +68,11 @@ const daoFns = {
   getPermissions,
   truncateTable,
   ...require('./notification'),
-  ...require('./openshift'),
   ...require('./environment'),
+  ...require('./openshift').Queries,
   ...require('./customer').Queries,
   ...require('./project').Queries,
-  ...require('./sshKey'),
+  ...require('./sshKey').Queries,
 };
 
 // Maps all dao functions to given sqlClient

@@ -217,7 +217,7 @@ const typeDefs = `
 
   input UpdateProjectInput {
     id: Int!
-    patch: UpdateProjectPatchInput
+    patch: UpdateProjectPatchInput!
   }
 
   input UpdateCustomerPatchInput {
@@ -229,10 +229,26 @@ const typeDefs = `
 
   input UpdateCustomerInput {
     id: Int!
-    patch: UpdateCustomerPatchInput
+    patch: UpdateCustomerPatchInput!
+  }
+
+  input UpdateOpenshiftPatchInput {
+    name: String
+    console_url: String
+    token: String
+    router_pattern: String
+    project_user: String
+    ssh_host: String
+    ssh_port: String
+  }
+
+  input UpdateOpenshiftInput {
+    id: Int!
+    patch: UpdateOpenshiftPatchInput!
   }
 
   type Mutation {
+    updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
     updateProject(input: UpdateProjectInput!): Project
     addProject(input: ProjectInput!): Project
@@ -361,6 +377,12 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateOpenshift: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateOpenshift(req.credentials, args.input);
+      return ret;
+    },
+
     updateCustomer: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.updateCustomer(req.credentials, args.input);

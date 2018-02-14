@@ -9,6 +9,11 @@ const {
   prepare,
 } = require('./utils');
 
+const Sql = {
+  updateSshKey: (cred, input) => {
+  }
+};
+
 const getCustomerSshKeys = sqlClient => async cred => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -164,7 +169,10 @@ const removeSshKeyFromCustomer = sqlClient => async (cred, input) => {
   return customer;
 };
 
-module.exports = {
+const updateSshKey = sqlClient => async (cred, input) => {
+};
+
+const Queries = {
   addSshKey,
   addSshKeyToCustomer,
   addSshKeyToProject,
@@ -174,4 +182,9 @@ module.exports = {
   getSshKeysByProjectId,
   removeSshKeyFromCustomer,
   removeSshKeyFromProject,
+}
+
+module.exports = {
+  Sql,
+  Queries,
 };

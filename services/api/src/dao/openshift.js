@@ -8,7 +8,23 @@ const {
   inClauseOr,
   query,
   prepare,
+  isPatchEmpty,
 } = require('./utils');
+
+const Sql = {
+  updateOpenshift: input => {
+    const { id, patch } = input;
+
+    return knex('openshift')
+      .where('id', '=', id)
+      .update(patch)
+      .toString();
+  },
+  selectOpenshift: id =>
+    knex('openshift')
+      .where('id', '=', id)
+      .toString(),
+};
 
 const addOpenshift = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -81,9 +97,32 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
   return rows ? attrFilter.openshift(cred, rows[0]) : null;
 };
 
-module.exports = {
+const updateOpenshift = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  const oid = input.id.toString();
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  await query(sqlClient, Sql.updateOpenshift(input));
+  const rows = await query(sqlClient, Sql.selectOpenshift(oid));
+
+  return R.prop(0, rows);
+};
+
+const Queries = {
   addOpenshift,
   deleteOpenshift,
   getAllOpenshifts,
   getOpenshiftByProjectId,
+  updateOpenshift,
+};
+
+module.exports = {
+  Sql,
+  Queries,
 };

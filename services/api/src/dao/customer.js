@@ -108,8 +108,7 @@ const updateCustomer = sqlClient => async (cred, input) => {
   await query(sqlClient, Sql.updateCustomer(cred, input));
   const rows = await query(sqlClient, Sql.selectCustomer(cid));
 
-  const customer = R.prop(0, rows);
-  return customer;
+  return R.prop(0, rows);
 };
 
 const Queries = {
