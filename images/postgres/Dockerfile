@@ -17,6 +17,7 @@ RUN chmod g+w /etc/passwd \
 ENV LAGOON=postgres
 
 RUN cp /usr/local/bin/docker-entrypoint.sh /lagoon/entrypoints/90-postgres-entrypoint
+COPY postgres-backup.sh /lagoon/
 
 RUN echo -e "local all all md5\nhost  all  all 0.0.0.0/0 md5" >> /usr/local/share/postgresql/pg_hba.conf
 
