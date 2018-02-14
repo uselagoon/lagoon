@@ -58,7 +58,16 @@ RUN cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0
 RUN find /tmp -name  libgalera_smm.so
 RUN mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so
 
-COPY root /
+#COPY root /
+
+COPY root/usr/bin/peer-finder /usr/bin/peer-finder
+COPY root/usr/libexec/container-setup.sh /usr/libexec/container-setup.sh
+COPY root/usr/share/container-scripts/mysql/configure-mysql.sh /usr/share/container-scripts/mysql/configure-mysql.sh
+COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
+COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scripts/mysql/galera.cnf
+COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
+COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
+
 
 COPY docker-entrypoint.sh /lagoon/entrypoints/85-mariadb-entrypoint
 RUN rm /lagoon/entrypoints/90-mariadb-entrypoint
