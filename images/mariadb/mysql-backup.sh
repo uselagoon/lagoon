@@ -55,11 +55,11 @@ function delete_old_backups()
 }
 
 function mysql_login() {
-  local mysql_login="-u $MYSQL_USER -h $MYSQL_HOST"
+  cmd="-u $MYSQL_USER -h $MYSQL_HOST"
   if [ -n "$MYSQL_PASSWORD" ]; then
-    local mysql_login+=" -p$MYSQL_PASSWORD"
+    cmd="$cmd -p$MYSQL_PASSWORD"
   fi
-  echo $mysql_login
+  echo $cmd
 }
 
 function database_list() {
