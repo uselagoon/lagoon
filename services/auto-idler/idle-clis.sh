@@ -77,7 +77,6 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
             if [ ! $? -eq 0 ]; then
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: error checking for busy-ness of pods"
               continue
-            # we check for 1 process as the ps itself will also report
             elif [ "$RUNNING_PROCESSES" == "0" ]; then
               # Now we can scale
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: not busy, scaling to 0"
