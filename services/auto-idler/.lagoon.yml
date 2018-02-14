@@ -95,3 +95,69 @@ objects:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
       type: ImageChange
+- apiVersion: batch/v2alpha1
+  kind: CronJob
+  metadata:
+    name: cronjob-idle-clis
+  spec:
+    schedule: "*/15 * * * *"
+    concurrencyPolicy: Forbid
+    jobTemplate:
+      spec:
+        template:
+          metadata:
+            annotations:
+              alpha.image.policy.openshift.io/resolve-names: "*"
+            labels:
+              cronjob: idle-clis
+              parent: cronjob-idle-clis
+          spec:
+            containers:
+            - name: idle-clis
+              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              command:
+                - /lagoon/cronjob.sh
+                - "/idle-clis.sh"
+              envFrom:
+              - configMapRef:
+                  name: lagoon-env
+              env:
+                - name: JWTSECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: jwtsecret
+                      key: JWTSECRET
+            restartPolicy: OnFailure
+- apiVersion: batch/v2alpha1
+  kind: CronJob
+  metadata:
+    name: cronjob-idle-services
+  spec:
+    schedule: "*/30 * * * *"
+    concurrencyPolicy: Forbid
+    jobTemplate:
+      spec:
+        template:
+          metadata:
+            annotations:
+              alpha.image.policy.openshift.io/resolve-names: "*"
+            labels:
+              cronjob: idle-services
+              parent: cronjob-idle-services
+          spec:
+            containers:
+            - name: idle-services
+              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              command:
+                - /lagoon/cronjob.sh
+                - "/idle-services.sh"
+              envFrom:
+              - configMapRef:
+                  name: lagoon-env
+              env:
+                - name: JWTSECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: jwtsecret
+                      key: JWTSECRET
+            restartPolicy: OnFailure
