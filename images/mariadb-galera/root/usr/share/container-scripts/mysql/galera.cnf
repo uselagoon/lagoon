@@ -9,8 +9,11 @@ innodb_autoinc_lock_mode = 2
 innodb_flush_log_at_trx_commit = 0
 query_cache_size = 0
 query_cache_type = 0
+wsrep_provider=/usr/lib64/galera/libgalera_smm.so
 
 # By default every node is standalone
 wsrep_cluster_address=gcomm://
 wsrep_cluster_name=galera
 wsrep_node_address=127.0.0.1
+
+log_error=mariadb.err
