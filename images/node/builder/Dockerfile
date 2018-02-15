@@ -21,6 +21,7 @@ RUN apk update \
         git \
         file \
         openssl \
+        python \
     && rm -rf /var/cache/apk/*
 
 CMD ["/bin/docker-sleep"]
