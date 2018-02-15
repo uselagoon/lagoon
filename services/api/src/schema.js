@@ -93,6 +93,7 @@ const typeDefs = `
 
   type Query {
     projectByName(name: String!): Project
+    customerByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
@@ -320,6 +321,10 @@ const resolvers = {
     allCustomers: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllCustomers(req.credentials, args);
+    },
+    customerByName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getCustomerByName(req.credentials, args);
     },
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
