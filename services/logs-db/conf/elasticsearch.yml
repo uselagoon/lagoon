@@ -11,7 +11,7 @@ xpack.notification:
   slack:
     account:
       monitoring:
-        url: "${ELASTICSEARCH_SLACK_WEBHOOK_URL:replace_me}"
+        url: "${ELASTICSEARCH_SLACK_WEBHOOK_URL:https://hooks.slack.com/services/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}"
         message_defaults:
           from: "${ELASTICSEARCH_SLACK_USERNAME:x-pack}"
           to: notifications
