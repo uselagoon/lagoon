@@ -42,7 +42,7 @@
       "account" : "monitoring",
       "message" : {
         "from" : "lagoon-xpack",
-        "to" : [ "@twardnw" ],
+        "to" : [ "#lagoon-dev-alerts" ],
         "text" : "RabbitMQ connection errors from Lagoon services"
         }
       }
