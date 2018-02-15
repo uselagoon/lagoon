@@ -25,7 +25,7 @@ xpack.notification:
   pagerduty:
     account:
       my_pagerduty_account:
-        service_api_key: "${ELASTICSEARCH_PAGERDUTY_KEY:replace_this_key}"
+        service_api_key: "${ELASTICSEARCH_PAGERDUTY_KEY:XXXXU4yGzC2QassuXXXX}"
         event_defaults:
           description: "Elasticsearch Watch notification"
           incident_key: "lagoon_logs_key"
