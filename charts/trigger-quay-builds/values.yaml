@@ -4,3 +4,8 @@ image:
   repository: desdrury/quay_build
   tag: latest
   pullPolicy: Always
+
+REPOSITORY:   XXXX
+TRIGGER_UUID: XXXX
+ROBOT_TOKEN:  XXXX
+schedule:     "*/5 * * * *"
