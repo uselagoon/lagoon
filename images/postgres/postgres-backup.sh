@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -eu -o pipefail
 
@@ -46,7 +46,7 @@ function echo_status(){
 
 function backup_database(){
     backup_file="$BACKUP_DIR/$TIMESTAMP.$database.sql.gz"
-    output+="$database => $backup_file\n"
+    output="${output}${database} => $backup_file\n"
     echo_status "...backing up $count of $total databases: $database"
     $(pg_dump $database | gzip -9 > $backup_file)
 }
