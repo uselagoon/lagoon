@@ -4,12 +4,14 @@ wsrep_sst_method = xtrabackup-v2
 # We should still try to integrate it with Kubernetes secrets
 wsrep_sst_auth=xtrabackup_sst:xtrabackup_sst
 default_storage_engine = innodb
-binlog_format = row
+# binlog_format = row
 innodb_autoinc_lock_mode = 2
 innodb_flush_log_at_trx_commit = 0
 query_cache_size = 0
 query_cache_type = 0
+
 wsrep_provider=/usr/lib64/galera/libgalera_smm.so
+wsrep_on = ON
 
 # By default every node is standalone
 wsrep_cluster_address=gcomm://
