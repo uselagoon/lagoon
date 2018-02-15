@@ -93,7 +93,7 @@ const typeDefs = `
 
   type Query {
     projectByName(name: String!): Project
-    customerByName(name: String!): Project
+    customerByName(name: String!): Customer
     projectByGitUrl(gitUrl: String!): Project
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
