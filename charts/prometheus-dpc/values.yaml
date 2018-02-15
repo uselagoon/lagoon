@@ -279,7 +279,8 @@ nodeExporter:
   ## Node labels for node-exporter pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
-  nodeSelector: {}
+  nodeSelector:
+    region: node
 
   ## Annotations to be added to node-exporter pods
   ##
@@ -418,7 +419,7 @@ server:
     ## Prometheus server data Persistent Volume existing claim name
     ## Requires server.persistentVolume.enabled: true
     ## If defined, PVC must be created manually before volume will be bound
-    existingClaim: ""
+    existingClaim: "prometheus-dpc-server"
 
     ## Prometheus server data Persistent Volume mount root path
     ##
