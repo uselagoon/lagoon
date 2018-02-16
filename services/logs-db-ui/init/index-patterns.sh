@@ -13,3 +13,9 @@ if ! [ $(curl --silent 'http://logs-db-ui:5601/api/saved_objects/index-pattern' 
 then
   curl 'http://logs-db-ui:5601/api/saved_objects/index-pattern' -H 'kbn-version: 6.1.1' -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept: application/json, text/plain, */*' --data-binary '{"attributes":{"title":"service-logs-*","timeFieldName":"@timestamp"}}' --compressed
 fi
+
+# test for router-logs-* index pattern, create if it does not exist
+if ! [ $(curl --silent 'http://logs-db-ui:5601/api/saved_objects/index-pattern' | grep "router-logs") ]
+then
+  curl 'http://logs-db-ui:5601/api/saved_objects/index-pattern' -H 'kbn-version: 6.1.1' -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept: application/json, text/plain, */*' --data-binary '{"attributes":{"title":"router-logs-*","timeFieldName":"@timestamp"}}' --compressed
+fi
