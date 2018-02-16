@@ -146,7 +146,7 @@ build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
-build/mongo: build/centos7 images/mongo/Dockerfile
+build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
@@ -448,8 +448,10 @@ $(push-minishift-images):
 	$(eval image = $(subst [push-minishift]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
 	$(info pushing $(image) to minishift registry)
-	docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image)
-	docker push $$(cat minishift):30000/lagoon/$(image) | cat
+	if docker inspect $(CI_BUILD_TAG)/$(image) > /dev/null 2>&1; then \
+		docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image) && \
+		docker push $$(cat minishift):30000/lagoon/$(image) | cat; \
+	fi
 
 push-docker-host-image: build/docker-host minishift/login-docker-registry
 	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
