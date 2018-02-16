@@ -258,7 +258,19 @@ const typeDefs = `
     patch: UpdateNotificationSlackPatchInput
   }
 
+  input UpdateSshKeyPatchInput {
+    name: String
+    keyValue: String
+    keyType: SshKeyType
+  }
+
+  input UpdateSshKeyInput {
+    id: Int!
+    patch: UpdateSshKeyPatchInput!
+  }
+
   type Mutation {
+    updateSshKey(input: UpdateSshKeyInput!): SshKey
     updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -284,6 +296,8 @@ const typeDefs = `
     truncateTable(tableName: String!): String
   }
 `;
+
+const notUndefined = R.compose(R.not, R.equals(undefined));
 
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
@@ -389,9 +403,32 @@ const resolvers = {
     },
   },
   Mutation: {
-    updateNotificationSlack: async(root, args, req) => {
+    updateSshKey: async (root, args, req) => {
+      // There is a possibility the sshKeyTypeToString transformation
+      // sets patch.keyType = undefined. This is not acceptable, therefore
+      // we need to omit the key from the patch object completely
+      // (null will still be accepted, since it should signal erasal of a field)
+      const input = R.compose(
+        R.ifElse(
+          R.compose(notUndefined, R.path(['patch', 'keyType'])),
+          R.identity,
+          R.over(R.lensPath(['patch']), R.omit(['keyType'])),
+        ),
+        R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
+      )(args.input);
+
+      // TODO: should we validate the ssh-key / value format?
+
       const dao = getDao(req);
-      const ret = await dao.updateNotificationSlack(req.credentials, args.input);
+      const ret = await dao.updateSshKey(req.credentials, input);
+      return ret;
+    },
+    updateNotificationSlack: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateNotificationSlack(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     updateOpenshift: async (root, args, req) => {

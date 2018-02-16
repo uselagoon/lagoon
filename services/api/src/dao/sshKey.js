@@ -1,17 +1,28 @@
 const R = require('ramda');
 const {
-  knex,
   ifNotAdmin,
-  whereAnd,
   inClause,
   inClauseOr,
-  query,
+  isPatchEmpty,
+  knex,
   prepare,
+  query,
+  whereAnd,
 } = require('./utils');
 
 const Sql = {
   updateSshKey: (cred, input) => {
-  }
+    const { id, patch } = input;
+
+    return knex('ssh_key')
+      .where('id', '=', id)
+      .update(patch)
+      .toString();
+  },
+  selectSshKey: id =>
+    knex('ssh_key')
+      .where('id', '=', id)
+      .toString(),
 };
 
 const getCustomerSshKeys = sqlClient => async cred => {
@@ -111,7 +122,7 @@ const addSshKey = sqlClient => async (cred, input) => {
 
 const addSshKeyToProject = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
-    throw new Error('unauthorized.');
+    throw new Error('Unauthorized.');
   }
 
   const prep = prepare(
@@ -126,7 +137,7 @@ const addSshKeyToProject = sqlClient => async (cred, input) => {
 
 const removeSshKeyFromProject = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
-    throw new Error('unauthorized.');
+    throw new Error('Unauthorized.');
   }
 
   const prep = prepare(
@@ -170,6 +181,21 @@ const removeSshKeyFromCustomer = sqlClient => async (cred, input) => {
 };
 
 const updateSshKey = sqlClient => async (cred, input) => {
+  const sshKeyId = R.path(['permissions', 'sshKeyId'], cred);
+  const skid = input.id.toString();
+
+  if (cred.role !== 'admin' && !R.equals(sshKeyId, skid)) {
+    throw new Error('Unauthorized.');
+  }
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  await query(sqlClient, Sql.updateSshKey(cred, input));
+  const rows = await query(sqlClient, Sql.selectSshKey(skid));
+
+  return R.prop(0, rows);
 };
 
 const Queries = {
@@ -182,7 +208,8 @@ const Queries = {
   getSshKeysByProjectId,
   removeSshKeyFromCustomer,
   removeSshKeyFromProject,
-}
+  updateSshKey,
+};
 
 module.exports = {
   Sql,

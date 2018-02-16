@@ -41,7 +41,7 @@ const {
 const getPermissions = sqlClient => async args => {
   const prep = prepare(
     sqlClient,
-    'SELECT projects, customers FROM permission WHERE sshKey = :sshKey',
+    'SELECT keyId as sshKeyId, projects, customers FROM permission WHERE sshKey = :sshKey',
   );
 
   const rows = await query(sqlClient, prep(args));
