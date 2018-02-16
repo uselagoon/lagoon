@@ -7,7 +7,24 @@ const {
   inClauseOr,
   query,
   prepare,
+  isPatchEmpty,
 } = require('./utils');
+
+const Sql = {
+  updateNotificationSlack: (cred, input) => {
+    const { name, patch } = input;
+
+    return knex('notification_slack')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
+  selectNotificationSlackByName: name => {
+    return knex('notification_slack')
+      .where('name', '=', name)
+      .toString();
+  },
+};
 
 const addNotificationSlack = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
@@ -103,10 +120,33 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   return rows ? rows : null;
 };
 
-module.exports = {
+const updateNotificationSlack = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  const name = input.name;
+
+  await query(sqlClient, Sql.updateNotificationSlack(cred, input));
+  const rows = await query(sqlClient, Sql.selectNotificationSlackByName(name));
+
+  return R.prop(0, rows);
+};
+
+const Queries = {
   addNotificationSlack,
   addNotificationToProject,
   deleteNotificationSlack,
   getNotificationsByProjectId,
   removeNotificationFromProject,
+  updateNotificationSlack,
+};
+
+module.exports = {
+  Sql,
+  Queries,
 };

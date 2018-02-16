@@ -67,8 +67,8 @@ const truncateTable = sqlClient => async (cred, args) => {
 const daoFns = {
   getPermissions,
   truncateTable,
-  ...require('./notification'),
   ...require('./environment'),
+  ...require('./notification').Queries,
   ...require('./openshift').Queries,
   ...require('./customer').Queries,
   ...require('./project').Queries,

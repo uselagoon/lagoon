@@ -1,28 +1,24 @@
-const { Sql } = require('./customer');
+const { Sql } = require('./notification');
 
 describe('Sql', () => {
-  describe('updateCustomer', () => {
+  describe('updateNotificationSlack', () => {
     it('should create a proper query', () => {
-      const cred = {
-        permissions: {
-          customers: [1, 2, 3],
-        },
-      };
+      const cred = {};
       const input = {
-        id: 1,
+        name: 'n1',
         patch: {
           name: 'test',
+          webhook: 'new-webhook',
         },
       };
 
-      const ret = Sql.updateCustomer(cred, input);
+      const ret = Sql.updateNotificationSlack(cred, input);
       expect(ret).toMatchSnapshot();
     });
   });
   describe('selectCustomer', () => {
     it('should create a proper query', () => {
-      const ret = Sql.selectCustomer(1);
-
+      const ret = Sql.selectNotificationSlackByName('n1');
       expect(ret).toMatchSnapshot();
     });
   });

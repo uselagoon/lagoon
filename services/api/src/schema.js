@@ -247,7 +247,19 @@ const typeDefs = `
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationSlackPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+
+  input UpdateNotificationSlackInput {
+    name: String!
+    patch: UpdateNotificationSlackPatchInput
+  }
+
   type Mutation {
+    updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
     updateProject(input: UpdateProjectInput!): Project
@@ -377,6 +389,11 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateNotificationSlack: async(root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateNotificationSlack(req.credentials, args.input);
+      return ret;
+    },
     updateOpenshift: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.updateOpenshift(req.credentials, args.input);

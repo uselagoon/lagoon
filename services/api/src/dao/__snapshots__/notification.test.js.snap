@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sql selectCustomer should create a proper query 1`] = `"select * from \`notification_slack\` where \`name\` = 'n1'"`;
+
+exports[`Sql updateNotificationSlack should create a proper query 1`] = `"update \`notification_slack\` set \`name\` = 'test', \`webhook\` = 'new-webhook' where \`name\` = 'n1'"`;
