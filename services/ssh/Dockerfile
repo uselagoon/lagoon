@@ -21,19 +21,20 @@ ENV LAGOON=ssh \
     OC_HASH=c4dd4cf \
 		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389
 
+COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
+
 RUN apt-get update \
     && apt-get install -y curl build-essential libmysqlclient-dev ssh curl npm vim \
     && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
-    && curl -Lo /tmp/libnss-mysql.tar.gz "https://downloads.sourceforge.net/project/libnss-mysql/libnss-mysql/1.5/libnss-mysql-1.5.tar.gz" \
     && mkdir /tmp/libnss-mysql \
-    && tar -xzf /tmp/libnss-mysql.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
+    && tar -xzf /tmp/libnss-mysql-1.5.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
     && cd /tmp/libnss-mysql \
     && ./configure \
     && make \
     && make install \
     && apt-get remove --purge -y build-essential \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql
 
 RUN mkdir -p /openshift-origin-client-tools && \
     curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz && \
