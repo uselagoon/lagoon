@@ -24,10 +24,10 @@ set -eu -o pipefail
 BACKUP_DIR=/var/lib/mysql/backup
 
 # MYSQL Parameters
-MYSQL_USER=${MYSQL_USER:-lagoon}
-MYSQL_PASSWORD=${MYSQL_PASSWORD:-lagoon}
+MARIADB_USER=${MARIADB_USER:-lagoon}
+MARIADB_PASSWORD=${MARIADB_PASSWORD:-lagoon}
 
-MYSQL_HOST=$1
+MARIADB_HOST=$1
 
 # Don't backup databases with these names
 # Example: starts with mysql (^mysql) or ends with _schema (_schema$)
@@ -55,11 +55,11 @@ function delete_old_backups()
 }
 
 function mysql_login() {
-  local mysql_login="-u $MYSQL_USER -h $MYSQL_HOST"
-  if [ -n "$MYSQL_PASSWORD" ]; then
-    local mysql_login+=" -p$MYSQL_PASSWORD"
+  cmd="-u $MARIADB_USER -h $MARIADB_HOST"
+  if [ -n "$MARIADB_PASSWORD" ]; then
+    cmd="$cmd -p$MARIADB_PASSWORD"
   fi
-  echo $mysql_login
+  echo $cmd
 }
 
 function database_list() {
@@ -76,7 +76,7 @@ function echo_status(){
 
 function backup_database(){
     backup_file="$BACKUP_DIR/$TIMESTAMP.$database.sql.gz"
-    output+="$database => $backup_file\n"
+    output="${output}${database} => $backup_file\n"
     echo_status "...backing up $count of $total databases: $database"
     $(mysqldump $(mysql_login) $database | gzip -9 > $backup_file)
 }
@@ -90,7 +90,7 @@ function backup_databases(){
     backup_database
     local count=$((count+1))
   done
-  echo -ne $output | column -t
+  echo -ne $output
 }
 
 function hr(){
