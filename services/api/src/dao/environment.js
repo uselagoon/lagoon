@@ -1,13 +1,29 @@
 const R = require('ramda');
 const {
-  knex,
   ifNotAdmin,
-  whereAnd,
   inClause,
   inClauseOr,
-  query,
+  isPatchEmpty,
+  knex,
   prepare,
+  query,
+  whereAnd,
 } = require('./utils');
+
+const Sql = {
+  updateEnvironment: (cred, input) => {
+    const { name, patch } = input;
+
+    return knex('environment')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
+  selectEnvironmentByName: name =>
+    knex('environment')
+      .where('name', '=', name)
+      .toString(),
+};
 
 const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
   const { projects } = cred.permissions;
@@ -68,8 +84,31 @@ const deleteEnvironment = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-module.exports = {
+const updateEnvironment = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  const name = input.name;
+  await query(sqlClient, Sql.updateEnvironment(cred, input));
+
+  const rows = await query(sqlClient, Sql.selectEnvironmentByName(name));
+
+  return R.prop(0, rows);
+};
+
+const Queries = {
   addOrUpdateEnvironment,
   deleteEnvironment,
   getEnvironmentsByProjectId,
+  updateEnvironment,
+};
+
+module.exports = {
+  Sql,
+  Queries,
 };

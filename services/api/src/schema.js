@@ -269,7 +269,20 @@ const typeDefs = `
     patch: UpdateSshKeyPatchInput!
   }
 
+  input UpdateEnvironmentPatchInput {
+    project: Int
+    deploy_type: DeployType
+    environment_type: EnvType
+    openshift_projectname: String
+  }
+
+  input UpdateEnvironmentInput {
+    name: String!
+    patch: UpdateEnvironmentPatchInput
+  }
+
   type Mutation {
+    updateEnvironment(input: UpdateEnvironmentInput!): Environment
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
@@ -296,6 +309,15 @@ const typeDefs = `
     truncateTable(tableName: String!): String
   }
 `;
+
+// Useful for transforming Enums on input.patch objects
+// If an operation on input.patch[key] returns undefined,
+// then the input.patch[key] will be ommitted for the result
+const omitPatchKeyIfUndefined = (key) => R.ifElse(
+  R.compose(notUndefined, R.path(['patch', key])),
+  R.identity,
+  R.over(R.lensPath(['patch']), R.omit([key])),
+);
 
 const notUndefined = R.compose(R.not, R.equals(undefined));
 
@@ -403,17 +425,26 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateEnvironment: async (root, args, req) => {
+      const input = R.compose(
+        omitPatchKeyIfUndefined('deploy_type'),
+        omitPatchKeyIfUndefined('environment_type'),
+        R.over(R.lensPath(['patch', 'environment_type']), envTypeToString),
+        R.over(R.lensPath(['patch', 'deploy_type']), deployTypeToString),
+      )(args.input);
+
+      const dao = getDao(req);
+      const ret = await dao.updateEnvironment(req.credentials, input);
+      return ret;
+    },
+
     updateSshKey: async (root, args, req) => {
       // There is a possibility the sshKeyTypeToString transformation
       // sets patch.keyType = undefined. This is not acceptable, therefore
       // we need to omit the key from the patch object completely
       // (null will still be accepted, since it should signal erasal of a field)
       const input = R.compose(
-        R.ifElse(
-          R.compose(notUndefined, R.path(['patch', 'keyType'])),
-          R.identity,
-          R.over(R.lensPath(['patch']), R.omit(['keyType'])),
-        ),
+        omitPatchKeyIfUndefined('keyType'),
         R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
       )(args.input);
 
