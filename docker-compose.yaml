@@ -212,7 +212,7 @@ services:
       - logs-db-ui
     image: ${IMAGE_REPO:-lagoon}/local-es-kibana-watcher-pusher
     volumes:
-      - ./services/logs-db-ui/init:/kibana-init
+      - ./services/logs-db-ui/init:/lagoon/kibana-init
     labels:
       lagoon.type: none
   cli:
