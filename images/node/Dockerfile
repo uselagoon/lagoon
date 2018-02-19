@@ -28,5 +28,10 @@ RUN apk update \
 
 WORKDIR /app
 
+EXPOSE 3000
+
+# tells the local development environment on which port we are running
+ENV LAGOON_LOCALDEV_HTTP_PORT=3000
+
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["yarn", "run", "start"]
