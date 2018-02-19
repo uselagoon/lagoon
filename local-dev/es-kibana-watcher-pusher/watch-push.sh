@@ -18,7 +18,7 @@ watch_kibanafolder() {
             if update; then
                 chsum1=$chsum2
             else
-                echo '**** ERROR while updating, will try again. '
+                echo '**** ERROR while updating, will try again.'
             fi
         fi
         sleep 2
