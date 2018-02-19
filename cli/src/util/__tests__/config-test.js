@@ -1,17 +1,11 @@
 // @flow
 
-import path from 'path';
 import { createConfig, parseConfig } from '../config';
 
 const fs = require('../fs');
 
 // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
 fs.writeFile = jest.fn();
-
-const fileExistsMock = (configPath: ?string) => (file: string) => {
-  const found = configPath != null && file === configPath;
-  return Promise.resolve(found);
-};
 
 function _mock(fn: any): JestMockFn {
   return fn;
