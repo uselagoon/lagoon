@@ -17,10 +17,82 @@ import type { BaseArgs } from '..';
 export const command = 'create';
 export const description = 'Create new project';
 
+const CUSTOMER: 'customer' = 'customer';
+const NAME: 'name' = 'name';
+const GIT_URL: 'git_url' = 'git_url';
+const OPENSHIFT: 'openshift' = 'openshift';
+const ACTIVE_SYSTEMS_DEPLOY: 'active_systems_deploy' = 'active_systems_deploy';
+const ACTIVE_SYSTEMS_REMOVE: 'active_systems_remove' = 'active_systems_remove';
+const BRANCHES: 'branches' = 'branches';
+const PULLREQUESTS: 'pullrequests' = 'pullrequests';
+const PRODUCTION_ENVIRONMENT: 'production_environment' =
+  'production_environment';
+
+const commandOptions = {
+  CUSTOMER,
+  NAME,
+  GIT_URL,
+  OPENSHIFT,
+  ACTIVE_SYSTEMS_DEPLOY,
+  ACTIVE_SYSTEMS_REMOVE,
+  BRANCHES,
+  PULLREQUESTS,
+  PRODUCTION_ENVIRONMENT,
+};
+
 export function builder(yargs: Yargs): Yargs {
   return yargs
     .usage(`$0 ${command} - ${description}`)
-    .example('$0', 'Create new project');
+    .options({
+      [CUSTOMER]: {
+        describe: 'Customer id to use for new project',
+        type: 'number',
+        alias: 'c',
+      },
+      [NAME]: {
+        describe: 'Name of new project',
+        type: 'string',
+        alias: 'n',
+      },
+      [GIT_URL]: {
+        describe: 'Git URL of new project',
+        type: 'string',
+        alias: 'u',
+      },
+      [OPENSHIFT]: {
+        describe: 'Openshift id to use for new project',
+        type: 'number',
+        alias: 'o',
+      },
+      [ACTIVE_SYSTEMS_DEPLOY]: {
+        describe: 'Active system for task "deploy" of new project',
+        type: 'string',
+        alias: 'd',
+      },
+      [ACTIVE_SYSTEMS_REMOVE]: {
+        describe: 'Active system for task "remove" of new project',
+        type: 'string',
+        alias: 'r',
+      },
+      [BRANCHES]: {
+        describe:
+          'Branches to deploy. Possible values include "false" (no branches), "true" (all branches) and a regular expression to match branches.',
+        type: 'string',
+        alias: 'b',
+      },
+      [PULLREQUESTS]: {
+        describe:
+          'Pull requests to deploy. Possible values include "false" (no pull requests) and "true" (all pull requests).',
+        type: 'boolean',
+        alias: 'prs',
+      },
+      [PRODUCTION_ENVIRONMENT]: {
+        describe: 'Production environment for new project',
+        type: 'string',
+        alias: 'p',
+      },
+    })
+    .example('$0', 'Create new project\n');
 }
 
 export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.error) {
@@ -54,7 +126,7 @@ export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.erro
 }
 
 export function answerFromOptionsPropCond(
-  option: string,
+  option: $Values<typeof commandOptions>,
   answers: Inquirer.answers,
   clog: typeof console.log,
 ) {
@@ -74,7 +146,7 @@ export function answerFromOptionsPropCond(
 }
 
 export function answerFromOptions(
-  option: string,
+  option: $Values<typeof commandOptions>,
   options: Object,
   clog: typeof console.log,
 ) {
@@ -94,6 +166,10 @@ type createProjectArgs = {
   options: {
     customer: ?string,
   },
+};
+
+type Question = Inquirer.question & {
+  name: $Values<typeof commandOptions>,
 };
 
 export async function createProject({
@@ -120,10 +196,10 @@ createProjectArgs): Promise<number> {
     return printErrors(cerr, 'No authorized openshifts found!');
   }
 
-  const projectInput = await inquirer.prompt([
+  const questions: Array<Question> = [
     {
       type: 'list',
-      name: 'customer',
+      name: CUSTOMER,
       message: 'Customer:',
       choices: allCustomers,
       // Using the `when` method of the question object, decide where to get the customer based on conditions
@@ -131,7 +207,7 @@ createProjectArgs): Promise<number> {
       when(answers) {
         return R.cond([
           // 1. If the `customer` is set in the command line arguments or the config, use that customer
-          answerFromOptionsPropCond('customer', answers, clog),
+          answerFromOptionsPropCond(CUSTOMER, answers, clog),
           // 2. If only one customer was returned from the allCustomers query, use that customer as the answer to the question and tell the user, not prompting them to choose.
           [
             R.compose(R.equals(1), R.length, R.prop('allCustomers')),
@@ -152,13 +228,14 @@ createProjectArgs): Promise<number> {
     },
     {
       type: 'input',
-      name: 'name',
+      name: NAME,
       message: 'Project name:',
       validate: input => Boolean(input) || 'Please enter a project name.',
+      when: answerFromOptions(NAME, options, clog),
     },
     {
       type: 'input',
-      name: 'git_url',
+      name: GIT_URL,
       message: 'Git URL:',
       validate: input =>
         // Verify that it is a valid URL and...
@@ -167,11 +244,11 @@ createProjectArgs): Promise<number> {
           /(github\.com|bitbucket\.org|gitlab\.com|\.git$)/.test(input)) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
-      when: answerFromOptions('git_url', options, clog),
+      when: answerFromOptions(GIT_URL, options, clog),
     },
     {
       type: 'list',
-      name: 'openshift',
+      name: OPENSHIFT,
       message: 'Openshift:',
       choices: allOpenshifts,
       // Using the `when` method of the question object, decide where to get the openshift based on conditions
@@ -179,7 +256,7 @@ createProjectArgs): Promise<number> {
       when(answers) {
         return R.cond([
           // 1. If the `openshift` is set in the command line arguments or the config, use that openshift
-          answerFromOptionsPropCond('openshift', answers, clog),
+          answerFromOptionsPropCond(OPENSHIFT, answers, clog),
           // 2. If only one openshift was returned from the allOpenshifts query, use that openshift as the answer to the question and tell the user, not prompting them to choose.
           [
             R.compose(R.equals(1), R.length, R.prop('allOpenshifts')),
@@ -200,26 +277,37 @@ createProjectArgs): Promise<number> {
     },
     {
       type: 'input',
-      name: 'branches',
-      message: 'Deploy branches: (regex)',
-      default: '.*',
-      when: answerFromOptions('branches', options, clog),
+      name: BRANCHES,
+      message: 'Deploy branches:',
+      default: 'true',
+      when: answerFromOptions(BRANCHES, options, clog),
     },
     {
       type: 'input',
-      name: 'pullrequests',
-      message: 'Pull requests: (regex)',
-      default: '.*',
-      when: answerFromOptions('pullrequests', options, clog),
+      name: PULLREQUESTS,
+      message: 'Pull requests:',
+      default: null,
+      when: answerFromOptions(PULLREQUESTS, options, clog),
     },
     {
       type: 'input',
-      name: 'production_environment',
+      name: PRODUCTION_ENVIRONMENT,
       message: 'Production environment:',
       default: null,
-      when: answerFromOptions('production_environment', options, clog),
+      when: answerFromOptions(PRODUCTION_ENVIRONMENT, options, clog),
     },
-  ]);
+  ];
+
+  const allOptionsSpecified = R.compose(
+    R.all(R.contains(R.__, R.keys(options))),
+    R.keys,
+  )(commandOptions);
+
+  // Just use the options and don't even go into the prompt if all options are specified. Otherwise inquirer will not set the correct answers.
+  // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
+  const projectInput = allOptionsSpecified
+    ? options
+    : await inquirer.prompt(questions);
 
   const addProjectResult = await runGQLQuery({
     query: gql`
@@ -287,9 +375,17 @@ export async function handler({
   argv,
 }:
 Args): Promise<number> {
-  const options = {
-    ...config,
-    ...argv,
-  };
+  const notUndefined = R.complement(R.equals(undefined));
+  // Dynamic options are options that will likely change every time and shouldn't be specified in the config
+  const dynamicOptions = [NAME];
+
+  // Filter options to be only those included in the command options keys
+  const options = R.pick(R.values(commandOptions), {
+    // Remove options from the config that should require user input every time
+    ...R.omit(dynamicOptions, config),
+    // Don't overwrite values with non-specified arguments (which yargs sets as `undefined`)
+    ...R.filter(notUndefined, argv),
+  });
+
   return createProject({ clog, cerr, options });
 }
