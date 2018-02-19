@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": ["node-packages/*", "services/*", "cli"],
   "devDependencies": {
-    "flow-bin": "^0.63.1",
+    "flow-bin": "^0.66.0",
     "prettier": "^1.8.2"
   }
 }

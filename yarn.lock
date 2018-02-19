@@ -2493,9 +2493,9 @@ flow-bin@^0.48.0:
   version "0.48.0"
   resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.48.0.tgz#72d075143524358db8901525e3c784dc13a7c7ee"
 
-flow-bin@^0.63.1:
-  version "0.63.1"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.63.1.tgz#ab00067c197169a5fb5b4996c8f6927b06694828"
+flow-bin@^0.66.0:
+  version "0.66.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.66.0.tgz#a96dde7015dc3343fd552a7b4963c02be705ca26"
 
 flow-remove-types@^1.2.1:
   version "1.2.1"
@@ -2711,9 +2711,9 @@ globby@^5.0.0:
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
 
-glow@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/glow/-/glow-1.1.1.tgz#f4d2ead2e12ad720e35af7c5230d4d6e4fa6bb71"
+glow@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/glow/-/glow-1.2.2.tgz#41630d723483a89c4a3add3cc5871f775daa3036"
   dependencies:
     "@babel/code-frame" "^7.0.0-beta.38"
     babel-runtime "^6.26.0"
