@@ -1,18 +1,40 @@
 ---
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.0"
+    testname: "Drupal 8 composer PHP 7.0 - MARIADB"
     drupal_version: 8
+    db: mariadb
     php_version: 7.0
     git_repo_name: drupal.git
     project: ci-drupal
-    branch: drupal8-composer-alpine-70
+    branch: drupal8-composer-70-mariadb
 
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.1"
+    testname: "Drupal 8 composer PHP 7.1 - MARIADB"
     drupal_version: 8
+    db: mariadb
     php_version: 7.1
     git_repo_name: drupal.git
     project: ci-drupal
-    branch: drupal8-composer-alpine-71
+    branch: drupal8-composer-71-mariadb
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.0 - POSTGRES"
+    drupal_version: 8
+    db: postgres
+    php_version: 7.0
+    git_repo_name: drupal.git
+    project: ci-drupal
+    branch: drupal8-composer-70-postgres
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.1 - POSTGRES"
+    drupal_version: 8
+    db: postgres
+    php_version: 7.1
+    git_repo_name: drupal.git
+    project: ci-drupal
+    branch: drupal8-composer-71-postgres
