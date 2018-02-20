@@ -32,7 +32,7 @@
               "should": [
                 {
                   "regexp": {
-                    "message": "^lagoon-.*: Not connected"
+                    "message": "EHOSTUNREACH"
                   }
                 }
               ]
