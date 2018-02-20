@@ -7,3 +7,9 @@ if [ -f /var/run/secrets/lagoon/sshkey/ssh-privatekey ]; then
   eval $(ssh-agent -a /tmp/ssh-agent)
   ssh-add /home/.ssh/id_rsa
 fi
+
+# Test if pygmy or cachalot ssh-agents are mounted and symlink them as our known ssh-auth-sock file.
+# This will only be used in local development
+if [ -S /tmp/amazeeio_ssh-agent/socket ]; then
+  ln -s /tmp/amazeeio_ssh-agent/socket $SSH_AUTH_SOCK
+fi

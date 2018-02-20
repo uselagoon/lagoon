@@ -36,5 +36,8 @@ COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint
 
 EXPOSE 8080
 
+# tells the local development environment on which port we are running
+ENV LAGOON_LOCALDEV_HTTP_PORT=8080
+
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["nginx", "-g", "daemon off;"]

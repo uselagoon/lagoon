@@ -103,6 +103,8 @@ images :=     centos7 \
 							oc \
 							mariadb \
 							mariadb-drupal \
+							postgres \
+							postgres-drupal \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
@@ -140,13 +142,15 @@ $(build-images):
 build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
+build/postgres: build/commons images/postgres/Dockerfile
+build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
-build/mongo: build/centos7 images/mongo/Dockerfile
+build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
@@ -405,7 +409,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal  build/mariadb build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -449,8 +453,10 @@ $(push-minishift-images):
 	$(eval image = $(subst [push-minishift]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
 	$(info pushing $(image) to minishift registry)
-	docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image)
-	docker push $$(cat minishift):30000/lagoon/$(image) | cat
+	if docker inspect $(CI_BUILD_TAG)/$(image) > /dev/null 2>&1; then \
+		docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image) && \
+		docker push $$(cat minishift):30000/lagoon/$(image) | cat; \
+	fi
 
 push-docker-host-image: build/docker-host minishift/login-docker-registry
 	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
