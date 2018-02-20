@@ -1,12 +1,20 @@
 {
-  "trigger" : { "schedule" : { "interval" : "30s" }},
-  "input" : {
-    "search" : {
-      "request" : {
-        "indices" : [ "service-logs-*" ],
-        "body" : {
-          "query" : {
-            "bool" : {
+  "trigger": {
+    "schedule": {
+      "interval": "30s"
+    }
+  },
+  "input": {
+    "search": {
+      "request": {
+        "search_type": "query_then_fetch",
+        "indices": [
+          "service-logs-*"
+        ],
+        "types": [],
+        "body": {
+          "query": {
+            "bool": {
               "filter": {
                 "range": {
                   "@timestamp": {
@@ -14,9 +22,19 @@
                   }
                 }
               },
-              "must" : [
-              { "term" : { "action" : "disconnected" }},
-              { "term" : { "reason.err.cause.host":"rabbitmq"}}
+              "must": [
+                {
+                  "match": {
+                    "action": "disconnected"
+                  }
+                }
+              ],
+              "should": [
+                {
+                  "regexp": {
+                    "message": "^lagoon-.*: Not connected"
+                  }
+                }
               ]
             }
           },
@@ -24,7 +42,7 @@
             "group_by_service": {
               "terms": {
                 "field": "label.keyword",
-                "size": 5
+                "size": 25
               }
             }
           }
@@ -32,18 +50,24 @@
       }
     }
   },
-  "condition" : {
-    "compare" : { "ctx.payload.hits.total" : { "gt" : 2 }}
+  "condition": {
+    "compare": {
+      "ctx.payload.hits.total": {
+        "gt": 2
+      }
+    }
   },
-  "actions" : {
-  "notify-slack" : {
-    "throttle_period" : "5m",
-    "slack" : {
-      "account" : "monitoring",
-      "message" : {
-        "from" : "lagoon-xpack",
-        "to" : [ "#lagoon-dev-alerts" ],
-        "text" : "RabbitMQ connection errors from Lagoon services"
+  "actions": {
+    "notify-slack": {
+      "throttle_period": "5m",
+      "slack": {
+        "account": "monitoring",
+        "message": {
+          "from": "lagoon-xpack",
+          "to": [
+            "#lagoon-dev-alerts"
+          ],
+          "text": "Connection errors from {{#ctx.payload.aggregations.group_by_service.buckets}}{{key}} {{/ctx.payload.aggregations.group_by_service.buckets}}"
         }
       }
     }
