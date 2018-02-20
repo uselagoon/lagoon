@@ -39,6 +39,7 @@ export async function sshConnect(args: ConnectArgs): Promise<Connection> {
       if (
         err.message.includes('All configured authentication methods failed')
       ) {
+        // eslint-disable-next-line prefer-promise-reject-errors
         return reject('SSH key not authorized.');
       }
       reject(err);
@@ -54,6 +55,7 @@ export async function sshConnect(args: ConnectArgs): Promise<Connection> {
       // Here we catch these errors and throw our own with messages that make
       // more sense.
       if (err.stack.includes('InvalidAsn1Error')) {
+        // eslint-disable-next-line prefer-promise-reject-errors
         reject('Malformed private key. Bad passphrase?');
       }
       reject(err);
