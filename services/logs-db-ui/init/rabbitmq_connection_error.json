@@ -18,7 +18,7 @@
               "filter": {
                 "range": {
                   "@timestamp": {
-                    "gte":"now-5m"
+                    "gte": "now-1m"
                   }
                 }
               },
