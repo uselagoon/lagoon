@@ -63,10 +63,6 @@
       "slack": {
         "account": "monitoring",
         "message": {
-          "from": "lagoon-xpack",
-          "to": [
-            "#lagoon-dev-alerts"
-          ],
           "text": ":bangbang: :rotating_light:",
           "attachments": [
             {
