@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getAllowedCustomersAndOpenshifts should return all customers and all openshifts 1`] = `
+Object {
+  "allCustomers": Array [
+    Object {
+      "comment": "used to test the cli",
+      "created": "2018-02-20 19:38:11",
+      "id": 1,
+      "name": "credentialtest-customer1",
+      "private_key": null,
+    },
+    Object {
+      "comment": "used to test the cli",
+      "created": "2018-02-20 19:38:11",
+      "id": 2,
+      "name": "credentialtest-customer2",
+      "private_key": null,
+    },
+  ],
+  "allOpenshifts": Array [
+    Object {
+      "console_url": "https://localhost:8443/",
+      "created": "2018-02-20 19:38:11",
+      "id": 1,
+      "name": "credentialtest-openshift",
+      "project_user": null,
+      "router_pattern": null,
+      "ssh_host": null,
+      "ssh_port": null,
+      "token": null,
+    },
+  ],
+  "errors": undefined,
+}
+`;

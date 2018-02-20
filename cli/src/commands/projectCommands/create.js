@@ -17,18 +17,20 @@ import type { BaseArgs } from '..';
 export const command = 'create';
 export const description = 'Create new project';
 
-const CUSTOMER: 'customer' = 'customer';
-const NAME: 'name' = 'name';
-const GIT_URL: 'git_url' = 'git_url';
-const OPENSHIFT: 'openshift' = 'openshift';
-const ACTIVE_SYSTEMS_DEPLOY: 'active_systems_deploy' = 'active_systems_deploy';
-const ACTIVE_SYSTEMS_REMOVE: 'active_systems_remove' = 'active_systems_remove';
-const BRANCHES: 'branches' = 'branches';
-const PULLREQUESTS: 'pullrequests' = 'pullrequests';
-const PRODUCTION_ENVIRONMENT: 'production_environment' =
+export const CUSTOMER: 'customer' = 'customer';
+export const NAME: 'name' = 'name';
+export const GIT_URL: 'git_url' = 'git_url';
+export const OPENSHIFT: 'openshift' = 'openshift';
+export const ACTIVE_SYSTEMS_DEPLOY: 'active_systems_deploy' =
+  'active_systems_deploy';
+export const ACTIVE_SYSTEMS_REMOVE: 'active_systems_remove' =
+  'active_systems_remove';
+export const BRANCHES: 'branches' = 'branches';
+export const PULLREQUESTS: 'pullrequests' = 'pullrequests';
+export const PRODUCTION_ENVIRONMENT: 'production_environment' =
   'production_environment';
 
-const commandOptions = {
+export const commandOptions = {
   CUSTOMER,
   NAME,
   GIT_URL,
@@ -39,6 +41,10 @@ const commandOptions = {
   PULLREQUESTS,
   PRODUCTION_ENVIRONMENT,
 };
+
+export function allOptionsSpecified(options: Object) {
+  return R.all(R.contains(R.__, R.keys(options)), R.keys(commandOptions));
+}
 
 export function builder(yargs: Yargs): Yargs {
   return yargs
@@ -298,14 +304,9 @@ createProjectArgs): Promise<number> {
     },
   ];
 
-  const allOptionsSpecified = R.compose(
-    R.all(R.contains(R.__, R.keys(options))),
-    R.keys,
-  )(commandOptions);
-
   // Just use the options and don't even go into the prompt if all options are specified. Otherwise inquirer will not set the correct answers.
   // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
-  const projectInput = allOptionsSpecified
+  const projectInput = allOptionsSpecified(options)
     ? options
     : await inquirer.prompt(questions);
 
