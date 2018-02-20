@@ -145,6 +145,24 @@ const getAllProjects = sqlClient => async (cred, args) => {
   return rows;
 };
 
+const getCustomerByName = sqlClient => async (cred, args) => {
+  const str = `
+      SELECT
+        *
+      FROM customer
+      WHERE name = :name
+      ${ifNotAdmin(
+        cred.role,
+        `AND ${inClause('id', cred.permissions.customers)}`,
+      )}
+    `;
+
+  const prep = prepare(sqlClient, str);
+  const rows = await query(sqlClient, prep(args));
+
+  return rows ? rows[0] : null;
+};
+
 const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
   const { customers, projects } = cred.permissions;
 
@@ -706,6 +724,7 @@ const daoFns = {
   getSshKeysByCustomerId,
   getCustomerByProjectId,
   getProjectByName,
+  getCustomerByName,
   getAllProjects,
   addProject,
   deleteProject,
