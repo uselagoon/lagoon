@@ -59,7 +59,7 @@
   },
   "actions": {
     "notify-slack": {
-      "throttle_period": "5m",
+      "throttle_period_in_millis": 300000,
       "slack": {
         "account": "monitoring",
         "message": {
@@ -67,7 +67,15 @@
           "to": [
             "#lagoon-dev-alerts"
           ],
-          "text": "Connection errors from {{#ctx.payload.aggregations.group_by_service.buckets}}{{key}} {{/ctx.payload.aggregations.group_by_service.buckets}}"
+          "text": ":bangbang: :rotating_light:",
+          "attachments": [
+            {
+              "color": "danger",
+              "title": "RabbitMQ Connection Errors",
+              "title_link": "",
+              "text": "Connection errors from {{#ctx.payload.aggregations.group_by_service.buckets}}{{key}} {{/ctx.payload.aggregations.group_by_service.buckets}}"
+            }
+          ]
         }
       }
     }
