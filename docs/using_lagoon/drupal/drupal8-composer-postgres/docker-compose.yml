@@ -75,7 +75,7 @@ services:
 
 
   postgres:
-    image: lagoon/postgres-drupal
+    image: amazeeio/postgres-drupal
     labels:
       lagoon.type: postgres
     ports:
