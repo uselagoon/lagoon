@@ -15,15 +15,30 @@ const Sql = {
     const { id, patch } = input;
     const { customers } = cred.permissions;
 
+    const query = knex('customer').where('id', '=', id);
+
+    if (cred.role !== 'admin' && !R.contains(id, customers)) {
+      query.whereIn('id', customers);
+    }
+
+    return query.update(patch).toString();
+  },
+  selectCustomer: id => {
     return knex('customer')
       .where('id', '=', id)
-      .whereIn('id', customers)
-      .update(patch)
       .toString();
   },
-  selectCustomer: (id) => {
-    return knex('customer').where('id', '=', id).toString();
-  }
+  getCustomerByName: (cred, name) => {
+    const { customers, role } = cred.permissions;
+
+    const query = knex('customer').where('name', '=', name);
+
+    if (cred.role !== 'admin') {
+      query.whereIn('id', customers);
+    }
+
+    return query.toString();
+  },
 };
 
 const addCustomer = sqlClient => async (cred, input) => {
@@ -111,12 +126,18 @@ const updateCustomer = sqlClient => async (cred, input) => {
   return R.prop(0, rows);
 };
 
+const getCustomerByName = sqlClient => async (cred, args) => {
+  const rows = await query(sqlClient, Sql.getCustomerByName(cred, args.name));
+  return rows ? rows[0] : null;
+};
+
 const Queries = {
   addCustomer,
   deleteCustomer,
   getAllCustomers,
   getCustomerByProjectId,
   updateCustomer,
+  getCustomerByName,
 };
 
 module.exports = {

@@ -91,6 +91,7 @@ const typeDefs = `
   }
 
   type Query {
+    customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
     allProjects(createdAfter: String, gitUrl: String): [Project]
@@ -403,6 +404,10 @@ const resolvers = {
     },
   },
   Query: {
+    customerByName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getCustomerByName(req.credentials, args);
+    },
     projectByGitUrl: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getProjectByGitUrl(req.credentials, args);
