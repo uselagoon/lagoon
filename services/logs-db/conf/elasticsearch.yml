@@ -14,7 +14,7 @@ xpack.notification:
         url: "${LOGSDB_SLACK_WEBHOOK_URL:https://hooks.slack.com/services/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}"
         message_defaults:
           from: "${LOGSDB_SLACK_USERNAME:x-pack}"
-          to: notifications
+          to: "${LOGSDB_SLACK_CHANNEL:#lagoon-dev-alerts}"
           attachment:
             fallback: "X-Pack Notification"
             color: "#a63636"
