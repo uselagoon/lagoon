@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 
 INITDB_DIR="/docker-entrypoint-initdb.d"
 

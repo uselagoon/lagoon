@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine
+FROM alpine:edge
 
 MAINTAINER amazee.io
 ENV LAGOON=mongo
@@ -14,14 +14,14 @@ COPY --from=commons /home /home
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
-  && apk --no-cache add mongodb@edge
+RUN apk --no-cache add mongodb
 
 RUN mkdir -p /data/db /data/configdb && \
     fix-permissions /data/db && \
     fix-permissions /data/configdb
 
-
-CMD ["mongod"]
+VOLUME /data/db
+EXPOSE 27017 28017
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
+CMD [ "mongod", "--bind_ip", "0.0.0.0" ]
