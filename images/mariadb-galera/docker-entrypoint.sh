@@ -67,7 +67,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 	  echo "starting mysql for initdb.d import."
 		#	 XXX
-		/usr/bin/mysqld --wsrep-new-cluster &
+		/usr/bin/mysqld --wsrep-on=0 &
     pid="$!"
     echo "pid is $pid"
 
@@ -94,11 +94,13 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     fi
 
 		cat << EOF > $tfile
+DROP DATABASE IF EXISTS test;
 USE mysql;
 UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
 FLUSH PRIVILEGES;
 
 EOF
+
 
 		if [ "$MARIADB_DATABASE" != "" ]; then
 		  echo "[i] Creating database: $MARIADB_DATABASE"
