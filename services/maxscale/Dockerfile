@@ -15,6 +15,8 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         wget \
         git \
         mysql \
+        gnutls \
+        libgcrypt \
         libuuid \
         tzdata && \
     apk add --update --no-cache --virtual .mariadb-build-deps \
@@ -31,8 +33,10 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         openssl \
         openssl-dev \
         tcl tcl-dev \
+        libgcrypt-dev \
         linux-headers \
         ncurses-dev \
+        gnutls-dev \
         curl \
         curl-dev \
         patch \
