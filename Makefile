@@ -104,6 +104,7 @@ images :=     centos7 \
 							mariadb \
 							mariadb-drupal \
 							mariadb-galera \
+							maxscale \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
@@ -142,6 +143,7 @@ build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/mariadb-galera: build/mariadb images/mariadb-galera/Dockerfile
+build/maxscale: images/maxscale/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
