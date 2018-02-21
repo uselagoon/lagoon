@@ -44,11 +44,6 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         zlib-dev
 
 
-
-
-RUN cd /tmp; git clone https://github.com/mariadb-corporation/MaxScale.git maxscale; cd /tmp/; mkdir build; cd build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N
-
-RUN echo "#define _UTSNAME_SYSNAME_LENGTH 65 >> /usr/include/sys/utsname.h"
-RUN cd /tmp/build; make
-
-# RUN cd /tmp/build; find .
+RUN echo "#define _UTSNAME_SYSNAME_LENGTH 65" >> /usr/include/sys/utsname.h
+RUN cd /tmp; git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale; cd /tmp/; mkdir build; cd build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N
+RUN cd /tmp/build; make; make install
