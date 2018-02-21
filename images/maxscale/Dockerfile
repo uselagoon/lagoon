@@ -1,10 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 
-ENV MARIADB_DATABASE=infrastructure \
-    MARIADB_USER=api \
-    MARIADB_PASSWORD=api
-
 # COPY ./docker-entrypoint-initdb.d /docker-entrypoint-initdb.d/
 
 RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
