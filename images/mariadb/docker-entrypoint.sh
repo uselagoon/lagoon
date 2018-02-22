@@ -53,7 +53,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	  mysql_install_db --skip-name-resolve
 
 	  echo "starting mysql for initdb.d import."
-    /usr/bin/mysqld &
+		/usr/bin/mysqld --skip-networking --wsrep_on=OFF &
     pid="$!"
     echo "pid is $pid"
 
@@ -80,6 +80,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     fi
 
 		cat << EOF > $tfile
+DROP DATABASE IF EXISTS test;
 USE mysql;
 UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
 FLUSH PRIVILEGES;
