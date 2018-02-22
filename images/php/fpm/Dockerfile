@@ -28,7 +28,6 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache fcgi \
-        postgresql-client \
         ssmtp \
         # for gd
         libpng-dev \
@@ -41,6 +40,7 @@ RUN apk update \
         libxml2-dev \
         # for xsl
         libxslt-dev \
+    && apk add --no-cache postgresql-client --repository http://nl.alpinelinux.org/alpine/edge/main \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS postgresql-dev \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
