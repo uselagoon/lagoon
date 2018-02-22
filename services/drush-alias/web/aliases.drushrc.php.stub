@@ -132,16 +132,16 @@ if (!empty($ssh)) {
 }
 
 if (!empty($api)) {
+  // $api had an old format of just "host:port", we still support that, but actually we expect the new format be "http://host"
   if (count(explode(":", $api)) == 2) {
     list ($api_host, $api_port) = explode(":", $api);
+    $api_url = "$api_host:$api_port/graphql";
   } else {
-    drush_log("ERROR: Wrong formatted api `$api`, it should be in form \"[host]:[port]\"", 'warning');
-    return;
+    $api_url = "$api/graphql";
   }
 } else {
-  drush_log("Using default API 'api.lagoon.amazeeio.cloud:80'");
-  $api_host = 'api.lagoon.amazeeio.cloud';
-  $api_port = 80;
+  drush_log("Using default API 'https://api.lagoon.amazeeio.cloud/graphql'");
+  $api_url = 'https://api.lagoon.amazeeio.cloud/graphql';
 }
 
 $cid = "lagoon_aliases_$project_name";
@@ -199,8 +199,6 @@ $query = sprintf('{
 }
 ', $project_name);
 
-$api_url = "$api_host:$api_port/graphql";
-
 drush_log("Using $api_url as lagoon API endpoint");
 
 $curl = curl_init($api_url);
@@ -213,6 +211,7 @@ curl_setopt($curl, CURLOPT_POST, TRUE);
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', "Authorization: Bearer $jwt_token"]);
 curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
   'query' => $query,
