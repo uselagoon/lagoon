@@ -83,6 +83,15 @@ COPY my.cnf /etc/mysql/my.cnf
 
 RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
 
+COPY root/usr/bin/peer-finder /usr/bin/peer-finder
+COPY root/usr/libexec/container-setup.sh /usr/libexec/container-setup.sh
+COPY root/usr/share/container-scripts/mysql/configure-mysql.sh /usr/share/container-scripts/mysql/configure-mysql.sh
+COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
+COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scripts/mysql/galera.cnf
+COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
+COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
+
+
 WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
 EXPOSE 3306
