@@ -75,6 +75,8 @@ objects:
             mountPath: /var/lib/mysql
             subPath: data
           env:
+            - name: MARIADB_ROOT_PASSWORD
+              value: blah
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
