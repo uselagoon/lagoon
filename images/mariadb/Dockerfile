@@ -85,7 +85,6 @@ RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
 RUN  sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
 COPY root/usr/bin/peer-finder /usr/bin/peer-finder
-COPY root/usr/libexec/container-setup.sh /usr/libexec/container-setup.sh
 COPY root/usr/share/container-scripts/mysql/configure-mysql.sh /usr/share/container-scripts/mysql/configure-mysql.sh
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scripts/mysql/galera.cnf
