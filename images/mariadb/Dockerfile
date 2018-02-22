@@ -82,6 +82,7 @@ COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
 RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
+RUN  sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
 COPY root/usr/bin/peer-finder /usr/bin/peer-finder
 COPY root/usr/libexec/container-setup.sh /usr/libexec/container-setup.sh
