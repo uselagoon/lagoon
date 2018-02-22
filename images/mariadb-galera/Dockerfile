@@ -58,10 +58,8 @@ RUN cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git
 RUN cd /tmp/galera && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp
 
 RUN cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0
-RUN find /tmp -name  libgalera_smm.so
-RUN mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so
 
-#COPY root /
+RUN mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so
 
 COPY root/usr/bin/peer-finder /usr/bin/peer-finder
 COPY root/usr/libexec/container-setup.sh /usr/libexec/container-setup.sh
