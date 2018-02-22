@@ -6,39 +6,39 @@ ENV MARIADB_DATABASE=drupal \
     MARIADB_PASSWORD=drupal
 
 RUN apk add --update --no-cache --virtual .mariadb-run-deps \
+        asio \
+        boost \
+        findutils \
         libaio \
         libstdc++ \
-        pwgen \
-        wget \
-        boost \
-        asio \
         lsof \
         procps \
-        findutils \
-        tzdata
+        pwgen \
+        tzdata \
+        wget
 
 # fix some environmental items
 RUN mkdir -p /usr/include/bits; mkdir -p /usr/
 COPY wordsize.h /usr/include/bits/wordsize.h
 
 RUN apk add --update --no-cache --virtual .mariadb-build-deps \
+        asio-dev \
         attr \
         autoconf \
         bison \
-        build-base \
-        scons \
-        git \
-        make \
-        asio-dev \
         boost-dev \
+        build-base \
         cmake \
         coreutils \
+        git \
         libaio-dev \
         libressl-dev \
         linux-headers \
+        make \
         ncurses-dev \
         patch \
         readline-dev \
+        scons \
         zlib-dev ; \
     cd /tmp && git clone https://github.com/libcheck/check.git && cd check && mkdir build && cd build && cmake ../ && make && make install; \
     cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git; \
