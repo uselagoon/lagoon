@@ -45,6 +45,8 @@ if ( DRUSH_VERSION >= 9 ) {
   $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
 }
 
+$drupal_path = realpath($path);
+
 // No project name could be found, let's search for it via the .lagoon.yml file
 drush_log("Starting to search for .lagoon.yml file to extract project name within '$path' and parent directories");
 
@@ -137,9 +139,9 @@ if (!empty($api)) {
     return;
   }
 } else {
-  drush_log("Using default API 'api.lagoon.amazeeio.cloud:443'");
+  drush_log("Using default API 'api.lagoon.amazeeio.cloud:80'");
   $api_host = 'api.lagoon.amazeeio.cloud';
-  $api_port = 443;
+  $api_port = 80;
 }
 
 $cid = "lagoon_aliases_$project_name";
@@ -262,7 +264,7 @@ $defaults = [
   'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
 ];
 
-$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port) {
+$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path) {
   $site_name = $environment->name;
   $site_host = 'localhost';
 
@@ -271,6 +273,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   $alias[$site_name] = [
     'remote-host' => "$ssh_host",
     'remote-user' => "$environment->openshift_projectname",
+    'root' => "$drupal_path",
     'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
   ] + $defaults;
 
