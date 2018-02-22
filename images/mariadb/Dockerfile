@@ -74,7 +74,6 @@ RUN apk add --update --no-cache --virtual .mariadb-build-deps \
 RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; /bin/fix-permissions $i; done
 
-# USER mysql
 
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
 COPY mysql-backup.sh /lagoon/
@@ -91,6 +90,7 @@ COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scri
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
 COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
 
+USER mysql
 
 WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
