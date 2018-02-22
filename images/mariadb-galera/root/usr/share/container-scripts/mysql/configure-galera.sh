@@ -40,7 +40,6 @@ while read -ra LINE; do
 done
 
 if [ "${#PEERS[@]}" = 1 ]; then
-    echo "zzz peers length: 1"
     WSREP_CLUSTER_ADDRESS=""
 else
     WSREP_CLUSTER_ADDRESS=$(join , "${PEERS[@]}")

@@ -29,6 +29,4 @@ if [ "$PS1" ]; then
   if [ "$LAGOON_PROJECT" ]; then
     PS1="[${WHITE}$LAGOON_PROJECT${NORMAL}]$PS1"
   fi
-else
-  PS1="$ "
 fi

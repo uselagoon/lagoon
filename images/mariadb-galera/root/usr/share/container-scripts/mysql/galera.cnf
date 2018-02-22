@@ -7,10 +7,8 @@ innodb_flush_log_at_trx_commit = 0
 query_cache_size = 0
 query_cache_type = 0
 
-wsrep_debug = ON
 wsrep_provider=/usr/lib64/galera/libgalera_smm.so
 wsrep_on = ON
-wsrep_provider_options='debug=ON'
 
 # By default every node is standalone
 wsrep_cluster_address=gcomm://
