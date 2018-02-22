@@ -24,6 +24,9 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         boost boost-dev \
         asio asio-dev \
         scons \
+        lsof \
+        procps \
+        findutils \
         tzdata && \
     apk add --update --no-cache --virtual .mariadb-build-deps \
         attr \
@@ -75,6 +78,7 @@ RUN rm /lagoon/entrypoints/90-mariadb-entrypoint
 RUN  sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
 RUN mkdir -p /etc/my.cnf.d/ && fix-permissions /etc/my.cnf.d/
+
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
 CMD ["mysqld"]
