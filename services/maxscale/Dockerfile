@@ -15,6 +15,8 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         wget \
         git \
         mysql \
+        gnutls \
+        libgcrypt \
         libuuid \
         tzdata && \
     apk add --update --no-cache --virtual .mariadb-build-deps \
@@ -31,8 +33,10 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         openssl \
         openssl-dev \
         tcl tcl-dev \
+        libgcrypt-dev \
         linux-headers \
         ncurses-dev \
+        gnutls-dev \
         curl \
         curl-dev \
         patch \
@@ -40,11 +44,6 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         zlib-dev
 
 
-
-
-RUN cd /tmp; git clone https://github.com/mariadb-corporation/MaxScale.git maxscale; cd /tmp/; mkdir build; cd build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N
-
-RUN echo "#define _UTSNAME_SYSNAME_LENGTH 65 >> /usr/include/sys/utsname.h"
-RUN cd /tmp/build; make
-
-# RUN cd /tmp/build; find .
+RUN echo "#define _UTSNAME_SYSNAME_LENGTH 65" >> /usr/include/sys/utsname.h
+RUN cd /tmp; git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale; cd /tmp/; mkdir build; cd build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N
+RUN cd /tmp/build; make; make install
