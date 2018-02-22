@@ -13,7 +13,7 @@ ENV MARIADB_DATABASE=drupal \
 # RUN echo "#include <poll.h>" > /usr/include/sys/poll.h
 
 
-RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
+RUN apk add --update --no-cache --virtual .mariadb-run-deps \
         libaio \
         libstdc++ \
         make \
