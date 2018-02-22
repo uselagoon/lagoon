@@ -8,19 +8,14 @@ ENV MARIADB_DATABASE=drupal \
 RUN apk add --update --no-cache --virtual .mariadb-run-deps \
         libaio \
         libstdc++ \
-        make \
         pwgen \
-        sudo \
         wget \
-        git \
-        boost boost-dev \
-        asio asio-dev \
-        scons \
+        boost \
+        asio \
         lsof \
         procps \
         findutils \
         tzdata
-
 
 # fix some environmental items
 RUN mkdir -p /usr/include/bits; mkdir -p /usr/
@@ -31,6 +26,11 @@ RUN apk add --update --no-cache --virtual .mariadb-build-deps \
         autoconf \
         bison \
         build-base \
+        scons \
+        git \
+        make \
+        asio-dev \
+        boost-dev \
         cmake \
         coreutils \
         libaio-dev \
