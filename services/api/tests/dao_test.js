@@ -9,7 +9,7 @@ const toFingerprint = sshKey =>
 
 const main = async () => {
   const MariaSQL = require('mariasql');
-  const Dao = require('./src/dao');
+  const Dao = require('../src/dao');
 
   const sqlClient = new MariaSQL({
     host: 'localhost',
@@ -23,7 +23,12 @@ const main = async () => {
   const cred = { role: 'admin' };
 
   const ret = await dao.getCustomerSshKeys(cred);
-  const priv = fs.readFileSync('./lagoon_test', 'utf8');
+  try {
+  const priv = fs.readFileSync('../lagoon_test', 'utf8');
+  } catch(e) {
+    console.error('No `../lagoon_test` file found. It should contain the ssh private key for testing');
+    process.exit(1);
+  }
 
   const foo = sshpk.parsePrivateKey(priv, 'ssh');
   console.log('FIRST FINGERPRINT:');
@@ -32,7 +37,7 @@ const main = async () => {
   console.log(foo.toPublic().fingerprint().toString());
   console.log('OTHER:');
   console.log(ret[0]);
-  
+
 
   const key = ret[0];
 

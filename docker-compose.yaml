@@ -2,7 +2,6 @@ version: '3.2'
 services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
-    user: '111111111'
     volumes:
       - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
@@ -127,6 +126,7 @@ services:
     user: '111111111'
     volumes:
       - ./services/ssh/home/command.sh:/home/command.sh
+      - ./services/ssh/home/rsh.sh:/home/rsh.sh
     labels:
       lagoon.type: custom
       lagoon.template: services/ssh/.lagoon.app.yml
@@ -206,6 +206,15 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
+  local-es-kibana-watcher-pusher:
+    depends_on:
+      - logs-db
+      - logs-db-ui
+    image: ${IMAGE_REPO:-lagoon}/local-es-kibana-watcher-pusher
+    volumes:
+      - ./services/logs-db-ui/init/:/lagoon/kibana-init/
+    labels:
+      lagoon.type: none
   cli:
     image: ${IMAGE_REPO:-lagoon}/cli
     depends_on:
@@ -263,5 +272,6 @@ services:
     - "./services/auto-idler/idle-clis.sh:/idle-clis.sh"
     - "./services/auto-idler/create_jwt.sh:/create_jwt.sh"
     labels:
-      lagoon.type: cli
+      lagoon.type: custom
+      lagoon.template: services/auto-idler/.lagoon.yml
       lagoon.image: amazeeiolagoon/auto-idler:${SAFE_BRANCH:-master}

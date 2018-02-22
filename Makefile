@@ -104,6 +104,8 @@ images :=     centos7 \
 							mariadb \
 							mariadb-drupal \
 							maxscale \
+							postgres \
+							postgres-drupal \
 							oc-build-deploy-dind \
 							commons \
 							nginx \
@@ -142,13 +144,15 @@ build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/maxscale: images/maxscale/Dockerfile
+build/postgres: build/commons images/postgres/Dockerfile
+build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
-build/mongo: build/centos7 images/mongo/Dockerfile
+build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
@@ -328,7 +332,8 @@ service-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher
+									local-api-data-watcher-pusher \
+									local-es-kibana-watcher-pusher
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -393,7 +398,7 @@ tests/ssh: build/ssh build/auth-server build/api build/tests
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx
@@ -406,8 +411,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal  build/mariadb build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
-
+tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -423,6 +427,23 @@ $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder buil
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
+
+end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
+
+.PHONY: end2end-tests
+end2end-tests: $(end2end-all-tests)
+
+.PHONY: start-end2end-ansible
+start-end2end-ansible: build/tests
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end up -d tests
+
+$(end2end-all-tests): start-end2end-ansible
+		$(eval testname = $(subst end2end-tests/,,$@))
+		docker exec -i $$(docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
+
+end2end-tests/clean:
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
+
 # push command of our base images into minishift
 push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
 # tag and push all images
@@ -434,8 +455,10 @@ $(push-minishift-images):
 	$(eval image = $(subst [push-minishift]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
 	$(info pushing $(image) to minishift registry)
-	docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image)
-	docker push $$(cat minishift):30000/lagoon/$(image) | cat
+	if docker inspect $(CI_BUILD_TAG)/$(image) > /dev/null 2>&1; then \
+		docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image) && \
+		docker push $$(cat minishift):30000/lagoon/$(image) | cat; \
+	fi
 
 push-docker-host-image: build/docker-host minishift/login-docker-registry
 	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
@@ -561,9 +584,9 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/policybinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z docker-host; \
+	oc -n lagoon policy add-role-to-user edit -z docker-host; \
 	oc -n lagoon create serviceaccount cronjob; \
-	oc -n lagoon policy add-role-to-user system:image-pusher -z cronjob; \
+	oc -n lagoon policy add-role-to-user edit -z cronjob; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -"; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \

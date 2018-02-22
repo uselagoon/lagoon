@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/kibana/kibana:6.1.1
+FROM docker.elastic.co/kibana/kibana-x-pack:6.1.1
 
 MAINTAINER amazee.io
 ENV LAGOON=kibana
@@ -23,5 +23,8 @@ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN fix-permissions /usr/share/kibana
+
+# tells the local development environment on which port we are running
+ENV LAGOON_LOCALDEV_HTTP_PORT=5601
 
 ENV NODE_OPTIONS="--max-old-space-size=200"

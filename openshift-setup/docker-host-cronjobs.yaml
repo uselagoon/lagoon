@@ -29,6 +29,7 @@ objects:
             containers:
             - name: update-push-images
               image: ${IMAGE}
+              imagePullPolicy: Always
               command:
                 - /lagoon/cronjob.sh
                 - "/update-push-images.sh"
@@ -56,6 +57,7 @@ objects:
             containers:
             - name: prune-dangling
               image: ${IMAGE}
+              imagePullPolicy: Always
               command:
                 - /lagoon/cronjob.sh
                 - /prune-images.sh"

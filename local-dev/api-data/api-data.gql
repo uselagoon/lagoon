@@ -169,7 +169,7 @@ mutation FillAPI {
   KickstartOpenshift: addOpenshift(input: {id: 3, name: "kickstart-openshift", console_url: "[REPLACE ME WITH OPENSHIFT URL]", token: "[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUTN TOKEN]"}) {
     id
   }
-  KickstartProject: addProject(input: {id:12, name: "lagoon", customer: 4, openshift: 3, git_url: "git@github.com:amazeeio/lagoon.git"}) {
+  KickstartProject: addProject(input: {id:13, name: "lagoon", customer: 4, openshift: 3, git_url: "git@github.com:amazeeio/lagoon.git"}) {
     id
   }
   KickstartSlackNotification: addNotificationToProject(input: {project: "lagoon", notificationType: "slack", notificationName: "amazeeio--lagoon-kickstart"}) {

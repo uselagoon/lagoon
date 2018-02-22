@@ -30,6 +30,6 @@
   serial: 1
   vars:
     url: "{{ url }}"
-    expected_content: "LAGOON_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
+    expected_content: "LAGOON_GIT_BRANCH_BUILDTIME={{ expected_branch_buildtime | default(expected_branch)  }}"
   tasks:
   - include: check-url-content.yaml

@@ -23,6 +23,7 @@
     "graphql": "^0.11.7",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
+    "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
     "nodemon": "^1.12.1",
