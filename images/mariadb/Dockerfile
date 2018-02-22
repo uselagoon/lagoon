@@ -71,7 +71,7 @@ RUN apk add --update --no-cache --virtual .mariadb-build-deps \
 
 
 
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; /bin/fix-permissions $i; done
 
 # USER mysql
