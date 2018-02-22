@@ -66,11 +66,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 	  echo "starting mysql for initdb.d import."
 		#	 XXX
-<<<<<<< HEAD
-		/usr/bin/mysqld --wsrep-on=0 &
-=======
 		/usr/bin/mysqld --skip-networking --wsrep_on=OFF &
->>>>>>> 21c45059b21c1da03a57e0f955cfc713b0fe86b0
     pid="$!"
     echo "pid is $pid"
 
