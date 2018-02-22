@@ -18,7 +18,7 @@ fi
 
 # Locations
 CONTAINER_SCRIPTS_DIR="/usr/share/container-scripts/mysql"
-EXTRA_DEFAULTS_FILE="/var/lib/mysql/.conf.d/galera.cnf"
+EXTRA_DEFAULTS_FILE="/etc/my.cnf.d/galera.cnf"
 
 # Check if the container runs in Kubernetes/OpenShift
 if [ -z "$POD_NAMESPACE" ]; then
@@ -30,7 +30,6 @@ else
 	echo "Galera: Finding peers"
 	K8S_SVC_NAME=$(hostname -f | cut -d"." -f2)
 	echo "Using service name: ${K8S_SVC_NAME}"
-  mkdir -p /var/lib/mysql/.conf.d/
 	# copy the pristine version to the one that can be edited
 	cp ${CONTAINER_SCRIPTS_DIR}/galera.cnf ${EXTRA_DEFAULTS_FILE}
 	/usr/bin/peer-finder -on-start="${CONTAINER_SCRIPTS_DIR}/configure-galera.sh" -service=${K8S_SVC_NAME}
@@ -67,7 +66,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 	  echo "starting mysql for initdb.d import."
 		#	 XXX
+<<<<<<< HEAD
 		/usr/bin/mysqld --wsrep-on=0 &
+=======
+		/usr/bin/mysqld --skip-networking --wsrep_on=OFF &
+>>>>>>> 21c45059b21c1da03a57e0f955cfc713b0fe86b0
     pid="$!"
     echo "pid is $pid"
 

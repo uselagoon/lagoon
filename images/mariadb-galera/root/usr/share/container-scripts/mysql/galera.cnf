@@ -15,5 +15,5 @@ wsrep_cluster_address=gcomm://
 wsrep_cluster_name=galera
 wsrep_node_address=127.0.0.1
 
-log_error=mariadb.err
+log_error=/proc/self/fd/2
 slow_query_log_file = mariadb-slow.log
