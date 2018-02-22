@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sql selectEnvironment should create a proper query 1`] = `"select * from \`environment\` where \`name\` = 'e1'"`;
+
+exports[`Sql updateEnvironment should create a proper query 1`] = `"update \`environment\` set \`project\` = 1 where \`name\` = 'e1'"`;

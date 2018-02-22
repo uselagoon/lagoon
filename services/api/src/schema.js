@@ -1,4 +1,3 @@
-
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 
@@ -92,6 +91,7 @@ const typeDefs = `
   }
 
   type Query {
+    customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
     allProjects(createdAfter: String, gitUrl: String): [Project]
@@ -204,7 +204,91 @@ const typeDefs = `
     id: Int!
   }
 
+  input UpdateProjectPatchInput {
+    name: String
+    customer: Int
+    git_url: String
+    active_systems_deploy: String
+    active_systems_remove: String
+    branches: String
+    production_environment: String
+    pullrequests: String
+    openshift: Int
+  }
+
+  input UpdateProjectInput {
+    id: Int!
+    patch: UpdateProjectPatchInput!
+  }
+
+  input UpdateCustomerPatchInput {
+    name: String
+    comment: String
+    private_key: String
+    created: String
+  }
+
+  input UpdateCustomerInput {
+    id: Int!
+    patch: UpdateCustomerPatchInput!
+  }
+
+  input UpdateOpenshiftPatchInput {
+    name: String
+    console_url: String
+    token: String
+    router_pattern: String
+    project_user: String
+    ssh_host: String
+    ssh_port: String
+  }
+
+  input UpdateOpenshiftInput {
+    id: Int!
+    patch: UpdateOpenshiftPatchInput!
+  }
+
+  input UpdateNotificationSlackPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+
+  input UpdateNotificationSlackInput {
+    name: String!
+    patch: UpdateNotificationSlackPatchInput
+  }
+
+  input UpdateSshKeyPatchInput {
+    name: String
+    keyValue: String
+    keyType: SshKeyType
+  }
+
+  input UpdateSshKeyInput {
+    id: Int!
+    patch: UpdateSshKeyPatchInput!
+  }
+
+  input UpdateEnvironmentPatchInput {
+    project: Int
+    deploy_type: DeployType
+    environment_type: EnvType
+    openshift_projectname: String
+  }
+
+  input UpdateEnvironmentInput {
+    name: String!
+    patch: UpdateEnvironmentPatchInput
+  }
+
   type Mutation {
+    updateEnvironment(input: UpdateEnvironmentInput!): Environment
+    updateSshKey(input: UpdateSshKeyInput!): SshKey
+    updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
+    updateOpenshift(input: UpdateOpenshiftInput!): Openshift
+    updateCustomer(input: UpdateCustomerInput!): Customer
+    updateProject(input: UpdateProjectInput!): Project
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
@@ -226,6 +310,17 @@ const typeDefs = `
     truncateTable(tableName: String!): String
   }
 `;
+
+// Useful for transforming Enums on input.patch objects
+// If an operation on input.patch[key] returns undefined,
+// then the input.patch[key] will be ommitted for the result
+const omitPatchKeyIfUndefined = (key) => R.ifElse(
+  R.compose(notUndefined, R.path(['patch', key])),
+  R.identity,
+  R.over(R.lensPath(['patch']), R.omit([key])),
+);
+
+const notUndefined = R.compose(R.not, R.equals(undefined));
 
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
@@ -273,10 +368,14 @@ const resolvers = {
     },
     environments: async (project, args, req) => {
       const dao = getDao(req);
-      const input = R.compose(
-        R.over(R.lensProp('type'), envTypeToString),
-      )(args);
-      return await dao.getEnvironmentsByProjectId(req.credentials, project.id, input);
+      const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
+        args,
+      );
+      return await dao.getEnvironmentsByProjectId(
+        req.credentials,
+        project.id,
+        input,
+      );
     },
   },
   Environment: {
@@ -305,6 +404,10 @@ const resolvers = {
     },
   },
   Query: {
+    customerByName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getCustomerByName(req.credentials, args);
+    },
     projectByGitUrl: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getProjectByGitUrl(req.credentials, args);
@@ -327,6 +430,59 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateEnvironment: async (root, args, req) => {
+      const input = R.compose(
+        omitPatchKeyIfUndefined('deploy_type'),
+        omitPatchKeyIfUndefined('environment_type'),
+        R.over(R.lensPath(['patch', 'environment_type']), envTypeToString),
+        R.over(R.lensPath(['patch', 'deploy_type']), deployTypeToString),
+      )(args.input);
+
+      const dao = getDao(req);
+      const ret = await dao.updateEnvironment(req.credentials, input);
+      return ret;
+    },
+
+    updateSshKey: async (root, args, req) => {
+      // There is a possibility the sshKeyTypeToString transformation
+      // sets patch.keyType = undefined. This is not acceptable, therefore
+      // we need to omit the key from the patch object completely
+      // (null will still be accepted, since it should signal erasal of a field)
+      const input = R.compose(
+        omitPatchKeyIfUndefined('keyType'),
+        R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
+      )(args.input);
+
+      // TODO: should we validate the ssh-key / value format?
+
+      const dao = getDao(req);
+      const ret = await dao.updateSshKey(req.credentials, input);
+      return ret;
+    },
+    updateNotificationSlack: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateNotificationSlack(
+        req.credentials,
+        args.input,
+      );
+      return ret;
+    },
+    updateOpenshift: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateOpenshift(req.credentials, args.input);
+      return ret;
+    },
+
+    updateCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateCustomer(req.credentials, args.input);
+      return ret;
+    },
+    updateProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateProject(req.credentials, args.input);
+      return ret;
+    },
     addProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addProject(req.credentials, args.input);
@@ -339,7 +495,9 @@ const resolvers = {
     },
     addSshKey: async (root, args, req) => {
       const dao = getDao(req);
-      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(args.input);
+      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(
+        args.input,
+      );
       const ret = await dao.addSshKey(req.credentials, input);
       return ret;
     },
