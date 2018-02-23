@@ -13,21 +13,26 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
 
-RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
+ENV USER_NAME maxscale
+
+RUN apk add --update --no-cache --virtual .mariadb-run-deps \
         libaio \
         libstdc++ \
         cmake \
         sudo \
         wget \
         git \
+        openssl \
         mysql \
         gnutls \
         libgcrypt \
         libuuid \
-        tzdata && \
-    apk add --update --no-cache --virtual .mariadb-build-deps \
+        tzdata \
+        sqlite-libs
+
+RUN apk add --update --no-cache --virtual .mariadb-build-deps \
         attr \
-        sqlite-dev sqlite \
+        sqlite-dev  \
         musl-dev \
         autoconf \
         bison \
@@ -36,7 +41,6 @@ RUN   apk add --update --no-cache --virtual .mariadb-run-deps \
         libaio-dev \
         util-linux-dev \
         linux-headers \
-        openssl \
         openssl-dev \
         tcl tcl-dev \
         libgcrypt-dev \
