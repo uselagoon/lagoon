@@ -1,9 +1,5 @@
 [maxscale]
 threads=2
-logdir=/maxscale/logs
-datadir=/maxscale/data
-cachedir=/maxscale/cache
-piddir=/maxscale/run
 
 [MasterOnly Service 3306]
 type=service
