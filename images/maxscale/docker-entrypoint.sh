@@ -3,4 +3,4 @@ set -xe
 
 mkdir -p /var/log/maxscale
 
-exec maxscale -lstdout
+exec maxscale -lstdout -d
