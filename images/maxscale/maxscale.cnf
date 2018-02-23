@@ -14,7 +14,6 @@ localhost_match_wildcard_host=1
 type=listener
 service=MasterOnly Service 3306
 protocol=MySQLClient
-address=127.0.0.1
 port=3306
 
 [Galera Monitor]
