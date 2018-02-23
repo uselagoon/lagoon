@@ -59,9 +59,7 @@ apk del --purge .mariadb-build-deps; \
 rm -rf /tmp/*; \
 rm -rf /var/cache/apk/*
 
-VOLUME /maxscale
-
-RUN for i in /maxscale/logs /maxscale/data /maxscale/cache /maxscale/run; do mkdir $i; /bin/fix-permissions $i; done;
+RUN for i in /maxscale /maxscale/logs /maxscale/data /maxscale/cache /maxscale/run; do mkdir -p $i; /bin/fix-permissions $i; done;
 
 COPY maxscale.cnf /etc/maxscale.cnf
 COPY docker-entrypoint.sh /lagoon/entrypoints/80-maxscale
