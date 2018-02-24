@@ -71,6 +71,7 @@ RUN apk add --update --no-cache --virtual .mariadb-build-deps \
 
 
 
+COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; done
 
