@@ -6,8 +6,8 @@ type=service
 router=readconnroute
 router_options=master
 servers=database0,database1,database2
-user=root
-passwd=blah
+user=${MAXSCALE_USERNAME:-maxscale}
+passwd=${MAXSCALE_PASSWORD:-maxscale}
 localhost_match_wildcard_host=1
 
 [MasterOnly Listener 3306]
@@ -20,8 +20,8 @@ port=3306
 type=monitor
 module=galeramon
 servers=database0,database1,database2
-user=root
-passwd=blah
+user=${MAXSCALE_USERNAME:-maxscale}
+passwd=${MAXSCALE_PASSWORD:-maxscale}
 
 
 [CLI]
