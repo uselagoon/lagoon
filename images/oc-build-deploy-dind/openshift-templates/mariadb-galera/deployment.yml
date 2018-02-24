@@ -53,7 +53,7 @@ objects:
       spec:
         containers:
         - name: mariadb
-          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/mariadb-galera:latest
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/mariadb:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 3306
