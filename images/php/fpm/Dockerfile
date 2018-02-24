@@ -40,8 +40,8 @@ RUN apk update \
         libxml2-dev \
         # for xsl
         libxslt-dev \
-    && apk add --no-cache postgresql-client --repository http://nl.alpinelinux.org/alpine/edge/main \
-    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS postgresql-dev \
+    && apk add --no-cache postgresql-dev --repository http://nl.alpinelinux.org/alpine/edge/main \
+    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug; \
