@@ -101,7 +101,7 @@ EOF
 		cat $tfile | mysql -v -u root
 		rm -v -f $tfile
 
-		/bin/ep /docker-entrypoint-initdb.d/maxscale.sql
+		/bin/ep /docker-entrypoint-initdb.d/*.sql
 
 		for f in `ls /docker-entrypoint-initdb.d/*`; do
 		  case "$f" in
