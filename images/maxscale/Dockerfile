@@ -1,5 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
+FROM alpine
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
