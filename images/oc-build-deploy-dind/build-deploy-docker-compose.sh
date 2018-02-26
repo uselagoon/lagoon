@@ -118,7 +118,14 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
 
-  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
+  ENVIRONMENT_SERVICE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  if [ $ENVIRONMENT_SERVICE_OVERRIDE == "false" ]; then
+    OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
+  else
+    OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${ENVIRONMENT_SERVICE_OVERRIDE}/services.yml"
+  fi
+
+
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
     . /scripts/exec-openshift-resources.sh
@@ -261,11 +268,16 @@ do
     . /scripts/exec-openshift-create-pvc.sh
   fi
 
-  # Deployment template can be overwritten in docker-compose
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
+  if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
 
-  if [ $OVERRIDE_TEMPLATE == "false" ]; then
-    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    ENVIRONMENT_SERVICE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE false)
+    if [ $ENVIRONMENT_SERVICE_OVERRIDE == "false" ]; then
+      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    else
+      OPENSHIFT_TEMPLATE="/openshift-templates/${ENVIRONMENT_SERVICE_OVERRIDE}/deployment.yml"
+    fi
+
     if [ -f $OPENSHIFT_TEMPLATE ]; then
       . /scripts/exec-openshift-resources.sh
     fi
