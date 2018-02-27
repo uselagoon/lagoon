@@ -48,3 +48,6 @@ objects:
     to:
       kind: Service
       name: ${SERVICE_NAME}
+    tls:
+      insecureEdgeTerminationPolicy: Allow
+      termination: edge
