@@ -10,8 +10,8 @@ To run Lagoon Project your system must meet the requirements to run Docker. We s
 
 TL;DR: install and start `pygmy`:
 
-        gem install pygmy
-        pygmy up
+    gem install pygmy
+    pygmy up
 
 Learn more about Lagoon and [Local Development Environments](./local_development_environments.md)
 
