@@ -375,6 +375,12 @@ do
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
+  # if overriddent to mariadb galera, do not verify the nonxistatnt deplymentconfig
+  ENVIRONMENT_SERVICE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.${SERVICE_NAME} false)
+  if [ $ENVIRONMENT_SERVICE_OVERRIDE != "false" ]; then
+    SERVICE_ROLLOUT_TYPE=false
+  fi
+
   if [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /scripts/exec-monitor-deploy.sh
   fi
