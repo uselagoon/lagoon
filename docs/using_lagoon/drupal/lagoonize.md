@@ -145,4 +145,6 @@ A Drupal Site also consists of the files directory. As the whole folder is mount
 
 ## 8. Done!
 
-You are done. The Lagoon Team wishes Happy Drupaling.
+You are done. The Lagoon Team wishes Happy Drupaling!
+
+If you like to deploy your Drupal into Lagoon, follow the next Step: [Setup a new Project in Lagoon](../setup_project.md)
