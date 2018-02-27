@@ -34,6 +34,38 @@ sub vcl_recv {
      }
    }
 
+
+
+  if (req.http.X-LAGOON-VARNISH ) {
+    ## Pass all Requests which are handled via an upstream Varnish
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, " + req.http.X-LAGOON-VARNISH;
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+  } else if (req.http.Fastly-FF) {
+    ## Pass all Requests which are handled via Fastly
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, fastly";
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+    set req.http.X-Forwarded-For = req.http.Fastly-Client-IP;
+  } else if (req.http.CF-RAY) {
+    ## Pass all Requests which are handled via CloudFlare
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, cloudflare";
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+    set req.http.X-Forwarded-For = req.http.CF-Connecting-IP;
+  } else if (req.http.X-Pull) {
+    ## Pass all Requests which are handled via KeyCDN
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, keycdn";
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+  } else {
+    ## We set a header to let a Varnish Chain know that it already has been varnishcached
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}";
+
+    ## Allow to bypass based on env variable `VARNISH_BYPASS`
+    set req.http.X-LAGOON-VARNISH-BYPASS = "${VARNISH_BYPASS:-false}";
+  }
+
+  if (req.http.X-LAGOON-VARNISH-BYPASS == "true" || req.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
+    return (pass);
+  }
+
   # SA-CORE-2014-004 preventing access to /xmlrpc.php
   if (req.url ~ "^/xmlrpc.php$") {
     return (synth(701, "Unauthorized"));
@@ -46,9 +78,6 @@ sub vcl_recv {
      set req.url = regsuball(req.url, "(gclid|utm_[a-z]+)=[^\&]+&?", "");
      set req.url = regsub(req.url, "(\?|&)$", "");
    }
-
-  # We set a header to let a Varnish Chain know that it already has been varnishcached
-  set req.http.X-LAGOON-VARNISH = "d3659c5e113e.amazee.io";
 
   # Bypass a cache hit
   if (req.method == "REFRESH") {
@@ -91,8 +120,6 @@ sub vcl_recv {
       req.url ~ "^/info([/?]|$).*$" ||
       req.url ~ "^/flag([/?]|$).*$" ||
       req.url ~ "^.*/system/files([/?]|$).*$" ||
-      req.url ~ "^/amazeeadmin" ||
-      req.url ~ "^/lithium" ||
       req.url ~ "^/cgi" ||
       req.url ~ "^/cgi-bin"
   ) {
@@ -208,9 +235,8 @@ sub vcl_backend_response {
   # Allow items to be stale if needed.
   set beresp.grace = 6h;
 
-  ## FIXME: rename X-LAGOON-VARNISH-BYPASS to X-LAGOON-VARNISH-BACKEND-BYPASS to avoid confusion
-  # If the backend sends a X-LAGOON-VARNISH-BYPASS header we directly deliver
-  if(beresp.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
+  # If the backend sends a X-LAGOON-VARNISH-BACKEND-BYPASS header we directly deliver
+  if(beresp.http.X-LAGOON-VARNISH-BACKEND-BYPASS == "TRUE") {
     return (deliver);
   }
 
@@ -247,7 +273,7 @@ sub vcl_deliver {
   if (req.http.grace) {
     set resp.http.X-Varnish-Grace = req.http.grace;
   }
-  set resp.http.X-LAGOON = "varnish>" + resp.http.X-LAGOON;
+  set resp.http.X-LAGOON = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}>" + resp.http.X-LAGOON;
   return (deliver);
 }
 
