@@ -25,4 +25,4 @@ theme: readthedocs
 markdown_extensions:
     - toc:
         permalink: true
-        baselevel: 5
+        baselevel: 1
