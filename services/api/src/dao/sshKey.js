@@ -162,8 +162,6 @@ const addSshKeyToCustomer = sqlClient => async (cred, input) => {
     throw new Error('unauthorized.');
   }
 
-  console.log('asdfadsf');
-  console.log(input);
   const prep = prepare(
     sqlClient,
     'CALL CreateCustomerSshKey(:customer, :sshKey)',
