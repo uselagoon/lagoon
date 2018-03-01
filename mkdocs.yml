@@ -3,9 +3,14 @@ site_name: Lagoon
 pages:
 - Home: index.md
 - Using Lagoon:
-  - Getting Started: using_lagoon/getting_started.md
-  - Deploying Lagoon Projects: using_lagoon/deploying.md
-  - Image Types: using_lagoon/types.md
+  - Overview: using_lagoon/index.md
+  - Local Development Environments: using_lagoon/local_development_environments.md
+  - Setup a new Project in Lagoon: using_lagoon/setup_project.md
+  - Configure Webhooks: using_lagoon/configure_webhooks.md
+  - First Deployment: using_lagoon/first_deployment.md
+  - Drupal:
+    - Lagoonize: using_lagoon/drupal/lagoonize.md
+    - First Deployment: using_lagoon/drupal/first_deployment.md
 - Administration:
   - Administering Lagoon: administering_lagoon/index.md
   - Installing Lagoon: administering_lagoon/install.md
@@ -20,4 +25,4 @@ theme: readthedocs
 markdown_extensions:
     - toc:
         permalink: true
-        baselevel: 5
+        baselevel: 1
