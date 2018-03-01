@@ -29,6 +29,13 @@ do
 
   # Load the servicetype. If it's "none" we will not care about this service at all
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
+
+  # Allow the servicetype to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
+    SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
+  fi
+
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
@@ -117,14 +124,6 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
-
-  ENVIRONMENT_SERVICE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
-  if [ $ENVIRONMENT_SERVICE_OVERRIDE == "false" ]; then
-    OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
-  else
-    OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${ENVIRONMENT_SERVICE_OVERRIDE}/services.yml"
-  fi
-
 
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
@@ -271,13 +270,6 @@ do
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
 
-    ENVIRONMENT_SERVICE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE false)
-    if [ $ENVIRONMENT_SERVICE_OVERRIDE == "false" ]; then
-      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
-    else
-      OPENSHIFT_TEMPLATE="/openshift-templates/${ENVIRONMENT_SERVICE_OVERRIDE}/deployment.yml"
-    fi
-
     if [ -f $OPENSHIFT_TEMPLATE ]; then
       . /scripts/exec-openshift-resources.sh
     fi
@@ -376,8 +368,7 @@ do
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
   # if overriddent to mariadb galera, do not verify the nonxistatnt deplymentconfig
-  ENVIRONMENT_SERVICE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.${SERVICE_NAME} false)
-  if [ $ENVIRONMENT_SERVICE_OVERRIDE != "false" ]; then
+  if [ $SERVICE_TYPE == "mariadb-galera" ]; then
     SERVICE_ROLLOUT_TYPE=false
   fi
 
