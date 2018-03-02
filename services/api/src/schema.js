@@ -61,7 +61,7 @@ const typeDefs = `
     channel: String
   }
 
-  union Notification = [NotificationRocketChat, NotificationSlack]
+  union Notification = NotificationRocketChat | NotificationSlack
 
   type Project {
     id: Int
