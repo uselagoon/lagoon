@@ -26,6 +26,22 @@ const Sql = {
   },
 };
 
+const addNotificationRocketChat = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateNotificationRocketChat(:name, :webhook, :channel)',
+  );
+
+  const rows = await query(sqlClient, prep(input));
+  const rocketchat = R.path([0, 0], rows);
+
+  return rocketchat;
+};
+
 const addNotificationSlack = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');

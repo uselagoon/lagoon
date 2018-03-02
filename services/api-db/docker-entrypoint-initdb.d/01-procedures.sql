@@ -362,6 +362,52 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationRocketChat
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300),
+    IN channel     varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_rocketchat (
+      name,
+      webhook,
+      channel
+    ) VALUES (
+      name,
+      webhook,
+      channel
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook,
+      channel
+    FROM notification_rocketchat
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationRocketChat
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_rocketchat ns WHERE ns.name = name;
+
+    DELETE FROM notification_rocketchat WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'rocketchat';
+  END;
+$$
 
 CREATE OR REPLACE PROCEDURE
   CreateNotificationSlack

@@ -4,8 +4,6 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 
 const { getRocketChatInfoForProject } = require('@lagoon/commons/src/api');
 
-// var IncomingWebhook = require('@slack/client').IncomingWebhook; @TODO replace with rocketchat client
-
 export type ChannelWrapper = {
   ack: (msg: Object) => void,
 }

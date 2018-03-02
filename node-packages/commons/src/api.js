@@ -84,6 +84,33 @@ async function getProjectsByGitUrl(gitUrl: string): Project[] {
 }
 
 
+async function getRocketChatinfoForProject(project: string): Project {
+
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationRocketChat {
+      webhook
+      channel
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        rocketchats: notifications(type: "rocketchat") {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.rocketchats) {
+    throw new ProjectNotFound(
+      `Cannot find rocketchat information for project ${project}`
+    );
+  }
+
+  return result.project.rocketchats;
+}
 
 async function getSlackinfoForProject(project: string): Project {
 
@@ -200,6 +227,7 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
 
 module.exports = {
   getProjectsByGitUrl,
+  getRocketChatinfoForProject,
   getSlackinfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,

@@ -30,6 +30,13 @@ CREATE TABLE IF NOT EXISTS openshift (
        created         timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS notification_rocketchat (
+  id          int NOT NULL auto_increment PRIMARY KEY,
+  name        varchar(50) UNIQUE,
+  webhook     varchar(300),
+  channel     varchar(300)
+);
+
 CREATE TABLE IF NOT EXISTS notification_slack (
        id          int NOT NULL auto_increment PRIMARY KEY,
        name        varchar(50) UNIQUE,
@@ -70,7 +77,7 @@ CREATE TABLE IF NOT EXISTS environment (
 CREATE TABLE IF NOT EXISTS project_notification (
        nid              int,
        pid              int REFERENCES project (id),
-       type             ENUM('slack') NOT NULL,
+       type             ENUM('slack','rocketchat') NOT NULL,
        CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
 );
 
