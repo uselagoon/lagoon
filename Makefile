@@ -239,10 +239,10 @@ build/solr__6.6-drupal: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__latest \
+nodeimages := node__9 \
 							node__8 \
 							node__6 \
-							node__latest-builder \
+							node__9-builder \
 							node__8-builder \
 							node__6-builder
 
@@ -251,22 +251,20 @@ build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 # Define the make recepie for all base images
 $(build-nodeimages): build/commons
 	$(eval clean = $(subst build/node__,,$@))
-	$(eval version_publish = $(word 1,$(subst -, ,$(clean))))
-# If $(version) is `latest` use `alpine`, if not prepend `-alpine` to the version number
-	$(eval version_build = $(if $(filter-out latest,$(version_publish)),$(version_publish)-alpine, alpine))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 	$(eval type_slash = $(if $(type),/$(type)))
 # Call the docker build
-	$(call docker_build_node,$(version_build),$(version_publish)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
+	$(call docker_build_node,$(version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
 base-images += $(nodeimages)
 
-build/node__latest build/node__8 build/node__6: images/commons images/node/Dockerfile
-build/node__latest-builder: build/node__latest images/node/builder/Dockerfile
+build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
 build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 
