@@ -30,6 +30,4 @@ RUN apk update \
     && apk add glibc-2.26-r0.apk \
     && rm -rf /var/cache/apk/*
 
-
-
 CMD ["/bin/docker-sleep"]
