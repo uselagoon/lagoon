@@ -239,10 +239,10 @@ build/solr__6.6-drupal: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__latest \
+nodeimages := node__9 \
 							node__8 \
 							node__6 \
-							node__latest-builder \
+							node__9-builder \
 							node__8-builder \
 							node__6-builder
 
@@ -263,8 +263,8 @@ $(build-nodeimages): build/commons
 
 base-images += $(nodeimages)
 
-build/node__latest build/node__8 build/node__6: images/commons images/node/Dockerfile
-build/node__latest-builder: build/node__latest images/node/builder/Dockerfile
+build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
 build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 
