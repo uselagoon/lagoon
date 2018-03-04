@@ -252,6 +252,8 @@ build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 $(build-nodeimages): build/commons
 	$(eval clean = $(subst build/node__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
+# If $(version) is 'latest' leave it, if not prepend `-alpine`
+	$(eval version = $(if $(filter-out latest,$(version)),$(version)-alpine, $(version)))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
