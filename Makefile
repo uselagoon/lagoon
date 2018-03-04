@@ -251,15 +251,15 @@ build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 # Define the make recepie for all base images
 $(build-nodeimages): build/commons
 	$(eval clean = $(subst build/node__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval version_publish = $(word 1,$(subst -, ,$(clean))))
 # If $(version) is `latest` use `alpine`, if not prepend `-alpine` to the version number
-	$(eval version = $(if $(filter-out latest,$(version)),$(version)-alpine, alpine))
+	$(eval version_build = $(if $(filter-out latest,$(version_publish)),$(version_publish)-alpine, alpine))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 	$(eval type_slash = $(if $(type),/$(type)))
 # Call the docker build
-	$(call docker_build_node,$(version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
+	$(call docker_build_node,$(version_build),$(version_publish)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
