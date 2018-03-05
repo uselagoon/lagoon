@@ -31,19 +31,36 @@ export const PRODUCTION_ENVIRONMENT: 'production_environment' =
   'production_environment';
 
 export const commandOptions = {
-  CUSTOMER,
-  NAME,
-  GIT_URL,
-  OPENSHIFT,
-  ACTIVE_SYSTEMS_DEPLOY,
-  ACTIVE_SYSTEMS_REMOVE,
-  BRANCHES,
-  PULLREQUESTS,
-  PRODUCTION_ENVIRONMENT,
+  [CUSTOMER]: CUSTOMER,
+  [NAME]: NAME,
+  [GIT_URL]: GIT_URL,
+  [OPENSHIFT]: OPENSHIFT,
+  [ACTIVE_SYSTEMS_DEPLOY]: ACTIVE_SYSTEMS_DEPLOY,
+  [ACTIVE_SYSTEMS_REMOVE]: ACTIVE_SYSTEMS_REMOVE,
+  [BRANCHES]: BRANCHES,
+  [PULLREQUESTS]: PULLREQUESTS,
+  [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-export function allOptionsSpecified(options: Object) {
-  return R.all(R.contains(R.__, R.keys(options)), R.keys(commandOptions));
+type Options = {
+  customer?: number,
+  name?: string,
+  git_url?: string,
+  openshift?: number,
+  active_systems_deploy?: string,
+  active_systems_remove?: string,
+  branches?: string,
+  pullrequests?: string,
+  production_environment?: string,
+};
+
+export function allOptionsSpecified(options: Options): boolean {
+  // Return a boolean of whether all possible command options keys...
+  return R.all(
+    // ...are contained in keys of the provided object
+    R.contains(R.__, R.keys(options)),
+    R.values(commandOptions),
+  );
 }
 
 export function builder(yargs: Yargs): Yargs {
@@ -101,7 +118,21 @@ export function builder(yargs: Yargs): Yargs {
     .example('$0', 'Create new project\n');
 }
 
-export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.error) {
+type Customer = {
+  value: number,
+  name: string,
+};
+
+type Openshift = {
+  value: number,
+  name: string,
+};
+
+export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.error): Promise<{
+  allCustomers: ?Array<Customer>,
+  allOpenshifts: ?Array<Openshift>,
+  errors: ?Array<Error>,
+}> {
   const customersAndOpenshiftsResults = await runGQLQuery({
     query: gql`
       query AllCustomersAndOpenshiftsForProjectCreate {
@@ -131,6 +162,7 @@ export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.erro
   };
 }
 
+// Return a [predicate, transformer] pair for use with R.cond(). The predicate and transformer functions expect an object with an "options" property containing the options to use.
 export function answerFromOptionsPropCond(
   option: $Values<typeof commandOptions>,
   answers: Inquirer.answers,
@@ -143,6 +175,7 @@ export function answerFromOptionsPropCond(
       R.prop('options'),
     ),
     (objectWithOptions: { options: Object }) => {
+      // Assign option key in the answers object to option value and let the user know
       const propVal = R.path(['options', option], objectWithOptions);
       clog(`${blue('!')} Using "${option}" option from arguments or config`);
       // eslint-disable-next-line no-param-reassign
@@ -151,6 +184,8 @@ export function answerFromOptionsPropCond(
   ];
 }
 
+// Return a function to use with the `when` option of the question object.
+// https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
 export function answerFromOptions(
   option: $Values<typeof commandOptions>,
   options: Object,
@@ -162,46 +197,24 @@ export function answerFromOptions(
       answers,
       clog,
     );
-    return R.ifElse(predicate, transform, R.T)({ options });
+    return R.ifElse(
+      // If the option exists...
+      predicate,
+      // ...use it and let the user know...
+      transform,
+      // ...otherwise return true to prompt the user to manually enter the option
+      R.T,
+    )({ options });
   };
 }
 
-type createProjectArgs = {
+// Prompt the user to input data to be used for project creation
+export async function promptForProjectInput(
+  allCustomers: ?Array<Customer>,
+  allOpenshifts: ?Array<Openshift>,
   clog: typeof console.log,
-  cerr: typeof console.error,
-  options: {
-    customer: ?string,
-  },
-};
-
-type Question = Inquirer.question & {
-  name: $Values<typeof commandOptions>,
-};
-
-export async function createProject({
-  clog,
-  cerr,
-  options,
-}:
-createProjectArgs): Promise<number> {
-  const {
-    allCustomers,
-    allOpenshifts,
-    errors,
-  } = await getAllowedCustomersAndOpenshifts(cerr);
-
-  if (errors != null) {
-    return printGraphQLErrors(cerr, ...errors);
-  }
-
-  if (R.equals(R.length(allCustomers), 0)) {
-    return printErrors(cerr, 'No authorized customers found!');
-  }
-
-  if (R.equals(R.length(allOpenshifts), 0)) {
-    return printErrors(cerr, 'No authorized openshifts found!');
-  }
-
+  options: Object,
+): Promise<Inquirer.answers> {
   const questions: Array<Question> = [
     {
       type: 'list',
@@ -304,11 +317,42 @@ createProjectArgs): Promise<number> {
     },
   ];
 
-  // Just use the options and don't even go into the prompt if all options are specified. Otherwise inquirer will not set the correct answers.
-  // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
-  const projectInput = allOptionsSpecified(options)
-    ? options
-    : await inquirer.prompt(questions);
+  return inquirer.prompt(questions);
+}
+
+type createProjectArgs = {
+  clog: typeof console.log,
+  cerr: typeof console.error,
+  options: Options,
+};
+
+type Question = Inquirer.question & {
+  name: $Values<typeof commandOptions>,
+};
+
+export async function createProject({
+  clog,
+  cerr,
+  options,
+}:
+createProjectArgs): Promise<number> {
+  const {
+    allCustomers,
+    allOpenshifts,
+    errors,
+  } = await getAllowedCustomersAndOpenshifts(cerr);
+
+  if (errors != null) {
+    return printGraphQLErrors(cerr, ...errors);
+  }
+
+  if (R.equals(R.length(allCustomers), 0)) {
+    return printErrors(cerr, 'No authorized customers found!');
+  }
+
+  if (R.equals(R.length(allOpenshifts), 0)) {
+    return printErrors(cerr, 'No authorized openshifts found!');
+  }
 
   const addProjectResult = await runGQLQuery({
     query: gql`
@@ -333,7 +377,16 @@ createProjectArgs): Promise<number> {
     `,
     cerr,
     variables: {
-      input: projectInput,
+      // Just use the options and don't even go into the prompt if all options are already specified via . Otherwise inquirer will not set the correct answers.
+      // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
+      input: allOptionsSpecified(options)
+        ? options
+        : await promptForProjectInput(
+          allCustomers,
+          allOpenshifts,
+          clog,
+          options,
+        ),
     },
   });
 
