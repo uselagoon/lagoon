@@ -42,7 +42,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display table when all values 1`] = `
+exports[`createProject should display table after successful project creation 1`] = `
 Array [
   Array [
     "[32mProject \\"test-project\\" created successfully:[39m",

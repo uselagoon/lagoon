@@ -71,7 +71,7 @@ describe('getAllowedCustomersAndOpenshifts', () => {
 });
 
 describe('createProject', () => {
-  it('should display table when all values', async () => {
+  it('should display table after successful project creation', async () => {
     _mock(runGQLQuery)
       .mockImplementationOnce(() =>
         Promise.resolve({
