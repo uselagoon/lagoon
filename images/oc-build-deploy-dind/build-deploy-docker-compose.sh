@@ -125,6 +125,8 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
 
+  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
+
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
     . /scripts/exec-openshift-resources.sh
@@ -267,6 +269,7 @@ do
     . /scripts/exec-openshift-create-pvc.sh
   fi
 
+  OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
 
