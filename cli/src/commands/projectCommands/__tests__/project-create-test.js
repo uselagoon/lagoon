@@ -7,6 +7,7 @@ import {
   allOptionsSpecified,
   commandOptions,
   getAllowedCustomersAndOpenshifts,
+  createProject,
 } from '../create';
 
 jest.mock('../../../query');
@@ -42,31 +43,18 @@ describe('getAllowedCustomersAndOpenshifts', () => {
         data: {
           allCustomers: [
             {
-              id: 1,
+              value: 1,
               name: 'credentialtest-customer1',
-              comment: 'used to test the cli',
-              private_key: null,
-              created: '2018-02-20 19:38:11',
             },
             {
-              id: 2,
+              value: 2,
               name: 'credentialtest-customer2',
-              comment: 'used to test the cli',
-              private_key: null,
-              created: '2018-02-20 19:38:11',
             },
           ],
           allOpenshifts: [
             {
-              id: 1,
+              value: 1,
               name: 'credentialtest-openshift',
-              console_url: 'https://localhost:8443/',
-              token: null,
-              router_pattern: null,
-              project_user: null,
-              ssh_host: null,
-              ssh_port: null,
-              created: '2018-02-20 19:38:11',
             },
           ],
         },
@@ -79,5 +67,178 @@ describe('getAllowedCustomersAndOpenshifts', () => {
     expect(R.prop('allCustomers', returnVal)).toHaveLength(2);
     expect(R.prop('allOpenshifts', returnVal)).toHaveLength(1);
     expect(returnVal).toMatchSnapshot();
+  });
+});
+
+describe('createProject', () => {
+  it('should display table when all values', async () => {
+    _mock(runGQLQuery)
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          data: {
+            allCustomers: [
+              {
+                value: 1,
+                name: 'credentialtest-customer1',
+              },
+              {
+                value: 2,
+                name: 'credentialtest-customer2',
+              },
+            ],
+            allOpenshifts: [
+              {
+                value: 1,
+                name: 'credentialtest-openshift',
+              },
+            ],
+          },
+        }))
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          data: {
+            addProject: {
+              id: 1,
+              name: 'test-project',
+              customer: {
+                name: 'credentialtest-customer1',
+              },
+              git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+              active_systems_deploy: 'lagoon_openshiftBuildDeploy',
+              active_systems_remove: 'lagoon_openshiftRemove',
+              branches: true,
+              pullrequests: true,
+              production_environment: null,
+              openshift: 1,
+              created: '2018-03-05 10:26:22',
+            },
+          },
+        }));
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const returnVal = await createProject({
+      clog,
+      cerr,
+      options: {
+        customer: 1,
+        name: 'test-project',
+        git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+        openshift: 1,
+        active_systems_deploy: 'lagoon_openshiftBuildDeploy',
+        active_systems_remove: 'lagoon_openshiftRemove',
+        branches: 'true',
+        pullrequests: 'true',
+        production_environment: 'null',
+      },
+    });
+
+    expect(returnVal).toBe(0);
+    expect(clog.mock.calls).toMatchSnapshot();
+  });
+
+  it("should display error, if GraphQL sends error messages the first time it's called", async () => {
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve({
+        errors: [{ message: 'something something error' }],
+      }));
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const returnVal = await createProject({ clog, cerr, options: {} });
+
+    expect(returnVal).toBe(1);
+    expect(cerr.mock.calls).toMatchSnapshot();
+  });
+
+  it("should display error, if GraphQL sends error messages the second time it's called", async () => {
+    _mock(runGQLQuery)
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          data: {
+            allCustomers: [
+              {
+                value: 1,
+                name: 'credentialtest-customer1',
+              },
+              {
+                value: 2,
+                name: 'credentialtest-customer2',
+              },
+            ],
+            allOpenshifts: [
+              {
+                value: 1,
+                name: 'credentialtest-openshift',
+              },
+            ],
+          },
+        }))
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          errors: [{ message: 'something something error 2' }],
+        }));
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const returnVal = await createProject({
+      clog,
+      cerr,
+      options: {
+        customer: 1,
+        name: 'test-project',
+        git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+        openshift: 1,
+        active_systems_deploy: 'lagoon_openshiftBuildDeploy',
+        active_systems_remove: 'lagoon_openshiftRemove',
+        branches: 'true',
+        pullrequests: 'true',
+        production_environment: 'null',
+      },
+    });
+
+    expect(returnVal).toBe(1);
+    expect(cerr.mock.calls).toMatchSnapshot();
+  });
+
+  it('should display error, if GraphQL response contains zero customers', async () => {
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve({
+        data: { allCustomers: [], allOpenshifts: [] },
+      }));
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const returnVal = await createProject({ clog, cerr, options: {} });
+
+    expect(returnVal).toBe(1);
+    expect(cerr.mock.calls).toMatchSnapshot();
+  });
+
+  it('should display error, if GraphQL response contains zero openshifts but one customer', async () => {
+    _mock(runGQLQuery).mockImplementationOnce(() =>
+      Promise.resolve({
+        data: {
+          allCustomers: [
+            {
+              value: 1,
+              name: 'credentialtest-customer1',
+            },
+          ],
+          allOpenshifts: [],
+        },
+      }));
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const returnVal = await createProject({ clog, cerr, options: {} });
+
+    expect(returnVal).toBe(1);
+    expect(cerr.mock.calls).toMatchSnapshot();
   });
 });
