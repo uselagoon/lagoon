@@ -31,10 +31,10 @@ CREATE TABLE IF NOT EXISTS openshift (
 );
 
 CREATE TABLE IF NOT EXISTS notification_rocketchat (
-  id          int NOT NULL auto_increment PRIMARY KEY,
-  name        varchar(50) UNIQUE,
-  webhook     varchar(300),
-  channel     varchar(300)
+       id          int NOT NULL auto_increment PRIMARY KEY,
+       name        varchar(50) UNIQUE,
+       webhook     varchar(300),
+       channel     varchar(300)
 );
 
 CREATE TABLE IF NOT EXISTS notification_slack (
