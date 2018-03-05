@@ -11,6 +11,19 @@ const {
 } = require('./utils');
 
 const Sql = {
+  updateNotificationRocketChat: (cred, input) => {
+    const { name, patch } = input;
+
+    return knex('notification_rocketchat')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
+  selectNotificationRocketChatByName: name => {
+    return knex('notification_rocketchat')
+      .where('name', '=', name)
+      .toString();
+  },
   updateNotificationSlack: (cred, input) => {
     const { name, patch } = input;
 
@@ -71,6 +84,18 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
   const project = R.path([0, 0], rows);
 
   return project;
+};
+
+const deleteNotificationRocketChat = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  const prep = prepare(sqlClient, 'CALL DeleteNotificationRocketChat(:name)');
+  const rows = await query(sqlClient, prep(input));
+
+  // TODO: maybe check rows for changed result
+  return 'success';
 };
 
 const deleteNotificationSlack = sqlClient => async (cred, input) => {
@@ -136,6 +161,23 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   return rows ? rows : null;
 };
 
+const updateNotificationRocketChat = sqlClient => async (cred, input) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Project creation unauthorized.');
+  }
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  const name = input.name;
+
+  await query(sqlClient, Sql.updateNotificationRocketChat(cred, input));
+  const rows = await query(sqlClient, Sql.selectNotificationRocketChatByName(name));
+
+  return R.prop(0, rows);
+};
+
 const updateNotificationSlack = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
@@ -154,11 +196,14 @@ const updateNotificationSlack = sqlClient => async (cred, input) => {
 };
 
 const Queries = {
+  addNotificationRocketChat,
   addNotificationSlack,
   addNotificationToProject,
+  deleteNotificationRocketChat,
   deleteNotificationSlack,
   getNotificationsByProjectId,
   removeNotificationFromProject,
+  updateNotificationRocketChat,
   updateNotificationSlack,
 };
 
