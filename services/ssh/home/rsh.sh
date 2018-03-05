@@ -2,7 +2,7 @@
 
 # takes arguments:
 # 1: name of oc project
-# 2(optional): override for deploymentconfig
+# checks for SSH_ORIGINAL_COMMAND
 
 if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
   project=$1
@@ -11,11 +11,23 @@ else
   exit
 fi
 
-if [[ "$2" =~ ^[A-Za-z0-9-]+$ ]]; then
-  deploymentconfig=$2
+# convert $SSH_ORIGINAL_COMMAND into an array
+IFS=', ' read -r -a command <<< "$SSH_ORIGINAL_COMMAND"
+
+# the first argument is used as the deploymentconfig
+if [[ "${command[1]}" =~ ^[A-Za-z0-9-]+$ ]]; then
+  deploymentconfig=${command[1]}
 else
   deploymentconfig=cli
 fi
+
+# remove the first argument
+command=("${command[@]:1}")
+
+#echo "project=${project}"
+#echo "deploymentconfig=${deploymentconfig}"
+#echo "SSH_ORIGINAL_COMMAND=${SSH_ORIGINAL_COMMAND}"
+#echo "command=${command[@]}"
 
 # If the deploymentconfig is scaled to 0, scale to 1
 if [[ $(/usr/bin/oc -n ${project} get deploymentconfigs/${deploymentconfig} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
@@ -27,8 +39,10 @@ if [[ $(/usr/bin/oc -n ${project} get deploymentconfigs/${deploymentconfig} -o g
   done
 fi
 
-if [ -z "$SSH_ORIGINAL_COMMAND" ]; then
-  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} bash
+if [ -z "$command" ]; then
+  #echo "just running sh"
+  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh
 else
-  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} bash -c "$SSH_ORIGINAL_COMMAND"
+  #echo "running sh -c \"$command\""
+  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh -c "$command"
 fi
