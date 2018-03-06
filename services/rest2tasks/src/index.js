@@ -27,6 +27,117 @@ app.get('/', (req, res) => {
   return res.status(200).send('welcome to rest2tasks')
 })
 
+app.post('/pullrequest', async (req, res) => {
+
+  req.checkBody({
+    'projectName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_]+$/],
+        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
+      },
+    },
+    'headBranchName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_\/]+$/],
+        errorMessage: 'headBranchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+      },
+    },
+    'baseBranchName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_\/]+$/],
+        errorMessage: 'baseBranchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+      },
+    },
+    'pullrequestTitle': {
+      notEmpty: true,
+      matches: {
+        errorMessage: 'pullrequestTitle must be defined'
+      },
+    },
+    'pullrequestNumber': {
+      notEmpty: true,
+      isInt: {},
+      matches: {
+        errorMessage: 'pullrequestNumber must be defined and a number'
+      },
+    },
+    'headSha': { //
+      notEmpty: true,
+      isLength: {
+        options: [{ min: 40, max: 40 }],
+        errorMessage: 'Must be 40 chars long' // Error message for the validator, takes precedent over parameter message
+      },
+      matches: {
+        options: [/^[a-f0-9]+$/],
+        errorMessage: 'headSha needs to be a valid GIT SHA1'
+      }
+    },
+    'baseSha': { //
+      notEmpty: true,
+      isLength: {
+        options: [{ min: 40, max: 40 }],
+        errorMessage: 'Must be 40 chars long' // Error message for the validator, takes precedent over parameter message
+      },
+      matches: {
+        options: [/^[a-f0-9]+$/],
+        errorMessage: 'baseSha needs to be a valid GIT SHA1'
+      }
+    }
+  });
+
+  const result = await req.getValidationResult()
+
+  if (!result.isEmpty()) {
+    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
+    return;
+  }
+
+  const data = {
+    pullrequestTitle: req.body.pullrequestTitle,
+    pullrequestNumber: req.body.pullrequestNumber,
+    projectName: req.body.projectName,
+    type: 'pullrequest',
+    headBranchName: req.body.headBranchName,
+    headSha: req.body.headSha,
+    baseBranchName: req.body.baseBranchName,
+    baseSha: req.body.baseSha,
+    branchName: `pr-${req.body.pullrequestNumber}`,
+  }
+
+  try {
+    const taskResult = await createDeployTask(data);
+
+    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:receive`, {},
+      `*[${data.projectName}]* REST deploy trigger \`${data.pullrequestTitle}\``
+    )
+    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
+    return;
+  } catch (error) {
+    switch (error.name) {
+      case "ProjectNotFound":
+      case "ActiveSystemsNotFound":
+          res.status(404).type('json').send({ "ok": "false", "message": error.message})
+          return;
+        break;
+
+      case "NoNeedToDeployBranch":
+          res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          return;
+        break;
+
+      default:
+          logger.error(error)
+          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
+          return;
+        break;
+    }
+  }
+
+})
+
 app.post('/deploy', async (req, res) => {
 
   req.checkBody({
