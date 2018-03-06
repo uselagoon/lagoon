@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
   return res.status(200).send('welcome to rest2tasks')
 })
 
-app.post('/pullrequest', async (req, res) => {
+app.post('/pullrequest/deploy', async (req, res) => {
 
   req.checkBody({
     'projectName': {
@@ -110,7 +110,7 @@ app.post('/pullrequest', async (req, res) => {
   try {
     const taskResult = await createDeployTask(data);
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:deploy`, {},
       `*[${data.projectName}]* REST deploy trigger \`${data.pullrequestTitle}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -125,6 +125,67 @@ app.post('/pullrequest', async (req, res) => {
 
       case "NoNeedToDeployBranch":
           res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          return;
+        break;
+
+      default:
+          logger.error(error)
+          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
+          return;
+        break;
+    }
+  }
+
+})
+
+
+app.post('/pullrequest/remove', async (req, res) => {
+
+  req.checkBody({
+    'projectName': {
+      notEmpty: true,
+      matches: {
+        options: [/^[a-zA-Z0-9-_]+$/],
+        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
+      },
+    },
+    'pullrequestNumber': {
+      notEmpty: true,
+      isInt: {},
+      matches: {
+        errorMessage: 'pullrequestNumber must be defined and a number'
+      },
+    }
+  });
+
+  const result = await req.getValidationResult()
+
+  if (!result.isEmpty()) {
+    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
+    return;
+  }
+
+  const data = {
+    projectName: req.body.projectName,
+    pullrequestNumber: req.body.pullrequestNumber,
+    type: 'pullrequest'
+  }
+
+  try {
+    const taskResult = await createRemoveTask(data);
+
+    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:remove`, {},
+      `*[${data.projectName}]* REST remove trigger \`${data.pullrequestTitle}\``
+    )
+
+    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
+    return;
+  } catch (error) {
+    switch (error.name) {
+      case "ProjectNotFound":
+      case "ActiveSystemsNotFound":
+      case "UnknownActiveSystem":
+          res.status(404).type('json').send({ "ok": "false", "message": error.message})
           return;
         break;
 
