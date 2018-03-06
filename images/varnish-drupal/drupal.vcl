@@ -225,14 +225,16 @@ sub vcl_backend_response {
     # beresp == Back-end response from the web server.
     unset beresp.http.set-cookie;
     unset beresp.http.Cache-Control;
+
+    # If an asset would come back with statuscode 500 we only cache it for 10 seconds instead of the usual static file cache
+    if (beresp.status == 500) {
+      set beresp.ttl = 10s;
+      return (deliver);
+    }
+
     set beresp.ttl = 2628001s;
     set beresp.http.Cache-Control = "public, max-age=2628001";
     set beresp.http.Expires = "" + (now + beresp.ttl);
-    
-    # If an asset would come back with statuscode 500 we only cache it for 10 seconds instead of the usual static file cache
-    if(beresp.status == 500) {
-      set beresp.ttl = 10s;
-    }
   }
 
   return (deliver);
