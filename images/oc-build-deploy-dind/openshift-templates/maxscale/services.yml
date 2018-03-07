@@ -35,11 +35,9 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations:
-      service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
     creationTimestamp: null
     labels:
-      service: mariadb
+      service: maxscale
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
     name: mariadb

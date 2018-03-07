@@ -118,12 +118,20 @@ fi
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
-
+  echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
+  echo "=== OPENSHIFT_SERVICES_TEMPLATE=${OPENSHIFT_SERVICES_TEMPLATE} "
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
+
 
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
+
+
+  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  if [ $SERVICE_TYPE_OVERRIDE == "mariadb-galera" ]; then
+    SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
+  fi
 
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
 

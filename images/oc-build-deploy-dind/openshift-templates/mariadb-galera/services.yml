@@ -39,18 +39,17 @@ objects:
       service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
     creationTimestamp: null
     labels:
-      service: mariadb
+      service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: mariadb
+    name: mariadb-galera
   spec:
-    clusterIP: None
     ports:
-    - name: 3306-tcp
-      port: 3306
+    - name: 3307-tcp
+      port: 3307
       protocol: TCP
       targetPort: 3306
     selector:
-      service: mariadb
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
