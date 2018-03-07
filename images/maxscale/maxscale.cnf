@@ -37,18 +37,18 @@ port=6603
 
 [database0]
 type=server
-address=mariadb-0.mariadb
+address=mariadb-0.mariadb-galera
 port=3306
 protocol=MySQLBackend
 
 [database1]
 type=server
-address=mariadb-1.mariadb
+address=mariadb-1.mariadb-galera
 port=3306
 protocol=MySQLBackend
 
 [database2]
 type=server
-address=mariadb-2.mariadb
+address=mariadb-2.mariadb-galera
 port=3306
 protocol=MySQLBackend
