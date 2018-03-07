@@ -49,6 +49,6 @@ objects:
       protocol: TCP
       targetPort: 3306
     selector:
-      service: mariadb
+      service: maxscale
   status:
     loadBalancer: {}

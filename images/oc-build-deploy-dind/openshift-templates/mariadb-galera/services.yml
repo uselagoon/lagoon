@@ -44,12 +44,13 @@ objects:
       project: ${SAFE_PROJECT}
     name: mariadb-galera
   spec:
+    clusterIP: None
     ports:
-    - name: 3307-tcp
-      port: 3307
+    - name: 3306-tcp
+      port: 3306
       protocol: TCP
       targetPort: 3306
     selector:
-      service: ${SERVICE_NAME}
+      service: mariadb-galera
   status:
     loadBalancer: {}

@@ -35,24 +35,24 @@ objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: mariadb
+    name: mariadb-galera
   spec:
-    serviceName: "mariadb"
+    serviceName: "mariadb-galera"
     replicas: 3
     selector:
       matchLabels:
-        service: mariadb
+        service: mariadb-galera
     template:
       metadata:
         labels:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
-          service: mariadb
+          service: mariadb-galera
         annotations:
           alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - name: mariadb
+        - name: mariadb-galera
           image: ${REGISTRY}/${OPENSHIFT_PROJECT}/mariadb:latest
           imagePullPolicy: Always
           ports:

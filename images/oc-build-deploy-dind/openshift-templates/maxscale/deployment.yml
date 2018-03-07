@@ -57,7 +57,7 @@ objects:
       spec:
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
-          name: ${SERVICE_NAME}
+          name: maxscale
           ports:
           - containerPort: 3306
             protocol: TCP
