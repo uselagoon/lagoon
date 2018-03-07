@@ -9,6 +9,9 @@ const {
   query,
   whereAnd,
 } = require('./utils');
+const { validateSshKey } = require('@lagoon/commons/src/jwt');
+
+const fullSshKey = ({keyType, keyValue}) => `${keyType} ${keyValue}`;
 
 const Sql = {
   updateSshKey: (cred, input) => {
@@ -104,13 +107,17 @@ const addSshKey = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
+  if (!validateSshKey(fullSshKey(input))) {
+    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
+  }
+
   const prep = prepare(
     sqlClient,
     `CALL CreateSshKey(
         :id,
         :name,
         :keyValue,
-        ${input.keyType ? ':keyType' : 'ssh-rsa'}
+        :keyType
       );
     `,
   );
@@ -190,6 +197,10 @@ const updateSshKey = sqlClient => async (cred, input) => {
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  if (!validateSshKey(fullSshKey(input.patch))) {
+    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
   await query(sqlClient, Sql.updateSshKey(cred, input));

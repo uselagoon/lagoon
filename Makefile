@@ -166,12 +166,15 @@ build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 phpimages := 	php__5.6-fpm \
 							php__7.0-fpm \
 							php__7.1-fpm  \
+							php__7.2-fpm \
 							php__5.6-cli \
 							php__7.0-cli \
 							php__7.1-cli \
+							php__7.2-cli \
 							php__5.6-cli-drupal \
 							php__7.0-cli-drupal \
-							php__7.1-cli-drupal
+							php__7.1-cli-drupal \
+							php__7.2-cli-drupal
 
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
@@ -195,13 +198,15 @@ $(build-phpimages): build/commons
 
 base-images += $(phpimages)
 
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm: images/commons
+build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
 build/php__7.0-cli: build/php__7.0-fpm
 build/php__7.1-cli: build/php__7.1-fpm
+build/php__7.2-cli: build/php__7.2-fpm
 build/php__5.6-cli-drupal: build/php__5.6-cli
 build/php__7.0-cli-drupal: build/php__7.0-cli
 build/php__7.1-cli-drupal: build/php__7.1-cli
+build/php__7.2-cli-drupal: build/php__7.2-cli
 
 #######
 ####### Solr Images
@@ -413,7 +418,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
