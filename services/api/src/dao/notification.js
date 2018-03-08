@@ -22,12 +22,38 @@ const Sql = {
       })
       .toString();
   },
+  deleteProjectNotification: (cred, input) => {
+    const { project, notificationType, notificationName } = input;
+
+    const nt = "notification_" + notificationType
+    return knex.raw(`DELETE \
+        project_notification\
+      FROM \
+        project_notification \
+      LEFT JOIN project ON project_notification.pid = project.id \
+      LEFT JOIN ${nt} ON project_notification.nid = ${nt}.id \
+      WHERE \
+        type = "${notificationType}" AND \
+        project.name = "${project}" AND \
+        ${nt}.name = "${notificationName}";`)
+      .toString();
+  },
   selectProjectById: (input) => {
 
     return knex('project')
       .select('*')
       .where({
         'project.id': input
+      })
+      .toString();
+  },
+  selectProjectByName: (input) => {
+    const { project } = input;
+
+    return knex('project')
+      .select('*')
+      .where({
+        'project.name': project
       })
       .toString();
   },
@@ -142,12 +168,11 @@ const removeNotificationFromProject = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('unauthorized.');
   }
-  const prep = prepare(
-    sqlClient,
-    'CALL DeleteProjectNotification(:project, :notificationType, :notificationName)',
-  );
-  const rows = await query(sqlClient, prep(input));
-  const project = R.path([0, 0], rows);
+
+  const rows = await query(sqlClient, Sql.deleteProjectNotification(cred, input));
+  const select = await query(sqlClient, Sql.selectProjectByName(input));
+  const project = R.path([0],select);
+  return project;
 
   return project;
 };

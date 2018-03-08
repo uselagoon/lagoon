@@ -457,34 +457,6 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  DeleteProjectNotification
-  (
-    IN project            varchar(50),
-    IN notificationType   varchar(300),
-    IN notificationName   varchar(300)
-  )
-  BEGIN
-
-    DELETE
-      project_notification
-    FROM
-      project_notification
-    LEFT JOIN project ON project_notification.pid = project.id
-    LEFT JOIN notification_slack ON project_notification.nid = notification_slack.id
-    WHERE
-      type = notificationType AND
-      project.name = project AND
-      notification_slack.name = notificationName;
-
-    SELECT
-      *
-    FROM project as p
-    WHERE p.name = project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   CreateProjectSshKey
   (
     IN project            varchar(50),
