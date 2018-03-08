@@ -476,6 +476,17 @@ CREATE OR REPLACE PROCEDURE
     IN ssh_key            varchar(100)
   )
   BEGIN
+    DECLARE count int;
+
+    SELECT count(*) INTO count
+      FROM ssh_key sk
+      WHERE sk.name = ssh_key;
+
+    IF count = 0 THEN
+      SET @message_text = concat('SSH-Key: "', ssh_key, '" does not exist');
+      SIGNAL SQLSTATE '02000'
+      SET MESSAGE_TEXT = @message_text;
+    END IF;
 
     INSERT INTO project_ssh_key (
       pid,
@@ -531,6 +542,18 @@ CREATE OR REPLACE PROCEDURE
     IN ssh_key            varchar(100)
   )
   BEGIN
+    DECLARE count int;
+
+    SELECT count(*) INTO count
+      FROM ssh_key sk
+      WHERE sk.name = ssh_key;
+
+    IF count = 0 THEN
+      SET @message_text = concat('SSH-Key: "', ssh_key, '" does not exist');
+      SIGNAL SQLSTATE '02000'
+      SET MESSAGE_TEXT = @message_text;
+    END IF;
+
 
     INSERT INTO customer_ssh_key (
       cid,
