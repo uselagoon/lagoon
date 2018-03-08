@@ -236,6 +236,26 @@ if [ "$TYPE" == "pullrequest" ]; then
 fi
 
 ##############################################
+### PUSH IMAGES TO OPENSHIFT REGISTRY
+##############################################
+
+if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # Before the push the temporary name is resolved to the future tag with the registry in the image name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+    . /scripts/exec-push.sh
+  done
+elif [ "$TYPE" == "promote" ]; then
+
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    . /scripts/exec-openshift-tag.sh
+  done
+
+fi
+
+##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
@@ -341,27 +361,6 @@ do
   done
 
 done
-
-
-##############################################
-### PUSH IMAGES TO OPENSHIFT REGISTRY
-##############################################
-
-if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
-  for IMAGE_NAME in "${IMAGES[@]}"
-  do
-    # Before the push the temporary name is resolved to the future tag with the registry in the image name
-    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-    . /scripts/exec-push.sh
-  done
-elif [ "$TYPE" == "promote" ]; then
-
-  for IMAGE_NAME in "${IMAGES[@]}"
-  do
-    . /scripts/exec-openshift-tag.sh
-  done
-
-fi
 
 
 ##############################################
