@@ -11,6 +11,34 @@ const {
 } = require('./utils');
 
 const Sql = {
+  createProjectNotification: (cred, input) => {
+    const { pid, notificationType, nid } = input;
+
+    return knex('project_notification')
+      .insert({
+        "pid": pid,
+        "type": notificationType,
+        "nid": nid,
+      })
+      .toString();
+  },
+  selectProjectById: (input) => {
+
+    return knex('project')
+      .select('*')
+      .where({
+        'project.id': input
+      })
+      .toString();
+  },
+  selectProjectNotification: (input) => {
+    const { project, notificationType, notificationName} = input;
+    return knex({p: 'project', nt: "notification_" + notificationType})
+      .where({'p.name': project})
+      .andWhere({'nt.name': notificationName})
+      .select({pid: 'p.id', nid: 'nt.id'})
+      .toString();
+  },
   updateNotificationRocketChat: (cred, input) => {
     const { name, patch } = input;
 
@@ -76,13 +104,13 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
     throw new Error('Project creation unauthorized.');
   }
 
-  const prep = prepare(
-    sqlClient,
-    'CALL CreateProjectNotification(:project, :notificationType, :notificationName)',
-  );
-  const rows = await query(sqlClient, prep(input));
-  const project = R.path([0, 0], rows);
+  const rows = await query(sqlClient, Sql.selectProjectNotification(input));
+  const projectNotification = R.path([0], rows);
+  projectNotification.notificationType = input.notificationType;
 
+  const result = await query(sqlClient, Sql.createProjectNotification(cred, projectNotification));
+  const select = await query(sqlClient, Sql.selectProjectById(projectNotification['pid']));
+  const project = R.path([0],select);
   return project;
 };
 
