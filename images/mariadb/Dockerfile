@@ -72,12 +72,11 @@ RUN apk add --update --no-cache --virtual .mariadb-build-deps \
     rm -rf /var/cache/apk/*
 
 
-
-COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; done
 
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
+COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 COPY mysql-backup.sh /lagoon/
 
 COPY my.cnf /etc/mysql/my.cnf
