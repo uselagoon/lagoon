@@ -84,7 +84,7 @@ async function getProjectsByGitUrl(gitUrl: string): Project[] {
 }
 
 
-async function getRocketChatinfoForProject(project: string): Project {
+async function getRocketChatInfoForProject(project: string): Project {
 
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationRocketChat {
@@ -227,7 +227,7 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
 
 module.exports = {
   getProjectsByGitUrl,
-  getRocketChatinfoForProject,
+  getRocketChatInfoForProject,
   getSlackinfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
