@@ -4,6 +4,9 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 
 const { getRocketChatInfoForProject } = require('@lagoon/commons/src/api');
 
+const { URL } = require('url');
+const http = require('https');
+
 export type ChannelWrapper = {
   ack: (msg: Object) => void,
 }
@@ -59,20 +62,20 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:remove-openshift:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
-      sendToRocketChat(project, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      sendToRocketChat(project, message, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
-      sendToRocketChat(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
+      sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:error":
     case "task:remove-openshift:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
-      sendToRocketChat(project, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
+      sendToRocketChat(project, message, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:closed:CannotDeleteProductionEnvironment":
@@ -80,7 +83,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:repo:push:CannotDeleteProductionEnvironment":
     case "gitlab:push:CannotDeleteProductionEnvironment":
     case "rest:remove:CannotDeleteProductionEnvironment":
-      sendToRocketChat(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
+      sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
     case "unresolvedProject:webhooks2tasks":
@@ -102,7 +105,6 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 }
 
 const sendToRocketChat = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
-
   let projectRocketChats;
   try {
     projectRocketChats = await getRocketChatInfoForProject(project)
@@ -112,16 +114,37 @@ const sendToRocketChat = async (project, message, color, emoji, channelWrapperLo
     return channelWrapperLogs.ack(msg)
   }
   projectRocketChats.forEach(async (projectRocketChat) => {
-    await new IncomingWebhook(projectRocketChat.webhook, {
-      channel: projectRocketChat.channel,
-    }).send({
+    const { channel, webhook } = projectRocketChat;
+    const rocketchat = new URL(webhook);
+
+    var data = JSON.stringify({
+      channel: `#${channel}`,
       attachments: [{
         text: `${emoji} ${message}`,
         color: color,
-        "mrkdwn_in": ["pretext", "text", "fields"],
-        footer: appId
       }]
     });
+
+    var options = {
+      hostname: rocketchat.hostname,
+      port: rocketchat.port,
+      path: rocketchat.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+      }
+    };
+
+    var req = http.request(options, function(res) {
+      res.setEncoding('utf8');
+    });
+
+    req.on('error', function(e) {
+      logger.error(`problem with request: ${e.message}`);
+    });
+    req.write(data);
+    req.end();
   });
   channelWrapperLogs.ack(msg)
   return
