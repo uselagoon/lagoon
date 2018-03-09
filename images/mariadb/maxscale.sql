@@ -1,5 +1,5 @@
-CREATE USER '${MAXSCALE_USERNAME:-maxscale}'@'%';
-UPDATE mysql.user SET PASSWORD=PASSWORD("${MAXSCALE_PASSWORD:-maxscale}") WHERE user="${MAXSCALE_USERNAME:-maxscale}";
+CREATE USER 'maxscale'@'%';
+UPDATE mysql.user SET PASSWORD=PASSWORD("maxscale") WHERE user="maxscale";
 
 GRANT SELECT ON mysql.user to '${MAXSCALE_USERNAME:-maxscale}'@'%';
 GRANT SELECT ON mysql.db TO '${MAXSCALE_USERNAME:-maxscale}'@'%';
