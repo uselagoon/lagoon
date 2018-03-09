@@ -68,7 +68,7 @@ const typeDefs = `
     name: String
     customer: Customer
     git_url: String
-    notifications(type: String): [Notification]
+    notifications(type: String!): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
     active_systems_remove: String
