@@ -179,6 +179,7 @@ const removeNotificationFromProject = sqlClient => async (cred, input) => {
 
 const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   const { customers, projects } = cred.permissions;
+  const { type } = args;
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -189,7 +190,7 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
         pn.type
       FROM project_notification pn
       JOIN project p ON p.id = pn.pid
-      JOIN notification_slack ns ON pn.nid = ns.id
+      JOIN notification_${type} ns ON pn.nid = ns.id
       WHERE
         pn.pid = :pid
         ${args.type ? 'AND pn.type = :type' : ''}
