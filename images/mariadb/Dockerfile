@@ -92,8 +92,6 @@ COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scri
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
 COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
 
-USER mysql
-
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 USER mysql
 
