@@ -45,6 +45,8 @@ if ( DRUSH_VERSION >= 9 ) {
   $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
 }
 
+$drupal_path = realpath($path);
+
 // No project name could be found, let's search for it via the .lagoon.yml file
 drush_log("Starting to search for .lagoon.yml file to extract project name within '$path' and parent directories");
 
@@ -130,16 +132,16 @@ if (!empty($ssh)) {
 }
 
 if (!empty($api)) {
+  // $api had an old format of just "host:port", we still support that, but actually we expect the new format be "http://host"
   if (count(explode(":", $api)) == 2) {
     list ($api_host, $api_port) = explode(":", $api);
+    $api_url = "$api_host:$api_port/graphql";
   } else {
-    drush_log("ERROR: Wrong formatted api `$api`, it should be in form \"[host]:[port]\"", 'warning');
-    return;
+    $api_url = "$api/graphql";
   }
 } else {
-  drush_log("Using default API 'api.lagoon.amazeeio.cloud:443'");
-  $api_host = 'api.lagoon.amazeeio.cloud';
-  $api_port = 443;
+  drush_log("Using default API 'https://api.lagoon.amazeeio.cloud/graphql'");
+  $api_url = 'https://api.lagoon.amazeeio.cloud/graphql';
 }
 
 $cid = "lagoon_aliases_$project_name";
@@ -197,8 +199,6 @@ $query = sprintf('{
 }
 ', $project_name);
 
-$api_url = "$api_host:$api_port/graphql";
-
 drush_log("Using $api_url as lagoon API endpoint");
 
 $curl = curl_init($api_url);
@@ -211,6 +211,7 @@ curl_setopt($curl, CURLOPT_POST, TRUE);
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', "Authorization: Bearer $jwt_token"]);
 curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
   'query' => $query,
@@ -262,7 +263,7 @@ $defaults = [
   'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
 ];
 
-$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port) {
+$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path) {
   $site_name = $environment->name;
   $site_host = 'localhost';
 
@@ -271,6 +272,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   $alias[$site_name] = [
     'remote-host' => "$ssh_host",
     'remote-user' => "$environment->openshift_projectname",
+    'root' => "$drupal_path",
     'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
   ] + $defaults;
 

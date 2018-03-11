@@ -56,12 +56,15 @@ const createAuthMiddleware = args => async (req, res, next) => {
   const dao = ctx.dao;
 
   // allow access to status withouth auth
-  if (req.url == "/status") { next(); return; }
+  if (req.url == '/status') {
+    next();
+    return;
+  }
 
   const token = parseBearerToken(req.get('Authorization'));
 
   if (token == null) {
-    logger.debug(`No Bearer Token`)
+    logger.debug(`No Bearer Token`);
     res
       .status(401)
       .send({ errors: [{ message: 'Unauthorized - Bearer Token Required' }] });
@@ -124,7 +127,9 @@ const createAuthMiddleware = args => async (req, res, next) => {
   } catch (e) {
     res
       .status(403)
-      .send({ errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }] });
+      .send({
+        errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
+      });
   }
 };
 

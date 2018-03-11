@@ -166,12 +166,15 @@ build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 phpimages := 	php__5.6-fpm \
 							php__7.0-fpm \
 							php__7.1-fpm  \
+							php__7.2-fpm \
 							php__5.6-cli \
 							php__7.0-cli \
 							php__7.1-cli \
+							php__7.2-cli \
 							php__5.6-cli-drupal \
 							php__7.0-cli-drupal \
-							php__7.1-cli-drupal
+							php__7.1-cli-drupal \
+							php__7.2-cli-drupal
 
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
@@ -195,13 +198,15 @@ $(build-phpimages): build/commons
 
 base-images += $(phpimages)
 
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm: images/commons
+build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
 build/php__7.0-cli: build/php__7.0-fpm
 build/php__7.1-cli: build/php__7.1-fpm
+build/php__7.2-cli: build/php__7.2-fpm
 build/php__5.6-cli-drupal: build/php__5.6-cli
 build/php__7.0-cli-drupal: build/php__7.0-cli
 build/php__7.1-cli-drupal: build/php__7.1-cli
+build/php__7.2-cli-drupal: build/php__7.2-cli
 
 #######
 ####### Solr Images
@@ -239,8 +244,10 @@ build/solr__6.6-drupal: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__8 \
+nodeimages := node__9 \
+							node__8 \
 							node__6 \
+							node__9-builder \
 							node__8-builder \
 							node__6-builder
 
@@ -261,7 +268,8 @@ $(build-nodeimages): build/commons
 
 base-images += $(nodeimages)
 
-build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
 build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 
@@ -324,7 +332,8 @@ service-images += ssh
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher
+									local-api-data-watcher-pusher \
+									local-es-kibana-watcher-pusher
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -389,7 +398,7 @@ tests/ssh: build/ssh build/auth-server build/api build/tests
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx
@@ -402,7 +411,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
