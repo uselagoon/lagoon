@@ -1,10 +1,10 @@
 // @flow
 
 import { green, blue } from 'chalk';
+import { fromUrl as hostedGitInfoFromUrl } from 'hosted-git-info';
 import inquirer from 'inquirer';
 import R from 'ramda';
 import { table } from 'table';
-import urlRegex from 'url-regex';
 
 import gql from '../../gql';
 import { printGraphQLErrors, printErrors } from '../../printErrors';
@@ -257,10 +257,10 @@ export async function promptForProjectInput(
       name: GIT_URL,
       message: 'Git URL:',
       validate: input =>
-        // Verify that it is a valid URL and...
-        (urlRegex({ exact: true }).test(input) &&
-          // ...that it is either a URL from the big three git hosts or includes `.git` at the end of the string.
-          /(github\.com|bitbucket\.org|gitlab\.com|\.git$)/.test(input)) ||
+        // Verify that it is a valid hosted git url...
+        hostedGitInfoFromUrl(input) !== undefined ||
+        // ...or some other non-hosted formats https://stackoverflow.com/a/22312124/1268612
+        /((git|ssh|http(s)?)|(.+@[\w\.]+))(:(\/\/)?)([\w.@:/\-~]+)(\.git)(\/)?/.test(input) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
       when: answerFromOptions(GIT_URL, options, clog),
