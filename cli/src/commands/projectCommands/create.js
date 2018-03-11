@@ -144,6 +144,10 @@ export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.erro
   };
 }
 
+function notifyUsedOption(clog: typeof console.log, option: string): void {
+  clog(`${blue('!')} Using "${option}" option from arguments or config`);
+}
+
 // Return a [predicate, transformer] pair for use with R.cond(). The predicate and transformer functions expect an object with an "options" property containing the options to use.
 export function answerFromOptionsPropCond(
   option: $Values<typeof commandOptions>,
@@ -159,7 +163,7 @@ export function answerFromOptionsPropCond(
     (objectWithOptions: { options: Object }) => {
       // Assign option key in the answers object to option value and let the user know
       const propVal = R.path(['options', option], objectWithOptions);
-      clog(`${blue('!')} Using "${option}" option from arguments or config`);
+      notifyUsedOption(clog, option);
       // eslint-disable-next-line no-param-reassign
       answers[option] = propVal;
     },
@@ -336,6 +340,13 @@ createProjectArgs): Promise<number> {
     return printErrors(cerr, 'No authorized openshifts found!');
   }
 
+  // If all options have been specified in the config or the command line options...
+  const projectInput = allOptionsSpecified(options)
+    ? // ...notify the user about using each of the options and then use that options object (`forEachObjIndexed` returns the object passed in as second parameter)...
+    R.forEachObjIndexed((value, key) => notifyUsedOption(clog, key), options)
+    : // ...otherwise, prompt for input for the missing options
+    await promptForProjectInput(allCustomers, allOpenshifts, clog, options);
+
   const addProjectResult = await runGQLQuery({
     query: gql`
       mutation AddProject($input: ProjectInput!) {
@@ -361,14 +372,7 @@ createProjectArgs): Promise<number> {
     variables: {
       // Just use the options and don't even go into the prompt if all options are already specified via . Otherwise inquirer will not set the correct answers.
       // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
-      input: allOptionsSpecified(options)
-        ? options
-        : await promptForProjectInput(
-          allCustomers,
-          allOpenshifts,
-          clog,
-          options,
-        ),
+      input: projectInput,
     },
   });
 

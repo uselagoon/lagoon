@@ -45,6 +45,27 @@ Array [
 exports[`createProject should display table after successful project creation 1`] = `
 Array [
   Array [
+    "[34m![39m Using \\"customer\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"name\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"git_url\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"openshift\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"branches\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"pullrequests\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"production_environment\\" option from arguments or config",
+  ],
+  Array [
     "[32mProject \\"test-project\\" created successfully:[39m",
   ],
   Array [
