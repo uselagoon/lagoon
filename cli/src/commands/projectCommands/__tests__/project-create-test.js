@@ -126,8 +126,6 @@ describe('createProject', () => {
         name: 'test-project',
         git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
         openshift: 1,
-        active_systems_deploy: 'lagoon_openshiftBuildDeploy',
-        active_systems_remove: 'lagoon_openshiftRemove',
         branches: 'true',
         pullrequests: 'true',
         production_environment: 'null',

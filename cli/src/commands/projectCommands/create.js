@@ -21,10 +21,6 @@ export const CUSTOMER: 'customer' = 'customer';
 export const NAME: 'name' = 'name';
 export const GIT_URL: 'git_url' = 'git_url';
 export const OPENSHIFT: 'openshift' = 'openshift';
-export const ACTIVE_SYSTEMS_DEPLOY: 'active_systems_deploy' =
-  'active_systems_deploy';
-export const ACTIVE_SYSTEMS_REMOVE: 'active_systems_remove' =
-  'active_systems_remove';
 export const BRANCHES: 'branches' = 'branches';
 export const PULLREQUESTS: 'pullrequests' = 'pullrequests';
 export const PRODUCTION_ENVIRONMENT: 'production_environment' =
@@ -35,24 +31,20 @@ export const commandOptions = {
   [NAME]: NAME,
   [GIT_URL]: GIT_URL,
   [OPENSHIFT]: OPENSHIFT,
-  [ACTIVE_SYSTEMS_DEPLOY]: ACTIVE_SYSTEMS_DEPLOY,
-  [ACTIVE_SYSTEMS_REMOVE]: ACTIVE_SYSTEMS_REMOVE,
   [BRANCHES]: BRANCHES,
   [PULLREQUESTS]: PULLREQUESTS,
   [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-type Options = {
+type Options = {|
   customer?: number,
   name?: string,
   git_url?: string,
   openshift?: number,
-  active_systems_deploy?: string,
-  active_systems_remove?: string,
   branches?: string,
   pullrequests?: string,
   production_environment?: string,
-};
+|};
 
 export function allOptionsSpecified(options: Options): boolean {
   // Return a boolean of whether all possible command options keys...
@@ -86,16 +78,6 @@ export function builder(yargs: Yargs): Yargs {
         describe: 'Openshift id to use for new project',
         type: 'number',
         alias: 'o',
-      },
-      [ACTIVE_SYSTEMS_DEPLOY]: {
-        describe: 'Active system for task "deploy" of new project',
-        type: 'string',
-        alias: 'd',
-      },
-      [ACTIVE_SYSTEMS_REMOVE]: {
-        describe: 'Active system for task "remove" of new project',
-        type: 'string',
-        alias: 'r',
       },
       [BRANCHES]: {
         describe:
