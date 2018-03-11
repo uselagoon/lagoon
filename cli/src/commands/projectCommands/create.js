@@ -377,7 +377,20 @@ createProjectArgs): Promise<number> {
   });
 
   const { errors: addProjectErrors } = addProjectResult;
+
   if (addProjectErrors != null) {
+    if (
+      /Duplicate entry '[^']+' for key 'name'/.test(R.prop('message', R.head(addProjectErrors)))
+    ) {
+      return printErrors(
+        cerr,
+        `Project name "${R.prop(
+          'name',
+          projectInput,
+        )}" already exists! Please select a different project name.`,
+      );
+    }
+
     return printGraphQLErrors(cerr, ...addProjectErrors);
   }
 
