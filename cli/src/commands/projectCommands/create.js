@@ -97,7 +97,18 @@ export function builder(yargs: Yargs): Yargs {
         alias: 'p',
       },
     })
-    .example('$0', 'Create new project\n');
+    .example(
+      `$0 ${command}`,
+      'Create new project (will prompt for all input values)\n',
+    )
+    .example(
+      `$0 ${command} --name my_project`,
+      'Create a new project with the name "my_project" (will prompt for all other values).',
+    )
+    .example(
+      `$0 ${command} -u git@github.com:amazeeio/drupal-example.git -b '(staging|production)'`,
+      'Create a new project with the Git URL "git@github.com:amazeeio/drupal-example.git" which will have the "staging" and "production" branches deployed (will prompt for all other values).',
+    );
 }
 
 type Customer = {
