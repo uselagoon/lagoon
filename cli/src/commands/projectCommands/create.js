@@ -246,7 +246,7 @@ export async function promptForProjectInput(
         // Verify that it is a valid hosted git url...
         hostedGitInfoFromUrl(input) !== undefined ||
         // ...or some other non-hosted formats https://stackoverflow.com/a/22312124/1268612
-        /((git|ssh|http(s)?)|(.+@[\w\.]+))(:(\/\/)?)([\w.@:/\-~]+)(\.git)(\/)?/.test(input) ||
+        /((git|ssh|http(s)?)|(.+@[\w.]+))(:(\/\/)?)([\w.@:/\-~]+)(\.git)(\/)?/.test(input) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
       when: answerFromOptions(GIT_URL, options, clog),
