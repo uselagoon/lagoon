@@ -2,6 +2,7 @@
 
 import request from '../util/request';
 
+import * as allConfigExports from '../config';
 import { runGQLQuery } from '../query';
 
 jest.mock('../util/request');
@@ -17,10 +18,14 @@ const _mock = (mockFn: any): JestMockFn => mockFn;
 
 describe('runGQLQuery', () => {
   it('Should reject because of missing hostname', async () => {
+    // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    allConfigExports.config = {
+      api: 'invalid-url',
+    };
+
     try {
       await runGQLQuery({
         cerr: jest.fn(),
-        endpoint: '',
         query: '',
       });
     } catch (err) {
@@ -33,12 +38,14 @@ describe('runGQLQuery', () => {
   });
 
   it('should do a POST request ala GraphQL', async () => {
+    // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    allConfigExports.config = null;
+
     _mock(request).mockImplementationOnce(() =>
       Promise.resolve({ data: 'data' }));
 
     const result = await runGQLQuery({
       cerr: jest.fn(),
-      endpoint: 'https://url.com/api',
       query: 'test',
     });
 
@@ -46,8 +53,8 @@ describe('runGQLQuery', () => {
     const call = _mock(request).mock.calls[0][0];
 
     expect(call).toEqual({
-      hostname: 'url.com',
-      path: '/api',
+      hostname: 'api.amazee.io',
+      path: '/graphql',
       port: 443,
       method: 'POST',
       headers: {

@@ -11,23 +11,20 @@ import { printErrors } from './printErrors';
 
 type QLQueryArgs = {
   cerr: typeof console.error,
-  endpoint?: string,
   query: string,
   variables?: Object,
   headers?: Object,
   pretty?: boolean,
 };
 
-export async function runGQLQuery(args: QLQueryArgs): Object {
-  const {
-    cerr,
-    endpoint = process.env.API_URL || 'https://api.amazee.io/graphql',
-    query,
-    variables,
-    headers: customHeaders = {},
-    pretty = false,
-  } = args;
-
+export async function runGQLQuery({
+  cerr,
+  query,
+  variables,
+  headers: customHeaders = {},
+  pretty = false,
+}:
+QLQueryArgs): Object {
   const headers = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -44,13 +41,11 @@ export async function runGQLQuery(args: QLQueryArgs): Object {
       headers.Authorization = `Bearer ${token}`;
     }
   }
+  const apiUrl = R.prop('api', config) || 'https://api.amazee.io/graphql';
 
   const {
-    hostname,
-    path: pathname,
-    port: urlPort,
-    protocol = 'https:',
-  } = url.parse(endpoint);
+    hostname, path: pathname, port: urlPort, protocol,
+  } = url.parse(apiUrl);
 
   if (hostname == null) {
     throw new Error('Hostname required');

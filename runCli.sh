@@ -3,7 +3,7 @@
 export SSH_HOST=localhost
 export SSH_PORT="2020"
 export SSH_USER="lagoon"
-export API_URL="http://localhost:3000/graphql"
+# export API_URL="http://localhost:3000/graphql"
 
 # Test if the first version number provided is higher than the second one
 # > version_gt 2 1
