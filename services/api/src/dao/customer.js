@@ -43,7 +43,7 @@ const Sql = {
 
 const addCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
+    throw new Error('Unauthorized.');
   }
 
   const prep = prepare(
@@ -109,12 +109,12 @@ const getAllCustomers = sqlClient => async (cred, args) => {
 };
 
 const updateCustomer = sqlClient => async (cred, input) => {
-  const { customers } = cred.permissions;
-  const cid = input.id.toString();
-
-  if (cred.role !== 'admin' && !R.contains(cid, customers)) {
+  if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
+
+  const { customers } = cred.permissions;
+  const cid = input.id.toString();
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
