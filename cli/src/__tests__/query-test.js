@@ -12,7 +12,7 @@ jest.mock('../util/fs', () => ({
 }));
 
 // Flow does not know which objects are actual mocks
-// this function casts given paramter to JestMockFn
+// this function casts given parameter to JestMockFn
 const _mock = (mockFn: any): JestMockFn => mockFn;
 
 describe('runGQLQuery', () => {
