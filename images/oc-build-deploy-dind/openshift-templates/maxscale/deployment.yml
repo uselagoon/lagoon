@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-mariadb
+  name: lagoon-openshift-template-maxscale
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
