@@ -91,9 +91,6 @@ COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scri
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
 COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
 
-# remove a couple of bootstrap files we don't need.
-RUN rm -f /usr/share/mysql/fill_help_tables.sql /usr/share/mysql/maria_add_gis_sp_bootstrap.sql
-
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 USER mysql
 
