@@ -33,7 +33,7 @@ describe('runGQLQuery', () => {
       const call = _mock(request).mock.calls;
       expect(call).toEqual([]);
 
-      expect(err).toEqual(new Error('Hostname required'));
+      expect(err).toEqual(new Error('API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.'));
     }
   });
 
