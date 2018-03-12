@@ -4,10 +4,10 @@ import { table } from 'table';
 import { red } from 'chalk';
 import R from 'ramda';
 
+import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
 import {
-  printNoConfigError,
   printProjectConfigurationError,
   printGraphQLErrors,
 } from '../printErrors';
@@ -119,18 +119,8 @@ type Args = BaseArgs & {
   },
 };
 
-export async function handler({
-  argv,
-  config,
-  clog,
-  cerr,
-}:
-Args): Promise<number> {
-  if (config == null) {
-    return printNoConfigError(cerr);
-  }
-
-  const project = argv.project || config.project;
+export async function handler({ argv, clog, cerr }: Args): Promise<number> {
+  const project = R.prop('project', argv) || R.prop('project', config);
 
   if (project == null) {
     return printProjectConfigurationError(cerr);

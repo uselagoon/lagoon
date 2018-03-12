@@ -1,8 +1,8 @@
 // @flow
 
-import { createConfig, parseConfig } from '../config';
+import { createConfig, parseConfig } from '..';
 
-const fs = require('../fs');
+const fs = require('../../util/fs');
 
 // $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
 fs.writeFile = jest.fn();

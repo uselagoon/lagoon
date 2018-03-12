@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import url from 'url';
 import R from 'ramda';
+import { config } from './config/';
 import { fileExists, readFile } from './util/fs';
 import request from './util/request';
 import { printErrors } from './printErrors';
