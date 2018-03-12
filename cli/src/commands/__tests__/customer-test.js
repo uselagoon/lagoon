@@ -25,8 +25,8 @@ const mockResponse = {
   },
 };
 
-describe('getClientInfo', () => {
-  it('should show client information', async () => {
+describe('getCustomerDetails', () => {
+  it('should show customer details', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve(mockResponse));
 
