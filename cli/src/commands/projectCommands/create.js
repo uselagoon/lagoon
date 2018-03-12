@@ -47,7 +47,11 @@ type Options = {|
   production_environment?: string,
 |};
 
-export function allOptionsSpecified(options: Options): boolean {
+export function allOptionsSpecified(options: {
+  // Relax exact object type to allow for future options
+  // https://github.com/facebook/flow/issues/2626#issuecomment-267449133
+  ...Options,
+}): boolean {
   // Return a boolean of whether all possible command options keys...
   return R.all(
     // ...are contained in keys of the provided object
