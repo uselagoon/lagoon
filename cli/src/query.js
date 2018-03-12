@@ -82,10 +82,11 @@ QLQueryArgs): Object {
     return await request(options);
   } catch (err) {
     const error = R.ifElse(
+      // For socket hang ups...
       R.propEq('message', 'socket hang up'),
-      // Print a nicer error message for socket hangups
+      // ...print a nicer error message...
       R.always('Could not connect to API.'),
-      // If not a socket hang up, return the error message
+      // ...otherwise just return the error message
       R.prop('message'),
     )(err);
     printErrors(cerr, error);
