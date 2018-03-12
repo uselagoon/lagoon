@@ -4,7 +4,7 @@ import path from 'path';
 import { green } from 'chalk';
 import R from 'ramda';
 import inquirer from 'inquirer';
-import { createConfig } from '../util/config';
+import { createConfig } from '../config';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 

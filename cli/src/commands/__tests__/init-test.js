@@ -4,7 +4,7 @@ import { fileExists } from '../../util/fs';
 import { handler } from '../init';
 
 jest.mock('fs');
-jest.mock('../../util/config');
+jest.mock('../../config');
 jest.mock('../../util/fs');
 
 function _mock(fn: any): JestMockFn {
@@ -21,7 +21,6 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      config: null,
       _: [],
       $0: '',
       cwd,
@@ -45,7 +44,6 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      config: null,
       _: [],
       $0: '',
       cwd,
@@ -69,7 +67,6 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      config: null,
       _: [],
       $0: '',
       cwd,

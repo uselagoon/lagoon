@@ -4,12 +4,12 @@ import { table } from 'table';
 import R from 'ramda';
 
 import { visit } from '../cli';
+import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
 import {
   printErrors,
   printGraphQLErrors,
-  printNoConfigError,
   printProjectConfigurationError,
 } from '../printErrors';
 
@@ -109,18 +109,8 @@ type Args = BaseArgs & {
   },
 };
 
-export async function handler({
-  clog,
-  cerr,
-  config,
-  argv,
-}:
-Args): Promise<number> {
-  if (config == null) {
-    return printNoConfigError(cerr);
-  }
-
-  const projectName = argv.project || config.project;
+export async function handler({ clog, cerr, argv }: Args): Promise<number> {
+  const projectName = R.prop('project', argv) || R.prop('project', config);
 
   if (projectName == null) {
     return printProjectConfigurationError(cerr);

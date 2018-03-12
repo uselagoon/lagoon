@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import R from 'ramda';
 import { table } from 'table';
 
+import { config } from '../../config';
 import gql from '../../gql';
 import { printGraphQLErrors, printErrors } from '../../printErrors';
 import { runGQLQuery } from '../../query';
@@ -432,13 +433,7 @@ type Args = BaseArgs & {
   },
 };
 
-export async function handler({
-  clog,
-  cerr,
-  config,
-  argv,
-}:
-Args): Promise<number> {
+export async function handler({ clog, cerr, argv }: Args): Promise<number> {
   const notUndefined = R.complement(R.equals(undefined));
   // Dynamic options are options that will likely change every time and shouldn't be specified in the config
   const dynamicOptions = [NAME];

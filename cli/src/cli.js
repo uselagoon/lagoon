@@ -5,13 +5,10 @@
 import 'babel-polyfill';
 import fs from 'fs';
 import path from 'path';
-import findup from 'findup-sync';
 import yargs from 'yargs';
-import { parseConfig } from './util/config';
 import { printErrors } from './printErrors';
 
 import type { Argv } from 'yargs';
-import type { AmazeeConfig } from './util/config';
 
 type Yargs = typeof yargs;
 
@@ -23,21 +20,6 @@ export type CommandModule = {
 };
 
 const cwd = process.cwd();
-const config = readConfig();
-
-/**
- * Finds and reads the lagoon.yml file
- */
-function readConfig(): ?AmazeeConfig {
-  const configPath = findup('.lagoon.yml');
-
-  if (configPath == null) {
-    return null;
-  }
-
-  const yamlContent = fs.readFileSync(configPath);
-  return parseConfig(yamlContent.toString());
-}
 
 // Use the visit option (of `node-require-directory`) to provide a visitor function
 // Ref: https://github.com/yargs/yargs/blob/0942a1518aad77656c135439194f8f825bd8b33a/test/command.js#L570-L599
@@ -57,7 +39,6 @@ export function visit(cmd: CommandModule) {
           .handler({
             argv,
             cwd,
-            config,
             /* eslint-disable no-console */
             clog: console.log,
             cerr: console.error,
