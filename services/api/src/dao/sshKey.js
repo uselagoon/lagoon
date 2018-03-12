@@ -8,12 +8,37 @@ const {
   prepare,
   query,
   whereAnd,
+  hasSshKeyPatch,
 } = require('./utils');
 const { validateSshKey } = require('@lagoon/commons/src/jwt');
 
-const fullSshKey = ({keyType, keyValue}) => `${keyType} ${keyValue}`;
+const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const Sql = {
+  allowedToModify: (cred, id) => {
+    const { customers, projects } = cred.permissions;
+
+    let query = knex('ssh_key AS sk')
+      .join('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
+      .join('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
+
+    if (cred.role != 'admin') {
+      query
+        .where(function() {
+          this.whereIn('cs.cid', customers);
+          this.orWhereIn('ps.pid', projects);
+        })
+        .andWhere('sk.id', '=', id);
+    }
+
+    return (
+      query
+        // .select('sk.id', 'ps.pid', 'cs.cid')
+        .select(knex.raw('IF(COUNT(sk.id) > 0, 1, 0) as allowed'))
+        .limit(1)
+        .toString()
+    );
+  },
   updateSshKey: (cred, input) => {
     const { id, patch } = input;
 
@@ -26,21 +51,19 @@ const Sql = {
     knex('ssh_key')
       .where('id', '=', id)
       .toString(),
+  selectSshKeyIdByName: name =>
+    knex('ssh_key')
+      .where('name', '=', name)
+      .select('id')
+      .toString(),
 };
 
-const getCustomerSshKeys = sqlClient => async cred => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+// Helper function to map the Sql.allowedToModify result to a boolean
+const isModificationAllowed = async (sqlClient, cred, skid) => {
+  const result = await query(sqlClient, Sql.allowedToModify(cred, skid));
 
-  const rows = await query(
-    sqlClient,
-    `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
-       FROM ssh_key sk, customer c, customer_ssh_key csk
-       WHERE csk.cid = c.id AND csk.skid = sk.id`,
-  );
-
-  return R.map(R.prop('sshKey'), rows);
+  const allowed = R.pathOr('0', ['0', 'allowed'], result);
+  return allowed === '1';
 };
 
 const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
@@ -91,8 +114,28 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
 };
 
 const deleteSshKey = sqlClient => async (cred, input) => {
+  // TODO: Fix edge-case:
+  // User adds a SshKey and doesn't assign it to any project / customer the user
+  // belongs to... now he / she cannot delete the key anymore and needs to assign
+  // it to a proper project / customer first.
   if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
+    const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(input.name))
+
+    const amount = R.length(skidResult);
+    if (amount > 1) {
+      throw new Error(`Multiple candidates for '${input.name}' (${amount} found). Do nothing.`)
+    }
+
+    if (amount === 0) {
+      throw new Error(`Not found: '${input.name}'`);
+    }
+
+    const skid = R.path(['0', 'id'], skidResult);
+
+    const allowed = await isModificationAllowed(sqlClient, cred, skid);
+    if (!allowed) {
+      throw new Error('Unauthorized.');
+    }
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
@@ -103,10 +146,6 @@ const deleteSshKey = sqlClient => async (cred, input) => {
 };
 
 const addSshKey = sqlClient => async (cred, input) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
-  }
-
   if (!validateSshKey(fullSshKey(input))) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
@@ -192,14 +231,17 @@ const updateSshKey = sqlClient => async (cred, input) => {
   const skid = input.id.toString();
 
   if (cred.role !== 'admin' && !R.equals(sshKeyId, skid)) {
-    throw new Error('Unauthorized.');
+    const allowed = await isModificationAllowed(sqlClient, cred, skid);
+    if (!allowed) {
+      throw new Error('Unauthorized.');
+    }
   }
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  if (!validateSshKey(fullSshKey(input.patch))) {
+  if (hasSshKeyPatch(input) && !validateSshKey(fullSshKey(input.patch))) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
@@ -214,7 +256,6 @@ const Queries = {
   addSshKeyToCustomer,
   addSshKeyToProject,
   deleteSshKey,
-  getCustomerSshKeys,
   getSshKeysByCustomerId,
   getSshKeysByProjectId,
   removeSshKeyFromCustomer,
