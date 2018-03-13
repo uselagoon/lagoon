@@ -4,30 +4,39 @@
 # 1: name of oc project
 # checks for SSH_ORIGINAL_COMMAND
 
-if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
-  project=$1
+# check which project
+if [[ -n "$1" ]]; then
+  if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
+    project=$1
+  else
+    echo "ERROR: given project '$1' contains illegal characters";
+    exit
+  fi
 else
   echo "ERROR: no project defined";
-  exit
+  exit 1
 fi
 
-# convert $SSH_ORIGINAL_COMMAND into an array
-IFS=', ' read -r -a command <<< "$SSH_ORIGINAL_COMMAND"
+# use $SSH_ORIGINAL_COMMAND to the argument list
+set -- $SSH_ORIGINAL_COMMAND
 
-# the first argument is used as the deploymentconfig
-if [[ "${command[1]}" =~ ^[A-Za-z0-9-]+$ ]]; then
-  deploymentconfig=${command[1]}
-else
+if [[ -z "$1" ]]; then # if no argument defined anymore, we assume they want to connect to the cli
   deploymentconfig=cli
+elif [[ "$1" = "cd" && "$4" = "bash" ]]; then # Drush connects with something like `cd /app/web && bash -l`, we are checking on that and assuming cli as the deploymentconfig
+  deploymentconfig=cli
+else # argument is given, check if its a valid one
+  if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
+    deploymentconfig=$1
+
+    # remove deploymentconfig argument from argument list
+    shift
+  else
+    echo "ERROR: given deploymentconfig '$1' contains illegal characters";
+    exit 1
+  fi
 fi
 
-# remove the first argument
-command=("${command[@]:1}")
-
-#echo "project=${project}"
-#echo "deploymentconfig=${deploymentconfig}"
-#echo "SSH_ORIGINAL_COMMAND=${SSH_ORIGINAL_COMMAND}"
-#echo "command=${command[@]}"
+echo "Incoming Remote Shell Connection: project='${project}' deploymentconfig='${deploymentconfig}' command='$*'"  >> /proc/1/fd/1
 
 # If the deploymentconfig is scaled to 0, scale to 1
 if [[ $(/usr/bin/oc -n ${project} get deploymentconfigs/${deploymentconfig} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
@@ -39,10 +48,8 @@ if [[ $(/usr/bin/oc -n ${project} get deploymentconfigs/${deploymentconfig} -o g
   done
 fi
 
-if [ -z "$command" ]; then
-  #echo "just running sh"
+if [[ -z "$*" ]]; then
   exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh
 else
-  #echo "running sh -c \"$command\""
-  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh -c "$command"
+  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh -c "$*"
 fi
