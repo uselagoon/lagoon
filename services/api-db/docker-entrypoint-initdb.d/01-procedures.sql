@@ -524,13 +524,13 @@ CREATE OR REPLACE PROCEDURE
     LEFT JOIN project ON project_ssh_key.pid = project.id
     LEFT JOIN ssh_key ON project_ssh_key.skid = ssh_key.id
     WHERE
-      project.name = project AND
-      ssh_key.name = ssh_key;
+      project.name = p_project AND
+      ssh_key.name = p_ssh_key;
 
     SELECT
       *
     FROM project as p
-    WHERE p.name = project;
+    WHERE p.name = p_project;
 
   END;
 $$
@@ -538,18 +538,18 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateCustomerSshKey
   (
-    IN customer            varchar(50),
-    IN ssh_key            varchar(100)
+    IN p_customer            varchar(50),
+    IN p_ssh_key            varchar(100)
   )
   BEGIN
     DECLARE count int;
 
     SELECT count(*) INTO count
       FROM ssh_key sk
-      WHERE sk.name = ssh_key;
+      WHERE sk.name = p_ssh_key;
 
     IF count = 0 THEN
-      SET @message_text = concat('SSH-Key: "', ssh_key, '" does not exist');
+      SET @message_text = concat('SSH-Key: "', p_ssh_key, '" does not exist');
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
@@ -565,13 +565,13 @@ CREATE OR REPLACE PROCEDURE
       customer AS c,
       ssh_key AS sk
     WHERE
-      c.name = customer AND
-      sk.name = ssh_key;
+      c.name = p_customer AND
+      sk.name = p_ssh_key;
 
     SELECT
       *
     FROM customer as c
-    WHERE c.name = customer;
+    WHERE c.name = p_customer;
 
   END;
 $$
@@ -579,8 +579,8 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteCustomerSshKey
   (
-    IN customer            varchar(50),
-    IN ssh_key            varchar(100)
+    IN p_customer            varchar(50),
+    IN p_ssh_key            varchar(100)
   )
   BEGIN
 
@@ -591,13 +591,13 @@ CREATE OR REPLACE PROCEDURE
     LEFT JOIN customer ON customer_ssh_key.cid = customer.id
     LEFT JOIN ssh_key ON customer_ssh_key.skid = ssh_key.id
     WHERE
-      customer.name = customer AND
-      ssh_key.name = ssh_key;
+      customer.name = p_customer AND
+      ssh_key.name = p_ssh_key;
 
     SELECT
       *
     FROM customer as c
-    WHERE c.name = customer;
+    WHERE c.name = p_customer;
   END;
 $$
 

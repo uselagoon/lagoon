@@ -39,6 +39,32 @@ const Sql = {
 
     return query.toString();
   },
+  selectCustomerIdByName: name =>
+    knex('customer')
+      .where('name', '=', name)
+      .select('id')
+      .toString(),
+};
+
+const Helpers = {
+  getCustomerIdByName: async (sqlClient, name) => {
+    const cidResult = await query(sqlClient, Sql.selectCustomerIdByName(name));
+
+    const amount = R.length(cidResult);
+    if (amount > 1) {
+      throw new Error(
+        `Multiple customer candidates for '${name}' (${amount} found). Do nothing.`,
+      );
+    }
+
+    if (amount === 0) {
+      throw new Error(`Not found: '${name}'`);
+    }
+
+    const cid = R.path(['0', 'id'], cidResult);
+
+    return cid;
+  },
 };
 
 const addCustomer = sqlClient => async (cred, input) => {
@@ -143,4 +169,5 @@ const Queries = {
 module.exports = {
   Sql,
   Queries,
+  Helpers,
 };

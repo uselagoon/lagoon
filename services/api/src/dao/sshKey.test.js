@@ -6,8 +6,8 @@ describe('Sql', () => {
       const cred = {
         role: 'user',
         permissions: {
-          customers: [],
-          projects: ['2', '1'],
+          customers: ['1', '2'],
+          projects: [],
         },
       };
       const id = 1;
@@ -50,4 +50,42 @@ describe('Sql', () => {
       expect(ret).toMatchSnapshot();
     });
   });
+  describe('selectUnassignedSshKeys', () => {
+    it('should create a proper query', () => {
+      const ret = Sql.selectUnassignedSshKeys();
+      expect(ret).toMatchSnapshot();
+    });
+  });
+
+  describe('selectAllSshKeys', () => {
+    it('if not admin, should create statement with IN clauses', () => {
+      const cred = {
+        role: 'user',
+        permissions: {
+          customers: ['1', '2'],
+          projects: [],
+        },
+      };
+      const id = 1;
+      const ret = Sql.selectAllSshKeys(cred, id);
+
+      expect(ret).toMatchSnapshot();
+    });
+
+    it('if admin, should create statement without IN clause', () => {
+      const cred = {
+        role: 'admin',
+        permissions: {
+          customers: [],
+          projects: [],
+        },
+      };
+      const id = 1;
+      const ret = Sql.selectAllSshKeys(cred, id);
+
+      expect(ret).toMatchSnapshot();
+    });
+  });
+
+
 });

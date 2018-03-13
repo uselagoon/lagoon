@@ -1,9 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Sql allowedToModify if admin, should create statement without IN clause 1`] = `"select IF(COUNT(sk.id) > 0, 1, 0) as allowed from \`ssh_key\` as \`sk\` inner join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` inner join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\` limit 1"`;
+exports[`Sql allowedToModify if admin, should create statement without IN clause 1`] = `"select \`sk\`.\`id\`, \`ps\`.\`pid\`, \`cs\`.\`cid\`, IF(COUNT(sk.id) > 0, 1, 0) as allowed from \`ssh_key\` as \`sk\` left join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` left join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\` limit 1"`;
 
-exports[`Sql allowedToModify if not admin, should create statement with IN clauses 1`] = `"select IF(COUNT(sk.id) > 0, 1, 0) as allowed from \`ssh_key\` as \`sk\` inner join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` inner join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\` where (1 = 0 or \`ps\`.\`pid\` in ('2', '1')) and \`sk\`.\`id\` = 1 limit 1"`;
+exports[`Sql allowedToModify if not admin, should create statement with IN clauses 1`] = `"select \`sk\`.\`id\`, \`ps\`.\`pid\`, \`cs\`.\`cid\`, IF(COUNT(sk.id) > 0, 1, 0) as allowed from \`ssh_key\` as \`sk\` left join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` left join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\` where \`sk\`.\`id\` = 1 and ((\`cs\`.\`cid\` in ('1', '2') or 1 = 0) or (cs.cid IS NULL and ps.pid IS NULL)) limit 1"`;
+
+exports[`Sql selectAllSshKeys if admin, should create statement without IN clause 1`] = `"select \`sk\`.* from \`ssh_key\` as \`sk\` left join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` left join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\`"`;
+
+exports[`Sql selectAllSshKeys if not admin, should create statement with IN clauses 1`] = `"select \`sk\`.* from \`ssh_key\` as \`sk\` left join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` left join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\` where ((\`cs\`.\`cid\` in ('1', '2') or 1 = 0) or (cs.cid IS NULL and ps.pid IS NULL))"`;
 
 exports[`Sql selectSshKey should create a proper query 1`] = `"select * from \`ssh_key\` where \`id\` = 1"`;
+
+exports[`Sql selectUnassignedSshKeys should create a proper query 1`] = `"select \`sk\`.* from \`ssh_key\` as \`sk\` left join \`project_ssh_key\` as \`ps\` on \`sk\`.\`id\` = \`ps\`.\`skid\` left join \`customer_ssh_key\` as \`cs\` on \`sk\`.\`id\` = \`cs\`.\`skid\` where ps.pid IS NULL and cs.cid IS NULL"`;
 
 exports[`Sql updateSshKey should create a proper query 1`] = `"update \`ssh_key\` set \`keyType\` = 'ssh-rsa' where \`id\` = 1"`;

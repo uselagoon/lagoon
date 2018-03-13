@@ -12,6 +12,9 @@ const {
 } = require('./utils');
 const { validateSshKey } = require('@lagoon/commons/src/jwt');
 
+const { getProjectIdByName } = require('./project').Helpers;
+const { getCustomerIdByName } = require('./customer').Helpers;
+
 const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const Sql = {
@@ -19,25 +22,23 @@ const Sql = {
     const { customers, projects } = cred.permissions;
 
     let query = knex('ssh_key AS sk')
-      .join('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
-      .join('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
+      .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
+      .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
 
     if (cred.role != 'admin') {
-      query
-        .where(function() {
-          this.whereIn('cs.cid', customers);
-          this.orWhereIn('ps.pid', projects);
-        })
-        .andWhere('sk.id', '=', id);
+      query.where('sk.id', '=', id).andWhere(function() {
+        this.where(function() {
+          this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
+        });
+        this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
+      });
     }
 
-    return (
-      query
-        // .select('sk.id', 'ps.pid', 'cs.cid')
-        .select(knex.raw('IF(COUNT(sk.id) > 0, 1, 0) as allowed'))
-        .limit(1)
-        .toString()
-    );
+    return query
+      .select('sk.id', 'ps.pid', 'cs.cid')
+      .select(knex.raw('IF(COUNT(sk.id) > 0, 1, 0) as allowed'))
+      .limit(1)
+      .toString();
   },
   updateSshKey: (cred, input) => {
     const { id, patch } = input;
@@ -56,6 +57,55 @@ const Sql = {
       .where('name', '=', name)
       .select('id')
       .toString(),
+  selectUnassignedSshKeys: () =>
+    knex('ssh_key AS sk')
+      .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
+      .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid')
+      .select('sk.*')
+      .whereRaw('ps.pid IS NULL and cs.cid IS NULL')
+      .toString(),
+  selectAllSshKeys: cred => {
+    const { customers, projects } = cred.permissions;
+
+    let query = knex('ssh_key AS sk')
+      .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
+      .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
+
+    if (cred.role != 'admin') {
+      query.where(function() {
+        this.where(function() {
+          this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
+        });
+        this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
+      });
+    }
+
+    return query
+      .select('sk.*')
+      .toString();
+  },
+};
+
+// Helper function to map from sshKey name to id
+// Will throw on several error cases, which is nasty, but
+// there is no idiomatic way to handle this better in JS
+const getSshKeyIdByName = async (sqlClient, name) => {
+  const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(name));
+
+  const amount = R.length(skidResult);
+  if (amount > 1) {
+    throw new Error(
+      `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`,
+    );
+  }
+
+  if (amount === 0) {
+    throw new Error(`Not found: '${name}'`);
+  }
+
+  const skid = R.path(['0', 'id'], skidResult);
+
+  return skid;
 };
 
 // Helper function to map the Sql.allowedToModify result to a boolean
@@ -113,24 +163,21 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
   return rows;
 };
 
+const getAllSshKeys = sqlClient => async cred => {
+  const rows = await query(sqlClient, Sql.selectAllSshKeys(cred));
+  return rows;
+};
+
+const getUnassignedSshKeys = sqlClient => async cred => {
+  const rows = await query(sqlClient, Sql.selectUnassignedSshKeys());
+
+  return rows;
+};
+
 const deleteSshKey = sqlClient => async (cred, input) => {
-  // TODO: Fix edge-case:
-  // User adds a SshKey and doesn't assign it to any project / customer the user
-  // belongs to... now he / she cannot delete the key anymore and needs to assign
-  // it to a proper project / customer first.
   if (cred.role !== 'admin') {
-    const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(input.name))
-
-    const amount = R.length(skidResult);
-    if (amount > 1) {
-      throw new Error(`Multiple candidates for '${input.name}' (${amount} found). Do nothing.`)
-    }
-
-    if (amount === 0) {
-      throw new Error(`Not found: '${input.name}'`);
-    }
-
-    const skid = R.path(['0', 'id'], skidResult);
+    // Will throw on invalid conditions
+    const skid = await getSshKeyIdByName(sqlClient, input.name);
 
     const allowed = await isModificationAllowed(sqlClient, cred, skid);
     if (!allowed) {
@@ -141,7 +188,6 @@ const deleteSshKey = sqlClient => async (cred, input) => {
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
   const rows = await query(sqlClient, prep(input));
 
-  //TODO: maybe check rows for any changed rows?
   return 'success';
 };
 
@@ -167,8 +213,21 @@ const addSshKey = sqlClient => async (cred, input) => {
 };
 
 const addSshKeyToProject = sqlClient => async (cred, input) => {
+  const { projects } = cred.permissions;
+
   if (cred.role !== 'admin') {
-    throw new Error('Unauthorized.');
+    // Will throw on invalid conditions
+    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
+    const pid = await getProjectIdByName(sqlClient, input.project);
+
+    if (!R.contains(pid, projects)) {
+      throw new Error('Unauthorized.');
+    }
+
+    const allowed = await isModificationAllowed(sqlClient, cred, skid);
+    if (!allowed) {
+      throw new Error('Unauthorized.');
+    }
   }
 
   const prep = prepare(
@@ -182,8 +241,20 @@ const addSshKeyToProject = sqlClient => async (cred, input) => {
 };
 
 const removeSshKeyFromProject = sqlClient => async (cred, input) => {
+  const { projects } = cred.permissions;
   if (cred.role !== 'admin') {
-    throw new Error('Unauthorized.');
+    // Will throw on invalid conditions
+    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
+    const pid = await getProjectIdByName(sqlClient, input.project);
+
+    if (!R.contains(pid, projects)) {
+      throw new Error('Unauthorized.');
+    }
+
+    const allowed = await isModificationAllowed(sqlClient, cred, skid);
+    if (!allowed) {
+      throw new Error('Unauthorized.');
+    }
   }
 
   const prep = prepare(
@@ -197,8 +268,22 @@ const removeSshKeyFromProject = sqlClient => async (cred, input) => {
 };
 
 const addSshKeyToCustomer = sqlClient => async (cred, input) => {
+  const { customers } = cred.permissions;
+
   if (cred.role !== 'admin') {
-    throw new Error('unauthorized.');
+    // Will throw on invalid conditions
+    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
+    const cid = await getCustomerIdByName(sqlClient, input.customer);
+
+    if (!R.contains(cid, customers)) {
+      throw new Error('Unauthorized.');
+    }
+
+    const allowed = await isModificationAllowed(sqlClient, cred, skid);
+
+    if (!allowed) {
+      throw new Error('Unauthorized.');
+    }
   }
 
   const prep = prepare(
@@ -212,8 +297,21 @@ const addSshKeyToCustomer = sqlClient => async (cred, input) => {
 };
 
 const removeSshKeyFromCustomer = sqlClient => async (cred, input) => {
+  const { customers } = cred.permissions;
   if (cred.role !== 'admin') {
-    throw new Error('Unauthorized.');
+    // Will throw on invalid conditions
+    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
+    const cid = await getCustomerIdByName(sqlClient, input.customer);
+
+    if (!R.contains(cid, customers)) {
+      throw new Error('Unauthorized.');
+    }
+
+    const allowed = await isModificationAllowed(sqlClient, cred, skid);
+
+    if (!allowed) {
+      throw new Error('Unauthorized.');
+    }
   }
 
   const prep = prepare(
@@ -256,8 +354,10 @@ const Queries = {
   addSshKeyToCustomer,
   addSshKeyToProject,
   deleteSshKey,
+  getAllSshKeys,
   getSshKeysByCustomerId,
   getSshKeysByProjectId,
+  getUnassignedSshKeys,
   removeSshKeyFromCustomer,
   removeSshKeyFromProject,
   updateSshKey,
