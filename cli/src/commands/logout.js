@@ -5,15 +5,8 @@
 import os from 'os';
 import path from 'path';
 import { green } from 'chalk';
-import { utils } from 'ssh2-streams';
-import untildify from 'untildify';
-import {
-  getPrivateKeyPath,
-  getPrivateKeyPassphrase,
-  sshConnect,
-  sshExec,
-} from '../util/ssh';
-import { fileExists, readFile, unlink } from '../util/fs';
+import { sshConnect, sshExec } from '../util/ssh';
+import { fileExists, unlink } from '../util/fs';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
@@ -44,30 +37,18 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
     return printErrors(cerr, 'File does not exist at identity option path!');
   }
 
-  const homeDir = os.homedir();
-  const defaultPrivateKeyPath = path.join(homeDir, '.ssh', 'id_rsa');
-  const fileExistsAtDefaultPath = await fileExists(defaultPrivateKeyPath);
+  let connection;
 
-  const privateKeyPath = await getPrivateKeyPath({
-    fileExistsAtDefaultPath,
-    defaultPrivateKeyPath,
-    identity: argv.identity,
-    cerr,
-  });
-
-  const privateKey = await readFile(untildify(privateKeyPath));
-  const passphrase = await getPrivateKeyPassphrase(utils.parseKey(privateKey).encryption);
-
-  const connection = await sshConnect({
-    host: process.env.SSH_HOST || 'auth.amazee.io',
-    port: Number(process.env.SSH_PORT) || 2020,
-    username: process.env.SSH_USER || 'api',
-    privateKey,
-    passphrase,
-  });
+  try {
+    connection = await sshConnect({
+      identity: argv.identity,
+    });
+  } catch (err) {
+    return printErrors(cerr, err);
+  }
 
   await sshExec(connection, 'logout');
-  const tokenFilePath = path.join(homeDir, '.lagoon-token');
+  const tokenFilePath = path.join(os.homedir(), '.lagoon-token');
   if (await fileExists(tokenFilePath)) {
     await unlink(tokenFilePath);
   }

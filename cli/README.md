@@ -146,17 +146,7 @@ TODO: Make examples
 
 ## Development - local nodejs
 
-The `runCli.sh` script injects the necessary environment variables such as `process.env.API_URL`.
-
-```sh
-../runCli.sh -- <commands>
-```
-
-For example:
-
-```sh
-../runCli.sh -- init --overwrite false --project my_project
-```
+The `execute <cli command>`, `sshlogin` and `sshlogout` yarn scripts can be used to run CLI commands during development.
 
 ## Development - inside docker
 
@@ -164,14 +154,4 @@ There is already a docker container prepared that has the cli running. Run a new
 
 ```sh
 docker-compose run --rm cli bash
-```
-
-### Old development instructions
-
-The instructions below were how we previously built (before `runCli.sh`), but they will not inject the necessary environment variables (for example, `process.env.API_URL`).
-
-```sh
-npm install      # Install dependencies
-npm run build    # Build files to the `dist` folder
-node .           # Run the CLI
 ```

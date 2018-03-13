@@ -45,10 +45,14 @@ QLQueryArgs): Object {
 
   const {
     hostname, path: pathname, port: urlPort, protocol,
-  } = url.parse(apiUrl);
+  } = url.parse(
+    apiUrl,
+  );
 
   if (hostname == null) {
-    throw new Error('API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.');
+    throw new Error(
+      'API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.',
+    );
   }
 
   const body = JSON.stringify(

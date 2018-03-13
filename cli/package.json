@@ -23,6 +23,10 @@
     "build": "babel src -d dist",
     "watch": "babel --watch=src -d dist",
     "execute": "node -r babel-core/register src/cli.js",
+    "sshlogin":
+      "node -r babel-core/register src/cli.js login --identity ../local-dev/cli_id_rsa",
+    "sshlogout":
+      "node -r babel-core/register src/cli.js logout --identity ../local-dev/cli_id_rsa",
     "lint-staged": "lint-staged",
     "flow": "glow check"
   },
