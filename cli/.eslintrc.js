@@ -9,6 +9,8 @@ module.exports = {
     'flowtype/generic-spacing': 'off',
     // Fix issue with the way Prettier formats types
     'flowtype/space-after-type-colon': 'off',
+    // Fix issue with the way Prettier formats function calls
+    'function-paren-newline': 'off',
     // Code style rule to enforce import ordering. We disable this because we use absolute imports for types sometimes after relative imports.
     'import/first': 'off',
     // Fix the erroring of
