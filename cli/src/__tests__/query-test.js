@@ -33,16 +33,21 @@ describe('runGQLQuery', () => {
       const call = _mock(request).mock.calls;
       expect(call).toEqual([]);
 
-      expect(err).toEqual(new Error('API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.'));
+      expect(err).toEqual(
+        new Error(
+          'API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.',
+        ),
+      );
     }
   });
 
-  it('should do a POST request ala GraphQL', async () => {
+  it('should do a POST request via GraphQL', async () => {
     // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = null;
 
-    _mock(request).mockImplementationOnce(() =>
-      Promise.resolve({ data: 'data' }));
+    const mockedRequest = _mock(request).mockImplementationOnce(() =>
+      Promise.resolve({ data: 'data' }),
+    );
 
     const result = await runGQLQuery({
       cerr: jest.fn(),
@@ -50,7 +55,7 @@ describe('runGQLQuery', () => {
     });
 
     // Check if the url parsing was correct
-    const call = _mock(request).mock.calls[0][0];
+    const call = mockedRequest.mock.calls[0][0];
 
     expect(call).toEqual({
       hostname: 'api.amazee.io',
@@ -67,5 +72,43 @@ describe('runGQLQuery', () => {
     });
 
     expect(result).toEqual({ data: 'data' });
+
+    mockedRequest.mockClear();
+  });
+
+  it('should do a POST request to a custom API via GraphQL', async () => {
+    // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    allConfigExports.config = {
+      api: 'https://www.example.com/api',
+    };
+
+    const mockedRequest = _mock(request).mockImplementationOnce(() =>
+      Promise.resolve({ data: 'data' }),
+    );
+
+    const result = await runGQLQuery({
+      cerr: jest.fn(),
+      query: 'test',
+    });
+
+    // Check if the url parsing was correct
+    const call = mockedRequest.mock.calls[0][0];
+
+    expect(call).toEqual({
+      hostname: 'www.example.com',
+      path: '/api',
+      port: 443,
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer TOKEN',
+      },
+      body: '{"query":"test"}',
+      rejectUnauthorized: false,
+    });
+
+    expect(result).toEqual({ data: 'data' });
+    mockedRequest.mockClear();
   });
 });
