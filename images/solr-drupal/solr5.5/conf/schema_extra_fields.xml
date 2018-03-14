@@ -1,9 +1,9 @@
 <fields>
 <!--
-  Adding German dynamic field types to our Solr Schema
-  If you enable this, make sure you have a folder called lang with stopwords_de.txt
-  and synonyms_de.txt in there
-  This also requires to enable the content in schema_extra_types.xml
+  Example: Adding German dynamic field types to our Solr Schema.
+  If you enable this, make sure you have a folder called lang containing
+  stopwords_de.txt and synonyms_de.txt.
+  This also requires to enable the content in schema_extra_types.xml.
 -->
 <!--
    <field name="label_de" type="text_de" indexed="true" stored="true" termVectors="true" omitNorms="true"/>
