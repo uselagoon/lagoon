@@ -6,7 +6,7 @@ else
   SERVICE_ROUTER_URL=""
 fi
 
-oc process --insecure-skip-tls-verify \
+oc process --local --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
   -p SERVICE_NAME="${SERVICE_NAME}" \
