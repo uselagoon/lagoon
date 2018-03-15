@@ -21,14 +21,19 @@ ENV MARIADB_DATABASE=lagoon \
     MARIADB_PASSWORD=lagoon \
     MARIADB_ROOT_PASSWORD=Lag00n
 
+# fix some environmental items
+RUN mkdir -p /usr/include/bits; mkdir -p /usr/
+COPY root/usr/include/bits/wordsize.h /usr/include/bits/wordsize.h
 
-RUN apk add --no-cache --virtual .mariadb-run-deps \
+RUN apk add --no-cache --virtual .common-run-deps \
         asio \
         bash \
         boost \
         curl \
         findutils \
+        gnutls \
         libaio \
+        libgcrypt \
         libstdc++ \
         libuuid \
         lsof \
@@ -38,15 +43,12 @@ RUN apk add --no-cache --virtual .mariadb-run-deps \
         procps \
         pwgen \
         rsync \
+        sqlite-libs \
         tzdata \
-        wget
-
-# fix some environmental items
-RUN mkdir -p /usr/include/bits; mkdir -p /usr/
-COPY root/usr/include/bits/wordsize.h /usr/include/bits/wordsize.h
-
-RUN apk add --no-cache --virtual .mariadb-build-deps \
-        asio-dev \
+        wget && \
+    apk add --no-cache --virtual .galera-build-deps \
+        asio-dev && \
+    apk add --no-cache --virtual .common-build-deps \
         attr \
         autoconf \
         bison \
@@ -59,7 +61,7 @@ RUN apk add --no-cache --virtual .mariadb-build-deps \
         git \
         gnutls-dev \
         libaio-dev \
-        libressl-dev \
+        libgcrypt-dev \
         linux-headers \
         make \
         musl-dev \
@@ -70,36 +72,39 @@ RUN apk add --no-cache --virtual .mariadb-build-deps \
         sqlite-dev  \
         tcl tcl-dev \
         util-linux-dev \
-        zlib-dev ;
-    # cd /tmp && git clone https://github.com/libcheck/check.git && cd check && mkdir build && cd build && cmake ../ && make && make install; \
-    # cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git; \
-    # cd /tmp/galera && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp ; \
-    # cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0 ; \
-    # mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so ; \
-RUN    echo "#define _UTSNAME_SYSNAME_LENGTH 65" >> /usr/include/sys/utsname.h ; \
-    cd /tmp; git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale; cd /tmp/; mkdir maxscale-build; cd maxscale-build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N ; \
-    cd /tmp/maxscale-build; make; make install ; \
-    apk del --purge .mariadb-build-deps; \
-    rm -rf /tmp/*; \
+        zlib-dev && \
+    cd /tmp && git clone https://github.com/libcheck/check.git && cd check && mkdir build && cd build && cmake ../ && make && make install && \
+    cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git && \
+    cd /tmp/galera && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp && \
+    cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0 && \
+    mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so && \
+    apk del --purge .galera-build-deps && \
+    apk add --no-cache --virtual .maxscale-run-deps \
+        openssl openssl-dev && \
+    echo "#define _UTSNAME_SYSNAME_LENGTH 65" >> /usr/include/sys/utsname.h && \
+    cd /tmp && git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale && cd /tmp/ && mkdir maxscale-build && cd maxscale-build && cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N && \
+    cd /tmp/maxscale-build && make && make install && \
+    apk del --purge .common-build-deps && \
+    rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
 
-
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
-do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; done
-
-RUN for i in /var/lib/maxscale /var/log/maxscale /var/cache/maxscale /var/run/maxscale; do mkdir -p $i; /bin/fix-permissions $i; done && /bin/fix-permissions /etc/maxscale.cnf
-
-COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
+COPY docker-entrypoint.bash /lagoon/entrypoints/90-mariadb-entrypoint
 COPY maxscale-entrypoint.sh /lagoon/entrypoints/80-maxscale
 COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 COPY maxscale.cnf /etc/maxscale.cnf
 COPY maxscale-start.sh /usr/local/bin/maxscale-start
 COPY mysql-backup.sh /lagoon/
-
 COPY my.cnf /etc/mysql/my.cnf
 
-RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
-RUN sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
+        do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
+    done && \
+    for i in /var/lib/maxscale /var/log/maxscale /var/cache/maxscale /var/run/maxscale; \
+        do mkdir -p $i; /bin/fix-permissions $i; \
+    done && \
+    /bin/fix-permissions /etc/maxscale.cnf && \
+    ln -s /var/lib/mysql/.my.cnf /home/.my.cnf && \
+    sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
 COPY root/usr/bin/peer-finder /usr/bin/peer-finder
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
@@ -108,7 +113,9 @@ COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/conta
 COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
 
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
+RUN addgroup mysql root
 USER mysql
+ENV USER_NAME mysql
 
 WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
