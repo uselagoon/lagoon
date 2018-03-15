@@ -22,7 +22,7 @@ ENV MARIADB_DATABASE=lagoon \
     MARIADB_ROOT_PASSWORD=Lag00n
 
 
-RUN apk add --update --no-cache --virtual .mariadb-run-deps \
+RUN apk add --no-cache --virtual .mariadb-run-deps \
         asio \
         bash \
         boost \
@@ -41,9 +41,9 @@ RUN apk add --update --no-cache --virtual .mariadb-run-deps \
 
 # fix some environmental items
 RUN mkdir -p /usr/include/bits; mkdir -p /usr/
-COPY wordsize.h /usr/include/bits/wordsize.h
+COPY root/usr/include/bits/wordsize.h /usr/include/bits/wordsize.h
 
-RUN apk add --update --no-cache --virtual .mariadb-build-deps \
+RUN apk add --no-cache --virtual .mariadb-build-deps \
         asio-dev \
         attr \
         autoconf \
@@ -82,7 +82,7 @@ COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
 RUN ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
-RUN  sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
+RUN sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
 COPY root/usr/bin/peer-finder /usr/bin/peer-finder
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh

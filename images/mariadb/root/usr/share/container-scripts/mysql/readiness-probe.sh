@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-# Adfinis SyGroup AG
 # openshift-mariadb-galera: mysqld readinessProbe
 #
 
