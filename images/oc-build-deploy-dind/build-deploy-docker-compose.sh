@@ -129,7 +129,7 @@ do
 
 
   SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
-  if [ $SERVICE_TYPE_OVERRIDE == "mariadb-galera" ]; then
+  if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
   fi
 
