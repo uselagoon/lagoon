@@ -54,8 +54,8 @@ RUN apk add --update --no-cache --virtual .mariadb-build-deps \
         readline-dev \
         zlib-dev ; \
 echo "#define _UTSNAME_SYSNAME_LENGTH 65" >> /usr/include/sys/utsname.h ; \
-cd /tmp; git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale; cd /tmp/; mkdir build; cd build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N ; \
-cd /tmp/build; make; make install ; \
+cd /tmp; git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale; cd /tmp/; mkdir maxscale-build; cd maxscale-build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N ; \
+cd /tmp/maxscale-build; make; make install ; \
 apk del --purge .mariadb-build-deps; \
 rm -rf /tmp/*; \
 rm -rf /var/cache/apk/*
@@ -66,8 +66,7 @@ COPY docker-entrypoint.sh /lagoon/entrypoints/80-maxscale
 
 RUN for i in /var/lib/maxscale /var/log/maxscale /var/cache/maxscale /var/run/maxscale; do mkdir -p $i; /bin/fix-permissions $i; done && /bin/fix-permissions /etc/maxscale.cnf
 
-# USER maxscale
 EXPOSE 3306
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["/bin/sh"]
+CMD ["maxscale", "-lstdout", "-d"]

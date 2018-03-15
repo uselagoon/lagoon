@@ -42,7 +42,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: mariadb-galera
+    name: ${SERVICE_NAME}-galera
   spec:
     clusterIP: None
     ports:
@@ -51,6 +51,26 @@ objects:
       protocol: TCP
       targetPort: 3306
     selector:
-      service: mariadb-galera
+      service: ${SERVICE_NAME}-galera
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
+  spec:
+    clusterIP: None
+    ports:
+    - name: 3306-tcp
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+    selector:
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}

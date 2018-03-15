@@ -26,9 +26,11 @@ RUN apk add --no-cache --virtual .mariadb-run-deps \
         asio \
         bash \
         boost \
+        curl \
         findutils \
         libaio \
         libstdc++ \
+        libuuid \
         lsof \
         mariadb \
         mariadb-client \
@@ -52,21 +54,31 @@ RUN apk add --no-cache --virtual .mariadb-build-deps \
         build-base \
         cmake \
         coreutils \
+        curl-dev \
+        flex \
         git \
+        gnutls-dev \
         libaio-dev \
         libressl-dev \
         linux-headers \
         make \
+        musl-dev \
         ncurses-dev \
         patch \
         readline-dev \
         scons \
-        zlib-dev ; \
-    cd /tmp && git clone https://github.com/libcheck/check.git && cd check && mkdir build && cd build && cmake ../ && make && make install; \
-    cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git; \
-    cd /tmp/galera && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp ; \
-    cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0 ; \
-    mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so ; \
+        sqlite-dev  \
+        tcl tcl-dev \
+        util-linux-dev \
+        zlib-dev ;
+    # cd /tmp && git clone https://github.com/libcheck/check.git && cd check && mkdir build && cd build && cmake ../ && make && make install; \
+    # cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git; \
+    # cd /tmp/galera && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp ; \
+    # cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0 ; \
+    # mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so ; \
+RUN    echo "#define _UTSNAME_SYSNAME_LENGTH 65" >> /usr/include/sys/utsname.h ; \
+    cd /tmp; git clone --branch=2.2.2 --single-branch https://github.com/rtprio/MaxScale.git maxscale; cd /tmp/; mkdir maxscale-build; cd maxscale-build; cmake ../maxscale -DBUILD_TESTS=Y -DWITH_SCRIPTS=N -DBUILD_MAXCTRL=N ; \
+    cd /tmp/maxscale-build; make; make install ; \
     apk del --purge .mariadb-build-deps; \
     rm -rf /tmp/*; \
     rm -rf /var/cache/apk/*
@@ -75,8 +87,13 @@ RUN apk add --no-cache --virtual .mariadb-build-deps \
 RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
 do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; done
 
+RUN for i in /var/lib/maxscale /var/log/maxscale /var/cache/maxscale /var/run/maxscale; do mkdir -p $i; /bin/fix-permissions $i; done && /bin/fix-permissions /etc/maxscale.cnf
+
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-mariadb-entrypoint
+COPY maxscale-entrypoint.sh /lagoon/entrypoints/80-maxscale
 COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
+COPY maxscale.cnf /etc/maxscale.cnf
+COPY maxscale-start.sh /usr/local/bin/maxscale-start
 COPY mysql-backup.sh /lagoon/
 
 COPY my.cnf /etc/mysql/my.cnf

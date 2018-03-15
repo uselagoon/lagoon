@@ -35,25 +35,25 @@ objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: mariadb-galera
+    name: ${SERVICE_NAME}-galera
   spec:
-    serviceName: "mariadb-galera"
+    serviceName: ${SERVICE_NAME}-galera
     replicas: 3
     selector:
       matchLabels:
-        service: mariadb-galera
+        service: ${SERVICE_NAME}-galera
     template:
       metadata:
         labels:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
-          service: mariadb-galera
+          service: ${SERVICE_NAME}-galera
         annotations:
           alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - name: mariadb-galera
-          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/mariadb:latest
+        - name: ${SERVICE_NAME}-galera
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 3306
@@ -71,7 +71,7 @@ objects:
             initialDelaySeconds: 15
             timeoutSeconds: 5
           volumeMounts:
-          - name: ${SERVICE_NAME}-data
+          - name: ${SERVICE_NAME}-galera
             mountPath: /var/lib/mysql
             subPath: data
           env:
@@ -82,9 +82,70 @@ objects:
                   fieldPath: metadata.namespace
     volumeClaimTemplates:
     - metadata:
-        name: ${SERVICE_NAME}-data
+        name: ${SERVICE_NAME}-galera
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 1Gi
+            storage: 5Gi
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      service: ${SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          project: ${SAFE_PROJECT}
+      spec:
+        containers:
+        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+          command: /usr/local/bin/maxscale-start
+          name: ${SERVICE_NAME}-maxscale
+          ports:
+          - containerPort: 3306
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 120
+            periodSeconds: 5
+          envFrom:
+          - configMapRef:
+              name: lagoon-env
+          env:
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${SERVICE_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${SERVICE_NAME}:latest
+      type: ImageChange
