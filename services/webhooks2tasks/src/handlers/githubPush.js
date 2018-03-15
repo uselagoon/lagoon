@@ -19,6 +19,9 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
     const branchName = body.ref.toLowerCase().replace('refs/heads/','')
     const sha = body.after
 
+    const skip_deploy = body.commits.map( commit => Array.isArray(commit.message.match(/skip deploy|deploy skip/i)))
+                                    .reduce( function(a,i,x,z) { return a||i })
+
     const meta = {
       branch: branchName,
       sha: sha
@@ -29,6 +32,7 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
       type: 'branch',
       branchName: branchName,
       sha: sha,
+      skip, skip_deploy
     }
 
     let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
