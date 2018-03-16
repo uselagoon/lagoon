@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/oc
+FROM ${IMAGE_REPO:-amazeeio}/oc
 
 ENV LAGOON=oc-build-deploy-tug
 
