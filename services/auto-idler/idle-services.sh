@@ -57,7 +57,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
     AUTOIDLE=$(echo "$project" | jq -r '.auto_idle')
 
     # Match the Project name to the Project Regex
-    if [[ $PROJECT_NAME =~ ^$PROJECT_REGEX$ ]]; then
+    if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
       OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
       echo "$OPENSHIFT_URL - $PROJECT_NAME: Found with development environments"
 
@@ -88,8 +88,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
           echo "$OPENSHIFT_URL - $PROJECT_NAME: has autoidle set to $AUTOIDLE "
       fi
     else
-      echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: ^$PROJECT_REGEX$"
+      echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
     fi
     echo "" # new line for prettyness
   done
-
