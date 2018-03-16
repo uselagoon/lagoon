@@ -61,7 +61,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
       OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
       echo "$OPENSHIFT_URL - $PROJECT_NAME: Found with development environments"
 
-      if [[ $AUTOIDLE == "auto"]]; then
+      if [[ $AUTOIDLE == "auto" ]]; then
         # loop through each environment of the current project
         echo "$project" | jq -c '.environments[]' | while read environment
         do
