@@ -379,12 +379,13 @@ do
 
   # if mariadb-galera is a statefulset check also for maxscale
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
-    SERVICE_NAME="${SERVICE_NAME}-maxscale"
-    . /scripts/exec-monitor-deploy.sh
 
     STATEFULSET="${SERVICE_NAME}-galera"
     . /scripts/exec-monitor-statefulset.sh
-    
+
+    SERVICE_NAME="${SERVICE_NAME}-maxscale"
+    . /scripts/exec-monitor-deploy.sh
+
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /scripts/exec-monitor-deploy.sh
   fi
