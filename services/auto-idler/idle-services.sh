@@ -62,28 +62,28 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
       echo "$OPENSHIFT_URL - $PROJECT_NAME: Found with development environments"
 
       if [[ $AUTOIDLE == "auto"]]; then
-      # loop through each environment of the current project
-      echo "$project" | jq -c '.environments[]' | while read environment
-      do
-        ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
-        ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
-        echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
+        # loop through each environment of the current project
+        echo "$project" | jq -c '.environments[]' | while read environment
+        do
+          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+          ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
+          echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
-        # Check if this environment has hits
-        HAS_HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count | if . > 0 then true else false end")
+          # Check if this environment has hits
+          HAS_HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count | if . > 0 then true else false end")
 
-        if [ ! $? -eq 0 ]; then
-          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
-          continue
-        elif [ "$HAS_HITS" == "true" ]; then
-          HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
-          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last hour, no idleing"
-        else
-          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last hour, starting to idle"
-          # actually idleing happens here
-          oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle --all
-        fi
-      done
+          if [ ! $? -eq 0 ]; then
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
+            continue
+          elif [ "$HAS_HITS" == "true" ]; then
+            HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last hour, no idleing"
+          else
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last hour, starting to idle"
+            # actually idleing happens here
+            oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle --all
+          fi
+        done
       else
           echo "$OPENSHIFT_URL - $PROJECT_NAME: has autoidle set to $AUTOIDLE "
       fi
