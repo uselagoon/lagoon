@@ -54,12 +54,14 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
+    AUTOIDLE=$(echo "$project" | jq -r '.auto_idle')
 
     # Match the Project name to the Project Regex
     if [[ $PROJECT_NAME =~ ^$PROJECT_REGEX$ ]]; then
       OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
       echo "$OPENSHIFT_URL - $PROJECT_NAME: Found with development environments"
 
+      if [[ $AUTOIDLE == "auto"]]; then
       # loop through each environment of the current project
       echo "$project" | jq -c '.environments[]' | while read environment
       do
@@ -82,6 +84,9 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
           oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle --all
         fi
       done
+      else
+          echo "$OPENSHIFT_URL - $PROJECT_NAME: has autoidle set to $AUTOIDLE "
+      fi
     else
       echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: ^$PROJECT_REGEX$"
     fi
