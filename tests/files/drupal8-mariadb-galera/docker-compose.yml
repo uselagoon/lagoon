@@ -58,13 +58,6 @@ services:
       - ./web:/app/web:delegated
     depends_on:
       - builder
-  maxscale:
-    build:
-      context: .
-      dockerfile: Dockerfile.maxscale
-    labels:
-      lagoon.type: maxscale
-      lagoon.name: maxscale
   mariadb:
     environment:
       - MARIADB_ROOT_PASSWORD=password

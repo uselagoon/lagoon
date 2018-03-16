@@ -103,7 +103,6 @@ images :=     centos7 \
 							oc \
 							mariadb \
 							mariadb-drupal \
-							maxscale \
 							postgres \
 							postgres-drupal \
 							oc-build-deploy-dind \
@@ -143,7 +142,6 @@ $(build-images):
 build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
-build/maxscale: build/commons images/maxscale/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
