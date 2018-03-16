@@ -33,7 +33,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
 
     # Match the Project name to the Project Regex
-    if [[ $PROJECT_NAME =~ ^$PROJECT_REGEX$ ]]; then
+    if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
       OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
       echo "$OPENSHIFT_URL - $PROJECT_NAME: Found "
 
@@ -90,8 +90,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
         done
       done
     else
-      echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: ^$PROJECT_REGEX$"
+      echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
     fi
     echo "" # new line for prettyness
   done
-
