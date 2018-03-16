@@ -377,9 +377,9 @@ do
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
-  # if overriddent to mariadb galera, do not verify the nonxistatnt deplymentconfig
+  # if mariadb-galera is a statefulset which cannot be monitored for rollout, but we can monitor the maxscale
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
-    SERVICE_ROLLOUT_TYPE=false
+    SERVICE_NAME="${SERVICE_NAME}-maxscale"
   fi
 
   if [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
