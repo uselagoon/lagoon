@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS project (
        branches               varchar(300),
        pullrequests           varchar(300),
        production_environment varchar(100),
+       auto_idle              ENUM('auto','disabled','agressive') NOT NULL default 'auto',
        openshift              int REFERENCES openshift (id),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
