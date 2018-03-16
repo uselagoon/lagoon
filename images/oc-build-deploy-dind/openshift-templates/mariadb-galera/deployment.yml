@@ -96,7 +96,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
+    name: ${SERVICE_NAME}-maxscale
   spec:
     replicas: 1
     selector:
@@ -113,7 +113,9 @@ objects:
       spec:
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
-          command: /usr/local/bin/maxscale-start
+          command:
+          - /lagoon/entrypoints.bash
+          - /usr/local/bin/maxscale-start
           name: ${SERVICE_NAME}-maxscale
           ports:
           - containerPort: 3306
@@ -144,7 +146,7 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - ${SERVICE_NAME}
+        - ${SERVICE_NAME}-maxscale
         from:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
