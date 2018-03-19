@@ -57,6 +57,7 @@
     url: "{{ check_url }}"
     expected_build_type: "pullrequest"
     expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_sha: "origin/pullrequest_base"
     expected_pr_head_branch: "pullrequest_pr"
     expected_pr_head_sha: "{{ pr_commit_hash }}"
     expected_pr_title: "PR Title"
@@ -87,7 +88,7 @@
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
     git_pr_title: "PR Title - UPDATE"
   tasks:
-  - include: ../../tasks/webhook-gitlab/pullrequest-synchronize.yaml
+  - include: ../../tasks/webhook-gitlab/pullrequest-updated.yaml
 
 - include: ../../checks/check-branch-sha.yaml
   vars:
@@ -101,6 +102,7 @@
     url: "{{ check_url }}"
     expected_build_type: "pullrequest"
     expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_sha: "origin/pullrequest_base"
     expected_pr_head_branch: "pullrequest_pr"
     expected_pr_head_sha: "{{ pr_2nd_commit_hash }}"
     expected_pr_title: "PR Title - UPDATE"
