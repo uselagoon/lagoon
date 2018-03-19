@@ -2,9 +2,9 @@ version: '3.2'
 services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
-    volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
+    # volumes:
+    #   - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    #   - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - "3306:3306"
     labels:
