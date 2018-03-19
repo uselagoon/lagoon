@@ -67,6 +67,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
+  logs2rocketchat:
+    image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
+    command: yarn run dev
+    volumes:
+      - ./services/logs2rocketchat/src:/app/services/logs2rocketchat/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs2rocketchat/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs2rocketchat:${SAFE_BRANCH:-master}
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev

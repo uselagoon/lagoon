@@ -47,6 +47,13 @@ const typeDefs = `
     created: String
   }
 
+  type NotificationRocketChat {
+    id: Int
+    name: String
+    webhook: String
+    channel: String
+  }
+
   type NotificationSlack {
     id: Int
     name: String
@@ -54,14 +61,14 @@ const typeDefs = `
     channel: String
   }
 
-  union Notification = NotificationSlack
+  union Notification = NotificationRocketChat | NotificationSlack
 
   type Project {
     id: Int
     name: String
     customer: Customer
     git_url: String
-    notifications(type: String): [Notification]
+    notifications(type: String!): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
     active_systems_remove: String
@@ -160,10 +167,20 @@ const typeDefs = `
     name: String!
   }
 
+  input NotificationRocketChatInput {
+    name: String!
+    webhook: String!
+    channel: String!
+  }
+
   input NotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationRocketChatInput {
+    name: String!
   }
 
   input DeleteNotificationSlackInput {
@@ -250,10 +267,21 @@ const typeDefs = `
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationRocketChatPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+
   input UpdateNotificationSlackPatchInput {
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationRocketChatInput {
+    name: String!
+    patch: UpdateNotificationRocketChatPatchInput
   }
 
   input UpdateNotificationSlackInput {
@@ -287,6 +315,7 @@ const typeDefs = `
   type Mutation {
     updateEnvironment(input: UpdateEnvironmentInput!): Environment
     updateSshKey(input: UpdateSshKeyInput!): SshKey
+    updateNotificationRocketChat(input: UpdateNotificationRocketChatInput!): NotificationRocketChat
     updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -301,7 +330,9 @@ const typeDefs = `
     deleteCustomer(input: DeleteCustomerInput!): String
     addOpenshift(input: OpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
+    addNotificationRocketChat(input: NotificationRocketChatInput!): NotificationRocketChat
     addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+    deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
     addNotificationToProject(input: NotificationToProjectInput!): Project
     removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
@@ -394,6 +425,8 @@ const resolvers = {
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
+        case 'rocketchat':
+          return 'NotificationRocketChat';
         default:
           return null;
       }
@@ -469,6 +502,14 @@ const resolvers = {
       const ret = await dao.updateSshKey(req.credentials, input);
       return ret;
     },
+    updateNotificationRocketChat: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
+      return ret;
+    },
     updateNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.updateNotificationSlack(
@@ -536,9 +577,22 @@ const resolvers = {
       const ret = await dao.deleteOpenshift(req.credentials, args.input);
       return ret;
     },
+    addNotificationRocketChat: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addNotificationRocketChat(req.credentials, args.input);
+      return ret;
+    },
     addNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addNotificationSlack(req.credentials, args.input);
+      return ret;
+    },
+    deleteNotificationRocketChat: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     deleteNotificationSlack: async (root, args, req) => {

@@ -362,6 +362,52 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationRocketChat
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300),
+    IN channel     varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_rocketchat (
+      name,
+      webhook,
+      channel
+    ) VALUES (
+      name,
+      webhook,
+      channel
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook,
+      channel
+    FROM notification_rocketchat
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationRocketChat
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_rocketchat ns WHERE ns.name = name;
+
+    DELETE FROM notification_rocketchat WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'rocketchat';
+  END;
+$$
 
 CREATE OR REPLACE PROCEDURE
   CreateNotificationSlack
@@ -411,82 +457,12 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  CreateProjectNotification
-  (
-    IN project            varchar(50),
-    IN notificationType   varchar(300),
-    IN notificationName   varchar(300)
-  )
-  BEGIN
-    INSERT INTO project_notification (
-      pid,
-      type,
-      nid
-    ) SELECT
-      p.id,
-      notificationType,
-      ns.id
-    FROM
-      project AS p,
-      notification_slack AS ns
-    WHERE
-      p.name = project AND
-      ns.name = notificationName;
-
-    SELECT
-      p.*
-    FROM project p
-    WHERE p.name = project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  DeleteProjectNotification
-  (
-    IN project            varchar(50),
-    IN notificationType   varchar(300),
-    IN notificationName   varchar(300)
-  )
-  BEGIN
-
-    DELETE
-      project_notification
-    FROM
-      project_notification
-    LEFT JOIN project ON project_notification.pid = project.id
-    LEFT JOIN notification_slack ON project_notification.nid = notification_slack.id
-    WHERE
-      type = notificationType AND
-      project.name = project AND
-      notification_slack.name = notificationName;
-
-    SELECT
-      *
-    FROM project as p
-    WHERE p.name = project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   CreateProjectSshKey
   (
     IN project            varchar(50),
     IN ssh_key            varchar(100)
   )
   BEGIN
-    DECLARE count int;
-
-    SELECT count(*) INTO count
-      FROM ssh_key sk
-      WHERE sk.name = ssh_key;
-
-    IF count = 0 THEN
-      SET @message_text = concat('SSH-Key: "', ssh_key, '" does not exist');
-      SIGNAL SQLSTATE '02000'
-      SET MESSAGE_TEXT = @message_text;
-    END IF;
 
     INSERT INTO project_ssh_key (
       pid,
@@ -553,7 +529,6 @@ CREATE OR REPLACE PROCEDURE
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
-
 
     INSERT INTO customer_ssh_key (
       cid,
