@@ -29,6 +29,13 @@ do
 
   # Load the servicetype. If it's "none" we will not care about this service at all
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
+
+  # Allow the servicetype to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
+    SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
+  fi
+
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
@@ -111,14 +118,23 @@ fi
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
-
+  echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
+  echo "=== OPENSHIFT_SERVICES_TEMPLATE=${OPENSHIFT_SERVICES_TEMPLATE} "
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
+
 
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
   SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
 
+
+  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
+    SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
+  fi
+
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
+
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
     . /scripts/exec-openshift-resources.sh
@@ -220,6 +236,26 @@ if [ "$TYPE" == "pullrequest" ]; then
 fi
 
 ##############################################
+### PUSH IMAGES TO OPENSHIFT REGISTRY
+##############################################
+
+if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # Before the push the temporary name is resolved to the future tag with the registry in the image name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+    . /scripts/exec-push.sh
+  done
+elif [ "$TYPE" == "promote" ]; then
+
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    . /scripts/exec-openshift-tag.sh
+  done
+
+fi
+
+##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
@@ -261,11 +297,10 @@ do
     . /scripts/exec-openshift-create-pvc.sh
   fi
 
-  # Deployment template can be overwritten in docker-compose
+  OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
+  if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
 
-  if [ $OVERRIDE_TEMPLATE == "false" ]; then
-    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
     if [ -f $OPENSHIFT_TEMPLATE ]; then
       . /scripts/exec-openshift-resources.sh
     fi
@@ -329,27 +364,6 @@ done
 
 
 ##############################################
-### PUSH IMAGES TO OPENSHIFT REGISTRY
-##############################################
-
-if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
-  for IMAGE_NAME in "${IMAGES[@]}"
-  do
-    # Before the push the temporary name is resolved to the future tag with the registry in the image name
-    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-    . /scripts/exec-push.sh
-  done
-elif [ "$TYPE" == "promote" ]; then
-
-  for IMAGE_NAME in "${IMAGES[@]}"
-  do
-    . /scripts/exec-openshift-tag.sh
-  done
-
-fi
-
-
-##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
 ##############################################
 
@@ -361,9 +375,18 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.rollout deploymentconfigs)
+  SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
-  if [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
+  # if mariadb-galera is a statefulset check also for maxscale
+  if [ $SERVICE_TYPE == "mariadb-galera" ]; then
+
+    STATEFULSET="${SERVICE_NAME}-galera"
+    . /scripts/exec-monitor-statefulset.sh
+
+    SERVICE_NAME="${SERVICE_NAME}-maxscale"
+    . /scripts/exec-monitor-deploy.sh
+
+  elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /scripts/exec-monitor-deploy.sh
   fi
 done
