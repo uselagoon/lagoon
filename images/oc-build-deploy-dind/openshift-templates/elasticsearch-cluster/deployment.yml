@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-elasticsearch
+  name: lagoon-openshift-template-elasticsearch-cluster
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -31,39 +31,30 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
-  - name: DEPLOYMENT_STRATEGY
-    description: Strategy of Deploymentconfig
-    value: "Recreate"
-  - name: SERVICE_IMAGE
-    description: Pullable image of service
-    required: true
 objects:
-- apiVersion: v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1beta1
+  kind: StatefulSet
   metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
+    name: elasticsearch-cluster
   spec:
-    replicas: 1
+    serviceName: "elasticsearch-cluster"
+    replicas: 3
     selector:
-      service: ${SERVICE_NAME}
-    strategy:
-      type: ${DEPLOYMENT_STRATEGY}
+      matchLabels:
+        service: elasticsearch-cluster
     template:
       metadata:
-        creationTimestamp: null
         labels:
-          service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
+          service: elasticsearch-cluster
+        annotations:
+          alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - image: ${SERVICE_IMAGE}
-          name: ${SERVICE_NAME}
+        - name: elasticsearch-cluster
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/elasticsearch:latest
+          imagePullPolicy: Always
           ports:
           - containerPort: 9200
             protocol: TCP
@@ -91,7 +82,11 @@ objects:
         - name: ${SERVICE_NAME}
           persistentVolumeClaim:
             claimName: ${SERVICE_NAME}
-    test: false
-    triggers:
-    - type: ConfigChange
-  status: {}
+    volumeClaimTemplates:
+    - metadata:
+        name: ${SERVICE_NAME}-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
