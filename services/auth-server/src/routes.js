@@ -1,15 +1,15 @@
 // @flow
 
 const R = require('ramda');
-const { parseJson } = require('./util/routing');
 const { createJWT } = require('@lagoon/commons/src/jwt');
+const { parseJson } = require('./util/routing');
 
 import type { $Request, $Response } from 'express';
 
 type GenerateRouteArgs = {
   jwtSecret: string,
   issuer: string,
-  audience?: string
+  audience?: string,
 };
 
 const generateRoute = (args: GenerateRouteArgs) => {

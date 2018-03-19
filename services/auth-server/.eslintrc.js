@@ -15,11 +15,6 @@ module.exports = {
     'global-require': 'off',
     // Code style rule to enforce import ordering. We disable this because we use absolute imports for types sometimes after relative imports.
     'import/first': 'off',
-    // Fix the erroring of
-    'import/no-extraneous-dependencies': [
-      'error',
-      { devDependencies: ['**/scripts/updateSchema.js'] },
-    ],
     // Code style rule to prefer a default export instead of a single named export, currently we disable this to allow this behavior. We can decide later to turn this on again if we want.
     'import/prefer-default-export': 'off',
     // Prettier works better with its default 80 character max-length
