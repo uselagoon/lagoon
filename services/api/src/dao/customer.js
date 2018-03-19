@@ -15,29 +15,31 @@ const Sql = {
     const { id, patch } = input;
     const { customers } = cred.permissions;
 
-    const query = knex('customer').where('id', '=', id);
+    const updateCustomerQuery = knex('customer').where('id', '=', id);
 
     if (cred.role !== 'admin' && !R.contains(id, customers)) {
-      query.whereIn('id', customers);
+      updateCustomerQuery.whereIn('id', customers);
     }
 
-    return query.update(patch).toString();
+    return updateCustomerQuery.update(patch).toString();
   },
-  selectCustomer: id => {
-    return knex('customer')
+  selectCustomer: id =>
+    knex('customer')
       .where('id', '=', id)
-      .toString();
-  },
+      .toString(),
   getCustomerByName: (cred, name) => {
-    const { customers, role } = cred.permissions;
+    const {
+      customers,
+      // role
+    } = cred.permissions;
 
-    const query = knex('customer').where('name', '=', name);
+    const getCustomerQuery = knex('customer').where('name', '=', name);
 
     if (cred.role !== 'admin') {
-      query.whereIn('id', customers);
+      getCustomerQuery.whereIn('id', customers);
     }
 
-    return query.toString();
+    return getCustomerQuery.toString();
   },
 };
 
@@ -75,9 +77,9 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
       JOIN customer c ON p.customer = c.id
       WHERE p.id = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
+  )}
     `;
   const prep = prepare(sqlClient, str);
 

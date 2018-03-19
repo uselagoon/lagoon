@@ -25,11 +25,9 @@
 // - Use a sql-string builder, additionally with our prepared statements.
 //   Currently we are playing around with `knex` as our sql-builder library
 
-const attrFilter = require('./attrFilter');
 const R = require('ramda');
 
 const {
-  knex,
   ifNotAdmin,
   whereAnd,
   inClause,
@@ -38,7 +36,7 @@ const {
   prepare,
 } = require('./utils');
 
-const getPermissions = sqlClient => async args => {
+const getPermissions = sqlClient => async (args) => {
   const prep = prepare(
     sqlClient,
     'SELECT keyId as sshKeyId, projects, customers FROM permission WHERE sshKey = :sshKey',

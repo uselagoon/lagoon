@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@lagoon/commons": "3.0.2",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "dotenv": "^4.0.0",
@@ -27,16 +28,21 @@
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
     "nodemon": "^1.12.1",
-    "prettier-eslint": "^8.2.5",
+    "prettier-eslint": "^8.8.1",
     "ramda": "^0.24.1",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
+    "sshpk": "^1.14.1",
     "winston": "^2.4.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
+    "eslint": "4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.41.0",
+    "eslint-plugin-import": "^2.7.0",
     "jest": "^22.0.0",
-    "prettier": "^1.9.2"
+    "prettier": "^1.11.1"
   },
   "jest": {
     "rootDir": ".",

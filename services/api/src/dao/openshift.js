@@ -12,7 +12,7 @@ const {
 } = require('./utils');
 
 const Sql = {
-  updateOpenshift: input => {
+  updateOpenshift: (input) => {
     const { id, patch } = input;
 
     return knex('openshift')
@@ -86,9 +86,9 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
       JOIN openshift o ON o.id = p.openshift
       WHERE p.id = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
-      )}
+    cred.role,
+    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+  )}
     `,
   );
 
