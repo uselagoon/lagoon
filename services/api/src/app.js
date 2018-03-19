@@ -7,12 +7,27 @@ const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
 const { createAuthMiddleware } = require('./auth');
-const R = require('ramda');
 
 const Dao = require('./dao');
 
-const createApp = args => {
-  const { store, jwtSecret, jwtAudience, sqlClient } = args;
+/* ::
+import type MariaSQL from 'mariasql';
+
+type CreateAppArgs = {
+  store?: Object,
+  jwtSecret: string,
+  jwtAudience: string,
+  sqlClient: MariaSQL,
+};
+*/
+
+const createApp = (args /* : CreateAppArgs */) => {
+  const {
+    // store,
+    jwtSecret,
+    jwtAudience,
+    sqlClient,
+  } = args;
   const app = express();
 
   const dao = Dao.make(sqlClient);

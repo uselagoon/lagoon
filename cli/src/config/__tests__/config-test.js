@@ -4,7 +4,7 @@ import { createConfig, parseConfig } from '..';
 
 const fs = require('../../util/fs');
 
-// $FlowIgnore https://github.com/facebook/jest/issues/936#issuecomment-214556122
+// $FlowFixMe https://github.com/facebook/jest/issues/936#issuecomment-214556122
 fs.writeFile = jest.fn();
 
 function _mock(fn: any): JestMockFn {

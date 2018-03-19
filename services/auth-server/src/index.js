@@ -5,16 +5,18 @@ const morgan = require('morgan');
 const logger = require('./logger');
 const { generateRoute } = require('./routes');
 
-import type { $Request, $Response, NextFunction } from 'express';
+import type { $Request, $Response } from 'express';
 
 const app = express();
 
 // Add custom configured logger (morgan through winston).
-app.use(morgan('combined', {
-  stream: {
-    write: message => logger.info(message),
-  },
-}));
+app.use(
+  morgan('combined', {
+    stream: {
+      write: message => logger.info(message),
+    },
+  }),
+);
 
 const port = process.env.PORT || 3000;
 const jwtSecret = process.env.JWTSECRET || '';
@@ -27,8 +29,7 @@ export interface ErrorWithStatus extends Error {
   status: number;
 }
 
-// $FlowIgnore
-app.use((err: ErrorWithStatus, req: $Request, res: $Response, next: NextFunction) => {
+app.use((err: ErrorWithStatus, req: $Request, res: $Response) => {
   logger.error(err.toString());
   res.status(err.status || 500);
   res.send(`Request failed: ${err.toString()}`);

@@ -15,7 +15,7 @@ describe('Sql', () => {
   });
   describe('selectEnvironment', () => {
     it('should create a proper query', () => {
-      const ret = Sql.selectEnvironmentByName("e1");
+      const ret = Sql.selectEnvironmentByName('e1');
       expect(ret).toMatchSnapshot();
     });
   });

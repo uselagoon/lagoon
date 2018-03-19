@@ -8,7 +8,6 @@
     "test": "jest"
   },
   "devDependencies": {
-    "flow-bin": "^0.48.0",
     "jest": "^21.2.1",
     "prettier": "^1.5.3"
   },

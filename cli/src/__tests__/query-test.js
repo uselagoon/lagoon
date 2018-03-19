@@ -18,7 +18,7 @@ const _mock = (mockFn: any): JestMockFn => mockFn;
 
 describe('runGQLQuery', () => {
   it('Should reject because of missing hostname', async () => {
-    // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = {
       api: 'invalid-url',
     };
@@ -42,7 +42,7 @@ describe('runGQLQuery', () => {
   });
 
   it('should do a POST request via GraphQL', async () => {
-    // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = null;
 
     const mockedRequest = _mock(request).mockImplementationOnce(() =>
@@ -77,7 +77,7 @@ describe('runGQLQuery', () => {
   });
 
   it('should do a POST request to a custom API via GraphQL', async () => {
-    // $FlowIgnore Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = {
       api: 'https://www.example.com/api',
     };
