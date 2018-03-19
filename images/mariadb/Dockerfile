@@ -6,7 +6,7 @@ MAINTAINER amazee.io
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
-COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/peer-finder /bin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -109,7 +109,6 @@ RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint
     ln -s /var/lib/mysql/.my.cnf /home/.my.cnf && \
     sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
-COPY root/usr/bin/peer-finder /usr/bin/peer-finder
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scripts/mysql/galera.cnf
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
