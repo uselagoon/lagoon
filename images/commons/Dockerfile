@@ -5,7 +5,7 @@ MAINTAINER amazee.io
 ENV LAGOON=commons
 
 COPY lagoon/ /lagoon/
-COPY fix-permissions docker-sleep /bin/
+COPY fix-permissions docker-sleep peer-finder /bin/
 COPY .bashrc /home/.bashrc
 
 RUN apk update \
