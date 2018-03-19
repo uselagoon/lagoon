@@ -23,7 +23,7 @@ async function gitlabPullRequestUpdated(webhook: WebhookRequestData, project: Pr
 
 
     const data: deployData = {
-      pullrequestTitle: body.object_attributes.title
+      pullrequestTitle: body.object_attributes.title,
       pullrequestNumber: body.object_attributes.id,
       projectName: project.name,
       type: 'pullrequest',
