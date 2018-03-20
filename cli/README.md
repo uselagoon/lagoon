@@ -132,18 +132,6 @@ Login successful
 Done in 4.15s.
 ```
 
-### `lagoon sites`
-
-```sh
-# List sites for the configured / given project
-lagoon sites
-lagoon sites -s my_project
-```
-
-#### `lagoon sites` Examples
-
-TODO: Make examples
-
 ## Development - local nodejs
 
 The `execute <cli command>`, `sshlogin` and `sshlogout` yarn scripts can be used to run CLI commands during development.
