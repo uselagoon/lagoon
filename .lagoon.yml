@@ -19,4 +19,4 @@ tasks:
 environments:
   develop:
     types:
-      elasticsearch: elasticsearch-cluster
+      logs-db: elasticsearch-cluster
