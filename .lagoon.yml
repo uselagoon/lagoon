@@ -19,4 +19,4 @@ tasks:
 environments:
   develop:
     types:
-      mariadb: mariadb-galera
+      elasticsearch: elasticsearch-cluster
