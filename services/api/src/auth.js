@@ -113,10 +113,6 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
   let decoded = '';
   try {
     decoded = decodeToken(token, jwtSecret);
-
-    if (decoded == null) {
-      throw new Error('Decoding token resulted in "null" or "undefined"');
-    }
   } catch (e) {
     logger.debug(`Error while decoding auth token: ${e.message}`);
     res.status(500).send({
@@ -130,6 +126,10 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
   }
 
   try {
+    if (decoded == null) {
+      throw new Error("Decoding token resulted in 'null' or 'undefined'");
+    }
+
     const { sshKey, role = 'none', aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
