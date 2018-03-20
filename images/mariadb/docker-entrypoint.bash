@@ -23,7 +23,7 @@ else
   echo "Using service name: ${K8S_SVC_NAME}"
   # copy the pristine version to the one that can be edited
   cp ${CONTAINER_SCRIPTS_DIR}/galera.cnf ${EXTRA_DEFAULTS_FILE}
-  /bin/peer-finder -on-start="${CONTAINER_SCRIPTS_DIR}/configure-galera.sh" -service=${K8S_SVC_NAME}
+  /usr/bin/peer-finder -on-start="${CONTAINER_SCRIPTS_DIR}/configure-galera.sh" -service=${K8S_SVC_NAME}
 fi
 
 if [ "${1:0:1}" = '-' ]; then
