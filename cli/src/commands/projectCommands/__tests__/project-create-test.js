@@ -4,6 +4,8 @@ import R from 'ramda';
 import { runGQLQuery } from '../../../query';
 
 import {
+  CUSTOMER,
+  OPENSHIFT,
   allOptionsSpecified,
   commandOptions,
   getAllowedCustomersAndOpenshifts,
@@ -14,15 +16,24 @@ jest.mock('../../../query');
 
 const _mock = (mockFn: any): JestMockFn => mockFn;
 
+const options = R.mapObjIndexed(
+  (value, key) =>
+    // If the key is CUSTOMER or OPENSHIFT...
+    new RegExp(`${CUSTOMER}|${OPENSHIFT}`).test(key)
+      ? 0 // ...return a number to satisfy the Flow type...
+      : value, // ...otherwise just return the value
+  commandOptions,
+);
+
 describe('allOptionsSpecified', () => {
   it('should return true when all options are specified', () => {
-    const returnVal = allOptionsSpecified(commandOptions);
+    const returnVal = allOptionsSpecified(options);
     expect(returnVal).toBe(true);
   });
 
   it('should return true when all options and more are specified', () => {
     const returnVal = allOptionsSpecified({
-      ...commandOptions,
+      ...options,
       anotherOptionKey: 'anotherOptionValue',
     });
     expect(returnVal).toBe(true);
@@ -58,7 +69,8 @@ describe('getAllowedCustomersAndOpenshifts', () => {
             },
           ],
         },
-      }));
+      }),
+    );
 
     const cerr = jest.fn();
 
@@ -93,7 +105,8 @@ describe('createProject', () => {
               },
             ],
           },
-        }))
+        }),
+      )
       .mockImplementationOnce(() =>
         Promise.resolve({
           data: {
@@ -113,7 +126,8 @@ describe('createProject', () => {
               created: '2018-03-05 10:26:22',
             },
           },
-        }));
+        }),
+      );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -140,7 +154,8 @@ describe('createProject', () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'something something error' }],
-      }));
+      }),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -173,11 +188,13 @@ describe('createProject', () => {
               },
             ],
           },
-        }))
+        }),
+      )
       .mockImplementationOnce(() =>
         Promise.resolve({
           errors: [{ message: 'something something error 2' }],
-        }));
+        }),
+      );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -204,7 +221,8 @@ describe('createProject', () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve({
         data: { allCustomers: [], allOpenshifts: [] },
-      }));
+      }),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -227,7 +245,8 @@ describe('createProject', () => {
           ],
           allOpenshifts: [],
         },
-      }));
+      }),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
