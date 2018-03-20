@@ -16,11 +16,11 @@
 <PROJECT_ROOT>/services/rest2tasks/
 <PROJECT_ROOT>/services/webhook-handler/
 <PROJECT_ROOT>/services/webhooks2tasks/
-<PROJECT_ROOT>/node-packages/commons/
 
 [include]
 
 [libs]
+flow-typed
 cli/flow-typed
 services/api/flow-typed
 services/auth-server/flow-typed

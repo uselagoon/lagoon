@@ -76,7 +76,7 @@ const daoFns = {
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
-const make = sqlClient => R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
+const make = sqlClient => R.map(fn => fn(sqlClient), daoFns);
 
 module.exports = {
   ...daoFns,

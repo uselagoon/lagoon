@@ -4,6 +4,10 @@ const jwt = require('jsonwebtoken');
 const R = require('ramda');
 const logger = require('./logger');
 
+/* ::
+import type { $Application } from 'express';
+*/
+
 const parseBearerToken = R.compose(
   R.ifElse(
     splits =>
@@ -61,9 +65,18 @@ type CreateAuthMiddlewareArgs = {
   jwtAudience: string,
 };
 
+class Request extends express$Request {
+  credentials: any
+};
+
 type CreateAuthMiddlewareFn =
   CreateAuthMiddlewareArgs =>
-    ($Request, $Response, NextFunction) =>
+    (
+      // To allow extending the request object with Flow
+      Request,
+      $Response,
+      NextFunction
+    ) =>
       Promise<void>
 
 */

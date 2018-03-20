@@ -7,7 +7,6 @@ const {
   knex,
   prepare,
   query,
-  whereAnd,
 } = require('./utils');
 const { validateSshKey } = require('@lagoon/commons/src/jwt');
 
