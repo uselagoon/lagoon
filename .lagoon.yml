@@ -15,3 +15,8 @@ tasks:
         name: 'check\set elasticsearch watchers'
         command: cd /lagoon/kibana-init/; sh watchers.sh
         service: logs-db-ui
+
+environments:
+  develop:
+    types:
+      mariadb: mariadb-galera
