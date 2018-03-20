@@ -3,6 +3,8 @@ module.exports = {
   plugins: ['flowtype'],
   env: { es6: true, jest: true, node: true },
   rules: {
+    // Disable stylistic rule
+    camelcase: 'off',
     // Rule to enforce function return types. We disable this because Flow will check our function return types.
     'consistent-return': 'off',
     // Fix issue with the way Prettier formats types
@@ -23,6 +25,12 @@ module.exports = {
     'no-confusing-arrow': 'off',
     // Rule to restrict usage of confusing code style with mixed boolean operators. We disable this because Prettier removes "unnecessary parentheses" here and breaks this.
     'no-mixed-operators': 'off',
+    // Disable stylistic rule
+    'no-multi-assign': 'off',
+    // Disable stylistic rule
+    'no-param-reassign': 'off',
+    // Disable stylistic rule
+    'no-plusplus': 'off',
     // Disable stylistic rule
     'no-restricted-globals': 'off',
     // Rule to prevent prefixing of underscores on variable names. We disable this because we use some underscore prefixes in our code.

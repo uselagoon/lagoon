@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const logger = require('./logger');
 const { generateRoute } = require('./routes');
 
-import type { $Request, $Response } from 'express';
+import type { LagoonErrorWithStatus, $Request, $Response } from 'express';
 
 const app = express();
 
@@ -25,11 +25,7 @@ const audience = process.env.JWTAUDIENCE || 'api.amazee.io';
 
 app.post('/generate', ...generateRoute({ jwtSecret, issuer, audience }));
 
-export interface ErrorWithStatus extends Error {
-  status: number;
-}
-
-app.use((err: ErrorWithStatus, req: $Request, res: $Response) => {
+app.use((err: LagoonErrorWithStatus, req: $Request, res: $Response) => {
   logger.error(err.toString());
   res.status(err.status || 500);
   res.send(`Request failed: ${err.toString()}`);
