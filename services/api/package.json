@@ -21,7 +21,7 @@
     "dotenv-extended": "^2.0.1",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
-    "graphql": "^0.11.7",
+    "graphql": "^0.13.2",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
     "knex": "^0.14.3",
