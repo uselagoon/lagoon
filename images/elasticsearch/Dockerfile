@@ -27,4 +27,4 @@ RUN echo "xpack.security.enabled: false" >> config/elasticsearch.yml
 
 ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
 
-ENTRYPOINT ["/lagoon/entrypoints.bash"]
+ENTRYPOINT ["/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]
