@@ -28,7 +28,8 @@ const mockResponse = {
 describe('getCustomerDetails', () => {
   it('should show customer details', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
-      Promise.resolve(mockResponse));
+      Promise.resolve(mockResponse),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -47,7 +48,8 @@ describe('getCustomerDetails', () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'Something, something missing parameter X' }],
-      }));
+      }),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -62,7 +64,7 @@ describe('getCustomerDetails', () => {
     expect(cerr.mock.calls).toMatchSnapshot();
   });
 
-  it('should show message for non-existing sites', async () => {
+  it('should show message for non-existing projects', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
 
     const clog = jest.fn();
