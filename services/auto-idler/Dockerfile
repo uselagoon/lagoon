@@ -10,7 +10,7 @@ COPY create_jwt.sh idle-services.sh idle-clis.sh /
 
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
-    PROJECT_REGEX="^$"
+    PROJECT_REGEX=".+"
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]
