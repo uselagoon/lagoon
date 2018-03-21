@@ -22,7 +22,7 @@ describe('Sql', () => {
     it('if admin, should not create IN clause', () => {
       const cred = {
         role: 'admin',
-        permissions: {}
+        permissions: {},
       };
       const input = {
         id: 1,
@@ -58,8 +58,7 @@ describe('Sql', () => {
     it('if admin, should not create IN clause', () => {
       const cred = {
         role: 'admin',
-        permissions: {
-        },
+        permissions: {},
       };
 
       const ret = Sql.getCustomerByName(cred, 'c1');

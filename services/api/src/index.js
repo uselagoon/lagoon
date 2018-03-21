@@ -18,7 +18,7 @@ const MariaSQL = require('mariasql');
 
     sqlClient.on('error', (error) => {
       logger.error(error);
-    })
+    });
 
     await createServer({
       jwtSecret: JWTSECRET,

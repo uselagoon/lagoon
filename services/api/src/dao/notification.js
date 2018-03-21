@@ -2,8 +2,6 @@ const R = require('ramda');
 const {
   knex,
   ifNotAdmin,
-  whereAnd,
-  inClause,
   inClauseOr,
   query,
   prepare,
@@ -19,11 +17,10 @@ const Sql = {
       .update(patch)
       .toString();
   },
-  selectNotificationSlackByName: name => {
-    return knex('notification_slack')
+  selectNotificationSlackByName: name =>
+    knex('notification_slack')
       .where('name', '=', name)
-      .toString();
-  },
+      .toString(),
 };
 
 const addNotificationSlack = sqlClient => async (cred, input) => {
@@ -100,24 +97,24 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
         pn.pid = :pid
         ${args.type ? 'AND pn.type = :type' : ''}
         ${ifNotAdmin(
-          cred.role,
-          `AND (${inClauseOr([
-            ['p.customer', customers],
-            ['p.id', projects],
-          ])})`,
-        )}
+    cred.role,
+    `AND (${inClauseOr([
+      ['p.customer', customers],
+      ['p.id', projects],
+    ])})`,
+  )}
     `,
   );
 
   const rows = await query(
     sqlClient,
     prep({
-      pid: pid,
+      pid,
       type: args.type,
     }),
   );
 
-  return rows ? rows : null;
+  return rows || null;
 };
 
 const updateNotificationSlack = sqlClient => async (cred, input) => {

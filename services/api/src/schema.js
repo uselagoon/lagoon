@@ -314,11 +314,12 @@ const typeDefs = `
 // Useful for transforming Enums on input.patch objects
 // If an operation on input.patch[key] returns undefined,
 // then the input.patch[key] will be ommitted for the result
-const omitPatchKeyIfUndefined = (key) => R.ifElse(
-  R.compose(notUndefined, R.path(['patch', key])),
-  R.identity,
-  R.over(R.lensPath(['patch']), R.omit([key])),
-);
+const omitPatchKeyIfUndefined = key =>
+  R.ifElse(
+    R.compose(notUndefined, R.path(['patch', key])),
+    R.identity,
+    R.over(R.lensPath(['patch']), R.omit([key])),
+  );
 
 const notUndefined = R.compose(R.not, R.equals(undefined));
 
@@ -356,7 +357,11 @@ const resolvers = {
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getNotificationsByProjectId(req.credentials, project.id, args);
+      return await dao.getNotificationsByProjectId(
+        req.credentials,
+        project.id,
+        args,
+      );
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
@@ -377,7 +382,10 @@ const resolvers = {
   Environment: {
     project: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByEnvironmentId(req.credentials, environment.id);
+      return await dao.getProjectByEnvironmentId(
+        req.credentials,
+        environment.id,
+      );
     },
   },
   Notification: {
@@ -526,17 +534,26 @@ const resolvers = {
     },
     deleteNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteNotificationSlack(req.credentials, args.input);
+      const ret = await dao.deleteNotificationSlack(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationToProject(req.credentials, args.input);
+      const ret = await dao.addNotificationToProject(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     removeNotificationFromProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeNotificationFromProject(req.credentials, args.input);
+      const ret = await dao.removeNotificationFromProject(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     addSshKeyToProject: async (root, args, req) => {
@@ -546,7 +563,10 @@ const resolvers = {
     },
     removeSshKeyFromProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeSshKeyFromProject(req.credentials, args.input);
+      const ret = await dao.removeSshKeyFromProject(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     addSshKeyToCustomer: async (root, args, req) => {
@@ -556,7 +576,10 @@ const resolvers = {
     },
     removeSshKeyFromCustomer: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeSshKeyFromCustomer(req.credentials, args.input);
+      const ret = await dao.removeSshKeyFromCustomer(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     addOrUpdateEnvironment: async (root, args, req) => {

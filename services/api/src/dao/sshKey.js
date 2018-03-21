@@ -7,11 +7,10 @@ const {
   knex,
   prepare,
   query,
-  whereAnd,
 } = require('./utils');
 const { validateSshKey } = require('@lagoon/commons/src/jwt');
 
-const fullSshKey = ({keyType, keyValue}) => `${keyType} ${keyValue}`;
+const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const Sql = {
   updateSshKey: (cred, input) => {
@@ -28,7 +27,7 @@ const Sql = {
       .toString(),
 };
 
-const getCustomerSshKeys = sqlClient => async cred => {
+const getCustomerSshKeys = sqlClient => async (cred) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -58,15 +57,15 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
     JOIN project p ON ps.pid = p.id
     WHERE ps.pid = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+  )}
     `,
   );
 
   const rows = await query(sqlClient, prep({ pid }));
 
-  return rows ? rows : null;
+  return rows || null;
 };
 
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
@@ -98,7 +97,7 @@ const deleteSshKey = sqlClient => async (cred, input) => {
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
   const rows = await query(sqlClient, prep(input));
 
-  //TODO: maybe check rows for any changed rows?
+  // TODO: maybe check rows for any changed rows?
   return 'success';
 };
 

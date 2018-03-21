@@ -13,7 +13,7 @@ module.exports = {
     'function-paren-newline': 'off',
     // Code style rule to enforce import ordering. We disable this because we use absolute imports for types sometimes after relative imports.
     'import/first': 'off',
-    // Fix the erroring of
+    // Fix the erroring of dev dependencies in updateSchema script
     'import/no-extraneous-dependencies': [
       'error',
       { devDependencies: ['**/scripts/updateSchema.js'] },

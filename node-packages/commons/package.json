@@ -8,7 +8,10 @@
     "test": "jest"
   },
   "devDependencies": {
-    "flow-bin": "^0.48.0",
+    "eslint": "4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.41.0",
+    "eslint-plugin-import": "^2.7.0",
     "jest": "^21.2.1",
     "prettier": "^1.5.3"
   },
@@ -26,6 +29,7 @@
     "jsonwebtoken": "^8.0.1",
     "lokka": "^1.7.0",
     "lokka-transport-http": "^1.6.1",
+    "prettier-eslint": "^8.8.1",
     "ramda": "^0.24.1",
     "sshpk": "^1.13.1",
     "winston": "^2.4.0",
