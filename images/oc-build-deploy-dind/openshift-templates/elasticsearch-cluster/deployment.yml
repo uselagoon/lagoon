@@ -35,25 +35,25 @@ objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: elasticsearch-cluster
+    name: ${SERVICE_NAME}-cluster
   spec:
-    serviceName: "elasticsearch-cluster"
+    serviceName: ${SERVICE_NAME}-cluster
     replicas: 3
     selector:
       matchLabels:
-        service: elasticsearch-cluster
+        service: ${SERVICE_NAME}-cluster
     template:
       metadata:
         labels:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
-          service: elasticsearch-cluster
+          service: ${SERVICE_NAME}-cluster
         annotations:
           alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - name: elasticsearch-cluster
-          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/elasticsearch:latest
+        - name: ${SERVICE_NAME}-cluster
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 9200
