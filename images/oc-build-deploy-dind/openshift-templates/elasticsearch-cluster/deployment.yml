@@ -78,6 +78,12 @@ objects:
           volumeMounts:
           - mountPath: /usr/share/elasticsearch/data
             name: ${SERVICE_NAME}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
         volumes:
         - name: ${SERVICE_NAME}
           persistentVolumeClaim:
