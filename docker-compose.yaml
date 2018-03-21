@@ -245,7 +245,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/logs-db
     user: '111111111'
     labels:
-      lagoon.type: elasticsearch-cluster
+      lagoon.type: elasticsearch
       lagoon.image: amazeeiolagoon/logs-db:${SAFE_BRANCH:-master}
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui
