@@ -20,21 +20,25 @@ fi
 # use $SSH_ORIGINAL_COMMAND to the argument list
 set -- $SSH_ORIGINAL_COMMAND
 
-if [[ -z "$1" ]]; then # if no argument defined anymore, we assume they want to connect to the cli
+# if [[ -z "$1" ]]; then # if no argument defined anymore, we assume they want to connect to the cli
+#   deploymentconfig=cli
+# elif [[ "$1" = "cd" && "$4" = "bash" ]]; then # Drush connects with something like `cd /app/web && bash -l`, we are checking on that and assuming cli as the deploymentconfig
+#   deploymentconfig=cli
+# elif [[ "$1" = "env" && "$3" = "drush" ]]; then # Drush connects with something like `env COLUMNS=259  drush`, we are checking on that and assuming cli as the deploymentconfig
+#   deploymentconfig=cli
+# elif [[ "$1" = "rsync" ]]; then # Drush connects with something like `env COLUMNS=259  drush`, we are checking on that and assuming cli as the deploymentconfig
   deploymentconfig=cli
-elif [[ "$1" = "cd" && "$4" = "bash" ]]; then # Drush connects with something like `cd /app/web && bash -l`, we are checking on that and assuming cli as the deploymentconfig
-  deploymentconfig=cli
-else # argument is given, check if its a valid one
-  if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
-    deploymentconfig=$1
+# else # argument is given, check if its a valid one
+#   if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
+#     deploymentconfig=$1
 
-    # remove deploymentconfig argument from argument list
-    shift
-  else
-    echo "ERROR: given deploymentconfig '$1' contains illegal characters";
-    exit 1
-  fi
-fi
+#     # remove deploymentconfig argument from argument list
+#     shift
+#   else
+#     echo "ERROR: given deploymentconfig '$1' contains illegal characters";
+#     exit 1
+#   fi
+# fi
 
 echo "Incoming Remote Shell Connection: project='${project}' deploymentconfig='${deploymentconfig}' command='$*'"  >> /proc/1/fd/1
 
