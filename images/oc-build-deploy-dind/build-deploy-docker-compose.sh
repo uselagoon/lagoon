@@ -491,6 +491,11 @@ do
     SERVICE_NAME="${SERVICE_NAME}-maxscale"
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
 
+  elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
+
+    STATEFULSET="${SERVICE_NAME}-cluster"
+    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
+
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
   fi
