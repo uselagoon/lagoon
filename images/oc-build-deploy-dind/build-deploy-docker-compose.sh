@@ -233,6 +233,44 @@ if [ "$TYPE" == "pullrequest" ]; then
 fi
 
 ##############################################
+### PUSH IMAGES TO OPENSHIFT REGISTRY
+##############################################
+if [[ $THIS_IS_TUG == "true" ]]; then
+  # Allow to disable registry auth
+  if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
+    # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
+    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
+      oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
+    fi
+
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets add serviceaccount/default secrets/tug-registry --for=pull
+  fi
+
+  # Import all remote Images into ImageStreams
+  readarray -t TUG_IMAGES < /oc-build-deploy/tug/images
+  for TUG_IMAGE in "${TUG_IMAGES[@]}"
+  do
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} tag --source=docker "${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" "${TUG_IMAGE}:latest"
+  done
+
+elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    # Before the push the temporary name is resolved to the future tag with the registry in the image name
+    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
+    .  /oc-build-deploy/scripts/exec-push.sh
+  done
+elif [ "$TYPE" == "promote" ]; then
+
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    .  /oc-build-deploy/scripts/exec-openshift-tag.sh
+  done
+
+fi
+
+##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
@@ -339,45 +377,6 @@ do
   done
 
 done
-
-
-##############################################
-### PUSH IMAGES TO OPENSHIFT REGISTRY
-##############################################
-if [[ $THIS_IS_TUG == "true" ]]; then
-  # Allow to disable registry auth
-  if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
-    # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
-    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
-      oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
-    fi
-
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets add serviceaccount/default secrets/tug-registry --for=pull
-  fi
-
-  # Import all remote Images into ImageStreams
-  readarray -t TUG_IMAGES < /oc-build-deploy/tug/images
-  for TUG_IMAGE in "${TUG_IMAGES[@]}"
-  do
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} import-image "${TUG_IMAGE}" --from="${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" --confirm
-  done
-
-elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
-  for IMAGE_NAME in "${IMAGES[@]}"
-  do
-    # Before the push the temporary name is resolved to the future tag with the registry in the image name
-    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-    .  /oc-build-deploy/scripts/exec-push.sh
-  done
-elif [ "$TYPE" == "promote" ]; then
-
-  for IMAGE_NAME in "${IMAGES[@]}"
-  do
-    .  /oc-build-deploy/scripts/exec-openshift-tag.sh
-  done
-
-fi
 
 
 ##############################################
