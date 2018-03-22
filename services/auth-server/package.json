@@ -13,18 +13,11 @@
     "format":
       "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
   },
-  "jest": {
-    "rootDir": "src",
-    "testEnvironment": "node",
-    "transform": {
-      "\\.js$": "../../../node-packages/lagoon-commons/src/jest-flow-transform"
-    }
-  },
   "dependencies": {
     "@lagoon/commons": "3.0.2",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
-    "flow-remove-types": "^1.2.1",
+    "flow-remove-types": "^1.2.3",
     "morgan": "^1.9.0",
     "nano": "^6.4.3",
     "prettier-eslint": "^8.8.1",

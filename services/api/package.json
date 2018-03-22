@@ -43,9 +43,5 @@
     "eslint-plugin-import": "^2.7.0",
     "jest": "^22.0.0",
     "prettier": "^1.11.1"
-  },
-  "jest": {
-    "rootDir": ".",
-    "testEnvironment": "node"
   }
 }
