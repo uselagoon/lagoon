@@ -11,7 +11,7 @@ import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
 
 export const command = 'login';
-export const description = 'Authenticate with amazee.io via an SSH key';
+export const description = 'Authenticate with lagoon via an SSH key';
 
 export function builder(yargs: Yargs) {
   return yargs.usage(`$0 ${command} - ${description}`).options({
