@@ -19,7 +19,7 @@ Array [
 exports[`createProject should display error, if GraphQL sends error messages the first time it's called 1`] = `
 Array [
   Array [
-    "[31mOops! The amazee.io API returned an error:[39m",
+    "[31mOops! The lagoon API returned an error:[39m",
   ],
   Array [
     "[31m{[39m
@@ -32,7 +32,7 @@ Array [
 exports[`createProject should display error, if GraphQL sends error messages the second time it's called 1`] = `
 Array [
   Array [
-    "[31mOops! The amazee.io API returned an error:[39m",
+    "[31mOops! The lagoon API returned an error:[39m",
   ],
   Array [
     "[31m{[39m

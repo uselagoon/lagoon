@@ -55,7 +55,7 @@ export function printGraphQLErrors(
   }
   const errorMessage =
     R.length(errors) === 1
-      ? 'Oops! The amazee.io API returned an error:'
-      : 'Oops! The amazee.io API returned errors:';
+      ? 'Oops! The lagoon API returned an error:'
+      : 'Oops! The lagoon API returned errors:';
   return printErrors(cerr, errorMessage, ...errors);
 }

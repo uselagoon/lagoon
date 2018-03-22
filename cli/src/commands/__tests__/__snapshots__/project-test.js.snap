@@ -3,7 +3,7 @@
 exports[`projectDetails should display error, if GraphQL sends error messages 1`] = `
 Array [
   Array [
-    "[31mOops! The amazee.io API returned an error:[39m",
+    "[31mOops! The lagoon API returned an error:[39m",
   ],
   Array [
     "[31m{[39m

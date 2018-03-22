@@ -1,4 +1,4 @@
-# amazee.io Command Line Interface
+# lagoon Command Line Interface
 
 ## Installation
 
@@ -87,7 +87,7 @@ deploy_tasks:
 
 ```text
 $ lagoon login --help
-lagoon login - Authenticate with amazee.io via an SSH key
+lagoon login - Authenticate with lagoon via an SSH key
 
 Options:
   --help          Show help                                            [boolean]
