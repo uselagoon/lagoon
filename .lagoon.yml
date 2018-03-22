@@ -20,4 +20,3 @@ environments:
   develop:
     types:
       logs-db: elasticsearch-cluster
-      mariadb: mariadb-galera
