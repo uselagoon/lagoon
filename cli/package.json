@@ -77,8 +77,5 @@
     "url-regex": "^4.1.1",
     "util.promisify": "^1.0.0",
     "yargs": "^10.1.1"
-  },
-  "jest": {
-    "rootDir": "src"
   }
 }
