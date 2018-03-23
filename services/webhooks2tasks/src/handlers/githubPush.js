@@ -21,6 +21,12 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
 
     const skip_deploy = body.commits.map( commit => Array.isArray(commit.message.match(/skip deploy|deploy skip/i)))
                                     .reduce( function(a,i,x,z) { return a||i })
+    if (skip_deploy) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
+      )
+      return;
+    }
 
     const meta = {
       branch: branchName,
@@ -41,12 +47,6 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
       logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
     }
 
-    if (skip_deploy) {
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
-        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
-      )
-      return;
-    }
 
     try {
       const taskResult = await createDeployTask(data);
