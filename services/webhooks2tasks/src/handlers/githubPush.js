@@ -32,13 +32,20 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
       type: 'branch',
       branchName: branchName,
       sha: sha,
-      skip, skip_deploy
+      skip: skip_deploy
     }
 
     let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
       const shortSha: string = sha.substring(0, 7)
       logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
+    }
+
+    if (skip_deploy) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
+      )
+      return;
     }
 
     try {
