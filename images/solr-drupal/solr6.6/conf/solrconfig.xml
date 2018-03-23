@@ -23,7 +23,7 @@
      For more details about configurations options that may appear in
      this file, see http://wiki.apache.org/solr/SolrConfigXml.
 -->
-<config name="drupal-5.0-solr-6.x" >
+<config name="drupal-5.4-solr-6.x" >
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
        including org.apache.solr.(search|update|request|core|analysis)
@@ -858,7 +858,7 @@
 
   <!-- The more like this handler offers many advantages over the standard handler,
      when performing moreLikeThis requests.-->
-  <requestHandler name="mlt" class="solr.MoreLikeThisHandler">
+  <requestHandler name="/mlt" class="solr.MoreLikeThisHandler">
     <lst name="defaults">
       <str name="df">content</str>
       <str name="mlt.mintf">1</str>
@@ -1164,6 +1164,24 @@
     </arr>
   </requestHandler>
 
+  <!-- A request handler for demonstrating the terms component -->
+  <requestHandler name="/autocomplete" class="solr.SearchHandler" startup="lazy">
+    <lst name="defaults">
+      <bool name="terms">false</bool>
+      <bool name="distrib">false</bool>
+      <!-- By default, don't spell check -->
+      <str name="spellcheck">false</str>
+      <!-- Defaults for the spell checker when used -->
+      <str name="spellcheck.onlyMorePopular">true</str>
+      <str name="spellcheck.extendedResults">false</str>
+      <!--  The number of suggestions to return -->
+      <str name="spellcheck.count">1</str>
+    </lst>
+    <arr name="components">
+      <str>terms</str>
+      <str>spellcheck</str>
+    </arr>
+  </requestHandler>
 
   <!-- Query Elevation Component
 

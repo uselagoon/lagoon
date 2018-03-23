@@ -1,0 +1,86 @@
+version: '2'
+services:
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+    image: builder
+    labels:
+      lagoon.type: cli-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.persistent.name: nginx
+    environment:
+      LAGOON_PROJECT: ci-drupal
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+  varnish:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.varnish
+    labels:
+      lagoon.type: varnish
+      lagoon.name: varnish
+    depends_on:
+      - nginx
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+    expose:
+      - "8080"
+    environment:
+      - AMAZEEIO_URL=drupal.docker.amazee.io
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - builder
+  mariadb:
+    environment:
+      - MARIADB_ROOT_PASSWORD=password
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+    labels:
+      lagoon.type: mariadb
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile.redis
+    labels:
+      lagoon.type: redis
+  solr:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.solr
+    labels:
+      lagoon.type: solr
+networks:
+  amazeeio-network:
+    external: true
