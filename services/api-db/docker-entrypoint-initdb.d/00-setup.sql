@@ -233,6 +233,25 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_autoidle_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'auto_idle'
+            )  THEN
+      ALTER TABLE `project` ADD `auto_idle` ENUM('auto','disabled') NOT NULL default 'auto';
+      UPDATE project SET auto_idle = 'auto';
+
+    END IF;
+
+  END;
+$$
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -241,3 +260,4 @@ CALL convert_project_pullrequest_to_varchar;
 CALL add_active_systems_promote_to_project;
 CALL rename_git_type_to_deploy_type_in_environment;
 CALL add_enum_promote_to_deploy_type_in_environment;
+CALL add_autoidle_to_project;
