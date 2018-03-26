@@ -15,7 +15,8 @@ CREATE OR REPLACE PROCEDURE
     IN active_systems_remove  varchar(300),
     IN branches               varchar(300),
     IN pullrequests           varchar(300),
-    IN production_environment varchar(100)
+    IN production_environment varchar(100),
+    IN auto_idle              varchar(20),
   )
   BEGIN
     DECLARE new_pid int;
@@ -43,6 +44,7 @@ CREATE OR REPLACE PROCEDURE
         active_systems_remove,
         branches,
         production_environment,
+        auto_idle,
         pullrequests,
         openshift
     )
@@ -56,6 +58,7 @@ CREATE OR REPLACE PROCEDURE
         active_systems_remove,
         branches,
         production_environment,
+        auto_idle,
         pullrequests,
         os.id
     FROM
