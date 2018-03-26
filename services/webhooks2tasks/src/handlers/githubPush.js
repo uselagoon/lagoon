@@ -46,7 +46,6 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
       logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
     }
 
-
     try {
       const taskResult = await createDeployTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
