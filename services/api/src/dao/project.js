@@ -128,7 +128,6 @@ const addProject = sqlClient => async (cred, input) => {
         :customer,
         :git_url,
         :openshift,
-        :auto_idle,
         ${
           input.active_systems_deploy
             ? ':active_systems_deploy'
@@ -146,7 +145,8 @@ const addProject = sqlClient => async (cred, input) => {
         },
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
-        ${input.production_environment ? ':production_environment' : 'NULL'}
+        ${input.production_environment ? ':production_environment' : 'NULL'},
+        ${input.auto_idle ? '"auto"':'"disabled"'}
       );
     `,
   );
