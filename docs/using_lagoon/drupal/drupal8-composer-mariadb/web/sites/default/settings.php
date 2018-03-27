@@ -66,16 +66,9 @@ if(getenv('LAGOON')){
 #   // }
 # }
 
-### Lagoon Varnish & Reverse proxy settings
+### Lagoon Reverse proxy settings
 # if (getenv('LAGOON')) {
 #   $settings['reverse_proxy'] = TRUE;
-#   $varnish_control_port = getenv('VARNISH_CONTROL_PORT') ?: '6082';
-#   $varnish_hosts = explode(',', getenv('VARNISH_HOSTS') ?: 'varnish');
-#   array_walk($varnish_hosts, function(&$value, $key) use ($varnish_control_port) { $value .= ":$varnish_control_port"; });
-#
-#   $config['varnish.settings']['varnish_control_terminal'] = implode($varnish_hosts, " ");
-#   $config['varnish.settings']['varnish_control_key'] = getenv('VARNISH_SECRET') ?: 'lagoon_default_secret';
-#   $config['varnish.settings']['varnish_version'] = 4;
 # }
 
 ### Trusted Host Patterns, see https://www.drupal.org/node/2410395 for more information.
