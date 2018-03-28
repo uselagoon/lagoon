@@ -19,6 +19,8 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
     const branchName = body.ref.toLowerCase().replace('refs/heads/','')
     const sha = body.after
 
+    // for each item in the body.commits array, search for our regular expression; this is an arroy of boolean
+    // which is .reduced into a single true if any are true.
     const skip_deploy = body.commits.map( commit => Array.isArray(commit.message.match(/skip deploy|deploy skip/i)))
                                     .reduce( function(a,i,x,z) { return a||i })
     if (skip_deploy) {
