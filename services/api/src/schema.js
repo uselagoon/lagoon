@@ -18,6 +18,11 @@ const typeDefs = `
     DEVELOPMENT
   }
 
+  enum NotificationType {
+    SLACK
+    ROCKETCHAT
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -61,6 +66,12 @@ const typeDefs = `
     channel: String
   }
 
+  type UnassignedNotification {
+    id: Int
+    name: String
+    type: String
+  }
+
   union Notification = NotificationRocketChat | NotificationSlack
 
   type Project {
@@ -68,7 +79,7 @@ const typeDefs = `
     name: String
     customer: Customer
     git_url: String
-    notifications(type: String!): [Notification]
+    notifications(type: NotificationType): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
     active_systems_remove: String
@@ -106,6 +117,7 @@ const typeDefs = `
     allOpenshifts: [Openshift]
     allUnassignedSshKeys: [SshKey]
     allSshKeys: [SshKey]
+    allUnassignedNotifications(type: NotificationType): [UnassignedNotification]
   }
 
   input SshKeyInput {
@@ -189,13 +201,13 @@ const typeDefs = `
 
   input NotificationToProjectInput {
     project: String!
-    notificationType: String!
+    notificationType: NotificationType!
     notificationName: String!
   }
 
   input RemoveNotificationFromProjectInput {
     project: String!
-    notificationType: String!
+    notificationType: NotificationType!
     notificationName: String!
   }
 
@@ -347,11 +359,12 @@ const typeDefs = `
 // Useful for transforming Enums on input.patch objects
 // If an operation on input.patch[key] returns undefined,
 // then the input.patch[key] will be ommitted for the result
-const omitPatchKeyIfUndefined = (key) => R.ifElse(
-  R.compose(notUndefined, R.path(['patch', key])),
-  R.identity,
-  R.over(R.lensPath(['patch']), R.omit([key])),
-);
+const omitPatchKeyIfUndefined = key =>
+  R.ifElse(
+    R.compose(notUndefined, R.path(['patch', key])),
+    R.identity,
+    R.over(R.lensPath(['patch']), R.omit([key])),
+  );
 
 const notUndefined = R.compose(R.not, R.equals(undefined));
 
@@ -371,6 +384,12 @@ const deployTypeToString = R.cond([
 const envTypeToString = R.cond([
   [R.equals('PRODUCTION'), R.toLower],
   [R.equals('DEVELOPMENT'), R.toLower],
+  [R.T, R.identity],
+]);
+
+const notificationTypeToString = R.cond([
+  [R.equals('ROCKETCHAT'), R.toLower],
+  [R.equals('SLACK'), R.toLower],
   [R.T, R.identity],
 ]);
 
@@ -470,7 +489,15 @@ const resolvers = {
     allSshKeys: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllSshKeys(req.credentials);
-    }
+    },
+    allUnassignedNotifications: async (root, args, req) => {
+      const dao = getDao(req);
+      const args_ = R.compose(
+        R.over(R.lensProp('type'), notificationTypeToString),
+      )(args);
+
+      return await dao.getUnassignedNotifications(req.credentials, args_);
+    },
   },
   Mutation: {
     updateEnvironment: async (root, args, req) => {
@@ -512,6 +539,7 @@ const resolvers = {
     },
     updateNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
+
       const ret = await dao.updateNotificationSlack(
         req.credentials,
         args.input,
@@ -579,7 +607,10 @@ const resolvers = {
     },
     addNotificationRocketChat: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationRocketChat(req.credentials, args.input);
+      const ret = await dao.addNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     addNotificationSlack: async (root, args, req) => {
@@ -605,17 +636,23 @@ const resolvers = {
     },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationToProject(
-        req.credentials,
-        args.input,
-      );
+
+      const input = R.compose(
+        R.over(R.lensProp('notificationType'), notificationTypeToString),
+      )(args.input);
+
+      const ret = await dao.addNotificationToProject(req.credentials, input);
       return ret;
     },
     removeNotificationFromProject: async (root, args, req) => {
       const dao = getDao(req);
+      const input = R.compose(
+        R.over(R.lensProp('notificationType'), notificationTypeToString),
+      )(args.input);
+
       const ret = await dao.removeNotificationFromProject(
         req.credentials,
-        args.input,
+        input,
       );
       return ret;
     },

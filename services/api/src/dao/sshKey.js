@@ -19,13 +19,12 @@ const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const Sql = {
   allowedToModify: (cred, id) => {
-    const { customers, projects } = cred.permissions;
-
     let query = knex('ssh_key AS sk')
       .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
       .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
 
     if (cred.role != 'admin') {
+      const { customers, projects } = cred.permissions;
       query.where('sk.id', '=', id).andWhere(function() {
         this.where(function() {
           this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
@@ -80,9 +79,7 @@ const Sql = {
       });
     }
 
-    return query
-      .select('sk.*')
-      .toString();
+    return query.select('sk.*').toString();
   },
 };
 

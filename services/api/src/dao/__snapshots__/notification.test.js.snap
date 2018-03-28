@@ -2,4 +2,8 @@
 
 exports[`Sql selectCustomer should create a proper query 1`] = `"select * from \`notification_slack\` where \`name\` = 'n1'"`;
 
+exports[`Sql selectNotificationsByTypeByProjectId should create statement for notification_slack table 1`] = `"select \`nt\`.*, \`pn\`.\`type\` from \`project_notification\` as \`pn\` JOIN notification_slack AS nt ON pn.nid = nt.id AND pn.type = 'slack' where \`pn\`.\`pid\` = 3"`;
+
+exports[`Sql selectUnassignedNotificationsByType should create a proper query 1`] = `"select \`nt\`.*, 'rocketchat' as type from \`notification_rocketchat\` as \`nt\` left join project_notification AS pn ON pn.nid = nt.id AND pn.type = 'rocketchat' where pn.nid IS NULL and pn.pid IS NULL"`;
+
 exports[`Sql updateNotificationSlack should create a proper query 1`] = `"update \`notification_slack\` set \`name\` = 'test', \`webhook\` = 'new-webhook' where \`name\` = 'n1'"`;
