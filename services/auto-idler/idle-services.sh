@@ -8,6 +8,7 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query developmentEnvironments {
   developmentEnvironments:allProjects {
     name
+    auto_idle
     openshift {
       console_url
       token
