@@ -34,6 +34,8 @@ RUN mkdir -p /app \
 
 COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint
 
+WORKDIR /app
+
 EXPOSE 8080
 
 # tells the local development environment on which port we are running

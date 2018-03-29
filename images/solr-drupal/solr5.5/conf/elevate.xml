@@ -3,11 +3,8 @@
 <!--
  This file allows you to boost certain search items to the top of search
  results. You can find out an item's ID by searching directly on the Solr
- server. The item IDs are in general constructed as follows:
-   Search API:
-     $document->id = $index_id . '-' . $item_id;
-   Apache Solr Search Integration:
-     $document->id = $site_hash . '/' . $entity_type . '/' . $entity->id;
+ server. Search API generally constructs item IDs (esp. for entities) as:
+     $document->id = "$site_hash-$index_id-$datasource:$entity_id:$language_id";
 
  If you want this file to be automatically re-loaded when a Solr commit takes
  place (e.g., if you have an automatic script active which updates elevate.xml
@@ -19,11 +16,10 @@
 -->
 
 <elevate>
-<!-- Example for ranking the node #1 first in searches for "example query": -->
+<!-- Example for ranking the node #789 first in searches for "example query": -->
 <!--
- <query text="example query">
-  <doc id="default_node_index-1" />
-  <doc id="7v3jsc/node/1" />
+  <query text="example query">
+    <doc id="ab12cd34-site_index-entity:789:en" />
  </query>
 -->
 <!-- Multiple <query> elements can be specified, contained in one <elevate>. -->

@@ -21,6 +21,7 @@ tasks:
                 drush -y cset system.site name "LAGOON_GIT_SHA=$LAGOON_GIT_SHA LAGOON_GIT_BRANCH=$LAGOON_GIT_BRANCH"
             fi
         service: cli
+        shell: bash
     - run:
         name: drush cr
         command: cd web && drush -y cr
