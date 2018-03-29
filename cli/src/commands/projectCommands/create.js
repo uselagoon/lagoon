@@ -462,7 +462,7 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
   const options = R.pick(R.values(commandOptions), {
     // Remove options from the config that should require user input every time
     ...R.omit(dynamicOptions, config),
-    // Don't overwrite values with non-specified arguments (which yargs sets as `undefined`)
+    // Filter out unspecified values (yargs sets them as `undefined`) so that they don't overwrite config values
     ...R.filter(notUndefined, argv),
   });
 
