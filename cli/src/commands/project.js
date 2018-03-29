@@ -88,17 +88,19 @@ projectDetailsArgs): Promise<number> {
   }
 
   clog(`Project details for '${projectName}':`);
-  clog(table([
-    ['Project Name', R.prop('name', project)],
-    ['Customer', R.path(['customer', 'name'], project)],
-    ['Git URL', R.prop('git_url', project)],
-    ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
-    ['Active Systems Remove', R.prop('active_systems_remove', project)],
-    ['Branches', String(R.prop('branches', project))],
-    ['Pull Requests', String(R.prop('pullrequests', project))],
-    ['Openshift', R.path(['openshift', 'name'], project)],
-    ['Created', R.path(['created'], project)],
-  ]));
+  clog(
+    table([
+      ['Project Name', R.prop('name', project)],
+      ['Customer', R.path(['customer', 'name'], project)],
+      ['Git URL', R.prop('git_url', project)],
+      ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
+      ['Active Systems Remove', R.prop('active_systems_remove', project)],
+      ['Branches', String(R.prop('branches', project))],
+      ['Pull Requests', String(R.prop('pullrequests', project))],
+      ['Openshift', R.path(['openshift', 'name'], project)],
+      ['Created', R.path(['created'], project)],
+    ]),
+  );
 
   return 0;
 }
