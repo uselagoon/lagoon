@@ -58,6 +58,8 @@ objects:
           ports:
           - containerPort: 9200
             protocol: TCP
+          - containerPort: 9300
+            protocol: TCP
           readinessProbe:
             httpGet:
               path: /_cluster/health?local=true
@@ -77,20 +79,16 @@ objects:
               memory: 10Mi
           volumeMounts:
           - mountPath: /usr/share/elasticsearch/data
-            name: ${SERVICE_NAME}
+            name: ${SERVICE_NAME}-cluster
           env:
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
-        volumes:
-        - name: ${SERVICE_NAME}
-          persistentVolumeClaim:
-            claimName: ${SERVICE_NAME}
     volumeClaimTemplates:
     - metadata:
-        name: ${SERVICE_NAME}-data
+        name: ${SERVICE_NAME}-cluster
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
