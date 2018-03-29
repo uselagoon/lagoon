@@ -35,11 +35,14 @@ async function promptUntilValidKeyPath(
   return privateKeyPath;
 }
 
+type GetPrivateKeyPathArgs = {
+  identity: ?string,
+};
+
 export const getPrivateKeyPath = async ({
   identity,
-}: {
-  identity: ?string,
-}): Promise<string> => {
+}:
+GetPrivateKeyPathArgs): Promise<string> => {
   const defaultPrivateKeyPath = path.join(os.homedir(), '.ssh', 'id_rsa');
 
   return R.cond([
@@ -88,6 +91,10 @@ type Connection = {
   end: () => Connection,
 };
 
+type SshConnectArgs = {
+  identity: ?string,
+};
+
 type ConnectConfig = {
   host: string,
   port: number,
@@ -98,9 +105,8 @@ type ConnectConfig = {
 
 export async function sshConnect({
   identity,
-}: {
-  identity: ?string,
-}): Promise<Connection> {
+}:
+SshConnectArgs): Promise<Connection> {
   const connection = new Client();
 
   const privateKeyPath = await getPrivateKeyPath({ identity });
