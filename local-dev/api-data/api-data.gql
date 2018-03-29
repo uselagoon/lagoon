@@ -93,70 +93,70 @@ mutation FillAPI {
   CiGithub: addProject(input: {id: 3, name: "ci-github", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/github.git"}) {
     id
   }
-  CiGithubRocketChat: addNotificationToProject(input: {project: "ci-github", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiGithubRocketChat: addNotificationToProject(input: {project: "ci-github", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiGitlab: addProject(input: {id: 4, name: "ci-gitlab", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/gitlab.git"}) {
     id
   }
-  CiGitlabRocketChat: addNotificationToProject(input: {project: "ci-gitlab", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiGitlabRocketChat: addNotificationToProject(input: {project: "ci-gitlab", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiBitbucket: addProject(input: {id: 5, name: "ci-bitbucket", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/bitbucket.git"}) {
     id
   }
-  CiBitbucketRocketChat: addNotificationToProject(input: {project: "ci-bitbucket", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiBitbucketRocketChat: addNotificationToProject(input: {project: "ci-bitbucket", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiRest: addProject(input: {id: 6, name: "ci-rest", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/rest.git"}) {
     id
   }
-  CiRestRocketChat: addNotificationToProject(input: {project: "ci-rest", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiRestRocketChat: addNotificationToProject(input: {project: "ci-rest", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiNode: addProject(input: {id: 7, name: "ci-node", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/node.git"}) {
     id
   }
-  CiNodeRocketChat: addNotificationToProject(input: {project: "ci-node", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiNodeRocketChat: addNotificationToProject(input: {project: "ci-node", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiMultiproject1: addProject(input: {id: 8, name: "ci-multiproject1", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"}) {
     id
   }
-  CiMultiproject1RocketChat: addNotificationToProject(input: {project: "ci-multiproject1", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiMultiproject1RocketChat: addNotificationToProject(input: {project: "ci-multiproject1", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiMultiproject2: addProject(input: {id: 9, name: "ci-multiproject2", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"}) {
     id
   }
-  CiMultiproject2RocketChat: addNotificationToProject(input: {project: "ci-multiproject2", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiMultiproject2RocketChat: addNotificationToProject(input: {project: "ci-multiproject2", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiDrupal: addProject(input: {id: 10, name: "ci-drupal", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal.git"}) {
     id
   }
-  CiDrupalRocketChat: addNotificationToProject(input: {project: "ci-drupal", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiDrupalRocketChat: addNotificationToProject(input: {project: "ci-drupal", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiNginx: addProject(input: {id: 11, name: "ci-nginx", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/nginx.git"}) {
     id
   }
-  CiNginxRocketChat: addNotificationToProject(input: {project: "ci-nginx", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiNginxRocketChat: addNotificationToProject(input: {project: "ci-nginx", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
   CiFeatures: addProject(input: {id: 12, name: "ci-features", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/features.git", production_environment:"master"}) {
     id
   }
- CiFeaturesRocketChat: addNotificationToProject(input: {project: "ci-features", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-local-ci"}) {
+ CiFeaturesRocketChat: addNotificationToProject(input: {project: "ci-features", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
@@ -173,7 +173,7 @@ mutation FillAPI {
   KickstartProject: addProject(input: {id:13, name: "lagoon", customer: 4, openshift: 3, git_url: "git@github.com:amazeeio/lagoon.git"}) {
     id
   }
-  KickstartRocketChatNotification: addNotificationToProject(input: {project: "lagoon", notificationType: "rocketchat", notificationName: "amazeeio--lagoon-kickstart"}) {
+  KickstartRocketChatNotification: addNotificationToProject(input: {project: "lagoon", notificationType: ROCKETCHAT, notificationName: "amazeeio--lagoon-kickstart"}) {
     id
   }
 }
