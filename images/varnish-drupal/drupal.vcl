@@ -14,6 +14,9 @@ backend default {
 # @TODO allow from openshift network
 acl purge {
       "127.0.0.1";
+      "10.0.0.0"/8;
+      "172.16.0.0"/12;
+      "192.168.0.0"/16;
 }
 
 # This configuration is optimized for Drupal hosting:
@@ -79,11 +82,42 @@ sub vcl_recv {
      set req.url = regsub(req.url, "(\?|&)$", "");
    }
 
-  # Bypass a cache hit
+  # Bypass a cache hit (the request is still sent to the backend)
   if (req.method == "REFRESH") {
       if (!client.ip ~ purge) { return (synth(405, "Not allowed")); }
       set req.method = "GET";
       set req.hash_always_miss = true;
+  }
+
+  # Only allow BAN requests from IP addresses in the 'purge' ACL.
+  if (req.method == "BAN") {
+      # Only allow BAN from defined ACL
+      if (!client.ip ~ purge) {
+          return (synth(403, "Your IP is not allowed."));
+      }
+
+      # Only allows BAN if the Host Header has the style of with "${SERVICE_NAME:-varnish}:8080" or "${SERVICE_NAME:-varnish}".
+      # Such a request is only possible from within the Docker network, as a request from external goes trough the Kubernetes Router and for that needs a proper Host Header
+      if (!req.http.host ~ "^${SERVICE_NAME:-varnish}(:\d+)?$") {
+          return (synth(403, "BAN only allowed from within own network."));
+      }
+
+      # Logic for the ban, using the Cache-Tags header.
+      if (req.http.Cache-Tags) {
+          ban("obj.http.Cache-Tags ~ " + req.http.Cache-Tags);
+      }
+      else {
+          return (synth(403, "Cache-Tags header missing."));
+      }
+
+      # Throw a synthetic page so the request won't go to the backend.
+      return (synth(200, "Ban added."));
+  }
+
+  if (req.method == "URIBAN") {
+    ban("req.http.host == " + req.http.host + " && req.url == " + req.url);
+    # Throw a synthetic page so the request won't go to the backend.
+    return (synth(200, "Ban added."));
   }
 
   # Non-RFC2616 or CONNECT which is weird, we pipe that
@@ -229,11 +263,12 @@ sub vcl_hit {
 }
 
 sub vcl_backend_response {
-  # Temporarily disable streaming on files to be tested and removed after Varnish 4.1.x upgrade
-  set beresp.do_stream = false;
-
   # Allow items to be stale if needed.
   set beresp.grace = 6h;
+
+  # Set ban-lurker friendly custom headers.
+  set beresp.http.X-Url = bereq.url;
+  set beresp.http.X-Host = bereq.http.host;
 
   # If the backend sends a X-LAGOON-VARNISH-BACKEND-BYPASS header we directly deliver
   if(beresp.http.X-LAGOON-VARNISH-BACKEND-BYPASS == "TRUE") {
@@ -258,8 +293,8 @@ sub vcl_backend_response {
       return (deliver);
     }
 
-    set beresp.ttl = 2628001s;
-    set beresp.http.Cache-Control = "public, max-age=2628001";
+    set beresp.ttl = ${VARNISH_ASSETS_TTL:-2628001}s;
+    set beresp.http.Cache-Control = "public, max-age=${VARNISH_ASSETS_TTL:-2628001}";
     set beresp.http.Expires = "" + (now + beresp.ttl);
   }
 
@@ -274,6 +309,16 @@ sub vcl_deliver {
   else {
     set resp.http.X-Varnish-Cache = "MISS";
   }
+
+  # Remove ban-lurker friendly custom headers when delivering to client.
+  unset resp.http.X-Url;
+  unset resp.http.X-Host;
+
+  # unset Cache-Tags Header by default, can be disabled with VARNISH_UNSET_HEADER_CACHE_TAGS=true
+  if (!${VARNISH_UNSET_HEADER_CACHE_TAGS:-false}) {
+    unset resp.http.Cache-Tags;
+  }
+
   unset resp.http.X-Generator;
   unset resp.http.Server;
   # Inject information about grace
