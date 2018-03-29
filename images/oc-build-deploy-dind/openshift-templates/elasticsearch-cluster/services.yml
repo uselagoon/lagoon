@@ -42,7 +42,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: elasticsearch-cluster
+    name: ${SERVICE_NAME}-cluster
   spec:
     clusterIP: None
     ports:
@@ -53,6 +53,6 @@ objects:
       port: 9300
       protocol: TCP
     selector:
-      service: elasticsearch-cluster
+      service: ${SERVICE_NAME}-cluster
   status:
     loadBalancer: {}
