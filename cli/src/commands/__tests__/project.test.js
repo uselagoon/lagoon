@@ -34,7 +34,8 @@ describe('projectDetails', () => {
 
   it('should display error, if GraphQL sends error messages', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
-      Promise.resolve(mockErrorResponse));
+      Promise.resolve(mockErrorResponse),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -67,7 +68,8 @@ describe('projectDetails', () => {
 
   it('should show details for given project', async () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
-      Promise.resolve(mockResponse1));
+      Promise.resolve(mockResponse1),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
