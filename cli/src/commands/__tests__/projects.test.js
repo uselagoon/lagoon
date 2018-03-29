@@ -29,7 +29,8 @@ describe('listProjects', () => {
             },
           ],
         },
-      }));
+      }),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -62,7 +63,8 @@ describe('listProjects', () => {
     _mock(runGQLQuery).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'something something error' }],
-      }));
+      }),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
