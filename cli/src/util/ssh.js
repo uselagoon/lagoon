@@ -12,7 +12,7 @@ import { config } from '../config';
 import { printErrors } from '../printErrors';
 import { fileExists, readFile } from './fs';
 
-async function promptUntilValidPath(
+async function promptUntilValidKeyPath(
   cerr: typeof console.error,
 ): Promise<String> {
   const { privateKeyPath } = await inquirer.prompt([
@@ -20,7 +20,7 @@ async function promptUntilValidPath(
       type: 'input',
       name: 'privateKeyPath',
       message: 'Path to private key file',
-      // TODO: Move the fileExists validation logic to this object under the validate key
+      // TODO: Move the fileExists validation logic to this object under the validate key to fail earlier
     },
   ]);
   if (
@@ -30,7 +30,7 @@ async function promptUntilValidPath(
     )
   ) {
     printErrors(cerr, 'File does not exist at given path!');
-    return promptUntilValidPath(cerr);
+    return promptUntilValidKeyPath(cerr);
   }
   return privateKeyPath;
 }
@@ -56,7 +56,7 @@ export const getPrivateKeyPath = async ({
       R.always(defaultPrivateKeyPath),
     ],
     // If none of the previous conditions have been satisfied, prompt the user until they provide a valid path to an existing file
-    [R.T, async ({ cerr }) => promptUntilValidPath(cerr)],
+    [R.T, async ({ cerr }) => promptUntilValidKeyPath(cerr)],
   ])(identity);
 };
 

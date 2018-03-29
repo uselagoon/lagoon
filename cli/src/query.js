@@ -41,6 +41,7 @@ QLQueryArgs): Object {
       headers.Authorization = `Bearer ${token}`;
     }
   }
+
   const apiUrl = R.prop('api', config) || 'https://api.amazee.io/graphql';
 
   const {
