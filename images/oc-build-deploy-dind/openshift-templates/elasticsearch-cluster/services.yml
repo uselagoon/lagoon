@@ -46,6 +46,9 @@ objects:
   spec:
     clusterIP: None
     ports:
+    - name: 9200-tcp
+      port: 9200
+      protocol: TCP
     - name: 9300-tcp
       port: 9300
       protocol: TCP
