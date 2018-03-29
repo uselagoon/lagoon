@@ -110,7 +110,7 @@ if [[ "$OC get deploymentconfigs -l service=${SERVICE}" ]]; then
   fi
 fi
 
-POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '.items[-1] | select(.status.phase == "Running") | .metadata.name')
+POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
 
 if [[ ! $POD ]]; then
   echo "No running pod found for service ${SERVICE}"
