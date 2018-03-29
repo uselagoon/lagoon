@@ -389,7 +389,7 @@ do
   elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
 
     STATEFULSET="${SERVICE_NAME}-cluster"
-    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
+    . /scripts/exec-monitor-statefulset.sh
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /scripts/exec-monitor-deploy.sh
