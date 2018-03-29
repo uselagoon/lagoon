@@ -1,3 +1,5 @@
+// @flow
+
 const path = require('path');
 const fetch = require('node-fetch');
 const fs = require('fs');
