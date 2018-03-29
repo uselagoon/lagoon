@@ -408,10 +408,15 @@ const resolvers = {
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
+
+      const args_ = R.compose(
+        R.over(R.lensProp('type'), notificationTypeToString),
+      )(args);
+
       return await dao.getNotificationsByProjectId(
         req.credentials,
         project.id,
-        args,
+        args_,
       );
     },
     openshift: async (project, args, req) => {
