@@ -1,15 +1,25 @@
 #!/bin/bash
 
 # takes arguments:
-# 1: name of oc project
-# checks for SSH_ORIGINAL_COMMAND
+# $1: API JWT Admin Token
+# $2: ssh public key of the connecting user
+# $3: name of oc project
+# Optional:
+#   service=xxx (service to connect to)
+#   container=xxx (container to connect to)
+#   any additonal parameters (run in the container via 'sh -c')
 
-# check which project
-if [[ -n "$1" ]]; then
-  if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
-    project=$1
+API_ADMIN_TOKEN=$1
+USER_SSH_KEY=$2
+REQUESTED_PROJECT=$3
+shift 3
+
+# check if project is a valid one
+if [[ -n "$REQUESTED_PROJECT" ]]; then
+  if [[ "$REQUESTED_PROJECT" =~ ^[A-Za-z0-9-]+$ ]]; then
+    PROJECT=$REQUESTED_PROJECT
   else
-    echo "ERROR: given project '$1' contains illegal characters";
+    echo "ERROR: given project '$REQUESTED_PROJECT' contains illegal characters";
     exit
   fi
 else
@@ -17,43 +27,109 @@ else
   exit 1
 fi
 
-# use $SSH_ORIGINAL_COMMAND to the argument list
-set -- $SSH_ORIGINAL_COMMAND
+##
+## check if this user has access to this openshift project with using an API token of that User
+##
+TOKEN=$(./token.sh "$USER_SSH_KEY")
+BEARER="Authorization: bearer $TOKEN"
+GRAPHQL="query getEnvironmentByOpenshiftProjectName {
+  environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
+    openshift_projectname
+  }
+}"
+QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}') # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$QUERY\"}")
 
-# if [[ -z "$1" ]]; then # if no argument defined anymore, we assume they want to connect to the cli
-#   deploymentconfig=cli
-# elif [[ "$1" = "cd" && "$4" = "bash" ]]; then # Drush connects with something like `cd /app/web && bash -l`, we are checking on that and assuming cli as the deploymentconfig
-#   deploymentconfig=cli
-# elif [[ "$1" = "env" && "$3" = "drush" ]]; then # Drush connects with something like `env COLUMNS=259  drush`, we are checking on that and assuming cli as the deploymentconfig
-#   deploymentconfig=cli
-# elif [[ "$1" = "rsync" ]]; then # Drush connects with something like `env COLUMNS=259  drush`, we are checking on that and assuming cli as the deploymentconfig
-  deploymentconfig=cli
-# else # argument is given, check if its a valid one
-#   if [[ "$1" =~ ^[A-Za-z0-9-]+$ ]]; then
-#     deploymentconfig=$1
+# checking if the returned openshift projectname is the same as we are requesting. This will only be true if the user actually has access to this environment
+if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift_projectname')" == "$PROJECT" ]]; then
+  echo "no access to $PROJECT"
+  exit
+fi
 
-#     # remove deploymentconfig argument from argument list
-#     shift
-#   else
-#     echo "ERROR: given deploymentconfig '$1' contains illegal characters";
-#     exit 1
-#   fi
-# fi
+##
+## Get OpenShift Console URL and Token with Admin Token
+##
+ADMIN_BEARER="Authorization: bearer $API_ADMIN_TOKEN"
+ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
+  environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
+    project {
+      openshift {
+        console_url
+        token
+        name
+      }
+    }
+  }
+}"
+ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}') # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}")
 
-echo "Incoming Remote Shell Connection: project='${project}' deploymentconfig='${deploymentconfig}' command='$*'"  >> /proc/1/fd/1
+OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.console_url')
+OPENSHIFT_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.token')
+OPENSHIFT_NAME=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.name')
 
-# If the deploymentconfig is scaled to 0, scale to 1
-if [[ $(/usr/bin/oc -n ${project} get deploymentconfigs/${deploymentconfig} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
-  /usr/bin/oc -n ${project} scale --replicas=1 dc/${deploymentconfig} >/dev/null 2>&1
-  # wait until the scaling is done
-  while [[ ! $(/usr/bin/oc -n ${project} get deploymentconfigs/${deploymentconfig} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
-  do
-    sleep 1
-  done
+##
+## Check if we have a service and container given, if yes use them.
+## Fallback is the cli service
+##
+if [[ $1 =~ ^service=([A-Za-z0-9-]+)$ ]]; then
+  SERVICE=${BASH_REMATCH[1]}
+  shift
+
+  if [[ $1 =~ ^container=([A-Za-z0-9-]+)$ ]]; then
+    CONTAINER=${BASH_REMATCH[1]}
+    shift
+  fi
+else
+  SERVICE=cli
+fi
+
+echo "Incoming Remote Shell Connection: project='${PROJECT}' openshift='${OPENSHIFT_NAME}' service='${SERVICE}' container='${CONTAINER}' command='$*'"  >> /proc/1/fd/1
+
+# This only happens on local development with minishift.
+# Login as developer:deveeloper and get the token
+if [[ $OPENSHIFT_TOKEN == "null" ]]; then
+  KUBECONFIG="/tmp/kube" /usr/bin/oc --insecure-skip-tls-verify login -p developer -u developer ${OPENSHIFT_CONSOLE} > /dev/null
+  OPENSHIFT_TOKEN=$(KUBECONFIG="/tmp/kube" oc --insecure-skip-tls-verify whoami -t)
+fi
+
+OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${OPENSHIFT_TOKEN} --server=${OPENSHIFT_CONSOLE} "
+
+# if there is a deploymentconfig for the given service
+if [[ "$OC get deploymentconfigs -l service=${SERVICE}" ]]; then
+  DEPLOYMENTCONFIG=$($OC get deploymentconfigs -l service=${SERVICE} -o name)
+  # If the deploymentconfig is scaled to 0, scale to 1
+  if [[ $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
+
+    $OC scale --replicas=1 ${DEPLOYMENTCONFIG} >/dev/null 2>&1
+    # wait until the scaling is done
+    while [[ ! $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+    do
+      sleep 1
+    done
+  fi
+fi
+
+POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '.items[-1] | select(.status.phase == "Running") | .metadata.name')
+
+if [[ ! $POD ]]; then
+  echo "No running pod found for service ${SERVICE}"
+  exit 1
+fi
+
+# If no container defined, load the name of the first container
+if [[ -z ${CONTAINER} ]]; then
+  CONTAINER=$($OC get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
+fi
+
+if [ -t 1 ]; then
+  TTY_PARAMETER="-t"
+else
+  TTY_PARAMETER=""
 fi
 
 if [[ -z "$*" ]]; then
-  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh
+  exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
 else
-  exec /usr/bin/oc -n ${project} rsh dc/${deploymentconfig} sh -c "$*"
+  exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
 fi

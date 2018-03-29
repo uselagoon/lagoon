@@ -1,27 +1,26 @@
 #!/bin/bash
 
-# if a token is requested this script is called with they ssh public key of the client as first parameter
-key=$1
+# command.sh is called in two ways:
+# 1. with 2 arguments (the API_ADMIN_TOKEN and USER_SSH_KEY), the ACTION needs to be extracted from
+#    SSH_ORIGINAL_COMMAND (it is sent by the user as a ssh parameter)
+# 2. with 4 arguments where the 3rd is the ACTION and the 4th the SSH_USERNAME.
+# To handle that we shift the first two arguments and append $SSH_ORIGINAL_COMMAND to the remaining argument list
+API_ADMIN_TOKEN=$1
+USER_SSH_KEY=$2
+shift 2
+set -- "$@" $SSH_ORIGINAL_COMMAND
 
-# $SSH_ORIGINAL_COMMAND contains as first parameter the command that the client would like to call, so we set the argument list to that
-set -- $SSH_ORIGINAL_COMMAND
+# Consume the ACTION and shift it
+ACTION=$1
+shift 1
 
-case $1 in
+case $ACTION in
   'token')
-    ./token.sh "$key"
+    ./token.sh "$USER_SSH_KEY"
     ;;
 
   'rsh')
-    # the second argument is the project the client would like to connect too, save that
-    shift
-    PROJECT=$1
-
-    # rsh.sh expects the variable $SSH_ORIGINAL_COMMAND to not contain the project, so we remove the project from it and save it
-    shift
-    SSH_ORIGINAL_COMMAND="$@"
-
-    # call the remote shell script with the project the client wants
-    ./rsh.sh $PROJECT
+    ./rsh.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY" "$@"
     ;;
 
   *)
