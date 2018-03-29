@@ -96,19 +96,21 @@ GetCustomerDetailsArgs): Promise<number> {
   const formatSshKeys = R.map(R.prop('name'));
 
   clog(`Customer details for project '${project}':`);
-  clog(table([
-    ['Name', R.prop('name', customer)],
-    ['Comment', R.prop('comment', customer)],
-    [
-      'Deploy Private Key',
-      formatDeployPrivateKey(R.prop('private_key', customer)),
-    ],
-    [
-      'SSH Keys',
-      R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer))),
-    ],
-    ['Created', R.prop('created', customer)],
-  ]));
+  clog(
+    table([
+      ['Name', R.prop('name', customer)],
+      ['Comment', R.prop('comment', customer)],
+      [
+        'Deploy Private Key',
+        formatDeployPrivateKey(R.prop('private_key', customer)),
+      ],
+      [
+        'SSH Keys',
+        R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer))),
+      ],
+      ['Created', R.prop('created', customer)],
+    ]),
+  );
 
   return 0;
 }
