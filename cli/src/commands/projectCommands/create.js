@@ -126,7 +126,9 @@ type Openshift = {
   name: string,
 };
 
-export async function getAllowedCustomersAndOpenshifts(cerr: typeof console.error): Promise<{
+export async function getAllowedCustomersAndOpenshifts(
+  cerr: typeof console.error,
+): Promise<{
   allCustomers: ?Array<Customer>,
   allOpenshifts: ?Array<Openshift>,
   errors: ?Array<Error>,
@@ -233,11 +235,15 @@ export async function promptForProjectInput(
           [
             R.compose(R.equals(1), R.length, R.prop('allCustomers')),
             (customersAndOptions) => {
-              const firstCustomer = R.compose(R.head, R.prop('allCustomers'))(customersAndOptions);
-              clog(`${blue('!')} Using only authorized customer "${R.prop(
-                'name',
-                firstCustomer,
-              )}"`);
+              const firstCustomer = R.compose(R.head, R.prop('allCustomers'))(
+                customersAndOptions,
+              );
+              clog(
+                `${blue('!')} Using only authorized customer "${R.prop(
+                  'name',
+                  firstCustomer,
+                )}"`,
+              );
               // eslint-disable-next-line no-param-reassign
               answers.customer = R.prop('value', firstCustomer);
             },
@@ -262,7 +268,9 @@ export async function promptForProjectInput(
         // Verify that it is a valid hosted git url...
         hostedGitInfoFromUrl(input) !== undefined ||
         // ...or some other non-hosted formats https://stackoverflow.com/a/22312124/1268612
-        /((git|ssh|http(s)?)|(.+@[\w.]+))(:(\/\/)?)([\w.@:/\-~]+)(\.git)(\/)?/.test(input) ||
+        /((git|ssh|http(s)?)|(.+@[\w.]+))(:(\/\/)?)([\w.@:/\-~]+)(\.git)(\/)?/.test(
+          input,
+        ) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
       when: answerFromOptions(GIT_URL, options, clog),
@@ -282,11 +290,15 @@ export async function promptForProjectInput(
           [
             R.compose(R.equals(1), R.length, R.prop('allOpenshifts')),
             (openshiftsAndOptions) => {
-              const firstOpenshift = R.compose(R.head, R.prop('allOpenshifts'))(openshiftsAndOptions);
-              clog(`${blue('!')} Using only authorized openshift "${R.prop(
-                'name',
-                firstOpenshift,
-              )}"`);
+              const firstOpenshift = R.compose(R.head, R.prop('allOpenshifts'))(
+                openshiftsAndOptions,
+              );
+              clog(
+                `${blue('!')} Using only authorized openshift "${R.prop(
+                  'name',
+                  firstOpenshift,
+                )}"`,
+              );
               // eslint-disable-next-line no-param-reassign
               answers.openshift = R.prop('value', firstOpenshift);
             },
@@ -396,7 +408,9 @@ createProjectArgs): Promise<number> {
 
   if (addProjectErrors != null) {
     if (
-      /Duplicate entry '[^']+' for key 'name'/.test(R.prop('message', R.head(addProjectErrors)))
+      /Duplicate entry '[^']+' for key 'name'/.test(
+        R.prop('message', R.head(addProjectErrors)),
+      )
     ) {
       return printErrors(
         cerr,
@@ -416,17 +430,19 @@ createProjectArgs): Promise<number> {
 
   clog(green(`Project "${projectName}" created successfully:`));
 
-  clog(table([
-    ['Project Name', projectName],
-    ['Customer', R.path(['customer', 'name'], project)],
-    ['Git URL', R.prop('git_url', project)],
-    ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
-    ['Active Systems Remove', R.prop('active_systems_remove', project)],
-    ['Branches', String(R.prop('branches', project))],
-    ['Pull Requests', String(R.prop('pullrequests', project))],
-    ['Openshift', R.path(['openshift', 'name'], project)],
-    ['Created', R.prop('created', project)],
-  ]));
+  clog(
+    table([
+      ['Project Name', projectName],
+      ['Customer', R.path(['customer', 'name'], project)],
+      ['Git URL', R.prop('git_url', project)],
+      ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
+      ['Active Systems Remove', R.prop('active_systems_remove', project)],
+      ['Branches', String(R.prop('branches', project))],
+      ['Pull Requests', String(R.prop('pullrequests', project))],
+      ['Openshift', R.path(['openshift', 'name'], project)],
+      ['Created', R.prop('created', project)],
+    ]),
+  );
 
   return 0;
 }
