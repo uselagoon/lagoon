@@ -20,7 +20,7 @@ function createRouter() {
   // Fetch the current api status.
   router.get('/status', ...statusRoute);
 
-  // Return keys of all clients from clients.yaml.
+  // Return keys of all customers
   router.post('/keys', ...keysRoute);
 
   // Enable graphql requests.
