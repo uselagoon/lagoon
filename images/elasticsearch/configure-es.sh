@@ -14,14 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script writes out a mysql galera config using a list of newline seperated
-# peer DNS names it accepts through stdin.
-
-# /etc/mysql is assumed to be a shared volume so we can modify my.cnf as required
-# to keep the config up to date, without wrapping mysqld in a custom pid1.
-# The config location is intentionally not /etc/mysql/my.cnf because the
-# standard base image clobbers that location.
-
 CFG=/usr/share/elasticsearch/config/elasticsearch.yml
 
 
@@ -41,12 +33,12 @@ while read -ra LINE; do
 done
 
 if [ "${#PEERS[@]}" = 1 ]; then
-    ES_CLUSTER_ADDRESS=""
+    ES_CLUSTER_ADDRESS="$MY_NAME"
 else
     ES_CLUSTER_ADDRESS=$(join , "${PEERS[@]}")
 fi
 
-echo ${ES_CLUSTER_ADDRESS} >> ${CFG}
+echo "discovery.zen.ping.unicast.hosts: ${ES_CLUSTER_ADDRESS}" >> ${CFG}
 
 # don't need a restart, we're just writing the conf in case there's an
 # unexpected restart on the node.
