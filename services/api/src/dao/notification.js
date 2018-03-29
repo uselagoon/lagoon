@@ -168,6 +168,37 @@ const Helpers = {
 
     return R.map(R.prop('nid'), result);
   },
+  getAssignedNotificationPids: async (sqlClient, cred, args) => {
+    const { name, type } = args;
+
+    const result = await query(
+      sqlClient,
+      Sql.selectProjectNotificationByNotificationName(cred, { name, type }),
+    );
+
+    return R.map(R.prop('pid'), result);
+  },
+  isAllowedToModify: async (sqlClient, cred, args) => {
+    if (cred.role === 'admin') {
+      return true;
+    }
+
+    const { name } = args;
+    const { projects } = cred.permissions;
+    const pids = await Helpers.getAssignedNotificationPids(sqlClient, cred, {
+      name,
+      type: 'slack',
+    });
+
+    if (!R.isEmpty(pids)) {
+      const hasAccess = R.compose(R.not, R.isEmpty, R.intersection(projects))(
+        pids,
+      );
+
+      return hasAccess;
+    }
+    return true;
+  },
 };
 
 const addNotificationRocketChat = sqlClient => async (cred, input) => {
@@ -332,15 +363,16 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
 };
 
 const updateNotificationRocketChat = sqlClient => async (cred, input) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
+  const { name } = input;
+
+  const isAllowed = await Helpers.isAllowedToModify(sqlClient, cred, { name });
+  if (!isAllowed) {
+    throw new Error('Unauthorized.');
   }
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-
-  const name = input.name;
 
   await query(sqlClient, Sql.updateNotificationRocketChat(cred, input));
   const rows = await query(
@@ -352,15 +384,16 @@ const updateNotificationRocketChat = sqlClient => async (cred, input) => {
 };
 
 const updateNotificationSlack = sqlClient => async (cred, input) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
+  const { name } = input;
+
+  const isAllowed = await Helpers.isAllowedToModify(sqlClient, cred, { name });
+  if (!isAllowed) {
+    throw new Error('Unauthorized.');
   }
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-
-  const name = input.name;
 
   await query(sqlClient, Sql.updateNotificationSlack(cred, input));
   const rows = await query(sqlClient, Sql.selectNotificationSlackByName(name));
