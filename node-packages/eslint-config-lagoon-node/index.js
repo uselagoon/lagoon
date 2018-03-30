@@ -20,7 +20,7 @@ module.exports = {
     // Fix the erroring of dev dependencies in updateSchema script
     'import/no-extraneous-dependencies': [
       'error',
-      { devDependencies: ['**/scripts/updateSchema.js'] },
+      { devDependencies: ['**/scripts/*.js'] },
     ],
     // Code style rule to prefer a default export instead of a single named export, currently we disable this Airbnb setting to allow this behavior. We can decide later to turn this on again if we want.
     'import/prefer-default-export': 'off',
