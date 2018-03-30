@@ -5,8 +5,8 @@ node {
   // Jenkins HOME Folder
   env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
 
-  withEnv(['AWS_BUCKET=jobs.amazeeio.services']) {
-    withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+  withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-west-2']) {
+    withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
       try {
         env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
         env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
@@ -26,15 +26,15 @@ node {
                 stage ('build images') {
                   sh "make build"
                 }
-                stage ('start services') {
-                  sh "make kill"
-                  sh "make up"
-                  sh "sleep 60"
-                }
+                // stage ('start services') {
+                //   sh "make kill"
+                //   sh "make up"
+                //   sh "sleep 60"
+                // }
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift'
+                  // sh 'make minishift'
                 }
               }
             )
@@ -44,26 +44,30 @@ node {
             throw e
           }
 
-          parallel (
-            '_tests': {
-                stage ('run tests') {
-                  try {
-                    sh "make push-minishift"
-                    sh "make tests -j4"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup()
-                    throw e
-                  }
-                  cleanup()
-                }
-            },
-            'logs': {
-                stage ('all') {
-                  sh "make logs"
-                }
-            }
-          )
+          // parallel (
+          //   '_tests': {
+          //       stage ('run tests') {
+          //         try {
+          //           sh "make push-minishift"
+          //           sh "make tests -j4"
+          //         } catch (e) {
+          //           echo "Something went wrong, trying to cleanup"
+          //           cleanup()
+          //           throw e
+          //         }
+          //         cleanup()
+          //       }
+          //   },
+          //   'logs': {
+          //       stage ('all') {
+          //         sh "make logs"
+          //       }
+          //   }
+          // )
+        }
+
+        stage ('save-images-s3') {
+          sh "make s3-save -j8"
         }
 
         stage ('publish-amazeeiolagoon') {

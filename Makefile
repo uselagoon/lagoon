@@ -519,6 +519,29 @@ $(publish-amazeeiolagoon-serviceimages):
 		$(eval image = $(subst __,:,$(image)))
 		$(call docker_publish_amazeeiolagoon_serviceimages,$(image))
 
+s3-save = $(foreach image,$(base-images) $(service-images),[s3-save]-$(image))
+# save all images to s3
+.PHONY: s3-save
+s3-save: $(s3-save)
+# tag and push of each image
+.PHONY: $(s3-save)
+$(s3-save):
+#   remove the prefix '[s3-save]-' first
+		$(eval image = $(subst [s3-save]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		docker save $(CI_BUILD_TAG)/$(image) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
+
+s3-load = $(foreach image,$(base-images) $(service-images),[s3-load]-$(image))
+# save all images to s3
+.PHONY: s3-load
+s3-load: $(s3-load)
+# tag and push of each image
+.PHONY: $(s3-load)
+$(s3-load):
+#   remove the prefix '[s3-load]-' first
+		$(eval image = $(subst [s3-load]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		curl -s https://s3.us-east-2.amazonaws.com/lagoon-images/$(image).tar.gz | gunzip -c | docker load
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)
