@@ -6,7 +6,9 @@
   "bin": {
     "lagoon": "./dist/cli.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "prepublish": "in-publish && yarn run dist || not-in-publish",
     "preversion": "yarn test",
@@ -15,18 +17,15 @@
     "update-schema": "node scripts/updateSchema.js",
     "clean": "rimraf dist",
     "dist": "yarn run clean && yarn run build",
-    "lint": "eslint src",
-    "format":
-      "prettier --trailing-comma all --single-quote --write 'src/**/*.js' && yarn run lint -- --fix",
+    "format": "prettier-eslint --write '**/*.js'",
+    "lint": "../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "yarn run lint && jest",
     "test:watch": "jest --watch",
     "build": "babel src -d dist",
     "watch": "babel --watch=src -d dist",
     "execute": "node -r babel-core/register src/cli.js",
-    "sshlogin":
-      "node -r babel-core/register src/cli.js login --identity ../local-dev/cli_id_rsa",
-    "sshlogout":
-      "node -r babel-core/register src/cli.js logout --identity ../local-dev/cli_id_rsa"
+    "sshlogin": "node -r babel-core/register src/cli.js login --identity ../local-dev/cli_id_rsa",
+    "sshlogout": "node -r babel-core/register src/cli.js logout --identity ../local-dev/cli_id_rsa"
   },
   "repository": {
     "type": "git",
@@ -52,6 +51,7 @@
     "jest": "^22.1.1",
     "node-fetch": "^1.7.2",
     "prettier": "^1.11.1",
+    "prettier-eslint-cli": "^4.7.1",
     "rimraf": "^2.6.1"
   },
   "dependencies": {
@@ -63,7 +63,6 @@
     "in-publish": "^2.0.0",
     "inquirer": "^5.0.0",
     "js-yaml": "^3.9.1",
-    "prettier-eslint": "^8.8.1",
     "ramda": "^0.25.0",
     "ssh2": "^0.5.5",
     "ssh2-streams": "^0.1.19",
