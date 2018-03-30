@@ -37,7 +37,6 @@
     "winston": "^2.4.0"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
     "jest": "^22.0.0",
     "prettier": "^1.11.1",
     "prettier-eslint-cli": "^4.7.1"
