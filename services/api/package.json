@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "echo 'hi'",
+    "format": "prettier-eslint --write '**/*.js'",
+    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "node -r dotenv-extended/config src",
@@ -37,6 +39,7 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "jest": "^22.0.0",
-    "prettier": "^1.11.1"
+    "prettier": "^1.11.1",
+    "prettier-eslint-cli": "^4.7.1"
   }
 }
