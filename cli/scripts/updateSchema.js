@@ -50,10 +50,8 @@ fetch(`${SERVER}`, {
 })
   .then((res) => {
     if (res.status !== 200) {
-      /* eslint-disable no-console */
       console.error(res.statusText);
       console.error(res.status);
-      /* eslint-enable no-console */
     } else {
       return res;
     }
@@ -67,6 +65,5 @@ fetch(`${SERVER}`, {
     fs.writeFileSync(`${schemaPath}.graphql`, printSchema(graphQLSchema));
   })
   .catch((err) => {
-    // eslint-disable-next-line no-console
     console.error(err);
   });

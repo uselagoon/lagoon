@@ -40,7 +40,6 @@ const createServer = async (args /* : CreateServerArgs */) => {
     `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
   );
 
-  // eslint-disable-line
   return server;
 };
 

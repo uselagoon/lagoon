@@ -28,6 +28,8 @@ module.exports = {
     'max-len': 'off',
     // Conflicts with Prettier's stripping of unnecessary parentheses
     'no-confusing-arrow': 'off',
+    // Disable Airbnb rule
+    'no-console': 'off',
     // Rule to restrict usage of confusing code style with mixed boolean operators. We disable this Airbnb setting because Prettier removes "unnecessary parentheses" here and breaks this.
     'no-mixed-operators': 'off',
     // Disable Airbnb stylistic rule
@@ -38,12 +40,16 @@ module.exports = {
     'no-plusplus': 'off',
     // Disable Airbnb stylistic rule
     'no-restricted-globals': 'off',
+    // Disable Airbnb stylistic rule
+    'no-restricted-syntax': 'off',
     // Rule to prevent prefixing of underscores on variable names. We disable this Airbnb setting because we use some underscore prefixes in our code.
     'no-underscore-dangle': 'off',
     // Disable Airbnb stylistic rule
     'no-use-before-define': 'off',
     // Disable Airbnb stylistic rule
     'prefer-destructuring': 'off',
+    // Disable Airbnb stylistic rule
+    'prefer-promise-reject-errors': 'off',
     // Disable Airbnb stylistic rule
     radix: 'off',
   },
