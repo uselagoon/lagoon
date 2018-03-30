@@ -3,8 +3,8 @@ module.exports = {
   plugins: ['flowtype'],
   env: { es6: true, jest: true, node: true },
   rules: {
-    // Modify Airbnb stylistic rule to not apply to properties (often we use snake case in object properties because of communication with other services)
-    camelcase: ['error', { properties: 'never' }],
+    // Disable Airbnb stylistic rule because we communicate with services with snake case
+    camelcase: 'off',
     // Rule to enforce function return types. We disable this Airbnb setting because Flow will check our function return types.
     'consistent-return': 'off',
     // Fix issue with the way Prettier formats types
