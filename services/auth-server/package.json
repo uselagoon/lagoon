@@ -23,11 +23,6 @@
     "winston": "^2.4.1"
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.3",
-    "eslint": "4.9.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-flowtype": "^2.41.0",
-    "eslint-plugin-import": "^2.7.0",
     "nodemon": "^1.12.1",
     "prettier": "^1.11.1",
     "prettier-eslint-cli": "^4.7.1"
