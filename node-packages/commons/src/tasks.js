@@ -18,16 +18,16 @@ const {
   getProductionEnvironmentForProject,
 } = require('./api');
 
-/* eslint-disable no-unused-vars */
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
   task: string,
   payload?: Object,
 ) {});
+
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
   task: string,
   payload?: Object,
 ) {});
-/* eslint-enable no-unused-vars */
+
 let connection = (exports.connection = function connection() {});
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
@@ -37,14 +37,12 @@ const _extends =
   Object.assign ||
   function _extends(...args) {
     for (let i = 1; i < args.length; i++) {
-      /* eslint-disable no-restricted-syntax */
       const source = args[i];
       for (const key in source) {
         if (Object.prototype.hasOwnProperty.call(source, key)) {
           args[0][key] = source[key];
         }
       }
-      /* eslint-enable no-restricted-syntax */
     }
     return args[0];
   };

@@ -39,14 +39,11 @@ export function visit(cmd: CommandModule) {
           .handler({
             argv,
             cwd,
-            /* eslint-disable no-console */
             clog: console.log,
             cerr: console.error,
-            /* eslint-enable no-console */
           })
           .catch((err) => {
             const exitCode = printErrors(
-              // eslint-disable-next-line no-console
               console.error,
               `Uncaught error in ${cmd.command} command:`,
               err,
@@ -68,12 +65,7 @@ export async function runCLI() {
       .strict()
       .help().argv;
   } catch (err) {
-    const exitCode = printErrors(
-      // eslint-disable-next-line no-console
-      console.error,
-      'Uncaught error:',
-      err,
-    );
+    const exitCode = printErrors(console.error, 'Uncaught error:', err);
     process.exit(exitCode);
   }
 }

@@ -182,7 +182,6 @@ export function answerFromOptionsPropCond(
       // Assign option key in the answers object to option value and let the user know
       const propVal = R.path(['options', option], objectWithOptions);
       notifyUsedOption(clog, option);
-      // eslint-disable-next-line no-param-reassign
       answers[option] = propVal;
     },
   ];
@@ -244,7 +243,6 @@ export async function promptForProjectInput(
                   firstCustomer,
                 )}"`,
               );
-              // eslint-disable-next-line no-param-reassign
               answers.customer = R.prop('value', firstCustomer);
             },
           ],
@@ -299,7 +297,6 @@ export async function promptForProjectInput(
                   firstOpenshift,
                 )}"`,
               );
-              // eslint-disable-next-line no-param-reassign
               answers.openshift = R.prop('value', firstOpenshift);
             },
           ],

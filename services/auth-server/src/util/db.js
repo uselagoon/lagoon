@@ -1,7 +1,5 @@
 // @flow
 
-/* eslint-disable no-console */
-
 const nano = require('nano');
 const logger = require('../logger');
 
@@ -27,7 +25,10 @@ couch.db.create('auth', (error) => {
   );
 });
 
-function insert(doc: Object, params?: string | Object | null = null): Promise<Object> {
+function insert(
+  doc: Object,
+  params?: string | Object | null = null,
+): Promise<Object> {
   return new Promise((resolve, reject) => {
     database.insert(doc, params, (error, body) => {
       if (error) {
