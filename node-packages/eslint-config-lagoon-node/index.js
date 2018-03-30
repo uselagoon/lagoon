@@ -1,3 +1,5 @@
+// This is based on a simpler way of sharing ESLint configuration outlined here:
+// https://github.com/eslint/eslint/issues/3458#issuecomment-376174514
 module.exports = {
   extends: ['airbnb-base', 'plugin:flowtype/recommended'],
   plugins: ['flowtype'],
