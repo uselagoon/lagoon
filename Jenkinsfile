@@ -17,7 +17,7 @@ node {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
-        lock('minishift') {
+        // lock('minishift') {
           notifySlack()
 
           try {
@@ -64,7 +64,7 @@ node {
           //       }
           //   }
           // )
-        }
+        // }
 
         stage ('save-images-s3') {
           sh "make s3-save -j8"
