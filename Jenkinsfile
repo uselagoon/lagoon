@@ -17,7 +17,7 @@ node {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
-        // lock('minishift') {
+        lock('minishift') {
           notifySlack()
 
           try {
@@ -26,15 +26,15 @@ node {
                 stage ('build images') {
                   sh "make build"
                 }
-                // stage ('start services') {
-                //   sh "make kill"
-                //   sh "make up"
-                //   sh "sleep 60"
-                // }
+                stage ('start services') {
+                  sh "make kill"
+                  sh "make up"
+                  sh "sleep 60"
+                }
               },
               'start minishift': {
                 stage ('start minishift') {
-                  // sh 'make minishift'
+                  sh 'make minishift'
                 }
               }
             )
@@ -44,31 +44,29 @@ node {
             throw e
           }
 
-          // parallel (
-          //   '_tests': {
-          //       stage ('run tests') {
-          //         try {
-          //           sh "make push-minishift"
-          //           sh "make tests -j4"
-          //         } catch (e) {
-          //           echo "Something went wrong, trying to cleanup"
-          //           cleanup()
-          //           throw e
-          //         }
-          //         cleanup()
-          //       }
-          //   },
-          //   'logs': {
-          //       stage ('all') {
-          //         sh "make logs"
-          //       }
-          //   }
-          // )
-        // }
-
-        stage ('save-images-s3') {
-          sh "make s3-save -j8"
+          parallel (
+            '_tests': {
+                stage ('run tests') {
+                  try {
+                    sh "make push-minishift"
+                    sh "make tests -j4"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
+                  cleanup()
+                }
+            },
+            'logs': {
+                stage ('all') {
+                  sh "make logs"
+                }
+            }
+          )
         }
+
+
 
         stage ('publish-amazeeiolagoon') {
           withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
@@ -78,12 +76,21 @@ node {
         }
 
         if (env.BRANCH_NAME == 'master') {
-          stage ('publish-amazeeio') {
-            withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-              sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeio-baseimages -j4"
+          parallel (
+            'publish-amazeeio': {
+              stage ('publish-amazeeio') {
+                withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+                  sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                  sh "make publish-amazeeio-baseimages -j4"
+                }
+              }
+            },
+            'save-images-s3': {
+              stage ('save-images-s3') {
+                sh "make s3-save -j8"
+              }
             }
-          }
+          )
         }
 
         if (env.BRANCH_NAME ==~ /develop|master/) {
