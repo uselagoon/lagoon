@@ -120,10 +120,11 @@ const addSshKey = sqlClient => async (cred, input) => {
       );
     `,
   );
+
   const rows = await query(sqlClient, prep(input));
 
-  const ssh_key = R.path([0, 0], rows);
-  return ssh_key;
+  const sshKey = R.path([0, 0], rows);
+  return sshKey;
 };
 
 const addSshKeyToProject = sqlClient => async (cred, input) => {

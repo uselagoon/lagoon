@@ -3,8 +3,6 @@ const attrFilter = require('./attrFilter');
 const {
   knex,
   ifNotAdmin,
-  whereAnd,
-  inClause,
   inClauseOr,
   query,
   prepare,
@@ -68,7 +66,7 @@ const getAllOpenshifts = sqlClient => async (cred, args) => {
     throw new Error('Unauthorized');
   }
 
-  const { createdAfter } = args;
+  // const { createdAfter } = args;
   const prep = prepare(sqlClient, 'SELECT * FROM openshift');
   const rows = await query(sqlClient, prep(args));
 

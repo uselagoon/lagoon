@@ -1,6 +1,4 @@
-const {
-  ifNotAdmin, whereAnd, inClause, inClauseOr,
-} = require('./utils');
+const { ifNotAdmin, inClause, inClauseOr } = require('./utils');
 
 describe('ifNotAdmin', () => {
   it('should return string if role != admin', () => {

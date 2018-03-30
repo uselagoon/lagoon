@@ -389,7 +389,7 @@ const resolvers = {
     },
   },
   Notification: {
-    __resolveType(obj, context, info) {
+    __resolveType(obj) {
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
