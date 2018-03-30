@@ -1,1 +1,1 @@
-module.exports = require('../node-packages/eslint-config-lagoon-node');
+module.exports = require('eslint-config-lagoon-node');
