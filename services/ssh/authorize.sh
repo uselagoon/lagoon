@@ -11,6 +11,8 @@
 # variables during the container entrypoint.
 source /authorize.env
 
+API_ADMIN_TOKEN=$(/create_60_sec_jwt.sh)
+
 # This token will be required for accessing the sshKeys in the lagoon api
 bearer="Authorization: bearer $API_ADMIN_TOKEN"
 
@@ -26,9 +28,9 @@ options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding"
 if [ -n "$keys" ]; then
     while read -r key; do
         if [ $ssh_username == "lagoon" ]; then
-            printf '%s\n' "$options,command=\"/bin/bash /home/command.sh '$key'\" $key"
+            printf '%s\n' "$options,command=\"/bin/bash /home/command.sh '$API_ADMIN_TOKEN' '$key'\" $key"
         else
-            printf '%s\n' "$options,command=\"/bin/bash /home/rsh.sh '$ssh_username'\" $key"
+            printf '%s\n' "$options,command=\"/bin/bash /home/command.sh '$API_ADMIN_TOKEN' '$key' rsh '$ssh_username' \" $key"
         fi
 
     done <<< "$keys"
