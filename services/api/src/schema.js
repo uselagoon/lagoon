@@ -94,6 +94,7 @@ const typeDefs = `
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
+    environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
@@ -415,6 +416,10 @@ const resolvers = {
     projectByName: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getProjectByName(req.credentials, args);
+    },
+    environmentByOpenshiftProjectName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
