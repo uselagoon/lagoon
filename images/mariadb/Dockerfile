@@ -99,7 +99,7 @@ COPY maxscale-start.sh /usr/local/bin/maxscale-start
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/my.cnf.d /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
         do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
     done && \
     for i in /var/lib/maxscale /var/log/maxscale /var/cache/maxscale /var/run/maxscale; \
@@ -113,7 +113,8 @@ COPY root/usr/bin/peer-finder /usr/bin/peer-finder
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scripts/mysql/galera.cnf
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
-COPY root/etc/mysql/conf.d/galera.cnf /etc/mysql/conf.d/galera.cnf
+
+RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
 
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 RUN addgroup mysql root
