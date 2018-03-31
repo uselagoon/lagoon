@@ -6,7 +6,7 @@
   version "0.3.9"
   resolved "https://registry.yarnpkg.com/8fold-marked/-/8fold-marked-0.3.9.tgz#bb89c645612f8ccfaffac1ca6e3c11f168c9cf59"
 
-"@babel/cli@^7.0.0-beta.38":
+"@babel/cli@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.0.0-beta.42.tgz#6ba43578d6c47c1cc96a4de8f67f61763d780a0e"
   dependencies:
@@ -33,7 +33,7 @@
   dependencies:
     "@babel/highlight" "7.0.0-beta.42"
 
-"@babel/core@^7.0.0-beta.38":
+"@babel/core@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.0.0-beta.42.tgz#b3a838fddbd19663369a0b4892189fd8d3f82001"
   dependencies:
@@ -370,7 +370,7 @@
     "@babel/helper-builder-binary-assignment-operator-visitor" "7.0.0-beta.42"
     "@babel/helper-plugin-utils" "7.0.0-beta.42"
 
-"@babel/plugin-transform-flow-strip-types@^7.0.0-beta.38":
+"@babel/plugin-transform-flow-strip-types@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/plugin-transform-flow-strip-types/-/plugin-transform-flow-strip-types-7.0.0-beta.42.tgz#0902538b641e1a6fe5d7dc49389560112bfd4071"
   dependencies:
@@ -452,7 +452,7 @@
   dependencies:
     regenerator-transform "^0.12.3"
 
-"@babel/plugin-transform-runtime@^7.0.0-beta.38":
+"@babel/plugin-transform-runtime@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/plugin-transform-runtime/-/plugin-transform-runtime-7.0.0-beta.42.tgz#0142fa2937dd87fea10f5c7c4da9c8b8896bb740"
   dependencies:
@@ -499,7 +499,7 @@
     "@babel/helper-regex" "7.0.0-beta.42"
     regexpu-core "^4.1.3"
 
-"@babel/preset-env@^7.0.0-beta.38":
+"@babel/preset-env@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.0.0-beta.42.tgz#671e688057c010b22a7811b965f7da5d79c472d3"
   dependencies:
@@ -543,7 +543,7 @@
     invariant "^2.2.2"
     semver "^5.3.0"
 
-"@babel/runtime@^7.0.0-beta.38":
+"@babel/runtime@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.0.0-beta.42.tgz#352e40c92e0460d3e82f49bd7e79f6cda76f919f"
   dependencies:
