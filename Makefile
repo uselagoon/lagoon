@@ -368,7 +368,6 @@ build-list:
 
 # Define list of all tests
 all-tests-list:=	features \
-									ssh \
 									node \
 									drupal \
 									github \
@@ -389,13 +388,6 @@ tests-list:
 			echo $$number ; \
 	done
 #### Definition of tests
-
-# SSH-Auth test
-.PHONY: tests/ssh
-tests/ssh: build/ssh build/auth-server build/api build/tests
-		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d ssh auth-server api tests
-		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests

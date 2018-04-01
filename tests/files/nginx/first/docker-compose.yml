@@ -30,6 +30,21 @@ services:
       - "8080"
     environment:
       - AMAZEEIO_URL=nginx-basic-auth.docker.amazee.io
+  nginx-basic-auth-disable:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.basic-auth-disable
+    labels:
+      lagoon.type: nginx
+    volumes:
+      - ./app:/app:delegated
+    expose:
+      - "8080"
+    environment:
+      - AMAZEEIO_URL=nginx-basic-auth-disable.docker.amazee.io
 networks:
   amazeeio-network:
     external: true
