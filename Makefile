@@ -123,6 +123,7 @@ images :=     centos7 \
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
+s3-images += $(images)
 
 # List with all images prefixed with `build/`. Which are the commands to actually build images
 build-images = $(foreach image,$(images),build/$(image))
@@ -200,6 +201,7 @@ $(build-phpimages): build/commons
 	touch $@
 
 base-images += $(phpimages)
+s3-images += php
 
 build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
@@ -237,6 +239,7 @@ $(build-solrimages): build/commons
 	touch $@
 
 base-images += $(solrimages)
+s3-images += solr
 
 build/solr__5.5  build/solr__6.6: images/commons
 build/solr__5.5-drupal: build/solr__5.5
@@ -270,6 +273,7 @@ $(build-nodeimages): build/commons
 	touch $@
 
 base-images += $(nodeimages)
+s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
@@ -310,6 +314,7 @@ services :=       api \
 									drush-alias
 
 service-images += $(services)
+
 build-services = $(foreach image,$(services),build/$(image))
 
 # Recepie for all building service-images
@@ -360,6 +365,9 @@ build/tests:
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
 service-images += tests
+
+s3-images += $(service-images)
+
 #######
 ####### Commands
 #######
@@ -514,6 +522,29 @@ $(publish-amazeeiolagoon-serviceimages):
 		$(eval image = $(subst __,:,$(image)))
 		$(call docker_publish_amazeeiolagoon_serviceimages,$(image))
 
+s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
+# save all images to s3
+.PHONY: s3-save
+s3-save: $(s3-save)
+# tag and push of each image
+.PHONY: $(s3-save)
+$(s3-save):
+#   remove the prefix '[s3-save]-' first
+		$(eval image = $(subst [s3-save]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		docker save $(CI_BUILD_TAG)/$(image) $$(docker history -q $(CI_BUILD_TAG)/$(image) | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
+
+s3-load = $(foreach image,$(s3-images),[s3-load]-$(image))
+# save all images to s3
+.PHONY: s3-load
+s3-load: $(s3-load)
+# tag and push of each image
+.PHONY: $(s3-load)
+$(s3-load):
+#   remove the prefix '[s3-load]-' first
+		$(eval image = $(subst [s3-load]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		curl -s https://s3.us-east-2.amazonaws.com/lagoon-images/$(image).tar.gz | gunzip -c | docker load
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)

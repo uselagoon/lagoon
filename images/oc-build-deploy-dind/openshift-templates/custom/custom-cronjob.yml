@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOB_COMMAND
     description: Command of this cronjob
     required: true
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Rolling"
 objects:
 - apiVersion: batch/v2alpha1
   kind: CronJob
