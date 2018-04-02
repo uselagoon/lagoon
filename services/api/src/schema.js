@@ -123,7 +123,7 @@ const typeDefs = `
     branches: String
     pullrequests: String
     production_environment: String
-    auto_idle: String
+    auto_idle: Int
   }
 
   input EnvironmentInput {
