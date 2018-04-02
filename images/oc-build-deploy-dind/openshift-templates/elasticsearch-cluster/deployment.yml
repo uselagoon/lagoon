@@ -35,24 +35,24 @@ objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: ${SERVICE_NAME}-cluster
+    name: ${SERVICE_NAME}
   spec:
-    serviceName: ${SERVICE_NAME}-cluster
+    serviceName: ${SERVICE_NAME}
     replicas: 3
     selector:
       matchLabels:
-        service: ${SERVICE_NAME}-cluster
+        service: ${SERVICE_NAME}
     template:
       metadata:
         labels:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
-          service: ${SERVICE_NAME}-cluster
+          service: ${SERVICE_NAME}
         annotations:
           alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - name: ${SERVICE_NAME}-cluster
+        - name: ${SERVICE_NAME}
           image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           imagePullPolicy: Always
           ports:
@@ -88,7 +88,7 @@ objects:
                   fieldPath: metadata.namespace
     volumeClaimTemplates:
     - metadata:
-        name: ${SERVICE_NAME}-cluster
+        name: ${SERVICE_NAME}
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
