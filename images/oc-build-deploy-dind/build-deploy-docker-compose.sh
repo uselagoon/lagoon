@@ -302,14 +302,14 @@ do
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
 
     if [ -f $OPENSHIFT_TEMPLATE ]; then
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-create-deployment.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
     else
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-create-deployment.sh
     fi
   fi
 
