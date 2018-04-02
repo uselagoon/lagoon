@@ -98,6 +98,7 @@ const typeDefs = `
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
+    allEnvironments(createdAfter: String): [Environment]
   }
 
   input SshKeyInput {
@@ -432,6 +433,10 @@ const resolvers = {
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllOpenshifts(req.credentials, args);
+    },
+    allEnvironments: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getAllEnvironments(req.credentials, args);
     },
   },
   Mutation: {
