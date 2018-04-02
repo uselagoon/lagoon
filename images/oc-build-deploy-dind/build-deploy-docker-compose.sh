@@ -290,6 +290,11 @@ do
     fi
   fi
 
+  DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.deployment\\.strategy false)
+  if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
+    TEMPLATE_PARAMETERS+=(-p DEPLOYMENT_STRATEGY="${DEPLOYMENT_STRATEGY}")
+  fi
+
   # Generate PVC if service type defines one
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then

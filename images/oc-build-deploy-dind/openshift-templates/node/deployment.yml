@@ -31,6 +31,9 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Rolling"
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -46,7 +49,7 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      resources: {}
+      type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
         creationTimestamp: null
