@@ -18,14 +18,14 @@ class BuildNotCompletedYet extends Error {
   }
 }
 
-const accessKeyId =  process.env.AWS_KEY_ID
+const accessKeyId =  process.env.AWS_ACCESS_KEY_ID
 const secretAccessKey =  process.env.AWS_SECRET_ACCESS_KEY
 const bucket = process.env.AWS_BUCKET
 const region = process.env.AWS_REGION || 'us-east-2'
 
 
 if ( !accessKeyId || !secretAccessKey || !bucket) {
-  logger.error('AWS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
+  logger.error('AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
 }
 
 AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: region});
