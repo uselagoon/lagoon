@@ -67,6 +67,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
+    auto_idle: Int
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
@@ -124,6 +125,7 @@ const typeDefs = `
     branches: String
     pullrequests: String
     production_environment: String
+    auto_idle: Int
   }
 
   input EnvironmentInput {
@@ -214,6 +216,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
+    auto_idle: Int
     pullrequests: String
     openshift: Int
   }
