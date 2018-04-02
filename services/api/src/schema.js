@@ -67,7 +67,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
-    auto_idle: String
+    auto_idle: Int
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
@@ -214,7 +214,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
-    auto_idle: String
+    auto_idle: Int
     pullrequests: String
     openshift: Int
   }
