@@ -79,7 +79,7 @@ objects:
               memory: 10Mi
           volumeMounts:
           - mountPath: /usr/share/elasticsearch/data
-            name: ${SERVICE_NAME}-cluster
+            name: ${SERVICE_NAME}
           env:
             - name: POD_NAMESPACE
               valueFrom:
