@@ -537,7 +537,7 @@ $(s3-save):
 #   remove the prefix '[s3-save]-' first
 		$(eval image = $(subst [s3-save]-,,$@))
 		$(eval image = $(subst __,:,$(image)))
-		docker save $(CI_BUILD_TAG)/$(image) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
+		docker save $(CI_BUILD_TAG)/$(image) $$(docker history -q $(CI_BUILD_TAG)/$(image) | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
 
 s3-load = $(foreach image,$(s3-images),[s3-load]-$(image))
 # save all images to s3
