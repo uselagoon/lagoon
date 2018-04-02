@@ -47,6 +47,31 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
   return rows;
 };
 
+const getEnvironmentByOpenshiftProjectName = sqlClient => async (cred, args) => {
+  const { customers, projects } = cred.permissions;
+  const str = `
+      SELECT
+        e.*
+      FROM environment e
+        JOIN project p ON e.project = p.id
+        JOIN customer c ON p.customer = c.id
+      WHERE e.openshift_projectname = :openshiftProjectName
+      ${ifNotAdmin(
+        cred.role,
+        `AND (${inClauseOr([
+          ['c.id', customers],
+          ['p.id', projects],
+        ])})`,
+      )}
+    `;
+
+  const prep = prepare(sqlClient, str);
+
+  const rows = await query(sqlClient, prep(args));
+
+  return rows[0];
+};
+
 const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
   const { projects } = cred.permissions;
   const pid = input.project.toString();
@@ -101,11 +126,27 @@ const updateEnvironment = sqlClient => async (cred, input) => {
   return R.prop(0, rows);
 };
 
+const getAllEnvironments = sqlClient => async (cred, args) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  const where = whereAnd([
+    args.createdAfter ? 'created >= :createdAfter' : '',
+  ]);
+
+  const prep = prepare(sqlClient, `SELECT * FROM environment ${where}`);
+  const rows = await query(sqlClient, prep(args));
+  return rows;
+};
+
 const Queries = {
   addOrUpdateEnvironment,
+  getEnvironmentByOpenshiftProjectName,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
+  getAllEnvironments,
 };
 
 module.exports = {
