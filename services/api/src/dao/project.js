@@ -146,7 +146,7 @@ const addProject = sqlClient => async (cred, input) => {
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.production_environment ? ':production_environment' : 'NULL'},
-        :auto_idle
+        ${input.auto_idle ? ':auto_idle' : '1'}
       );
     `,
   );
