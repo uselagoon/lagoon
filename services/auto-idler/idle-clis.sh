@@ -34,7 +34,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
     AUTOIDLE=$(echo "$project" | jq -r '.auto_idle')
 
-    if [[ $AUTOIDLE == "auto" ]]; then
+    if [[ $AUTOIDLE == "1" ]]; then
       # Match the Project name to the Project Regex
       if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
         OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')

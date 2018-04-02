@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS project (
        branches               varchar(300),
        pullrequests           varchar(300),
        production_environment varchar(100),
-       auto_idle              ENUM('auto','disabled') NOT NULL default 'auto',
+       auto_idle              int(1) NOT NULL default 1,
        openshift              int REFERENCES openshift (id),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
@@ -245,8 +245,8 @@ CREATE OR REPLACE PROCEDURE
                 AND table_schema = 'infrastructure'
                 AND column_name = 'auto_idle'
             )  THEN
-      ALTER TABLE `project` ADD `auto_idle` ENUM('auto','disabled') NOT NULL default 'auto';
-      UPDATE project SET auto_idle = 'auto';
+      ALTER TABLE `project` ADD `auto_idle` int(1) NOT NULL default '1';
+
 
     END IF;
 
