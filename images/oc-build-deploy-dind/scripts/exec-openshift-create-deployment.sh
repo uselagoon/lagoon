@@ -22,7 +22,7 @@ JSON=$(oc process --insecure-skip-tls-verify \
 
 # If the deploymentconfig already exists, remove `image` from all DeploymentConfig Container definition
 # As setting this causes OpenShift => 3.7 to think the image has changed even though there is an ImageTrigger
-if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get dc "$SERVICE_NAME" &> /dev/null; then
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get dc -l service="$SERVICE_NAME" &> /dev/null; then
   echo "$JSON" | jq --raw-output 'del(.items[].spec.template.spec.containers[]?.image)' | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 else
   echo "$JSON" | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
