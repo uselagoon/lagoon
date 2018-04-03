@@ -302,10 +302,9 @@ do
     . /scripts/exec-openshift-create-pvc.sh
   fi
 
-  OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
-
+    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
     if [ -f $OPENSHIFT_TEMPLATE ]; then
       . /scripts/exec-openshift-create-deployment.sh
     fi
@@ -316,6 +315,13 @@ do
     else
       . /scripts/exec-openshift-create-deployment.sh
     fi
+  fi
+
+  # Generate statefulset if service type defines them
+  OPENSHIFT_STATEFULSET_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
+  if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
+    . /scripts/exec-openshift-resources.sh
   fi
 
   # Generate cronjobs if service type defines them

@@ -35,66 +35,59 @@ parameters:
     description: Strategy of Deploymentconfig
     value: "Recreate"
 objects:
-- apiVersion: v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1beta1
+  kind: StatefulSet
   metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}-maxscale
+    name: ${SERVICE_NAME}-galera
   spec:
-    replicas: 1
+    serviceName: ${SERVICE_NAME}-galera
+    replicas: 3
     selector:
-      service: ${SERVICE_NAME}
-    strategy:
-      type: ${DEPLOYMENT_STRATEGY}
+      matchLabels:
+        service: ${SERVICE_NAME}-galera
     template:
       metadata:
-        creationTimestamp: null
         labels:
-          service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
+          service: ${SERVICE_NAME}-galera
+        annotations:
+          alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
-          command:
-          - /lagoon/entrypoints.bash
-          - /usr/local/bin/maxscale-start
-          name: ${SERVICE_NAME}-maxscale
+        - name: ${SERVICE_NAME}-galera
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+          imagePullPolicy: Always
           ports:
           - containerPort: 3306
-            protocol: TCP
+            name: mysql
+          - containerPort: 4444
+            name: sst
+          - containerPort: 4567
+            name: replication
+          - containerPort: 4568
+            name: ist
           readinessProbe:
-            tcpSocket:
-              port: 3306
+            exec:
+              command:
+              - /usr/share/container-scripts/mysql/readiness-probe.sh
             initialDelaySeconds: 15
-            timeoutSeconds: 1
-          livenessProbe:
-            tcpSocket:
-              port: 3306
-            initialDelaySeconds: 120
-            periodSeconds: 5
-          envFrom:
-          - configMapRef:
-              name: lagoon-env
+            timeoutSeconds: 5
+          volumeMounts:
+          - name: ${SERVICE_NAME}-galera
+            mountPath: /var/lib/mysql
+            subPath: data
           env:
-          - name: SERVICE_NAME
-            value: ${SERVICE_NAME}
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10Mi
-    test: false
-    triggers:
-    - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}-maxscale
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+    volumeClaimTemplates:
+    - metadata:
+        name: ${SERVICE_NAME}-galera
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 5Gi
