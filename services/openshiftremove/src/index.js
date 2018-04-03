@@ -105,7 +105,7 @@ const messageConsumer = async function(msg) {
 
     for (let deploymentconfig of deploymentconfigs.items) {
       const deploymentconfigsDelete = Promise.promisify(openshift.ns(openshiftProject).deploymentconfigs(deploymentconfig.metadata.name).delete, { context: openshift.ns(openshiftProject).deploymentconfigs(deploymentconfig.metadata.name) })
-      await deploymentconfigsDelete({"kind":"DeleteOptions","apiVersion":"v1","propagationPolicy":"Foreground"})
+      await deploymentconfigsDelete({ body: {"kind":"DeleteOptions","apiVersion":"v1","propagationPolicy":"Foreground"}})
       logger.info(`${openshiftProject}: Deleted DeploymentConfig ${deploymentconfig.metadata.name}`);
     }
 
@@ -113,13 +113,12 @@ const messageConsumer = async function(msg) {
     const pods = await podsGet()
     for (let pod of pods.items) {
       const podDelete = Promise.promisify(kubernetes.ns(openshiftProject).pods(pod.metadata.name).delete, { context: kubernetes.ns(openshiftProject).pods(pod.metadata.name) })
-      await podDelete()
+      await podDelete({ body: {"kind":"DeleteOptions","apiVersion":"v1","propagationPolicy":"Foreground"}})
       logger.info(`${openshiftProject}: Deleted Pod ${pod.metadata.name}`);
     }
 
     const hasZeroPods = () => new Promise(async (resolve, reject) => {
       const pods = await podsGet()
-      console.log(pods)
       if (pods.items.length === 0) {
         logger.info(`${openshiftProject}: All Pods deleted`);
         resolve()
@@ -136,7 +135,7 @@ const messageConsumer = async function(msg) {
     }
 
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
-    await projectsDelete()
+    await projectsDelete({ body: {"kind":"DeleteOptions","apiVersion":"v1","propagationPolicy":"Foreground"}})
     logger.info(`${openshiftProject}: Project deleted`);
     sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
       `*[${projectName}]* remove \`${openshiftProject}\``
