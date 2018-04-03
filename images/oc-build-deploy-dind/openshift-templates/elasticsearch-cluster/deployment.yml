@@ -86,11 +86,6 @@ objects:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
-    volumeClaimTemplates:
-    - metadata:
-        name: ${SERVICE_NAME}
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 1Gi
+        volumes:
+        - name: ${SERVICE_NAME}
+          emptyDir: {}
