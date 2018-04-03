@@ -21,7 +21,7 @@
 # to keep the config up to date, without wrapping mysqld in a custom pid1.
 # The config location is intentionally not /etc/mysql/my.cnf because the
 # standard base image clobbers that location.
-CFG=/etc/my.cnf.d/galera.cnf
+CFG=/etc/mysql/conf.d/galera.cnf
 
 
 function join {

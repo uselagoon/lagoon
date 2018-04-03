@@ -290,6 +290,11 @@ do
     fi
   fi
 
+  DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.deployment\\.strategy false)
+  if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
+    TEMPLATE_PARAMETERS+=(-p DEPLOYMENT_STRATEGY="${DEPLOYMENT_STRATEGY}")
+  fi
+
   # Generate PVC if service type defines one
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
@@ -302,14 +307,14 @@ do
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
 
     if [ -f $OPENSHIFT_TEMPLATE ]; then
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-create-deployment.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
     else
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-create-deployment.sh
     fi
   fi
 
