@@ -119,12 +119,27 @@ const updateEnvironment = sqlClient => async (cred, input) => {
   return R.prop(0, rows);
 };
 
+const getAllEnvironments = sqlClient => async (cred, args) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  const where = whereAnd([
+    args.createdAfter ? 'created >= :createdAfter' : '',
+  ]);
+
+  const prep = prepare(sqlClient, `SELECT * FROM environment ${where}`);
+  const rows = await query(sqlClient, prep(args));
+  return rows;
+};
+
 const Queries = {
   addOrUpdateEnvironment,
   getEnvironmentByOpenshiftProjectName,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
+  getAllEnvironments,
 };
 
 module.exports = {

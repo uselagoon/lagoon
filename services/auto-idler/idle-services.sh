@@ -8,6 +8,7 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query developmentEnvironments {
   developmentEnvironments:allProjects {
     name
+    auto_idle
     openshift {
       console_url
       token
@@ -54,37 +55,41 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
+    AUTOIDLE=$(echo "$project" | jq -r '.auto_idle')
 
     # Match the Project name to the Project Regex
-    if [[ $PROJECT_NAME =~ ^$PROJECT_REGEX$ ]]; then
+    if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
       OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
       echo "$OPENSHIFT_URL - $PROJECT_NAME: Found with development environments"
 
-      # loop through each environment of the current project
-      echo "$project" | jq -c '.environments[]' | while read environment
-      do
-        ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
-        ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
-        echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
+      if [[ $AUTOIDLE == "1" ]]; then
+        # loop through each environment of the current project
+        echo "$project" | jq -c '.environments[]' | while read environment
+        do
+          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+          ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
+          echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
-        # Check if this environment has hits
-        HAS_HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count | if . > 0 then true else false end")
+          # Check if this environment has hits
+          HAS_HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count | if . > 0 then true else false end")
 
-        if [ ! $? -eq 0 ]; then
-          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
-          continue
-        elif [ "$HAS_HITS" == "true" ]; then
-          HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
-          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last hour, no idleing"
-        else
-          echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last hour, starting to idle"
-          # actually idleing happens here
-          oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle --all
-        fi
-      done
+          if [ ! $? -eq 0 ]; then
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
+            continue
+          elif [ "$HAS_HITS" == "true" ]; then
+            HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last hour, no idleing"
+          else
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last hour, starting to idle"
+            # actually idleing happens here
+            oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle --all
+          fi
+        done
+      else
+          echo "$OPENSHIFT_URL - $PROJECT_NAME: has autoidle set to $AUTOIDLE "
+      fi
     else
-      echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: ^$PROJECT_REGEX$"
+      echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
     fi
     echo "" # new line for prettyness
   done
-
