@@ -105,7 +105,7 @@ const messageConsumer = async function(msg) {
 
     for (let deploymentconfig of deploymentconfigs.items) {
       const deploymentconfigsDelete = Promise.promisify(openshift.ns(openshiftProject).deploymentconfigs(deploymentconfig.metadata.name).delete, { context: openshift.ns(openshiftProject).deploymentconfigs(deploymentconfig.metadata.name) })
-      await deploymentconfigsDelete()
+      await deploymentconfigsDelete({"kind":"DeleteOptions","apiVersion":"v1","propagationPolicy":"Foreground"})
       logger.info(`${openshiftProject}: Deleted DeploymentConfig ${deploymentconfig.metadata.name}`);
     }
 
