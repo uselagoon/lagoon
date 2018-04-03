@@ -159,6 +159,20 @@ mutation FillAPI {
     id
   }
 
+  CiDrupalGalera: addProject(input: {id: 14, name: "ci-drupal-galera", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"}) {
+    id
+  }
+  CiDrupalGaleraSlack: addNotificationToProject(input: {project: "ci-drupal-galera", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+    id
+  }
+
+  CiDrupalPostgres: addProject(input: {id: 15, name: "ci-drupal-postgres", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"}) {
+    id
+  }
+  CiDrupalPostgresSlack: addNotificationToProject(input: {project: "ci-drupal-postgres", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+    id
+  }
+
   #### Lagoon Kickstart Objects
   KickstartCustomer: addCustomer(input: {id: 4, name: "kickstart-customer"}) {
     id
