@@ -41,6 +41,8 @@ objects:
     name: cronjob-${SERVICE_NAME}-backup
   spec:
     schedule: "${RANDOM_MINUTE} 1 * * *"
+    successfulJobsHistoryLimit: 5
+    failedJobsHistoryLimit: 5
     jobTemplate:
       spec:
         template:
