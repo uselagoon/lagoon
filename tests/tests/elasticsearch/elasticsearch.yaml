@@ -19,7 +19,7 @@
   tasks:
   - include: ../../tasks/rest/deploy-no-sha.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with testing connection"
+- name: "{{ testname }} - check if {{ project }} is deployed by testing for cluster status"
   hosts: localhost
   serial: 1
   vars:
