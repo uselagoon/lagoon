@@ -1,0 +1,30 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "{{ branch }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    expected_key: "number_of_nodes"
+    expected_value: "{{ node_count }}"
+  tasks:
+  - include: ../../tasks/rest/deploy-no-sha.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with testing connection"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_key: "number_of_nodes"
+    expected_value: "{{ node_count }}"
+  tasks:
+  - include: ../../checks/check-json-content.yaml

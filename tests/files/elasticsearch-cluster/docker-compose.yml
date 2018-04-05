@@ -1,0 +1,14 @@
+version: '2'
+services:
+  elasticsearch:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: elasticsearch-cluster
+    expose:
+      - 9200
+      - 9300
