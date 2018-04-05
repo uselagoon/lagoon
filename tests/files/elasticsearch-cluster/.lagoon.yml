@@ -1,0 +1,6 @@
+docker-compose-yaml: docker-compose.yml
+
+environments:
+  ci-elasticsearch:
+    types:
+      elasticsearch: elasticsearch-cluster
