@@ -6,9 +6,18 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.elasticsearch
     labels:
-      lagoon.type: elasticsearch-cluster
+      lagoon.type: elasticsearch
     expose:
       - 9200
       - 9300
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    labels:
+      lagoon.type: nginx

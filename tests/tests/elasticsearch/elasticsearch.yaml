@@ -28,3 +28,21 @@
     expected_value: "{{ node_count }}"
   tasks:
   - include: ../../checks/check-json-content.yaml
+
+- name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/rest/remove.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
