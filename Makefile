@@ -395,7 +395,8 @@ all-tests-list:=	features \
 									gitlab \
 									bitbucket \
 									rest \
-									nginx
+									nginx \
+									elasticsearch
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 # Run all tests
@@ -414,7 +415,7 @@ tests-list:
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
 
 # All Tests that use REST endpoints
-rest-tests = rest node features nginx
+rest-tests = rest node features nginx elasticsearch
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
