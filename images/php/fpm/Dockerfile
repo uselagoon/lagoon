@@ -54,7 +54,7 @@ RUN apk update \
     && docker-php-ext-enable apcu redis xdebug \
     && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
-    && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
+    && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
         docker-php-ext-install mcrypt; \
        fi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \

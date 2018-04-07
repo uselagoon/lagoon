@@ -12,5 +12,7 @@ if [ ! "${BASIC_AUTH}" == "off" ]; then
 fi
 
 ep /etc/nginx/*
-ep /etc/nginx/conf.d/*
+find /etc/nginx/conf.d/ -type d | while read DIR ;
+  do ep $DIR/*;
+done
 ep /etc/nginx/helpers/*
