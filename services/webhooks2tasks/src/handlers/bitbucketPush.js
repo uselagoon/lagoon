@@ -19,6 +19,17 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
     const branchName = body.push.changes[0].new.name.toLowerCase()
     const sha = body.push.changes[0].commits[0].hash
 
+    // for each item in the body.commits array, search for our regular expression; this is an arroy of boolean
+    // which is .reduced into a single true if any are true.
+    const skip_deploy = body.commits.map( commit => Array.isArray(commit.message.match(/\[skip deploy\]|\[deploy skip\]/i)))
+                                    .reduce( function(a,i,x,z) { return a||i })
+    if (skip_deploy) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:skipped`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
+      )
+      return;
+    }
+
     const meta = {
       branch: branchName,
       sha: sha
