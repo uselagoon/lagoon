@@ -255,6 +255,13 @@ elif [ "$TYPE" == "promote" ]; then
 
 fi
 
+
+declare -A IMAGE_HASHES
+for IMAGE_NAME in "${IMAGES[@]}"
+do
+  IMAGE_HASHES[${IMAGE_NAME}]=$(oc --insecure-skip-tls-verify n ${OPENSHIFT_PROJECT} get istag ${IMAGE_NAME}:latest -o go-template --template='{{.image.dockerImageReference}}')
+done
+
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################

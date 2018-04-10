@@ -34,6 +34,9 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
+  - name: SERVICE_IMAGE
+    description: Full URL of the image to use
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -64,7 +67,7 @@ objects:
               defaultMode: 420
               secretName: lagoon-sshkey
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+        - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           envFrom:
           - configMapRef:
