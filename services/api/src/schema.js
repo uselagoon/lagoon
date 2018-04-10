@@ -67,6 +67,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
+    auto_idle: Int
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
@@ -94,9 +95,11 @@ const typeDefs = `
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
+    environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
+    allEnvironments(createdAfter: String): [Environment]
   }
 
   input SshKeyInput {
@@ -122,6 +125,7 @@ const typeDefs = `
     branches: String
     pullrequests: String
     production_environment: String
+    auto_idle: Int
   }
 
   input EnvironmentInput {
@@ -212,6 +216,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
+    auto_idle: Int
     pullrequests: String
     openshift: Int
   }
@@ -416,6 +421,10 @@ const resolvers = {
       const dao = getDao(req);
       return await dao.getProjectByName(req.credentials, args);
     },
+    environmentByOpenshiftProjectName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+    },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllProjects(req.credentials, args);
@@ -427,6 +436,10 @@ const resolvers = {
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllOpenshifts(req.credentials, args);
+    },
+    allEnvironments: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getAllEnvironments(req.credentials, args);
     },
   },
   Mutation: {

@@ -45,6 +45,9 @@ parameters:
   - name: PERSISTENT_STORAGE_SIZE
     description: Size of the Storage to request
     value: "5Gi"
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Rolling"
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -60,7 +63,7 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      resources: {}
+      type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
         creationTimestamp: null

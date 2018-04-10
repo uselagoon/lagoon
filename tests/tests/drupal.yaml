@@ -68,3 +68,12 @@
     git_repo_name: drupal.git
     project: ci-drupal
     branch: drupal8-composer-72-postgres
+
+- include: drupal/drush.yaml
+  vars:
+    testname: "DRUSH"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.1
+    git_repo_name: drupal.git
+    project: ci-drupal
