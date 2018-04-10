@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 # REF: can be a:
 # a sha: a7789dc5e6960bb2250ae39d7e7145b632c44c77
