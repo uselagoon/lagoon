@@ -26,9 +26,7 @@
     "test:watch": "jest --watch",
     "build": "babel src -d dist",
     "watch": "babel --watch=src -d dist",
-    "execute": "node -r @babel/register src/cli.js",
-    "sshlogin": "node -r @babel/register src/cli.js login --identity ../local-dev/cli_id_rsa",
-    "sshlogout": "node -r @babel/register src/cli.js logout --identity ../local-dev/cli_id_rsa"
+    "execute": "bash -c 'node -r @babel/register src/cli.js $1 $([[ $1 =~ login|logout ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
   "repository": {
     "type": "git",
