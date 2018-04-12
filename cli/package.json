@@ -26,9 +26,9 @@
     "test:watch": "jest --watch",
     "build": "babel src -d dist",
     "watch": "babel --watch=src -d dist",
-    "execute": "node -r babel-core/register src/cli.js",
-    "sshlogin": "node -r babel-core/register src/cli.js login --identity ../local-dev/cli_id_rsa",
-    "sshlogout": "node -r babel-core/register src/cli.js logout --identity ../local-dev/cli_id_rsa"
+    "execute": "node -r @babel/register src/cli.js",
+    "sshlogin": "node -r @babel/register src/cli.js login --identity ../local-dev/cli_id_rsa",
+    "sshlogout": "node -r @babel/register src/cli.js logout --identity ../local-dev/cli_id_rsa"
   },
   "repository": {
     "type": "git",
@@ -47,8 +47,8 @@
     "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.42",
     "@babel/plugin-transform-runtime": "^7.0.0-beta.42",
     "@babel/preset-env": "^7.0.0-beta.42",
+    "@babel/register": "^7.0.0-beta.42",
     "babel-jest": "^22.1.0",
-    "babel-register": "^7.0.0-beta.3",
     "dotenv-extended": "^2.0.1",
     "jest": "^22.1.1",
     "node-fetch": "^1.7.2",
