@@ -1,7 +1,6 @@
 // @flow
 
 import { table } from 'table';
-import { red } from 'chalk';
 import R from 'ramda';
 
 import gql from '../gql';
@@ -59,7 +58,7 @@ ListProjectsArgs): Promise<number> {
   );
 
   if (projects.length === 0) {
-    clog(red('No projects found.'));
+    clog('No projects found.');
     return 0;
   }
 
