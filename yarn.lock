@@ -1058,6 +1058,10 @@ babel-core@^6.0.0, babel-core@^6.26.0:
     slash "^1.0.0"
     source-map "^0.5.6"
 
+babel-core@^7.0.0-0:
+  version "7.0.0-bridge.0"
+  resolved "https://registry.yarnpkg.com/babel-core/-/babel-core-7.0.0-bridge.0.tgz#95a492ddd90f9b4e9a4a1da14eb335b87b634ece"
+
 babel-eslint@^8.2.1:
   version "8.2.2"
   resolved "https://registry.yarnpkg.com/babel-eslint/-/babel-eslint-8.2.2.tgz#1102273354c6f0b29b4ea28a65f97d122296b68b"
@@ -1161,16 +1165,6 @@ babel-runtime@6.x.x, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime
   dependencies:
     core-js "^2.4.0"
     regenerator-runtime "^0.11.0"
-
-babel-template@7.0.0-beta.3:
-  version "7.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/babel-template/-/babel-template-7.0.0-beta.3.tgz#ebb877b6070ce9912b0d0c22fcad3372165913a8"
-  dependencies:
-    babel-code-frame "7.0.0-beta.3"
-    babel-traverse "7.0.0-beta.3"
-    babel-types "7.0.0-beta.3"
-    babylon "7.0.0-beta.27"
-    lodash "^4.2.0"
 
 babel-template@^6.16.0, babel-template@^6.24.1, babel-template@^6.26.0:
   version "6.26.0"
