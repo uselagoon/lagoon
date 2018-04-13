@@ -12,49 +12,19 @@ import type { BaseArgs } from '.';
 
 export const command = 'logout';
 export const description =
-  'Invalidate the authentication token in $HOME/.lagoon-token and delete the file';
+  'Delete the authentication token in $HOME/.lagoon-token';
 
 export function builder(yargs: Yargs) {
-  return yargs.usage(`$0 ${command} - ${description}`).options({
-    identity: {
-      describe: 'Path to identity (private key)',
-      type: 'string',
-      alias: 'i',
-    },
-  });
+  return yargs.usage(`$0 ${command} - ${description}`);
 }
 
-type Args = BaseArgs & {
-  argv: {
-    identity: string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  if (argv.identity != null && !await fileExists(argv.identity)) {
-    return printErrors(cerr, 'File does not exist at identity option path!');
-  }
-
-  let connection;
-
-  try {
-    connection = await sshConnect({
-      identity: argv.identity,
-    });
-  } catch (err) {
-    return printErrors(cerr, err);
-  }
-
-  await sshExec(connection, 'logout');
+export async function handler({ clog }: BaseArgs): Promise<number> {
   const tokenFilePath = path.join(os.homedir(), '.lagoon-token');
   if (await fileExists(tokenFilePath)) {
     await unlink(tokenFilePath);
   }
 
   clog(green('Logged out successfully.'));
-
-  // Be responsible and close the connection after our transaction.
-  connection.end();
 
   return 0;
 }
