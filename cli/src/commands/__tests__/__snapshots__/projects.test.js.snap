@@ -31,7 +31,7 @@ Array [
 exports[`listProjects should print notice on empty projects array 1`] = `
 Array [
   Array [
-    "[31mNo projects found.[39m",
+    "No projects found.",
   ],
 ]
 `;

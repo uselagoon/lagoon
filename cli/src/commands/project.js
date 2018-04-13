@@ -8,7 +8,6 @@ import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
 import {
-  printErrors,
   printGraphQLErrors,
   printProjectConfigurationError,
 } from '../printErrors';
@@ -84,7 +83,8 @@ projectDetailsArgs): Promise<number> {
   const project = R.path(['data', 'projectByName'])(result);
 
   if (project == null) {
-    return printErrors(clog, `No project '${projectName}' found!`);
+    clog(`No project '${projectName}' found.`);
+    return 0;
   }
 
   clog(`Project details for '${projectName}':`);

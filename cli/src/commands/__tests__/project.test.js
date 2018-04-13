@@ -62,7 +62,7 @@ describe('projectDetails', () => {
       cerr,
     });
 
-    expect(code).toBe(1);
+    expect(code).toBe(0);
     expect(clog.mock.calls).toMatchSnapshot();
   });
 

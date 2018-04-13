@@ -3,9 +3,7 @@
 import os from 'os';
 import path from 'path';
 import { green } from 'chalk';
-import { sshConnect, sshExec } from '../util/ssh';
 import { fileExists, unlink } from '../util/fs';
-import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
