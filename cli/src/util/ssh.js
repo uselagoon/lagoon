@@ -174,15 +174,23 @@ export async function sshExec(
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     connection.exec(command, {}, (error, stream) => {
+      const chunks = [];
+
       if (error) {
         reject(error);
       } else {
-        stream.on('data', (data) => {
-          resolve(data);
+        stream.on('data', (chunk) => {
+          chunks.push(chunk);
         });
 
-        stream.stderr.on('data', (data) => {
-          reject(new Error(data));
+        stream.on('close', (code) => {
+          const response = Buffer.concat(chunks);
+
+          if (code === 1) {
+            reject(new Error(response));
+          }
+
+          resolve(response);
         });
       }
     });
