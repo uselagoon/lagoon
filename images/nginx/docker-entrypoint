@@ -12,7 +12,11 @@ if [ ! "${BASIC_AUTH}" == "off" ]; then
 fi
 
 ep /etc/nginx/*
-find /etc/nginx/conf.d/ -type d | while read DIR ;
-  do ep $DIR/*;
+# find all folders within /etc/nginx/conf.d/
+find /etc/nginx/conf.d/ -type d | while read DIR; do
+  # envplate if found folder is not empty
+  if find $DIR -mindepth 1 | read; then 
+    ep $DIR/*;
+  fi
 done
 ep /etc/nginx/helpers/*
