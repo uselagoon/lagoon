@@ -34,6 +34,9 @@ parameters:
   - name: RANDOM_MINUTE
     generate: expression
     from: "[0-5]{1}[0-9]{1}"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: batch/v2alpha1
   kind: CronJob
@@ -60,7 +63,7 @@ objects:
                   claimName: ${SERVICE_NAME}
             containers:
             - name: cronjob-${SERVICE_NAME}-backup
-              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              image: ${SERVICE_IMAGE}
               command:
                 - /lagoon/cronjob.sh
                 - "/lagoon/postgres-backup.sh ${SERVICE_NAME}"

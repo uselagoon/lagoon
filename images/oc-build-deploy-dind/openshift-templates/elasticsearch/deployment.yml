@@ -34,6 +34,9 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Recreate"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -59,7 +62,7 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+        - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 9200
@@ -91,12 +94,4 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
   status: {}

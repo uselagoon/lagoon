@@ -14,24 +14,27 @@ containsValue () {
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 # Load all Services that are defined
-SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
+COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Figure out which services should we handle
 SERVICE_TYPES=()
 IMAGES=()
-for SERVICE in "${SERVICES[@]}"
+declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
+declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
+declare -A MAP_SERVICE_NAME_TO_IMAGENAME
+for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
   # The name of the service can be overridden, if not we use the actual servicename
-  SERVICE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.name default)
+  SERVICE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.name default)
   if [ "$SERVICE_NAME" == "default" ]; then
-    SERVICE_NAME=$SERVICE
+    SERVICE_NAME=$COMPOSE_SERVICE
   fi
 
   # Load the servicetype. If it's "none" we will not care about this service at all
-  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
+  SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.type custom)
 
   # Allow the servicetype to be overriden by environment in .lagoon.yml
-  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE_NAME false)
   if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
   fi
@@ -40,11 +43,37 @@ do
     continue
   fi
 
-  # We build all images
-  IMAGES+=("${SERVICE}")
+  # For DeploymentConfigs with multiple Services inside (like nginx-php), we allow to define the service type of within the
+  # deploymentconfig via lagoon.deployment.servicetype. If this is not set we use the Compose Service Name
+  DEPLOYMENT_SERVICETYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.servicetype default)
+  if [ "$DEPLOYMENT_SERVICETYPE" == "default" ]; then
+    DEPLOYMENT_SERVICETYPE=$COMPOSE_SERVICE
+  fi
 
+  # The ImageName is the same as the Name of the Docker Compose ServiceName
+  IMAGE_NAME=$COMPOSE_SERVICE
+
+  # Generate List of Images to build
+  IMAGES+=("${IMAGE_NAME}")
+
+  # Map Deployment ServiceType to the ImageName
+  MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
+  
   # Create an array with all Service Types, Names and Original Service Name
-  SERVICE_TYPES+=("${SERVICE_TYPE}:${SERVICE_NAME}:${SERVICE}")
+  SERVICE_TYPES+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+
+  # ServiceName and Type to Original Service Name Mapping, but only once per Service name and Type,
+  # as we have original services that appear twice (like in the case of nginx-php)
+  if [[ ! "${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_NAME}:${SERVICE_TYPE}"]+isset}" ]]; then
+    MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_NAME}:${SERVICE_TYPE}"]="${COMPOSE_SERVICE}"
+  fi
+
+  # ServiceName to ImageName mapping, but only once as we have original services that appear twice (like in the case of nginx-php)
+  # these will be handled via MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
+  if [[ ! "${MAP_SERVICE_NAME_TO_IMAGENAME["${SERVICE_NAME}"]+isset}" ]]; then
+    MAP_SERVICE_NAME_TO_IMAGENAME["${SERVICE_NAME}"]="${IMAGE_NAME}"
+  fi
+
 done
 
 ##############################################
@@ -122,13 +151,10 @@ do
   echo "=== OPENSHIFT_SERVICES_TEMPLATE=${OPENSHIFT_SERVICES_TEMPLATE} "
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
 
+  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
+  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
-  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
-  SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
-
-
-  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE_NAME false)
   if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
   fi
@@ -255,11 +281,11 @@ elif [ "$TYPE" == "promote" ]; then
 
 fi
 
-
+# Load all Image Hashes for just pushed images
 declare -A IMAGE_HASHES
 for IMAGE_NAME in "${IMAGES[@]}"
 do
-  IMAGE_HASHES[${IMAGE_NAME}]=$(oc --insecure-skip-tls-verify n ${OPENSHIFT_PROJECT} get istag ${IMAGE_NAME}:latest -o go-template --template='{{.image.dockerImageReference}}')
+  IMAGE_HASHES[${IMAGE_NAME}]=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get istag ${IMAGE_NAME}:latest -o go-template --template='{{.image.dockerImageReference}}')
 done
 
 ##############################################
@@ -270,34 +296,34 @@ for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
 
-  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
-  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
-  SERVICE=${SERVICE_TYPES_ENTRY_SPLIT[2]}
+  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
+  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+  COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
   TEMPLATE_PARAMETERS=()
-  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent false)
+  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
 
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
     TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_PATH="${PERSISTENT_STORAGE_PATH}")
 
-    PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.class false)
+    PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.class false)
     if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_CLASS="${PERSISTENT_STORAGE_CLASS}")
     fi
 
-    PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.name false)
+    PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.name false)
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_NAME="${PERSISTENT_STORAGE_NAME}")
     fi
 
-    PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.persistent\\.size false)
+    PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
     if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
     fi
   fi
 
-  DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.deployment\\.strategy false)
+  DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
   if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
     TEMPLATE_PARAMETERS+=(-p DEPLOYMENT_STRATEGY="${DEPLOYMENT_STRATEGY}")
   fi
@@ -309,18 +335,18 @@ do
     . /scripts/exec-openshift-create-pvc.sh
   fi
 
-  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.template false)
+  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
     if [ -f $OPENSHIFT_TEMPLATE ]; then
-      . /scripts/exec-openshift-create-deployment.sh
+      . /scripts/exec-openshift-resources.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
     else
-      . /scripts/exec-openshift-create-deployment.sh
+      . /scripts/exec-openshift-resources.sh
     fi
   fi
 
@@ -350,7 +376,7 @@ do
     CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
 
     # Only implement the cronjob for the services we are currently handling
-    if [ $CRONJOB_SERVICE == $SERVICE ]; then
+    if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
       # loading original $TEMPLATE_PARAMETERS as multiple cronjobs use the same values
       TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
@@ -390,8 +416,8 @@ do
 
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
 
-  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[0]}
-  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
+  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 

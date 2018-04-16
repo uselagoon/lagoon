@@ -49,6 +49,9 @@ parameters:
   - name: CRONJOB_COMMAND
     description: Command of this cronjob
     required: true
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: batch/v2alpha1
   kind: CronJob
@@ -75,7 +78,7 @@ objects:
                   claimName: ${SERVICE_NAME}
             containers:
             - name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
-              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              image: ${SERVICE_IMAGE}
               command:
                 - /lagoon/cronjob.sh
                 - "${CRONJOB_COMMAND}"

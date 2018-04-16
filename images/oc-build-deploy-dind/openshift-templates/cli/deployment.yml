@@ -35,7 +35,7 @@ parameters:
     description: Strategy of Deploymentconfig
     value: "Rolling"
   - name: SERVICE_IMAGE
-    description: Full URL of the image to use
+    description: Pullable image of service
     required: true
 objects:
 - apiVersion: v1
@@ -88,11 +88,3 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
