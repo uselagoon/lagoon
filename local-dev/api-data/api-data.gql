@@ -155,7 +155,14 @@ mutation FillAPI {
   CiFeatures: addProject(input: {id: 12, name: "ci-features", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/features.git", production_environment:"master"}) {
     id
   }
- CiFeaturesSlack: addNotificationToProject(input: {project: "ci-features", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiFeaturesSlack: addNotificationToProject(input: {project: "ci-features", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+    id
+  }
+
+  CiElasticsearch: addProject(input: {id: 14, name: "ci-elasticsearch", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/elasticsearch.git", production_environment:"master"}) {
+    id
+  }
+  CiElasticsearchSlack: addNotificationToProject(input: {project: "ci-elasticsearch", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
