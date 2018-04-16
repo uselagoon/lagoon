@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-elasticsearch
+  name: lagoon-openshift-template-elasticsearch-cluster
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -31,38 +31,34 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
-  - name: DEPLOYMENT_STRATEGY
-    description: Strategy of Deploymentconfig
-    value: "Recreate"
 objects:
-- apiVersion: v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1beta1
+  kind: StatefulSet
   metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
-    replicas: 1
+    serviceName: ${SERVICE_NAME}
+    replicas: 3
     selector:
-      service: ${SERVICE_NAME}
-    strategy:
-      type: ${DEPLOYMENT_STRATEGY}
+      matchLabels:
+        service: ${SERVICE_NAME}
     template:
       metadata:
-        creationTimestamp: null
         labels:
-          service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
+          service: ${SERVICE_NAME}
+        annotations:
+          alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
-          name: ${SERVICE_NAME}
+        - name: ${SERVICE_NAME}
+          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+          imagePullPolicy: Always
           ports:
           - containerPort: 9200
+            protocol: TCP
+          - containerPort: 9300
             protocol: TCP
           readinessProbe:
             httpGet:
@@ -84,19 +80,12 @@ objects:
           volumeMounts:
           - mountPath: /usr/share/elasticsearch/data
             name: ${SERVICE_NAME}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
         volumes:
         - name: ${SERVICE_NAME}
-          persistentVolumeClaim:
-            claimName: ${SERVICE_NAME}
-    test: false
-    triggers:
-    - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
-  status: {}
+          emptyDir: {}
