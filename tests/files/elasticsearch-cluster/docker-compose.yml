@@ -8,7 +8,7 @@ services:
       context: .
       dockerfile: Dockerfile.elasticsearch
     labels:
-      lagoon.type: elasticsearch
+      lagoon.type: elasticsearch-cluster
     expose:
       - 9200
       - 9300
