@@ -15,3 +15,12 @@
     git_repo_name: github.git
     project: ci-github
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: github/skip-deployment.yaml
+  vars:
+    testname: "GITHUB - skip deployment"
+    branch: skip
+    node_version: 8
+    git_repo_name: github.git
+    project: ci-github
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
