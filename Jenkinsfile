@@ -34,7 +34,7 @@ node {
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift'
+                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
                 }
               }
             )
@@ -49,7 +49,7 @@ node {
                 stage ('run tests') {
                   try {
                     sh "make push-minishift"
-                    sh "make tests -j4"
+                    sh "make tests -j5"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()

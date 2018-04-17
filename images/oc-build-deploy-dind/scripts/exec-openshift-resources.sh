@@ -6,7 +6,7 @@ else
   SERVICE_ROUTER_URL=""
 fi
 
-oc process --insecure-skip-tls-verify \
+oc process  --local -o yaml --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
   -p SERVICE_NAME="${SERVICE_NAME}" \
@@ -19,4 +19,4 @@ oc process --insecure-skip-tls-verify \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
   -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
   "${TEMPLATE_PARAMETERS[@]}" \
-  | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
+  | outputToYaml

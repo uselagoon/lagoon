@@ -3,7 +3,7 @@
 **NOTE: We are working hard on having a CLI and GraphQL API ready for everybody to setup and configure their projects themselves. It needs a couple of more days testing.**
 Until then the setup of a new project involves talking to your Lagoon Administrator. They are anyway much friendlier then APIs ;)
 
-Please have the following infos ready for your Lagoon Administrator:
+Please have the following information ready for your Lagoon Administrator:
 - SSH-Public Keys of everybody that will work on this project
 - The URL of the Git repository which will host the code (git@example.com:test/test.git)
 - The Git branch you would like to use as your production environment
@@ -19,7 +19,7 @@ If this is not the case, check out the list of [Step-by-Step Guides](./index.md)
 
 In order to deploy your Code, Lagoon needs access to it. By design and for security Lagoon only needs read access to your Git Repository.
 
-Your Lagon Administrator will tell you the SSH Public Key or the Git Account to give read access to.
+Your Lagoon Administrator will tell you the SSH Public Key or the Git Account to give read access to.
 
 ## 3. Configure Webhook
 

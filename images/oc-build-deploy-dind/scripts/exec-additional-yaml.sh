@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-oc process --insecure-skip-tls-verify \
+oc process  --local -o yaml --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f "${ADDITIONAL_YAML_PATH}" \
   -p SAFE_BRANCH="${SAFE_BRANCH}" \
