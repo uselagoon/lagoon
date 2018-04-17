@@ -31,6 +31,9 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
@@ -48,12 +51,10 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}
-        annotations:
-          alpha.image.policy.openshift.io/resolve-names: "*"
       spec:
         containers:
         - name: ${SERVICE_NAME}
-          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           ports:
           - containerPort: 9200
