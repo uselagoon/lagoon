@@ -31,7 +31,7 @@ do
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$SERVICE.labels.lagoon\\.type custom)
 
   # Allow the servicetype to be overriden by environment in .lagoon.yml
-  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false)
+  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE false 2>/dev/null || printf false)
   if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
   fi
