@@ -34,7 +34,7 @@ node {
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift MINISHIFT_CPUS=10 MINISHIFT_MEMORY=12GB'
+                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
                 }
               }
             )
