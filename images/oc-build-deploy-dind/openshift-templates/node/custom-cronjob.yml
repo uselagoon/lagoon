@@ -51,6 +51,8 @@ objects:
   spec:
     schedule: "${CRONJOB_SCHEDULE}"
     concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 5
+    failedJobsHistoryLimit: 5
     jobTemplate:
       spec:
         template:
