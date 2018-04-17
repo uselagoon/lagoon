@@ -407,7 +407,7 @@ do
   fi
 
   # Generate statefulset if service type defines them
-  OPENSHIFT_STATEFULSET_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
+  OPENSHIFT_STATEFULSET_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
   if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
     . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
