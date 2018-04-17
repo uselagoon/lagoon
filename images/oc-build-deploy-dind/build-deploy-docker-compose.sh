@@ -1,9 +1,14 @@
 #!/bin/bash
 
-containsValue () {
-  local e
-  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
-  return 1
+function outputToYaml() {
+  set +x
+  IFS=''
+  while read data; do
+    echo "$data" >> /lagoon/${YAML_CONFIG_FILE}.yml;
+  done;
+  # Inject YAML document separator
+  echo "---" >> /lagoon/${YAML_CONFIG_FILE}.yml;
+  set -x
 }
 
 ##############################################
@@ -22,6 +27,8 @@ IMAGES=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
+declare -A IMAGES_PULL
+declare -A IMAGES_BUILD
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
   # The name of the service can be overridden, if not we use the actual servicename
@@ -58,9 +65,11 @@ do
 
   # Map Deployment ServiceType to the ImageName
   MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
-  
-  # Create an array with all Service Types, Names and Original Service Name
-  SERVICE_TYPES+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+
+  # Create an array with all Service Names and Types if it does not exist yet
+  if [[ ! " ${SERVICE_TYPES[@]} " =~ " ${SERVICE_NAME}:${SERVICE_TYPE} " ]]; then
+    SERVICE_TYPES+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+  fi
 
   # ServiceName and Type to Original Service Name Mapping, but only once per Service name and Type,
   # as we have original services that appear twice (like in the case of nginx-php)
@@ -124,6 +133,8 @@ if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
       . /scripts/exec-pull-tag.sh
 
+      IMAGES_PULL["${IMAGE_NAME}"]="${PULL_IMAGE}"
+
     else
       # Dockerfile defined, load the context and build it
 
@@ -133,6 +144,8 @@ if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
       fi
 
       . /scripts/exec-build.sh
+
+      IMAGES_BUILD["${IMAGE_NAME}"]="${TEMPORARY_IMAGE_NAME}"
     fi
 
     # adding the build image to the list of arguments passed into the next image builds
@@ -144,6 +157,8 @@ fi
 ##############################################
 ### CREATE OPENSHIFT SERVICES AND ROUTES
 ##############################################
+
+YAML_CONFIG_FILE="services-routes"
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -219,6 +234,7 @@ while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes
   let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
 done
 
+oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /lagoon/${YAML_CONFIG_FILE}.yml
 
 ##############################################
 ### PROJECT WIDE ENV VARIABLES
@@ -241,7 +257,7 @@ fi
 ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
 # Generate a Config Map with project wide env variables
-oc process --insecure-skip-tls-verify \
+oc process --local -o yaml --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f /openshift-templates/configmap.yml \
   -p NAME="lagoon-env" \
@@ -266,12 +282,21 @@ fi
 ##############################################
 
 if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
-  for IMAGE_NAME in "${IMAGES[@]}"
+  for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
   do
     # Before the push the temporary name is resolved to the future tag with the registry in the image name
-    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
-    . /scripts/exec-push.sh
+    TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
+    . /scripts/exec-push-parallel.sh
   done
+  
+  parallel --retries 4 < /lagoon/push
+
+  for IMAGE_NAME in "${!IMAGES_PULL[@]}"
+  do
+    PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
+    . /scripts/exec-openshift-tag.sh
+  done
+
 elif [ "$TYPE" == "promote" ]; then
 
   for IMAGE_NAME in "${IMAGES[@]}"
@@ -291,6 +316,8 @@ done
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
+
+YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs"
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -339,14 +366,14 @@ do
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
     OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
     if [ -f $OPENSHIFT_TEMPLATE ]; then
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-resources-with-images.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
     else
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-resources-with-images.sh
     fi
   fi
 
@@ -354,14 +381,14 @@ do
   OPENSHIFT_STATEFULSET_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
   if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-    . /scripts/exec-openshift-resources.sh
+    . /scripts/exec-openshift-resources-with-images.sh
   fi
 
   # Generate cronjobs if service type defines them
   OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /scripts/exec-openshift-resources.sh
+    . /scripts/exec-openshift-resources-with-images.sh
   fi
 
   ### CUSTOM CRONJOBS
@@ -398,7 +425,7 @@ do
         echo "No cronjob Template for service type ${SERVICE_TYPE} found"; exit 1;
       fi
 
-      . /scripts/exec-openshift-resources.sh
+      . /scripts/exec-openshift-resources-with-images.sh
     fi
 
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
@@ -406,6 +433,11 @@ do
 
 done
 
+##############################################
+### APPLY RESOURCES
+##############################################
+
+oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /lagoon/${YAML_CONFIG_FILE}.yml
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
