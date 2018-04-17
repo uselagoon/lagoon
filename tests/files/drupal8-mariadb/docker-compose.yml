@@ -15,7 +15,7 @@ services:
       - ./web:/app/web:delegated
     depends_on:
       - builder
-  varnish:
+  varnish-myname:
     networks:
       - amazeeio-network
       - default
@@ -27,7 +27,7 @@ services:
       lagoon.name: varnish
     depends_on:
       - nginx
-  nginx:
+  nginx-myname:
     networks:
       - amazeeio-network
       - default
@@ -38,6 +38,7 @@ services:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
       lagoon.name: nginx
+      lagoon.deployment.servicetype: nginx
     volumes:
       - ./web:/app/web:delegated
     depends_on:
@@ -46,7 +47,7 @@ services:
       - "8080"
     environment:
       - AMAZEEIO_URL=drupal.docker.amazee.io
-  php:
+  php-myname:
     build:
       context: .
       dockerfile: Dockerfile.php
@@ -54,6 +55,7 @@ services:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
       lagoon.name: nginx
+      lagoon.deployment.servicetype: php
     volumes:
       - ./web:/app/web:delegated
     depends_on:
