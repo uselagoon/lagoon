@@ -17,7 +17,6 @@
   tasks:
   - include: ../../tasks/webhook-github/push.yaml
 
-
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
@@ -28,8 +27,11 @@
 - name: "{{ testname }} - [skip deployment] commit and git push into same git repo"
   hosts: localhost
   serial: 1
+  vars:
+    git_hash_push: "{{ current_head }}"
+    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/git-skip-empty-commit-push.yaml
+  - include: ../../tasks/webhook-github/push-skipdeploy.yaml
 
 - include: ../../checks/check-branch-sha.yaml
   vars:
