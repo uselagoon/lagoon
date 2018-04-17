@@ -5,7 +5,7 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get route "$ROUTE_DOMAI
 else
   oc process  --local -o yaml --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
-    -f /openshift-templates/route.yml \
+    -f /oc-build-deploy/openshift-templates/route.yml \
     -p SAFE_BRANCH="${SAFE_BRANCH}" \
     -p SAFE_PROJECT="${SAFE_PROJECT}" \
     -p BRANCH="${BRANCH}" \

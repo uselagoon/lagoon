@@ -5,16 +5,19 @@ FROM ${IMAGE_REPO:-lagoon}/oc
 RUN rm -rf /root && ln -s /home /root
 ENV LAGOON=oc-build-deploy-dind
 
-RUN	mkdir -p /git
+RUN	mkdir -p /oc-build-deploy/git
+RUN	mkdir -p /oc-build-deploy/tug
 
-WORKDIR /git
+WORKDIR /oc-build-deploy/git
 
 COPY docker-entrypoint.sh /lagoon/entrypoints/100-docker-entrypoint.sh
-COPY build-deploy.sh /usr/sbin/build-deploy
-COPY build-deploy-docker-compose.sh /build-deploy-docker-compose.sh
+COPY build-deploy.sh /oc-build-deploy/build-deploy.sh
+COPY build-deploy-docker-compose.sh /oc-build-deploy/build-deploy-docker-compose.sh
+COPY tug.sh /oc-build-deploy/tug.sh
 
-COPY scripts /scripts
+COPY tug /oc-build-deploy/tug
+COPY scripts /oc-build-deploy/scripts
 
-COPY openshift-templates /openshift-templates
+COPY openshift-templates  /oc-build-deploy/openshift-templates
 
-CMD ["build-deploy"]
+CMD ["/oc-build-deploy/build-deploy.sh"]

@@ -18,6 +18,8 @@ function outputToYaml() {
 # Load path of docker-compose that should be used
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
+DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
+
 # Load all Services that are defined
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
@@ -89,8 +91,8 @@ done
 ### BUILD IMAGES
 ##############################################
 
-# we only need to build images for pullrequests and branches
-if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+# we only need to build images for pullrequests and branches, but not during a TUG build
+if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG == "true" ]]; then
 
   BUILD_ARGS=()
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
@@ -131,7 +133,7 @@ if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
       fi
 
-      . /scripts/exec-pull-tag.sh
+      .  /oc-build-deploy/scripts/exec-pull-tag.sh
 
       IMAGES_PULL["${IMAGE_NAME}"]="${PULL_IMAGE}"
 
@@ -143,7 +145,7 @@ if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
         echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
       fi
 
-      . /scripts/exec-build.sh
+      . /oc-build-deploy/scripts/exec-build.sh
 
       IMAGES_BUILD["${IMAGE_NAME}"]="${TEMPORARY_IMAGE_NAME}"
     fi
@@ -152,6 +154,17 @@ if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
     BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
   done
 
+fi
+
+# if $DEPLOY_TYPE is tug we just push the images to the defined docker registry and create a clone
+# of ourselves and push it into `lagoon-tug` image which is then executed in the destination openshift
+# If though this is the actual tug deployment in the destination openshift, we don't run this
+if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
+
+  . /oc-build-deploy/tug/tug-build-push.sh
+
+  # exit here, we are done
+  exit
 fi
 
 ##############################################
@@ -174,14 +187,13 @@ do
     SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
   fi
 
-  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/services.yml"
-
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/services.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /scripts/exec-openshift-resources.sh
+    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 
-  OPENSHIFT_ROUTES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/routes.yml"
+  OPENSHIFT_ROUTES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/routes.yml"
   if [ -f $OPENSHIFT_ROUTES_TEMPLATE ]; then
 
     # The very first generated route is set as MAIN_GENERATED_ROUTE
@@ -190,7 +202,7 @@ do
     fi
 
     OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
-    . /scripts/exec-openshift-resources.sh
+    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 done
 
@@ -226,7 +238,7 @@ while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes
 
     ROUTE_SERVICE=$ROUTES_SERVICE
 
-    . /scripts/exec-openshift-create-route.sh
+    .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
 
     let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
   done
@@ -257,9 +269,9 @@ fi
 ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
 # Generate a Config Map with project wide env variables
-oc process --local -o yaml --insecure-skip-tls-verify \
+oc process --local --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
-  -f /openshift-templates/configmap.yml \
+  -f /oc-build-deploy/openshift-templates/configmap.yml \
   -p NAME="lagoon-env" \
   -p SAFE_BRANCH="${SAFE_BRANCH}" \
   -p SAFE_PROJECT="${SAFE_PROJECT}" \
@@ -280,15 +292,33 @@ fi
 ##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
+if [[ $THIS_IS_TUG == "true" ]]; then
+  # Allow to disable registry auth
+  if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
+    # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
+    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
+      oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
+    fi
 
-if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets add serviceaccount/default secrets/tug-registry --for=pull
+  fi
+
+  # Import all remote Images into ImageStreams
+  readarray -t TUG_IMAGES < /oc-build-deploy/tug/images
+  for TUG_IMAGE in "${TUG_IMAGES[@]}"
+  do
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} tag --source=docker "${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" "${TUG_IMAGE}:latest"
+  done
+
+elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
   do
     # Before the push the temporary name is resolved to the future tag with the registry in the image name
     TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
     . /scripts/exec-push-parallel.sh
   done
-  
+
   parallel --retries 4 < /lagoon/push
 
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
@@ -296,22 +326,14 @@ if [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
     . /scripts/exec-openshift-tag.sh
   done
-
 elif [ "$TYPE" == "promote" ]; then
 
   for IMAGE_NAME in "${IMAGES[@]}"
   do
-    . /scripts/exec-openshift-tag.sh
+    .  /oc-build-deploy/scripts/exec-openshift-tag.sh
   done
 
 fi
-
-# Load all Image Hashes for just pushed images
-declare -A IMAGE_HASHES
-for IMAGE_NAME in "${IMAGES[@]}"
-do
-  IMAGE_HASHES[${IMAGE_NAME}]=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get istag ${IMAGE_NAME}:latest -o go-template --template='{{.image.dockerImageReference}}')
-done
 
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
@@ -356,24 +378,24 @@ do
   fi
 
   # Generate PVC if service type defines one
-  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/pvc.yml"
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /scripts/exec-openshift-create-pvc.sh
+    .  /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
-    OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
     if [ -f $OPENSHIFT_TEMPLATE ]; then
-      . /scripts/exec-openshift-resources-with-images.sh
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
   else
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
       echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
     else
-      . /scripts/exec-openshift-resources-with-images.sh
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
   fi
 
@@ -385,10 +407,10 @@ do
   fi
 
   # Generate cronjobs if service type defines them
-  OPENSHIFT_SERVICES_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /scripts/exec-openshift-resources-with-images.sh
+    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
   fi
 
   ### CUSTOM CRONJOBS
@@ -417,15 +439,15 @@ do
       TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
 
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$(/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
       TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
 
-      OPENSHIFT_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+      OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
       if [ ! -f $OPENSHIFT_TEMPLATE ]; then
         echo "No cronjob Template for service type ${SERVICE_TYPE} found"; exit 1;
       fi
 
-      . /scripts/exec-openshift-resources-with-images.sh
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
 
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
@@ -463,7 +485,7 @@ do
     . /scripts/exec-monitor-deploy.sh
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
-    . /scripts/exec-monitor-deploy.sh
+    . /oc-build-deploy/scripts/exec-monitor-deploy.sh
   fi
 done
 
@@ -483,7 +505,7 @@ do
         SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
         CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
         SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /scripts/exec-post-rollout-tasks-run.sh
+        . /oc-build-deploy/scripts/exec-post-rollout-tasks-run.sh
         ;;
     *)
         echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
