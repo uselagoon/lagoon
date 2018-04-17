@@ -7,6 +7,7 @@ ENV LAGOON=oc-build-deploy-dind
 
 RUN	mkdir -p /oc-build-deploy/git
 RUN	mkdir -p /oc-build-deploy/tug
+RUN	mkdir -p /oc-build-deploy/lagoon
 
 WORKDIR /oc-build-deploy/git
 

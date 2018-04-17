@@ -4,10 +4,10 @@ function outputToYaml() {
   set +x
   IFS=''
   while read data; do
-    echo "$data" >> /lagoon/${YAML_CONFIG_FILE}.yml;
+    echo "$data" >> /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml;
   done;
   # Inject YAML document separator
-  echo "---" >> /lagoon/${YAML_CONFIG_FILE}.yml;
+  echo "---" >> /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml;
   set -x
 }
 
@@ -246,7 +246,7 @@ while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes
   let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
 done
 
-oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /lagoon/${YAML_CONFIG_FILE}.yml
+oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 
 ##############################################
 ### PROJECT WIDE ENV VARIABLES
@@ -316,15 +316,15 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
   do
     # Before the push the temporary name is resolved to the future tag with the registry in the image name
     TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
-    . /scripts/exec-push-parallel.sh
+    . /oc-build-deploy/scripts/exec-push-parallel.sh
   done
 
-  parallel --retries 4 < /lagoon/push
+  parallel --retries 4 < /oc-build-deploy/lagoon/push
 
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /scripts/exec-openshift-tag.sh
+    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
   done
 elif [ "$TYPE" == "promote" ]; then
 
@@ -334,6 +334,13 @@ elif [ "$TYPE" == "promote" ]; then
   done
 
 fi
+
+# Load all Image Hashes for just pushed images
+declare -A IMAGE_HASHES
+for IMAGE_NAME in "${IMAGES[@]}"
+do
+  IMAGE_HASHES[${IMAGE_NAME}]=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get istag ${IMAGE_NAME}:latest -o go-template --template='{{.image.dockerImageReference}}')
+done
 
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
@@ -403,7 +410,7 @@ do
   OPENSHIFT_STATEFULSET_TEMPLATE="/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
   if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-    . /scripts/exec-openshift-resources-with-images.sh
+    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
   fi
 
   # Generate cronjobs if service type defines them
@@ -459,7 +466,7 @@ done
 ### APPLY RESOURCES
 ##############################################
 
-oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /lagoon/${YAML_CONFIG_FILE}.yml
+oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
@@ -479,10 +486,10 @@ do
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
 
     STATEFULSET="${SERVICE_NAME}-galera"
-    . /scripts/exec-monitor-statefulset.sh
+    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
 
     SERVICE_NAME="${SERVICE_NAME}-maxscale"
-    . /scripts/exec-monitor-deploy.sh
+    . /oc-build-deploy/scripts/exec-monitor-deploy.sh
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
