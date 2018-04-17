@@ -60,7 +60,7 @@ objects:
               imagePullPolicy: Always
               command:
                 - /lagoon/cronjob.sh
-                - /prune-images.sh"
+                - /prune-images.sh
               env:
                 - name: REPOSITORY_TO_UPDATE
                   value: ${REPOSITORY_TO_UPDATE}
