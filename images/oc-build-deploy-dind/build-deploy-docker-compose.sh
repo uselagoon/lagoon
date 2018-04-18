@@ -111,11 +111,6 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
 
   for IMAGE_NAME in "${IMAGES[@]}"
   do
-    # We need the Image Name uppercase sometimes, so we create that here
-    IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
-
-    # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
-    TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
 
     DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
     if [ $DOCKERFILE == "false" ]; then
@@ -133,12 +128,18 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
       fi
 
-      .  /oc-build-deploy/scripts/exec-pull-tag.sh
-
+      # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
       IMAGES_PULL["${IMAGE_NAME}"]="${PULL_IMAGE}"
 
     else
       # Dockerfile defined, load the context and build it
+
+      # We need the Image Name uppercase sometimes, so we create that here
+      IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
+
+
+      # To prevent clashes of ImageNames during parallel builds, we give all Images a Temporary name
+      TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
 
       BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
       if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
@@ -147,11 +148,13 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
 
       . /oc-build-deploy/scripts/exec-build.sh
 
+      # Keep a list of the images we have built, as we need to push them to the OpenShift Registry later
       IMAGES_BUILD["${IMAGE_NAME}"]="${TEMPORARY_IMAGE_NAME}"
+
+      # adding the build image to the list of arguments passed into the next image builds
+      BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
     fi
 
-    # adding the build image to the list of arguments passed into the next image builds
-    BUILD_ARGS+=(--build-arg ${IMAGE_NAME_UPPERCASE}_IMAGE=${TEMPORARY_IMAGE_NAME})
   done
 
 fi
@@ -316,11 +319,17 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
   do
     # Before the push the temporary name is resolved to the future tag with the registry in the image name
     TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
+
+    # This will actually not push any images and instead just add them to the file /oc-build-deploy/lagoon/push
     . /oc-build-deploy/scripts/exec-push-parallel.sh
   done
 
-  parallel --retries 4 < /oc-build-deploy/lagoon/push
+  # If we have Images to Push to the OpenRegistry, let's do so
+  if [ -f /oc-build-deploy/lagoon/push ]; then
+    parallel --retries 4 < /oc-build-deploy/lagoon/push
+  fi
 
+  # All images that should be pulled are tagged as Images directly in OpenShift Registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
