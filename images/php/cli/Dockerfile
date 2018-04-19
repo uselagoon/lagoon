@@ -46,7 +46,9 @@ RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
 
 # SSH Key and Agent Setup
 COPY 10-ssh-agent.sh /lagoon/entrypoints/
-COPY ssh_config /home/.ssh/config
+COPY ssh_config /etc/ssh/ssh_config
+COPY id_ed25519_lagoon_cli.key /home/.ssh/lagoon_cli.key
+RUN chmod 400 /home/.ssh/lagoon_cli.key
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
