@@ -65,6 +65,11 @@ sub vcl_recv {
     set req.http.X-LAGOON-VARNISH-BYPASS = "${VARNISH_BYPASS:-false}";
   }
 
+  # Websockets are piped
+  if (req.http.Upgrade ~ "(?i)websocket") {
+      return (pipe);
+  }
+
   if (req.http.X-LAGOON-VARNISH-BYPASS == "true" || req.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
     return (pass);
   }
@@ -232,6 +237,14 @@ sub vcl_recv {
 
   # Cacheable, lookup in cache.
   return (hash);
+}
+
+sub vcl_pipe {
+  # Support for Websockets
+  if (req.http.upgrade) {
+      set bereq.http.upgrade = req.http.upgrade;
+      set bereq.http.connection = req.http.connection;
+  }
 }
 
 sub vcl_hit {
