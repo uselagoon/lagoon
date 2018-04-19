@@ -33,6 +33,9 @@ ENV PATH="/home/.composer/vendor/bin:${PATH}"
 # like it happens in /etc/profile of alpine Images.
 COPY 90-composer-path.sh /lagoon/entrypoints/
 
+# Remove warning about running as root in composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Making sure the path is not only added during entrypoint, but also when creating a new shell
 RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
 
