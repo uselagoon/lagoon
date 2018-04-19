@@ -1,12 +1,8 @@
-cluster.name: "docker-cluster"
-network.host: 0.0.0.0
+#!/usr/bin/env bash
 
-# minimum_master_nodes need to be explicitly set when bound on a public IP
-# set to 1 to allow single node clusters
-# Details: https://github.com/elastic/elasticsearch/pull/17288
-discovery.zen.minimum_master_nodes: 1
-xpack.license.self_generated.type: trial
-xpack.security.enabled: false
+set -eo pipefail
+
+cat <<EOT >> /usr/share/elasticsearch/config/elasticsearch.yml
 xpack.notification:
   slack:
     account:
@@ -30,3 +26,4 @@ xpack.notification:
           description: "Elasticsearch Watch notification"
           incident_key: "lagoon_logs_key"
           event_type: trigger
+EOT

@@ -9,6 +9,9 @@ ENV LAGOON=elasticsearch
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home /home
+COPY peer-finder /bin/
+COPY configure-es.sh /lagoon/
+COPY docker-entrypoint.sh /lagoon/entrypoints/90-elasticsearch.sh
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -23,3 +26,5 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 RUN echo "xpack.security.enabled: false" >> config/elasticsearch.yml
 
 ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
+
+ENTRYPOINT ["/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]

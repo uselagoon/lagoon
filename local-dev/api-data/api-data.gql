@@ -155,18 +155,25 @@ mutation FillAPI {
   CiFeatures: addProject(input: {id: 12, name: "ci-features", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/features.git", production_environment:"master"}) {
     id
   }
- CiFeaturesSlack: addNotificationToProject(input: {project: "ci-features", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+  CiFeaturesSlack: addNotificationToProject(input: {project: "ci-features", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiDrupalGalera: addProject(input: {id: 14, name: "ci-drupal-galera", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"}) {
+  CiElasticsearch: addProject(input: {id: 14, name: "ci-elasticsearch", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/elasticsearch.git", production_environment:"master"}) {
+    id
+  }
+  CiElasticsearchSlack: addNotificationToProject(input: {project: "ci-elasticsearch", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
+    id
+  }
+
+  CiDrupalGalera: addProject(input: {id: 15, name: "ci-drupal-galera", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"}) {
     id
   }
   CiDrupalGaleraSlack: addNotificationToProject(input: {project: "ci-drupal-galera", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
     id
   }
 
-  CiDrupalPostgres: addProject(input: {id: 15, name: "ci-drupal-postgres", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"}) {
+  CiDrupalPostgres: addProject(input: {id: 16, name: "ci-drupal-postgres", customer: 3, openshift: 2, git_url: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"}) {
     id
   }
   CiDrupalPostgresSlack: addNotificationToProject(input: {project: "ci-drupal-postgres", notificationType: "slack", notificationName: "amazeeio--lagoon-local-ci"}) {
