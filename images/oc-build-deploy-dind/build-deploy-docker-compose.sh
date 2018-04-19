@@ -346,7 +346,7 @@ fi
 
 # Load all Image Hashes for just pushed images
 declare -A IMAGE_HASHES
-parallel --retries 4 --results /tmp/istag oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get istag -o go-template --template='{{.image.dockerImageReference}}' ::: ${IMAGES[@]}
+parallel --retries 4 --results /tmp/istag oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get istag -o go-template --template='{{.image.dockerImageReference}}' {}:latest ::: ${IMAGES[@]}
 for i in $(ls /tmp/istag/1); do
   IMAGE_HASHES[${i}]=$(cat /tmp/istag/1/${i}/stdout)
 done
