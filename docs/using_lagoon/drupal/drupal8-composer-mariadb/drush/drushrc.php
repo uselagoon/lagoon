@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * amazee.io drushrc.php file
+ * Lagoon drushrc.php file
  *
- * This file tells drush about the amazee.io environment
- * It contains some defaults that the amazee.io team suggests, please edit them as required.
+ * This file tells drush about the Lagoon environment
+ * It contains some defaults that the Lagoon team suggests, please edit them as required.
  */
 
 ### Skip data for some tables during sql dumps and syncs
