@@ -204,7 +204,7 @@ const messageConsumer = async msg => {
 }
 
 const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
-  const uuid = uuidv4;
+  const uuid = uuidv4();
   const path = `${projectName}/${branchName}/${uuid}.txt`
 
   const params = {
