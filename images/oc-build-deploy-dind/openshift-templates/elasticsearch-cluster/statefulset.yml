@@ -87,6 +87,8 @@ objects:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
+            - name: SERVICE_NAME
+              value: ${SERVICE_NAME}
         volumes:
         - name: ${SERVICE_NAME}
           emptyDir: {}

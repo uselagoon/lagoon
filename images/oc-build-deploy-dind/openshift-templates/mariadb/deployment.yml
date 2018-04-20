@@ -84,6 +84,9 @@ objects:
           volumeMounts:
             - name: ${SERVICE_NAME}-data
               mountPath: /var/lib/mysql
+          env:
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
           envFrom:
           - configMapRef:
               name: lagoon-env

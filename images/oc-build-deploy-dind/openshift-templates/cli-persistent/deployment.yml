@@ -94,6 +94,8 @@ objects:
             ## This will cause the cli to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: ${LAGOON_GIT_SHA}
+            - name: SERVICE_NAME
+              value: ${SERVICE_NAME}
           volumeMounts:
             - name: ${PERSISTENT_STORAGE_NAME}
               mountPath: ${PERSISTENT_STORAGE_PATH}
