@@ -5,7 +5,7 @@ import std;
 # set backend default
 backend default {
   .host = "${VARNISH_HOST:-nginx}";
-  .port = "8080";
+  .port = "${VARNISH_PORT:-8080}";
   .first_byte_timeout = 35m;
   .between_bytes_timeout = 10m;
 }
