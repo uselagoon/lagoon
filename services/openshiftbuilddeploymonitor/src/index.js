@@ -4,7 +4,7 @@ const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
-const crypto = require('crypto');
+const uuidv4 = require('uuid/v4');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
 
@@ -204,10 +204,8 @@ const messageConsumer = async msg => {
 }
 
 const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
-
-  const hash = crypto.createHash('sha256', `${buildName}:${projectName}:${branchName}`).digest('hex');
-
-  const path = `${projectName}/${branchName}/${hash}.txt`
+  const uuid = uuidv4;
+  const path = `${projectName}/${branchName}/${uuid}.txt`
 
   const params = {
     Bucket: bucket,
