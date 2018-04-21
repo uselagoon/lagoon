@@ -78,6 +78,9 @@ objects:
           envFrom:
           - configMapRef:
               name: lagoon-env
+          env:
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
           resources:
             requests:
               cpu: 10m

@@ -72,6 +72,9 @@ objects:
               envFrom:
               - configMapRef:
                   name: lagoon-env
+              env:
+              - name: SERVICE_NAME
+                value: ${SERVICE_NAME}
               volumeMounts:
                 - name: ${SERVICE_NAME}
                   mountPath: /var/lib/postgresql/data

@@ -69,6 +69,9 @@ objects:
               command:
                 - /lagoon/cronjob.sh
                 - "/lagoon/mysql-backup.sh ${SERVICE_NAME}"
+              env:
+              - name: SERVICE_NAME
+                value: ${SERVICE_NAME}
               envFrom:
               - configMapRef:
                   name: lagoon-env
