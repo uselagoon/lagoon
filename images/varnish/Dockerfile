@@ -30,8 +30,8 @@ EXPOSE 8080
 # tells the local development environment on which port we are running
 ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 
-# Make http_resp_hdr_len and http_resp_size configurable
-ENV HTTP_RESP_HDR_LEN=${http_resp_hdr_len:-8k}
-ENV HTTP_RESP_SIZE=${http_resp_size:-32k}
+# Make http_resp_hdr_len and http_resp_size configurable (see in docker-entrypoint)
+ENV HTTP_RESP_HDR_LEN=8k
+ENV HTTP_RESP_SIZE=32k
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
