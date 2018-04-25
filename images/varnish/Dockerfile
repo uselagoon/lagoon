@@ -2,6 +2,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM alpine
 
+MAINTAINER amazee.io
 ENV LAGOON=varnish
 
 # Copying commons files
