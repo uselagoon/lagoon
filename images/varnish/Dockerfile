@@ -19,8 +19,7 @@ RUN apk --no-cache add varnish
 RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
 
 COPY default.vcl /etc/varnish/default.vcl
-COPY varnish-start.bash /lagoon/varnish-start.bash
-RUN chmod 777 /lagoon/varnish-start.bash
+COPY varnish-start.sh /lagoon/varnish-start.sh
 
 RUN fix-permissions /etc/varnish/ \
     && fix-permissions /var/run/ \
@@ -38,4 +37,4 @@ ENV HTTP_RESP_HDR_LEN=8k
 ENV HTTP_RESP_SIZE=32k
 
 ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD [" /lagoon/varnish-start.bash"]
+CMD [" /lagoon/varnish-start.sh"]
