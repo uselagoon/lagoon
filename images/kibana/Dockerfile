@@ -10,8 +10,9 @@ USER root
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
-COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
+
+RUN curl -sL https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -29,3 +30,5 @@ RUN fix-permissions /usr/share/kibana
 ENV LAGOON_LOCALDEV_HTTP_PORT=5601
 
 ENV NODE_OPTIONS="--max-old-space-size=200"
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]

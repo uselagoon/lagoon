@@ -8,8 +8,10 @@ ENV LAGOON=elasticsearch
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
-COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
+
+RUN curl -sL https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
+
 COPY peer-finder /bin/
 COPY configure-es.sh /lagoon/
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-elasticsearch.sh
