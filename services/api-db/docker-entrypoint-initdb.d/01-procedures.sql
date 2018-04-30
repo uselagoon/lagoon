@@ -111,14 +111,16 @@ CREATE OR REPLACE PROCEDURE
         project,
         deploy_type,
         environment_type,
-        openshift_projectname
+        openshift_projectname,
+        deleted
     )
     SELECT
         name,
         p.id,
         deploy_type,
         environment_type,
-        openshift_projectname
+        openshift_projectname,
+        '0000-00-00 00:00:00'
     FROM
         project AS p
     WHERE
@@ -132,7 +134,8 @@ CREATE OR REPLACE PROCEDURE
     SELECT
       e.*
     FROM environment e
-    WHERE e.name = name;
+    WHERE e.name = name AND
+    deleted = '0000-00-00 00:00:00';
   END;
 $$
 
@@ -144,15 +147,14 @@ CREATE OR REPLACE PROCEDURE
   )
   BEGIN
 
-    DELETE
+    UPDATE
       environment
-    FROM
-      environment
-    JOIN
-      project ON environment.project = project.id
+    SET
+      deleted=NOW()
     WHERE
-      environment.name = name AND
-      project.name = project;
+      name = name AND
+      project = project AND
+      deleted = '0000-00-00 00:00:00';
 
   END;
 $$

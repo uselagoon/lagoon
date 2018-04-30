@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS environment (
        openshift_projectname  varchar(100),
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
-       UNIQUE KEY `project_name` (`project`,`name`)
+       deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+       UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`)
 );
 
 -- Junction Tables
@@ -254,6 +255,28 @@ CREATE OR REPLACE PROCEDURE
 $$
 DELIMITER ;
 
+CREATE OR REPLACE PROCEDURE
+  add_deleted_to_environment()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'environment'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'deleted'
+            )  THEN
+      ALTER TABLE `environment` DROP INDEX project_name;            
+      ALTER TABLE `environment` ADD `deleted` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00';
+      ALTER TABLE `environment` ADD UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`);
+
+    END IF;
+
+  END;
+$$
+DELIMITER ;
+
 CALL add_production_environment_to_project;
 CALL add_ssh_to_openshift;
 CALL convert_project_pullrequest_to_varchar;
@@ -261,3 +284,4 @@ CALL add_active_systems_promote_to_project;
 CALL rename_git_type_to_deploy_type_in_environment;
 CALL add_enum_promote_to_deploy_type_in_environment;
 CALL add_autoidle_to_project;
+CALL add_deleted_to_environment;
