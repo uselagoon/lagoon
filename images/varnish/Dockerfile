@@ -36,5 +36,5 @@ ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 ENV HTTP_RESP_HDR_LEN=8k
 ENV HTTP_RESP_SIZE=32k
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD [" /varnish-start.sh"]

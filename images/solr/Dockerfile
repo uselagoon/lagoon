@@ -29,6 +29,6 @@ COPY 10-solr-port.sh /lagoon/entrypoints/
 # Define Volume so locally we get persistent cores
 VOLUME /opt/solr/server/solr/mycores/
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 
 CMD ["solr-precreate", "mycore"]

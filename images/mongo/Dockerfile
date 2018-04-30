@@ -25,5 +25,5 @@ FROM amazeeio/mongo
 # VOLUME /data/db
 # EXPOSE 27017 28017
 
-# ENTRYPOINT ["/lagoon/entrypoints.sh"]
+# ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 # CMD [ "mongod", "--bind_ip", "0.0.0.0" ]

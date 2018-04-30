@@ -94,5 +94,5 @@ ENV AUTH_SERVER=http://auth-server:3000 \
 
 EXPOSE 2020
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]

@@ -125,5 +125,5 @@ WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
 EXPOSE 3306
 
-ENTRYPOINT ["/lagoon/entrypoints.bash"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["mysqld"]

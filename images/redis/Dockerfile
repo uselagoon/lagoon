@@ -23,5 +23,5 @@ COPY docker-entrypoint /lagoon/entrypoints/70-redis-entrypoint
 RUN fix-permissions /etc/redis/redis.conf \
     fix-permissions /data
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["redis-server", "/etc/redis/redis.conf"]

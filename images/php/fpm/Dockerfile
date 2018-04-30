@@ -82,5 +82,5 @@ ENV LAGOON_ENVIRONMENT_TYPE=development
 
 WORKDIR /app
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/usr/local/sbin/php-fpm", "-F", "-R"]

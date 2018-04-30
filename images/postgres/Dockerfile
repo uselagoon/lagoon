@@ -28,5 +28,5 @@ ENV PGUSER=postgres \
     PGDATA=/var/lib/postgresql/data/pgdata
 
 # Postgresql entrypoint file needs bash, so start the entrypoints with bash
-ENTRYPOINT ["/lagoon/entrypoints.bash"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["postgres"]
