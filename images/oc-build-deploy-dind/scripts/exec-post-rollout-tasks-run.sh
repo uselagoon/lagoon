@@ -6,7 +6,10 @@ if [[ $(oc -n ${OPENSHIFT_PROJECT} get deploymentconfigs --no-headers=true -o na
   # If the deploymentconfig is scaled to 0, scale to 1
   if [[ $(oc -n ${OPENSHIFT_PROJECT} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
 
-    oc -n ${OPENSHIFT_PROJECT} scale --replicas=1 ${DEPLOYMENTCONFIG} >/dev/null 2>&1
+    # this command will fail until openshift 3.7.x
+    # https://github.com/openshift/origin/issues/17729
+    oc -n ${OPENSHIFT_PROJECT} scale --replicas=1 ${DEPLOYMENTCONFIG}
+
     # wait until the scaling is done
     while [[ ! $(oc -n ${OPENSHIFT_PROJECT} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
     do
