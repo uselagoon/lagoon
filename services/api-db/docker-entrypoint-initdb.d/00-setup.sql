@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS environment (
 
 CREATE TABLE IF NOT EXISTS environment_storage (
        id                       int NOT NULL auto_increment PRIMARY KEY,
-       environment              int,
+       environment              int REFERENCES environment (id),
        persistent_storage_claim varchar(100),
        bytes_used               bigint,
        updated                  date,
@@ -262,7 +262,7 @@ CREATE OR REPLACE PROCEDURE
 
   END;
 $$
-DELIMITER ;
+
 
 CREATE OR REPLACE PROCEDURE
   add_deleted_to_environment()
