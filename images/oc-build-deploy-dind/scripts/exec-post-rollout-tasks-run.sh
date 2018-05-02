@@ -8,7 +8,7 @@ if [[ $(oc -n ${OPENSHIFT_PROJECT} get deploymentconfigs --no-headers=true -o na
 
     oc -n ${OPENSHIFT_PROJECT} scale --replicas=1 ${DEPLOYMENTCONFIG} >/dev/null 2>&1
     # wait until the scaling is done
-    while [[ ! $(oc -n ${OPENSHIFT_PROJECT}-n ${OPENSHIFT_PROJECT} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+    while [[ ! $(oc -n ${OPENSHIFT_PROJECT} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
     do
       sleep 1
     done
