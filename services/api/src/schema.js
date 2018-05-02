@@ -103,7 +103,7 @@ const typeDefs = `
 
   input DeleteEnvironmentInput {
     name: String!
-    project: String!
+    project: Int!
   }
 
   type Query {

@@ -12,16 +12,16 @@ const {
 
 const Sql = {
   updateEnvironment: (cred, input) => {
-    const { name, patch } = input;
+    const { id, patch } = input;
 
     return knex('environment')
-      .where('name', '=', name)
+      .where('id', '=', id)
       .update(patch)
       .toString();
   },
-  selectEnvironmentByName: name =>
+  selectEnvironmentById: id =>
     knex('environment')
-      .where('name', '=', name)
+      .where('id', '=', id)
       .toString(),
 };
 
@@ -37,8 +37,10 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
     `SELECT
         *
       FROM environment e
-      WHERE e.project = :pid
+      WHERE e.project = :pid AND
+      deleted = "0000-00-00 00:00:00"
       ${args.type ? 'AND e.environment_type = :type' : ''}
+
     `,
   );
 
@@ -201,10 +203,10 @@ const updateEnvironment = sqlClient => async (cred, input) => {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  const name = input.name;
+  const id = input.id;
   await query(sqlClient, Sql.updateEnvironment(cred, input));
 
-  const rows = await query(sqlClient, Sql.selectEnvironmentByName(name));
+  const rows = await query(sqlClient, Sql.selectEnvironmentById(id));
 
   return R.prop(0, rows);
 };
@@ -216,6 +218,7 @@ const getAllEnvironments = sqlClient => async (cred, args) => {
 
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
+    'deleted = "0000-00-00 00:00:00"'
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM environment ${where}`);
