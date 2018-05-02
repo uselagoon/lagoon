@@ -66,6 +66,15 @@ CREATE TABLE IF NOT EXISTS environment (
        UNIQUE KEY `project_name` (`project`,`name`)
 );
 
+CREATE TABLE IF NOT EXISTS environment_storage (
+       id                       int NOT NULL auto_increment PRIMARY KEY,
+       environment              int,
+       persistent_storage_claim varchar(100),
+       bytes_used               bigint,
+       updated                  date,
+       UNIQUE KEY `environment_persistent_storage_claim_updated` (`environment`,`persistent_storage_claim`, `updated`)
+);
+
 -- Junction Tables
 
 CREATE TABLE IF NOT EXISTS project_notification (

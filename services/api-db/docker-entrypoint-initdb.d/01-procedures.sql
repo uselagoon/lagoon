@@ -136,6 +136,39 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  CreateOrUpdateEnvironmentStorage
+  (
+    IN environment              int,
+    IN persistent_storage_claim varchar(100),
+    IN bytes_used               bigint
+  )
+  BEGIN
+    INSERT INTO environment_storage (
+        environment,
+        persistent_storage_claim,
+        bytes_used,
+        updated
+    ) VALUES (
+        environment,
+        persistent_storage_claim,
+        bytes_used,
+        DATE(NOW())
+    )
+    ON DUPLICATE KEY UPDATE
+        bytes_used=bytes_used;
+
+    SELECT
+      *
+    FROM environment_storage es
+    WHERE es.environment = environment AND
+          es.persistent_storage_claim = persistent_storage_claim AND
+          es.updated = DATE(NOW());
+  END;
+$$
+
+
 CREATE OR REPLACE PROCEDURE
   DeleteEnvironment
   (

@@ -84,6 +84,21 @@ const typeDefs = `
     openshift_projectname: String
     updated: String
     created: String
+    storages: [EnvironmentStorage]
+    storage_month(month_prior: Int): EnvironmentStorageMonth
+  }
+
+  type EnvironmentStorage {
+    id: Int
+    environment: Environment
+    persistent_storage_claim: String
+    bytes_used: Int
+    updated: String
+  }
+
+  type EnvironmentStorageMonth {
+    month: String
+    bytes_used: Int
   }
 
   input DeleteEnvironmentInput {
@@ -134,6 +149,12 @@ const typeDefs = `
     deploy_type: DeployType!
     environment_type: EnvType!
     openshift_projectname: String!
+  }
+
+  input EnvironmentStorageInput {
+    environment: Int!
+    persistent_storage_claim: String!
+    bytes_used: Int!
   }
 
   input CustomerInput {
@@ -297,6 +318,7 @@ const typeDefs = `
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+    addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
     deleteEnvironment(input: DeleteEnvironmentInput!): String
     addSshKey(input: SshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
@@ -391,7 +413,28 @@ const resolvers = {
         environment.id,
       );
     },
+    storages: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentStorageByEnvironmentId(req.credentials, environment.id);
+    },
+    storage_month: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentStorageMonthByEnvironmentId(
+        req.credentials,
+        environment.id,
+        args,
+      );
+    },
   },
+  EnvironmentStorage: {
+    environment: async (environmentStorage, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByEnvironmentStorageId(
+        req.credentials,
+        environmentStorage.id,
+      );
+    },
+  },  
   Notification: {
     __resolveType(obj, context, info) {
       switch (obj.type) {
@@ -603,6 +646,12 @@ const resolvers = {
       )(args.input);
 
       const ret = await dao.addOrUpdateEnvironment(req.credentials, input);
+      return ret;
+    },
+    addOrUpdateEnvironmentStorage: async (root, args, req) => {
+      const dao = getDao(req);
+
+      const ret = await dao.addOrUpdateEnvironmentStorage(req.credentials, args.input);
       return ret;
     },
     deleteEnvironment: async (root, args, req) => {

@@ -47,6 +47,48 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
   return rows;
 };
 
+const getEnvironmentStorageByEnvironmentId = sqlClient => async (cred, eid, args) => {
+  const { projects } = cred.permissions;
+
+  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
+    throw new Error('Unauthorized');
+  }
+
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        *
+      FROM environment_storage es
+      WHERE es.environment = :eid
+    `,
+  );
+
+  const rows = await query(sqlClient, prep({ eid: eid }));
+
+  return rows;
+};
+
+const getEnvironmentStorageMonthByEnvironmentId = sqlClient => async (cred, eid, args) => {
+  const { customers, projects } = cred.permissions;
+  const str = `
+      SELECT 
+        SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month 
+      FROM 
+        environment_storage 
+      WHERE 
+        environment = :eid
+        AND YEAR(updated) = YEAR(CURRENT_DATE - INTERVAL :month_prior MONTH)
+        AND MONTH(updated) = MONTH(CURRENT_DATE - INTERVAL :month_prior MONTH)
+    `;
+
+  const prep = prepare(sqlClient, str);
+
+  const rows = await query(sqlClient, prep({ eid: eid, month_prior: args.month_prior }));
+
+  return rows[0];
+};
+
+
 const getEnvironmentByOpenshiftProjectName = sqlClient => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
@@ -97,6 +139,47 @@ const addOrUpdateEnvironment = sqlClient => async (cred, input) => {
   return environment;
 };
 
+const addOrUpdateEnvironmentStorage = sqlClient => async (cred, input) => {
+  const { projects } = cred.permissions;
+
+  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
+    throw new Error('EnvironmentStorage creation unauthorized.');
+  }
+  const prep = prepare(
+    sqlClient,
+    `CALL CreateOrUpdateEnvironmentStorage(
+        :environment,
+        :persistentStorageClaim,
+        :storageUsed
+      );
+    `,
+  );
+
+  const rows = await query(sqlClient, prep(input));
+  const environment = R.path([0, 0], rows);
+
+  return environment;
+};
+
+const getEnvironmentByEnvironmentStorageId = sqlClient => async (cred, esid) => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        e.*
+      FROM environment_storage es
+      JOIN environment e ON es.environment = e.id
+      WHERE es.id = :esid
+    `,
+  );
+
+  const rows = await query(sqlClient, prep({ esid }));
+
+  return rows ? rows[0] : null;
+};
+
 const deleteEnvironment = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
@@ -142,7 +225,11 @@ const getAllEnvironments = sqlClient => async (cred, args) => {
 
 const Queries = {
   addOrUpdateEnvironment,
+  addOrUpdateEnvironmentStorage,
   getEnvironmentByOpenshiftProjectName,
+  getEnvironmentStorageByEnvironmentId,
+  getEnvironmentStorageMonthByEnvironmentId,
+  getEnvironmentByEnvironmentStorageId,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
