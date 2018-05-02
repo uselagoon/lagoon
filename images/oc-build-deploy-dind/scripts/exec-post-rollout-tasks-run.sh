@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # if there is a deploymentconfig for the given service
-if [[ "oc -n ${OPENSHIFT_PROJECT} get deploymentconfigs -l service=${SERVICE_NAME}" ]]; then
+if [[ $(oc -n ${OPENSHIFT_PROJECT} get deploymentconfigs --no-headers=true -o name -l service=${SERVICE_NAME}| wc -l) -gt 0 ]]; then
   DEPLOYMENTCONFIG=$(oc -n ${OPENSHIFT_PROJECT} get deploymentconfigs -l service=${SERVICE_NAME} -o name)
   # If the deploymentconfig is scaled to 0, scale to 1
   if [[ $(oc -n ${OPENSHIFT_PROJECT} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
