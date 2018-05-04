@@ -139,6 +139,21 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
   return rows ? rows : null;
 };
 
+const getCustomerSshKeys = sqlClient => async cred => {
+  if (cred.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  const rows = await query(
+    sqlClient,
+    `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
+       FROM ssh_key sk, customer c, customer_ssh_key csk
+       WHERE csk.cid = c.id AND csk.skid = sk.id`,
+  );
+
+  return R.map(R.prop('sshKey'), rows);
+};
+
 const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
   const { customers } = cred.permissions;
 
@@ -355,6 +370,7 @@ const Queries = {
   getSshKeysByCustomerId,
   getSshKeysByProjectId,
   getUnassignedSshKeys,
+  getCustomerSshKeys,
   removeSshKeyFromCustomer,
   removeSshKeyFromProject,
   updateSshKey,
