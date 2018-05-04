@@ -2,9 +2,10 @@ version: '3.2'
 services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
-    # volumes:
-    #   - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    #   - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
+    volumes:
+      - ./services/api-db/docker-entrypoint-initdb.d/00-setup.sql:/docker-entrypoint-initdb.d/00-setup.sql
+      - ./services/api-db/docker-entrypoint-initdb.d/01-procedures.sql:/docker-entrypoint-initdb.d/00-procedures.sql
+      - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - "3306:3306"
     labels:
@@ -67,6 +68,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
+  logs2rocketchat:
+    image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
+    command: yarn run dev
+    volumes:
+      - ./services/logs2rocketchat/src:/app/services/logs2rocketchat/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs2rocketchat/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs2rocketchat:${SAFE_BRANCH:-master}
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
