@@ -8,6 +8,7 @@ ENV LAGOON=docker-host
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
@@ -25,6 +26,6 @@ RUN fix-permissions /home
 COPY update-push-images.sh /update-push-images.sh
 COPY prune-images.sh /prune-images.sh
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 
 CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${OPENSHIFT_REGISTRY} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1"]
