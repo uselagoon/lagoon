@@ -95,3 +95,38 @@ objects:
           kind: ImageStreamTag
           name: ${SERVICE_NAME}:latest
       type: ImageChange
+- apiVersion: batch/v2alpha1
+  kind: CronJob
+  metadata:
+    name: cronjob-storage-calculator
+  spec:
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
+    schedule: "5 */12 * * *"
+    concurrencyPolicy: Forbid
+    jobTemplate:
+      spec:
+        template:
+          metadata:
+            annotations:
+              alpha.image.policy.openshift.io/resolve-names: "*"
+            labels:
+              cronjob: storage-calculator
+              parent: cronjob-storage-calculator
+          spec:
+            containers:
+            - name: storage-calculator
+              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              command:
+                - /lagoon/cronjob.sh
+                - "/calculate-storage.sh"
+              envFrom:
+              - configMapRef:
+                  name: lagoon-env
+              env:
+                - name: JWTSECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: jwtsecret
+                      key: JWTSECRET
+            restartPolicy: OnFailure
