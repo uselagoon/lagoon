@@ -236,9 +236,11 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
       throw new Error('Unauthorized.');
     }
   }
-
   const rows = await query(sqlClient, Sql.selectProjectNotification(input));
   const projectNotification = R.path([0], rows);
+  if (!projectNotification) {
+    throw new Error(`Could not find notification '${input.notificationName}' of type '${input.notificationType}'`);
+  }
   projectNotification.notificationType = input.notificationType;
 
   const result = await query(
