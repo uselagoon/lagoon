@@ -70,7 +70,17 @@ CREATE TABLE IF NOT EXISTS environment (
        openshift_projectname  varchar(100),
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
-       UNIQUE KEY `project_name` (`project`,`name`)
+       deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+       UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`)
+);
+
+CREATE TABLE IF NOT EXISTS environment_storage (
+       id                       int NOT NULL auto_increment PRIMARY KEY,
+       environment              int REFERENCES environment (id),
+       persistent_storage_claim varchar(100),
+       bytes_used               bigint,
+       updated                  date,
+       UNIQUE KEY `environment_persistent_storage_claim_updated` (`environment`,`persistent_storage_claim`, `updated`)
 );
 
 -- Junction Tables
@@ -279,6 +289,27 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_deleted_to_environment()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'environment'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'deleted'
+            )  THEN
+      ALTER TABLE `environment` DROP INDEX project_name;
+      ALTER TABLE `environment` ADD `deleted` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00';
+      ALTER TABLE `environment` ADD UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`);
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -289,3 +320,4 @@ CALL rename_git_type_to_deploy_type_in_environment;
 CALL add_enum_promote_to_deploy_type_in_environment;
 CALL add_autoidle_to_project;
 CALL add_enum_rocketchat_to_type_in_project_notification();
+CALL add_deleted_to_environment;

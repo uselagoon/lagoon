@@ -286,3 +286,12 @@ services:
       lagoon.type: custom
       lagoon.template: services/auto-idler/.lagoon.yml
       lagoon.image: amazeeiolagoon/auto-idler:${SAFE_BRANCH:-master}
+  storage-calculator:
+    image: ${IMAGE_REPO:-lagoon}/storage-calculator
+    user: '111111111'
+    volumes:
+    - "./services/storage-calculator/calculate-storage.sh:/calculate-storage.sh"
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/storage-calculator/.lagoon.yml
+      lagoon.image: amazeeiolagoon/storage-calculator:${SAFE_BRANCH:-master}
