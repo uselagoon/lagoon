@@ -96,7 +96,7 @@ async function getRocketChatInfoForProject(project: string): Project {
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        rocketchats: notifications(type: "rocketchat") {
+        rocketchats: notifications(type: ROCKETCHAT) {
           ...${notificationsFragment}
         }
       }
@@ -124,7 +124,7 @@ async function getSlackinfoForProject(project: string): Project {
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        slacks: notifications(type: "slack") {
+        slacks: notifications(type: SLACK) {
           ...${notificationsFragment}
         }
       }
