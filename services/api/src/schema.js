@@ -493,21 +493,23 @@ const resolvers = {
       const dao = getDao(req);
       return await dao.getAllOpenshifts(req.credentials, args);
     },
-    allUnassignedSshKeys: async (root, args, req) => {
-      const dao = getDao(req);
-      return await dao.getUnassignedSshKeys(req.credentials);
-    },
-    allSshKeys: async (root, args, req) => {
-      const dao = getDao(req);
-      return await dao.getAllSshKeys(req.credentials);
-    },
-    allUnassignedNotifications: async (root, args, req) => {
-      const dao = getDao(req);
-      const args_ = R.compose(
-        R.over(R.lensProp('type'), notificationTypeToString),
-      )(args);
+    // @TODO: check if we need these
+    // allUnassignedSshKeys: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   return await dao.getUnassignedSshKeys(req.credentials);
+    // },
+    // allSshKeys: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   return await dao.getAllSshKeys(req.credentials);
+    // },
+    // allUnassignedNotifications: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   const args_ = R.compose(
+    //     R.over(R.lensProp('type'), notificationTypeToString),
+    //   )(args);
 
-      return await dao.getUnassignedNotifications(req.credentials, args_);
+    //   return await dao.getUnassignedNotifications(req.credentials, args_);
+    // },
     allEnvironments: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllEnvironments(req.credentials, args);
