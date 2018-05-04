@@ -5,7 +5,7 @@ mutation FillAPI {
   truncateOpenshifts: truncateTable(tableName: "openshift")
   truncateProjects: truncateTable(tableName: "project")
   truncateProjectSshKeys: truncateTable(tableName: "project_ssh_key")
-  truncateNotificationRocketChats: truncateTable(tableName: "notification_rocketchat")
+  truncateNotificationSlack: truncateTable(tableName: "notification_slack")
   truncateNotificationRocketChats: truncateTable(tableName: "notification_rocketchat")
   truncateProjectNotification: truncateTable(tableName: "project_notification")
   truncateSshKeys: truncateTable(tableName: "ssh_key")
