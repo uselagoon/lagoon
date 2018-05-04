@@ -4,7 +4,12 @@ set -eo pipefail
 
 # Locations
 CONTAINER_SCRIPTS_DIR="/usr/share/container-scripts/mysql"
-EXTRA_DEFAULTS_FILE="/etc/my.cnf.d/galera.cnf"
+EXTRA_DEFAULTS_FILE="/etc/mysql/conf.d/galera.cnf"
+
+if [ "$(ls -A /etc/mysql/conf.d/)" ]; then
+   ep /etc/mysql/conf.d/*
+fi
+ep ${CONTAINER_SCRIPTS_DIR}/galera.cnf
 
 # Check if the container runs in Kubernetes/OpenShift
 if [ -z "$POD_NAMESPACE" ]; then

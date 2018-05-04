@@ -1,3 +1,8 @@
 #!/bin/sh -v
+
+# cgi-fcgi has issues with very big environment variables.
+# LAGOON_ROUTES can get quite long in for lagoon projects with many routes, so we set it to zero (it's not used by cgi-fcgi)
+LAGOON_ROUTES=
+
 # This script calls the /ping endpoing of the php-fpm, if the return code is 0, the php-fpm has correctly started
 SCRIPT_NAME=/${1:-ping} SCRIPT_FILENAME=/${1:-ping} REQUEST_METHOD=GET /usr/bin/cgi-fcgi -bind -connect 127.0.0.1:9000

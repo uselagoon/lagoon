@@ -5,8 +5,8 @@ node {
   // Jenkins HOME Folder
   env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
 
-  withEnv(['AWS_BUCKET=jobs.amazeeio.services']) {
-    withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+  withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
+    withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
       try {
         env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
         env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
@@ -34,7 +34,7 @@ node {
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift'
+                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
                 }
               }
             )
@@ -49,7 +49,7 @@ node {
                 stage ('run tests') {
                   try {
                     sh "make push-minishift"
-                    sh "make tests -j4"
+                    sh "make tests -j3"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -66,6 +66,8 @@ node {
           )
         }
 
+
+
         stage ('publish-amazeeiolagoon') {
           withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
             sh 'docker login -u amazeeiojenkins -p $PASSWORD'
@@ -74,12 +76,21 @@ node {
         }
 
         if (env.BRANCH_NAME == 'master') {
-          stage ('publish-amazeeio') {
-            withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-              sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeio-baseimages -j4"
+          parallel (
+            'publish-amazeeio': {
+              stage ('publish-amazeeio') {
+                withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+                  sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                  sh "make publish-amazeeio-baseimages -j4"
+                }
+              }
+            },
+            'save-images-s3': {
+              stage ('save-images-s3') {
+                sh "make s3-save -j8"
+              }
             }
-          }
+          )
         }
 
         if (env.BRANCH_NAME ==~ /develop|master/) {

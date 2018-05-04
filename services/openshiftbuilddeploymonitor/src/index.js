@@ -4,7 +4,7 @@ const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
-const crypto = require('crypto');
+const uuidv4 = require('uuid/v4');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
 
@@ -18,14 +18,14 @@ class BuildNotCompletedYet extends Error {
   }
 }
 
-const accessKeyId =  process.env.AWS_KEY_ID
+const accessKeyId =  process.env.AWS_ACCESS_KEY_ID
 const secretAccessKey =  process.env.AWS_SECRET_ACCESS_KEY
 const bucket = process.env.AWS_BUCKET
 const region = process.env.AWS_REGION || 'us-east-2'
 
 
 if ( !accessKeyId || !secretAccessKey || !bucket) {
-  logger.error('AWS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
+  logger.error('AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
 }
 
 AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: region});
@@ -204,10 +204,8 @@ const messageConsumer = async msg => {
 }
 
 const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
-
-  const hash = crypto.createHash('sha256', `${buildName}:${projectName}:${branchName}`).digest('hex');
-
-  const path = `${projectName}/${branchName}/${hash}.txt`
+  const uuid = uuidv4();
+  const path = `${projectName}/${branchName}/${uuid}.txt`
 
   const params = {
     Bucket: bucket,

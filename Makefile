@@ -55,7 +55,11 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.9.0
+MINISHIFT_VERSION := 1.15.1
+
+MINISHIFT_CPUS := 6
+MINISHIFT_MEMORY := 2GB
+MINISHIFT_DISK_SIZE := 30GB
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
@@ -120,6 +124,7 @@ images :=     centos7 \
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
+s3-images += $(images)
 
 # List with all images prefixed with `build/`. Which are the commands to actually build images
 build-images = $(foreach image,$(images),build/$(image))
@@ -197,6 +202,7 @@ $(build-phpimages): build/commons
 	touch $@
 
 base-images += $(phpimages)
+s3-images += php
 
 build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
@@ -234,6 +240,7 @@ $(build-solrimages): build/commons
 	touch $@
 
 base-images += $(solrimages)
+s3-images += solr
 
 build/solr__5.5  build/solr__6.6: images/commons
 build/solr__5.5-drupal: build/solr__5.5
@@ -267,6 +274,7 @@ $(build-nodeimages): build/commons
 	touch $@
 
 base-images += $(nodeimages)
+s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
@@ -308,6 +316,7 @@ services :=       api \
 									drush-alias
 
 service-images += $(services)
+
 build-services = $(foreach image,$(services),build/$(image))
 
 # Recepie for all building service-images
@@ -323,6 +332,7 @@ build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
 build/auto-idler: build/oc
+build/api-db: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -358,6 +368,9 @@ build/tests:
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	touch $@
 service-images += tests
+
+s3-images += $(service-images)
+
 #######
 ####### Commands
 #######
@@ -375,14 +388,16 @@ build-list:
 
 # Define list of all tests
 all-tests-list:=	features \
-									ssh \
 									node \
 									drupal \
+									drupal-postgres \
+									drupal-galera \
 									github \
 									gitlab \
 									bitbucket \
 									rest \
-									nginx
+									nginx \
+									elasticsearch
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 # Run all tests
@@ -397,18 +412,11 @@ tests-list:
 	done
 #### Definition of tests
 
-# SSH-Auth test
-.PHONY: tests/ssh
-tests/ssh: build/ssh build/auth-server build/api build/tests
-		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d ssh auth-server api tests
-		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
-
 # Define a list of which Lagoon Services are needed for running any deployment testing
 deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
 
 # All Tests that use REST endpoints
-rest-tests = rest node features nginx
+rest-tests = rest node features nginx elasticsearch
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
@@ -418,7 +426,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -520,6 +528,29 @@ $(publish-amazeeiolagoon-serviceimages):
 		$(eval image = $(subst __,:,$(image)))
 		$(call docker_publish_amazeeiolagoon_serviceimages,$(image))
 
+s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
+# save all images to s3
+.PHONY: s3-save
+s3-save: $(s3-save)
+# tag and push of each image
+.PHONY: $(s3-save)
+$(s3-save):
+#   remove the prefix '[s3-save]-' first
+		$(eval image = $(subst [s3-save]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		docker save $(CI_BUILD_TAG)/$(image) $$(docker history -q $(CI_BUILD_TAG)/$(image) | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
+
+s3-load = $(foreach image,$(s3-images),[s3-load]-$(image))
+# save all images to s3
+.PHONY: s3-load
+s3-load: $(s3-load)
+# tag and push of each image
+.PHONY: $(s3-load)
+$(s3-load):
+#   remove the prefix '[s3-load]-' first
+		$(eval image = $(subst [s3-load]-,,$@))
+		$(eval image = $(subst __,:,$(image)))
+		curl -s https://s3.us-east-2.amazonaws.com/lagoon-images/$(image).tar.gz | gunzip -c | docker load
 
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)
@@ -550,7 +581,7 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift with name $(CI_BUILD_TAG))
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus 6 --vm-driver virtualbox --openshift-version="v3.6.1"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="v3.7.2"
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
@@ -560,6 +591,7 @@ else
 	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
 endif
+	./local-dev/minishift/minishift ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login -u system:admin; \
 	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
@@ -588,7 +620,7 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
-	oc -n lagoon create -f openshift-setup/policybinding.yaml; \
+	oc -n lagoon create -f openshift-setup/policybinding.yaml | oc -n lagoon create -f openshift-setup/rolebinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \

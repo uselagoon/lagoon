@@ -31,63 +31,13 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Recreate"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
 objects:
-- apiVersion: apps/v1beta1
-  kind: StatefulSet
-  metadata:
-    name: ${SERVICE_NAME}-galera
-  spec:
-    serviceName: ${SERVICE_NAME}-galera
-    replicas: 3
-    selector:
-      matchLabels:
-        service: ${SERVICE_NAME}-galera
-    template:
-      metadata:
-        labels:
-          branch: ${SAFE_BRANCH}
-          project: ${SAFE_PROJECT}
-          service: ${SERVICE_NAME}-galera
-        annotations:
-          alpha.image.policy.openshift.io/resolve-names: "*"
-      spec:
-        containers:
-        - name: ${SERVICE_NAME}-galera
-          image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 3306
-            name: mysql
-          - containerPort: 4444
-            name: sst
-          - containerPort: 4567
-            name: replication
-          - containerPort: 4568
-            name: ist
-          readinessProbe:
-            exec:
-              command:
-              - /usr/share/container-scripts/mysql/readiness-probe.sh
-            initialDelaySeconds: 15
-            timeoutSeconds: 5
-          volumeMounts:
-          - name: ${SERVICE_NAME}-galera
-            mountPath: /var/lib/mysql
-            subPath: data
-          env:
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: metadata.namespace
-    volumeClaimTemplates:
-    - metadata:
-        name: ${SERVICE_NAME}-galera
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 5Gi
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -102,7 +52,7 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      type: Recreate
+      type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
         creationTimestamp: null
@@ -112,7 +62,7 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+        - image: ${SERVICE_IMAGE}
           command:
           - /lagoon/entrypoints.bash
           - /usr/local/bin/maxscale-start
@@ -143,11 +93,3 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}-maxscale
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange

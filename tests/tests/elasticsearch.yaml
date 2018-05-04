@@ -1,0 +1,18 @@
+---
+- include: elasticsearch/elasticsearch.yaml
+  vars:
+    testname: "ELASTICSEARCH SINGLE NODE"
+    git_repo_name: elasticsearch.git
+    project: ci-elasticsearch
+    branch: elasticsearch
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}/_cluster/health"
+    node_count: 1
+
+- include: elasticsearch/elasticsearch.yaml
+  vars:
+    testname: "ELASTICSEARCH CLUSTER"
+    git_repo_name: elasticsearch.git
+    project: ci-elasticsearch
+    branch: elasticsearch-cluster
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}/_cluster/health"
+    node_count: 3
