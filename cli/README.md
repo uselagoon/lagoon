@@ -18,7 +18,7 @@ The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which c
 
 ```sh
 # Initialize project configuration
-lagoon init
+$ lagoon init
 ```
 
 For more options, see the [`lagoon init` documentation](#lagoon-init).
@@ -135,11 +135,3 @@ Done in 4.15s.
 ## Development - local nodejs
 
 The `execute <cli command>`, `sshlogin` and `sshlogout` yarn scripts can be used to run CLI commands during development.
-
-## Development - inside docker
-
-There is already a docker container prepared that has the cli running. Run a new container with bash and then run `yarn run execute <command>`
-
-```sh
-docker-compose run --rm cli bash
-```
