@@ -65,8 +65,9 @@ export async function runCLI() {
       // Require entry of at least one command after `lagoon`, such as `lagoon login`.
       // `lagoon` by itself has no assigned function at the moment.
       .demandCommand()
-      .strict()
-      .help().argv;
+      // .strict(): Error out on non-demanded or non-described command line argument
+      // .argv: Get arguments as an object
+      .strict().help().argv;
   } catch (err) {
     const exitCode = printErrors(console.error, 'Uncaught error:', err);
     process.exit(exitCode);
