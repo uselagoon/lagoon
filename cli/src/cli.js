@@ -41,6 +41,7 @@ export function visit(cmd: CommandModule) {
             clog: console.log,
             cerr: console.error,
           })
+        // Log out error and then exit with a failure exit code
           .catch((err) => {
             const exitCode = printErrors(
               console.error,
@@ -49,6 +50,7 @@ export function visit(cmd: CommandModule) {
             );
             process.exit(exitCode);
           })
+        // Process returned with an exit code of typically 0 (success) or 1 (failure)
           .then(code => process.exit(code)),
     };
 }
@@ -60,6 +62,8 @@ export async function runCLI() {
       // Use yargs.commandDir method to initialize a directory of commands
       // Ref: https://github.com/yargs/yargs/blob/e87f4873012e3541325e7ec6dafb11a93b5717e0/docs/advanced.md#commanddirdirectory-opts
       .commandDir('commands', { visit })
+      // Require entry of at least one command after `lagoon`, such as `lagoon login`.
+      // `lagoon` by itself has no assigned function at the moment.
       .demandCommand()
       .strict()
       .help().argv;
