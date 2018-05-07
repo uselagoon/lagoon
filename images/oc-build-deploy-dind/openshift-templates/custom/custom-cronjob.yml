@@ -43,6 +43,9 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
+  - name: SERVICE_IMAGE
+    description: Pullable image of custom service
+    required: true
 objects:
 - apiVersion: batch/v2alpha1
   kind: CronJob
@@ -51,12 +54,12 @@ objects:
   spec:
     schedule: "${CRONJOB_SCHEDULE}"
     concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 5
+    failedJobsHistoryLimit: 5
     jobTemplate:
       spec:
         template:
           metadata:
-            annotations:
-              alpha.image.policy.openshift.io/resolve-names: "*"
             labels:
               cronjob: ${CRONJOB_NAME}
               branch: ${SAFE_BRANCH}
@@ -65,7 +68,7 @@ objects:
           spec:
             containers:
             - name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
-              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              image: ${SERVICE_IMAGE}
               command:
                 - /lagoon/cronjob.sh
                 - "${CRONJOB_COMMAND}"
@@ -77,4 +80,6 @@ objects:
                 ## This will cause the cli to redeploy on every deployment, even the files have not changed
                 - name: LAGOON_GIT_SHA
                   value: ${LAGOON_GIT_SHA}
+                - name: SERVICE_NAME
+                  value: ${SERVICE_NAME}
             restartPolicy: OnFailure

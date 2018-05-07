@@ -34,6 +34,18 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
+  - name: NGINX_SERVICE_IMAGE
+    description: Pullable image of nginx service
+    required: true
+  - name: PHP_SERVICE_IMAGE
+    description: Pullable image of php service
+    required: true
+  - name: NGINX_SERVICE_NAME
+    description: Name of nginx service
+    value: "nginx"
+  - name: PHP_SERVICE_NAME
+    description: Name of php service
+    value: "php"
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -59,8 +71,8 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/nginx:latest
-          name: nginx
+        - image: ${NGINX_SERVICE_IMAGE}
+          name: ${NGINX_SERVICE_NAME}
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -91,8 +103,8 @@ objects:
             requests:
               cpu: 10m
               memory: 10Mi
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/php:latest
-          name: php
+        - image: ${PHP_SERVICE_IMAGE}
+          name: ${PHP_SERVICE_NAME}
           ports:
           - containerPort: 9000
             protocol: TCP
@@ -116,6 +128,8 @@ objects:
             ## This will cause the cli to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: ${LAGOON_GIT_SHA}
+            - name: SERVICE_NAME
+              value: ${SERVICE_NAME}
           resources:
             requests:
               cpu: 10m
@@ -123,20 +137,4 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - nginx
-        from:
-          kind: ImageStreamTag
-          name: nginx:latest
-      type: ImageChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - php
-        from:
-          kind: ImageStreamTag
-          name: php:latest
-      type: ImageChange
   status: {}

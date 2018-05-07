@@ -49,6 +49,9 @@ parameters:
   - name: CRONJOB_COMMAND
     description: Command of this cronjob
     required: true
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: batch/v2alpha1
   kind: CronJob
@@ -57,6 +60,8 @@ objects:
   spec:
     schedule: "${CRONJOB_SCHEDULE}"
     concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 5
+    failedJobsHistoryLimit: 5
     jobTemplate:
       spec:
         template:
@@ -75,7 +80,7 @@ objects:
                   claimName: ${SERVICE_NAME}
             containers:
             - name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
-              image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+              image: ${SERVICE_IMAGE}
               command:
                 - /lagoon/cronjob.sh
                 - "${CRONJOB_COMMAND}"
@@ -87,6 +92,8 @@ objects:
                 ## This will cause the cli to redeploy on every deployment, even the files have not changed
                 - name: LAGOON_GIT_SHA
                   value: ${LAGOON_GIT_SHA}
+                - name: SERVICE_NAME
+                  value: ${SERVICE_NAME}
               volumeMounts:
                 - name: ${SERVICE_NAME}
                   mountPath: ${PERSISTENT_STORAGE_PATH}

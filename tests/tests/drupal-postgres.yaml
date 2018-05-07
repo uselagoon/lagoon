@@ -1,0 +1,30 @@
+---
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.0 - POSTGRES"
+    drupal_version: 8
+    db: postgres
+    php_version: 7.0
+    git_repo_name: drupal-postgres.git
+    project: ci-drupal-postgres
+    branch: drupal8-composer-70-postgres
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.1 - POSTGRES"
+    drupal_version: 8
+    db: postgres
+    php_version: 7.1
+    git_repo_name: drupal-postgres.git
+    project: ci-drupal-postgres
+    branch: drupal8-composer-71-postgres
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.2 - POSTGRES"
+    drupal_version: 8
+    db: postgres
+    php_version: 7.2
+    git_repo_name: drupal-postgres.git
+    project: ci-drupal-postgres
+    branch: drupal8-composer-72-postgres

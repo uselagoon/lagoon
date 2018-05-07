@@ -34,6 +34,9 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Recreate"
+  - name: POSTGRES_SERVICE_IMAGE
+    description: Pullable image of postgres service
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -63,7 +66,7 @@ objects:
             persistentVolumeClaim:
               claimName: ${SERVICE_NAME}
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+        - image: ${POSTGRES_SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 5432
@@ -84,6 +87,9 @@ objects:
           envFrom:
           - configMapRef:
               name: lagoon-env
+          env:
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
           resources:
             requests:
               cpu: 10m
@@ -91,11 +97,3 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange

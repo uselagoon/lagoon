@@ -4,8 +4,8 @@ import std;
 
 # set backend default
 backend default {
-  .host = "${VARNISH_HOST:-nginx}";
-  .port = "8080";
+  .host = "${VARNISH_BACKEND_HOST:-nginx}";
+  .port = "${VARNISH_BACKEND_PORT:-8080}";
   .first_byte_timeout = 35m;
   .between_bytes_timeout = 10m;
 }
@@ -63,6 +63,11 @@ sub vcl_recv {
 
     ## Allow to bypass based on env variable `VARNISH_BYPASS`
     set req.http.X-LAGOON-VARNISH-BYPASS = "${VARNISH_BYPASS:-false}";
+  }
+
+  # Websockets are piped
+  if (req.http.Upgrade ~ "(?i)websocket") {
+      return (pipe);
   }
 
   if (req.http.X-LAGOON-VARNISH-BYPASS == "true" || req.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
@@ -232,6 +237,14 @@ sub vcl_recv {
 
   # Cacheable, lookup in cache.
   return (hash);
+}
+
+sub vcl_pipe {
+  # Support for Websockets
+  if (req.http.upgrade) {
+      set bereq.http.upgrade = req.http.upgrade;
+      set bereq.http.connection = req.http.connection;
+  }
 }
 
 sub vcl_hit {
