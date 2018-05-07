@@ -67,7 +67,7 @@ export async function runCLI() {
       .demandCommand()
       // .strict(): Error out on non-demanded or non-described command line argument
       // .argv: Get arguments as an object
-      .strict().help().argv;
+      .strict().argv;
   } catch (err) {
     const exitCode = printErrors(console.error, 'Uncaught error:', err);
     process.exit(exitCode);
