@@ -13,18 +13,16 @@
     "node": ">=8"
   },
   "scripts": {
-    "prepublish": "in-publish && yarn run dist || not-in-publish",
+    "prepublish": "in-publish && yarn run build || not-in-publish",
     "preversion": "yarn test",
-    "version": "yarn run dist",
+    "version": "yarn run build",
     "postversion": "git push && git push --tags",
     "update-schema": "node scripts/updateSchema.js",
-    "clean": "rimraf dist",
-    "dist": "yarn run clean && yarn run build",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "yarn run lint && jest",
     "test:watch": "jest --watch",
-    "build": "babel src -d dist",
+    "build": "rimraf dist && babel src -d dist",
     "watch": "babel --watch=src -d dist",
     "execute": "bash -c 'node -r @babel/register src/cli.js $1 $([[ $1 = login ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
