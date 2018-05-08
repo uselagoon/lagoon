@@ -111,14 +111,16 @@ CREATE OR REPLACE PROCEDURE
         project,
         deploy_type,
         environment_type,
-        openshift_projectname
+        openshift_projectname,
+        deleted
     )
     SELECT
         name,
         p.id,
         deploy_type,
         environment_type,
-        openshift_projectname
+        openshift_projectname,
+        '0000-00-00 00:00:00'
     FROM
         project AS p
     WHERE
@@ -132,9 +134,43 @@ CREATE OR REPLACE PROCEDURE
     SELECT
       e.*
     FROM environment e
-    WHERE e.name = name;
+    WHERE e.name = name AND
+    deleted = '0000-00-00 00:00:00';
   END;
 $$
+
+
+CREATE OR REPLACE PROCEDURE
+  CreateOrUpdateEnvironmentStorage
+  (
+    IN environment              int,
+    IN persistent_storage_claim varchar(100),
+    IN bytes_used               bigint
+  )
+  BEGIN
+    INSERT INTO environment_storage (
+        environment,
+        persistent_storage_claim,
+        bytes_used,
+        updated
+    ) VALUES (
+        environment,
+        persistent_storage_claim,
+        bytes_used,
+        DATE(NOW())
+    )
+    ON DUPLICATE KEY UPDATE
+        bytes_used=bytes_used;
+
+    SELECT
+      *
+    FROM environment_storage es
+    WHERE es.environment = environment AND
+          es.persistent_storage_claim = persistent_storage_claim AND
+          es.updated = DATE(NOW());
+  END;
+$$
+
 
 CREATE OR REPLACE PROCEDURE
   DeleteEnvironment
@@ -144,15 +180,14 @@ CREATE OR REPLACE PROCEDURE
   )
   BEGIN
 
-    DELETE
+    UPDATE
       environment
-    FROM
-      environment
-    JOIN
-      project ON environment.project = project.id
+    SET
+      deleted=NOW()
     WHERE
-      environment.name = name AND
-      project.name = project;
+      name = name AND
+      project = project AND
+      deleted = '0000-00-00 00:00:00';
 
   END;
 $$
@@ -365,6 +400,52 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationRocketChat
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300),
+    IN channel     varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_rocketchat (
+      name,
+      webhook,
+      channel
+    ) VALUES (
+      name,
+      webhook,
+      channel
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook,
+      channel
+    FROM notification_rocketchat
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationRocketChat
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_rocketchat ns WHERE ns.name = name;
+
+    DELETE FROM notification_rocketchat WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'rocketchat';
+  END;
+$$
 
 CREATE OR REPLACE PROCEDURE
   CreateNotificationSlack
@@ -414,82 +495,12 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  CreateProjectNotification
-  (
-    IN project            varchar(50),
-    IN notificationType   varchar(300),
-    IN notificationName   varchar(300)
-  )
-  BEGIN
-    INSERT INTO project_notification (
-      pid,
-      type,
-      nid
-    ) SELECT
-      p.id,
-      notificationType,
-      ns.id
-    FROM
-      project AS p,
-      notification_slack AS ns
-    WHERE
-      p.name = project AND
-      ns.name = notificationName;
-
-    SELECT
-      p.*
-    FROM project p
-    WHERE p.name = project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  DeleteProjectNotification
-  (
-    IN project            varchar(50),
-    IN notificationType   varchar(300),
-    IN notificationName   varchar(300)
-  )
-  BEGIN
-
-    DELETE
-      project_notification
-    FROM
-      project_notification
-    LEFT JOIN project ON project_notification.pid = project.id
-    LEFT JOIN notification_slack ON project_notification.nid = notification_slack.id
-    WHERE
-      type = notificationType AND
-      project.name = project AND
-      notification_slack.name = notificationName;
-
-    SELECT
-      *
-    FROM project as p
-    WHERE p.name = project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   CreateProjectSshKey
   (
     IN project            varchar(50),
     IN ssh_key            varchar(100)
   )
   BEGIN
-    DECLARE count int;
-
-    SELECT count(*) INTO count
-      FROM ssh_key sk
-      WHERE sk.name = ssh_key;
-
-    IF count = 0 THEN
-      SET @message_text = concat('SSH-Key: "', ssh_key, '" does not exist');
-      SIGNAL SQLSTATE '02000'
-      SET MESSAGE_TEXT = @message_text;
-    END IF;
 
     INSERT INTO project_ssh_key (
       pid,
@@ -527,13 +538,13 @@ CREATE OR REPLACE PROCEDURE
     LEFT JOIN project ON project_ssh_key.pid = project.id
     LEFT JOIN ssh_key ON project_ssh_key.skid = ssh_key.id
     WHERE
-      project.name = project AND
-      ssh_key.name = ssh_key;
+      project.name = p_project AND
+      ssh_key.name = p_ssh_key;
 
     SELECT
       *
     FROM project as p
-    WHERE p.name = project;
+    WHERE p.name = p_project;
 
   END;
 $$
@@ -541,22 +552,21 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateCustomerSshKey
   (
-    IN customer            varchar(50),
-    IN ssh_key            varchar(100)
+    IN p_customer            varchar(50),
+    IN p_ssh_key            varchar(100)
   )
   BEGIN
     DECLARE count int;
 
     SELECT count(*) INTO count
       FROM ssh_key sk
-      WHERE sk.name = ssh_key;
+      WHERE sk.name = p_ssh_key;
 
     IF count = 0 THEN
-      SET @message_text = concat('SSH-Key: "', ssh_key, '" does not exist');
+      SET @message_text = concat('SSH-Key: "', p_ssh_key, '" does not exist');
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
-
 
     INSERT INTO customer_ssh_key (
       cid,
@@ -568,13 +578,13 @@ CREATE OR REPLACE PROCEDURE
       customer AS c,
       ssh_key AS sk
     WHERE
-      c.name = customer AND
-      sk.name = ssh_key;
+      c.name = p_customer AND
+      sk.name = p_ssh_key;
 
     SELECT
       *
     FROM customer as c
-    WHERE c.name = customer;
+    WHERE c.name = p_customer;
 
   END;
 $$
@@ -582,8 +592,8 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteCustomerSshKey
   (
-    IN customer            varchar(50),
-    IN ssh_key            varchar(100)
+    IN p_customer            varchar(50),
+    IN p_ssh_key            varchar(100)
   )
   BEGIN
 
@@ -594,13 +604,13 @@ CREATE OR REPLACE PROCEDURE
     LEFT JOIN customer ON customer_ssh_key.cid = customer.id
     LEFT JOIN ssh_key ON customer_ssh_key.skid = ssh_key.id
     WHERE
-      customer.name = customer AND
-      ssh_key.name = ssh_key;
+      customer.name = p_customer AND
+      ssh_key.name = p_ssh_key;
 
     SELECT
       *
     FROM customer as c
-    WHERE c.name = customer;
+    WHERE c.name = p_customer;
   END;
 $$
 

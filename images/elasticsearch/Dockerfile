@@ -9,6 +9,9 @@ ENV LAGOON=elasticsearch
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home /home
+
+RUN curl -sL https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
+
 COPY peer-finder /bin/
 COPY configure-es.sh /lagoon/
 COPY docker-entrypoint.sh /lagoon/entrypoints/90-elasticsearch.sh
@@ -27,4 +30,4 @@ RUN echo "xpack.security.enabled: false" >> config/elasticsearch.yml
 
 ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
 
-ENTRYPOINT ["/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]

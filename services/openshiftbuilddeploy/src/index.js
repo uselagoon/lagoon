@@ -112,6 +112,8 @@ const messageConsumer = async msg => {
           "postCommit": {},
           "resources": {},
           "runPolicy": "Serial",
+          "successfulBuildsHistoryLimit": 1,
+          "failedBuildsHistoryLimit": 1,
           "source": {
               "git": {
                   "uri": gitUrl

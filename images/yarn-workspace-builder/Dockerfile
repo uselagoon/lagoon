@@ -13,6 +13,7 @@ COPY node-packages /app/node-packages
 # subdependencies won't be installed
 COPY services/api/package.json /app/services/api/
 COPY services/auth-server/package.json /app/services/auth-server/
+COPY services/logs2rocketchat/package.json /app/services/logs2rocketchat/
 COPY services/logs2slack/package.json /app/services/logs2slack/
 COPY services/openshiftbuilddeploy/package.json /app/services/openshiftbuilddeploy/
 COPY services/openshiftbuilddeploymonitor/package.json /app/services/openshiftbuilddeploymonitor/

@@ -47,4 +47,4 @@ BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
 TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
 .  /oc-build-deploy/scripts/exec-build.sh
 IMAGE_TAG="${SAFE_BRANCH}"
-.  /oc-build-deploy/scripts/exec-push.sh
+.  /oc-build-deploy/scripts/exec-push-parallel.sh
