@@ -419,7 +419,7 @@ server:
     ## Prometheus server data Persistent Volume existing claim name
     ## Requires server.persistentVolume.enabled: true
     ## If defined, PVC must be created manually before volume will be bound
-    existingClaim: "prometheus-dpc-server"
+    existingClaim: ""
 
     ## Prometheus server data Persistent Volume mount root path
     ##
