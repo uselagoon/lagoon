@@ -24,10 +24,10 @@ async function promptUntilValidKeyPath(
     },
   ]);
   if (
-    !await fileExists(
+    !(await fileExists(
       // Expand tilde characters in paths
       untildify(privateKeyPath),
-    )
+    ))
   ) {
     printErrors(cerr, 'File does not exist at given path!');
     return promptUntilValidKeyPath(cerr);

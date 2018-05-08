@@ -30,7 +30,7 @@ type Args = BaseArgs & {
 };
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  if (argv.identity != null && !await fileExists(argv.identity)) {
+  if (argv.identity != null && !(await fileExists(argv.identity))) {
     return printErrors(cerr, 'File does not exist at identity option path!');
   }
 
