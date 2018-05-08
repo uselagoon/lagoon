@@ -25,6 +25,7 @@ If you look at a `docker-compose.yml` which is shipped with a Lagoon project you
 ## New `.lagoon.yml` file
 
 Instead of an `.amazeeio.yml` file, Lagoon projects now are mostly configured via a `.lagoon.yml` file. Overall it's purpose is very similar to the `.amazeeio.yml` file, but it has some new cool features:
+
 - Post-rollout tasks
 - Custom Cronjobs
 - Custom Routes
@@ -35,6 +36,7 @@ See http://lagoon.readthedocs.io/en/latest/using_lagoon/#lagoonyml for more (WIP
 ## Rename of `before_deploy` and `after_deploy` plus their location has moved
 
 Lagoon has a new definition of Build and Post-Rollout tasks:
+
 - Build tasks are defined in Dockerfiles and should be used for tasks that do not require connections to other services (like databases or so), they are therefore the new `before_deploy` tasks. Build tasks will profit from well-written Dockerfiles and will be speeded up by Docker Layer Caching
 - Post-Rollout tasks are executed after the old running containers have been replaced by the new ones created by the deployment. They can be used for any tasks that need access to other services, like a cache clear of the CMS. These tasks are therefore the old `after_deploy` tasks.
 - With the Legacy hosting system, we had `development` and `production` tasks for `before_deploy` and `after_deploy`. We believe this was a mistake and caused some issues we never had really the same system of development and production. With the new Lagoon system it is technically still possible to have different build or post-rollout tasks based on the environment type (aka `development` and `production`) or the branch name, but we don't suggest to use that too much, as it can cause again weird situations where something might work on development but not on production.
