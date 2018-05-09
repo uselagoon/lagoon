@@ -9,6 +9,7 @@ ENV LAGOON=php
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -28,7 +29,6 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache fcgi \
-        postgresql-client \
         ssmtp \
         # for gd
         libpng-dev \
@@ -41,7 +41,8 @@ RUN apk update \
         libxml2-dev \
         # for xsl
         libxslt-dev \
-    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS postgresql-dev \
+    && apk add --no-cache postgresql-dev --repository http://nl.alpinelinux.org/alpine/edge/main \
+    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug; \
@@ -53,7 +54,10 @@ RUN apk update \
     && yes '' | pecl install -f redis \
     && docker-php-ext-enable apcu redis xdebug \
     && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install -j4 bcmath gd gettext mcrypt pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
+    && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
+    && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
+        docker-php-ext-install mcrypt; \
+       fi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
@@ -79,5 +83,5 @@ ENV LAGOON_ENVIRONMENT_TYPE=development
 
 WORKDIR /app
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/usr/local/sbin/php-fpm", "-F", "-R"]

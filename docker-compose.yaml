@@ -3,7 +3,8 @@ services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
     volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./services/api-db/docker-entrypoint-initdb.d/00-setup.sql:/docker-entrypoint-initdb.d/00-setup.sql
+      - ./services/api-db/docker-entrypoint-initdb.d/01-procedures.sql:/docker-entrypoint-initdb.d/00-procedures.sql
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - "3306:3306"
@@ -60,13 +61,23 @@ services:
       - ./services/openshiftbuilddeploymonitor/src:/app/services/openshiftbuilddeploymonitor/src
       - ./node-packages:/app/node-packages:delegated
     environment:
-      - AWS_KEY_ID=${AWS_KEY_ID:-XXXXXXXXXXXXXXXXXXXX}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-XXXXXXXXXXXXXXXXXXXX}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-xxxxxxxxxxxxxxxxxxxx}
       - AWS_BUCKET=${AWS_BUCKET:-aws-bucket}
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
+  logs2rocketchat:
+    image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
+    command: yarn run dev
+    volumes:
+      - ./services/logs2rocketchat/src:/app/services/logs2rocketchat/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs2rocketchat/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs2rocketchat:${SAFE_BRANCH:-master}
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
@@ -275,3 +286,12 @@ services:
       lagoon.type: custom
       lagoon.template: services/auto-idler/.lagoon.yml
       lagoon.image: amazeeiolagoon/auto-idler:${SAFE_BRANCH:-master}
+  storage-calculator:
+    image: ${IMAGE_REPO:-lagoon}/storage-calculator
+    user: '111111111'
+    volumes:
+    - "./services/storage-calculator/calculate-storage.sh:/calculate-storage.sh"
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/storage-calculator/.lagoon.yml
+      lagoon.image: amazeeiolagoon/storage-calculator:${SAFE_BRANCH:-master}

@@ -12,6 +12,9 @@ const bitbucketPush = require('./handlers/bitbucketPush');
 const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
 const gitlabPush = require('./handlers/gitlabPush');
 const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
+const gitlabPullRequestClosed = require('./handlers/gitlabPullRequestClosed');
+const gitlabPullRequestOpened = require('./handlers/gitlabPullRequestOpened');
+const gitlabPullRequestUpdated = require('./handlers/gitlabPullRequestUpdated');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, Project } from './types';
 
@@ -138,6 +141,27 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
           await handle(gitlabPush, webhook, project, `${webhooktype}:${event}`)
         }
 
+        break;
+
+      case "gitlab:merge_request":
+        switch (body.object_attributes.action) {
+
+          case 'open':
+            await handle(gitlabPullRequestOpened, webhook, project, `${webhooktype}:${event}:${body.object_attributes.action}`)
+            break;
+
+          case 'update':
+            await handle(gitlabPullRequestUpdated, webhook, project, `${webhooktype}:${event}:${body.object_attributes.action}`)
+            break;
+
+          case 'close':
+            await handle(gitlabPullRequestClosed, webhook, project, `${webhooktype}:${event}:${body.object_attributes.action}`)
+            break;
+
+          default:
+            unhandled(webhook, project, `${webhooktype}:${event}:${body.object_attributes.action}`)
+            break;
+        }
         break;
 
       default:

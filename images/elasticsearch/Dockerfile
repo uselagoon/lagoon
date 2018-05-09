@@ -10,6 +10,12 @@ COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home /home
 
+RUN curl -sL https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
+
+COPY peer-finder /bin/
+COPY configure-es.sh /lagoon/
+COPY docker-entrypoint.sh /lagoon/entrypoints/90-elasticsearch.sh
+
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
 
@@ -21,3 +27,5 @@ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]

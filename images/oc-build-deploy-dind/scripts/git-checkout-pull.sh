@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 # REF: can be a:
 # a sha: a7789dc5e6960bb2250ae39d7e7145b632c44c77
@@ -14,4 +15,4 @@ git fetch --depth=10 --tags --progress $REMOTE +refs/heads/*:refs/remotes/origin
 
 git checkout --force "${REF}"
 
-git submodule update --init --recursive --depth 1
+git submodule update --init --recursive

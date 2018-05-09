@@ -4,8 +4,8 @@ import std;
 
 # set backend default
 backend default {
-  .host = "${VARNISH_HOST:-nginx}";
-  .port = "8080";
+  .host = "${VARNISH_BACKEND_HOST:-nginx}";
+  .port = "${VARNISH_BACKEND_PORT:-8080}";
   .first_byte_timeout = 35m;
   .between_bytes_timeout = 10m;
 }
@@ -14,6 +14,9 @@ backend default {
 # @TODO allow from openshift network
 acl purge {
       "127.0.0.1";
+      "10.0.0.0"/8;
+      "172.16.0.0"/12;
+      "192.168.0.0"/16;
 }
 
 # This configuration is optimized for Drupal hosting:
@@ -34,6 +37,43 @@ sub vcl_recv {
      }
    }
 
+
+
+  if (req.http.X-LAGOON-VARNISH ) {
+    ## Pass all Requests which are handled via an upstream Varnish
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, " + req.http.X-LAGOON-VARNISH;
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+  } else if (req.http.Fastly-FF) {
+    ## Pass all Requests which are handled via Fastly
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, fastly";
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+    set req.http.X-Forwarded-For = req.http.Fastly-Client-IP;
+  } else if (req.http.CF-RAY) {
+    ## Pass all Requests which are handled via CloudFlare
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, cloudflare";
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+    set req.http.X-Forwarded-For = req.http.CF-Connecting-IP;
+  } else if (req.http.X-Pull) {
+    ## Pass all Requests which are handled via KeyCDN
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, keycdn";
+    set req.http.X-LAGOON-VARNISH-BYPASS = "true";
+  } else {
+    ## We set a header to let a Varnish Chain know that it already has been varnishcached
+    set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}";
+
+    ## Allow to bypass based on env variable `VARNISH_BYPASS`
+    set req.http.X-LAGOON-VARNISH-BYPASS = "${VARNISH_BYPASS:-false}";
+  }
+
+  # Websockets are piped
+  if (req.http.Upgrade ~ "(?i)websocket") {
+      return (pipe);
+  }
+
+  if (req.http.X-LAGOON-VARNISH-BYPASS == "true" || req.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
+    return (pass);
+  }
+
   # SA-CORE-2014-004 preventing access to /xmlrpc.php
   if (req.url ~ "^/xmlrpc.php$") {
     return (synth(701, "Unauthorized"));
@@ -47,14 +87,42 @@ sub vcl_recv {
      set req.url = regsub(req.url, "(\?|&)$", "");
    }
 
-  # We set a header to let a Varnish Chain know that it already has been varnishcached
-  set req.http.X-LAGOON-VARNISH = "d3659c5e113e.amazee.io";
-
-  # Bypass a cache hit
+  # Bypass a cache hit (the request is still sent to the backend)
   if (req.method == "REFRESH") {
       if (!client.ip ~ purge) { return (synth(405, "Not allowed")); }
       set req.method = "GET";
       set req.hash_always_miss = true;
+  }
+
+  # Only allow BAN requests from IP addresses in the 'purge' ACL.
+  if (req.method == "BAN") {
+      # Only allow BAN from defined ACL
+      if (!client.ip ~ purge) {
+          return (synth(403, "Your IP is not allowed."));
+      }
+
+      # Only allows BAN if the Host Header has the style of with "${SERVICE_NAME:-varnish}:8080" or "${SERVICE_NAME:-varnish}".
+      # Such a request is only possible from within the Docker network, as a request from external goes trough the Kubernetes Router and for that needs a proper Host Header
+      if (!req.http.host ~ "^${SERVICE_NAME:-varnish}(:\d+)?$") {
+          return (synth(403, "BAN only allowed from within own network."));
+      }
+
+      # Logic for the ban, using the Cache-Tags header.
+      if (req.http.Cache-Tags) {
+          ban("obj.http.Cache-Tags ~ " + req.http.Cache-Tags);
+      }
+      else {
+          return (synth(403, "Cache-Tags header missing."));
+      }
+
+      # Throw a synthetic page so the request won't go to the backend.
+      return (synth(200, "Ban added."));
+  }
+
+  if (req.method == "URIBAN") {
+    ban("req.http.host == " + req.http.host + " && req.url == " + req.url);
+    # Throw a synthetic page so the request won't go to the backend.
+    return (synth(200, "Ban added."));
   }
 
   # Non-RFC2616 or CONNECT which is weird, we pipe that
@@ -91,8 +159,6 @@ sub vcl_recv {
       req.url ~ "^/info([/?]|$).*$" ||
       req.url ~ "^/flag([/?]|$).*$" ||
       req.url ~ "^.*/system/files([/?]|$).*$" ||
-      req.url ~ "^/amazeeadmin" ||
-      req.url ~ "^/lithium" ||
       req.url ~ "^/cgi" ||
       req.url ~ "^/cgi-bin"
   ) {
@@ -173,6 +239,14 @@ sub vcl_recv {
   return (hash);
 }
 
+sub vcl_pipe {
+  # Support for Websockets
+  if (req.http.upgrade) {
+      set bereq.http.upgrade = req.http.upgrade;
+      set bereq.http.connection = req.http.connection;
+  }
+}
+
 sub vcl_hit {
     if (obj.ttl >= 0s) {
         # normal hit
@@ -202,15 +276,15 @@ sub vcl_hit {
 }
 
 sub vcl_backend_response {
-  # Temporarily disable streaming on files to be tested and removed after Varnish 4.1.x upgrade
-  set beresp.do_stream = false;
-
   # Allow items to be stale if needed.
   set beresp.grace = 6h;
 
-  ## FIXME: rename X-LAGOON-VARNISH-BYPASS to X-LAGOON-VARNISH-BACKEND-BYPASS to avoid confusion
-  # If the backend sends a X-LAGOON-VARNISH-BYPASS header we directly deliver
-  if(beresp.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
+  # Set ban-lurker friendly custom headers.
+  set beresp.http.X-Url = bereq.url;
+  set beresp.http.X-Host = bereq.http.host;
+
+  # If the backend sends a X-LAGOON-VARNISH-BACKEND-BYPASS header we directly deliver
+  if(beresp.http.X-LAGOON-VARNISH-BACKEND-BYPASS == "TRUE") {
     return (deliver);
   }
 
@@ -225,8 +299,15 @@ sub vcl_backend_response {
     # beresp == Back-end response from the web server.
     unset beresp.http.set-cookie;
     unset beresp.http.Cache-Control;
-    set beresp.ttl = 2628001s;
-    set beresp.http.Cache-Control = "public, max-age=2628001";
+
+    # If an asset would come back with statuscode 500 we only cache it for 10 seconds instead of the usual static file cache
+    if (beresp.status == 500) {
+      set beresp.ttl = 10s;
+      return (deliver);
+    }
+
+    set beresp.ttl = ${VARNISH_ASSETS_TTL:-2628001}s;
+    set beresp.http.Cache-Control = "public, max-age=${VARNISH_ASSETS_TTL:-2628001}";
     set beresp.http.Expires = "" + (now + beresp.ttl);
   }
 
@@ -241,13 +322,23 @@ sub vcl_deliver {
   else {
     set resp.http.X-Varnish-Cache = "MISS";
   }
+
+  # Remove ban-lurker friendly custom headers when delivering to client.
+  unset resp.http.X-Url;
+  unset resp.http.X-Host;
+
+  # unset Cache-Tags Header by default, can be disabled with VARNISH_UNSET_HEADER_CACHE_TAGS=true
+  if (!${VARNISH_UNSET_HEADER_CACHE_TAGS:-false}) {
+    unset resp.http.Cache-Tags;
+  }
+
   unset resp.http.X-Generator;
   unset resp.http.Server;
   # Inject information about grace
   if (req.http.grace) {
     set resp.http.X-Varnish-Grace = req.http.grace;
   }
-  set resp.http.X-LAGOON = "varnish>" + resp.http.X-LAGOON;
+  set resp.http.X-LAGOON = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}>" + resp.http.X-LAGOON;
   return (deliver);
 }
 

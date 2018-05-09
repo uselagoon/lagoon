@@ -17,10 +17,11 @@ RUN apk update \
         patch \
         procps \
         coreutils \
+    && apk add --no-cache postgresql-dev postgresql-client --repository http://nl.alpinelinux.org/alpine/edge/main \
     && apk add nodejs-current yarn --update-cache  --repository http://dl-3.alpinelinux.org/alpine/edge/main/ --repository http://dl-3.alpinelinux.org/alpine/edge/community/ \
     && rm -rf /var/cache/apk/* \
-    && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.5.2/composer.phar \
-    && echo "61dfd2f9262a0a2469e0c1864ab1cce6d3e63f9053faf883cd08307413d92119010638bfbee7c90c9b6977e284814bcb7bfdc01dd9cb9125ac947a2968c791bc  /usr/local/bin/composer" | sha512sum \
+    && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.6.5/composer.phar \
+    && echo "67bebe9df9866a795078bb2cf21798d8b0214f2e0b2fd81f2e907a8ef0be3434 /usr/local/bin/composer" | sha256sum \
     && chmod +x /usr/local/bin/composer \
     && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo \
     && mkdir -p /home/.ssh \
@@ -32,6 +33,9 @@ ENV PATH="/home/.composer/vendor/bin:${PATH}"
 # like it happens in /etc/profile of alpine Images.
 COPY 90-composer-path.sh /lagoon/entrypoints/
 
+# Remove warning about running as root in composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Making sure the path is not only added during entrypoint, but also when creating a new shell
 RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
 
@@ -39,10 +43,15 @@ RUN echo "source /lagoon/entrypoints/90-composer-path.sh" >> /home/.bashrc
 COPY 80-shell-timeout.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
 
+# Make sure xdebug is automatically enabled also for cli scripts
+COPY 61-php-xdebug-cli-env.sh /lagoon/entrypoints/
+RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 
 # SSH Key and Agent Setup
 COPY 10-ssh-agent.sh /lagoon/entrypoints/
-COPY ssh_config /home/.ssh/config
+COPY ssh_config /etc/ssh/ssh_config
+COPY id_ed25519_lagoon_cli.key /home/.ssh/lagoon_cli.key
+RUN chmod 400 /home/.ssh/lagoon_cli.key
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]

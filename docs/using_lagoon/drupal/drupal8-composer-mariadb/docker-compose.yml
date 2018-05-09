@@ -14,7 +14,7 @@ x-environment:
   &default-environment
     LAGOON_PROJECT: *lagoon-project
     # Route that should be used locally
-    LAGOON_ROUTE: http://drupal-nginx.docker.amazee.io
+    LAGOON_ROUTE: http://drupal.docker.amazee.io
     # Uncomment if you like to have the system behave like in production
     #LAGOON_ENVIRONMENT_TYPE: production
     # Uncomment to enable xdebug and then restart via `docker-compose up -d`
@@ -53,6 +53,7 @@ services:
       - cli # basically just tells docker-compose to build the cli first
     environment:
       << : *default-environment # loads the defined environment variables from the top
+      LAGOON_LOCALDEV_URL: nginx.drupal.docker.amazee.io # generate another route for nginx, by default we go to varnish
     networks:
       - amazeeio-network
       - default
@@ -101,19 +102,18 @@ services:
   #   environment:
   #     << : *default-environment
 
-  ## Uncomment for Varnish
-  # varnish:
-  #   image: amazeeio/varnish-drupal
-  #   labels:
-  #     lagoon.type: varnish
-  #   links:
-  #     - nginx # links varnish to the nginx in this docker-compose project, or it would try to connect to any nginx running in docker
-  #   environment:
-  #     << : *default-environment
-  #     LAGOON_LOCALDEV_URL: drupal-varnish.docker.amazee.io # generate another route for varnish
-  #   networks:
-  #     - amazeeio-network
-  #     - default
+  varnish:
+    image: amazeeio/varnish-drupal
+    labels:
+      lagoon.type: varnish
+    links:
+      - nginx # links varnish to the nginx in this docker-compose project, or it would try to connect to any nginx running in docker
+    environment:
+      << : *default-environment
+      VARNISH_BYPASS: "true" # by default we bypass varnish, change to 'false' or remove in order to tell varnish to cache if possible
+    networks:
+      - amazeeio-network
+      - default
 
 networks:
   amazeeio-network:

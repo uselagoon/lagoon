@@ -24,7 +24,7 @@ ENV LAGOON=ssh \
 COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
 
 RUN apt-get update \
-    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl npm vim \
+    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl npm vim jq \
     && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
     && mkdir /tmp/libnss-mysql \
     && tar -xzf /tmp/libnss-mysql-1.5.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
@@ -42,6 +42,8 @@ RUN mkdir -p /openshift-origin-client-tools && \
     mkdir /tmp/openshift-origin-client-tools && \
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
+
+RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
 
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
@@ -68,8 +70,8 @@ COPY services/ssh/authorize.sh /authorize.sh
 # root to own and no write permission by group or others
 RUN chmod 755 /authorize.sh
 
-# create_jwt to create a JWT Admin Token
-COPY services/ssh/create_jwt.sh /create_jwt.sh
+# create_60_sec_jwt to create a JWT Admin Token which is valid for 60 secs
+COPY services/ssh/create_60_sec_jwt.sh /create_60_sec_jwt.sh
 
 # Create /authorize.env file and give api right to write it, it will be filled
 # within docker-entrypoint with all environment variables and then sourced
@@ -94,5 +96,5 @@ ENV AUTH_SERVER=http://auth-server:3000 \
 
 EXPOSE 2020
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]

@@ -18,6 +18,8 @@ objects:
   spec:
     schedule: "*/15 * * * *"
     concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
     jobTemplate:
       spec:
         template:
@@ -46,6 +48,8 @@ objects:
   spec:
     schedule: "22 1 * * *"
     concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
     jobTemplate:
       spec:
         template:
@@ -60,7 +64,7 @@ objects:
               imagePullPolicy: Always
               command:
                 - /lagoon/cronjob.sh
-                - /prune-images.sh"
+                - /prune-images.sh
               env:
                 - name: REPOSITORY_TO_UPDATE
                   value: ${REPOSITORY_TO_UPDATE}

@@ -2,18 +2,20 @@
 
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same Docker images, the same service configurations and the same code.
 
-## How it works
+## Who are you?
+
+- If you want to use Lagoon, visit [Using Lagoon](using_lagoon/index.md)
+- If you want to develop Lagoon, [Developing Lagoon](developing_lagoon/index.md)
+
+## TL;DR: How Lagoon Works
 1. Developers define and configure their needed services (like Nginx, PHP, MySQL) within YAML files (like docker-compose.yml) and then test them with docker-compose itself.
 2. When they are happy, they push the code to Git.
 3. Lagoon parses the YAML files, builds the needed Docker images, creates the needed resources in OpenShift, pushes them to a Docker registry and monitors the deployment of the containers.
 4. When all is done, Lagoon informs the developers via different ways (Slack, e-mail, website, etc.).
 
-## Links
+## Help?
 
-- [Developing Lagoon](developing_lagoon/index.md)
-- [How Lagoon is tested](developing_lagoon/tests.md)
-- Slack channel where the maintainers hang out: #lagoon in the amazee.io Slack [https://slack.amazee.io]()
-- Schema of Lagoon: [https://www.lucidchart.com/documents/edit/a3cf0c4f-1bc1-438f-977d-4b26f235ceac]()
+Questions? Ideas? Meet the maintainers and contributors: `#lagoon` in amazee.io Slack [https://slack.amazee.io]()
 
 ## A couple of things about Lagoon
 1. Lagoon is based on microservices. A whole deployment and build workflow is very complex; not only do we have multiple sources (like Github, Bitbucket, Gitlab, etc.), multiple OpenShift servers and multiple notification systems (Slack, Rocketchat, etc.), but each deployment is unique and can take from seconds to hours. So it's built with flexibility and robustness in mind. Having microservices that all communicate through a messaging system (RabbitMQ) allows us to scale individual services up and down, survive down times of individual services and also to try out new parts of Lagoon in production without affecting others.
@@ -25,7 +27,6 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 7. Lagoon is completely integration tested which means we can test the whole process from receiving Git webhooks until a Docker container with the same Git hash is deployed in OpenShift.
 8. Lagoon is built and deployed via Lagoon. (Mind blown? ;) )
 9. Most important: It's a work in progress. It's not fully done yet. At amazee.io we believe that as a hosting community, we need to work together and share code where we can.
-
 
 In order to understand the Lagoon infrastructure and how the services work together, here is a schema: [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
 

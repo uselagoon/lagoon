@@ -18,6 +18,11 @@ const typeDefs = `
     DEVELOPMENT
   }
 
+  enum NotificationType {
+    SLACK
+    ROCKETCHAT
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -47,6 +52,13 @@ const typeDefs = `
     created: String
   }
 
+  type NotificationRocketChat {
+    id: Int
+    name: String
+    webhook: String
+    channel: String
+  }
+
   type NotificationSlack {
     id: Int
     name: String
@@ -54,19 +66,26 @@ const typeDefs = `
     channel: String
   }
 
-  union Notification = NotificationSlack
+  type UnassignedNotification {
+    id: Int
+    name: String
+    type: String
+  }
+
+  union Notification = NotificationRocketChat | NotificationSlack
 
   type Project {
     id: Int
     name: String
     customer: Customer
     git_url: String
-    notifications(type: String): [Notification]
+    notifications(type: NotificationType): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
     active_systems_remove: String
     branches: String
     production_environment: String
+    auto_idle: Int
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
@@ -83,20 +102,37 @@ const typeDefs = `
     openshift_projectname: String
     updated: String
     created: String
+    storages: [EnvironmentStorage]
+    storage_month(month_prior: Int): EnvironmentStorageMonth
+  }
+
+  type EnvironmentStorage {
+    id: Int
+    environment: Environment
+    persistent_storage_claim: String
+    bytes_used: Int
+    updated: String
+  }
+
+  type EnvironmentStorageMonth {
+    month: String
+    bytes_used: Int
   }
 
   input DeleteEnvironmentInput {
     name: String!
-    project: String!
+    project: Int!
   }
 
   type Query {
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
+    environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
+    allEnvironments(createdAfter: String): [Environment]
   }
 
   input SshKeyInput {
@@ -122,6 +158,7 @@ const typeDefs = `
     branches: String
     pullrequests: String
     production_environment: String
+    auto_idle: Int
   }
 
   input EnvironmentInput {
@@ -130,6 +167,12 @@ const typeDefs = `
     deploy_type: DeployType!
     environment_type: EnvType!
     openshift_projectname: String!
+  }
+
+  input EnvironmentStorageInput {
+    environment: Int!
+    persistent_storage_claim: String!
+    bytes_used: Int!
   }
 
   input CustomerInput {
@@ -158,10 +201,20 @@ const typeDefs = `
     name: String!
   }
 
+  input NotificationRocketChatInput {
+    name: String!
+    webhook: String!
+    channel: String!
+  }
+
   input NotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationRocketChatInput {
+    name: String!
   }
 
   input DeleteNotificationSlackInput {
@@ -170,13 +223,13 @@ const typeDefs = `
 
   input NotificationToProjectInput {
     project: String!
-    notificationType: String!
+    notificationType: NotificationType!
     notificationName: String!
   }
 
   input RemoveNotificationFromProjectInput {
     project: String!
-    notificationType: String!
+    notificationType: NotificationType!
     notificationName: String!
   }
 
@@ -212,6 +265,7 @@ const typeDefs = `
     active_systems_remove: String
     branches: String
     production_environment: String
+    auto_idle: Int
     pullrequests: String
     openshift: Int
   }
@@ -248,10 +302,21 @@ const typeDefs = `
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationRocketChatPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+
   input UpdateNotificationSlackPatchInput {
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationRocketChatInput {
+    name: String!
+    patch: UpdateNotificationRocketChatPatchInput
   }
 
   input UpdateNotificationSlackInput {
@@ -285,6 +350,7 @@ const typeDefs = `
   type Mutation {
     updateEnvironment(input: UpdateEnvironmentInput!): Environment
     updateSshKey(input: UpdateSshKeyInput!): SshKey
+    updateNotificationRocketChat(input: UpdateNotificationRocketChatInput!): NotificationRocketChat
     updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -292,6 +358,7 @@ const typeDefs = `
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+    addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
     deleteEnvironment(input: DeleteEnvironmentInput!): String
     addSshKey(input: SshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
@@ -299,7 +366,9 @@ const typeDefs = `
     deleteCustomer(input: DeleteCustomerInput!): String
     addOpenshift(input: OpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
+    addNotificationRocketChat(input: NotificationRocketChatInput!): NotificationRocketChat
     addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+    deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
     addNotificationToProject(input: NotificationToProjectInput!): Project
     removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
@@ -314,11 +383,12 @@ const typeDefs = `
 // Useful for transforming Enums on input.patch objects
 // If an operation on input.patch[key] returns undefined,
 // then the input.patch[key] will be ommitted for the result
-const omitPatchKeyIfUndefined = (key) => R.ifElse(
-  R.compose(notUndefined, R.path(['patch', key])),
-  R.identity,
-  R.over(R.lensPath(['patch']), R.omit([key])),
-);
+const omitPatchKeyIfUndefined = key =>
+  R.ifElse(
+    R.compose(notUndefined, R.path(['patch', key])),
+    R.identity,
+    R.over(R.lensPath(['patch']), R.omit([key])),
+  );
 
 const notUndefined = R.compose(R.not, R.equals(undefined));
 
@@ -341,6 +411,12 @@ const envTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
+const notificationTypeToString = R.cond([
+  [R.equals('ROCKETCHAT'), R.toLower],
+  [R.equals('SLACK'), R.toLower],
+  [R.T, R.identity],
+]);
+
 const getCtx = req => req.app.get('context');
 const getDao = req => getCtx(req).dao;
 
@@ -356,10 +432,15 @@ const resolvers = {
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
+
+      const args_ = R.compose(
+        R.over(R.lensProp('type'), notificationTypeToString),
+      )(args);
+
       return await dao.getNotificationsByProjectId(
         req.credentials,
         project.id,
-        args,
+        args_,
       );
     },
     openshift: async (project, args, req) => {
@@ -386,12 +467,35 @@ const resolvers = {
         environment.id,
       );
     },
+    storages: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentStorageByEnvironmentId(req.credentials, environment.id);
+    },
+    storage_month: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentStorageMonthByEnvironmentId(
+        req.credentials,
+        environment.id,
+        args,
+      );
+    },
   },
+  EnvironmentStorage: {
+    environment: async (environmentStorage, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByEnvironmentStorageId(
+        req.credentials,
+        environmentStorage.id,
+      );
+    },
+  },  
   Notification: {
     __resolveType(obj, context, info) {
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
+        case 'rocketchat':
+          return 'NotificationRocketChat';
         default:
           return null;
       }
@@ -416,6 +520,10 @@ const resolvers = {
       const dao = getDao(req);
       return await dao.getProjectByName(req.credentials, args);
     },
+    environmentByOpenshiftProjectName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+    },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllProjects(req.credentials, args);
@@ -427,6 +535,27 @@ const resolvers = {
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
       return await dao.getAllOpenshifts(req.credentials, args);
+    },
+    // @TODO: check if we need these
+    // allUnassignedSshKeys: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   return await dao.getUnassignedSshKeys(req.credentials);
+    // },
+    // allSshKeys: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   return await dao.getAllSshKeys(req.credentials);
+    // },
+    // allUnassignedNotifications: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   const args_ = R.compose(
+    //     R.over(R.lensProp('type'), notificationTypeToString),
+    //   )(args);
+
+    //   return await dao.getUnassignedNotifications(req.credentials, args_);
+    // },
+    allEnvironments: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getAllEnvironments(req.credentials, args);
     },
   },
   Mutation: {
@@ -459,8 +588,17 @@ const resolvers = {
       const ret = await dao.updateSshKey(req.credentials, input);
       return ret;
     },
+    updateNotificationRocketChat: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
+      return ret;
+    },
     updateNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
+
       const ret = await dao.updateNotificationSlack(
         req.credentials,
         args.input,
@@ -526,9 +664,25 @@ const resolvers = {
       const ret = await dao.deleteOpenshift(req.credentials, args.input);
       return ret;
     },
+    addNotificationRocketChat: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
+      return ret;
+    },
     addNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addNotificationSlack(req.credentials, args.input);
+      return ret;
+    },
+    deleteNotificationRocketChat: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     deleteNotificationSlack: async (root, args, req) => {
@@ -541,17 +695,23 @@ const resolvers = {
     },
     addNotificationToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationToProject(
-        req.credentials,
-        args.input,
-      );
+
+      const input = R.compose(
+        R.over(R.lensProp('notificationType'), notificationTypeToString),
+      )(args.input);
+
+      const ret = await dao.addNotificationToProject(req.credentials, input);
       return ret;
     },
     removeNotificationFromProject: async (root, args, req) => {
       const dao = getDao(req);
+      const input = R.compose(
+        R.over(R.lensProp('notificationType'), notificationTypeToString),
+      )(args.input);
+
       const ret = await dao.removeNotificationFromProject(
         req.credentials,
-        args.input,
+        input,
       );
       return ret;
     },
@@ -590,6 +750,12 @@ const resolvers = {
       )(args.input);
 
       const ret = await dao.addOrUpdateEnvironment(req.credentials, input);
+      return ret;
+    },
+    addOrUpdateEnvironmentStorage: async (root, args, req) => {
+      const dao = getDao(req);
+
+      const ret = await dao.addOrUpdateEnvironmentStorage(req.credentials, args.input);
       return ret;
     },
     deleteEnvironment: async (root, args, req) => {

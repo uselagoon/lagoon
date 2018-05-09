@@ -8,6 +8,7 @@ ENV LAGOON=varnish
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
@@ -19,6 +20,7 @@ RUN apk --no-cache add varnish
 RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
 
 COPY default.vcl /etc/varnish/default.vcl
+COPY varnish-start.sh /varnish-start.sh
 
 RUN fix-permissions /etc/varnish/ \
     && fix-permissions /var/run/ \
@@ -31,5 +33,9 @@ EXPOSE 8080
 # tells the local development environment on which port we are running
 ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
-CMD ["varnishd", "-a", ":8080", "-T", ":6082", "-F", "-f", "/etc/varnish/default.vcl", "-S", "/etc/varnish/secret"]
+# Make http_resp_hdr_len and http_resp_size configurable (see in docker-entrypoint)
+ENV HTTP_RESP_HDR_LEN=8k
+ENV HTTP_RESP_SIZE=32k
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
+CMD [" /varnish-start.sh"]
