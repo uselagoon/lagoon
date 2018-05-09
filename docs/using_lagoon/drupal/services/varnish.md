@@ -81,7 +81,7 @@ Now you should be able to test Varnish, here a short example assuming there is a
 
 ### Varnish on Drupal behind the scenes
 
-If you come from other Drupal hosters or did for a Drupal 8 & Varnish tutorial before you might realized that there are a couple of changes in the Lagoon Drupal Varnish tutorial. Let's adress them:
+If you come from other Drupal hosters or did for a Drupal 8 & Varnish tutorial before you might realized that there are a couple of changes in the Lagoon Drupal Varnish tutorial. Let's address them:
 
 #### Usage of `Varnish Bundled Purger` instead of `Varnish Purger`
 
@@ -89,7 +89,7 @@ The `Varnish Purger` purger sends a `BAN` request for each single Cache-Tag that
 
 #### Usage of `Purge Late runtime processor`
 
-Contradictory to the Varnish Module in Drupal 7, the Drupal 8 Purge module has a slightly different approach to purging caches: It ads them to a queue which is then processed by different processors. Purge suggests to use the `Cron processor` which means that the varnish cache is only purged during a Cron run. This can lead into old data begin cached by Varnish, as probably your cron is not configured to run every minute or so, result are confused editors and clients.
+Contradictory to the Varnish Module in Drupal 7, the Drupal 8 Purge module has a slightly different approach to purging caches: It adds them to a queue which is then processed by different processors. Purge suggests to use the `Cron processor` which means that the varnish cache is only purged during a Cron run. This can lead into old data begin cached by Varnish, as probably your cron is not configured to run every minute or so, result are confused editors and clients.
 
 Instead we suggest to use the `Purge Late runtime processor`, which  processes the queue at the end of each Drupal request. This has the advantage that if a Cache-Tag is added to the purge queue (like because an editor edited a Drupal Node) the Cache-Tags for this Node is directly purged. Together with the `Varnish Bundled Purger` this means just a single additional request to Varnish at the very end of a Drupal request, which causes no noticeable processing time on the request.
 
@@ -103,5 +103,5 @@ Varnish doesn't cache? Or something else not working? Here a couple of ways to d
 
 - Run `drush p-debug-en` to enable debug logging of the purge module, this should show you debbugging in the Drupal log under `admin/reports/dblog`
 - Make sure that Drupal sends a proper cache headers. To test this best use the URL that Lagoon generates for bypassing the Varnish cache (locally in Drupal example this is http://nginx-drupal-example.docker.amazee.io). Check for an `Cache-Control: max-age=900, public` header, while the `900` is depending on what you configured in `$config['system.performance']['cache']['page']['max_age']`
-- Make sure that the enviornment variable `VARNISH_BYPASS` is **not** set to `true` (see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly.)
+- Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` (see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly.)
 - If all fails and before you flip your table, talk to the Lagoon Team, we're happy to help.

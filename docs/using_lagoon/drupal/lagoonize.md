@@ -9,12 +9,12 @@ You find these Files [here](https://github.com/amazeeio/lagoon/tree/master/docs/
 - `.lagoon.yml` - They main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults, if you like to edit or modify, please check the specific [Documentation for .lagoon.yml]()
 - `docker-compose.yml`, `.dockerignore`  and `Dockerfile.*` - These files are used to run your Local Drupal Development environment, it tells docker which services to start and how to build them. These contain sensible defaults and many commented lines, it should be pretty much self describing. If you like more, see [Documentation for docker-compose.yml]()
 - `sites/default/*` - These .php and .yml files teach Drupal how to communicate with Lagoon containers and this locally and in production. It also provides an easy system for specific overrides in development and production environments. Unlike other Drupal Hosting Systems, Lagoon never ever injects Drupal Settings files into your Drupal. Therefore you can edit them to your wish. Like all other files they contain sensible defaults and some commented parts.
-- `drush/alises.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all Site Aliases there are.
+- `drush/aliases.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all Site Aliases there are.
 - `drush/drushrc.php` - Some sensible defaults for Drush Commands.
 
 ### Remark to `.gitignore`
 
-Don't forget to make sure you `.gitignore` will allow you to commit the settings files (Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in .gitignore, remove that, as with Lagoon we don't ever have sensitive information in the Git Repo.)
+Don't forget to make sure your `.gitignore` will allow you to commit the settings files (Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in .gitignore, remove that, as with Lagoon we don't ever have sensitive information in the Git Repo.)
 
 ### Remark to Webroot in Drupal 8
 
@@ -43,7 +43,7 @@ If everything went well, open the `LAGOON_ROUTE` defined in `docker-compose.yml`
 
 ## 4. Rerun `composer install` (for Composer projects only)
 
-In a local development environment you most probably open the Drupal Code in your favorite IDE and you also want all dependencies downloaded and existing, so connect into the cli container and run `composer install`:
+In a local development environment you most probably open the Drupal Code in your favorite IDE and you also want all dependencies downloaded and installed, so connect into the cli container and run `composer install`:
 
     docker-compose exec cli bash
     composer install
