@@ -333,7 +333,7 @@ build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
 build/auto-idler: build/oc
-build/storage-calculator: build/commons
+build/storage-calculator: build/oc
 build/api-db: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually

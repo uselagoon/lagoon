@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/commons
+FROM ${IMAGE_REPO:-lagoon}/oc
 
 ENV LAGOON=storage-calculator
 
