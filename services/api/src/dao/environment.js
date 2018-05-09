@@ -73,11 +73,11 @@ const getEnvironmentStorageByEnvironmentId = sqlClient => async (cred, eid, args
 const getEnvironmentStorageMonthByEnvironmentId = sqlClient => async (cred, eid, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
-      SELECT 
-        SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month 
-      FROM 
-        environment_storage 
-      WHERE 
+      SELECT
+        SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
+      FROM
+        environment_storage
+      WHERE
         environment = :eid
         AND YEAR(updated) = YEAR(CURRENT_DATE - INTERVAL :month_prior MONTH)
         AND MONTH(updated) = MONTH(CURRENT_DATE - INTERVAL :month_prior MONTH)
@@ -151,8 +151,8 @@ const addOrUpdateEnvironmentStorage = sqlClient => async (cred, input) => {
     sqlClient,
     `CALL CreateOrUpdateEnvironmentStorage(
         :environment,
-        :persistentStorageClaim,
-        :storageUsed
+        :persistent_storage_claim,
+        :bytes_used
       );
     `,
   );

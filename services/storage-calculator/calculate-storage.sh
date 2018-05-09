@@ -37,26 +37,26 @@ do
     ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
     ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
     ENVIRONMENT_ID=$(echo "$environment" | jq -r '.id')
-    
-    echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"            
-    
+
+    echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
+
     OC="oc --insecure-skip-tls-verify --token=$OPENSHIFT_TOKEN --server=$OPENSHIFT_URL -n $ENVIRONMENT_OPENSHIFT_PROJECTNAME"
 
     PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
 
-    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"  
+    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
 
     ${OC} run --image alpine storage-calc -- sh -c "while sleep 3600; do :; done"
     ${OC} rollout pause deploymentconfig/storage-calc
 
     for PVC in "${PVCS[@]}"
-    do 
-      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"  
+    do
+      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"
       ${OC} volume deploymentconfig/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
     done
 
     ${OC} rollout resume deploymentconfig/storage-calc
-    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"      
+    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
     ${OC} rollout status deploymentconfig/storage-calc --watch
 
     POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
@@ -66,17 +66,17 @@ do
       exit 1
     fi
 
-    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: loading storage information"  
+    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: loading storage information"
 
     for PVC in "${PVCS[@]}"
-    do 
+    do
       STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
       # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} bytes"
 
       # Load all projects and their environments
       MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"${PVC}\", storageUsed:${STORAGE_BYTES}}) {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"${PVC}\", bytes_used:${STORAGE_BYTES}}) {
           id
         }
       }"

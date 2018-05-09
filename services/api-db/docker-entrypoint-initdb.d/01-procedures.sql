@@ -176,18 +176,18 @@ CREATE OR REPLACE PROCEDURE
   DeleteEnvironment
   (
     IN name      varchar(100),
-    IN project   varchar(50)
+    IN project   int
   )
   BEGIN
 
     UPDATE
-      environment
+      environment e
     SET
-      deleted=NOW()
+      e.deleted=NOW()
     WHERE
-      name = name AND
-      project = project AND
-      deleted = '0000-00-00 00:00:00';
+      e.name = name AND
+      e.project = project AND
+      e.deleted = '0000-00-00 00:00:00';
 
   END;
 $$

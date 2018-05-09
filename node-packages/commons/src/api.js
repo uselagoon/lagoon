@@ -190,11 +190,27 @@ const addOrUpdateEnvironment = (name: string, projectId: number, deploy_type: st
   }
 `);
 
-const deleteEnvironment = (name: string, project: string): Promise<Object> => graphqlapi.query(`
-  mutation {
-    deleteEnvironment(input: {name: "${name}", project: "${project}"})
+async function deleteEnvironment(name: string, project: string): Promise<Object> {
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}"){
+        id
+      }
+    }
+  `);
+
+  if (!result || !result.project) {
+    throw new ProjectNotFound(
+      `Cannot load id for project ${project}`
+    );
   }
-`);
+
+  return graphqlapi.query(`
+    mutation {
+      deleteEnvironment(input: {name: "${name}", project: ${result.project.id}})
+    }
+  `);
+}
 
 const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
