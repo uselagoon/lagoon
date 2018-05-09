@@ -150,7 +150,8 @@ $cid = "lagoon_aliases_$project_name";
 $cache = drush_cache_get($cid);
 
 // Drush does not respect the cache expire, so we need to check it ourselves.
-if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUSHCACHE') === FALSE) {
+// If `LAGOON_IGNORE_DRUSHCACHE` is set or we are on Drush 9, we skip the cache all together
+if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUSHCACHE') === FALSE && DRUSH_MAJOR_VERSION !== "9") {
   drush_log('Hit lagoon project cache');
   $aliases = $cache->data;
 
@@ -268,6 +269,11 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   $site_host = 'localhost';
 
   $alias = [];
+
+  // Drush 9 needs aliases prefixed with a group name in order to be able to convert them correctly
+  if (DRUSH_MAJOR_VERSION == "9") {
+    $site_name = 'lagoon.' . $site_name;
+  }
 
   $alias[$site_name] = [
     'remote-host' => "$ssh_host",
