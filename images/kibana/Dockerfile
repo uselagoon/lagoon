@@ -32,3 +32,4 @@ ENV LAGOON_LOCALDEV_HTTP_PORT=5601
 ENV NODE_OPTIONS="--max-old-space-size=200"
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
+CMD ["/bin/bash", "/usr/local/bin/kibana-docker"]
