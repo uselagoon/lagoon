@@ -29,4 +29,4 @@ RUN fix-permissions /usr/share/logstash/data \
 
 ENV LS_JAVA_OPTS "-Xms200m -Xmx200m"
 
-ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint"]
