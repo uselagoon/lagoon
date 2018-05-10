@@ -11,6 +11,7 @@ pages:
   - Drupal:
     - Lagoonize: using_lagoon/drupal/lagoonize.md
     - First Deployment: using_lagoon/drupal/first_deployment.md
+    - Drush 9: using_lagoon/drupal/drush9.md
     - Services:
       - Varnish: using_lagoon/drupal/services/varnish.md
   - Migrations:
