@@ -56,4 +56,4 @@ As Lagoon is a fully open source project and is actually does not want too many 
 ## Non-predictable user ids
 
 Lagoon is based on OpenShift and OpenShift puts one thing very high: Security. Not only is each project completely encapsulated in its own virtual network, each container is also run with a random user id. This brings much higher security as a possible attacker cannot know the ID of the user during a Docker Build step.
-On the other side, this makes development a bit harder as we still want writeable persistent storage, so OpenShift runs the container with a known Group ID: 1 (root). This gives the container access to the files that have been written by previous containers but doesn't actually give you root access inside the container.
+On the other side, this makes development a bit harder as we still want writable persistent storage, so OpenShift runs the container with a known Group ID: 1 (root). This gives the container access to the files that have been written by previous containers but doesn't actually give you root access inside the container.
