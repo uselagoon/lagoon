@@ -2,9 +2,5 @@
 
 exports[`createConfig should write default config to given path 1`] = `
 "project: your_project
-deploy_tasks:
-  task1:
-    before_deploy: []
-    after_deploy: []
 "
 `;

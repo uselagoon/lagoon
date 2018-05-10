@@ -30,24 +30,6 @@ describe('parseConfig', () => {
 
     const expected = {
       project: 'amazee_io',
-      deploy_tasks: {
-        development: {
-          before_deploy: ['cmd1', 'cmd2'],
-          after_deploy: ['cmd1', 'cmd2'],
-        },
-        production: {
-          before_deploy: ['cmd1', 'cmd2'],
-          after_deploy: ['cmd1', 'cmd2'],
-        },
-      },
-      shared: {
-        production: [
-          {
-            src: 'files',
-            dst: 'sites/default/files',
-          },
-        ],
-      },
     };
 
     expect(config).toEqual(expected);

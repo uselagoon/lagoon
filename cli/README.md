@@ -77,10 +77,6 @@ This will generate the following file:
 ```text
 $ cat .lagoon.yml
 project: my_project
-deploy_tasks:
-  task1:
-    before_deploy: []
-    after_deploy: []
 ```
 
 ### `lagoon login`
