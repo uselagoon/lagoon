@@ -8,6 +8,7 @@ ENV LAGOON=varnish
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
@@ -36,5 +37,5 @@ ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 ENV HTTP_RESP_HDR_LEN=8k
 ENV HTTP_RESP_SIZE=32k
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD [" /varnish-start.sh"]

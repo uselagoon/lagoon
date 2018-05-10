@@ -91,7 +91,15 @@ const messageConsumer = async function(msg) {
       sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
         `*[${projectName}]* remove \`${openshiftProject}\``
       )
-      return
+      // Update GraphQL API that the Environment has been deleted
+      try {
+        await deleteEnvironment(environmentName, projectName)
+        logger.info(`${openshiftProject}: Deleted Environment '${environmentName}' in API`)
+      } catch (err) {
+        logger.error(err)
+        throw new Error
+      }
+      return // we are done here
     } else {
       logger.error(err)
       throw new Error

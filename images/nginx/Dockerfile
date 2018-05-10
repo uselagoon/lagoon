@@ -8,6 +8,7 @@ ENV LAGOON=nginx
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -41,5 +42,5 @@ EXPOSE 8080
 # tells the local development environment on which port we are running
 ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["nginx", "-g", "daemon off;"]

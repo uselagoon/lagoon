@@ -83,6 +83,19 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last hour, starting to idle"
             # actually idleing happens here
             oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle --all
+
+            ### Faster Unidling:
+            ## Instead of depending that each endpoint is unidling their own service (which means it takes a lot of time to unidle multiple services)
+            ## This update makes sure that every endpoing is unidling every service that is currently idled, which means the whole system is much much faster unidled.
+            # load all endpoints which have unidle targets, format it as a space separated
+            IDLING_ENDPOINTS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq  --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.name ] | join(" ")')
+            if [[ "${IDLING_ENDPOINTS}" ]]; then
+              # Load all unidling targets of all endpoints and generate one bit JSON array from it
+              ALL_IDLED_SERVICES_JSON=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.annotations."idling.alpha.openshift.io/unidle-targets" | fromjson | .[] ] | unique_by(.name) | tojson')
+              # add this generated JSON array to all endpoints
+              oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" annotate --overwrite endpoints $IDLING_ENDPOINTS "idling.alpha.openshift.io/unidle-targets=${ALL_IDLED_SERVICES_JSON}"
+            fi
+
           fi
         done
       else

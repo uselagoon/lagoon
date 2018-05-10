@@ -5,6 +5,7 @@ FROM postgres:alpine
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
@@ -28,5 +29,5 @@ ENV PGUSER=postgres \
     PGDATA=/var/lib/postgresql/data/pgdata
 
 # Postgresql entrypoint file needs bash, so start the entrypoints with bash
-ENTRYPOINT ["/lagoon/entrypoints.bash"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["postgres"]

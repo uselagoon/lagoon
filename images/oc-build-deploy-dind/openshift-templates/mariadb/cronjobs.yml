@@ -45,8 +45,8 @@ objects:
   spec:
     schedule: "${RANDOM_MINUTE} 1 * * *"
     concurrencyPolicy: Forbid
-    successfulJobsHistoryLimit: 5
-    failedJobsHistoryLimit: 5
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
     jobTemplate:
       spec:
         template:
