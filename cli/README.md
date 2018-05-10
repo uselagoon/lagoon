@@ -1,8 +1,8 @@
-# amazee.io Command Line Interface
+# lagoon Command Line Interface
 
 ## Installation
 
-Install `io` with either `npm` or `yarn`.
+Install the CLI with either `npm` or `yarn`.
 
 ```sh
 # Either npm...
@@ -14,59 +14,59 @@ yarn global add @lagoon/cli
 
 ## Setup
 
-`io` needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#io-init):
+The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagoon-init):
 
 ```sh
 # Initialize project configuration
-io init
+lagoon init
 ```
 
-For more options, see the [`io init` documentation](#io-init).
+For more options, see the [`lagoon init` documentation](#lagoon-init).
 
 ## Commands
 
-### `io init`
+### `lagoon init`
 
 ```text
-$ io init --help
-io init - Create a .lagoon.yml config file in the current working
+$ lagoon init --help
+lagoon init - Create a .lagoon.yml config file in the current working
 directory
 
 Options:
   --help           Show help                                           [boolean]
   --overwrite      Overwrite the configuration file if it exists       [boolean]
-  --sitegroup, -s  Name of sitegroup to configure                       [string]
+  --project, -s    Name of project to configure                       [string]
 
 Examples:
-  io init                           Create a config file at ./.lagoon.yml.
+  lagoon init                           Create a config file at ./.lagoon.yml.
                                     This will confirm with the user whether to
                                     overwrite the config if it already exists
-                                    and also prompt for a sitegroup name to add
+                                    and also prompt for a project name to add
                                     to the config.
 
-  io init --overwrite               Overwrite existing config file (do not
+  lagoon init --overwrite               Overwrite existing config file (do not
                                     confirm with the user).
 
-  io init --overwrite false         Prevent overwriting of existing config file
+  lagoon init --overwrite false         Prevent overwriting of existing config file
                                     (do not confirm with user).
 
-  io init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do not
+  lagoon init --project my_project      Set project to "my_project" (do not
                                     prompt the user).
 
-  io init -s my_sitegroup           Short form for setting sitegroup to
-                                    "my_sitegroup" (do not prompt the user).
+  lagoon init -s my_project             Short form for setting project to
+                                    "my_project" (do not prompt the user).
 
-  io init --overwrite --sitegroup   Overwrite existing config files and set
-  my_sitegroup                      sitegroup to "my_sitegroup" (do not confirm
+  lagoon init --overwrite --project     Overwrite existing config files and set
+  my_project                        project to "my_project" (do not confirm
                                     with or prompt the user).
 ```
 
-#### `io init` Examples
+#### `lagoon init` Examples
 
 ```text
-$ io init
+$ lagoon init
 ? File '/Users/Claudine/Projects/developermentify/.lagoon.yml' already exists! Overwrite? (y/N) y
-? Enter the name of the sitegroup to configure. my_sitegroup
+? Enter the name of the project to configure. my_project
 Creating file '/Users/Claudine/Projects/developermentify/.lagoon.yml'...
 Configuration file created!
 Done in 10.56s.
@@ -76,18 +76,18 @@ This will generate the following file:
 
 ```text
 $ cat .lagoon.yml
-sitegroup: my_sitegroup
+project: my_project
 deploy_tasks:
   task1:
     before_deploy: []
     after_deploy: []
 ```
 
-### `io login`
+### `lagoon login`
 
 ```text
-$ io login --help
-io login - Authenticate with amazee.io via an SSH key
+$ lagoon login --help
+lagoon login - Authenticate with lagoon via an SSH key
 
 Options:
   --help          Show help                                            [boolean]
@@ -96,12 +96,12 @@ Options:
 Done in 1.86s.
 ```
 
-#### `io login` Examples
+#### `lagoon login` Examples
 
 By default, the login command uses the SSH private key at `$HOME/.ssh/id_rsa`.
 
 ```text
-$ io login
+$ lagoon login
 Login successful
 Done in 1.28s.
 ```
@@ -109,7 +109,7 @@ Done in 1.28s.
 If that file does not exist, the user will be prompted for the path:
 
 ```text
-$ io login
+$ lagoon login
 ? Path to private key file /path/to/id_rsa
 Login successful
 Done in 3.42s.
@@ -118,7 +118,7 @@ Done in 3.42s.
 The path to the key can be also passed in via the `--identity` option (short form `-i`):
 
 ```text
-$ io login -i /path/to/id_rsa
+$ lagoon login -i /path/to/id_rsa
 Login successful
 Done in 1.70s.
 ```
@@ -126,37 +126,15 @@ Done in 1.70s.
 If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
-$ io login -i /path/to/id_rsa
+$ lagoon login -i /path/to/id_rsa
 ? Private key passphrase (never saved) [hidden]
 Login successful
 Done in 4.15s.
 ```
 
-### `io sites`
-
-```sh
-# List sites for the configured / given sitegroup
-io sites
-io sites -s my_sitegroup
-```
-
-#### `io sites` Examples
-
-TODO: Make examples
-
 ## Development - local nodejs
 
-The `runCli.sh` script injects the necessary environment variables such as `process.env.API_URL`.
-
-```sh
-../runCli.sh -- <commands>
-```
-
-For example:
-
-```sh
-../runCli.sh -- init --overwrite false --sitegroup my_sitegroup
-```
+The `execute <cli command>`, `sshlogin` and `sshlogout` yarn scripts can be used to run CLI commands during development.
 
 ## Development - inside docker
 
@@ -164,14 +142,4 @@ There is already a docker container prepared that has the cli running. Run a new
 
 ```sh
 docker-compose run --rm cli bash
-```
-
-### Old development instructions
-
-The instructions below were how we previously built (before `runCli.sh`), but they will not inject the necessary environment variables (for example, `process.env.API_URL`).
-
-```sh
-npm install      # Install dependencies
-npm run build    # Build files to the `dist` folder
-node .           # Run the CLI
 ```

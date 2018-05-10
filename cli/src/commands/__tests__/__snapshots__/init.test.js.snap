@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`handler should not overwrite config file when \`overwrite\` option set to false 1`] = `
+Array [
+  Array [
+    "[31mNot overwriting existing file 'some/path/.lagoon.yml'.[39m",
+  ],
+]
+`;
+
+exports[`handler should overwrite existing config file if overwrite option passed as true 1`] = `
+Array [
+  Array [
+    "Creating file 'some/path/.lagoon.yml'...",
+  ],
+  Array [
+    "[32mConfiguration file created![39m",
+  ],
+]
+`;
+
+exports[`handler should write default yaml to given cwd + .lagoon.yml 1`] = `
+Array [
+  Array [
+    "Creating file 'some/path/.lagoon.yml'...",
+  ],
+  Array [
+    "[32mConfiguration file created![39m",
+  ],
+]
+`;

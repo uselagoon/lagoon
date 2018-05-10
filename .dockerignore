@@ -4,3 +4,4 @@
 tests
 .cache
 Makefile
+local-dev/minishift

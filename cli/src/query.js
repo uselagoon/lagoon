@@ -4,29 +4,27 @@ import path from 'path';
 import os from 'os';
 import url from 'url';
 import R from 'ramda';
+import { config } from './config/';
 import { fileExists, readFile } from './util/fs';
 import request from './util/request';
 import { printErrors } from './printErrors';
 
 type QLQueryArgs = {
   cerr: typeof console.error,
-  endpoint?: string,
   query: string,
   variables?: Object,
   headers?: Object,
   pretty?: boolean,
 };
 
-export async function runGQLQuery(args: QLQueryArgs): Object {
-  const {
-    cerr,
-    endpoint = process.env.API_URL || 'https://api.amazee.io/graphql',
-    query,
-    variables,
-    headers: customHeaders = {},
-    pretty = false,
-  } = args;
-
+export async function runGQLQuery({
+  cerr,
+  query,
+  variables,
+  headers: customHeaders = {},
+  pretty = false,
+}:
+QLQueryArgs): Object {
   const headers = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -34,7 +32,7 @@ export async function runGQLQuery(args: QLQueryArgs): Object {
   };
 
   if (!headers.Authorization) {
-    const tokenFile = path.join(os.homedir(), '.ioauth');
+    const tokenFile = path.join(os.homedir(), '.lagoon-token');
     const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {
@@ -44,15 +42,18 @@ export async function runGQLQuery(args: QLQueryArgs): Object {
     }
   }
 
+  const apiUrl = R.prop('api', config) || 'https://api.amazee.io/graphql';
+
   const {
-    hostname,
-    path: pathname,
-    port: urlPort,
-    protocol = 'https:',
-  } = url.parse(endpoint);
+    hostname, path: pathname, port: urlPort, protocol,
+  } = url.parse(
+    apiUrl,
+  );
 
   if (hostname == null) {
-    throw new Error('Hostname required');
+    throw new Error(
+      'API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.',
+    );
   }
 
   const body = JSON.stringify(
@@ -86,10 +87,11 @@ export async function runGQLQuery(args: QLQueryArgs): Object {
     return await request(options);
   } catch (err) {
     const error = R.ifElse(
+      // For socket hang ups...
       R.propEq('message', 'socket hang up'),
-      // Print a nicer error message for socket hangups
+      // ...print a nicer error message...
       R.always('Could not connect to API.'),
-      // If not a socket hang up, return the error message
+      // ...otherwise just return the error message
       R.prop('message'),
     )(err);
     printErrors(cerr, error);

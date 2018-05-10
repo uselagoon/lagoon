@@ -13,12 +13,12 @@ const MariaSQL = require('mariasql');
       port: 3306,
       user: 'api',
       password: 'api',
-      db: 'infrastructure'
+      db: 'infrastructure',
     });
 
     sqlClient.on('error', (error) => {
       logger.error(error);
-    })
+    });
 
     await createServer({
       jwtSecret: JWTSECRET,
@@ -32,6 +32,3 @@ const MariaSQL = require('mariasql');
     logger.error(e.stack);
   }
 })();
-
-
-

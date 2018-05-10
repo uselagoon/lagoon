@@ -36,34 +36,31 @@ describe('createJWT', () => {
 
     expect(createJWT(input)).rejects.toEqual(
       new Error(
-        'Invalid ssh-key public key format (should start with e.g. ssh-rsa)'
-      )
+        'Invalid ssh-key public key format (should start with e.g. ssh-rsa)',
+      ),
     );
   });
 
-  test(
-    'should create token with expiration date via expiresIn argument',
-    async () => {
-      const hour = 3600;
-      const currentTime = Math.floor(Date.now() / 1000);
+  test('should create token with expiration date via expiresIn argument', async () => {
+    const hour = 3600;
+    const currentTime = Math.floor(Date.now() / 1000);
 
-      const input = {
-        payload: {
-          sshKey: testSsh,
-          role: 'admin',
-          iat: currentTime,
-          iss: 'jest',
-        },
-        jwtSecret: 'secret',
-        expiresIn: '1h',
-      };
+    const input = {
+      payload: {
+        sshKey: testSsh,
+        role: 'admin',
+        iat: currentTime,
+        iss: 'jest',
+      },
+      jwtSecret: 'secret',
+      expiresIn: '1h',
+    };
 
-      const token = await createJWT(input);
-      const p = jwt.verify(token, 'secret');
+    const token = await createJWT(input);
+    const p = jwt.verify(token, 'secret');
 
-      expect(p.exp).toEqual(currentTime + hour);
-    }
-  );
+    expect(p.exp).toEqual(currentTime + hour);
+  });
 
   test('should create expired token, which should be reckognized by verify()', async () => {
     const input = {

@@ -1,13 +1,6 @@
 const R = require('ramda');
 const {
-  ifNotAdmin,
-  inClause,
-  inClauseOr,
-  isPatchEmpty,
-  knex,
-  prepare,
-  query,
-  whereAnd,
+  isPatchEmpty, knex, prepare, query,
 } = require('./utils');
 
 const Sql = {
@@ -44,7 +37,7 @@ const getEnvironmentsByProjectId = sqlClient => async (cred, pid, args) => {
     `,
   );
 
-  const rows = await query(sqlClient, prep({ pid: pid, type: args.type }));
+  const rows = await query(sqlClient, prep({ pid, type: args.type }));
 
   return rows;
 };

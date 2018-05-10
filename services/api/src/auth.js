@@ -1,9 +1,12 @@
 // @flow
 
-const request = require('request-promise-native');
 const jwt = require('jsonwebtoken');
 const R = require('ramda');
 const logger = require('./logger');
+
+/* ::
+import type { $Application } from 'express';
+*/
 
 const parseBearerToken = R.compose(
   R.ifElse(
@@ -17,7 +20,10 @@ const parseBearerToken = R.compose(
   R.defaultTo(''),
 );
 
-const decodeToken = (token, secret) => {
+const decodeToken = (
+  token,
+  secret,
+) /* : ?{aud: string, role: string, sshKey: string} */ => {
   try {
     const decoded = jwt.verify(token, secret);
     return decoded;
@@ -50,13 +56,46 @@ const parsePermissions = R.compose(
   R.defaultTo({}),
 );
 
-const createAuthMiddleware = args => async (req, res, next) => {
-  const { baseUri, jwtSecret, jwtAudience } = args;
+/* ::
+import type { $Request, $Response, NextFunction } from 'express';
+
+type CreateAuthMiddlewareArgs = {
+  baseUri: string,
+  jwtSecret: string,
+  jwtAudience: string,
+};
+
+class Request extends express$Request {
+  credentials: any
+};
+
+type CreateAuthMiddlewareFn =
+  CreateAuthMiddlewareArgs =>
+    (
+      // To allow extending the request object with Flow
+      Request,
+      $Response,
+      NextFunction
+    ) =>
+      Promise<void>
+
+*/
+
+const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
+  req,
+  res,
+  next,
+) => {
+  const {
+    // baseUri,
+    jwtSecret,
+    jwtAudience,
+  } = args;
   const ctx = req.app.get('context');
   const dao = ctx.dao;
 
   // allow access to status withouth auth
-  if (req.url == '/status') {
+  if (req.url === '/status') {
     next();
     return;
   }
@@ -64,7 +103,7 @@ const createAuthMiddleware = args => async (req, res, next) => {
   const token = parseBearerToken(req.get('Authorization'));
 
   if (token == null) {
-    logger.debug(`No Bearer Token`);
+    logger.debug('No Bearer Token');
     res
       .status(401)
       .send({ errors: [{ message: 'Unauthorized - Bearer Token Required' }] });
@@ -87,13 +126,18 @@ const createAuthMiddleware = args => async (req, res, next) => {
   }
 
   try {
+    if (decoded == null) {
+      throw new Error("Decoding token resulted in 'null' or 'undefined'");
+    }
+
     const { sshKey, role = 'none', aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
       logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
-      return res.status(500).send({
+      res.status(500).send({
         errors: [{ message: 'Auth token audience mismatch' }],
       });
+      return;
     }
 
     // We need this, since non-admin credentials are required to have an ssh-key
@@ -125,11 +169,9 @@ const createAuthMiddleware = args => async (req, res, next) => {
 
     next();
   } catch (e) {
-    res
-      .status(403)
-      .send({
-        errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
-      });
+    res.status(403).send({
+      errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
+    });
   }
 };
 

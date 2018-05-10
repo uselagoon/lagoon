@@ -342,12 +342,6 @@ build/ssh: build/commons
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
 service-images += ssh
-# CLI Image
-build/cli: build/node__8
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
-	touch $@
-service-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \

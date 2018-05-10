@@ -3,8 +3,6 @@ const attrFilter = require('./attrFilter');
 const {
   knex,
   ifNotAdmin,
-  whereAnd,
-  inClause,
   inClauseOr,
   query,
   prepare,
@@ -12,7 +10,7 @@ const {
 } = require('./utils');
 
 const Sql = {
-  updateOpenshift: input => {
+  updateOpenshift: (input) => {
     const { id, patch } = input;
 
     return knex('openshift')
@@ -68,7 +66,7 @@ const getAllOpenshifts = sqlClient => async (cred, args) => {
     throw new Error('Unauthorized');
   }
 
-  const { createdAfter } = args;
+  // const { createdAfter } = args;
   const prep = prepare(sqlClient, 'SELECT * FROM openshift');
   const rows = await query(sqlClient, prep(args));
 
@@ -86,9 +84,9 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
       JOIN openshift o ON o.id = p.openshift
       WHERE p.id = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
-      )}
+    cred.role,
+    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+  )}
     `,
   );
 

@@ -1,4 +1,4 @@
-const { ifNotAdmin, whereAnd, inClause, inClauseOr } = require('./utils');
+const { ifNotAdmin, inClause, inClauseOr } = require('./utils');
 
 describe('ifNotAdmin', () => {
   it('should return string if role != admin', () => {
@@ -28,7 +28,7 @@ describe('inClause', () => {
 
 describe('inClauseOr', () => {
   it('should chain multiple inClause arguments to a single string', () => {
-    expect(inClauseOr([['c.t', [1,2,3]], ['p.t', [5, 4]]])).toEqual(
+    expect(inClauseOr([['c.t', [1, 2, 3]], ['p.t', [5, 4]]])).toEqual(
       'c.t IN (1,2,3) OR p.t IN (5,4)',
     );
   });

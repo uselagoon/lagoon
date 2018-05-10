@@ -59,7 +59,8 @@ mutation {
 }
 ```
 
-### Add New Client
+### Add New Customer
+
 The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone the Git repository of the project (the private key needs to be in a single string, where new lines are replaced by `\n` see an example in /local-dev/api-data/api-data.sql)
 
 ```
@@ -92,7 +93,8 @@ mutation {
 }
 ```
 
-### List Projects and Clients
+### List Projects and Customers
+
 ```
 query whatIsThereAlready{
   allProjects {

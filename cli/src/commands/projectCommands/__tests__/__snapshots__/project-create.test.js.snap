@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createProject should display error, if GraphQL response contains zero customers 1`] = `
+Array [
+  Array [
+    "[31mNo authorized customers found![39m",
+  ],
+]
+`;
+
+exports[`createProject should display error, if GraphQL response contains zero openshifts but one customer 1`] = `
+Array [
+  Array [
+    "[31mNo authorized openshifts found![39m",
+  ],
+]
+`;
+
+exports[`createProject should display error, if GraphQL sends error messages the first time it's called 1`] = `
+Array [
+  Array [
+    "[31mOops! The lagoon API returned an error:[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"something something error\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`createProject should display error, if GraphQL sends error messages the second time it's called 1`] = `
+Array [
+  Array [
+    "[31mOops! The lagoon API returned an error:[39m",
+  ],
+  Array [
+    "[31m{[39m
+[31m  \\"message\\": \\"something something error 2\\"[39m
+[31m}[39m",
+  ],
+]
+`;
+
+exports[`createProject should display table after successful project creation 1`] = `
+Array [
+  Array [
+    "[34m![39m Using \\"customer\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"name\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"git_url\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"openshift\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"branches\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"pullrequests\\" option from arguments or config",
+  ],
+  Array [
+    "[34m![39m Using \\"production_environment\\" option from arguments or config",
+  ],
+  Array [
+    "[32mProject \\"test-project\\" created successfully:[39m",
+  ],
+  Array [
+    "╔═══════════════════════╤══════════════════════════════════════════════╗
+║ Project Name          │ test-project                                 ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Customer              │ credentialtest-customer1                     ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Git URL               │ ssh://git@192.168.99.1:2222/git/project1.git ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Active Systems Deploy │ lagoon_openshiftBuildDeploy                  ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Active Systems Remove │ lagoon_openshiftRemove                       ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Branches              │ true                                         ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Pull Requests         │ true                                         ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Openshift             │                                              ║
+╟───────────────────────┼──────────────────────────────────────────────╢
+║ Created               │ 2018-03-05 10:26:22                          ║
+╚═══════════════════════╧══════════════════════════════════════════════╝
+",
+  ],
+]
+`;
+
+exports[`getAllowedCustomersAndOpenshifts should return all customers and all openshifts 1`] = `
+Object {
+  "allCustomers": Array [
+    Object {
+      "name": "credentialtest-customer1",
+      "value": 1,
+    },
+    Object {
+      "name": "credentialtest-customer2",
+      "value": 2,
+    },
+  ],
+  "allOpenshifts": Array [
+    Object {
+      "name": "credentialtest-openshift",
+      "value": 1,
+    },
+  ],
+  "errors": undefined,
+}
+`;
