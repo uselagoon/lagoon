@@ -26,7 +26,8 @@
     "test:watch": "jest --watch",
     "build": "babel src -d dist",
     "watch": "babel --watch=src -d dist",
-    "execute": "bash -c 'node -r @babel/register src/cli.js $1 $([[ $1 = login ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
+    "execute": "bash -c 'node -r @babel/register src/cli.js $1 $([[ $1 = login ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- ",
+    "execute-nolocal": "node -r @babel/register src/cli.js"
   },
   "repository": {
     "type": "git",
