@@ -42,10 +42,10 @@ QLQueryArgs): Object {
     }
   }
 
-  const apiUrl = R.prop('api', config) || 'https://api.amazee.io/graphql';
+  const apiUrl = R.prop('api', config) || 'https://api.lagoon.amazeeio.cloud';
 
   const {
-    hostname, path: pathname, port: urlPort, protocol,
+    hostname, port: urlPort, protocol,
   } = url.parse(
     apiUrl,
   );
@@ -72,7 +72,7 @@ QLQueryArgs): Object {
 
   const options = {
     hostname,
-    path: pathname,
+    path: '/graphql',
     port:
       urlPort === null
         ? R.propOr(443, protocol)(protocolPorts)
