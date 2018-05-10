@@ -299,6 +299,7 @@ build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builde
 services :=       api \
 									auth-server \
 									logs2slack \
+									logs2rocketchat \
 									openshiftbuilddeploy \
 									openshiftbuilddeploymonitor \
 									openshiftremove \
@@ -311,6 +312,7 @@ services :=       api \
 									logs-db-ui \
 									logs2logs-db \
 									auto-idler \
+									storage-calculator \
 									api-db \
 									drush-alias
 
@@ -325,12 +327,13 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
 build/auto-idler: build/oc
+build/storage-calculator: build/oc
 build/api-db: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
@@ -406,7 +409,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch

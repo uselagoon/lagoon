@@ -9,6 +9,7 @@ ENV LAGOON=php
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -82,5 +83,5 @@ ENV LAGOON_ENVIRONMENT_TYPE=development
 
 WORKDIR /app
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/usr/local/sbin/php-fpm", "-F", "-R"]

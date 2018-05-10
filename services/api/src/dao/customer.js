@@ -41,11 +41,37 @@ const Sql = {
 
     return getCustomerQuery.toString();
   },
+  selectCustomerIdByName: name =>
+    knex('customer')
+      .where('name', '=', name)
+      .select('id')
+      .toString(),
+};
+
+const Helpers = {
+  getCustomerIdByName: async (sqlClient, name) => {
+    const cidResult = await query(sqlClient, Sql.selectCustomerIdByName(name));
+
+    const amount = R.length(cidResult);
+    if (amount > 1) {
+      throw new Error(
+        `Multiple customer candidates for '${name}' (${amount} found). Do nothing.`,
+      );
+    }
+
+    if (amount === 0) {
+      throw new Error(`Not found: '${name}'`);
+    }
+
+    const cid = R.path(['0', 'id'], cidResult);
+
+    return cid;
+  },
 };
 
 const addCustomer = sqlClient => async (cred, input) => {
   if (cred.role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
+    throw new Error('Unauthorized.');
   }
 
   const prep = prepare(
@@ -111,12 +137,12 @@ const getAllCustomers = sqlClient => async (cred, args) => {
 };
 
 const updateCustomer = sqlClient => async (cred, input) => {
-  const { customers } = cred.permissions;
-  const cid = input.id.toString();
-
-  if (cred.role !== 'admin' && !R.contains(cid, customers)) {
+  if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
+
+  const { customers } = cred.permissions;
+  const cid = input.id.toString();
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -145,4 +171,5 @@ const Queries = {
 module.exports = {
   Sql,
   Queries,
+  Helpers,
 };

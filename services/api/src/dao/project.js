@@ -26,6 +26,32 @@ const Sql = {
     knex('project')
       .where('id', id)
       .toString(),
+  selectProjectIdByName: name =>
+    knex('project')
+      .where('name', name)
+      .select('id')
+      .toString(),
+};
+
+const Helpers = {
+  getProjectIdByName: async (sqlClient, name) => {
+    const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
+
+    const amount = R.length(pidResult);
+    if (amount > 1) {
+      throw new Error(
+        `Multiple project candidates for '${name}' (${amount} found). Do nothing.`,
+      );
+    }
+
+    if (amount === 0) {
+      throw new Error(`Not found: '${name}'`);
+    }
+
+    const pid = R.path(['0', 'id'], pidResult);
+
+    return pid;
+  },
 };
 
 const getAllProjects = sqlClient => async (cred, args) => {
@@ -203,4 +229,5 @@ const Queries = {
 module.exports = {
   Sql,
   Queries,
+  Helpers,
 };

@@ -32,6 +32,12 @@ type openshift = {
   created: string;
 }
 
+type rocketchat = {
+  id: int;
+  webhook: string;
+  channel: string;
+}
+
 type slack = {
   id: int;
   webhook: string;

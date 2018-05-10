@@ -8,6 +8,7 @@ ENV LAGOON=redis
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -23,5 +24,5 @@ COPY docker-entrypoint /lagoon/entrypoints/70-redis-entrypoint
 RUN fix-permissions /etc/redis/redis.conf \
     fix-permissions /data
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["redis-server", "/etc/redis/redis.conf"]
