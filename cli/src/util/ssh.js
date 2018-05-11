@@ -24,10 +24,10 @@ async function promptUntilValidKeyPath(
     },
   ]);
   if (
-    !await fileExists(
+    !(await fileExists(
       // Expand tilde characters in paths
       untildify(privateKeyPath),
-    )
+    ))
   ) {
     printErrors(cerr, 'File does not exist at given path!');
     return promptUntilValidKeyPath(cerr);
@@ -117,11 +117,11 @@ SshConnectArgs): Promise<Connection> {
 
   let host = 'ssh.lagoon.amazeeio.cloud';
   let port = 32222;
-  let username = 'lagoon';
+  const username = 'lagoon';
 
   const sshConfig = R.prop('ssh', config);
   if (sshConfig) {
-    const ssh = sshConfig.split(':');
+    const ssh = R.split(':', sshConfig);
     host = R.head(ssh);
     // .connect() accepts only a number
     port = Number(R.nth(1, ssh));
