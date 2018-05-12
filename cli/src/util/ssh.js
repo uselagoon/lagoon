@@ -115,17 +115,25 @@ SshConnectArgs): Promise<Connection> {
     utils.parseKey(privateKey).encryption,
   );
 
-  let host = 'ssh.lagoon.amazeeio.cloud';
-  let port = 32222;
   const username = 'lagoon';
 
-  const sshConfig = R.prop('ssh', config);
-  if (sshConfig) {
+  let host;
+  let port;
+
+  if (process.env.SSH_HOST && process.env.SSH_PORT) {
+    host = process.env.SSH_HOST;
+    port = process.env.SSH_PORT
+  } else if (R.prop('ssh', config)) {
+    const sshConfig = R.prop('ssh', config);
     const ssh = R.split(':', sshConfig);
     host = R.head(ssh);
     // .connect() accepts only a number
     port = Number(R.nth(1, ssh));
+  } else {
+    host = 'ssh.lagoon.amazeeio.cloud';
+    port = 32222;
   }
+
 
   const connectConfig: ConnectConfig = {
     host,

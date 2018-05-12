@@ -6,10 +6,10 @@ Install the CLI with either `npm` or `yarn`.
 
 ```sh
 # Either npm...
-npm install --global @lagoon/cli
+npm install --global @lagoon/lagu
 
 # ...or Yarn
-yarn global add @lagoon/cli
+yarn global add @lagoon/lagu
 ```
 
 ## Setup
@@ -18,124 +18,129 @@ The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which c
 
 ```sh
 # Initialize project configuration
-lagoon init
+lagu init
 ```
 
 For more options, see the [`lagoon init` documentation](#lagoon-init).
 
 ## Commands
 
-### `lagoon init`
+### `lagu init`
 
 ```text
-$ lagoon init --help
-lagoon init - Create a .lagoon.yml config file in the current working
-directory
+$ lagu init --help
+lagu init - Create a .lagoon.yml config file in the current working directory
 
 Options:
-  --help           Show help                                           [boolean]
-  --overwrite      Overwrite the configuration file if it exists       [boolean]
-  --project, -s    Name of project to configure                       [string]
+  --version      Show version number                                   [boolean]
+  --help         Show help                                             [boolean]
+  --overwrite    Overwrite the configuration file if it exists         [boolean]
+  --project, -p  Name of project to configure                           [string]
 
 Examples:
-  lagoon init                           Create a config file at ./.lagoon.yml.
-                                    This will confirm with the user whether to
-                                    overwrite the config if it already exists
-                                    and also prompt for a project name to add
-                                    to the config.
+  lagu init                                 Create a config file at
+                                            ./.lagoon.yml. This will confirm
+                                            with the user whether to overwrite
+                                            the config if it already exists and
+                                            also prompt for a project name to
+                                            add to the config.
 
-  lagoon init --overwrite               Overwrite existing config file (do not
-                                    confirm with the user).
+  lagu init --overwrite                     Overwrite existing config file (do
+                                            not confirm with the user).
 
-  lagoon init --overwrite false         Prevent overwriting of existing config file
-                                    (do not confirm with user).
+  lagu init --overwrite false               Prevent overwriting of existing
+                                            config file (do not confirm with
+                                            user).
 
-  lagoon init --project my_project      Set project to "my_project" (do not
-                                    prompt the user).
+  lagu init --project my_project            Set project to "my_project" (do not
+                                            prompt the user).
 
-  lagoon init -s my_project             Short form for setting project to
-                                    "my_project" (do not prompt the user).
+  lagu init -p my_project                   Short form for setting project to
+                                            "my_project" (do not prompt the
+                                            user).
 
-  lagoon init --overwrite --project     Overwrite existing config files and set
-  my_project                        project to "my_project" (do not confirm
-                                    with or prompt the user).
+  lagu init --overwrite --project           Overwrite existing config files and
+  my_project                                set project to "my_project" (do not
+                                            confirm with or prompt the user).
 ```
 
 #### `lagoon init` Examples
 
 ```text
-$ lagoon init
-? File '/Users/Claudine/Projects/developermentify/.lagoon.yml' already exists! Overwrite? (y/N) y
-? Enter the name of the project to configure. my_project
-Creating file '/Users/Claudine/Projects/developermentify/.lagoon.yml'...
+$ lagu init
+? Enter the name of the project to configure. example
+Creating file '/Users/you/git/.lagoon.yml'...
 Configuration file created!
-Done in 10.56s.
 ```
 
 This will generate the following file:
 
 ```text
 $ cat .lagoon.yml
-project: my_project
+project: example
 ```
 
-### `lagoon login`
+### `lagu login`
 
 ```text
-$ lagoon login --help
-lagoon login - Authenticate with lagoon via an SSH key
+$ lagu login --help
+lagu login - Authenticate with lagoon via an SSH key
 
 Options:
+  --version       Show version number                                  [boolean]
   --help          Show help                                            [boolean]
   --identity, -i  Path to identity (private key)                        [string]
-
-Done in 1.86s.
 ```
 
-#### `lagoon login` Examples
+#### `lagu login` Examples
 
 By default, the login command uses the SSH private key at `$HOME/.ssh/id_rsa`.
 
 ```text
-$ lagoon login
+$ lagu login
 Login successful
-Done in 1.28s.
 ```
 
 If that file does not exist, the user will be prompted for the path:
 
 ```text
-$ lagoon login
+$ lagu login
 ? Path to private key file /path/to/id_rsa
 Login successful
-Done in 3.42s.
 ```
 
 The path to the key can be also passed in via the `--identity` option (short form `-i`):
 
 ```text
-$ lagoon login -i /path/to/id_rsa
+$ lagu login -i /path/to/id_rsa
 Login successful
-Done in 1.70s.
 ```
 
 If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
-$ lagoon login -i /path/to/id_rsa
+$ lagu login -i /path/to/id_rsa
 ? Private key passphrase (never saved) [hidden]
 Login successful
-Done in 4.15s.
 ```
+
+## Development - docker
+
+- First build the cli image: `make build/cli` (dependencies are automatically build)
+- Run the cli docker container via `docker-compose up -d cli` (dependencies are automatically started)
+- Run a bash inside the container: `docker-compose exec cli bash`
+- Use `yarn execute login --identity ~/.ssh/id_rsa` to login
+- Now you can run commands via `yarn execute <cli command>`
 
 ## Development - local nodejs
 
-The `execute <cli command>`, `sshlogin` and `sshlogout` yarn scripts can be used to run CLI commands during development.
+The `execute <cli command>` yarn script can be used to run CLI commands during development.
 
-## Development - inside docker
+Additionally you want to add:
 
-There is already a docker container prepared that has the cli running. Run a new container with bash and then run `yarn run execute <command>`
-
-```sh
-docker-compose run --rm cli bash
+```yaml
+api: http://localhost:3000
+ssh: localhost:2020
 ```
+
+to the `.lagoon.yml` file so that it uses the development api and ssh services

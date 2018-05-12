@@ -1,10 +1,10 @@
 {
-  "name": "@lagoon/cli",
+  "name": "@lagoon/lagu",
   "version": "1.0.0",
   "description": "Lagoon Command Line Interface",
   "main": "./dist/cli.js",
   "bin": {
-    "lagoon": "./dist/cli.js"
+    "lagu": "./dist/cli.js"
   },
   "files": [
     "dist"
