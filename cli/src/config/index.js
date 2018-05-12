@@ -5,7 +5,6 @@ import { writeFile } from '../util/fs';
 import yaml from 'js-yaml';
 import findup from 'findup-sync';
 
-
 // TODO: Type the rest of the config
 export type LagoonConfig = {
   api?: string,

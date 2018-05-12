@@ -2,7 +2,6 @@
 
 import os from 'os';
 import path from 'path';
-import url from 'url';
 import inquirer from 'inquirer';
 import R from 'ramda';
 import { Client } from 'ssh2';
@@ -24,10 +23,10 @@ async function promptUntilValidKeyPath(
     },
   ]);
   if (
-    !(await fileExists(
+    !await fileExists(
       // Expand tilde characters in paths
       untildify(privateKeyPath),
-    ))
+    )
   ) {
     printErrors(cerr, 'File does not exist at given path!');
     return promptUntilValidKeyPath(cerr);
@@ -122,7 +121,7 @@ SshConnectArgs): Promise<Connection> {
 
   if (process.env.SSH_HOST && process.env.SSH_PORT) {
     host = process.env.SSH_HOST;
-    port = process.env.SSH_PORT
+    port = process.env.SSH_PORT;
   } else if (R.prop('ssh', config)) {
     const sshConfig = R.prop('ssh', config);
     const ssh = R.split(':', sshConfig);
@@ -133,7 +132,6 @@ SshConnectArgs): Promise<Connection> {
     host = 'ssh.lagoon.amazeeio.cloud';
     port = 32222;
   }
-
 
   const connectConfig: ConnectConfig = {
     host,

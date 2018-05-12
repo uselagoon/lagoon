@@ -3,7 +3,6 @@
 import { table } from 'table';
 import R from 'ramda';
 
-import { visit } from '../cli';
 import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
@@ -33,7 +32,10 @@ export function builder(yargs: Yargs): Yargs {
       `$0 ${command}`,
       'Show environments for the project configured in .lagoon.yml',
     )
-    .example(`$0 ${command} -p myproject`, 'Show environments of project "myproject"');
+    .example(
+      `$0 ${command} -p myproject`,
+      'Show environments of project "myproject"',
+    );
 }
 
 type projectDetailsArgs = {
@@ -91,12 +93,12 @@ projectDetailsArgs): Promise<number> {
     table([
       ['Name', 'Environmment Type', 'Deploy Type', 'Created', 'Updated'],
       ...R.map(
-        environments => [
-          environments.name,
-          environments.environment_type,
-          environments.deploy_type,
-          environments.created,
-          environments.updated,
+        environment => [
+          environment.name,
+          environment.environment_type,
+          environment.deploy_type,
+          environment.created,
+          environment.updated,
         ],
         environments,
       ),

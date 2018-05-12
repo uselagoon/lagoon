@@ -44,19 +44,21 @@ QLQueryArgs): Object {
 
   let apiUrl;
 
-  if (process.env.API_HOST && process.env.API_PORT && process.env.API_PROTOCOL) {
-    apiUrl = `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${process.env.API_PORT}`;
+  if (
+    process.env.API_HOST &&
+    process.env.API_PORT &&
+    process.env.API_PROTOCOL
+  ) {
+    apiUrl = `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${
+      process.env.API_PORT
+    }`;
   } else if (R.prop('api', config)) {
     apiUrl = R.prop('api', config);
   } else {
     apiUrl = 'https://api.lagoon.amazeeio.cloud';
   }
 
-  const {
-    hostname, port: urlPort, protocol,
-  } = url.parse(
-    apiUrl,
-  );
+  const { hostname, port: urlPort, protocol } = url.parse(apiUrl);
 
   if (hostname == null) {
     throw new Error(
