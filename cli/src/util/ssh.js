@@ -121,7 +121,7 @@ SshConnectArgs): Promise<Connection> {
 
   if (process.env.SSH_HOST && process.env.SSH_PORT) {
     host = process.env.SSH_HOST;
-    port = process.env.SSH_PORT;
+    port = Number(process.env.SSH_PORT);
   } else if (R.prop('ssh', config)) {
     const sshConfig = R.prop('ssh', config);
     const ssh = R.split(':', sshConfig);
