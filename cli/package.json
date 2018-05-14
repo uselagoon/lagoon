@@ -1,6 +1,6 @@
 {
   "name": "@lagoon/lagu",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lagoon Command Line Interface",
   "main": "./dist/cli.js",
   "bin": {
@@ -39,13 +39,13 @@
   },
   "homepage": "https://github.com/amazeeio/lagoon#readme",
   "devDependencies": {
-    "@lagoon/commons": "3.0.2",
     "@babel/cli": "^7.0.0-beta.42",
     "@babel/core": "^7.0.0-beta.42",
     "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.42",
     "@babel/plugin-transform-runtime": "^7.0.0-beta.42",
     "@babel/preset-env": "^7.0.0-beta.42",
     "@babel/register": "^7.0.0-beta.42",
+    "@lagoon/commons": "3.0.2",
     "babel-core": "^7.0.0-0",
     "babel-jest": "^22.1.0",
     "dotenv-extended": "^2.0.1",
