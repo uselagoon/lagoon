@@ -5,15 +5,10 @@ import { writeFile } from '../util/fs';
 import yaml from 'js-yaml';
 import findup from 'findup-sync';
 
-type DeployTask = {
-  before_deploy: Array<string>,
-  after_deploy: Array<string>,
-};
-
 // TODO: Type the rest of the config
-export type AmazeeConfig = {
+export type LagoonConfig = {
   api?: string,
-  endpoint?: string,
+  ssh?: string,
   project: string,
   customer?: number,
   git_url?: string,
@@ -21,33 +16,24 @@ export type AmazeeConfig = {
   branches?: boolean | RegExp,
   pullrequests?: boolean,
   production_environment?: string,
-  deploy_tasks: {
-    [name: string]: DeployTask,
-  },
 };
 
-export type AmazeeConfigInput = {
+export type LagoonConfigInput = {
   project: string,
 };
 
 export function createConfig(
   filepath: string,
-  inputOptions: AmazeeConfigInput,
+  inputOptions: LagoonConfigInput,
 ): Promise<void> {
-  const config: AmazeeConfig = {
+  const config: LagoonConfig = {
     ...inputOptions,
-    deploy_tasks: {
-      task1: {
-        before_deploy: [],
-        after_deploy: [],
-      },
-    },
   };
   const yamlConfig = yaml.safeDump(config);
   return writeFile(filepath, yamlConfig);
 }
 
-export function parseConfig(yamlContent: string): AmazeeConfig {
+export function parseConfig(yamlContent: string): LagoonConfig {
   // TODO: Add schema validation in there if necessary
   return yaml.safeLoad(yamlContent);
 }
@@ -57,7 +43,7 @@ export const config = readConfig();
 /**
  * Finds and reads the lagoon.yml file
  */
-function readConfig(): ?AmazeeConfig {
+function readConfig(): ?LagoonConfig {
   const configPath = findup('.lagoon.yml');
 
   if (configPath == null) {

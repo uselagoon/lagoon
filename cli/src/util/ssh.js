@@ -2,7 +2,6 @@
 
 import os from 'os';
 import path from 'path';
-import url from 'url';
 import inquirer from 'inquirer';
 import R from 'ramda';
 import { Client } from 'ssh2';
@@ -115,18 +114,23 @@ SshConnectArgs): Promise<Connection> {
     utils.parseKey(privateKey).encryption,
   );
 
-  let host = 'auth.amazee.io';
-  let port = 2020;
-  let username = 'api';
+  const username = 'lagoon';
 
-  const sshConfig = R.prop('endpoint', config);
+  let host;
+  let port;
 
-  if (sshConfig) {
-    const endpoint = url.parse(sshConfig);
-    host = R.prop('hostname', endpoint);
-    // url.parse() returns port as a string and .connect() accepts a number
-    port = Number(R.prop('port', endpoint));
-    username = R.prop('auth', endpoint);
+  if (process.env.SSH_HOST && process.env.SSH_PORT) {
+    host = process.env.SSH_HOST;
+    port = process.env.SSH_PORT;
+  } else if (R.prop('ssh', config)) {
+    const sshConfig = R.prop('ssh', config);
+    const ssh = R.split(':', sshConfig);
+    host = R.head(ssh);
+    // .connect() accepts only a number
+    port = Number(R.nth(1, ssh));
+  } else {
+    host = 'ssh.lagoon.amazeeio.cloud';
+    port = 32222;
   }
 
   const connectConfig: ConnectConfig = {

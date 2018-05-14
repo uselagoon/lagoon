@@ -1,10 +1,10 @@
 {
-  "name": "@lagoon/cli",
+  "name": "@lagoon/lagu",
   "version": "1.0.0",
   "description": "Lagoon Command Line Interface",
   "main": "./dist/cli.js",
   "bin": {
-    "lagoon": "./dist/cli.js"
+    "lagu": "./dist/cli.js"
   },
   "files": [
     "dist"
@@ -24,7 +24,7 @@
     "test:watch": "jest --watch",
     "build": "rimraf dist && babel src -d dist",
     "watch": "babel --watch=src -d dist",
-    "execute": "bash -c 'node -r @babel/register src/cli.js $1 $([[ $1 = login ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
+    "execute": "bash -c 'node -r @babel/register src/cli.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
   "repository": {
     "type": "git",

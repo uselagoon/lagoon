@@ -58,7 +58,7 @@ describe('runGQLQuery', () => {
     const call = mockedRequest.mock.calls[0][0];
 
     expect(call).toEqual({
-      hostname: 'api.amazee.io',
+      hostname: 'api.lagoon.amazeeio.cloud',
       path: '/graphql',
       port: 443,
       method: 'POST',
@@ -79,7 +79,7 @@ describe('runGQLQuery', () => {
   it('should do a POST request to a custom API via GraphQL', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = {
-      api: 'https://www.example.com/api',
+      api: 'https://www.example.com',
     };
 
     const mockedRequest = _mock(request).mockImplementationOnce(() =>
@@ -96,7 +96,7 @@ describe('runGQLQuery', () => {
 
     expect(call).toEqual({
       hostname: 'www.example.com',
-      path: '/api',
+      path: '/graphql',
       port: 443,
       method: 'POST',
       headers: {
