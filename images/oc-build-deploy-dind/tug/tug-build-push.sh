@@ -18,7 +18,7 @@ do
   ORIGINAL_IMAGE_NAME="${IMAGE_NAME}"
   IMAGE_NAME="${TUG_IMAGE_PREFIX}${IMAGE_NAME}"
   IMAGE_TAG="${SAFE_BRANCH}"
-  .  /oc-build-deploy/scripts/exec-push.sh
+  .  /oc-build-deploy/scripts/exec-push-parallel.sh
   echo "${ORIGINAL_IMAGE_NAME}" >> /oc-build-deploy/tug/images
 done
 
