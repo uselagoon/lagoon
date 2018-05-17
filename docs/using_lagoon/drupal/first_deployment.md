@@ -31,7 +31,7 @@ Depending of your post rollout tasks inside `.lagoon.yml` you probably run some 
 
 ## 5. Synchronize local Database to the remote Lagoon environment
 
-With full Drush Site Aliases support in Lagoon it is super easy to syncrhonize a local database with the remote lagoon enviornment.
+With full Drush Site Aliases support in Lagoon it is super easy to synchronize a local database with the remote lagoon environment.
 
 First let's make sure that you can see the Drush Site Aliases:
 

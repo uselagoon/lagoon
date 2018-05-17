@@ -13,7 +13,7 @@ Lagoon is mostly tested in 3 different ways:
 
 ## 1. Locally
 
-During local development the best and easiest is to test locally. All tests are started via make. Make will download and build all the requred dependencies.
+During local development the best and easiest is to test locally. All tests are started via make. Make will download and build all the required dependencies.
 
     make tests
 
@@ -29,7 +29,7 @@ Or only for a specific service:
 
 Sometimes you would like to see what is happening inside the Jenkins, it can be found here: http://localhost:8888/ (`admin`:`admin`)
 
-Sometimes you just would like to create another push webhook, without to wait for the git repo to be initialized and beeing pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repo and push a webhook push. It needs to know which git repo and branch you would like to check and push:
+Sometimes you just would like to create another push webhook, without to wait for the git repo to be initialized and being pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repo and push a webhook push. It needs to know which git repo and branch you would like to check and push:
 
 		docker-compose -p lagoon exec tests ansible-playbook /ansible/tests/tests/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
 

@@ -1,6 +1,6 @@
 # Contributing to Lagoon
 
-You would like to hack Lagoon? Yay 🎉! That's how we all started. At Lagoon we take pride in being able to run everything in a local environement, see [Developing Lagoon](/developing_lagoon/index.md) how this works.
+You would like to hack Lagoon? Yay 🎉! That's how we all started. At Lagoon we take pride in being able to run everything in a local environment, see [Developing Lagoon](/developing_lagoon/index.md) how this works.
 
 ## I found a security issue
 

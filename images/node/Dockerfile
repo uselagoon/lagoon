@@ -9,6 +9,7 @@ ENV LAGOON=node
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -23,7 +24,6 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN apk update \
     && apk upgrade \
-    && apk add tini \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app

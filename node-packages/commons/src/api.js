@@ -84,6 +84,33 @@ async function getProjectsByGitUrl(gitUrl: string): Project[] {
 }
 
 
+async function getRocketChatInfoForProject(project: string): Project {
+
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationRocketChat {
+      webhook
+      channel
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        rocketchats: notifications(type: ROCKETCHAT) {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.rocketchats) {
+    throw new ProjectNotFound(
+      `Cannot find rocketchat information for project ${project}`
+    );
+  }
+
+  return result.project.rocketchats;
+}
 
 async function getSlackinfoForProject(project: string): Project {
 
@@ -97,7 +124,7 @@ async function getSlackinfoForProject(project: string): Project {
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        slacks: notifications(type: "slack") {
+        slacks: notifications(type: SLACK) {
           ...${notificationsFragment}
         }
       }
@@ -163,11 +190,27 @@ const addOrUpdateEnvironment = (name: string, projectId: number, deploy_type: st
   }
 `);
 
-const deleteEnvironment = (name: string, project: string): Promise<Object> => graphqlapi.query(`
-  mutation {
-    deleteEnvironment(input: {name: "${name}", project: "${project}"})
+async function deleteEnvironment(name: string, project: string): Promise<Object> {
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}"){
+        id
+      }
+    }
+  `);
+
+  if (!result || !result.project) {
+    throw new ProjectNotFound(
+      `Cannot load id for project ${project}`
+    );
   }
-`);
+
+  return graphqlapi.query(`
+    mutation {
+      deleteEnvironment(input: {name: "${name}", project: ${result.project.id}})
+    }
+  `);
+}
 
 const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
@@ -200,6 +243,7 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
 
 module.exports = {
   getProjectsByGitUrl,
+  getRocketChatInfoForProject,
   getSlackinfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
