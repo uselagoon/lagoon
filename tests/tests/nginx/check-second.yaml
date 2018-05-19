@@ -1,3 +1,23 @@
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain still allows secure traffic"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    host: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "Hello World!"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain now allows insecure traffic"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    host: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "Hello World!"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
 - name: "{{ testname }} - SECOND TEST: check if custom domain 'insecure-allow.com' now does not allow insecure anymore"
   hosts: localhost
   serial: 1
