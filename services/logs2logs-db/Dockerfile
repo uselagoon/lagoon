@@ -1,6 +1,8 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/logstash
 
+RUN bin/logstash-plugin install logstash-input-http
+
 # Remove default shipped pipeline
 RUN rm -f pipeline/logstash.conf
 
