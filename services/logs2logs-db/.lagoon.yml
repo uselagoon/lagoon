@@ -121,6 +121,10 @@ objects:
       port: 28777
       protocol: TCP
       targetPort: 28777
+    - name: http-input-module
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
     selector:
       service: ${SERVICE_NAME}
   status:
