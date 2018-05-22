@@ -4,3 +4,5 @@
   path.config: "pipeline/router-logs.conf"
 - pipeline.id: service-logs
   path.config: "pipeline/service-logs.conf"
+- pipeline.id: remote-logs
+  path.config: "pipeline/remote-logs.conf"
