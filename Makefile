@@ -636,8 +636,7 @@ openshift-lagoon-setup:
 .PHONY: openshift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -"; \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
+	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -";
 
 # Stop OpenShift Cluster
 .PHONY: minishift/stop
