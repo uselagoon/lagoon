@@ -89,8 +89,6 @@ objects:
           env:
           - name: SERVICE_NAME
             value: ${SERVICE_NAME}
-          - name: CRONJOBS
-            value: ${CRONJOBS}
           resources:
             requests:
               cpu: 10m
