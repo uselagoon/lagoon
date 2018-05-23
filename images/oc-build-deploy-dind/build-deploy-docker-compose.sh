@@ -26,6 +26,7 @@ COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 # Figure out which services should we handle
 SERVICE_TYPES=()
 IMAGES=()
+NATIVE_CRONJOB_CLEANUP_ARRAY=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
@@ -410,6 +411,10 @@ do
     # Only implement the cronjob for the services we are currently handling
     if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
+      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
+
       CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
       # Convert the Cronjob Schedule for additional features and better spread
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
@@ -428,6 +433,11 @@ do
     CRONJOB_COUNTER=0
     while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
     do
+
+      CRONJOB_NAME=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
+
       CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
       # Convert the Cronjob Schedule for additional features and better spread
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
@@ -505,6 +515,16 @@ do
   fi
 done
 
+##############################################
+### CLEANUP NATIVE CRONJOBS NOW RUNNING WITHIN CONTAINERS DIRECTLY
+##############################################
+
+for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
+do
+  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get cronjob ${CRONJOB}; then
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
+  fi
+done
 
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
@@ -530,3 +550,4 @@ do
 
   let COUNTER=COUNTER+1
 done
+
