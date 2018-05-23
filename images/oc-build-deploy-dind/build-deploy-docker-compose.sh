@@ -400,6 +400,49 @@ do
     .  /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
+  CRONJOB_COUNTER=0
+  CRONJOBS_ARRAY=()
+  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
+  do
+
+    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
+
+    # Only implement the cronjob for the services we are currently handling
+    if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
+
+      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
+
+      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} /lagoon/cronjob.sh \"${CRONJOB_COMMAND//\"/\\\\\"}\"")
+
+    fi
+
+    let CRONJOB_COUNTER=CRONJOB_COUNTER+1
+  done
+
+  # Generate cronjobs if service type defines them
+  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
+  if [ -f $SERVICE_CRONJOB_FILE ]; then
+    CRONJOB_COUNTER=0
+    while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
+    do
+      CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
+
+      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} /lagoon/cronjob.sh \"${CRONJOB_COMMAND//\"/\\\\\"}\"")
+      let CRONJOB_COUNTER=CRONJOB_COUNTER+1
+    done
+  fi
+
+  if [[ ${#CRONJOBS_ARRAY[@]} -ge 1 ]]; then
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY[@]}")
+    TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
+  fi
+
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
     OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
@@ -421,54 +464,6 @@ do
     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
     . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
   fi
-
-  # Generate cronjobs if service type defines them
-  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
-  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
-  fi
-
-  ### CUSTOM CRONJOBS
-
-  # Save the current deployment template parameters so we can reuse them for cronjobs
-  DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
-
-  CRONJOB_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
-  do
-
-    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
-
-    # Only implement the cronjob for the services we are currently handling
-    if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
-
-      # loading original $TEMPLATE_PARAMETERS as multiple cronjobs use the same values
-      TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
-
-      # Creating a save name (special characters removed )
-      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
-      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
-
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME}")
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
-
-      # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
-
-      OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
-      if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-        echo "No cronjob Template for service type ${SERVICE_TYPE} found"; exit 1;
-      fi
-
-      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
-    fi
-
-    let CRONJOB_COUNTER=CRONJOB_COUNTER+1
-  done
-
 done
 
 ##############################################

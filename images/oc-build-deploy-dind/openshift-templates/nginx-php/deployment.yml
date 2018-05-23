@@ -46,6 +46,9 @@ parameters:
   - name: PHP_SERVICE_NAME
     description: Name of php service
     value: "php"
+  - name: CRONJOBS
+    description: Oneliner of Cronjobs
+    value: ""
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -130,6 +133,8 @@ objects:
               value: ${LAGOON_GIT_SHA}
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
+            - name: CRONJOBS
+              value: ${CRONJOBS}
           resources:
             requests:
               cpu: 10m
