@@ -10,12 +10,12 @@ while true; do
       exit
     fi
 
-    ACTIVE_REPLICAS=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get statefulset "${STATEFULSET}" -o=go-template --template='{{.status.replicas}}')
-    if [[ $ACTIVE_REPLICAS -lt $REPLICAS ]]; then
-      echo "Statefulset '${STATEFULSET}' not ready yet: $ACTIVE_REPLICAS of $REPLICAS ready, waiting..."
-    else
-      echo "Statefulset '${STATEFULSET}' ready: $ACTIVE_REPLICAS of $REPLICAS ready"
+    READY_REPLICAS=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get statefulset "${STATEFULSET}" -o=go-template --template='{{.status.readyReplicas}}')
+    if [[ $READY_REPLICAS == $REPLICAS ]]; then
+      echo "Statefulset '${STATEFULSET}' ready: $READY_REPLICAS of $REPLICAS ready"
       break
+    else
+      echo "Statefulset '${STATEFULSET}' not ready yet: $READY_REPLICAS of $REPLICAS ready, waiting..."
     fi
 
     sleep 10
