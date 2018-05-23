@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "echo 'hi'",
+    "format": "prettier-eslint --write '**/*.js'",
+    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "node -r dotenv-extended/config src",
@@ -14,13 +16,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@lagoon/commons": "3.0.2",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
-    "graphql": "^0.11.7",
+    "graphql": "^0.13.2",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
     "knex": "^0.14.3",
@@ -30,14 +33,12 @@
     "ramda": "^0.24.1",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
+    "sshpk": "^1.14.1",
     "winston": "^2.4.0"
   },
   "devDependencies": {
     "jest": "^22.0.0",
-    "prettier": "^1.9.2"
-  },
-  "jest": {
-    "rootDir": ".",
-    "testEnvironment": "node"
+    "prettier": "^1.11.1",
+    "prettier-eslint-cli": "^4.7.1"
   }
 }

@@ -15,3 +15,5 @@ openshift
 secrets
 docs/_build
 *~
+yarn-debug.log*
+yarn-error.log*

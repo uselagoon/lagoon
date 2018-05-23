@@ -5,7 +5,7 @@ import Helmet from 'react-helmet';
 import { match, createMemoryHistory, RouterContext } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { ServerStyleSheet } from 'styled-components';
-// $FlowIssue: Type definitions are incorrect for this one.
+// $FlowFixMe: Type definitions are incorrect for this one.
 import { ApolloProvider, renderToStringWithData } from 'react-apollo/lib';
 import {
   AsyncComponentProvider,

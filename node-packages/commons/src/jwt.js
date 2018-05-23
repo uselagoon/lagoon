@@ -4,7 +4,7 @@ const R = require('ramda');
 const jwt = require('jsonwebtoken');
 const sshpk = require('sshpk');
 
-/*::
+/* ::
 type Role = 'none' | 'admin' | 'drush';
 
 type Payload = {|
@@ -44,15 +44,15 @@ type Args = {
 //       starting with the key-type (e.g. ssh-rsa)... the payload
 //       of the token will only contain the base64 part though.
 //       This is because of the way we store keys in hiera
-const createJWT = async (args /*:  Args */)/*: Promise<string> */ => {
-  return new Promise((res, rej) => {
+const createJWT /* : Args => Promise<string> */ = async args =>
+  new Promise((res, rej) => {
     const { sshKey } = args.payload;
 
     if (sshKey == null || !validateSshKey(sshKey)) {
       rej(
         new Error(
-          'Invalid ssh-key public key format (should start with e.g. ssh-rsa)'
-        )
+          'Invalid ssh-key public key format (should start with e.g. ssh-rsa)',
+        ),
       );
       return;
     }
@@ -75,13 +75,12 @@ const createJWT = async (args /*:  Args */)/*: Promise<string> */ => {
       res(token);
     });
   });
-};
 
 // This function does not do any sshKey checks / validation etc.
 // it's useful for creating service tokens, which will generally
 // get created during startup of services... therefore this function
 // is treated as >sync<... don't use this in heavily async environments!
-const createJWTWithoutSshKey = (args /*:  Args */)/*: string */ => {
+const createJWTWithoutSshKey = (args /* :  Args */) /* : string */ => {
   const { expiresIn, jwtSecret } = args;
 
   // We don't need any sshKey information
@@ -103,13 +102,13 @@ const createJWTWithoutSshKey = (args /*:  Args */)/*: string */ => {
 //    0       1        2
 // ssh-rsa base-64 [comment]
 // Gets plain key information without comment / type information
-const extractBase64Key /*: string => ?string */ = R.compose(
+const extractBase64Key /* : string => ?string */ = R.compose(
   R.prop(1),
   R.split(' '),
-  R.defaultTo('')
+  R.defaultTo(''),
 );
 
-const validateSshKey = (key/*: string */)/*: boolean */ => {
+const validateSshKey = (key /* : string */) /* : boolean */ => {
   // Validate the format of the ssh key. This fails with an exception
   // if the key is invalid. We are not actually interested in the
   // result of the parsing and just use this for validation.

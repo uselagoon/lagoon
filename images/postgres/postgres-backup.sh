@@ -18,8 +18,8 @@ KEEP_BACKUPS_FOR=4 #days
 # METHODS
 #==============================================================================
 
-# YYYY-MM-DD_HH:MM:SS
-TIMESTAMP=$(date +%F_%T)
+# YYYY-MM-DD_HHMMSS
+TIMESTAMP=$(date +%F_%H%M%S)
 
 function prepare()
 {

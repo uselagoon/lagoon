@@ -33,7 +33,7 @@ function validateKey(req: $Request, res: $Response, next: Function): void {
       return;
     }
 
-    // $FlowIgnore
+    // $FlowFixMe
     req.parsedKey = parsedKey;
 
     next();

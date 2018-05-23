@@ -327,7 +327,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
@@ -342,12 +342,6 @@ build/ssh: build/commons
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
 service-images += ssh
-# CLI Image
-build/cli: build/node__8
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
-	touch $@
-service-images += cli
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
@@ -360,6 +354,15 @@ $(build-localdevimages):
 	$(eval folder = $(subst build/local-,,$@))
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
+	touch $@
+
+# Images for local helpers that exist in another folder than the service images
+cliimages := cli
+service-images += $(cliimages)
+
+build/cli: build/ssh cli/Dockerfile
+	$(eval image = $(subst build/,,$@))
+	$(call docker_build,$(image),cli/Dockerfile,cli)
 	touch $@
 
 build/local-git-server: build/centos7
@@ -626,10 +629,7 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \
-	oc -n lagoon create serviceaccount cronjob; \
-	oc -n lagoon policy add-role-to-user edit -z cronjob; \
 	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
-	bash -c "oc process -n lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -"; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
@@ -639,8 +639,7 @@ openshift-lagoon-setup:
 .PHONY: openshift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -"; \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-cronjobs.yaml | oc -n lagoon apply -f -";
+	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -";
 
 # Stop OpenShift Cluster
 .PHONY: minishift/stop

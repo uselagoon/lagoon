@@ -1,0 +1,6 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createConfig should write default config to given path 1`] = `
+"project: your_project
+"
+`;
