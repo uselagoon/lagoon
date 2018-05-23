@@ -100,12 +100,12 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
       FROM project
       WHERE git_url = :gitUrl
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['customer', customers],
-          ['project.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([
+      ['customer', customers],
+      ['project.id', projects],
+    ])})`,
+  )}
       LIMIT 1
     `;
 
@@ -123,12 +123,12 @@ const getProjectByName = sqlClient => async (cred, args) => {
       FROM project
       WHERE name = :name
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['customer', customers],
-          ['project.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([
+      ['customer', customers],
+      ['project.id', projects],
+    ])})`,
+  )}
     `;
 
   const prep = prepare(sqlClient, str);
@@ -155,20 +155,20 @@ const addProject = sqlClient => async (cred, input) => {
         :git_url,
         :openshift,
         ${
-          input.active_systems_deploy
-            ? ':active_systems_deploy'
-            : '"lagoon_openshiftBuildDeploy"'
-        },
+  input.active_systems_deploy
+    ? ':active_systems_deploy'
+    : '"lagoon_openshiftBuildDeploy"'
+},
         ${
-          input.active_systems_promote
-            ? ':active_systems_promote'
-            : '"lagoon_openshiftBuildDeploy"'
-        },
+  input.active_systems_promote
+    ? ':active_systems_promote'
+    : '"lagoon_openshiftBuildDeploy"'
+},
         ${
-          input.active_systems_remove
-            ? ':active_systems_remove'
-            : '"lagoon_openshiftRemove"'
-        },
+  input.active_systems_remove
+    ? ':active_systems_remove'
+    : '"lagoon_openshiftRemove"'
+},
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.production_environment ? ':production_environment' : 'NULL'},

@@ -7,7 +7,6 @@ const {
   knex,
   prepare,
   query,
-  whereAnd,
   hasSshKeyPatch,
 } = require('./utils');
 const { validateSshKey } = require('@lagoon/commons/src/jwt');
@@ -19,14 +18,14 @@ const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const Sql = {
   allowedToModify: (cred, id) => {
-    let query = knex('ssh_key AS sk')
+    const query = knex('ssh_key AS sk')
       .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
       .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
 
     if (cred.role != 'admin') {
       const { customers, projects } = cred.permissions;
-      query.where('sk.id', '=', id).andWhere(function() {
-        this.where(function() {
+      query.where('sk.id', '=', id).andWhere(function () {
+        this.where(function () {
           this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
         });
         this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
@@ -63,16 +62,16 @@ const Sql = {
       .select('sk.*')
       .whereRaw('ps.pid IS NULL and cs.cid IS NULL')
       .toString(),
-  selectAllSshKeys: cred => {
+  selectAllSshKeys: (cred) => {
     const { customers, projects } = cred.permissions;
 
-    let query = knex('ssh_key AS sk')
+    const query = knex('ssh_key AS sk')
       .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
       .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
 
     if (cred.role != 'admin') {
-      query.where(function() {
-        this.where(function() {
+      query.where(function () {
+        this.where(function () {
           this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
         });
         this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
@@ -128,18 +127,18 @@ const getSshKeysByProjectId = sqlClient => async (cred, pid) => {
     JOIN project p ON ps.pid = p.id
     WHERE ps.pid = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+  )}
     `,
   );
 
   const rows = await query(sqlClient, prep({ pid }));
 
-  return rows ? rows : null;
+  return rows || null;
 };
 
-const getCustomerSshKeys = sqlClient => async cred => {
+const getCustomerSshKeys = sqlClient => async (cred) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -175,12 +174,12 @@ const getSshKeysByCustomerId = sqlClient => async (cred, cid) => {
   return rows;
 };
 
-const getAllSshKeys = sqlClient => async cred => {
+const getAllSshKeys = sqlClient => async (cred) => {
   const rows = await query(sqlClient, Sql.selectAllSshKeys(cred));
   return rows;
 };
 
-const getUnassignedSshKeys = sqlClient => async cred => {
+const getUnassignedSshKeys = sqlClient => async (cred) => {
   const rows = await query(sqlClient, Sql.selectUnassignedSshKeys());
 
   return rows;
@@ -218,10 +217,11 @@ const addSshKey = sqlClient => async (cred, input) => {
       );
     `,
   );
+
   const rows = await query(sqlClient, prep(input));
 
-  const ssh_key = R.path([0, 0], rows);
-  return ssh_key;
+  const sshKey = R.path([0, 0], rows);
+  return sshKey;
 };
 
 const addSshKeyToProject = sqlClient => async (cred, input) => {

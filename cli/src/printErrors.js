@@ -30,14 +30,14 @@ export function printErrors(
 export function printNoConfigError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    '.lagoon.yml config file not found. Please create one with "io init".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    '.lagoon.yml config file not found. Please create one with "lagoon init".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-init',
   );
 }
 
-export function printSitegroupConfigurationError(cerr: Cerr): number {
+export function printProjectConfigurationError(cerr: Cerr): number {
   return printErrors(
     cerr,
-    'No sitegroup configured. Please create a .lagoon.yml config file with "io init" or pass a sitegroup to this command via the --sitegroup option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-init',
+    'No project configured. Please create a .lagoon.yml config file with "lagoon init" or pass a project to this command via the --project option.\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-init',
   );
 }
 
@@ -50,12 +50,12 @@ export function printGraphQLErrors(
   ) {
     return printErrors(
       cerr,
-      'No authentication token found. Please log in first with "io login".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#io-login',
+      'No authentication token found. Please log in first with "lagoon login".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-login',
     );
   }
   const errorMessage =
     R.length(errors) === 1
-      ? 'Oops! The amazee.io API returned an error:'
-      : 'Oops! The amazee.io API returned errors:';
+      ? 'Oops! The lagoon API returned an error:'
+      : 'Oops! The lagoon API returned errors:';
   return printErrors(cerr, errorMessage, ...errors);
 }

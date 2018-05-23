@@ -1,17 +1,33 @@
+ARG LAGOON_GIT_BRANCH
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/node:8
+# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
+FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest} as yarn-workspace-builder
 
-RUN apk add --no-cache openssh
+# STAGE 2: specific service Image
+FROM ${IMAGE_REPO:-amazeeiolagoon}/node:8
 
-# Use changes to package.json and yarn.lock to see if Docker should use cached nodejs deps.
-COPY package.json yarn.lock /app/
+RUN apk add --no-cache bash \
+    && mkdir -p /home/.ssh \
+    && fix-permissions /home/
 
-# Run yarn install and remove the .yarn-cache as we don't need that on our image.
-RUN BUILD_ONLY=true yarn install --pure-lockfile
+# Copying generated node_modules from the first stage
+COPY --from=yarn-workspace-builder /app /app
 
-COPY container-entrypoint.sh /lagoon/entrypoints/80-ssh-key.sh
+# Setting the workdir to the service, all following commands will run from here
+WORKDIR /app/cli/
 
-# Now copy in our application code.
-COPY . /app
+# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
+COPY --from=yarn-workspace-builder /app/.env.defaults .
 
-CMD exec /bin/sh -c "trap : TERM INT; sleep infinity & wait"
+# Copying files from our service
+COPY . .
+
+# Running yarn install in case some dependencies are not here
+RUN yarn install --frozen-lockfile
+
+# Making sure we run in production
+ENV NODE_ENV production
+
+COPY 10-ssh-agent.sh /lagoon/entrypoints/
+
+CMD ["/bin/docker-sleep"]

@@ -8,8 +8,8 @@ import styled from 'styled-components';
 import Subtitle from 'Subtitle';
 
 type DeployFormProps = {
-  siteGroup: string,
-  setSiteGroup: Function,
+  project: string,
+  setProject: Function,
   branch: string,
   setBranch: Function,
   sha: string,
@@ -18,7 +18,7 @@ type DeployFormProps = {
   response: string,
 };
 
-const withSiteGroupState = withState('siteGroup', 'setSiteGroup', '');
+const withProjectState = withState('project', 'setProject', '');
 const withBranchState = withState('branch', 'setBranch', '');
 const withShaState = withState('sha', 'setSha', '');
 const withResponseState = withState('response', 'setResponse', '');
@@ -29,12 +29,12 @@ const Input = styled.input`
 `;
 
 const withFormHandlers = withHandlers({
-  setSiteGroup: props => event => props.setSiteGroup(event.target.value),
+  setProject: props => event => props.setProject(event.target.value),
   setBranch: props => event => props.setBranch(event.target.value),
   setSha: props => event => props.setSha(event.target.value),
-  doSubmitDeployRequest: props => async (siteGroup, branch, sha) => {
+  doSubmitDeployRequest: props => async (project, branch, sha) => {
     const data = {
-      siteGroupname: PROJECT,
+      projectname: PROJECT,
       branchName: branch,
       sha: sha || false,
     };
@@ -56,8 +56,8 @@ const withFormHandlers = withHandlers({
 });
 
 const DeployForm = ({
-  siteGroup,
-  setSiteGroup,
+  project,
+  setProject,
   branch,
   setBranch,
   sha,
@@ -70,16 +70,16 @@ const DeployForm = ({
     <form
       onSubmit={e => {
         e.preventDefault();
-        doSubmitDeployRequest(siteGroup, branch, sha);
+        doSubmitDeployRequest(project, branch, sha);
       }}
     >
-      <label name="siteGroup" htmlFor="siteGroup">Sitegroup Name:</label>
+      <label name="project" htmlFor="project">Project Name:</label>
       <Input
         type="text"
-        name="siteGroup"
-        id="siteGroup"
-        value={siteGroup}
-        onChange={setSiteGroup}
+        name="project"
+        id="project"
+        value={project}
+        onChange={setProject}
         required
       />
       <label name="branch" htmlFor="branch">Branch Name:</label>
@@ -102,7 +102,7 @@ const DeployForm = ({
 );
 
 export default compose(
-  withSiteGroupState,
+  withProjectState,
   withBranchState,
   withShaState,
   withResponseState,

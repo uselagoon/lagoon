@@ -5,19 +5,18 @@ const R = require('ramda');
 const sshpk = require('sshpk');
 const bodyParser = require('body-parser');
 
-const toFingerprint = sshKey => {
+const toFingerprint = (sshKey) => {
   try {
     return sshpk
       .parseKey(sshKey, 'ssh')
       .fingerprint()
       .toString();
-  } catch(e) {
+  } catch (e) {
     logger.error(`Invalid ssh key detected: ${sshKey}`);
   }
-}
+};
 
-
-const keysRoute = async (req, res) => {
+const keysRoute = async (req /* : Object */, res /* : Object */) => {
   const { fingerprint } = req.body;
   const cred = req.credentials;
 
@@ -29,17 +28,15 @@ const keysRoute = async (req, res) => {
     return res.status(500).send('Missing parameter "fingerprint"');
   }
 
-  const dao = req.app.get("context").dao;
+  const dao = req.app.get('context').dao;
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
-
-  const context = req.context;
 
   const sshKeys = await dao.getCustomerSshKeys(cred);
 
   const fingerprintKeyMap = R.compose(
     R.fromPairs,
-    R.reject(([fingerprint]) => fingerprint === undefined),
+    R.reject(([sshKeyFingerprint]) => sshKeyFingerprint === undefined),
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
   )(sshKeys);
 

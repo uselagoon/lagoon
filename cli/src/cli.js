@@ -2,71 +2,70 @@
 
 // @flow
 
-import 'babel-polyfill';
 import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
-import { readFile } from './util/fs';
-import { findConfig, parseConfig } from './util/config';
 import { printErrors } from './printErrors';
 
-import commands from './commands';
+import type { Argv } from 'yargs';
 
-import type { AmazeeConfig } from './util/config';
+type Yargs = typeof yargs;
 
-/**
- * Finds and reads the lagoon.yml file
- */
-async function readConfig(cwd: string): Promise<?AmazeeConfig> {
-  const configPath = await findConfig('.lagoon.yml', cwd);
+export type CommandModule = {
+  command: string,
+  description: string,
+  builder?: (yargs: Yargs) => Yargs,
+  handler: (argv: Object) => Promise<number>,
+};
 
-  if (configPath == null) {
-    return null;
-  }
+const cwd = process.cwd();
 
-  const yamlContent = await readFile(configPath);
-  return parseConfig(yamlContent.toString());
+// Use the visit option (of `node-require-directory`) to provide a visitor function
+// Ref: https://github.com/yargs/yargs/blob/0942a1518aad77656c135439194f8f825bd8b33a/test/command.js#L570-L599
+// Ref (node-require-directory): https://github.com/troygoode/node-require-directory#visiting-objects-as-theyre-loaded
+// Ref (node-require-directory): https://github.com/troygoode/node-require-directory/blob/f043664108f4a4cdb9a1c10e42268d6db754c855/test/test.js#L161-L171
+export function visit(cmd: CommandModule) {
+  return JSON.stringify(cmd) === '{}'
+    ? // If the cmd module is an empty object, just return the object
+    cmd
+    : // If the cmd module isn't empty, modify the handler function by currying in some
+    // parameters that we need and providing fulfillment and rejection callback
+    // functions for the promise.
+    {
+      ...cmd,
+      handler: (argv: Argv): Promise<void> =>
+        cmd
+          .handler({
+            argv,
+            cwd,
+            clog: console.log,
+            cerr: console.error,
+          })
+          .catch((err) => {
+            const exitCode = printErrors(
+              console.error,
+              `Uncaught error in ${cmd.command} command:`,
+              err,
+            );
+            process.exit(exitCode);
+          })
+          .then(code => process.exit(code)),
+    };
 }
 
-/**
- * Used for logging unexpected errors raised by subcommands
- */
-function errorQuit(err: Error | Object | string, prefix: string) {
-  const exitCode = printErrors(
-    // eslint-disable-next-line no-console
-    console.error,
-    prefix,
-    err,
-  );
-  process.exit(exitCode);
-}
-
-export async function runCLI(cwd: string) {
+export async function runCLI() {
   try {
-    const config = await readConfig(cwd);
-
-    // Chain together all the subcommands
     // eslint-disable-next-line no-unused-expressions
-    commands
-      .reduce((cmdYargs, cmd) => {
-        const { name, description, run, setup } = cmd;
-
-        const runFn = args =>
-          // eslint-disable-next-line no-console
-          run({ ...args, cwd, config, clog: console.log, cerr: console.error })
-            .catch(err => errorQuit(err, `Uncaught error in ${name} command:`))
-            .then(code => process.exit(code));
-
-        const setupFn =
-          typeof setup === 'function' ? setup : setupYargs => setupYargs;
-
-        return cmdYargs.command(name, description, setupFn, runFn);
-      }, yargs)
-      .demandCommand(1)
+    yargs
+      // Use yargs.commandDir method to initialize a directory of commands
+      // Ref: https://github.com/yargs/yargs/blob/e87f4873012e3541325e7ec6dafb11a93b5717e0/docs/advanced.md#commanddirdirectory-opts
+      .commandDir('commands', { visit })
+      .demandCommand()
       .strict()
       .help().argv;
   } catch (err) {
-    errorQuit(err, 'Uncaught error:');
+    const exitCode = printErrors(console.error, 'Uncaught error:', err);
+    process.exit(exitCode);
   }
 }
 
@@ -76,10 +75,10 @@ export async function runCLI(cwd: string) {
  * version of the CLI.
  */
 if (require.main === module) {
-  const cwd = process.cwd();
   let currDir = cwd;
   let lastDir = null;
   let main = runCLI;
+
   while (currDir !== lastDir) {
     const localCLIPath = path.join(
       currDir,
@@ -99,5 +98,5 @@ if (require.main === module) {
     currDir = path.resolve(currDir, '..');
   }
 
-  main(cwd);
+  main();
 }
