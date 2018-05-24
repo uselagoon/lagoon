@@ -420,7 +420,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} /lagoon/cronjob.sh \"${CRONJOB_COMMAND//\"/\\\\\"}\"")
+      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
 
     fi
 
@@ -443,7 +443,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
       CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
 
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} /lagoon/cronjob.sh \"${CRONJOB_COMMAND//\"/\\\\\"}\"")
+      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       let CRONJOB_COUNTER=CRONJOB_COUNTER+1
     done
   fi
