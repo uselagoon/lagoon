@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
@@ -44,39 +44,11 @@ do
 
     PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
 
-    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
+    if [[ ! ${#PVCS[@]} -gt 0 ]]; then
+      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no PVCs found writing API with 0 bytes"
 
-    ${OC} run --image alpine storage-calc -- sh -c "while sleep 3600; do :; done"
-    ${OC} rollout pause deploymentconfig/storage-calc
-
-    for PVC in "${PVCS[@]}"
-    do
-      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"
-      ${OC} volume deploymentconfig/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
-    done
-
-    ${OC} rollout resume deploymentconfig/storage-calc
-    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
-    ${OC} rollout status deploymentconfig/storage-calc --watch
-
-    POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
-
-    if [[ ! $POD ]]; then
-      echo "No running pod found for storage-calc"
-      exit 1
-    fi
-
-    echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: loading storage information"
-
-    for PVC in "${PVCS[@]}"
-    do
-      STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
-      # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
-      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} bytes"
-
-      # Load all projects and their environments
       MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"${PVC}\", bytes_used:${STORAGE_BYTES}}) {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"na\", bytes_used:0}) {
           id
         }
       }"
@@ -85,10 +57,51 @@ do
       query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
       curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
 
-    done
+    else
+      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
 
-    ${OC} delete deploymentconfig/storage-calc
+      ${OC} run --image alpine storage-calc -- sh -c "while sleep 3600; do :; done"
+      ${OC} rollout pause deploymentconfig/storage-calc
 
+      for PVC in "${PVCS[@]}"
+      do
+        echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"
+        ${OC} volume deploymentconfig/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
+      done
+
+      ${OC} rollout resume deploymentconfig/storage-calc
+      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
+      ${OC} rollout status deploymentconfig/storage-calc --watch
+
+      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+
+      if [[ ! $POD ]]; then
+        echo "No running pod found for storage-calc"
+        exit 1
+      fi
+
+      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: loading storage information"
+
+      for PVC in "${PVCS[@]}"
+      do
+        STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
+        # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
+        echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} bytes"
+
+        MUTATION="mutation addOrUpdateEnvironmentStorage {
+          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"${PVC}\", bytes_used:${STORAGE_BYTES}}) {
+            id
+          }
+        }"
+
+        # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+        query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+
+      done
+
+      ${OC} delete deploymentconfig/storage-calc
+    fi
   done
 done
 
