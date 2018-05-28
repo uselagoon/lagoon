@@ -190,7 +190,7 @@ const Helpers = {
   },
 };
 
-const addNotificationRocketChat = sqlClient => async (cred, input) => {
+const addNotificationRocketChat = ({ sqlClient }) => async (cred, input) => {
   const prep = prepare(
     sqlClient,
     'CALL CreateNotificationRocketChat(:name, :webhook, :channel)',
@@ -202,7 +202,7 @@ const addNotificationRocketChat = sqlClient => async (cred, input) => {
   return rocketchat;
 };
 
-const addNotificationSlack = sqlClient => async (cred, input) => {
+const addNotificationSlack = ({ sqlClient }) => async (cred, input) => {
   const prep = prepare(
     sqlClient,
     'CALL CreateNotificationSlack(:name, :webhook, :channel)',
@@ -214,7 +214,7 @@ const addNotificationSlack = sqlClient => async (cred, input) => {
   return slack;
 };
 
-const addNotificationToProject = sqlClient => async (cred, input) => {
+const addNotificationToProject = ({ sqlClient }) => async (cred, input) => {
   const { projects } = cred.permissions;
 
   if (cred.role !== 'admin') {
@@ -248,7 +248,7 @@ const addNotificationToProject = sqlClient => async (cred, input) => {
   return project;
 };
 
-const deleteNotificationRocketChat = sqlClient => async (cred, input) => {
+const deleteNotificationRocketChat = ({ sqlClient }) => async (cred, input) => {
   const { name } = input;
 
   const nids = await Helpers.getAssignedNotificationIds(sqlClient, cred, {
@@ -280,7 +280,7 @@ const deleteNotificationRocketChat = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-const deleteNotificationSlack = sqlClient => async (cred, input) => {
+const deleteNotificationSlack = ({ sqlClient }) => async (cred, input) => {
   const { name } = input;
 
   const nids = await Helpers.getAssignedNotificationIds(sqlClient, cred, {
@@ -312,7 +312,7 @@ const deleteNotificationSlack = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-const removeNotificationFromProject = sqlClient => async (cred, input) => {
+const removeNotificationFromProject = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('unauthorized.');
   }
@@ -329,7 +329,7 @@ const removeNotificationFromProject = sqlClient => async (cred, input) => {
 
 const NOTIFICATION_TYPES = ['slack', 'rocketchat'];
 
-const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
+const getNotificationsByProjectId = ({ sqlClient }) => async (cred, pid, args) => {
   const { customers, projects } = cred.permissions;
   const { type } = args;
 
@@ -357,7 +357,7 @@ const getNotificationsByProjectId = sqlClient => async (cred, pid, args) => {
   }, []);
 };
 
-const updateNotificationRocketChat = sqlClient => async (cred, input) => {
+const updateNotificationRocketChat = ({ sqlClient }) => async (cred, input) => {
   const { name } = input;
 
   const isAllowed = await Helpers.isAllowedToModify(sqlClient, cred, { name });
@@ -378,7 +378,7 @@ const updateNotificationRocketChat = sqlClient => async (cred, input) => {
   return R.prop(0, rows);
 };
 
-const updateNotificationSlack = sqlClient => async (cred, input) => {
+const updateNotificationSlack = ({ sqlClient }) => async (cred, input) => {
   const { name } = input;
 
   const isAllowed = await Helpers.isAllowedToModify(sqlClient, cred, { name });
@@ -396,7 +396,7 @@ const updateNotificationSlack = sqlClient => async (cred, input) => {
   return R.prop(0, rows);
 };
 
-const getUnassignedNotifications = sqlClient => async (cred, args) => {
+const getUnassignedNotifications = ({ sqlClient }) => async (cred, args) => {
   const { type } = args;
   const types = type == null ? NOTIFICATION_TYPES : [type];
   const results = await Promise.all(
