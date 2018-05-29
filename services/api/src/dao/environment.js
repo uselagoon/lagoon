@@ -83,7 +83,7 @@ const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (cred
   return rows[0];
 };
 
-const getEnvironmentHoursMonthByEnvironmentId  = sqlClient => async (cred, eid, args) => {
+const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred, eid, args) => {
   const { customers, projects } = cred.permissions;
   const month_prior = args.month_prior || 0;
   const str = `
