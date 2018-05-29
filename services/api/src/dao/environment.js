@@ -130,7 +130,8 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
     interested_month_end = now;
   }
 
-  const month_leading_zero = interested_month_start.getMonth() < 10 ? `0${interested_month_start.getMonth()}`: interested_month_start.getMonth();
+  // calculate the month in format `YYYY-MM`. getMonth() does not return with a leading zero and starts its index at 0 as well.
+  const month_leading_zero = interested_month_start.getMonth()+1 < 10 ? `0${interested_month_start.getMonth()+1}`: interested_month_start.getMonth()+1;
   const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
 
   // Created Date is created after the interested month: Ran for 0 hours in the requested month
