@@ -30,8 +30,8 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (cred, pid, args) =>
     `SELECT
         *
       FROM environment e
-      WHERE e.project = :pid AND
-      deleted = "0000-00-00 00:00:00"
+      WHERE e.project = :pid
+      ${args.include_deleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
       ${args.type ? 'AND e.environment_type = :type' : ''}
 
     `,
@@ -83,6 +83,105 @@ const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (cred
   return rows[0];
 };
 
+const getEnvironmentHoursMonthByEnvironmentId  = sqlClient => async (cred, eid, args) => {
+  const { customers, projects } = cred.permissions;
+  const month_prior = args.month_prior || 0;
+  const str = `
+  SELECT
+    e.created, e.deleted
+  FROM
+    environment e
+  WHERE
+    e.id = :eid
+  `;
+
+  const prep = prepare(sqlClient, str);
+
+  const rows = await query(sqlClient, prep({ eid: eid }));
+
+  const {
+    created,
+    deleted
+  } = rows[0];
+
+  const created_date = new Date(created)
+  const deleted_date = new Date(deleted)
+
+  const now = new Date();
+
+  // Generate date object of the current month, but with the first day, hour, minute, seconds and milliseconds
+  const date_first_day_of_month = new Date();
+  date_first_day_of_month.setDate(1);
+  date_first_day_of_month.setHours(0);
+  date_first_day_of_month.setMinutes(0);
+  date_first_day_of_month.setSeconds(0);
+  date_first_day_of_month.setMilliseconds(0);
+
+  // Generate Date Variable with the month we are interested in
+  const interested_month_start = new Date(date_first_day_of_month);
+  interested_month_start.setMonth(interested_month_start.getMonth() - month_prior);
+
+  // Generate Date Variable with the month we are interested in plus one month
+  let interested_month_end = new Date(date_first_day_of_month);
+  interested_month_end.setMonth(interested_month_end.getMonth() - (month_prior - 1));
+
+  // If the the the interested month end is in the future, we use the current time for real time cost calculations
+  if (interested_month_end > now) {
+    interested_month_end = now;
+  }
+
+  const month_leading_zero = interested_month_start.getMonth() < 10 ? `0${interested_month_start.getMonth()}`: interested_month_start.getMonth();
+  const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
+
+  // Created Date is created after the interested month: Ran for 0 hours in the requested month
+  if (created_date > interested_month_end) {
+    return { month: month, hours: 0 }
+  }
+
+  // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
+  if (deleted_date < interested_month_start && deleted_date != "0000-00-00 00:00:00") {
+    return { month: month, hours: 0 }
+  }
+
+  // Environment was created within the interested month and is not yet deleted, calculate time
+  if (created_date >= interested_month_start && deleted == "0000-00-00 00:00:00") {
+    const hours = Math.ceil(Math.abs(interested_month_end - created_date) / 36e5);
+    return { month: month, hours: hours }
+  }
+
+  // Environment was created within the interested month and was also deleted in the interested month
+  if (created_date >= interested_month_start && deleted_date < interested_month_end) {
+    const hours = Math.ceil(Math.abs(deleted_date - created_date) / 36e5);
+    return { month: month, hours: hours }
+  }
+
+  // Environment was created within the interested month and was deleted after the interested month
+  if (created_date >= interested_month_start && deleted_date > interested_month_end) {
+    const hours = Math.ceil(Math.abs(interested_month_end - created_date) / 36e5);
+    return { month: month, hours: hours }
+  }
+
+  // Environment was created before the interested month and is not yet deleted, calculate time
+  if (created_date < interested_month_start && deleted == "0000-00-00 00:00:00") {
+    const hours = Math.ceil(Math.abs(interested_month_end - interested_month_start) / 36e5);
+    return { month: month, hours: hours }
+  }
+
+  // Environment was created before the interested month and was deleted in the interested month
+  if (created_date < interested_month_start && deleted_date< interested_month_end) {
+    const hours = Math.ceil(Math.abs(deleted_date - interested_month_start) / 36e5);
+    return { month: month, hours: hours }
+  }
+
+  // Environment was created before the interested month and was deleted after the interested month
+  if (created_date < interested_month_start && deleted_date > interested_month_end) {
+    const hours = Math.ceil(Math.abs(interested_month_end - interested_month_start) / 36e5);
+    return { month: month, hours: hours }
+  }
+
+  throw new Error('Error in Enviroment Hour Calculation.');
+
+};
 
 
 const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (cred, openshift_projectname, args) => {
@@ -269,6 +368,7 @@ const Queries = {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
   getEnvironmentByOpenshiftProjectName,
+  getEnvironmentHoursMonthByEnvironmentId,
   getEnvironmentStorageByEnvironmentId,
   getEnvironmentStorageMonthByEnvironmentId,
   getEnvironmentHitsMonthByEnvironmentId,

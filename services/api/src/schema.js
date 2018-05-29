@@ -93,7 +93,7 @@ const typeDefs = `
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
-    environments(type: EnvType): [Environment]
+    environments(type: EnvType, include_deleted: Boolean): [Environment]
     created: String
   }
 
@@ -106,6 +106,8 @@ const typeDefs = `
     openshift_projectname: String
     updated: String
     created: String
+    deleted: String
+    hours_month(month_prior: Int): EnvironmentHoursMonth
     storages: [EnvironmentStorage]
     storage_month(month_prior: Int): EnvironmentStorageMonth
     hits_month(month_prior: Int): EnviornmentHitsMonth
@@ -127,6 +129,11 @@ const typeDefs = `
   type EnvironmentStorageMonth {
     month: String
     bytes_used: Int
+  }
+
+  type EnvironmentHoursMonth {
+    month: String
+    hours: Int
   }
 
   input DeleteEnvironmentInput {
@@ -475,6 +482,14 @@ const resolvers = {
       return await dao.getProjectByEnvironmentId(
         req.credentials,
         environment.id,
+      );
+    },
+    hours_month: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentHoursMonthByEnvironmentId(
+        req.credentials,
+        environment.id,
+        args,
       );
     },
     storages: async (environment, args, req) => {
