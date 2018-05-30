@@ -27,13 +27,15 @@ const createApp = (args /* : CreateAppArgs */) => {
     jwtSecret,
     jwtAudience,
     sqlClient,
+    esClient,
   } = args;
   const app = express();
 
-  const dao = Dao.make(sqlClient);
+  const dao = Dao.make(sqlClient, esClient);
 
   app.set('context', {
     sqlClient,
+    esClient,
     dao,
   });
 

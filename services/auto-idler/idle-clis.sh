@@ -16,7 +16,7 @@ GRAPHQL='query developmentEnvironments {
       token
       name
     }
-    environments {
+    environments(type: DEVELOPMENT) {
       openshift_projectname
       name
     }

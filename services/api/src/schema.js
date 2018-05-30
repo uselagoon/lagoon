@@ -1,7 +1,11 @@
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
+const GraphQLDate = require('graphql-iso-date');
 
 const typeDefs = `
+
+  scalar Date
+
   enum SshKeyType {
     SSH_RSA
     SSH_ED25519
@@ -89,7 +93,7 @@ const typeDefs = `
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
-    environments(type: EnvType): [Environment]
+    environments(type: EnvType, include_deleted: Boolean): [Environment]
     created: String
   }
 
@@ -102,9 +106,17 @@ const typeDefs = `
     openshift_projectname: String
     updated: String
     created: String
+    deleted: String
+    hours_month(month: Date): EnvironmentHoursMonth
     storages: [EnvironmentStorage]
-    storage_month(month_prior: Int): EnvironmentStorageMonth
+    storage_month(month: Date): EnvironmentStorageMonth
+    hits_month(month: Date): EnviornmentHitsMonth
   }
+
+  type EnviornmentHitsMonth {
+    total: Int
+  }
+
 
   type EnvironmentStorage {
     id: Int
@@ -117,6 +129,11 @@ const typeDefs = `
   type EnvironmentStorageMonth {
     month: String
     bytes_used: Int
+  }
+
+  type EnvironmentHoursMonth {
+    month: String
+    hours: Int
   }
 
   input DeleteEnvironmentInput {
@@ -467,6 +484,14 @@ const resolvers = {
         environment.id,
       );
     },
+    hours_month: async (environment, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentHoursMonthByEnvironmentId(
+        req.credentials,
+        environment.id,
+        args,
+      );
+    },
     storages: async (environment, args, req) => {
       const dao = getDao(req);
       return await dao.getEnvironmentStorageByEnvironmentId(req.credentials, environment.id);
@@ -479,16 +504,15 @@ const resolvers = {
         args,
       );
     },
-  },
-  EnvironmentStorage: {
-    environment: async (environmentStorage, args, req) => {
+    hits_month: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentByEnvironmentStorageId(
+      return await dao.getEnvironmentHitsMonthByEnvironmentId(
         req.credentials,
-        environmentStorage.id,
+        environment.openshift_projectname,
+        args,
       );
     },
-  },  
+  },
   Notification: {
     __resolveType(obj) {
       switch (obj.type) {
@@ -769,6 +793,7 @@ const resolvers = {
       return ret;
     },
   },
+  Date: GraphQLDate,
 };
 
 module.exports = {
