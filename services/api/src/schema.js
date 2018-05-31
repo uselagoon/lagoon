@@ -107,10 +107,10 @@ const typeDefs = `
     updated: String
     created: String
     deleted: String
-    hours_month(month_prior: Int): EnvironmentHoursMonth
+    hours_month(month: Date): EnvironmentHoursMonth
     storages: [EnvironmentStorage]
-    storage_month(month_prior: Int): EnvironmentStorageMonth
-    hits_month(month_prior: Int): EnviornmentHitsMonth
+    storage_month(month: Date): EnvironmentStorageMonth
+    hits_month(month: Date): EnviornmentHitsMonth
   }
 
   type EnviornmentHitsMonth {
@@ -793,6 +793,7 @@ const resolvers = {
       return ret;
     },
   },
+  Date: GraphQLDate,
 };
 
 module.exports = {
