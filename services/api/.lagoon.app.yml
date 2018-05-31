@@ -11,13 +11,13 @@ parameters:
     description: Which branch this belongs to, special chars replaced with dashes
     required: true
   - name: SAFE_PROJECT
-    description: Which sitegroup this belongs to, special chars replaced with dashes
+    description: Which project this belongs to, special chars replaced with dashes
     required: true
   - name: BRANCH
     description: Which branch this belongs to, original value
     required: true
   - name: PROJECT
-    description: Which sitegroup this belongs to, original value
+    description: Which project this belongs to, original value
     required: true
   - name: LAGOON_GIT_SHA
     description: git hash sha of the current deployment

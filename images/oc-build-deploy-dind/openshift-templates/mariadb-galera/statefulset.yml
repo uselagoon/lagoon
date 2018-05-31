@@ -37,6 +37,9 @@ parameters:
   - name: SERVICE_IMAGE
     description: Pullable image of service
     required: true
+  - name: CRONJOBS
+    description: Oneliner of Cronjobs
+    value: ""
 objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
@@ -86,6 +89,8 @@ objects:
                   fieldPath: metadata.namespace
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
+            - name: CRONJOBS
+              value: ${CRONJOBS}
     volumeClaimTemplates:
     - metadata:
         name: ${SERVICE_NAME}-galera

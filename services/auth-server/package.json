@@ -6,36 +6,25 @@
     "build": "flow-remove-types --out-dir dist/ src/",
     "dev": "nodemon --ignore dist --watch . --exec 'flow-node src/index.js'",
     "start": "node dist",
-    "lint": "eslint src",
+    "format": "prettier-eslint --write '**/*.js'",
+    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "flow": "flow check",
-    "format": "prettier --trailing-comma es5 --single-quote --write 'src/**/*.js' && yarn run lint -- --fix"
-  },
-  "jest": {
-    "rootDir": "src",
-    "testEnvironment": "node",
-    "transform": {
-      "\\.js$": "../../../node-packages/lagoon-commons/src/jest-flow-transform"
-    }
-  },
-  "lint-staged": {
-    "linters": {
-      "*.js": [
-        "prettier --trailing-comma all --single-quote",
-        "eslint --fix",
-        "git add"
-      ]
-    },
-    "gitDir": "../../"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@lagoon/commons": "3.0.2",
+    "body-parser": "^1.18.2",
     "express": "^4.16.2",
-    "flow-remove-types": "^1.2.1",
-    "morgan": "^1.9.0"
+    "flow-remove-types": "^1.2.3",
+    "morgan": "^1.9.0",
+    "nano": "^6.4.3",
+    "ramda": "^0.25.0",
+    "sshpk": "^1.14.1",
+    "winston": "^2.4.1"
   },
   "devDependencies": {
-    "nodemon": "^1.12.1"
+    "nodemon": "^1.12.1",
+    "prettier": "^1.11.1",
+    "prettier-eslint-cli": "^4.7.1"
   }
 }

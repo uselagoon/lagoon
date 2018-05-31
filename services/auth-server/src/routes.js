@@ -1,8 +1,10 @@
 // @flow
 
 const R = require('ramda');
+const { createJWT } = require('@lagoon/commons/src/jwt');
 const { parseJson } = require('./util/routing');
-const { createJWT, validateSshKey } = require('@lagoon/commons/src/jwt');
+
+import type { $Request, $Response } from 'express';
 
 type GenerateRouteArgs = {
   jwtSecret: string,
@@ -13,11 +15,11 @@ type GenerateRouteArgs = {
 const generateRoute = (args: GenerateRouteArgs) => {
   const { jwtSecret, audience, issuer } = args;
 
-  const route = async (req: $Request, res: $Response, next: Function) => {
+  const route = async (req: $Request, res: $Response) => {
     const key = R.path(['body', 'key'], req);
     const role = R.pathOr('none', ['body', 'role'], req);
     const subject = R.path(['body', 'subject'], req);
-    const expiresIn = R.path(['body', 'expiresIn'], req);
+    // const expiresIn = R.path(['body', 'expiresIn'], req);
     const verbose = R.pathOr(false, ['body', 'verbose'], req);
 
     // Overrides default values

@@ -18,11 +18,11 @@ do
   ORIGINAL_IMAGE_NAME="${IMAGE_NAME}"
   IMAGE_NAME="${TUG_IMAGE_PREFIX}${IMAGE_NAME}"
   IMAGE_TAG="${SAFE_BRANCH}"
-  .  /oc-build-deploy/scripts/exec-push.sh
+  .  /oc-build-deploy/scripts/exec-push-parallel-tug.sh
   echo "${ORIGINAL_IMAGE_NAME}" >> /oc-build-deploy/tug/images
 done
 
-# Save the current environment variables so the tug deployment dan us them
+# Save the current environment variables so the tug deployment can use them
 echo "TYPE=\"${TYPE}\"" >> /oc-build-deploy/tug/env
 echo "SAFE_BRANCH=\"${SAFE_BRANCH}\"" >> /oc-build-deploy/tug/env
 echo "BRANCH=\"${BRANCH}\"" >> /oc-build-deploy/tug/env
@@ -47,4 +47,9 @@ BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
 TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
 .  /oc-build-deploy/scripts/exec-build.sh
 IMAGE_TAG="${SAFE_BRANCH}"
-.  /oc-build-deploy/scripts/exec-push-parallel.sh
+.  /oc-build-deploy/scripts/exec-push-parallel-tug.sh
+
+# If we have Images to Push to the Registry, let's do so
+if [ -f /oc-build-deploy/lagoon/push ]; then
+  parallel --retries 4 < /oc-build-deploy/lagoon/push
+fi

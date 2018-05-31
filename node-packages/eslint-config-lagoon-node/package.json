@@ -1,0 +1,16 @@
+{
+  "name": "eslint-config-lagoon-node",
+  "version": "1.0.0",
+  "description": "Lagoon's ESLint configuration for Node",
+  "main": "index.js",
+  "repository": "https://github.com/amazeeio/lagoon",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "babel-eslint": "^8.2.1",
+    "eslint": "4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.41.0",
+    "eslint-plugin-import": "^2.7.0"
+  }
+}

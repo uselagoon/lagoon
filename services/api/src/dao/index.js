@@ -25,11 +25,9 @@
 // - Use a sql-string builder, additionally with our prepared statements.
 //   Currently we are playing around with `knex` as our sql-builder library
 
-const attrFilter = require('./attrFilter');
 const R = require('ramda');
 
 const {
-  knex,
   ifNotAdmin,
   whereAnd,
   inClause,
@@ -38,7 +36,7 @@ const {
   prepare,
 } = require('./utils');
 
-const getPermissions = sqlClient => async args => {
+const getPermissions = ({ sqlClient }) => async (args) => {
   const prep = prepare(
     sqlClient,
     'SELECT keyId as sshKeyId, projects, customers FROM permission WHERE sshKey = :sshKey',
@@ -49,7 +47,7 @@ const getPermissions = sqlClient => async args => {
   return R.propOr(null, 0, rows);
 };
 
-const truncateTable = sqlClient => async (cred, args) => {
+const truncateTable = ({ sqlClient }) => async (cred, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -78,7 +76,7 @@ const daoFns = {
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
-const make = sqlClient => R.mapObjIndexed((fn, name) => fn(sqlClient), daoFns);
+const make = (sqlClient, esClient) => R.map(fn => fn({sqlClient, esClient}), daoFns);
 
 module.exports = {
   ...daoFns,

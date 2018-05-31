@@ -4,21 +4,21 @@ import path from 'path';
 import { green } from 'chalk';
 import R from 'ramda';
 import inquirer from 'inquirer';
-import { createConfig } from '../util/config';
+import { createConfig } from '../config';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseArgs } from '.';
 
-const name = 'init';
-const description =
+export const command = 'init';
+export const description =
   'Create a .lagoon.yml config file in the current working directory';
 
 type GetOverwriteOptionArgs = {
   exists: boolean,
   filepath: string,
-  overwriteOption?: boolean,
+  overwrite: ?boolean,
 };
 
 const getOverwriteOption = async (
@@ -32,9 +32,9 @@ const getOverwriteOption = async (
       R.propSatisfies(
         // Option is not null or undefined
         R.complement(R.isNil),
-        'overwriteOption',
+        'overwrite',
       ),
-      R.prop('overwriteOption'),
+      R.prop('overwrite'),
     ],
     // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
     [
@@ -53,59 +53,61 @@ const getOverwriteOption = async (
     ],
   ])(args);
 
-export async function setup(yargs: Yargs): Promise<Object> {
+export function builder(yargs: Yargs) {
   return yargs
-    .usage(`$0 ${name} - ${description}`)
+    .usage(`$0 ${command} - ${description}`)
     .options({
       overwrite: {
         describe: 'Overwrite the configuration file if it exists',
         type: 'boolean',
         default: undefined,
       },
-      sitegroup: {
-        describe: 'Name of sitegroup to configure',
+      project: {
+        describe: 'Name of project to configure',
         type: 'string',
-        alias: 's',
+        alias: 'p',
       },
     })
     .example(
-      `$0 ${name}`,
-      'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a sitegroup name to add to the config.\n',
+      `$0 ${command}`,
+      'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a project name to add to the config.\n',
     )
     .example(
-      `$0 ${name} --overwrite`,
+      `$0 ${command} --overwrite`,
       'Overwrite existing config file (do not confirm with the user).\n',
     )
     .example(
-      `$0 ${name} --overwrite false`,
+      `$0 ${command} --overwrite false`,
       'Prevent overwriting of existing config file (do not confirm with user).\n',
     )
     .example(
-      `$0 ${name} --sitegroup my_sitegroup`,
-      'Set sitegroup to "my_sitegroup" (do not prompt the user).\n',
+      `$0 ${command} --project my_project`,
+      'Set project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${name} -s my_sitegroup`,
-      'Short form for setting sitegroup to "my_sitegroup" (do not prompt the user).\n',
+      `$0 ${command} -p my_project`,
+      'Short form for setting project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${name} --overwrite --sitegroup my_sitegroup`,
-      'Overwrite existing config files and set sitegroup to "my_sitegroup" (do not confirm with or prompt the user).',
-    ).argv;
+      `$0 ${command} --overwrite --project my_project`,
+      'Overwrite existing config files and set project to "my_project" (do not confirm with or prompt the user).',
+    );
 }
 
 type Args = BaseArgs & {
-  overwrite: ?boolean,
-  sitegroup: ?string,
+  argv: {
+    overwrite: ?boolean,
+    project: ?string,
+  },
 };
 
-export async function run({
+export async function handler({
   cwd,
-  overwrite: overwriteOption,
-  sitegroup,
+  argv,
   clog,
   cerr,
-}: Args): Promise<number> {
+}:
+Args): Promise<number> {
   const filepath = path.join(cwd, '.lagoon.yml');
 
   const exists = await fileExists(filepath);
@@ -113,22 +115,22 @@ export async function run({
   const overwrite = await getOverwriteOption({
     exists,
     filepath,
-    overwriteOption,
+    overwrite: argv.overwrite,
   });
 
   if (exists && !overwrite) {
     return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
   }
 
-  const configInput = sitegroup
-    ? { sitegroup }
+  const configInput = argv.project
+    ? { project: argv.project }
     : await inquirer.prompt([
       {
         type: 'input',
-        name: 'sitegroup',
-        message: 'Enter the name of the sitegroup to configure.',
+        name: 'project',
+        message: 'Enter the name of the project to configure.',
         validate: input =>
-          input ? Boolean(input) : 'Please enter a sitegroup.',
+          input ? Boolean(input) : 'Please enter a project.',
       },
     ]);
 
@@ -142,10 +144,3 @@ export async function run({
 
   return 0;
 }
-
-export default {
-  setup,
-  name,
-  description,
-  run,
-};

@@ -3,8 +3,6 @@ const attrFilter = require('./attrFilter');
 const {
   knex,
   ifNotAdmin,
-  whereAnd,
-  inClause,
   inClauseOr,
   query,
   prepare,
@@ -12,7 +10,7 @@ const {
 } = require('./utils');
 
 const Sql = {
-  updateOpenshift: input => {
+  updateOpenshift: (input) => {
     const { id, patch } = input;
 
     return knex('openshift')
@@ -26,7 +24,7 @@ const Sql = {
       .toString(),
 };
 
-const addOpenshift = sqlClient => async (cred, input) => {
+const addOpenshift = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
   }
@@ -51,7 +49,7 @@ const addOpenshift = sqlClient => async (cred, input) => {
   return openshift;
 };
 
-const deleteOpenshift = sqlClient => async (cred, input) => {
+const deleteOpenshift = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -63,19 +61,19 @@ const deleteOpenshift = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-const getAllOpenshifts = sqlClient => async (cred, args) => {
+const getAllOpenshifts = ({ sqlClient }) => async (cred, args) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
 
-  const { createdAfter } = args;
+  // const { createdAfter } = args;
   const prep = prepare(sqlClient, 'SELECT * FROM openshift');
   const rows = await query(sqlClient, prep(args));
 
   return rows.map(attrFilter.openshift(cred));
 };
 
-const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
+const getOpenshiftByProjectId = ({ sqlClient }) => async (cred, pid) => {
   const { customers, projects } = cred.permissions;
 
   const prep = prepare(
@@ -86,9 +84,9 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
       JOIN openshift o ON o.id = p.openshift
       WHERE p.id = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
-      )}
+    cred.role,
+    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+  )}
     `,
   );
 
@@ -97,7 +95,7 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
   return rows ? attrFilter.openshift(cred, rows[0]) : null;
 };
 
-const updateOpenshift = sqlClient => async (cred, input) => {
+const updateOpenshift = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }

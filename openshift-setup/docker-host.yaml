@@ -46,6 +46,10 @@ objects:
               value: localhost
             - name: REPOSITORY_TO_UPDATE
               value: ${REPOSITORY_TO_UPDATE}
+            - name: CRONJOBS
+              value: |
+                22 1 * * * /lagoon/cronjob.sh "/prune-images.sh"
+                */15 * * * * /lagoon/cronjob.sh "/update-push-images.sh"
           ports:
           - containerPort: 2375
             protocol: TCP
