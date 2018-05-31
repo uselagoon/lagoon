@@ -16,7 +16,8 @@ CREATE OR REPLACE PROCEDURE
     IN branches               varchar(300),
     IN pullrequests           varchar(300),
     IN production_environment varchar(100),
-    IN auto_idle              int(1)
+    IN auto_idle              int(1),
+    IN storage_calc           int(1)
   )
   BEGIN
     DECLARE new_pid int;
@@ -45,6 +46,7 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         auto_idle,
+        storage_calc,
         pullrequests,
         openshift
     )
@@ -59,6 +61,7 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         auto_idle,
+        storage_calc,
         pullrequests,
         os.id
     FROM
