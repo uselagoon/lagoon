@@ -122,7 +122,7 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: secure_forward
+    - name: secure-forward
       port: 24224
       protocol: TCP
       targetPort: 24224
