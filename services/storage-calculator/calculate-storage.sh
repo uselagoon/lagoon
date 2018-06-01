@@ -7,7 +7,7 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query environments {
   environments:allProjects {
     name
-    auto_idle
+    storage_calc
     openshift {
       console_url
       token
@@ -29,6 +29,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
 do
   PROJECT_NAME=$(echo "$project" | jq -r '.name')
   OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
+  STORAGE_CALC=$(echo "$project" | jq -r '.storage_calc')
   echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
   OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
   # loop through each environment of the current project
@@ -40,6 +41,23 @@ do
 
     echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
+    if [[ $STORAGE_CALC != "1" ]]; then
+      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
+
+      MUTATION="mutation addOrUpdateEnvironmentStorage {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"storage-calc-disabled\", bytes_used:0}) {
+          id
+        }
+      }"
+
+      continue
+
+    fi
+
+    # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+    query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+    curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+
     OC="oc --insecure-skip-tls-verify --token=$OPENSHIFT_TOKEN --server=$OPENSHIFT_URL -n $ENVIRONMENT_OPENSHIFT_PROJECTNAME"
 
     PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
@@ -48,7 +66,7 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no PVCs found writing API with 0 bytes"
 
       MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"na\", bytes_used:0}) {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"none\", bytes_used:0}) {
           id
         }
       }"

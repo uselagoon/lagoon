@@ -90,6 +90,7 @@ const typeDefs = `
     branches: String
     production_environment: String
     auto_idle: Int
+    storage_calc: Int
     pullrequests: String
     openshift: Openshift
     sshKeys: [SshKey]
@@ -176,6 +177,7 @@ const typeDefs = `
     pullrequests: String
     production_environment: String
     auto_idle: Int
+    storage_calc: Int
   }
 
   input EnvironmentInput {
@@ -283,6 +285,7 @@ const typeDefs = `
     branches: String
     production_environment: String
     auto_idle: Int
+    storage_calc: Int
     pullrequests: String
     openshift: Int
   }
