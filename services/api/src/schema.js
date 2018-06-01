@@ -123,13 +123,13 @@ const typeDefs = `
     id: Int
     environment: Environment
     persistent_storage_claim: String
-    bytes_used: Int
+    bytes_used: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    bytes_used: Int
+    bytes_used: Float
   }
 
   type EnvironmentHoursMonth {
