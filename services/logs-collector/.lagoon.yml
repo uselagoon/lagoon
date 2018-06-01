@@ -75,6 +75,30 @@ objects:
             requests:
               cpu: 10m
               memory: 10Mi
+        volumes:
+        - name: volume-4750i
+          secret:
+            defaultMode: 420
+            items:
+            - key: FORWARD_KEY
+              path: ca_key.pem
+            - key: FORWARD_CERTIFICATE
+              path: ca_cert.pem
+            secretName: collector
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: FLUENT_CONF
+              path: fliuentd.conf
+            name: lagoon-env
+          name: volume-g7qqi
+      terminationGracePeriodSeconds: 30
+    volumeMounts:
+    - mountPath: /fluentd/ssl/
+      name: volume-4750i
+      readOnly: true
+    - mountPath: /fluentd/etc/
+      name: volume-g7qqi
     test: false
     triggers:
     - type: ConfigChange
