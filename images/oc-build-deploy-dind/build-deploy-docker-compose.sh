@@ -177,11 +177,15 @@ fi
 
 YAML_CONFIG_FILE="services-routes"
 
+ROUTES_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure Allow)
+
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
   echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
   echo "=== OPENSHIFT_SERVICES_TEMPLATE=${OPENSHIFT_SERVICES_TEMPLATE} "
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
+
+  TEMPLATE_PARAMETERS=()
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
@@ -206,9 +210,13 @@ do
     fi
 
     OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
+
+    TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_INSECURE}")
     .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 done
+
+TEMPLATE_PARAMETERS=()
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml

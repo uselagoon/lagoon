@@ -1,3 +1,22 @@
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain now redirects to https"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_redirect_location: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+  tasks:
+  - include: ../../checks/check-url-redirect.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain allows insecure traffic"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "Hello World!"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
 - name: "{{ testname }} - SECOND TEST: check if custom domain 'insecure-allow.com' now does not allow insecure anymore"
   hosts: localhost
   serial: 1
