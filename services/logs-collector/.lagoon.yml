@@ -89,7 +89,7 @@ objects:
             defaultMode: 420
             items:
             - key: FLUENT_CONF
-              path: fliuentd.conf
+              path: fluent.conf
             name: lagoon-env
           name: volume-g7qqi
       terminationGracePeriodSeconds: 30
