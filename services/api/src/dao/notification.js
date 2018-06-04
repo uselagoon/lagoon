@@ -227,11 +227,11 @@ const addNotificationToProject = ({ sqlClient }) => async (cred, input) => {
   }
   const rows = await query(sqlClient, Sql.selectProjectNotification(input));
   const projectNotification = R.path([0], rows);
-  if (!projectNotification) {
+  if (projectNotification) {
     throw new Error(
-      `Could not find notification '${input.notificationName}' of type '${
+      `Notification '${input.notificationName}' of type '${
         input.notificationType
-      }'`,
+      }' already added to project '${input.project}'`,
     );
   }
   projectNotification.notificationType = input.notificationType;
