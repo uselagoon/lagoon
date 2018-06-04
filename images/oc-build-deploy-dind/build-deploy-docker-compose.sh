@@ -26,6 +26,7 @@ COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 # Figure out which services should we handle
 SERVICE_TYPES=()
 IMAGES=()
+NATIVE_CRONJOB_CLEANUP_ARRAY=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
@@ -176,11 +177,15 @@ fi
 
 YAML_CONFIG_FILE="services-routes"
 
+ROUTES_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure Allow)
+
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
   echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
   echo "=== OPENSHIFT_SERVICES_TEMPLATE=${OPENSHIFT_SERVICES_TEMPLATE} "
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
+
+  TEMPLATE_PARAMETERS=()
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
@@ -205,9 +210,13 @@ do
     fi
 
     OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
+
+    TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_INSECURE}")
     .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 done
+
+TEMPLATE_PARAMETERS=()
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
@@ -400,6 +409,58 @@ do
     .  /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
+  CRONJOB_COUNTER=0
+  CRONJOBS_ARRAY=()
+  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
+  do
+
+    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
+
+    # Only implement the cronjob for the services we are currently handling
+    if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
+
+      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
+
+      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
+
+      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+
+    fi
+
+    let CRONJOB_COUNTER=CRONJOB_COUNTER+1
+  done
+
+  # Generate cronjobs if service type defines them
+  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
+  if [ -f $SERVICE_CRONJOB_FILE ]; then
+    CRONJOB_COUNTER=0
+    while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
+    do
+
+      CRONJOB_NAME=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
+
+      CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
+
+      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      let CRONJOB_COUNTER=CRONJOB_COUNTER+1
+    done
+  fi
+
+  if [[ ${#CRONJOBS_ARRAY[@]} -ge 1 ]]; then
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY[@]}")
+    TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
+  fi
+
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
     OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
@@ -421,54 +482,6 @@ do
     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
     . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
   fi
-
-  # Generate cronjobs if service type defines them
-  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
-  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
-  fi
-
-  ### CUSTOM CRONJOBS
-
-  # Save the current deployment template parameters so we can reuse them for cronjobs
-  DEPLOYMENT_TEMPLATE_PARAMETERS=("${TEMPLATE_PARAMETERS[@]}")
-
-  CRONJOB_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
-  do
-
-    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
-
-    # Only implement the cronjob for the services we are currently handling
-    if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
-
-      # loading original $TEMPLATE_PARAMETERS as multiple cronjobs use the same values
-      TEMPLATE_PARAMETERS=("${DEPLOYMENT_TEMPLATE_PARAMETERS[@]}")
-
-      # Creating a save name (special characters removed )
-      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
-      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
-
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME}")
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
-
-      # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
-      TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
-
-      OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
-      if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-        echo "No cronjob Template for service type ${SERVICE_TYPE} found"; exit 1;
-      fi
-
-      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
-    fi
-
-    let CRONJOB_COUNTER=CRONJOB_COUNTER+1
-  done
-
 done
 
 ##############################################
@@ -510,6 +523,16 @@ do
   fi
 done
 
+##############################################
+### CLEANUP NATIVE CRONJOBS NOW RUNNING WITHIN CONTAINERS DIRECTLY
+##############################################
+
+for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
+do
+  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get cronjob ${CRONJOB}; then
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
+  fi
+done
 
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
@@ -535,3 +558,4 @@ do
 
   let COUNTER=COUNTER+1
 done
+

@@ -54,7 +54,7 @@ const Helpers = {
   },
 };
 
-const getAllProjects = sqlClient => async (cred, args) => {
+const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
 
   // We need one "WHERE" keyword, but we have multiple optional conditions
@@ -73,7 +73,7 @@ const getAllProjects = sqlClient => async (cred, args) => {
   return rows;
 };
 
-const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
+const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -92,7 +92,7 @@ const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
   return rows ? rows[0] : null;
 };
 
-const getProjectByGitUrl = sqlClient => async (cred, args) => {
+const getProjectByGitUrl = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -115,7 +115,7 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
   return rows ? rows[0] : null;
 };
 
-const getProjectByName = sqlClient => async (cred, args) => {
+const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -138,7 +138,7 @@ const getProjectByName = sqlClient => async (cred, args) => {
   return rows[0];
 };
 
-const addProject = sqlClient => async (cred, input) => {
+const addProject = ({ sqlClient }) => async (cred, input) => {
   const { customers } = cred.permissions;
   const cid = input.customer.toString();
 
@@ -172,7 +172,8 @@ const addProject = sqlClient => async (cred, input) => {
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.production_environment ? ':production_environment' : 'NULL'},
-        ${input.auto_idle ? ':auto_idle' : '1'}
+        ${input.auto_idle ? ':auto_idle' : '1'},
+        ${input.storage_calc ? ':storage_calc' : '1'}
       );
     `,
   );
@@ -183,7 +184,7 @@ const addProject = sqlClient => async (cred, input) => {
   return project;
 };
 
-const deleteProject = sqlClient => async (cred, input) => {
+const deleteProject = ({ sqlClient }) => async (cred, input) => {
   const { projects } = cred.permissions;
   const pid = input.id.toString();
 
@@ -197,7 +198,7 @@ const deleteProject = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-const updateProject = sqlClient => async (cred, input) => {
+const updateProject = ({ sqlClient }) => async (cred, input) => {
   const { projects } = cred.permissions;
   const pid = input.id.toString();
 

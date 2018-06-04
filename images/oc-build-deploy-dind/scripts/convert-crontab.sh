@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # no globbing
 set -f
@@ -16,13 +16,10 @@ do
       # If just an H is defined, we generate a random minute
       MINUTES=$((0 + RANDOM % 59))
 
-    elif [[ $piece =~ ^H|\*\/([0-5]?[0-9])$ ]]; then
+    elif [[ $piece =~ ^(H|\*)\/([0-5]?[0-9])$ ]]; then
       # A Minute like H/15 or (*/15 for backwards compatibility) is defined, create a list of minutes with a random start
       # like 4,19,34,49 or 6,21,36,51
-      STEP=${BASH_REMATCH[1]}
-      if [ $STEP -lt 15 ]; then
-        echo "cronjobs with less than 15 minute steps are not supported"; exit 1
-      fi
+      STEP=${BASH_REMATCH[2]}
       # Generate a random start within the given step to prevent that all cronjobs start at the same time
       # but still incorporate the wished step
       COUNTER=$((0 + RANDOM % $STEP))
@@ -37,7 +34,7 @@ do
       MINUTES=$piece
 
     elif [[ $piece =~ ^\*$ ]]; then
-      echo "cronjobs with less than 15 minute steps are not supported"; exit 1
+      MINUTES=$piece
 
     else
       echo "error parsing cronjob minute: '$piece'"; exit 1

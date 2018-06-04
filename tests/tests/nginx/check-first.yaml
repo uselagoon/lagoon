@@ -7,6 +7,16 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
+- name: "{{ testname }} - check if auto generated domain allows secure traffic"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_content: "Hello World!"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
 - name: "{{ testname }} - check if custom domain 'insecure-allow.com' is created and allows insecure traffic"
   hosts: localhost
   serial: 1

@@ -37,6 +37,9 @@ parameters:
   - name: SERVICE_IMAGE
     description: Pullable image of service
     required: true
+  - name: CRONJOBS
+    description: Oneliner of Cronjobs
+    value: ""
 objects:
 - apiVersion: v1
   kind: DeploymentConfig

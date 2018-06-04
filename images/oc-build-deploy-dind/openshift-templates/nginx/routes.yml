@@ -31,10 +31,15 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: ROUTES_INSECURE
+    description: Setting of insecure Routes
+    value: Allow
 objects:
 - apiVersion: v1
   kind: Route
   metadata:
+    annotations:
+      haproxy.router.openshift.io/disable_cookies: 'true'
     creationTimestamp: null
     labels:
       service: ${SERVICE_NAME}
@@ -49,5 +54,5 @@ objects:
       kind: Service
       name: ${SERVICE_NAME}
     tls:
-      insecureEdgeTerminationPolicy: Allow
+      insecureEdgeTerminationPolicy: ${ROUTES_INSECURE}
       termination: edge
