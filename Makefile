@@ -118,6 +118,7 @@ images :=     centos7 \
 							redis \
 							mongo \
 							elasticsearch \
+							elasticsearch-platinum \
 							kibana \
 							logstash \
 							docker-host
@@ -157,6 +158,7 @@ build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
+build/elasticsearch-platinum: build/commons images/elasticsearch-platinum/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
@@ -330,7 +332,7 @@ $(build-services):
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
-build/logs-db: build/elasticsearch
+build/logs-db: build/elasticsearch-platinum
 build/logs-db-ui: build/kibana
 build/auto-idler: build/oc
 build/storage-calculator: build/oc

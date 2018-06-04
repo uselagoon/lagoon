@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.2
+FROM docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.2
 
 MAINTAINER amazee.io
 ENV LAGOON=elasticsearch
@@ -9,12 +9,6 @@ ENV LAGOON=elasticsearch
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home /home
-
-RUN curl -sL https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
-
-COPY peer-finder /bin/
-COPY configure-es.sh /lagoon/
-COPY docker-entrypoint.sh /lagoon/entrypoints/90-elasticsearch.sh
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -26,6 +20,6 @@ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
+RUN echo "xpack.security.enabled: false" >> config/elasticsearch.yml
 
-ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]
+ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
