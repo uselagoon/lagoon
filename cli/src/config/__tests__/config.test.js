@@ -7,7 +7,7 @@ const fs = require('../../util/fs');
 // $FlowFixMe Jest can mutate exports https://github.com/facebook/jest/issues/936#issuecomment-214556122
 fs.writeFile = jest.fn();
 
-function _mock(fn: any): JestMockFn {
+function _mock(fn: any): JestMockFn<any, any> {
   return fn;
 }
 

@@ -14,7 +14,7 @@ import {
 
 jest.mock('../../../query');
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const options = R.mapObjIndexed(
   (value, key) =>

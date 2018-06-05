@@ -14,7 +14,7 @@ jest.mock('../util/fs', () => ({
 
 // Flow does not know which objects are actual mocks
 // this function casts given parameter to JestMockFn
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('runGQLQuery', () => {
   it('Should reject because of missing hostname', async () => {

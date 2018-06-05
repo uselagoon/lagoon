@@ -7,7 +7,7 @@ jest.mock('fs');
 jest.mock('../../config');
 jest.mock('../../util/fs');
 
-function _mock(fn: any): JestMockFn {
+function _mock(fn: any): JestMockFn<any, any> {
   return fn;
 }
 

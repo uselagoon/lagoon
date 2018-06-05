@@ -5,7 +5,7 @@ import { projectDetails } from '../project';
 
 jest.mock('../../query');
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const mockErrorResponse = {
   errors: [{ message: 'something something error' }],
