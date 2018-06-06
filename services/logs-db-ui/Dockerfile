@@ -10,8 +10,8 @@ ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN echo $'xpack.security.enabled: false\n\
 \n\
 # Configure the Kibana internal server user\n\
-elasticsearch.username: "kibanaserver"\n\
-elasticsearch.password: "kibanaserver"\n\
+elasticsearch.username: "admin"\n\
+elasticsearch.password: "admin"\n\
 \n\
 # Disable SSL verification because we use self-signed demo certificates\n\
 elasticsearch.ssl.verificationMode: none\n\
@@ -21,4 +21,4 @@ elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]' >> confi
 
 RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.1.1-12/search-guard-kibana-plugin-6.1.1-12.zip
 
-ENV ELASTICSEARCH_URL=https://logs-db:9200
+ENV ELASTICSEARCH_URL=http://logs-db:9200
