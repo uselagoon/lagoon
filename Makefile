@@ -619,7 +619,7 @@ minishift/login-docker-registry:
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140 \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
