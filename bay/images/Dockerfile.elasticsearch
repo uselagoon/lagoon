@@ -1,0 +1,7 @@
+FROM amazeeio/elasticsearch
+
+COPY readonlyrest/readonlyrest-1.16.19_es6.1.1.zip /tmp/readonlyrest-1.16.19_es6.1.1.zip
+
+RUN bin/elasticsearch-plugin install file:///tmp/readonlyrest-1.16.19_es6.1.1.zip --batch 
+
+COPY  readonlyrest/readonlyrest.yml config/readonlyrest.yml

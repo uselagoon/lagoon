@@ -1,0 +1,7 @@
+readonlyrest:
+    access_control_rules: 
+    - name: "Accept all requests from localhost and Drupal"
+      hosts: [0.0.0.0]
+    - name: "Everything else can only query the index."
+      indices: ["elasticsearch_index_draco_elastic"]
+      actions: ["indices:data/read/*"]
