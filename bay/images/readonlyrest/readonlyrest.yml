@@ -3,5 +3,5 @@ readonlyrest:
     - name: "Accept all requests from localhost and Drupal"
       hosts: ["cli","nginx","php","mariadb","redis","elasticsearch"]
     - name: "Everything else can only query the index."
-      indices: ["elasticsearch_index_draco_elastic"]
+      indices: ["*"]
       actions: ["indices:data/read/*"]
