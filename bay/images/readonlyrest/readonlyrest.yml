@@ -1,0 +1,7 @@
+readonlyrest:
+    access_control_rules: 
+    - name: "Accept all requests from localhost and Drupal"
+      hosts: ["cli","nginx","php","mariadb","redis","elasticsearch"]
+    - name: "Everything else can only query the index."
+      indices: ["*"]
+      actions: ["indices:data/read/*"]

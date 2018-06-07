@@ -1,0 +1,9 @@
+FROM amazeeio/elasticsearch
+
+COPY readonlyrest/readonlyrest-1.16.19_es6.1.1.zip /tmp/readonlyrest-1.16.19_es6.1.1.zip
+
+COPY  readonlyrest/readonlyrest.yml config/readonlyrest.yml
+
+RUN bin/elasticsearch-plugin install file:///tmp/readonlyrest-1.16.19_es6.1.1.zip --batch  \
+    && chown elasticsearch:root config/readonlyrest.yml \
+    && chown -R elasticsearch:root plugins/readonlyrest
