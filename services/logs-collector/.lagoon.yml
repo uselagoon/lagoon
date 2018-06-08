@@ -58,15 +58,15 @@ objects:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 24224
+          - containerPort: 24284
             protocol: TCP
           readinessProbe:
             tcpSocket:
-              port: 24224
+              port: 24284
             initialDelaySeconds: 20
           livenessProbe:
             tcpSocket:
-              port: 24224
+              port: 24284
             initialDelaySeconds: 120
           envFrom:
           - configMapRef:
