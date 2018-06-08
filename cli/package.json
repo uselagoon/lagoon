@@ -30,7 +30,10 @@
     "type": "git",
     "url": "git+https://github.com/amazeeio/lagoon.git"
   },
-  "author": "Patrick Stapfer <patrick@amazee.io>",
+  "contributors": [
+    "Patrick Stapfer <patrick@amazee.io>",
+    "Karl Horky <karl.horky@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/amazeeio/lagoon/issues"
