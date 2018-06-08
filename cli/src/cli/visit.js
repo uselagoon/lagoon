@@ -1,15 +1,8 @@
-#!/usr/bin/env node
-
 // @flow
 
-import fs from 'fs';
-import path from 'path';
-import yargs from 'yargs';
-import { printErrors } from './printErrors';
-
+import typeof Yargs from 'yargs';
 import type { Argv } from 'yargs';
-
-type Yargs = typeof yargs;
+import { printErrors } from '../printErrors';
 
 export type CommandModule = {
   command: string,
@@ -53,55 +46,4 @@ export function visit(cmd: CommandModule) {
         // Process returned with an exit code of typically 0 (success) or 1 (failure)
           .then(code => process.exit(code)),
     };
-}
-
-export async function runCLI() {
-  try {
-    // eslint-disable-next-line no-unused-expressions
-    yargs
-      // Use yargs.commandDir method to initialize a directory of commands
-      // Ref: https://github.com/yargs/yargs/blob/e87f4873012e3541325e7ec6dafb11a93b5717e0/docs/advanced.md#commanddirdirectory-opts
-      .commandDir('commands', { visit })
-      // Require entry of at least one command after `lagoon`, such as `lagoon login`.
-      // `lagoon` by itself has no assigned function at the moment.
-      .demandCommand()
-      // .strict(): Error out on non-demanded or non-described command line argument
-      // .argv: Get arguments as an object
-      .strict().argv;
-  } catch (err) {
-    const exitCode = printErrors(console.error, 'Uncaught error:', err);
-    process.exit(exitCode);
-  }
-}
-
-/**
- * Look to see if the CWD is within an npm project. If it is, and that project
- * has a lagoon CLI `npm install`ed, use that version instead of the global
- * version of the CLI.
- */
-if (require.main === module) {
-  let currDir = cwd;
-  let lastDir = null;
-  let main = runCLI;
-
-  while (currDir !== lastDir) {
-    const localCLIPath = path.join(
-      currDir,
-      'node_modules',
-      '.bin',
-      'lagoon-cli',
-    );
-    try {
-      if (fs.statSync(localCLIPath).isFile()) {
-        main = require.call(null, localCLIPath).runCLI;
-        break;
-      }
-    } catch (e) {
-      // File doesn't exist, move up a dir...
-    }
-    lastDir = currDir;
-    currDir = path.resolve(currDir, '..');
-  }
-
-  main();
 }

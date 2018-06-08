@@ -3,7 +3,7 @@
 import { table } from 'table';
 import R from 'ramda';
 
-import { visit } from '../cli';
+import { visit } from '../cli/visit';
 import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';

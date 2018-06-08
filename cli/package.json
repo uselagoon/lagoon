@@ -2,9 +2,9 @@
   "name": "@lagoon/lagu",
   "version": "1.0.1",
   "description": "Lagoon Command Line Interface",
-  "main": "./build/cli.js",
+  "main": "./build/cli/index.js",
   "bin": {
-    "lagu": "./build/cli.js"
+    "lagu": "./build/cli/index.js"
   },
   "files": [
     "build"
@@ -24,7 +24,7 @@
     "test:watch": "jest --watch",
     "build": "rimraf build && babel src -d build",
     "watch": "babel --watch=src -d build",
-    "execute": "bash -c 'node -r @babel/register src/cli.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
+    "execute": "bash -c 'node -r @babel/register src/cli/index.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
   "repository": {
     "type": "git",
@@ -59,6 +59,7 @@
     "findup-sync": "^2.0.0",
     "graphql": "^0.13.2",
     "hosted-git-info": "^2.6.0",
+    "import-local": "^1.0.0",
     "in-publish": "^2.0.0",
     "inquirer": "^5.2.0",
     "js-yaml": "^3.11.0",
