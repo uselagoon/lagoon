@@ -2,12 +2,12 @@
   "name": "@lagoon/lagu",
   "version": "1.0.1",
   "description": "Lagoon Command Line Interface",
-  "main": "./dist/cli.js",
+  "main": "./build/cli.js",
   "bin": {
-    "lagu": "./dist/cli.js"
+    "lagu": "./build/cli.js"
   },
   "files": [
-    "dist"
+    "build"
   ],
   "engines": {
     "node": ">=8"
@@ -22,8 +22,8 @@
     "lint": "../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "yarn run lint && jest",
     "test:watch": "jest --watch",
-    "build": "rimraf dist && babel src -d dist",
-    "watch": "babel --watch=src -d dist",
+    "build": "rimraf build && babel src -d build",
+    "watch": "babel --watch=src -d build",
     "execute": "bash -c 'node -r @babel/register src/cli.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
   "repository": {
