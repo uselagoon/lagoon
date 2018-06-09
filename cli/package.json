@@ -51,6 +51,7 @@
     "babel-core": "^7.0.0-0",
     "babel-jest": "^22.4.3",
     "dotenv-extended": "^2.0.1",
+    "execa": "^0.10.0",
     "jest": "^22.4.3",
     "node-fetch": "^1.7.2",
     "prettier": "^1.12.1",
