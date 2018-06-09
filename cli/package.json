@@ -2,11 +2,12 @@
   "name": "@lagoon/lagu",
   "version": "1.0.1",
   "description": "Lagoon Command Line Interface",
-  "main": "./build/cli/index.js",
+  "main": "./bin/lagu.js",
   "bin": {
-    "lagu": "./build/cli/index.js"
+    "lagu": "./bin/lagu.js"
   },
   "files": [
+    "bin",
     "build"
   ],
   "engines": {
