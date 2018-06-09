@@ -1,19 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`cli should list all environments for a project (project read from .lagoon.yml) 1`] = `
-"╔══════╤═══════════════════╤═════════════╤═════════╤═════════╗
-║ Name │ Environmment Type │ Deploy Type │ Created │ Updated ║
-╚══════╧═══════════════════╧═════════════╧═════════╧═════════╝
-"
-`;
-
-exports[`cli should list all environments for a project (using --project option) 1`] = `
-"╔══════╤═══════════════════╤═════════════╤═════════╤═════════╗
-║ Name │ Environmment Type │ Deploy Type │ Created │ Updated ║
-╚══════╧═══════════════════╧═════════════╧═════════╧═════════╝
-"
-`;
-
 exports[`cli should list all projects 1`] = `
 "╔════════════════════╤═════════════════════════════════════════════════════╤══════════╤═══════════════╤═════════════════════╗
 ║ Project            │ Git URL                                             │ Branches │ Pull Requests │ Created             ║
