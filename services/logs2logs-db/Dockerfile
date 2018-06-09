@@ -5,6 +5,7 @@ FROM ${IMAGE_REPO:-lagoon}/logstash
 RUN rm -f pipeline/logstash.conf
 
 COPY pipeline/ pipeline/
+COPY templates/ templates/
 COPY pipelines.yml config/pipelines.yml
 
 # https://github.com/elastic/logstash-docker/issues/64
