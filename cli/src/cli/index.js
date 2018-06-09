@@ -22,5 +22,3 @@ export function run() {
     process.exit(exitCode);
   }
 }
-
-run();
