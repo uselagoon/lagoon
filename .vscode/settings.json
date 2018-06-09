@@ -1,5 +1,10 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-  "javascript.validate.enable": false,
-  "git.ignoreLimitWarning": true
+  "eslint.workingDirectories": [
+    "./cli",
+    "./node-packages/commons",
+    "./services/auth-server"
+  ],
+  "git.ignoreLimitWarning": true,
+  "javascript.validate.enable": false
 }
