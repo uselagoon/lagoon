@@ -1,4 +1,6 @@
-# lagoon Command Line Interface
+# lagu
+
+> lagoon Command Line Interface
 
 ## Installation
 
@@ -14,14 +16,14 @@ yarn global add @lagoon/lagu
 
 ## Setup
 
-The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagoon-init):
+The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagu-init):
 
 ```sh
 # Initialize project configuration
 $ lagu init
 ```
 
-For more options, see the [`lagoon init` documentation](#lagoon-init).
+For more options, see the [`lagu init` documentation](#lagu-init).
 
 ## Commands
 
@@ -64,7 +66,7 @@ Examples:
                                             confirm with or prompt the user).
 ```
 
-#### `lagoon init` Examples
+#### `lagu init` Examples
 
 ```text
 $ lagu init
