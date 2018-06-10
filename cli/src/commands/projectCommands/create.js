@@ -365,12 +365,12 @@ createProjectArgs): Promise<number> {
     return printErrors(cerr, 'No authorized openshifts found!');
   }
 
-  // If all options have been specified in the config or the command line options...
-  const projectInput = allOptionsSpecified(options)
-    ? // ...notify the user about using each of the options and then use that options object (`forEachObjIndexed` returns the object passed in as second parameter)...
-    R.forEachObjIndexed((value, key) => notifyUsedOption(clog, key), options)
-    : // ...otherwise, prompt for input for the missing options
-    await promptForProjectInput(allCustomers, allOpenshifts, clog, options);
+  const projectInput = await promptForProjectInput(
+    allCustomers,
+    allOpenshifts,
+    clog,
+    options,
+  );
 
   const addProjectResult = await runGQLQuery({
     query: gql`
@@ -395,8 +395,6 @@ createProjectArgs): Promise<number> {
     `,
     cerr,
     variables: {
-      // Just use the options and don't even go into the prompt if all options are already specified via . Otherwise inquirer will not set the correct answers.
-      // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
       input: projectInput,
     },
   });
