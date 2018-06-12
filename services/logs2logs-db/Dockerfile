@@ -7,6 +7,7 @@ RUN bin/logstash-plugin install logstash-input-http
 RUN rm -f pipeline/logstash.conf
 
 COPY pipeline/ pipeline/
+COPY templates/ templates/
 COPY pipelines.yml config/pipelines.yml
 
 # https://github.com/elastic/logstash-docker/issues/64

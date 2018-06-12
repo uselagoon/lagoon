@@ -258,7 +258,9 @@ while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes
   let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
 done
 
-oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+  oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+fi
 
 ##############################################
 ### PROJECT WIDE ENV VARIABLES
@@ -488,7 +490,9 @@ done
 ### APPLY RESOURCES
 ##############################################
 
-oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+  oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+fi
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
