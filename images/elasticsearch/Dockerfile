@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/elasticsearch/elasticsearch-platinum:6.1.1
+FROM docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.4
 
 MAINTAINER amazee.io
 ENV LAGOON=elasticsearch
@@ -30,4 +30,8 @@ RUN echo "xpack.security.enabled: false" >> config/elasticsearch.yml
 
 ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
 
-ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint.sh"]
+VOLUME [ "/usr/share/elasticsearch/data" ]
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
+
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
