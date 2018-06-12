@@ -8,12 +8,12 @@ Add these commands as parts of your customized Dockerfile within `RUN` commands.
 
 #### Remove current version (needed for installing any other Version)
 
-    RUN apk del --no-cache nodejs-current yarn --repository http://dl-3.alpinelinux.org/alpine/edge/main/ --repository http://dl-3.alpinelinux.org/alpine/edge/community/
+    RUN apk del --no-cache nodejs-current yarn --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
 #### Install Nodejs Version 6
 
-    RUN apk add --no-cache nodejs yarn --repository http://dl-3.alpinelinux.org/alpine/edge/community/
+    RUN apk add --no-cache nodejs yarn --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
 #### Install Nodejs Version 8
 
-    RUN apk add --no-cache nodejs yarn --repository http://dl-3.alpinelinux.org/alpine/edge/community/ --repository http://dl-3.alpinelinux.org/alpine/edge/main/
+    RUN apk add --no-cache nodejs yarn --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
