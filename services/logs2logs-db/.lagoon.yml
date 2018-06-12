@@ -82,6 +82,11 @@ objects:
                 secretKeyRef:
                   key: RABBITMQ_PASSWORD
                   name: rabbitmq-password
+            - name: LOGSTASH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: logstash-username
+                  key: LOGSTASH_USERNAME
             - name: LOGSTASH_PASSWORD
               valueFrom:
                 secretKeyRef:
