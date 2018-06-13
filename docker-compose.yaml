@@ -260,6 +260,13 @@ services:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.yml
       lagoon.image: amazeeiolagoon/logs-db:${SAFE_BRANCH:-master}
+  logs-collector:
+    image: ${IMAGE_REPO:-lagoon}/logs-collector
+    user: '111111111'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs-collector/.lagoon.yml
+      lagoon.image: amazeeiolagoon/logs-collector:${SAFE_BRANCH:-master}
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui
     user: '111111111'
