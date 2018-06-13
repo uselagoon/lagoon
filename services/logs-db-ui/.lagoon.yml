@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-logstash
+  name: lagoon-openshift-template-kibana
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -46,6 +46,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
@@ -67,39 +68,34 @@ objects:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 9600
+          - containerPort: 5601
             protocol: TCP
           readinessProbe:
             httpGet:
-              port: 9600
+              port: 5601
             initialDelaySeconds: 20
           livenessProbe:
             httpGet:
-              port: 9600
+              port: 5601
             initialDelaySeconds: 120
           envFrom:
           - configMapRef:
               name: lagoon-env
           env:
-            - name: CRONJOBS
-              value: ${CRONJOBS}
-            - name: SERVICE_NAME
-              value: ${SERVICE_NAME}
-            - name: RABBITMQ_USER
-              valueFrom:
-                secretKeyRef:
-                  key: RABBITMQ_USERNAME
-                  name: rabbitmq-username
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: RABBITMQ_PASSWORD
-                  name: rabbitmq-password
-            - name: LOGSDB_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: LOGSDB_ADMIN_PASSWORD
-                  name: logs-db-admin-password
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
+          - name: CRONJOBS
+            value: ${CRONJOBS}
+          - name: LOGSDB_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: LOGSDB_ADMIN_PASSWORD
+                name: logs-db-admin-password
+          - name: LOGSDB_KIBANASERVER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: LOGSDB_KIBANASERVER_PASSWORD
+                name: logs-db-kibanaserver-password
           resources:
             requests:
               cpu: 10m
@@ -107,39 +103,4 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
   status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: logstash-mgmt
-      port: 9600
-      protocol: TCP
-      targetPort: 9600
-    - name: udp-input-module
-      port: 5140
-      protocol: UDP
-      targetPort: 5140
-    - name: tcp-input-module
-      port: 28777
-      protocol: TCP
-      targetPort: 28777
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}

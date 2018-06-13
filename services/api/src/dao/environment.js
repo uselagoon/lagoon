@@ -178,19 +178,10 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (cred, op
   const month_leading_zero = interested_month.getMonth()+1 < 10 ? `0${interested_month.getMonth()+1}`: interested_month.getMonth()+1;
 
   const result = await esClient.count({
-    index: `router-logs-${interested_month.getFullYear()}.${month_leading_zero}.*`,
+    index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
     body: {
       "query": {
         "bool": {
-          "must": [
-            {
-              "match_phrase": {
-                "openshift_project": {
-                  "query": openshift_projectname
-                }
-              }
-            }
-          ],
           "must_not": [
             {
               "match_phrase": {
