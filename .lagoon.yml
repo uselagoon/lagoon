@@ -5,6 +5,13 @@ additional-yaml:
     path: .lagoon.secrets.yaml
     command: create
     ignore_error: true
+
+  logs-db-secrets:
+    path: .lagoon.logs-db-secrets.yaml
+    command: create
+    ignore_error: true
+
+
 tasks:
   post-rollout:
     - run:

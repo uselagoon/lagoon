@@ -17,8 +17,8 @@ RUN apk update \
         patch \
         procps \
         coreutils \
-    && apk add --no-cache postgresql-dev postgresql-client --repository http://nl.alpinelinux.org/alpine/edge/main \
-    && apk add nodejs-current yarn --update-cache  --repository http://dl-3.alpinelinux.org/alpine/edge/main/ --repository http://dl-3.alpinelinux.org/alpine/edge/community/ \
+    && apk add --no-cache postgresql-dev postgresql-client --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+    && apk add nodejs-current nodejs-npm yarn --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
     && rm -rf /var/cache/apk/* \
     && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.6.5/composer.phar \
     && echo "67bebe9df9866a795078bb2cf21798d8b0214f2e0b2fd81f2e907a8ef0be3434 /usr/local/bin/composer" | sha256sum \

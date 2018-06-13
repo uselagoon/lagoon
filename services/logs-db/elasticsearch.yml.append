@@ -1,16 +1,11 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-cat <<EOT >> /usr/share/elasticsearch/config/elasticsearch.yml
 xpack.notification:
   slack:
     account:
       monitoring:
-        url: "${LOGSDB_SLACK_WEBHOOK_URL:https://hooks.slack.com/services/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}"
+        url: "${LOGSDB_SLACK_WEBHOOK_URL}"
         message_defaults:
-          from: "${LOGSDB_SLACK_USERNAME:x-pack}"
-          to: "${LOGSDB_SLACK_CHANNEL:#lagoon-dev-alerts}"
+          from: "${LOGSDB_SLACK_USERNAME}"
+          to: "${LOGSDB_SLACK_CHANNEL}"
           attachment:
             fallback: "X-Pack Notification"
             color: "#a63636"
@@ -21,9 +16,8 @@ xpack.notification:
   pagerduty:
     account:
       my_pagerduty_account:
-        service_api_key: "${LOGSDB_PAGERDUTY_KEY:XXXXU4yGzC2QassuXXXX}"
+        service_api_key: "${LOGSDB_PAGERDUTY_KEY}"
         event_defaults:
           description: "Elasticsearch Watch notification"
           incident_key: "lagoon_logs_key"
           event_type: trigger
-EOT
