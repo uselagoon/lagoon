@@ -22,7 +22,8 @@ COPY . .
 RUN yarn install --frozen-lockfile
 
 # Making sure we run in production
-ENV NODE_ENV production
+ENV NODE_ENV=production \
+    LOGSDB_ADMIN_PASSWORD=admin
 
 RUN yarn run build
 
