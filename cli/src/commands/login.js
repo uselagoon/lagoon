@@ -3,7 +3,8 @@
 import os from 'os';
 import path from 'path';
 import { green } from 'chalk';
-import { sshConnect, sshExec } from '../util/ssh';
+import { sshConnect } from '../ssh/sshConnect';
+import { sshExec } from '../ssh/sshExec';
 import { fileExists, writeFile } from '../util/fs';
 import { printErrors } from '../printErrors';
 
