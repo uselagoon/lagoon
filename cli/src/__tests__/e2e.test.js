@@ -4,7 +4,7 @@ import { sync as spawnSync } from 'execa';
 
 const CLI_PATH = `${__dirname}/../../bin/lagu.js`;
 
-describe('cli', () => {
+describe('lagu', () => {
   it('should fail with error message without any arguments', async () => {
     const results = spawnSync(CLI_PATH, [], { reject: false });
     expect(results.code).toBe(1);
