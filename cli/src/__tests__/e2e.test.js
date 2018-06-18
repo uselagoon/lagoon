@@ -16,7 +16,7 @@ describe('lagu', () => {
     expect(results.message).toMatch('Not enough non-option arguments');
   });
 
-  // TODO: Deal with this in a way that doesn't modify global state
+  // TODO: Deal with this in a way that doesn't modify global login state
   it('should log out', async () => {
     const results = spawnSync(CLI_PATH, ['logout'], {
       cwd,
@@ -25,14 +25,13 @@ describe('lagu', () => {
     expect(results.stdout).toMatchSnapshot();
   });
 
-  // TODO: Deal with this in a way that doesn't modify global state
+  // TODO: Deal with this in a way that doesn't modify global login state
   it('should log in', async () => {
     const results = spawnSync(
       CLI_PATH,
       [
         'login',
         '--identity',
-        // TODO: Change path to point at private key fixture file
         path.join('..', '..', '..', '..', 'local-dev', 'cli_id_rsa'),
       ],
       {

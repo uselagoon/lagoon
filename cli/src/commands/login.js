@@ -3,6 +3,7 @@
 import os from 'os';
 import path from 'path';
 import { green } from 'chalk';
+import { getSshConfig } from '../config';
 import { sshConnect } from '../ssh/sshConnect';
 import { sshExec } from '../ssh/sshExec';
 import { fileExists, writeFile } from '../util/fs';
@@ -36,7 +37,9 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
   }
 
   let connection;
+  const { username, host, port } = getSshConfig();
 
+  console.log(`Logging in to lagoon at ${username}@${host}:${port}...`);
   try {
     connection = await sshConnect({
       identity: argv.identity,

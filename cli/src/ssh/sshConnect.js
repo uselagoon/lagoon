@@ -1,10 +1,8 @@
 // @flow
 
-import R from 'ramda';
-
 import { Client } from 'ssh2';
 import { utils } from 'ssh2-streams';
-import { config } from '../config';
+import { getSshConfig } from '../config';
 import { readFile } from '../util/fs';
 
 import { getPrivateKeyPassphrase } from './getPrivateKeyPassphrase';
@@ -36,24 +34,7 @@ SshConnectArgs): Promise<Connection> {
     utils.parseKey(privateKey).encryption,
   );
 
-  const username = 'lagoon';
-
-  let host;
-  let port;
-
-  if (process.env.SSH_HOST && process.env.SSH_PORT) {
-    host = process.env.SSH_HOST;
-    port = Number(process.env.SSH_PORT);
-  } else if (R.prop('ssh', config)) {
-    const sshConfig = R.prop('ssh', config);
-    const ssh = R.split(':', sshConfig);
-    host = R.head(ssh);
-    // .connect() accepts only a number
-    port = Number(R.nth(1, ssh));
-  } else {
-    host = 'ssh.lagoon.amazeeio.cloud';
-    port = 32222;
-  }
+  const { username, host, port } = getSshConfig();
 
   const connectConfig: ConnectConfig = {
     host,
