@@ -1,8 +1,9 @@
 // @flow
 
+import path from 'path';
 import { sync as spawnSync } from 'execa';
 
-const CLI_PATH = `${__dirname}/../../bin/lagu.js`;
+const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'lagu.js');
 
 describe('lagu', () => {
   it('should fail with error message without any arguments', async () => {

@@ -1,5 +1,6 @@
 // @flow
 
+import path from 'path';
 import { createConfig, parseConfig } from '..';
 
 const fs = require('../../util/fs');
@@ -24,7 +25,7 @@ describe('createConfig', () => {
 
 describe('parseConfig', () => {
   it('should parse the config correctly', async () => {
-    const yamlContent = await fs.readFile(`${__dirname}/lagoon.yml`);
+    const yamlContent = await fs.readFile(path.join(__dirname, 'lagoon.yml'));
 
     const config = parseConfig(yamlContent.toString());
 
