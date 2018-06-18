@@ -74,7 +74,6 @@
     "table": "^4.0.3",
     "untildify": "^3.0.2",
     "url-regex": "^4.1.1",
-    "util.promisify": "^1.0.0",
     "yargs": "^11.0.0"
   }
 }
