@@ -17,11 +17,10 @@ const elasticsearch = require('elasticsearch');
       db: 'infrastructure',
     });
 
-    var esClient = new elasticsearch.Client({
+    const esClient = new elasticsearch.Client({
       host: 'logs-db:9200',
-      log: 'warning'
+      log: 'warning',
     });
-
 
     sqlClient.on('error', (error) => {
       logger.error(error);
