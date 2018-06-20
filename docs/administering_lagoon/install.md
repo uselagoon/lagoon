@@ -35,9 +35,9 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. We need to tech this local Lagoon how to connect to the OpenShift:
 
-1. Edit `lagoon` inside local-dev/api-data/api-data.sql, in the `INSERT INTO openshift` section:
-   1. `[replace me with OpenShift console URL]` - The URL to the OpenShift Console, without `console` at the end.
-   2. `[replace me with OpenShift Token]` - The token of the lagoon service account that was shown to you during `make openshift-lagoon-setup`
+1. Edit `lagoon` inside local-dev/api-data/api-data.sql, in the `Lagoon Kickstart Objects` section:
+   1. `[REPLACE ME WITH OPENSHIFT URL]` - The URL to the OpenShift Console, without `console` at the end.
+   2. `[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUTN TOKEN]` - The token of the lagoon service account that was shown to you during `make openshift-lagoon-setup`
 
 2. Build required Images and start services:
 
