@@ -1,6 +1,11 @@
 const R = require('ramda');
 const {
-  ifNotAdmin, inClauseOr, isPatchEmpty, knex, prepare, query,
+  ifNotAdmin,
+  inClauseOr,
+  isPatchEmpty,
+  knex,
+  prepare,
+  query,
 } = require('./utils');
 
 const Sql = {
@@ -18,7 +23,11 @@ const Sql = {
       .toString(),
 };
 
-const getEnvironmentsByProjectId = ({ sqlClient }) => async (cred, pid, args) => {
+const getEnvironmentsByProjectId = ({ sqlClient }) => async (
+  cred,
+  pid,
+  args,
+) => {
   const { projects } = cred.permissions;
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
@@ -42,7 +51,11 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (cred, pid, args) =>
   return rows;
 };
 
-const getEnvironmentStorageByEnvironmentId = ({ sqlClient }) => async (cred, eid, args) => {
+const getEnvironmentStorageByEnvironmentId = ({ sqlClient }) => async (
+  cred,
+  eid,
+  args,
+) => {
   const { projects } = cred.permissions;
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
@@ -58,12 +71,16 @@ const getEnvironmentStorageByEnvironmentId = ({ sqlClient }) => async (cred, eid
     `,
   );
 
-  const rows = await query(sqlClient, prep({ eid: eid }));
+  const rows = await query(sqlClient, prep({ eid }));
 
   return rows;
 };
 
-const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (cred, eid, args) => {
+const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (
+  cred,
+  eid,
+  args,
+) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -78,12 +95,16 @@ const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (cred
 
   const prep = prepare(sqlClient, str);
 
-  const rows = await query(sqlClient, prep({ eid: eid, month: args.month }));
+  const rows = await query(sqlClient, prep({ eid, month: args.month }));
 
   return rows[0];
 };
 
-const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred, eid, args) => {
+const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
+  cred,
+  eid,
+  args,
+) => {
   const { customers, projects } = cred.permissions;
 
   const str = `
@@ -97,15 +118,12 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
 
   const prep = prepare(sqlClient, str);
 
-  const rows = await query(sqlClient, prep({ eid: eid }));
+  const rows = await query(sqlClient, prep({ eid }));
 
-  const {
-    created,
-    deleted
-  } = rows[0];
+  const { created, deleted } = rows[0];
 
-  const created_date = new Date(created)
-  const deleted_date = new Date(deleted)
+  const created_date = new Date(created);
+  const deleted_date = new Date(deleted);
 
   const now = new Date();
 
@@ -118,7 +136,7 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
   interested_month_start.setMilliseconds(0);
 
   if (interested_month_start > now) {
-    throw new Error('Can\'t predict the future, yet.');
+    throw new Error("Can't predict the future, yet.");
   }
 
   // Generate Date Variable with the month we are interested in plus one month
@@ -131,17 +149,23 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
   }
 
   // calculate the month in format `YYYY-MM`. getMonth() does not return with a leading zero and starts its index at 0 as well.
-  const month_leading_zero = interested_month_start.getMonth()+1 < 10 ? `0${interested_month_start.getMonth()+1}`: interested_month_start.getMonth()+1;
+  const month_leading_zero =
+    interested_month_start.getMonth() + 1 < 10
+      ? `0${interested_month_start.getMonth() + 1}`
+      : interested_month_start.getMonth() + 1;
   const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
 
   // Created Date is created after the interested month: Ran for 0 hours in the requested month
   if (created_date > interested_month_end) {
-    return { month: month, hours: 0 }
+    return { month, hours: 0 };
   }
 
   // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
-  if (deleted_date < interested_month_start && deleted_date != "0000-00-00 00:00:00") {
-    return { month: month, hours: 0 }
+  if (
+    deleted_date < interested_month_start &&
+    deleted_date != '0000-00-00 00:00:00'
+  ) {
+    return { month, hours: 0 };
   }
 
   let date_from;
@@ -158,7 +182,7 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
   }
 
   // Environment is not deleted yet or was deleted after the interested month
-  if (deleted == "0000-00-00 00:00:00" || deleted_date > interested_month_end) {
+  if (deleted == '0000-00-00 00:00:00' || deleted_date > interested_month_end) {
     date_to = interested_month_end;
   }
 
@@ -166,53 +190,61 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
   if (deleted_date < interested_month_end) {
     date_to = deleted_date;
   }
-  console.log({date_from, date_to})
+  console.log({ date_from, date_to });
   const hours = Math.ceil(Math.abs(date_to - date_from) / 36e5);
-  return { month: month, hours: hours }
-
+  return { month, hours };
 };
 
-
-const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (cred, openshift_projectname, args) => {
+const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
+  cred,
+  openshift_projectname,
+  args,
+) => {
   const interested_month = new Date(args.month) || new Date();
-  const month_leading_zero = interested_month.getMonth()+1 < 10 ? `0${interested_month.getMonth()+1}`: interested_month.getMonth()+1;
+  const month_leading_zero =
+    interested_month.getMonth() + 1 < 10
+      ? `0${interested_month.getMonth() + 1}`
+      : interested_month.getMonth() + 1;
 
   const result = await esClient.count({
     index: `router-logs-${interested_month.getFullYear()}.${month_leading_zero}.*`,
     body: {
-      "query": {
-        "bool": {
-          "must": [
+      query: {
+        bool: {
+          must: [
             {
-              "match_phrase": {
-                "openshift_project": {
-                  "query": openshift_projectname
-                }
-              }
-            }
+              match_phrase: {
+                openshift_project: {
+                  query: openshift_projectname,
+                },
+              },
+            },
           ],
-          "must_not": [
+          must_not: [
             {
-              "match_phrase": {
-                "request_header_useragent": {
-                  "query": "StatusCake"
-                }
-              }
-            }
-          ]
-        }
-      }
-    }
+              match_phrase: {
+                request_header_useragent: {
+                  query: 'StatusCake',
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
   });
 
   const response = {
-    total: result.count
-  }
+    total: result.count,
+  };
 
-  return response
+  return response;
 };
 
-const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (cred, args) => {
+const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (
+  cred,
+  args,
+) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -222,12 +254,9 @@ const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (cred, arg
         JOIN customer c ON p.customer = c.id
       WHERE e.openshift_projectname = :openshiftProjectName
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['c.id', customers],
-          ['p.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
+  )}
     `;
 
   const prep = prepare(sqlClient, str);
@@ -262,7 +291,10 @@ const addOrUpdateEnvironment = ({ sqlClient }) => async (cred, input) => {
   return environment;
 };
 
-const addOrUpdateEnvironmentStorage = ({ sqlClient }) => async (cred, input) => {
+const addOrUpdateEnvironmentStorage = ({ sqlClient }) => async (
+  cred,
+  input,
+) => {
   const { projects } = cred.permissions;
 
   if (cred.role !== 'admin' && !R.contains(pid, projects)) {
@@ -284,7 +316,10 @@ const addOrUpdateEnvironmentStorage = ({ sqlClient }) => async (cred, input) => 
   return environment;
 };
 
-const getEnvironmentByEnvironmentStorageId = ({ sqlClient }) => async (cred, esid) => {
+const getEnvironmentByEnvironmentStorageId = ({ sqlClient }) => async (
+  cred,
+  esid,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -339,7 +374,7 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
 
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
-    'deleted = "0000-00-00 00:00:00"'
+    'deleted = "0000-00-00 00:00:00"',
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM environment ${where}`);
