@@ -7,21 +7,23 @@ import yaml from 'js-yaml';
 import findup from 'findup-sync';
 
 // TODO: Type the rest of the config
-export type LagoonConfig = {
+export type LagoonConfig = {|
   api?: string,
-  ssh?: string,
-  project: string,
+  branches?: boolean | RegExp,
   customer?: number,
   git_url?: string,
   openshift?: number,
-  branches?: boolean | RegExp,
-  pullrequests?: boolean,
   production_environment?: string,
-};
+  project?: string,
+  pullrequests?: boolean,
+  ssh?: string,
+|};
 
-export type LagoonConfigInput = {
+export type LagoonConfigInput = {|
   project: string,
-};
+  api?: string,
+  ssh?: string,
+|};
 
 export function createConfig(
   filepath: string,
