@@ -6,10 +6,15 @@ import inquirer from 'inquirer';
 import R from 'ramda';
 import { table } from 'table';
 
+import {
+  answerWithOptionIfSetOrPrompt,
+  answerWithOptionIfSet,
+} from '../../cli/answerWithOption';
 import { config } from '../../config';
 import gql from '../../gql';
 import { printGraphQLErrors, printErrors } from '../../printErrors';
 import { runGQLQuery } from '../../query';
+import { getOptions } from '..';
 
 import type Inquirer from 'inquirer';
 import typeof Yargs from 'yargs';
@@ -107,11 +112,11 @@ export function builder(yargs: Yargs): Yargs {
       'Create new project (will prompt for all input values)\n',
     )
     .example(
-      `$0 ${command} --name my_project`,
+      `$0 ${command} --${NAME} my_project`,
       'Create a new project with the name "my_project" (will prompt for all other values).',
     )
     .example(
-      `$0 ${command} -u git@github.com:amazeeio/drupal-example.git -b '(staging|production)'`,
+      `$0 ${command} --${GIT_URL} git@github.com:amazeeio/drupal-example.git --${BRANCHES} '(staging|production)'`,
       'Create a new project with the Git URL "git@github.com:amazeeio/drupal-example.git" which will have the "staging" and "production" branches deployed (will prompt for all other values).',
     );
 }
@@ -162,55 +167,6 @@ export async function getAllowedCustomersAndOpenshifts(
   };
 }
 
-function notifyUsedOption(clog: typeof console.log, option: string): void {
-  clog(`${blue('!')} Using "${option}" option from arguments or config`);
-}
-
-// Return a [predicate, transformer] pair for use with R.cond(). The predicate and transformer functions expect an object with an "options" property containing the options to use.
-export function answerFromOptionsPropCond(
-  option: $Values<typeof commandOptions>,
-  answers: Inquirer.answers,
-  clog: typeof console.log,
-) {
-  return [
-    R.compose(
-      // Option is set
-      R.has(option),
-      R.prop('options'),
-    ),
-    (objectWithOptions: { options: Object }) => {
-      // Assign option key in the answers object to option value and let the user know
-      const propVal = R.path(['options', option], objectWithOptions);
-      notifyUsedOption(clog, option);
-      answers[option] = propVal;
-    },
-  ];
-}
-
-// Return a function to use with the `when` option of the question object.
-// https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
-export function answerFromOptions(
-  option: $Values<typeof commandOptions>,
-  options: Object,
-  clog: typeof console.log,
-) {
-  return (answers: Inquirer.answers) => {
-    const [predicate, transform] = answerFromOptionsPropCond(
-      option,
-      answers,
-      clog,
-    );
-    return R.ifElse(
-      // If the option exists...
-      predicate,
-      // ...use it and let the user know...
-      transform,
-      // ...otherwise return true to prompt the user to manually enter the option
-      R.T,
-    )({ options });
-  };
-}
-
 // Prompt the user to input data to be used for project creation
 export async function promptForProjectInput(
   allCustomers: ?Array<Customer>,
@@ -229,14 +185,19 @@ export async function promptForProjectInput(
       when(answers) {
         return R.cond([
           // 1. If the `customer` is set in the command line arguments or the config, use that customer
-          answerFromOptionsPropCond(CUSTOMER, answers, clog),
+          answerWithOptionIfSet(CUSTOMER, answers, clog),
           // 2. If only one customer was returned from the allCustomers query, use that customer as the answer to the question and tell the user, not prompting them to choose.
           [
-            R.compose(R.equals(1), R.length, R.prop('allCustomers')),
+            R.compose(
+              R.equals(1),
+              R.length,
+              R.prop('allCustomers'),
+            ),
             (customersAndOptions) => {
-              const firstCustomer = R.compose(R.head, R.prop('allCustomers'))(
-                customersAndOptions,
-              );
+              const firstCustomer = R.compose(
+                R.head,
+                R.prop('allCustomers'),
+              )(customersAndOptions);
               clog(
                 `${blue('!')} Using only authorized customer "${R.prop(
                   'name',
@@ -256,7 +217,7 @@ export async function promptForProjectInput(
       name: NAME,
       message: 'Project name:',
       validate: input => Boolean(input) || 'Please enter a project name.',
-      when: answerFromOptions(NAME, options, clog),
+      when: answerWithOptionIfSetOrPrompt(NAME, options, clog),
     },
     {
       type: 'input',
@@ -271,7 +232,7 @@ export async function promptForProjectInput(
         ) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
-      when: answerFromOptions(GIT_URL, options, clog),
+      when: answerWithOptionIfSetOrPrompt(GIT_URL, options, clog),
     },
     {
       type: 'list',
@@ -283,14 +244,19 @@ export async function promptForProjectInput(
       when(answers) {
         return R.cond([
           // 1. If the `openshift` is set in the command line arguments or the config, use that openshift
-          answerFromOptionsPropCond(OPENSHIFT, answers, clog),
+          answerWithOptionIfSet(OPENSHIFT, answers, clog),
           // 2. If only one openshift was returned from the allOpenshifts query, use that openshift as the answer to the question and tell the user, not prompting them to choose.
           [
-            R.compose(R.equals(1), R.length, R.prop('allOpenshifts')),
+            R.compose(
+              R.equals(1),
+              R.length,
+              R.prop('allOpenshifts'),
+            ),
             (openshiftsAndOptions) => {
-              const firstOpenshift = R.compose(R.head, R.prop('allOpenshifts'))(
-                openshiftsAndOptions,
-              );
+              const firstOpenshift = R.compose(
+                R.head,
+                R.prop('allOpenshifts'),
+              )(openshiftsAndOptions);
               clog(
                 `${blue('!')} Using only authorized openshift "${R.prop(
                   'name',
@@ -310,21 +276,25 @@ export async function promptForProjectInput(
       name: BRANCHES,
       message: 'Deploy branches:',
       default: 'true',
-      when: answerFromOptions(BRANCHES, options, clog),
+      when: answerWithOptionIfSetOrPrompt(BRANCHES, options, clog),
     },
     {
       type: 'input',
       name: PULLREQUESTS,
       message: 'Pull requests:',
       default: null,
-      when: answerFromOptions(PULLREQUESTS, options, clog),
+      when: answerWithOptionIfSetOrPrompt(PULLREQUESTS, options, clog),
     },
     {
       type: 'input',
       name: PRODUCTION_ENVIRONMENT,
       message: 'Production environment:',
       default: null,
-      when: answerFromOptions(PRODUCTION_ENVIRONMENT, options, clog),
+      when: answerWithOptionIfSetOrPrompt(
+        PRODUCTION_ENVIRONMENT,
+        options,
+        clog,
+      ),
     },
   ];
 
@@ -449,16 +419,11 @@ type Args = BaseHandlerArgs & {
 };
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const notUndefined = R.complement(R.equals(undefined));
-  // Dynamic options are options that will likely change every time and shouldn't be specified in the config
-  const dynamicOptions = [NAME];
-
-  // Filter options to be only those included in the command options keys
-  const options = R.pick(R.values(commandOptions), {
-    // Remove options from the config that should require user input every time
-    ...R.omit(dynamicOptions, config),
-    // Filter out unspecified values (yargs sets them as `undefined`) so that they don't overwrite config values
-    ...R.filter(notUndefined, argv),
+  const options = getOptions({
+    config,
+    argv,
+    commandOptionKeys: R.values(commandOptions),
+    dynamicOptionKeys: [NAME],
   });
 
   return createProject({ clog, cerr, options });

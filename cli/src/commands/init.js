@@ -4,9 +4,11 @@ import path from 'path';
 import { green } from 'chalk';
 import R from 'ramda';
 import inquirer from 'inquirer';
+import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { createConfig } from '../config';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
+import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
 import type { BaseHandlerArgs } from '.';
@@ -15,54 +17,29 @@ export const command = 'init';
 export const description =
   'Create a .lagoon.yml config file in the current working directory';
 
-type GetOverwriteOptionArgs = {
-  exists: boolean,
-  filepath: string,
-  overwrite: ?boolean,
+export const OVERWRITE: 'overwrite' = 'overwrite';
+export const PROJECT: 'project' = 'project';
+
+export const commandOptions = {
+  [OVERWRITE]: OVERWRITE,
+  [PROJECT]: PROJECT,
 };
 
-const getOverwriteOption = async (
-  args: GetOverwriteOptionArgs,
-): Promise<boolean> =>
-  R.cond([
-    // If the file doesn't exist, the file doesn't need to be overwritten
-    [R.propEq('exists', false), R.F],
-    // If the overwrite option for the command has been specified, use the value of that
-    [
-      R.propSatisfies(
-        // Option is not null or undefined
-        R.complement(R.isNil),
-        'overwrite',
-      ),
-      R.prop('overwrite'),
-    ],
-    // If none of the previous conditions have been satisfied, ask the user if they want to overwrite the file
-    [
-      R.T,
-      async ({ filepath }) => {
-        const { overwrite } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'overwrite',
-            message: `File '${filepath}' already exists! Overwrite?`,
-            default: false,
-          },
-        ]);
-        return overwrite;
-      },
-    ],
-  ])(args);
+type Options = {|
+  overwrite?: boolean,
+  project?: string,
+|};
 
 export function builder(yargs: Yargs) {
   return yargs
     .usage(`$0 ${command} - ${description}`)
     .options({
-      overwrite: {
+      [OVERWRITE]: {
         describe: 'Overwrite the configuration file if it exists',
         type: 'boolean',
         default: undefined,
       },
-      project: {
+      [PROJECT]: {
         describe: 'Name of project to configure',
         type: 'string',
         alias: 'p',
@@ -73,25 +50,93 @@ export function builder(yargs: Yargs) {
       'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a project name to add to the config.\n',
     )
     .example(
-      `$0 ${command} --overwrite`,
+      `$0 ${command} --${OVERWRITE}`,
       'Overwrite existing config file (do not confirm with the user).\n',
     )
     .example(
-      `$0 ${command} --overwrite false`,
+      `$0 ${command} --${OVERWRITE} false`,
       'Prevent overwriting of existing config file (do not confirm with user).\n',
     )
     .example(
-      `$0 ${command} --project my_project`,
+      `$0 ${command} --${PROJECT} my_project`,
       'Set project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} -p my_project`,
+      `$0 ${command} --${PROJECT} my_project`,
       'Short form for setting project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} --overwrite --project my_project`,
+      `$0 ${command} --${OVERWRITE} --${PROJECT} my_project`,
       'Overwrite existing config files and set project to "my_project" (do not confirm with or prompt the user).',
     );
+}
+
+type GetOverwriteOptionArgs = {|
+  filepath: string,
+  options: Options,
+  clog: typeof console.log,
+|};
+
+async function promptForOverwrite({
+  filepath,
+  options,
+  clog,
+}:
+GetOverwriteOptionArgs): Promise<boolean> {
+  return inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'overwrite',
+      message: `File '${filepath}' already exists! Overwrite?`,
+      default: false,
+      when: answerWithOptionIfSetOrPrompt(OVERWRITE, options, clog),
+    },
+  ]);
+}
+
+type InitArgs = {|
+  cwd: string,
+  options: Options,
+  clog: typeof console.log,
+  cerr: typeof console.error,
+|};
+
+async function init({
+  cwd, options, clog, cerr }:
+InitArgs): Promise<number> {
+  const filepath = path.join(cwd, '.lagoon.yml');
+  const exists = await fileExists(filepath);
+
+  const overwrite = !exists
+    ? undefined
+    : await promptForOverwrite({
+      filepath,
+      options,
+      clog,
+    });
+
+  if (exists && !overwrite) {
+    return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
+  }
+
+  const configInput = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'project',
+      message: 'Enter the name of the project to configure.',
+      validate: input => (input ? Boolean(input) : 'Please enter a project.'),
+      when: answerWithOptionIfSetOrPrompt(PROJECT, options, clog),
+    },
+  ]);
+
+  try {
+    clog(`Creating file '${filepath}'...`);
+    await createConfig(filepath, configInput);
+    clog(green('Configuration file created!'));
+    return 0;
+  } catch (e) {
+    return printErrors(cerr, `Error occurred while writing to ${filepath}:`, e);
+  }
 }
 
 type Args = BaseHandlerArgs & {
@@ -108,39 +153,17 @@ export async function handler({
   cerr,
 }:
 Args): Promise<number> {
-  const filepath = path.join(cwd, '.lagoon.yml');
-
-  const exists = await fileExists(filepath);
-
-  const overwrite = await getOverwriteOption({
-    exists,
-    filepath,
-    overwrite: argv.overwrite,
+  const options = getOptions({
+    config: null,
+    argv,
+    commandOptionKeys: R.values(commandOptions),
+    dynamicOptionKeys: [OVERWRITE],
   });
 
-  if (exists && !overwrite) {
-    return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
-  }
-
-  const configInput = argv.project
-    ? { project: argv.project }
-    : await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'project',
-        message: 'Enter the name of the project to configure.',
-        validate: input =>
-          input ? Boolean(input) : 'Please enter a project.',
-      },
-    ]);
-
-  try {
-    clog(`Creating file '${filepath}'...`);
-    await createConfig(filepath, configInput);
-    clog(green('Configuration file created!'));
-  } catch (e) {
-    return printErrors(cerr, `Error occurred while writing to ${filepath}:`, e);
-  }
-
-  return 0;
+  return init({
+    cwd,
+    options,
+    clog,
+    cerr,
+  });
 }
