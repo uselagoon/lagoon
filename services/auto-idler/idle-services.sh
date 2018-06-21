@@ -41,7 +41,7 @@ ALL_ENVIRONMENT_HITS=$(curl -s -XGET "http://logs-db:9200/router-logs-*/_search"
       "filter": {
         "range": {
           "@timestamp": {
-            "gte": "now-1h"
+            "gte": "now-4h"
           }
         }
       }
