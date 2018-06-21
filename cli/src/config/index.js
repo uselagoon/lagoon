@@ -66,11 +66,11 @@ export const getSshConfig = (() => {
 
       const host = R.cond([
         [R.prop('SSH_HOST'), R.prop('SSH_HOST')],
-        [R.always(sshConfig), R.always(R.head(R.split(':', sshConfig)))],
+        [R.always(sshConfig), () => R.head(R.split(':', sshConfig))],
         [
           // Default host
           R.T,
-          'ssh.lagoon.amazeeio.cloud',
+          R.always('ssh.lagoon.amazeeio.cloud'),
         ],
       ])(process.env);
 
@@ -85,19 +85,18 @@ export const getSshConfig = (() => {
         ],
         [
           R.always(sshConfig),
-          R.always(
+          () =>
             R.compose(
               // .connect() accepts only a number
               Number,
               R.nth(1),
               R.split(':'),
             )(sshConfig),
-          ),
         ],
         [
           // Default port
           R.T,
-          32222,
+          R.always(32222),
         ],
       ])(process.env);
 
