@@ -1,6 +1,8 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/logstash
 
+RUN bin/logstash-plugin install logstash-input-http
+
 # Remove default shipped pipeline
 RUN rm -f pipeline/logstash.conf
 
@@ -14,5 +16,16 @@ ENV PATH_CONFIG=null
 ENV RABBITMQ_HOST="rabbitmq" \
     RABBITMQ_USER="guest" \
     RABBITMQ_PASSWORD="guest" \
-    ELASTICSEARCH_URL="http://logs-db:9200"
-ENV XPACK_MONITORING_ELASTICSEARCH_URL=$ELASTICSEARCH_URL
+    ELASTICSEARCH_URL="http://logs-db:9200" \
+    LOGSDB_ADMIN_PASSWORD=admin \
+    LOGSTASH_USERNAME="username" \
+    LOGSTASH_PASSWORD="password" \
+    XPACK_MONITORING_ELASTICSEARCH_URL="http://logs-db:9200" \
+    XPACK_MONITORING_ELASTICSEARCH_USERNAME=admin \
+    XPACK_MONITORING_ELASTICSEARCH_PASSWORD=admin \
+    XPACK_MANAGEMENT_ELASTICSEARCH_URL="http://logs-db:9200" \
+    XPACK_MANAGEMENT_ELASTICSEARCH_USERNAME=admin \
+    XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD=admin
+
+
+EXPOSE 8080 9600

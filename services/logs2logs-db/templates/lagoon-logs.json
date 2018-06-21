@@ -1,10 +1,10 @@
 {
     "template" : "lagoon-logs-*",
-    "version" : 60001,
+    "version" : 60002,
     "settings" : {
       "index.refresh_interval" : "5s",
       "number_of_shards": 1,
-      "number_of_replicas": 1
+      "number_of_replicas": 2
     },
     "mappings" : {
       "_default_" : {

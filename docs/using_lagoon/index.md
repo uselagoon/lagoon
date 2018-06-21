@@ -26,7 +26,7 @@ Learn more about Lagoon and [Local Development Environments](./local_development
 
 ### `.lagoon.yml`
 
-They main file that will be used by Lagoon to understand what should be deployed and many more things. See [Documentation for .lagoon.yml]()
+They main file that will be used by Lagoon to understand what should be deployed and many more things. See [Documentation for .lagoon.yml](/using_lagoon/lagoon_yml.md)
 
 ### `docker-compose.yml`
 

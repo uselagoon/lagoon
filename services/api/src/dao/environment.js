@@ -200,45 +200,42 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
   openshift_projectname,
   args,
 ) => {
-  const interested_month = new Date(args.month) || new Date();
+  const interested_month = args.month ? new Date(args.month) : new Date();
   const month_leading_zero =
     interested_month.getMonth() + 1 < 10
       ? `0${interested_month.getMonth() + 1}`
       : interested_month.getMonth() + 1;
 
-  const result = await esClient.count({
-    index: `router-logs-${interested_month.getFullYear()}.${month_leading_zero}.*`,
-    body: {
-      query: {
-        bool: {
-          must: [
-            {
-              match_phrase: {
-                openshift_project: {
-                  query: openshift_projectname,
+  try {
+    const result = await esClient.count({
+      index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
+      body: {
+        query: {
+          bool: {
+            must_not: [
+              {
+                match_phrase: {
+                  request_header_useragent: {
+                    query: 'StatusCake',
+                  },
                 },
               },
-            },
-          ],
-          must_not: [
-            {
-              match_phrase: {
-                request_header_useragent: {
-                  query: 'StatusCake',
-                },
-              },
-            },
-          ],
+            ],
+          },
         },
       },
-    },
-  });
+    });
 
-  const response = {
-    total: result.count,
-  };
-
-  return response;
+    const response = {
+      total: result.count,
+    };
+    return response;
+  } catch (e) {
+    if (e.body.error.type && e.body.error.type == 'index_not_found_exception') {
+      return { total: 0 };
+    }
+    throw e;
+  }
 };
 
 const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (

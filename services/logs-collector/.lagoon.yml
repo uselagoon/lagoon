@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-logstash
+  name: lagoon-openshift-template-fluentd
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -54,7 +54,7 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      type: ${DEPLOYMENT_STRATEGY}
+      resources: {}
     template:
       metadata:
         creationTimestamp: null
@@ -67,63 +67,47 @@ objects:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 9600
+          - containerPort: 24284
             protocol: TCP
           readinessProbe:
-            httpGet:
-              port: 9600
+            tcpSocket:
+              port: 24284
             initialDelaySeconds: 20
           livenessProbe:
-            httpGet:
-              port: 9600
+            tcpSocket:
+              port: 24284
             initialDelaySeconds: 120
           envFrom:
           - configMapRef:
               name: lagoon-env
-          env:
-            - name: CRONJOBS
-              value: ${CRONJOBS}
-            - name: SERVICE_NAME
-              value: ${SERVICE_NAME}
-            - name: RABBITMQ_USER
-              valueFrom:
-                secretKeyRef:
-                  key: RABBITMQ_USERNAME
-                  name: rabbitmq-username
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: RABBITMQ_PASSWORD
-                  name: rabbitmq-password
-            - name: LOGSDB_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: LOGSDB_ADMIN_PASSWORD
-                  name: logs-db-admin-password
-            - name: XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: LOGSDB_ADMIN_PASSWORD
-                  name: logs-db-admin-password
-            - name: XPACK_MONITORING_ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: LOGSDB_ADMIN_PASSWORD
-                  name: logs-db-admin-password
-            - name: LOGSTASH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: logstash-username
-                  key: LOGSTASH_USERNAME
-            - name: LOGSTASH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logstash-password
-                  key: LOGSTASH_PASSWORD
           resources:
             requests:
               cpu: 10m
               memory: 10Mi
+        volumes:
+        - name: volume-4750i
+          secret:
+            defaultMode: 420
+            items:
+            - key: FORWARD_KEY
+              path: ca_key.pem
+            - key: FORWARD_CERTIFICATE
+              path: ca_cert.pem
+            secretName: collector
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: FLUENT_CONF
+              path: fluent.conf
+            name: lagoon-env
+          name: volume-g7qqi
+      terminationGracePeriodSeconds: 30
+    volumeMounts:
+    - mountPath: /fluentd/ssl/
+      name: volume-4750i
+      readOnly: true
+    - mountPath: /fluentd/etc/
+      name: volume-g7qqi
     test: false
     triggers:
     - type: ConfigChange
@@ -147,22 +131,10 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: logstash-mgmt
-      port: 9600
+    - name: secure-forward
+      port: 24284
       protocol: TCP
-      targetPort: 9600
-    - name: udp-input-module
-      port: 5140
-      protocol: UDP
-      targetPort: 5140
-    - name: tcp-input-module
-      port: 28777
-      protocol: TCP
-      targetPort: 28777
-    - name: http-input-module
-      port: 8080
-      protocol: TCP
-      targetPort: 8080
+      targetPort: 24284
     selector:
       service: ${SERVICE_NAME}
   status:

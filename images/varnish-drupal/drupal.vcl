@@ -213,7 +213,7 @@ sub vcl_recv {
   if (req.http.Cookie) {
     set req.http.CookieCheck = ";" + req.http.Cookie;
     set req.http.CookieCheck = regsuball(req.http.CookieCheck, "; +", ";");
-    set req.http.CookieCheck = regsuball(req.http.CookieCheck, ";(SESS[a-z0-9]+|SSESS[a-z0-9]+|NO_CACHE)=", "; \1=");
+    set req.http.CookieCheck = regsuball(req.http.CookieCheck, ";(${VARNISH_COOKIECHECK:-SESS[a-z0-9]+|SSESS[a-z0-9]+|NO_CACHE})=", "; \1=");
     set req.http.CookieCheck = regsuball(req.http.CookieCheck, ";[^ ][^;]*", "");
     set req.http.CookieCheck = regsuball(req.http.CookieCheck, "^[; ]+|[; ]+$", "");
 

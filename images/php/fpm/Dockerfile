@@ -23,6 +23,7 @@ COPY check_fcgi /usr/sbin/
 COPY entrypoints/70-php-config.sh entrypoints/60-php-xdebug.sh entrypoints/50-ssmtp.sh entrypoints/71-php-newrelic.sh /lagoon/entrypoints/
 
 COPY php.ini /usr/local/etc/php/
+COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
@@ -43,7 +44,7 @@ RUN apk update \
         libxml2-dev \
         # for xsl
         libxslt-dev \
-    && apk add --no-cache postgresql-dev --repository http://nl.alpinelinux.org/alpine/edge/main \
+    && apk add --no-cache postgresql-dev --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \

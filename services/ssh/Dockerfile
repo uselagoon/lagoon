@@ -49,7 +49,8 @@ RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /s
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 
 # Needed for jwt generation
-RUN npm -g install jwtgen
+RUN npm config set unsafe-perm true \
+    && npm -g install jwtgen
 
 COPY services/ssh/etc/ /etc/
 COPY services/ssh/home/ /home/
