@@ -10,7 +10,7 @@ import { fileExists, writeFile } from '../util/fs';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'login';
 export const description = 'Authenticate with lagoon via an SSH key';
@@ -25,7 +25,7 @@ export function builder(yargs: Yargs) {
   });
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     identity: string,
   },

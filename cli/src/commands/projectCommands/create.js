@@ -13,7 +13,7 @@ import { runGQLQuery } from '../../query';
 
 import type Inquirer from 'inquirer';
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '..';
+import type { BaseHandlerArgs } from '..';
 
 export const command = 'create';
 export const description = 'Create new project';
@@ -442,7 +442,7 @@ createProjectArgs): Promise<number> {
   return 0;
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     customer: ?string,
   },

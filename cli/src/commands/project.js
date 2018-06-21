@@ -13,7 +13,7 @@ import {
 } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'project';
 export const description = 'Show project details';
@@ -105,7 +105,7 @@ projectDetailsArgs): Promise<number> {
   return 0;
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     project: ?string,
   },

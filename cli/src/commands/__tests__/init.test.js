@@ -21,12 +21,12 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      _: [],
-      $0: '',
       cwd,
       clog,
       cerr,
       argv: {
+        _: [],
+        $0: '',
         overwrite: true,
         project: 'test_project',
       },
@@ -44,12 +44,12 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      _: [],
-      $0: '',
       cwd,
       clog,
       cerr,
       argv: {
+        _: [],
+        $0: '',
         overwrite: false,
         project: 'test_project',
       },
@@ -67,12 +67,12 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      _: [],
-      $0: '',
       cwd,
       clog,
       cerr,
       argv: {
+        _: [],
+        $0: '',
         overwrite: false,
         project: 'test_project',
       },

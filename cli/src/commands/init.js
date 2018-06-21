@@ -9,7 +9,7 @@ import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'init';
 export const description =
@@ -94,7 +94,7 @@ export function builder(yargs: Yargs) {
     );
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     overwrite: ?boolean,
     project: ?string,

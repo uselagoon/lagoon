@@ -1,14 +1,16 @@
 // @flow
 
+import { printErrors } from '../printErrors';
+
 import typeof Yargs from 'yargs';
 import type { Argv } from 'yargs';
-import { printErrors } from '../printErrors';
+import type { BaseHandlerArgs } from '../commands';
 
 export type CommandModule = {
   command: string,
   description: string,
   builder?: (yargs: Yargs) => Yargs,
-  handler: (argv: Object) => Promise<number>,
+  handler: (handlerArgs: BaseHandlerArgs) => Promise<number>,
 };
 
 const cwd = process.cwd();
