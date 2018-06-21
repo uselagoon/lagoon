@@ -37,7 +37,7 @@ export function createConfig(
 }
 
 export function parseConfig(yamlContent: string): LagoonConfig {
-  // TODO: Add schema validation in there if necessary
+  // TODO: Add schema validation in here if necessary
   return yaml.safeLoad(yamlContent);
 }
 
