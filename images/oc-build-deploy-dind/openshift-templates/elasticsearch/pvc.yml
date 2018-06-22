@@ -34,9 +34,6 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
-  - name: PERSISTENT_STORAGE_PATH
-    description: Full path to which should be mounted into persistent storage
-    required: true
   - name: PERSISTENT_STORAGE_CLASS
     description: Name of the Storage Class to use
     value: ""
