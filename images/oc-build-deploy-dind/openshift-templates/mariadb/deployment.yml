@@ -101,4 +101,4 @@ objects:
               memory: 10Mi
     test: false
     triggers:
-      - type: none
+    - type: ConfigChange
