@@ -7,6 +7,9 @@ function join { local IFS="$1"; shift; echo "$*"; }
 
 index=0
 
+# Seed is used to generate the "random" numbers
+SEED=$(echo "$1" | cksum | cut -f 1 -d " ")
+
 while read piece
 do
 
@@ -14,7 +17,7 @@ do
   if [ "$index" = "0" ]; then
     if [[ $piece =~ ^H$ ]]; then
       # If just an H is defined, we generate a random minute
-      MINUTES=$((0 + RANDOM % 59))
+      MINUTES=$((SEED % 59))
 
     elif [[ $piece =~ ^(H|\*)\/([0-5]?[0-9])$ ]]; then
       # A Minute like H/15 or (*/15 for backwards compatibility) is defined, create a list of minutes with a random start
@@ -22,7 +25,7 @@ do
       STEP=${BASH_REMATCH[2]}
       # Generate a random start within the given step to prevent that all cronjobs start at the same time
       # but still incorporate the wished step
-      COUNTER=$((0 + RANDOM % $STEP))
+      COUNTER=$((SEED % $STEP))
       MINUTES_ARRAY=()
       while [ $COUNTER -lt 60 ]; do
           MINUTES_ARRAY+=($COUNTER)
@@ -45,7 +48,7 @@ do
   elif [ "$index" = "1" ]; then
     if [[ $piece =~ ^H$ ]]; then
       # If just an H is defined, we generate a random hour
-      HOURS=$((0 + RANDOM % 23))
+      HOURS=$((SEED % 23))
     else
       HOURS=$piece
     fi
@@ -65,6 +68,6 @@ do
   #increment index
   index=$((index+1))
 
-done < <(echo $1 | tr " " "\n")
+done < <(echo $2 | tr " " "\n")
 
 echo "${MINUTES} ${HOURS} ${DAYS} ${MONTHS} ${DAY_WEEK}"
