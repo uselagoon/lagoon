@@ -14,7 +14,7 @@ COPY readonlyrest/settings.gradle tmp/readonlyrest/settings.gradle
 
 WORKDIR /tmp/readonlyrest
 
-RUN ./gradlew --stacktrace es61x:ror '-PesVersion=6.2.4'
+RUN ./gradlew  es61x:ror '-PesVersion=6.2.4'
 
 WORKDIR /usr/share/elasticsearch
 
