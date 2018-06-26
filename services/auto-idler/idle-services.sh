@@ -25,7 +25,7 @@ query=$(set -e -o pipefail; echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g
 DEVELOPMENT_ENVIRONMENTS=$(set -e -o pipefail; curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
 
 # Load all hits of all environments of the last hour
-ALL_ENVIRONMENT_HITS=$(curl -s -XGET "http://logs-db:9200/router-logs-*/_search" -H 'Content-Type: application/json' -d'
+ALL_ENVIRONMENT_HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-*/_search" -H 'Content-Type: application/json' -d'
 {
   "size": 0,
   "aggs": {
