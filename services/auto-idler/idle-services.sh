@@ -78,11 +78,11 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
             continue
           elif [ "$HAS_HITS" == "true" ]; then
             HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last hour, no idleing"
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last four hours, no idleing"
           else
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last hour, starting to idle"
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last four hours, starting to idle"
             # actually idleing happens here
-            oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle -l "service!=mariadb"
+            oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle -l "service notin (mariadb,postgres)"
 
             ### Faster Unidling:
             ## Instead of depending that each endpoint is unidling their own service (which means it takes a lot of time to unidle multiple services)
