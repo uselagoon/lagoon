@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# make sure we stop if we fail
+set -eo pipefail
+
 # Create an JWT Admin Token to talk to the API
 API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
@@ -48,6 +51,9 @@ ALL_ENVIRONMENT_HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://l
     }
   }
 }' | jq '.aggregations.group_by_openshift_project.buckets')
+
+# All data successfully loaded, now we don't want to fail anymore if a single idleing fails
+set +eo pipefail
 
 # Filter only projects that actually have an environment
 # Loop through each found project
