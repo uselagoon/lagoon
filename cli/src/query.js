@@ -67,7 +67,7 @@ QLQueryArgs): Object {
       // For socket hang ups...
       R.propEq('message', 'socket hang up'),
       // ...print a nicer error message...
-      R.always('Could not connect to API.'),
+      R.always('Could not connect to Lagoon API.'),
       // ...otherwise just return the error message
       R.prop('message'),
     )(err);
