@@ -43,6 +43,7 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
   try {
     connection = await sshConnect({
       identity: argv.identity,
+      cerr,
     });
   } catch (err) {
     return printErrors(cerr, err);

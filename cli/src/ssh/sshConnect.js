@@ -12,6 +12,7 @@ import type { Connection } from '.';
 
 type SshConnectArgs = {
   identity: ?string,
+  cerr: typeof console.error,
 };
 
 type ConnectConfig = {
@@ -24,11 +25,12 @@ type ConnectConfig = {
 
 export async function sshConnect({
   identity,
+  cerr,
 }:
 SshConnectArgs): Promise<Connection> {
   const connection = new Client();
 
-  const privateKeyPath = await getPrivateKeyPath({ identity });
+  const privateKeyPath = await getPrivateKeyPath({ identity, cerr });
   const privateKey = await readFile(privateKeyPath);
   const passphrase = await getPrivateKeyPassphrase(
     utils.parseKey(privateKey).encryption,

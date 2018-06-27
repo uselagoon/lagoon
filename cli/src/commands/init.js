@@ -2,7 +2,6 @@
 
 import path from 'path';
 import { green } from 'chalk';
-import R from 'ramda';
 import inquirer from 'inquirer';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { createConfig } from '../config';
@@ -156,7 +155,7 @@ Args): Promise<number> {
   const options = getOptions({
     config: null,
     argv,
-    commandOptionKeys: R.values(commandOptions),
+    commandOptions,
     dynamicOptionKeys: [OVERWRITE],
   });
 

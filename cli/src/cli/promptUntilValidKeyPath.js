@@ -7,7 +7,7 @@ import { printErrors } from '../printErrors';
 
 export async function promptUntilValidKeyPath(
   cerr: typeof console.error,
-): Promise<String> {
+): Promise<string> {
   const { privateKeyPath } = await inquirer.prompt([
     {
       type: 'input',

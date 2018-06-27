@@ -93,7 +93,7 @@ GetCustomerDetailsArgs): Promise<number> {
     R.always('\u221A'),
     R.always('\u2717'),
   );
-  const formatSshKeys = R.map(R.prop('name'));
+  const formatSshKeys: (Array<Object>) => Array<string> = R.map(R.prop('name'));
 
   clog(`Customer details for project '${project}':`);
   clog(
@@ -106,7 +106,7 @@ GetCustomerDetailsArgs): Promise<number> {
       ],
       [
         'SSH Keys',
-        R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer))),
+        R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
       ],
       ['Created', R.prop('created', customer)],
     ]),

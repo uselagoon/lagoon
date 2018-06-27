@@ -9,10 +9,12 @@ import { fileExists } from '../util/fs';
 
 type GetPrivateKeyPathArgs = {
   identity: ?string,
+  cerr: typeof console.error,
 };
 
 export const getPrivateKeyPath = async ({
   identity,
+  cerr,
 }:
 GetPrivateKeyPathArgs): Promise<string> => {
   const defaultPrivateKeyPath = path.join(os.homedir(), '.ssh', 'id_rsa');
@@ -31,6 +33,6 @@ GetPrivateKeyPathArgs): Promise<string> => {
       R.always(defaultPrivateKeyPath),
     ],
     // If none of the previous conditions have been satisfied, prompt the user until they provide a valid path to an existing file
-    [R.T, async ({ cerr }) => promptUntilValidKeyPath(cerr)],
+    [R.T, async () => promptUntilValidKeyPath(cerr)],
   ])(identity);
 };

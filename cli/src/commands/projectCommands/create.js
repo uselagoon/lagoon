@@ -42,7 +42,7 @@ export const commandOptions = {
   [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-type Options = {|
+type Options = {
   customer?: number,
   name?: string,
   git_url?: string,
@@ -50,13 +50,9 @@ type Options = {|
   branches?: string,
   pullrequests?: string,
   production_environment?: string,
-|};
+};
 
-export function allOptionsSpecified(options: {
-  // Relax exact object type to allow for future options
-  // https://github.com/facebook/flow/issues/2626#issuecomment-267449133
-  ...Options,
-}): boolean {
+export function allOptionsSpecified(options: Options): boolean {
   // Return a boolean of whether all possible command options keys...
   return R.all(
     // ...are contained in keys of the provided object
@@ -422,7 +418,7 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
   const options = getOptions({
     config,
     argv,
-    commandOptionKeys: R.values(commandOptions),
+    commandOptions,
     dynamicOptionKeys: [NAME],
   });
 

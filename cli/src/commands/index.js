@@ -17,19 +17,21 @@ const notUndefined = R.complement(R.equals(undefined));
 export function getOptions({
   config,
   argv,
-  commandOptionKeys,
+  commandOptions,
   // Dynamic options are options that will likely change every time and shouldn't be specified in the config
   dynamicOptionKeys,
 }: {
   config: ?LagoonConfig,
   argv: Argv,
-  commandOptionKeys: Array<string>,
+  commandOptions: { [key: string]: string },
   dynamicOptionKeys: Array<string>,
 }) {
-  return R.pick(commandOptionKeys, {
+  return (R.pick(R.keys(commandOptions))({
     // Remove options from the config that should require user input every time
-    ...R.omit(dynamicOptionKeys, config),
+    ...R.omit(dynamicOptionKeys, config || {}),
     // Filter out unspecified values (yargs sets them as `undefined`) so that they don't overwrite config values
     ...R.filter(notUndefined, argv),
+  }): {
+    [key: $Keys<typeof commandOptions>]: any,
   });
 }
