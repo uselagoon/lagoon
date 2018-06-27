@@ -308,7 +308,7 @@ services :=       api \
 									webhooks2tasks \
 									hacky-rest2tasks-ui \
 									rabbitmq \
-									logs-collector \
+									logs-forwarder \
 									logs-db \
 									logs-db-ui \
 									logs2logs-db \
