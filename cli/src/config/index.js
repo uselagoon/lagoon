@@ -1,6 +1,7 @@
 // @flow
 
 import fs from 'fs';
+import url from 'url';
 import R from 'ramda';
 import { writeFile } from '../util/fs';
 import yaml from 'js-yaml';
@@ -56,6 +57,65 @@ function readConfig(): ?LagoonConfig {
 }
 
 export const config = readConfig();
+
+export const getApiConfig: () => { hostname: string, port: number } = (() => {
+  let allApiConfig;
+
+  return () => {
+    if (!allApiConfig) {
+      const apiConfig = R.prop('api', config);
+
+      const apiUrl = R.cond([
+        [
+          R.allPass([
+            R.prop('API_PROTOCOL'),
+            R.prop('API_HOST'),
+            R.prop('API_PORT'),
+          ]),
+          env =>
+            `${R.prop('API_PROTOCOL', env)}://${R.prop(
+              'API_HOST',
+              env,
+            )}:${R.prop('API_PORT', env)}`,
+        ],
+        [R.always(apiConfig), R.always(apiConfig)],
+        [
+          // Default API URL
+          R.T,
+          R.always('https://api.lagoon.amazeeio.cloud'),
+        ],
+      ])(process.env);
+
+      const { protocol, hostname, port } = url.parse(apiUrl);
+
+      if (!hostname) {
+        throw new Error(
+          'API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.',
+        );
+      }
+
+      const defaultPort = 443;
+      const protocolPorts = {
+        'https:': 443,
+        'http:': 80,
+      };
+
+      allApiConfig = {
+        hostname,
+        port: R.ifElse(
+          // If port is truthy...
+          R.identity,
+          // ...convert string to number...
+          Number,
+          // ...else use the port based on the protocol or the default port
+          R.always(R.propOr(defaultPort, protocol)(protocolPorts)),
+        )(port),
+      };
+    }
+
+    return allApiConfig;
+  };
+})();
 
 export const getSshConfig = (() => {
   let allSshConfig;

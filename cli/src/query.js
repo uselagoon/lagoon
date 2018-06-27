@@ -2,9 +2,8 @@
 
 import path from 'path';
 import os from 'os';
-import url from 'url';
 import R from 'ramda';
-import { config } from './config/';
+import { getApiConfig } from './config/';
 import { fileExists, readFile } from './util/fs';
 import request from './util/request';
 import { printErrors } from './printErrors';
@@ -42,54 +41,22 @@ QLQueryArgs): Object {
     }
   }
 
-  let apiUrl;
-
-  if (
-    process.env.API_HOST &&
-    process.env.API_PORT &&
-    process.env.API_PROTOCOL
-  ) {
-    apiUrl = `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${
-      process.env.API_PORT
-    }`;
-  } else if (R.prop('api', config)) {
-    apiUrl = R.prop('api', config);
-  } else {
-    apiUrl = 'https://api.lagoon.amazeeio.cloud';
-  }
-
-  const { hostname, port: urlPort, protocol } = url.parse(apiUrl);
-
-  if (hostname == null) {
-    throw new Error(
-      'API URL configured under the "api" key in .lagoon.yml doesn\'t contain a valid hostname.',
-    );
-  }
-
-  const body = JSON.stringify(
-    {
-      query,
-      variables,
-    },
-    null,
-    pretty ? 2 : 0,
-  );
-
-  const protocolPorts = {
-    'https:': 443,
-    'http:': 80,
-  };
+  const { hostname, port } = getApiConfig();
 
   const options = {
     hostname,
     path: '/graphql',
-    port:
-      urlPort === null
-        ? R.propOr(443, protocol)(protocolPorts)
-        : Number(urlPort),
+    port,
     method: 'POST',
     headers,
-    body,
+    body: JSON.stringify(
+      {
+        query,
+        variables,
+      },
+      null,
+      pretty ? 2 : 0,
+    ),
     rejectUnauthorized: false,
   };
 
