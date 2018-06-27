@@ -117,6 +117,7 @@ objects:
       port: 24284
       protocol: TCP
       targetPort: 24284
+      type: NodePort
     selector:
       service: ${SERVICE_NAME}
 - apiVersion: v1
