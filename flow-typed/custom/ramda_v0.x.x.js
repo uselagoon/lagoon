@@ -421,11 +421,11 @@ declare module ramda {
     ) => UnaryFn<A, C>) &
     (<A, B>(ab: UnaryFn<A, B>, ...rest: Array<void>) => UnaryFn<A, B>);
 
-  declare type Filter = (<K, V, T: Array<V> | { [key: K]: V }>(
+  declare type Filter = (<K, V, T: Array<V> | { +[key: K]: V }>(
     fn: UnaryPredicateFn<V>,
     xs: T
   ) => T) &
-    (<K, V, T: Array<V> | { [key: K]: V }>(
+    (<K, V, T: Array<V> | { +[key: K]: V }>(
       fn: UnaryPredicateFn<V>
     ) => (xs: T) => T);
 
@@ -580,7 +580,9 @@ declare module ramda {
   declare function contains<E, T: Array<E> | string>(x: E, xs: T): boolean;
   declare function contains<E, T: Array<E> | string>(
     x: E,
-    ...rest: Array<void>
+    // Not sure why this doesn't work:
+    // ...rest: Array<void>
+    ...rest: Array<any>
   ): (xs: T) => boolean;
 
   declare function drop<V, T: Array<V> | string>(
@@ -1757,8 +1759,7 @@ declare module ramda {
     iterFn: (fn: (x: A) => B, xs: Array<A>) => Array<B>
   ): (fn: (x: A, idx: number, xs: Array<A>) => B, xs: Array<A>) => Array<B>;
 
-  // declare function always<T>(x: T): (x: any) => T;
-  declare function always(...args: Array<any>): any;
+  declare function always<T>(x: T): (x: any) => T;
 
 
   declare function ap<T, V>(
@@ -1999,23 +2000,22 @@ declare module ramda {
     y: (...args: Array<any>) => *
   ): (...args: Array<any>) => *;
 
-  // declare function ifElse<A, B, C>(
-  //   cond: (...args: Array<A>) => boolean,
-  //   ...rest: Array<void>
-  // ): ((
-  //   f1: (...args: Array<A>) => B,
-  //   ...rest: Array<void>
-  // ) => (f2: (...args: Array<A>) => C) => (...args: Array<A>) => B | C) &
-  //   ((
-  //     f1: (...args: Array<A>) => B,
-  //     f2: (...args: Array<A>) => C
-  //   ) => (...args: Array<A>) => B | C);
-  // declare function ifElse<A, B, C>(
-  //   cond: (...args: Array<any>) => boolean,
-  //   f1: (...args: Array<any>) => B,
-  //   f2: (...args: Array<any>) => C
-  // ): (...args: Array<A>) => B | C;
-  declare function ifElse(...args: Array<any>): any;
+  declare function ifElse<A, B, C>(
+    cond: (...args: Array<A>) => boolean,
+    ...rest: Array<void>
+  ): ((
+    f1: (...args: Array<A>) => B,
+    ...rest: Array<void>
+  ) => (f2: (...args: Array<A>) => C) => (...args: Array<A>) => B | C) &
+    ((
+      f1: (...args: Array<A>) => B,
+      f2: (...args: Array<A>) => C
+    ) => (...args: Array<A>) => B | C);
+  declare function ifElse<A, B, C>(
+    cond: (...args: Array<any>) => boolean,
+    f1: (...args: Array<any>) => B,
+    f2: (...args: Array<any>) => C
+  ): (...args: Array<A>) => B | C;
 
   declare function isEmpty(x: ?Array<any> | Object | string): boolean;
 
