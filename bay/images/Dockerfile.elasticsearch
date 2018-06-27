@@ -25,6 +25,6 @@ RUN bin/elasticsearch-plugin install file:///tmp/readonlyrest/es61x/build/distri
     && chown -R elasticsearch:root plugins/readonlyrest \
     && yum erase java-1.8.0-openjdk-devel -y \
     && yum erase unzip -y\
-    && rm -rf /tmp/ v1.16.21_es6.2.4.zip \
+    && rm -rf /tmp/v1.16.21_es6.2.4.zip \
     && rm -rf /tmp/readonlyrest
 
