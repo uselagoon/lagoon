@@ -1,6 +1,6 @@
 const R = require('ramda');
 const {
-  ifNotAdmin, inClauseOr, isPatchEmpty, knex, prepare, query,
+  ifNotAdmin, inClauseOr, isPatchEmpty, knex, prepare, query, whereAnd,
 } = require('./utils');
 
 const Sql = {
@@ -174,42 +174,33 @@ const getEnvironmentHoursMonthByEnvironmentId  = ({ sqlClient }) => async (cred,
 
 
 const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (cred, openshift_projectname, args) => {
-  const interested_month = args.month ? new Date(args.month) : new Date();
+  const interested_month = new Date(args.month) || new Date();
   const month_leading_zero = interested_month.getMonth()+1 < 10 ? `0${interested_month.getMonth()+1}`: interested_month.getMonth()+1;
 
-  try {
-    const result = await esClient.count({
-      index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
-      body: {
-        "query": {
-          "bool": {
-            "must_not": [
-              {
-                "match_phrase": {
-                  "request_header_useragent": {
-                    "query": "StatusCake"
-                  }
+  const result = await esClient.count({
+    index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
+    body: {
+      "query": {
+        "bool": {
+          "must_not": [
+            {
+              "match_phrase": {
+                "request_header_useragent": {
+                  "query": "StatusCake"
                 }
               }
-            ]
-          }
+            }
+          ]
         }
       }
-    });
-
-    const response = {
-      total: result.count
     }
-    return response
+  });
 
-  } catch(e) {
-    if (e.body.error.type && e.body.error.type == 'index_not_found_exception') {
-      return { total: 0 };
-    } else {
-      throw e;
-    }
+  const response = {
+    total: result.count
   }
 
+  return response
 };
 
 const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (cred, args) => {
