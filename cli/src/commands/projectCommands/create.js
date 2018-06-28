@@ -324,11 +324,11 @@ createProjectArgs): Promise<number> {
   }
 
   if (R.equals(R.length(allCustomers), 0)) {
-    return printErrors(cerr, 'No authorized customers found!');
+    return printErrors(cerr, {message: 'No authorized customers found!'});
   }
 
   if (R.equals(R.length(allOpenshifts), 0)) {
-    return printErrors(cerr, 'No authorized openshifts found!');
+    return printErrors(cerr, {message:'No authorized openshifts found!'});
   }
 
   const projectInput = await promptForProjectInput(
@@ -373,13 +373,12 @@ createProjectArgs): Promise<number> {
         R.prop('message', R.head(addProjectErrors)),
       )
     ) {
-      return printErrors(
-        cerr,
-        `Project name "${R.prop(
+      return printErrors(cerr, {
+        message: `Project name "${R.prop(
           'name',
           projectInput,
         )}" already exists! Please select a different project name.`,
-      );
+      });
     }
 
     return printGraphQLErrors(cerr, ...addProjectErrors);

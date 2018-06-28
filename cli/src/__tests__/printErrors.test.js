@@ -8,39 +8,9 @@ import {
 } from '../printErrors';
 
 describe('printErrors', () => {
-  const error = new Error('Some kind of error occurred');
-  error.stack =
-    "Reassigning the stack so that there's no paths to break the tests";
-
-  it('should print Errors (objects with a stack property)', () => {
-    const cerr = jest.fn();
-    const code = printErrors(cerr, error);
-    expect(code).toBe(1);
-    expect(cerr.mock.calls).toMatchSnapshot();
-  });
-
-  it('should print objects with a message key but no stack key (GraphQLErrors)', () => {
+  it('should print objects with a message key', () => {
     const cerr = jest.fn();
     const code = printErrors(cerr, { message: 'arbitraryValue' });
-    expect(code).toBe(1);
-    expect(cerr.mock.calls).toMatchSnapshot();
-  });
-
-  it('should print regular strings', () => {
-    const cerr = jest.fn();
-    const code = printErrors(cerr, 'An error string');
-    expect(code).toBe(1);
-    expect(cerr.mock.calls).toMatchSnapshot();
-  });
-
-  it('should print a mix of Errors, GraphQLErrors and strings', () => {
-    const cerr = jest.fn();
-    const code = printErrors(
-      cerr,
-      error,
-      { message: 'arbitraryValue' },
-      'An error string',
-    );
     expect(code).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
   });

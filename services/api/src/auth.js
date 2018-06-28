@@ -12,7 +12,11 @@ const parseBearerToken = R.compose(
   R.ifElse(
     splits =>
       R.length(splits) === 2 &&
-      R.compose(R.toLower, R.defaultTo(''), R.head)(splits) === 'bearer',
+      R.compose(
+        R.toLower,
+        R.defaultTo(''),
+        R.head,
+      )(splits) === 'bearer',
     R.nth(1),
     R.always(null),
   ),
@@ -32,17 +36,25 @@ const decodeToken = (
   }
 };
 
-const notEmpty = R.compose(R.not, R.isEmpty);
-const notNaN = R.compose(R.not, R.equals(NaN));
+const notEmpty = R.compose(
+  R.not,
+  R.isEmpty,
+);
+const notNaN = R.compose(
+  R.not,
+  R.equals(NaN),
+);
 
-// input: coma separated string with ids // defaults to '' if null
+const notEmptyOrNaN /* : Function */ = R.allPass([notEmpty, notNaN]);
+
+// input: comma separated string with ids // defaults to '' if null
 // output: array of ids (as strings again..)
-const parseCommaSeparatedInts = R.compose(
+const parseCommaSeparatedInts /* :  (string) => Array<string> */ = R.compose(
   // mariadb returns number ids as strings,...
   // it's hard to compare ints with strings later on,
   // so to stay compatible we keep the numbers as strings
   R.map(R.toString),
-  R.filter(R.allPass([notEmpty, notNaN])),
+  R.filter(notEmptyOrNaN),
   R.map(strId => parseInt(strId)),
   R.split(','),
   R.defaultTo(''),

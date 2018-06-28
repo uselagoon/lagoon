@@ -22,7 +22,7 @@ export async function promptUntilValidKeyPath(
       untildify(privateKeyPath),
     ))
   ) {
-    printErrors(cerr, 'File does not exist at given path!');
+    printErrors(cerr, { message: 'File does not exist at given path!' });
     return promptUntilValidKeyPath(cerr);
   }
   return privateKeyPath;

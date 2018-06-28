@@ -18,7 +18,11 @@ export function run() {
       // .argv: Get arguments as an object
       .strict().argv;
   } catch (err) {
-    const exitCode = printErrors(console.error, 'Uncaught error:', err);
+    const exitCode = printErrors(
+      console.error,
+      { message: 'Uncaught error:' },
+      err,
+    );
     process.exit(exitCode);
   }
 }

@@ -33,7 +33,9 @@ type Args = BaseHandlerArgs & {
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
   if (argv.identity != null && !(await fileExists(argv.identity))) {
-    return printErrors(cerr, 'File does not exist at identity option path!');
+    return printErrors(cerr, {
+      message: 'File does not exist at identity option path!',
+    });
   }
 
   let connection;

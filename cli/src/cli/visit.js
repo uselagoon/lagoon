@@ -40,7 +40,7 @@ export function visit(cmd: CommandModule) {
           .catch((err) => {
             const exitCode = printErrors(
               console.error,
-              `Uncaught error in ${cmd.command} command:`,
+              { message: `Uncaught error in ${cmd.command} command:` },
               err,
             );
             process.exit(exitCode);

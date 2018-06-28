@@ -122,7 +122,7 @@ type Args = BaseHandlerArgs & {
 };
 
 export async function handler({ argv, clog, cerr }: Args): Promise<number> {
-  const project = R.prop('project', argv) || R.prop('project', config);
+  const project: ?string = R.prop('project', argv) || R.prop('project', config);
 
   if (project == null) {
     return printProjectConfigurationError(cerr);

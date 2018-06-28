@@ -103,7 +103,7 @@ const createJWTWithoutSshKey = (args /* :  Args */) /* : string */ => {
 // ssh-rsa base-64 [comment]
 // Gets plain key information without comment / type information
 const extractBase64Key /* : string => ?string */ = R.compose(
-  R.prop(1),
+  R.nth(1),
   R.split(' '),
   R.defaultTo(''),
 );

@@ -115,7 +115,9 @@ InitArgs): Promise<number> {
     });
 
   if (exists && !overwrite) {
-    return printErrors(cerr, `Not overwriting existing file '${filepath}'.`);
+    return printErrors(cerr, {
+      message: `Not overwriting existing file '${filepath}'.`,
+    });
   }
 
   const configInput = await inquirer.prompt([
@@ -134,7 +136,11 @@ InitArgs): Promise<number> {
     clog(green('Configuration file created!'));
     return 0;
   } catch (e) {
-    return printErrors(cerr, `Error occurred while writing to ${filepath}:`, e);
+    return printErrors(
+      cerr,
+      { message: `Error occurred while writing to ${filepath}:` },
+      e,
+    );
   }
 }
 
