@@ -1,6 +1,6 @@
 const R = require('ramda');
 const {
-  ifNotAdmin, inClauseOr, isPatchEmpty, knex, prepare, query,
+  ifNotAdmin, inClauseOr, isPatchEmpty, knex, prepare, query, whereAnd,
 } = require('./utils');
 
 const Sql = {
