@@ -281,6 +281,7 @@ services:
     user: '111111111'
     ports:
     - "5140:5140/udp"
+    - "5044:5044"
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
