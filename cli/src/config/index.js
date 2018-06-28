@@ -30,10 +30,13 @@ export function createConfig(
   filepath: string,
   inputOptions: LagoonConfigInput,
 ): Promise<void> {
-  const config: LagoonConfig = {
-    ...inputOptions,
-  };
-  const yamlConfig = yaml.safeDump(config);
+  const inputOptionsWithoutEmptyStrings = R.reject(
+    option =>
+      // Reject (filter out) empty strings
+      R.both(R.is(String), R.isEmpty)(option),
+    inputOptions,
+  );
+  const yamlConfig = yaml.safeDump(inputOptionsWithoutEmptyStrings);
   return writeFile(filepath, yamlConfig);
 }
 

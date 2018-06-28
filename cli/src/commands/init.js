@@ -3,6 +3,7 @@
 import path from 'path';
 import { green } from 'chalk';
 import inquirer from 'inquirer';
+import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { createConfig } from '../config';
 import { fileExists } from '../util/fs';
@@ -18,16 +19,22 @@ export const description =
 
 export const OVERWRITE: 'overwrite' = 'overwrite';
 export const PROJECT: 'project' = 'project';
+export const API: 'api' = 'api';
+export const SSH: 'ssh' = 'ssh';
 
 export const commandOptions = {
   [OVERWRITE]: OVERWRITE,
   [PROJECT]: PROJECT,
+  [API]: API,
+  [SSH]: SSH,
 };
 
-type Options = {|
+type Options = {
   overwrite?: boolean,
   project?: string,
-|};
+  api?: string,
+  ssh?: string,
+};
 
 export function builder(yargs: Yargs) {
   return yargs
@@ -42,6 +49,16 @@ export function builder(yargs: Yargs) {
         describe: 'Name of project to configure',
         type: 'string',
         alias: 'p',
+      },
+      [API]: {
+        describe: 'API URL',
+        type: 'string',
+        alias: 'a',
+      },
+      [SSH]: {
+        describe: 'SSH URL',
+        type: 'string',
+        alias: 's',
       },
     })
     .example(
@@ -81,11 +98,11 @@ async function promptForOverwrite({
   options,
   clog,
 }:
-GetOverwriteOptionArgs): Promise<boolean> {
+GetOverwriteOptionArgs): Promise<{ [key: typeof OVERWRITE]: boolean }> {
   return inquirer.prompt([
     {
       type: 'confirm',
-      name: 'overwrite',
+      name: OVERWRITE,
       message: `File '${filepath}' already exists! Overwrite?`,
       default: false,
       when: answerWithOptionIfSetOrPrompt(OVERWRITE, options, clog),
@@ -108,11 +125,14 @@ InitArgs): Promise<number> {
 
   const overwrite = !exists
     ? undefined
-    : await promptForOverwrite({
-      filepath,
-      options,
-      clog,
-    });
+    : R.prop(
+      OVERWRITE,
+      await promptForOverwrite({
+        filepath,
+        options,
+        clog,
+      }),
+    );
 
   if (exists && !overwrite) {
     return printErrors(cerr, {
@@ -123,10 +143,22 @@ InitArgs): Promise<number> {
   const configInput = await inquirer.prompt([
     {
       type: 'input',
-      name: 'project',
+      name: PROJECT,
       message: 'Enter the name of the project to configure.',
       validate: input => (input ? Boolean(input) : 'Please enter a project.'),
       when: answerWithOptionIfSetOrPrompt(PROJECT, options, clog),
+    },
+    {
+      type: 'input',
+      name: API,
+      message: 'Enter the API URL',
+      when: answerWithOptionIfSetOrPrompt(API, options, clog),
+    },
+    {
+      type: 'input',
+      name: SSH,
+      message: 'Enter the SSH URL',
+      when: answerWithOptionIfSetOrPrompt(SSH, options, clog),
     },
   ]);
 
