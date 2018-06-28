@@ -460,8 +460,7 @@ declare module ramda {
    * Type
    */
 
-  // declare var compose: Compose;
-  declare var compose: Function;
+  declare var compose: Compose;
   declare var pipe: Pipe;
   // declare var pipeP: PipeP;
   declare var pipeP: Function;
@@ -712,13 +711,12 @@ declare module ramda {
     ...rest: Array<void>
   ): (xs: Array<T>) => boolean;
 
-  // declare function nth<V, T: Array<V>>(i: number, xs: T): ?V;
-  // declare function nth<V, T: Array<V> | string>(
-  //   i: number,
-  //   ...rest: Array<void>
-  // ): ((xs: string) => string) & ((xs: T) => ?V);
-  // declare function nth<T: string>(i: number, xs: T): T;
-  declare function nth(...args: Array<any>): any;
+  declare function nth<V, T: Array<V>>(i: number, xs: T): ?V;
+  declare function nth<V, T: Array<V> | string>(
+    i: number,
+    ...rest: Array<void>
+  ): ((xs: string) => string) & ((xs: T) => ?V);
+  declare function nth<T: string>(i: number, xs: T): T;
 
   declare type Find = (<V, T: Array<V>>(
     fn: UnaryPredicateFn<V>
@@ -1672,33 +1670,49 @@ declare module ramda {
     val: Array<{ [key: string]: T }>
   ): Array<{ [key: string]: T }>;
 
-  // declare function prop<T: string, O>(
-  //   key: T,
-  //   ...rest: Array<void>
-  // ): (o: O) => $ElementType<O, T>;
-  // declare function prop<T: string, O>(
-  //   __: $npm$ramda$Placeholder,
-  //   o: O
-  // ): (key: T) => $ElementType<O, T>;
-  // declare function prop<T: string, O>(key: T, o: O): $ElementType<O, T>;
-  declare function prop(...args: Array<any>): any;
+  declare function prop<T: string, O: Object>(key: T, o: O): $ElementType<O, T>;
+  declare function prop<T: string, O>(
+    key: T,
+    ...rest: Array<void>
+  ): (o: O) => $ElementType<O, T>;
+  declare function prop<T: string, O>(
+    __: $npm$ramda$Placeholder,
+    o: O
+  ): (key: T) => $ElementType<O, T>;
 
-  // declare function propOr<T, V, A: { [k: string]: V }>(
-  //   or: T,
-  //   ...rest: Array<void>
-  // ): ((p: string, ...rest: Array<void>) => (o: A) => V | T) &
-  //   ((p: string, o: A) => V | T);
-  // declare function propOr<T, V, A: { [k: string]: V }>(
-  //   or: T,
-  //   p: string,
-  //   ...rest: Array<void>
-  // ): (o: A) => V | T;
-  // declare function propOr<T, V, A: { [k: string]: V }>(
-  //   or: T,
-  //   p: string,
-  //   o: A
-  // ): V | T;
-  declare function propOr(...args: Array<any>): any;
+  declare function prop<T: string>(key: T, o: null | void): void;
+  declare function prop<T: string>(
+    key: T,
+    ...rest: Array<void>
+  ): (o: null | void) => void;
+  declare function prop<T: string>(
+    __: $npm$ramda$Placeholder,
+    o: null | void
+  ): (key: T) => void;
+
+  declare function propOr<T, V, O: Object>(or: T, p: string, o: O): $ElementType<O, V> | T;
+  declare function propOr<T, V, O: Object>(
+    or: T,
+    p: string,
+    ...rest: Array<void>
+  ): (o: O) => $ElementType<O, V> | T;
+  declare function propOr<T, V, O: Object>(
+    or: T,
+    ...rest: Array<void>
+  ): ((p: string, ...rest: Array<void>) => (o: O) => $ElementType<O, V> | T) &
+  ((p: string, o: O) => $ElementType<O, V> | T)
+
+  declare function propOr<T, V>(or: T, p: string, o: null | void): T;
+  declare function propOr<T, V>(
+    or: T,
+    p: string,
+    ...rest: Array<void>
+  ): (o: null | void) => T;
+  declare function propOr<T, V>(
+    or: T,
+    ...rest: Array<void>
+  ): ((p: string, ...rest: Array<void>) => (o: null | void) => T) &
+  ((p: string, o: null | void) => T)
 
   declare function keysIn(o: Object): Array<string>;
 
