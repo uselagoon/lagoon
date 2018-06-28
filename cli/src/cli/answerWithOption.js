@@ -5,8 +5,14 @@ import R from 'ramda';
 
 import type Inquirer from 'inquirer';
 
-function notifyOptionUsed(clog: typeof console.log, option: string): void {
-  clog(`${blue('!')} Using "${option}" option from arguments or config`);
+function notifyOptionUsed(
+  clog: typeof console.log,
+  option: string,
+  val: any,
+): void {
+  clog(
+    `${blue('!')} Set "${option}" option to "${val}" from arguments or config`,
+  );
 }
 
 // Return a [predicate, transformer] pair for use with R.cond(). The predicate and transformer functions expect an object with an "options" property containing the options to use.
@@ -24,7 +30,7 @@ export function answerWithOptionIfSet(
     (objectWithOptions: { options: Object }): void => {
       // Assign option key in the answers object to option value and let the user know
       const propVal = R.path(['options', option], objectWithOptions);
-      notifyOptionUsed(clog, option);
+      notifyOptionUsed(clog, option, propVal);
       answers[option] = propVal;
     },
   ];
