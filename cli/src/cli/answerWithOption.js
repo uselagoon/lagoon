@@ -43,10 +43,11 @@ export function answerWithOptionIfSetOrPrompt(
   options: Object,
   clog: typeof console.log,
 ) {
-  return (answers: Inquirer.answers) => R.ifElse(
-    // If the option exists, use it and let the user know...
-    ...answerWithOptionIfSet(option, answers, clog),
-    // ...otherwise return true to prompt the user to manually enter the option
-    R.T,
-  )({ options });
+  return (answers: Inquirer.answers) =>
+    R.ifElse(
+      // If the option exists, use it and let the user know...
+      ...answerWithOptionIfSet(option, answers, clog),
+      // ...otherwise return true to prompt the user to manually enter the option
+      R.T,
+    )({ options });
 }
