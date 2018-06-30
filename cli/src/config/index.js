@@ -66,7 +66,10 @@ export const getApiConfig: () => { hostname: string, port: number } = (() => {
 
   return () => {
     if (!allApiConfig) {
+      // Freeze process.env for Flow
       const env = Object.freeze({ ...process.env });
+
+      // Build API URL from environment variables if protocol, host and port exist
       const envApiUrl: string | null = R.ifElse(
         R.allPass([
           R.prop('API_PROTOCOL'),
@@ -123,19 +126,23 @@ export const getApiConfig: () => { hostname: string, port: number } = (() => {
 
 export const getSshConfig = (() => {
   let allSshConfig;
+
   return () => {
     if (!allSshConfig) {
+      // Freeze process.env for Flow
       const env = Object.freeze({ ...process.env });
 
-      const [configSshHost: string | null, configSshPort: null] = R.compose(
-        (sshConfig) => {
-          if (sshConfig && R.contains(':', sshConfig)) {
-            const split = R.split(':', sshConfig);
-            if (R.length(split) === 2) return split;
-          }
-          return [null, null];
-        },
-      )(R.prop('ssh', config));
+      // Parse the host and the port from the config string under `ssh`
+      const [
+        configSshHost: string | null,
+        configSshPort: string | null,
+      ] = R.compose((sshConfig) => {
+        if (sshConfig && R.contains(':', sshConfig)) {
+          const split = R.split(':', sshConfig);
+          if (R.length(split) === 2) return split;
+        }
+        return [null, null];
+      })(R.prop('ssh', config));
 
       const host: string =
         // Host from environment variable
