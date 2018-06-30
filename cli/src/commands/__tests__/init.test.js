@@ -29,6 +29,8 @@ describe('handler', () => {
         $0: '',
         overwrite: true,
         project: 'test_project',
+        api: '',
+        ssh: '',
       },
     });
 
@@ -52,6 +54,8 @@ describe('handler', () => {
         $0: '',
         overwrite: false,
         project: 'test_project',
+        api: '',
+        ssh: '',
       },
     });
 
@@ -75,6 +79,8 @@ describe('handler', () => {
         $0: '',
         overwrite: false,
         project: 'test_project',
+        api: '',
+        ssh: '',
       },
     });
 

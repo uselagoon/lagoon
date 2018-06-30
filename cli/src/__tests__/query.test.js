@@ -23,6 +23,8 @@ describe('runGQLQuery', () => {
       api: 'invalid-url',
     };
 
+    const mockedRequest = _mock(request);
+
     try {
       await runGQLQuery({
         cerr: jest.fn(),
@@ -30,7 +32,7 @@ describe('runGQLQuery', () => {
       });
     } catch (err) {
       // request should not be called in that case
-      const call = _mock(request).mock.calls;
+      const call = mockedRequest.mock.calls;
       expect(call).toEqual([]);
 
       expect(err).toEqual(
@@ -39,6 +41,8 @@ describe('runGQLQuery', () => {
         ),
       );
     }
+
+    mockedRequest.mockClear();
   });
 
   it('should do a POST request via GraphQL', async () => {
@@ -78,9 +82,10 @@ describe('runGQLQuery', () => {
 
   it('should do a POST request to a custom API via GraphQL', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
-    allConfigExports.config = {
-      api: 'https://www.example.com',
-    };
+    allConfigExports.getApiConfig = () => ({
+      hostname: 'www.example.com',
+      port: 443,
+    });
 
     const mockedRequest = _mock(request).mockImplementationOnce(() =>
       Promise.resolve({ data: 'data' }),
