@@ -25,7 +25,7 @@
     "test:watch": "jest --watch",
     "build": "rimraf build && babel src -d build",
     "watch": "babel --watch=src -d build",
-    "execute": "bash -c 'node -r @babel/register ./bin/lagu.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
+    "execute": "bash -c 'node -r @babel/register ./scripts/execute.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
   "repository": {
     "type": "git",
