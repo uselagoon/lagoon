@@ -6,6 +6,7 @@ const {
   knex,
   prepare,
   query,
+  whereAnd,
 } = require('./utils');
 
 const Sql = {
