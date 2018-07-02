@@ -16,26 +16,49 @@ export type LagoonConfig = {|
   openshift?: number,
   production_environment?: string,
   project?: string,
-  pullrequests?: boolean,
+  pullrequests?: boolean | RegExp,
   ssh?: string,
+  token?: string,
 |};
 
 export type LagoonConfigInput = {|
   project: string,
-  api?: string,
-  ssh?: string,
+  api: string,
+  ssh: string,
 |};
+
+const configInputOptionsTypes = {
+  project: String,
+  api: String,
+  ssh: String,
+};
 
 export function createConfig(
   filepath: string,
   inputOptions: LagoonConfigInput,
 ): Promise<void> {
-  const inputOptionsWithoutEmptyStrings = R.reject(
-    option =>
-      // Reject (filter out) empty strings
-      R.both(R.is(String), R.isEmpty)(option),
-    inputOptions,
+  const errors = [];
+  const inputOptionsWithoutEmptyStrings = R.reduce(
+    (acc, [optionKey, optionVal]) => {
+      // Validate
+      const optionType = R.prop(optionKey, configInputOptionsTypes);
+      if (!R.is(optionType, optionVal)) {
+        errors.push(
+          `- Invalid config option value for "${optionKey}": "${optionVal}" (expected type: ${
+            optionType.name
+          })`,
+        );
+      }
+      // Filter out empty strings
+      if (!R.both(R.is(String), R.isEmpty)(optionVal)) {
+        acc[optionKey] = optionVal;
+      }
+      return acc;
+    },
+    {},
+    R.toPairs(inputOptions),
   );
+  if (R.length(errors) > 0) throw new Error(errors.join('\n'));
   const yamlConfig = yaml.safeDump(inputOptionsWithoutEmptyStrings);
   return writeFile(filepath, yamlConfig);
 }

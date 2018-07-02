@@ -14,7 +14,7 @@ function _mock(fn: any): JestMockFn<any, any> {
 
 describe('createConfig', () => {
   it('should write default config to given path', async () => {
-    createConfig('lagoon.yml', { project: 'your_project' });
+    createConfig('lagoon.yml', { project: 'your_project', api: '', ssh: '' });
 
     const [filename, data] = _mock(fs.writeFile).mock.calls[0];
 

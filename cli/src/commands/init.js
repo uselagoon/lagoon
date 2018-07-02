@@ -178,7 +178,7 @@ InitArgs): Promise<number> {
   } catch (e) {
     return printErrors(
       cerr,
-      { message: `Error occurred while writing to ${filepath}:` },
+      { message: `Error occurred while creating config at ${filepath}:` },
       e,
     );
   }
