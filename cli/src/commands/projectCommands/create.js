@@ -93,9 +93,9 @@ export function builder(yargs: Yargs): Yargs {
       },
       [PULLREQUESTS]: {
         describe:
-          'Pull requests to deploy. Possible values include "false" (no pull requests) and "true" (all pull requests).',
+          'Pull requests to deploy. Possible values include "false" (no pull requests), "true" (all pull requests) and a regular expression to match pull request titles.',
         type: 'boolean',
-        alias: 'prs',
+        alias: 'r',
       },
       [PRODUCTION_ENVIRONMENT]: {
         describe: 'Production environment for new project',
@@ -112,8 +112,12 @@ export function builder(yargs: Yargs): Yargs {
       'Create a new project with the name "my_project" (will prompt for all other values).',
     )
     .example(
-      `$0 ${command} --${GIT_URL} git@github.com:amazeeio/drupal-example.git --${BRANCHES} '(staging|production)'`,
-      'Create a new project with the Git URL "git@github.com:amazeeio/drupal-example.git" which will have the "staging" and "production" branches deployed (will prompt for all other values).',
+      `$0 ${command} --${GIT_URL} git@github.com:amazeeio/drupal-example.git --${BRANCHES} '(staging|production)' --${PULLREQUESTS} '(Feature:|Hotfix:)`,
+      'Create a new project with the Git URL "git@github.com:amazeeio/drupal-example.git" which will have the "staging" and "production" branches and all pull requests with "Feature:" or "Hotfix:" in the title deployed (will prompt for all other values).',
+    )
+    .example(
+      `$0 ${command} --${CUSTOMER} 1 --${NAME} my_project --${GIT_URL} git@github.com:amazeeio/drupal-example.git --${OPENSHIFT} kickstart-openshift --${BRANCHES} '(staging|production)' --${PULLREQUESTS} '(Feature:|Hotfix:)' --${PRODUCTION_ENVIRONMENT} 'production'`,
+      'Create a new project with all options specified (will not prompt the user).',
     );
 }
 
@@ -324,11 +328,11 @@ createProjectArgs): Promise<number> {
   }
 
   if (R.equals(R.length(allCustomers), 0)) {
-    return printErrors(cerr, {message: 'No authorized customers found!'});
+    return printErrors(cerr, { message: 'No authorized customers found!' });
   }
 
   if (R.equals(R.length(allOpenshifts), 0)) {
-    return printErrors(cerr, {message:'No authorized openshifts found!'});
+    return printErrors(cerr, { message: 'No authorized openshifts found!' });
   }
 
   const projectInput = await promptForProjectInput(

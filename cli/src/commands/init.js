@@ -63,7 +63,7 @@ export function builder(yargs: Yargs) {
     })
     .example(
       `$0 ${command}`,
-      'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for a project name to add to the config.\n',
+      'Create a config file at ./.lagoon.yml. This will confirm with the user whether to overwrite the config if it already exists and also prompt for some parameters to add to the config.\n',
     )
     .example(
       `$0 ${command} --${OVERWRITE}`,
@@ -78,12 +78,20 @@ export function builder(yargs: Yargs) {
       'Set project to "my_project" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} --${PROJECT} my_project`,
-      'Short form for setting project to "my_project" (do not prompt the user).\n',
+      `$0 ${command} --${API} http://localhost:3000`,
+      'Set API URL to "http://localhost:3000" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} --${OVERWRITE} --${PROJECT} my_project`,
-      'Overwrite existing config files and set project to "my_project" (do not confirm with or prompt the user).',
+      `$0 ${command} --${SSH} localhost:2020`,
+      'Set SSH URL to "localhost:2020" (do not prompt the user).\n',
+    )
+    .example(
+      `$0 ${command} --${API} --${SSH}`,
+      'Skip configuration of API and SSH URLs (do not prompt the user).\n',
+    )
+    .example(
+      `$0 ${command} --${OVERWRITE} --${PROJECT} my_project --${API} --${SSH}`,
+      'Overwrite existing config files, set project to "my_project" and skip configuration of API and SSH URLs (do not confirm with or prompt the user for any parameters).',
     );
 }
 
