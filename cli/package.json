@@ -72,6 +72,7 @@
     "ssh2": "^0.6.0",
     "ssh2-streams": "^0.2.0",
     "table": "^4.0.3",
+    "tildify": "^1.2.0",
     "untildify": "^3.0.2",
     "url-regex": "^4.1.1",
     "yargs": "^11.0.0"

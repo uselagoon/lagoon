@@ -1,9 +1,7 @@
 // @flow
 
-import path from 'path';
-import os from 'os';
 import R from 'ramda';
-import { getApiConfig } from './config/';
+import { config, configDefaults, getApiConfig } from './config/';
 import { fileExists, readFile } from './util/fs';
 import request from './util/request';
 import { printErrors } from './printErrors';
@@ -31,7 +29,7 @@ QLQueryArgs): Object {
   };
 
   if (!headers.Authorization) {
-    const tokenFile = path.join(os.homedir(), '.lagoon-token');
+    const tokenFile = R.prop('token', { ...configDefaults, ...config });
     const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {

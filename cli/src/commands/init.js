@@ -4,8 +4,10 @@ import path from 'path';
 import { green } from 'chalk';
 import inquirer from 'inquirer';
 import R from 'ramda';
+import tildify from 'tildify';
+import untildify from 'untildify';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
-import { createConfig } from '../config';
+import { configDefaults, createConfig } from '../config';
 import { fileExists } from '../util/fs';
 import { printErrors } from '../printErrors';
 import { getOptions } from '.';
@@ -21,12 +23,14 @@ export const OVERWRITE: 'overwrite' = 'overwrite';
 export const PROJECT: 'project' = 'project';
 export const API: 'api' = 'api';
 export const SSH: 'ssh' = 'ssh';
+export const TOKEN: 'token' = 'token';
 
 export const commandOptions = {
   [OVERWRITE]: OVERWRITE,
   [PROJECT]: PROJECT,
   [API]: API,
   [SSH]: SSH,
+  [TOKEN]: TOKEN,
 };
 
 type Options = {
@@ -34,6 +38,7 @@ type Options = {
   project?: string,
   api?: string,
   ssh?: string,
+  token?: string,
 };
 
 export function builder(yargs: Yargs) {
@@ -59,6 +64,11 @@ export function builder(yargs: Yargs) {
         describe: 'SSH URL',
         type: 'string',
         alias: 's',
+      },
+      [TOKEN]: {
+        describe: 'Path to the Lagoon token file',
+        type: 'string',
+        alias: 't',
       },
     })
     .example(
@@ -86,12 +96,16 @@ export function builder(yargs: Yargs) {
       'Set SSH URL to "localhost:2020" (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} --${API} --${SSH}`,
-      'Skip configuration of API and SSH URLs (do not prompt the user).\n',
+      `$0 ${command} --${TOKEN} ~/tokens/.lagoon-token`,
+      'Set the token path to ~/tokens/.lagoon-token (do not prompt the user).\n',
     )
     .example(
-      `$0 ${command} --${OVERWRITE} --${PROJECT} my_project --${API} --${SSH}`,
-      'Overwrite existing config files, set project to "my_project" and skip configuration of API and SSH URLs (do not confirm with or prompt the user for any parameters).',
+      `$0 ${command} --${API} --${SSH} --${TOKEN}`,
+      'Skip configuration of API and SSH URLs and token path (do not prompt the user).\n',
+    )
+    .example(
+      `$0 ${command} --${OVERWRITE} --${PROJECT} my_project --${API} --${SSH} --${TOKEN}`,
+      'Overwrite existing config files, set project to "my_project" and skip configuration of API and SSH URLs and token path (do not confirm with or prompt the user for any parameters).',
     );
 }
 
@@ -168,11 +182,23 @@ InitArgs): Promise<number> {
       message: 'Enter the SSH URL',
       when: answerWithOptionIfSetOrPrompt(SSH, options, clog),
     },
+    {
+      type: 'input',
+      name: TOKEN,
+      message: `Change the path for the token (default: ${R.compose(
+        tildify,
+        R.prop('token'),
+      )(configDefaults)})`,
+      when: answerWithOptionIfSetOrPrompt(TOKEN, options, clog),
+    },
   ]);
 
   try {
     clog(`Creating file '${filepath}'...`);
-    await createConfig(filepath, configInput);
+    await createConfig(
+      filepath,
+      R.over(R.lensProp(TOKEN), untildify, configInput),
+    );
     clog(green('Configuration file created!'));
     return 0;
   } catch (e) {

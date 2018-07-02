@@ -23,6 +23,9 @@ Array [
     "[34m![39m Set \\"ssh\\" option to \\"\\" from arguments or config",
   ],
   Array [
+    "[34m![39m Set \\"token\\" option to \\"\\" from arguments or config",
+  ],
+  Array [
     "Creating file 'some/path/.lagoon.yml'...",
   ],
   Array [
@@ -41,6 +44,9 @@ Array [
   ],
   Array [
     "[34m![39m Set \\"ssh\\" option to \\"\\" from arguments or config",
+  ],
+  Array [
+    "[34m![39m Set \\"token\\" option to \\"\\" from arguments or config",
   ],
   Array [
     "Creating file 'some/path/.lagoon.yml'...",

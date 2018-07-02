@@ -1,6 +1,8 @@
 // @flow
 
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import url from 'url';
 import R from 'ramda';
 import { writeFile } from '../util/fs';
@@ -31,6 +33,7 @@ const configInputOptionsTypes = {
   project: String,
   api: String,
   ssh: String,
+  token: String,
 };
 
 export function createConfig(
@@ -42,11 +45,19 @@ export function createConfig(
     (acc, [optionKey, optionVal]) => {
       // Validate
       const optionType = R.prop(optionKey, configInputOptionsTypes);
-      if (!R.is(optionType, optionVal)) {
+      if (!optionType) {
         errors.push(
-          `- Invalid config option value for "${optionKey}": "${optionVal}" (expected type: ${
-            optionType.name
-          })`,
+          `- Invalid config option "${optionKey}". Valid options: ${R.join(
+            ', ',
+            R.keys(configInputOptionsTypes),
+          )}`,
+        );
+      } else if (!R.is(optionType, optionVal)) {
+        errors.push(
+          `- Invalid config option value for "${optionKey}": "${optionVal}" expected type: ${R.prop(
+            'name',
+            optionType,
+          )}`,
         );
       }
       // Filter out empty strings
@@ -83,6 +94,10 @@ function readConfig(): LagoonConfig | null {
 }
 
 export const config = readConfig();
+
+export const configDefaults = Object.freeze({
+  token: path.join(os.homedir(), '.lagoon-token'),
+});
 
 export const getApiConfig: () => { hostname: string, port: number } = (() => {
   let allApiConfig;

@@ -31,6 +31,7 @@ describe('handler', () => {
         project: 'test_project',
         api: '',
         ssh: '',
+        token: '',
       },
     });
 
@@ -56,6 +57,7 @@ describe('handler', () => {
         project: 'test_project',
         api: '',
         ssh: '',
+        token: '',
       },
     });
 
@@ -81,6 +83,7 @@ describe('handler', () => {
         project: 'test_project',
         api: '',
         ssh: '',
+        token: '',
       },
     });
 

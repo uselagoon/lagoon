@@ -1,9 +1,8 @@
 // @flow
 
-import os from 'os';
-import path from 'path';
 import { green } from 'chalk';
-import { getSshConfig } from '../config';
+import R from 'ramda';
+import { config, configDefaults, getSshConfig } from '../config';
 import { sshConnect } from '../ssh/sshConnect';
 import { sshExec } from '../ssh/sshExec';
 import { fileExists, writeFile } from '../util/fs';
@@ -53,7 +52,7 @@ export async function handler({ clog, cerr, argv }: Args): Promise<number> {
 
   const output = await sshExec(connection, 'token');
   const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
-  const tokenFilePath = path.join(os.homedir(), '.lagoon-token');
+  const tokenFilePath = R.prop('token', { ...configDefaults, ...config });
   await writeFile(tokenFilePath, token);
 
   clog(green('Logged in successfully.'));
