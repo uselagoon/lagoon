@@ -128,21 +128,19 @@ Login successful
 
 ## Development - docker
 
-* First build the cli image: `make build/cli` (dependencies are automatically build)
-* Run the cli docker container via `docker-compose up -d cli` (dependencies are automatically started)
-* Run a bash inside the container: `docker-compose exec cli bash`
-* Use `yarn execute login --identity ~/.ssh/id_rsa` to login
-* Now you can run commands via `yarn execute <cli command>`
+- First build the cli image: `make build/cli` (dependencies are automatically build)
+- Run the cli docker container via `docker-compose up -d cli` (dependencies are automatically started)
+- Run a bash inside the container: `docker-compose exec cli bash`
+- Use `yarn execute login --identity ~/.ssh/id_rsa` to login
+- Now you can run commands via `yarn execute <cli command>`
 
 ## Development - local nodejs
 
 The `execute <cli command>` yarn script can be used to run CLI commands during development.
 
-Additionally you want to add:
+Additionally the following parameters should be set in the `.lagoon.yml` file. They can also be configured with the `init` command.
 
 ```yaml
 api: http://localhost:3000
 ssh: localhost:2020
 ```
-
-to the `.lagoon.yml` file so that it uses the development api and ssh services
