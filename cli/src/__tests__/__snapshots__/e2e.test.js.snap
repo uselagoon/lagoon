@@ -50,7 +50,7 @@ Logged in successfully."
 
 exports[`lagu should log out when logged in 1`] = `"Logged out successfully."`;
 
-exports[`lagu should log out when not logged in 1`] = `"Logged out successfully."`;
+exports[`lagu should not error on logout when not logged in 1`] = `"Logged out successfully."`;
 
 exports[`lagu should show customer details (project read from .lagoon.yml) 1`] = `
 "Customer details for project 'ci-multiproject1':

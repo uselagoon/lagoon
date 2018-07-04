@@ -39,7 +39,7 @@ describe('lagu', () => {
     expect(results.stdout).toMatchSnapshot();
   });
 
-  it('should log out when not logged in', async () => {
+  it('should not error on logout when not logged in', async () => {
     const results = spawnSync(CLI_PATH, ['logout'], {
       cwd,
     });
