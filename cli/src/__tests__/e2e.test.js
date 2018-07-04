@@ -9,6 +9,11 @@ const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'lagu.js');
 const cwd = path.join(__dirname, 'fixtures');
 const tokenPath = path.join(cwd, '.lagoon-token');
 
+const stripCreatedDates = R.replace(
+  /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/g,
+  '                   ',
+);
+
 describe('lagu', () => {
   it('should fail with error message without any arguments', async () => {
     const results = spawnSync(CLI_PATH, [], {
@@ -81,7 +86,7 @@ describe('lagu', () => {
       },
     );
     expect(results.code).toBe(0);
-    expect(results.stdout).toMatchSnapshot();
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
   // TODO: Run this in a directory that has a fixture .lagoon.yml file
@@ -90,7 +95,7 @@ describe('lagu', () => {
       cwd,
     });
     expect(results.code).toBe(0);
-    expect(results.stdout).toMatchSnapshot();
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
   // TODO: Comment in, figure out why this returns nothing (do we need GraphQL fixture data?)
@@ -118,7 +123,7 @@ describe('lagu', () => {
       },
     );
     expect(results.code).toBe(0);
-    expect(results.stdout).toMatchSnapshot();
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
   // TODO: Run this in a directory that has a fixture .lagoon.yml file
@@ -127,7 +132,7 @@ describe('lagu', () => {
       cwd,
     });
     expect(results.code).toBe(0);
-    expect(results.stdout).toMatchSnapshot();
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
   it('should list all projects', async () => {
@@ -135,7 +140,7 @@ describe('lagu', () => {
       cwd,
     });
     expect(results.code).toBe(0);
-    expect(results.stdout).toMatchSnapshot();
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
   it('should log out when logged in', async () => {
