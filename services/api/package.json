@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "jest": "^22.0.0",
-    "prettier": "^1.13.6",
+    "prettier": "^1.13.7",
     "prettier-eslint-cli": "^4.7.1"
   }
 }
