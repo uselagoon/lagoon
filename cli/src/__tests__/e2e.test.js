@@ -16,8 +16,30 @@ describe('lagu', () => {
     expect(results.message).toMatch('Not enough non-option arguments');
   });
 
-  // TODO: Deal with this in a way that doesn't modify global login state
-  it('should log out', async () => {
+  it('should init', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      [
+        'init',
+        '--overwrite',
+        '--token',
+        path.join(cwd, '.lagoon-token'),
+        '--project',
+        'ci-multiproject1',
+        '--api',
+        'http://localhost:3000',
+        '--ssh',
+        'localhost:2020',
+      ],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(results.stdout).toMatchSnapshot();
+  });
+
+  it('should log out when not logged in', async () => {
     const results = spawnSync(CLI_PATH, ['logout'], {
       cwd,
     });
@@ -25,7 +47,6 @@ describe('lagu', () => {
     expect(results.stdout).toMatchSnapshot();
   });
 
-  // TODO: Deal with this in a way that doesn't modify global login state
   it('should log in', async () => {
     const results = spawnSync(
       CLI_PATH,
@@ -102,6 +123,14 @@ describe('lagu', () => {
 
   it('should list all projects', async () => {
     const results = spawnSync(CLI_PATH, ['projects'], {
+      cwd,
+    });
+    expect(results.code).toBe(0);
+    expect(results.stdout).toMatchSnapshot();
+  });
+
+  it('should log out when logged in', async () => {
+    const results = spawnSync(CLI_PATH, ['logout'], {
       cwd,
     });
     expect(results.code).toBe(0);

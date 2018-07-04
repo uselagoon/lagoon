@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`lagu should init 1`] = `
+"! Set \\"overwrite\\" option to \\"true\\" from arguments or config
+! Set \\"project\\" option to \\"ci-multiproject1\\" from arguments or config
+! Set \\"api\\" option to \\"http://localhost:3000\\" from arguments or config
+! Set \\"ssh\\" option to \\"localhost:2020\\" from arguments or config
+! Set \\"token\\" option to \\"/Users/k/p/lagoon/cli/src/__tests__/fixtures/.lagoon-token\\" from arguments or config
+Creating file '/Users/k/p/lagoon/cli/src/__tests__/fixtures/.lagoon.yml'...
+Configuration file created!"
+`;
+
 exports[`lagu should list all projects 1`] = `
 "╔════════════════════╤═════════════════════════════════════════════════════╤══════════╤═══════════════╤═════════════════════╗
 ║ Project            │ Git URL                                             │ Branches │ Pull Requests │ Created             ║
@@ -38,7 +48,9 @@ exports[`lagu should log in 1`] = `
 Logged in successfully."
 `;
 
-exports[`lagu should log out 1`] = `"Logged out successfully."`;
+exports[`lagu should log out when logged in 1`] = `"Logged out successfully."`;
+
+exports[`lagu should log out when not logged in 1`] = `"Logged out successfully."`;
 
 exports[`lagu should show customer details (project read from .lagoon.yml) 1`] = `
 "Customer details for project 'ci-multiproject1':
