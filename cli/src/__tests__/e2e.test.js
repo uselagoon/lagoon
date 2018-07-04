@@ -1,10 +1,13 @@
 // @flow
 
+import fs from 'fs';
 import path from 'path';
+import R from 'ramda';
 import { sync as spawnSync } from 'execa';
 
 const CLI_PATH = path.join(__dirname, '..', '..', 'bin', 'lagu.js');
 const cwd = path.join(__dirname, 'fixtures');
+const tokenPath = path.join(cwd, '.lagoon-token');
 
 describe('lagu', () => {
   it('should fail with error message without any arguments', async () => {
@@ -23,7 +26,7 @@ describe('lagu', () => {
         'init',
         '--overwrite',
         '--token',
-        path.join(cwd, '.lagoon-token'),
+        tokenPath,
         '--project',
         'ci-multiproject1',
         '--api',
@@ -61,6 +64,12 @@ describe('lagu', () => {
     );
     expect(results.code).toBe(0);
     expect(results.stdout).toMatchSnapshot();
+    // Test whether token file has JWT header
+    const tokenHeader = R.compose(
+      R.nth(0),
+      R.split('.'),
+    )(fs.readFileSync(tokenPath, 'utf8'));
+    expect(tokenHeader).toMatch(/^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9$/);
   });
 
   it('should show customer details (using --project option)', async () => {
