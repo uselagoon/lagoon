@@ -3,6 +3,7 @@
 import request from '../util/request';
 
 import * as allConfigExports from '../config';
+import * as allApiConfigExports from '../config/getApiConfig';
 import { runGQLQuery } from '../query';
 
 jest.mock('../util/request');
@@ -17,7 +18,7 @@ jest.mock('../util/fs', () => ({
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('runGQLQuery', () => {
-  it('Should reject because of missing hostname', async () => {
+  it('should reject because of missing hostname', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = {
       api: 'invalid-url',
@@ -82,7 +83,7 @@ describe('runGQLQuery', () => {
 
   it('should do a POST request to a custom API via GraphQL', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
-    allConfigExports.getApiConfig = () => ({
+    allApiConfigExports.getApiConfig = () => ({
       hostname: 'www.example.com',
       port: 443,
     });

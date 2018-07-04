@@ -1,7 +1,8 @@
 // @flow
 
 import R from 'ramda';
-import { config, configDefaults, getApiConfig } from './config/';
+import { config, configDefaults } from './config';
+import { getApiConfig } from './config/getApiConfig';
 import { fileExists, readFile } from './util/fs';
 import request from './util/request';
 import { printErrors } from './printErrors';

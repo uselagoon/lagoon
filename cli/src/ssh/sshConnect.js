@@ -2,7 +2,7 @@
 
 import { Client } from 'ssh2';
 import { utils } from 'ssh2-streams';
-import { getSshConfig } from '../config';
+import { getSshConfig } from '../config/getSshConfig';
 import { readFile } from '../util/fs';
 
 import { getPrivateKeyPassphrase } from './getPrivateKeyPassphrase';

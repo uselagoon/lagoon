@@ -2,7 +2,8 @@
 
 import { green } from 'chalk';
 import R from 'ramda';
-import { config, configDefaults, getSshConfig } from '../config';
+import { config, configDefaults } from '../config';
+import { getSshConfig } from '../config/getSshConfig';
 import { sshConnect } from '../ssh/sshConnect';
 import { sshExec } from '../ssh/sshExec';
 import { fileExists, writeFile } from '../util/fs';
