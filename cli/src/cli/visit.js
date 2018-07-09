@@ -36,7 +36,7 @@ export function visit(cmd: CommandModule) {
             clog: console.log,
             cerr: console.error,
           })
-        // Log out error and then exit with a failure exit code
+        // On errors, log error and then exit with a failure exit code
           .catch((err) => {
             const exitCode = printErrors(
               console.error,
