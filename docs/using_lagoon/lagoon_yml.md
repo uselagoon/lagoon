@@ -35,7 +35,7 @@ environments:
         - domain.com
         - "www.domain.com":
             tls-acme: 'true'
-            Insecure: Redirect
+            insecure: Redirect
     cronjobs:
      - name: drush cron
        schedule: "H * * * *" # this will run the cron once per Hour
