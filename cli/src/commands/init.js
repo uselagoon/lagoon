@@ -109,7 +109,7 @@ export function builder(yargs: Yargs) {
     );
 }
 
-type GetOverwriteOptionArgs = {|
+type PromptForOverwriteArgs = {|
   filepath: string,
   options: Options,
   clog: typeof console.log,
@@ -120,7 +120,7 @@ async function promptForOverwrite({
   options,
   clog,
 }:
-GetOverwriteOptionArgs): Promise<{ [key: typeof OVERWRITE]: boolean }> {
+PromptForOverwriteArgs): Promise<{ [key: typeof OVERWRITE]: boolean }> {
   return inquirer.prompt([
     {
       type: 'confirm',
