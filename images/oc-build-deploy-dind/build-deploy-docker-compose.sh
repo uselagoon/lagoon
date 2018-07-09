@@ -392,11 +392,11 @@ do
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_NAME="${PERSISTENT_STORAGE_NAME}")
     fi
+  fi
 
-    PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
-    if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
-      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
-    fi
+  PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
+  if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
+    TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
   fi
 
   DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
@@ -562,4 +562,3 @@ do
 
   let COUNTER=COUNTER+1
 done
-
