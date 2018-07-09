@@ -127,7 +127,12 @@ PromptForOverwriteArgs): Promise<{ [key: typeof OVERWRITE]: boolean }> {
       name: OVERWRITE,
       message: `File '${filepath}' already exists! Overwrite?`,
       default: false,
-      when: answerWithOptionIfSetOrPrompt(OVERWRITE, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: OVERWRITE,
+        options,
+        notify: true,
+        clog,
+      }),
     },
   ]);
 }
@@ -168,19 +173,34 @@ InitArgs): Promise<number> {
       name: PROJECT,
       message: 'Enter the name of the project to configure.',
       validate: input => (input ? Boolean(input) : 'Please enter a project.'),
-      when: answerWithOptionIfSetOrPrompt(PROJECT, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: PROJECT,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: API,
       message: 'Enter the API URL',
-      when: answerWithOptionIfSetOrPrompt(API, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: API,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: SSH,
       message: 'Enter the SSH URL',
-      when: answerWithOptionIfSetOrPrompt(SSH, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: SSH,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
@@ -189,7 +209,12 @@ InitArgs): Promise<number> {
         tildify,
         R.prop('token'),
       )(configDefaults)})`,
-      when: answerWithOptionIfSetOrPrompt(TOKEN, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: TOKEN,
+        options,
+        notify: true,
+        clog,
+      }),
     },
   ]);
 

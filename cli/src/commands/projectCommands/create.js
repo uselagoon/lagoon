@@ -185,7 +185,12 @@ export async function promptForProjectInput(
       when(answers) {
         return R.cond([
           // 1. If the `customer` is set in the command line arguments or the config, use that customer
-          answerWithOptionIfSet(CUSTOMER, answers, clog),
+          answerWithOptionIfSet({
+            option: CUSTOMER,
+            answers,
+            notify: true,
+            clog,
+          }),
           // 2. If only one customer was returned from the allCustomers query, use that customer as the answer to the question and tell the user, not prompting them to choose.
           [
             R.compose(
@@ -217,7 +222,12 @@ export async function promptForProjectInput(
       name: NAME,
       message: 'Project name:',
       validate: input => Boolean(input) || 'Please enter a project name.',
-      when: answerWithOptionIfSetOrPrompt(NAME, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: NAME,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
@@ -232,7 +242,12 @@ export async function promptForProjectInput(
         ) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
-      when: answerWithOptionIfSetOrPrompt(GIT_URL, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: GIT_URL,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'list',
@@ -244,7 +259,12 @@ export async function promptForProjectInput(
       when(answers) {
         return R.cond([
           // 1. If the `openshift` is set in the command line arguments or the config, use that openshift
-          answerWithOptionIfSet(OPENSHIFT, answers, clog),
+          answerWithOptionIfSet({
+            option: OPENSHIFT,
+            answers,
+            notify: true,
+            clog,
+          }),
           // 2. If only one openshift was returned from the allOpenshifts query, use that openshift as the answer to the question and tell the user, not prompting them to choose.
           [
             R.compose(
@@ -276,25 +296,36 @@ export async function promptForProjectInput(
       name: BRANCHES,
       message: 'Deploy branches:',
       default: 'true',
-      when: answerWithOptionIfSetOrPrompt(BRANCHES, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: BRANCHES,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: PULLREQUESTS,
       message: 'Pull requests:',
       default: null,
-      when: answerWithOptionIfSetOrPrompt(PULLREQUESTS, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: PULLREQUESTS,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: PRODUCTION_ENVIRONMENT,
       message: 'Production environment:',
       default: null,
-      when: answerWithOptionIfSetOrPrompt(
-        PRODUCTION_ENVIRONMENT,
+      when: answerWithOptionIfSetOrPrompt({
+        option: PRODUCTION_ENVIRONMENT,
         options,
+        notify: true,
         clog,
-      ),
+      }),
     },
   ];
 

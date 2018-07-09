@@ -16,11 +16,17 @@ function notifyOptionUsed(
 }
 
 // Return a [predicate, transformer] pair for use with R.cond(). The predicate and transformer functions expect an object with an "options" property containing the options to use.
-export function answerWithOptionIfSet(
+export function answerWithOptionIfSet({
+  option,
+  answers,
+  notify,
+  clog,
+}: {
   option: string,
   answers: Inquirer.answers,
+  notify?: boolean,
   clog: typeof console.log,
-) {
+}) {
   return [
     (R.compose(
       // Option is set
@@ -30,7 +36,9 @@ export function answerWithOptionIfSet(
     (objectWithOptions: { options: Object }): void => {
       // Assign option key in the answers object to option value and let the user know
       const propVal = R.path(['options', option], objectWithOptions);
-      notifyOptionUsed(clog, option, propVal);
+      if (notify === true) {
+        notifyOptionUsed(clog, option, propVal);
+      }
       answers[option] = propVal;
     },
   ];
@@ -38,15 +46,26 @@ export function answerWithOptionIfSet(
 
 // Return a function to use with the `when` option of the question object.
 // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
-export function answerWithOptionIfSetOrPrompt(
+export function answerWithOptionIfSetOrPrompt({
+  option,
+  options,
+  notify,
+  clog,
+}: {
   option: string,
   options: Object,
+  notify?: boolean,
   clog: typeof console.log,
-) {
+}) {
   return (answers: Inquirer.answers) =>
     R.ifElse(
       // If the option exists, use it and let the user know...
-      ...answerWithOptionIfSet(option, answers, clog),
+      ...answerWithOptionIfSet({
+        option,
+        answers,
+        notify,
+        clog,
+      }),
       // ...otherwise return true to prompt the user to manually enter the option
       R.T,
     )({ options });
