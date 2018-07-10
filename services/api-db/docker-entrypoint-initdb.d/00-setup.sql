@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS project (
        name                   varchar(100) UNIQUE,
        customer               int REFERENCES customer (id),
        git_url                varchar(300),
+       subfolder              varchar(300),
        active_systems_deploy  varchar(300),
        active_systems_promote varchar(300),
        active_systems_remove  varchar(300),
@@ -351,6 +352,25 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_subfolder_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'subfolder'
+            )  THEN
+      ALTER TABLE `project` ADD `subfolder` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -364,3 +384,4 @@ CALL add_enum_rocketchat_to_type_in_project_notification();
 CALL add_deleted_to_environment;
 CALL add_storagecalc_to_project();
 CALL add_project_pattern_to_openshift();
+CALL add_subfolder_to_project();
