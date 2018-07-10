@@ -82,7 +82,9 @@ type Mutation {
   addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
   deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
   addNotificationToProject(input: NotificationToProjectInput!): Project
-  removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
+  removeNotificationFromProject(
+    input: RemoveNotificationFromProjectInput!
+  ): Project
   addSshKeyToProject(input: SshKeyToProjectInput!): Project
   removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
   addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
