@@ -55,11 +55,8 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (
 const getEnvironmentStorageByEnvironmentId = ({ sqlClient }) => async (
   cred,
   eid,
-  args,
 ) => {
-  const { projects } = cred.permissions;
-
-  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
+  if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
 
@@ -82,7 +79,6 @@ const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (
   eid,
   args,
 ) => {
-  const { customers, projects } = cred.permissions;
   const str = `
       SELECT
         SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
@@ -106,8 +102,6 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
   eid,
   args,
 ) => {
-  const { customers, projects } = cred.permissions;
-
   const str = `
   SELECT
     e.created, e.deleted
@@ -164,7 +158,7 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
   // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
   if (
     deleted_date < interested_month_start &&
-    deleted_date != '0000-00-00 00:00:00'
+    deleted_date !== '0000-00-00 00:00:00'
   ) {
     return { month, hours: 0 };
   }
@@ -183,7 +177,10 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
   }
 
   // Environment is not deleted yet or was deleted after the interested month
-  if (deleted == '0000-00-00 00:00:00' || deleted_date > interested_month_end) {
+  if (
+    deleted === '0000-00-00 00:00:00' ||
+    deleted_date > interested_month_end
+  ) {
     date_to = interested_month_end;
   }
 
@@ -232,7 +229,10 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
     };
     return response;
   } catch (e) {
-    if (e.body.error.type && e.body.error.type == 'index_not_found_exception') {
+    if (
+      e.body.error.type &&
+      e.body.error.type === 'index_not_found_exception'
+    ) {
       return { total: 0 };
     }
     throw e;
@@ -293,9 +293,7 @@ const addOrUpdateEnvironmentStorage = ({ sqlClient }) => async (
   cred,
   input,
 ) => {
-  const { projects } = cred.permissions;
-
-  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
+  if (cred.role !== 'admin') {
     throw new Error('EnvironmentStorage creation unauthorized.');
   }
   const prep = prepare(
@@ -342,7 +340,7 @@ const deleteEnvironment = ({ sqlClient }) => async (cred, input) => {
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';
