@@ -6,5 +6,8 @@
     "./services/auth-server"
   ],
   "git.ignoreLimitWarning": true,
-  "javascript.validate.enable": false
+  "javascript.validate.enable": false,
+  "files.trimTrailingWhitespace": true,
+  "prettier.eslintIntegration": true,
+  "flow.useNPMPackagedFlow": true
 }
