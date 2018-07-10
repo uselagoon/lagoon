@@ -104,7 +104,7 @@ sub vcl_recv {
       # Only allows BAN if the Host Header has the style of with "${SERVICE_NAME:-varnish}:8080" or "${SERVICE_NAME:-varnish}".
       # Such a request is only possible from within the Docker network, as a request from external goes trough the Kubernetes Router and for that needs a proper Host Header
       if (!req.http.host ~ "^${SERVICE_NAME:-varnish}(:\d+)?$") {
-          return (synth(403, "BAN only allowed from within own network."));
+          return (synth(403, "Only allowed from within own network."));
       }
 
       if (req.method == "BAN") {
@@ -120,7 +120,7 @@ sub vcl_recv {
       }
 
       if (req.method == "URIBAN" || req.method == "PURGE") {
-        ban("req.url == " + req.url);
+        ban("req.url ~ " + req.url);
         # Throw a synthetic page so the request won't go to the backend.
         return (synth(200, "Ban added."));
       }
