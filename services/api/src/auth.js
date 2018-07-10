@@ -47,9 +47,9 @@ const notNaN = R.compose(
 
 const notEmptyOrNaN /* : Function */ = R.allPass([notEmpty, notNaN]);
 
-// input: comma separated string with ids // defaults to '' if null
+// input: comma separated string with ids (defaults to '' if null)
 // output: array of ids (as strings again..)
-const parseCommaSeparatedInts /* :  (string) => Array<string> */ = R.compose(
+const parseCommaSeparatedInts /* :  (?string) => Array<string> */ = R.compose(
   // mariadb returns number ids as strings,...
   // it's hard to compare ints with strings later on,
   // so to stay compatible we keep the numbers as strings
