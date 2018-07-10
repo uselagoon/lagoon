@@ -84,6 +84,7 @@ const typeDefs = `
     name: String
     customer: Customer
     git_url: String
+    subfolder: String
     notifications(type: NotificationType): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
@@ -170,6 +171,7 @@ const typeDefs = `
     name: String!
     customer: Int!
     git_url: String!
+    subfolder: String
     openshift: Int!
     active_systems_deploy: String
     active_systems_promote: String
@@ -282,6 +284,7 @@ const typeDefs = `
     name: String
     customer: Int
     git_url: String
+    subfolder: String
     active_systems_deploy: String
     active_systems_remove: String
     branches: String

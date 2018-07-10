@@ -415,6 +415,30 @@ mutation FillAPI {
     id
   }
 
+  CiFeaturesSubfolder: addProject(
+    input: {
+      id: 17
+      name: "ci-features-subfolder"
+      customer: 3
+      openshift: 2
+      git_url: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
+      production_environment: "master"
+      subfolder:"subfolder1/subfolder2"
+    }
+  ) {
+    id
+  }
+
+  CiFeaturesSubfolderRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-features-subfolder"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
   CiElasticsearch: addProject(
     input: {
       id: 14
