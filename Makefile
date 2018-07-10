@@ -308,7 +308,7 @@ services :=       api \
 									webhooks2tasks \
 									hacky-rest2tasks-ui \
 									rabbitmq \
-									logs-collector \
+									logs-forwarder \
 									logs-db \
 									logs-db-ui \
 									logs2logs-db \
@@ -620,10 +620,11 @@ minishift/login-docker-registry:
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5140; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
+	oc -n lagoon policy add-role-to-user admin -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
@@ -631,7 +632,16 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \
-	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
+	oc -n lagoon create serviceaccount logs-collector; \
+	oc -n lagoon adm policy add-cluster-role-to-user cluster-reader -z logs-collector; \
+	oc -n lagoon adm policy add-scc-to-user hostaccess -z logs-collector; \
+	oc -n lagoon adm policy add-scc-to-user privileged -z logs-collector; \
+	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
+	oc -n lagoon create serviceaccount lagoon-deployer; \
+	oc -n lagoon policy add-role-to-user edit -z openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
+	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
+	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
@@ -641,7 +651,8 @@ openshift-lagoon-setup:
 .PHONY: openshift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -";
+	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140; \
 
 # Stop OpenShift Cluster
 .PHONY: minishift/stop
