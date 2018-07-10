@@ -89,7 +89,6 @@ describe('lagu', () => {
     expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
-  // TODO: Run this in a directory that has a fixture .lagoon.yml file
   it('should show customer details (project read from .lagoon.yml)', async () => {
     const results = spawnSync(CLI_PATH, ['customer'], {
       cwd,
@@ -98,21 +97,49 @@ describe('lagu', () => {
     expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
-  // TODO: Comment in, figure out why this returns nothing (do we need GraphQL fixture data?)
-  // it('should list all environments for a project (using --project option)', async () => {
-  //   const results = spawnSync(CLI_PATH, ['environments', '--project', 'ci-multiproject1'], {
-  // cwd} );
-  //   expect(results.code).toBe(0);
-  //   expect(results.stdout).toMatchSnapshot();
-  // });
-  // // TODO: Run this in a directory that has a fixture .lagoon.yml file
-  // it('should list all environments for a project (project read from .lagoon.yml)', async () => {
-  //   const results = spawnSync(CLI_PATH, ['environments'], {
-  //     reject: false,
-  //   });
-  //   expect(results.code).toBe(0);
-  //   expect(results.stdout).toMatchSnapshot();
-  // });
+  it('should list all environments for a project (using --project option)', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      ['environments', '--project', 'ci-github'],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should list no environments for a project with none (using --project option)', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      ['environments', '--project', 'ci-multiproject1'],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should log an error for a non-existent project (using --project option)', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      ['environments', '--project', 'non-existent-project'],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should list all environments for a project (project read from .lagoon.yml)', async () => {
+    const results = spawnSync(CLI_PATH, ['environments'], {
+      reject: false,
+    });
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
 
   it('should show project details (using --project option)', async () => {
     const results = spawnSync(
@@ -126,7 +153,6 @@ describe('lagu', () => {
     expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
 
-  // TODO: Run this in a directory that has a fixture .lagoon.yml file
   it('should show project details (read from .lagoon.yml)', async () => {
     const results = spawnSync(CLI_PATH, ['project'], {
       cwd,

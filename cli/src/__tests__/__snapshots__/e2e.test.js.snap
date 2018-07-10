@@ -10,6 +10,24 @@ Creating file '/Users/k/p/lagoon/cli/src/__tests__/fixtures/.lagoon.yml'...
 Configuration file created!"
 `;
 
+exports[`lagu should list all environments for a project (project read from .lagoon.yml) 1`] = `
+"╔════════╤═══════════════════╤═════════════╤═════════════════════╤═════════════════════╗
+║ Name   │ Environmment Type │ Deploy Type │ Created             │ Updated             ║
+╟────────┼───────────────────┼─────────────┼─────────────────────┼─────────────────────╢
+║ master │ production        │ branch      │                     │                     ║
+╚════════╧═══════════════════╧═════════════╧═════════════════════╧═════════════════════╝
+"
+`;
+
+exports[`lagu should list all environments for a project (using --project option) 1`] = `
+"╔════════╤═══════════════════╤═════════════╤═════════════════════╤═════════════════════╗
+║ Name   │ Environmment Type │ Deploy Type │ Created             │ Updated             ║
+╟────────┼───────────────────┼─────────────┼─────────────────────┼─────────────────────╢
+║ master │ production        │ branch      │                     │                     ║
+╚════════╧═══════════════════╧═════════════╧═════════════════════╧═════════════════════╝
+"
+`;
+
 exports[`lagu should list all projects 1`] = `
 "╔════════════════════╤═════════════════════════════════════════════════════╤══════════╤═══════════════╤═════════════════════╗
 ║ Project            │ Git URL                                             │ Branches │ Pull Requests │ Created             ║
@@ -42,6 +60,17 @@ exports[`lagu should list all projects 1`] = `
 ╚════════════════════╧═════════════════════════════════════════════════════╧══════════╧═══════════════╧═════════════════════╝
 "
 `;
+
+exports[`lagu should list no environments for a project with none (using --project option) 1`] = `
+"╔════════╤═══════════════════╤═════════════╤═════════════════════╤═════════════════════╗
+║ Name   │ Environmment Type │ Deploy Type │ Created             │ Updated             ║
+╟────────┼───────────────────┼─────────────┼─────────────────────┼─────────────────────╢
+║ master │ production        │ branch      │                     │                     ║
+╚════════╧═══════════════════╧═════════════╧═════════════════════╧═════════════════════╝
+"
+`;
+
+exports[`lagu should log an error for a non-existent project (using --project option) 1`] = `"No project 'non-existent-project' found."`;
 
 exports[`lagu should log in 1`] = `
 "Logging in to lagoon at lagoon@localhost:2020...

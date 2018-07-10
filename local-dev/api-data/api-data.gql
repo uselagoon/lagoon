@@ -223,6 +223,17 @@ mutation FillAPI {
   ) {
     id
   }
+  CiGithubEnvironment: addOrUpdateEnvironment(
+    input: {
+      name: "master"
+      project: 3
+      deploy_type: BRANCH
+      environment_type: PRODUCTION
+      openshift_projectname: "ci-local"
+    }
+  ) {
+    id
+  }
 
   CiGitlab: addProject(
     input: {
