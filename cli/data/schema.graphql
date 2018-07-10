@@ -14,13 +14,19 @@ input CustomerInput {
   private_key: String
 }
 
+scalar Date
+
 input DeleteCustomerInput {
   name: String!
 }
 
 input DeleteEnvironmentInput {
   name: String!
-  project: String!
+  project: Int!
+}
+
+input DeleteNotificationRocketChatInput {
+  name: String!
 }
 
 input DeleteNotificationSlackInput {
@@ -39,23 +45,62 @@ input DeleteSshKeyInput {
   name: String!
 }
 
+enum DeployType {
+  BRANCH
+  PULLREQUEST
+  PROMOTE
+}
+
+type EnviornmentHitsMonth {
+  total: Int
+}
+
 type Environment {
   id: Int
   name: String
   project: Project
-  git_type: String
+  deploy_type: String
   environment_type: String
   openshift_projectname: String
   updated: String
   created: String
+  deleted: String
+  hours_month(month: Date): EnvironmentHoursMonth
+  storages: [EnvironmentStorage]
+  storage_month(month: Date): EnvironmentStorageMonth
+  hits_month(month: Date): EnviornmentHitsMonth
+}
+
+type EnvironmentHoursMonth {
+  month: String
+  hours: Int
 }
 
 input EnvironmentInput {
   name: String!
   project: Int!
-  git_type: GitType!
+  deploy_type: DeployType!
   environment_type: EnvType!
   openshift_projectname: String!
+}
+
+type EnvironmentStorage {
+  id: Int
+  environment: Environment
+  persistent_storage_claim: String
+  bytes_used: Float
+  updated: String
+}
+
+input EnvironmentStorageInput {
+  environment: Int!
+  persistent_storage_claim: String!
+  bytes_used: Int!
+}
+
+type EnvironmentStorageMonth {
+  month: String
+  bytes_used: Float
 }
 
 enum EnvType {
@@ -63,15 +108,18 @@ enum EnvType {
   DEVELOPMENT
 }
 
-enum GitType {
-  BRANCH
-  PULLREQUEST
-}
-
 type Mutation {
+  updateEnvironment(input: UpdateEnvironmentInput!): Environment
+  updateSshKey(input: UpdateSshKeyInput!): SshKey
+  updateNotificationRocketChat(input: UpdateNotificationRocketChatInput!): NotificationRocketChat
+  updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
+  updateOpenshift(input: UpdateOpenshiftInput!): Openshift
+  updateCustomer(input: UpdateCustomerInput!): Customer
+  updateProject(input: UpdateProjectInput!): Project
   addProject(input: ProjectInput!): Project
   deleteProject(input: DeleteProjectInput!): String
   addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+  addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
   deleteEnvironment(input: DeleteEnvironmentInput!): String
   addSshKey(input: SshKeyInput!): SshKey
   deleteSshKey(input: DeleteSshKeyInput!): String
@@ -79,12 +127,12 @@ type Mutation {
   deleteCustomer(input: DeleteCustomerInput!): String
   addOpenshift(input: OpenshiftInput!): Openshift
   deleteOpenshift(input: DeleteOpenshiftInput!): String
+  addNotificationRocketChat(input: NotificationRocketChatInput!): NotificationRocketChat
   addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+  deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
   deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
   addNotificationToProject(input: NotificationToProjectInput!): Project
-  removeNotificationFromProject(
-    input: RemoveNotificationFromProjectInput!
-  ): Project
+  removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
   addSshKeyToProject(input: SshKeyToProjectInput!): Project
   removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
   addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
@@ -92,7 +140,20 @@ type Mutation {
   truncateTable(tableName: String!): String
 }
 
-union Notification = NotificationSlack
+union Notification = NotificationRocketChat | NotificationSlack
+
+type NotificationRocketChat {
+  id: Int
+  name: String
+  webhook: String
+  channel: String
+}
+
+input NotificationRocketChatInput {
+  name: String!
+  webhook: String!
+  channel: String!
+}
 
 type NotificationSlack {
   id: Int
@@ -109,8 +170,13 @@ input NotificationSlackInput {
 
 input NotificationToProjectInput {
   project: String!
-  notificationType: String!
+  notificationType: NotificationType!
   notificationName: String!
+}
+
+enum NotificationType {
+  SLACK
+  ROCKETCHAT
 }
 
 type Openshift {
@@ -141,15 +207,18 @@ type Project {
   name: String
   customer: Customer
   git_url: String
-  notifications(type: String): [Notification]
+  notifications(type: NotificationType): [Notification]
   active_systems_deploy: String
+  active_systems_promote: String
   active_systems_remove: String
   branches: String
   production_environment: String
-  pullrequests: Boolean
+  auto_idle: Int
+  storage_calc: Int
+  pullrequests: String
   openshift: Openshift
   sshKeys: [SshKey]
-  environments: [Environment]
+  environments(type: EnvType, include_deleted: Boolean): [Environment]
   created: String
 }
 
@@ -160,23 +229,29 @@ input ProjectInput {
   git_url: String!
   openshift: Int!
   active_systems_deploy: String
+  active_systems_promote: String
   active_systems_remove: String
   branches: String
-  pullrequests: Boolean
+  pullrequests: String
   production_environment: String
+  auto_idle: Int
+  storage_calc: Int
 }
 
 type Query {
+  customerByName(name: String!): Customer
   projectByName(name: String!): Project
   projectByGitUrl(gitUrl: String!): Project
+  environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
   allProjects(createdAfter: String, gitUrl: String): [Project]
   allCustomers(createdAfter: String): [Customer]
   allOpenshifts: [Openshift]
+  allEnvironments(createdAfter: String): [Environment]
 }
 
 input RemoveNotificationFromProjectInput {
   project: String!
-  notificationType: String!
+  notificationType: NotificationType!
   notificationName: String!
 }
 
@@ -218,4 +293,101 @@ input SshKeyToProjectInput {
 enum SshKeyType {
   SSH_RSA
   SSH_ED25519
+}
+
+type UnassignedNotification {
+  id: Int
+  name: String
+  type: String
+}
+
+input UpdateCustomerInput {
+  id: Int!
+  patch: UpdateCustomerPatchInput!
+}
+
+input UpdateCustomerPatchInput {
+  name: String
+  comment: String
+  private_key: String
+  created: String
+}
+
+input UpdateEnvironmentInput {
+  name: String!
+  patch: UpdateEnvironmentPatchInput
+}
+
+input UpdateEnvironmentPatchInput {
+  project: Int
+  deploy_type: DeployType
+  environment_type: EnvType
+  openshift_projectname: String
+}
+
+input UpdateNotificationRocketChatInput {
+  name: String!
+  patch: UpdateNotificationRocketChatPatchInput
+}
+
+input UpdateNotificationRocketChatPatchInput {
+  name: String
+  webhook: String
+  channel: String
+}
+
+input UpdateNotificationSlackInput {
+  name: String!
+  patch: UpdateNotificationSlackPatchInput
+}
+
+input UpdateNotificationSlackPatchInput {
+  name: String
+  webhook: String
+  channel: String
+}
+
+input UpdateOpenshiftInput {
+  id: Int!
+  patch: UpdateOpenshiftPatchInput!
+}
+
+input UpdateOpenshiftPatchInput {
+  name: String
+  console_url: String
+  token: String
+  router_pattern: String
+  project_user: String
+  ssh_host: String
+  ssh_port: String
+}
+
+input UpdateProjectInput {
+  id: Int!
+  patch: UpdateProjectPatchInput!
+}
+
+input UpdateProjectPatchInput {
+  name: String
+  customer: Int
+  git_url: String
+  active_systems_deploy: String
+  active_systems_remove: String
+  branches: String
+  production_environment: String
+  auto_idle: Int
+  storage_calc: Int
+  pullrequests: String
+  openshift: Int
+}
+
+input UpdateSshKeyInput {
+  id: Int!
+  patch: UpdateSshKeyPatchInput!
+}
+
+input UpdateSshKeyPatchInput {
+  name: String
+  keyValue: String
+  keyType: SshKeyType
 }
