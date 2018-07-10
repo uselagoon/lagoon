@@ -378,8 +378,7 @@ do
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
   TEMPLATE_PARAMETERS=()
-  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
-  
+
   PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.class false)
   if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_CLASS="${PERSISTENT_STORAGE_CLASS}")
@@ -390,6 +389,7 @@ do
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
   fi
 
+  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
     TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_PATH="${PERSISTENT_STORAGE_PATH}")
 
@@ -397,7 +397,6 @@ do
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_NAME="${PERSISTENT_STORAGE_NAME}")
     fi
-
   fi
 
   DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
@@ -563,4 +562,3 @@ do
 
   let COUNTER=COUNTER+1
 done
-
