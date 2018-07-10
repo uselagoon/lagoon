@@ -39,4 +39,4 @@ ENV HTTP_RESP_HDR_LEN=8k \
     CACHE_SIZE=100M
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
-CMD [" /varnish-start.sh"]
+CMD ["/varnish-start.sh"]
