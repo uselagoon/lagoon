@@ -414,8 +414,8 @@ mutation FillAPI {
   ) {
     id
   }
-  
-  CiFeatures: addProject(
+
+  CiFeaturesSubfolder: addProject(
     input: {
       id: 17
       name: "ci-features-subfolder"
@@ -429,7 +429,7 @@ mutation FillAPI {
     id
   }
 
-  CiFeaturesRocketChat: addNotificationToProject(
+  CiFeaturesSubfolderRocketChat: addNotificationToProject(
     input: {
       project: "ci-features-subfolder"
       notificationType: ROCKETCHAT
