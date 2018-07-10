@@ -337,6 +337,7 @@ CREATE OR REPLACE PROCEDURE
     IN p_token           varchar(1000),
     IN p_router_pattern  varchar(300),
     IN p_project_user    varchar(100),
+    IN p_project_pattern varchar(300),
     IN p_ssh_host        varchar(300),
     IN p_ssh_port        varchar(50)
   )
@@ -354,6 +355,7 @@ CREATE OR REPLACE PROCEDURE
       token,
       router_pattern,
       project_user,
+      project_pattern,
       ssh_host,
       ssh_port
     ) VALUES (
@@ -363,6 +365,7 @@ CREATE OR REPLACE PROCEDURE
       p_token,
       p_router_pattern,
       p_project_user,
+      p_project_pattern,
       p_ssh_host,
       p_ssh_port
     );

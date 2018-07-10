@@ -522,6 +522,17 @@ do
     STATEFULSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
 
+  elif [ $SERVICE_ROLLOUT_TYPE == "statefulset" ]; then
+
+    STATEFULSET="${SERVICE_NAME}"
+    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
+
+  elif [ $SERVICE_ROLLOUT_TYPE == "deamonset" ]; then
+
+    DAEMONSET="${SERVICE_NAME}"
+    . /oc-build-deploy/scripts/exec-monitor-deamonset.sh
+
+
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
   fi
