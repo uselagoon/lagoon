@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS openshift (
        token           varchar(1000),
        router_pattern  varchar(300),
        project_user    varchar(100),
-       project_pattern varchar(300),
        ssh_host        varchar(300),
        ssh_port        varchar(50),
        created         timestamp DEFAULT CURRENT_TIMESTAMP
@@ -61,6 +60,7 @@ CREATE TABLE IF NOT EXISTS project (
        auto_idle              int(1) NOT NULL default 1,
        storage_calc           int(1) NOT NULL default 1,
        openshift              int REFERENCES openshift (id),
+       openshift_project_pattern varchar(300),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -371,6 +371,44 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  delete_project_pattern_from_openshift()
+
+  BEGIN
+
+    IF EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'openshift'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'project_pattern'
+            )  THEN
+      ALTER TABLE `openshift` DROP COLUMN `project_pattern`;
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_project_pattern_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'openshift_project_pattern'
+            )  THEN
+      ALTER TABLE `project` ADD `openshift_project_pattern` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -385,3 +423,5 @@ CALL add_deleted_to_environment;
 CALL add_storagecalc_to_project();
 CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
+CALL delete_project_pattern_from_openshift();
+CALL add_openshift_project_pattern_to_project()
