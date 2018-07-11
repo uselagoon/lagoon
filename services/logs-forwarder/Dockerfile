@@ -7,7 +7,7 @@ RUN apk add --update --virtual .build-deps \
  && gem install \
         fluent-plugin-elasticsearch \
         fluent-plugin-secure-forward \
-        fluent-plugin-record-reformer \
+        fluent-plugin-record-modifier \
  && gem sources --clear-all \
  && apk del .build-deps \
  && rm -rf /var/cache/apk/* \
