@@ -51,7 +51,6 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
-    project_pattern: String
     ssh_host: String
     ssh_port: String
     created: String
@@ -95,6 +94,7 @@ const typeDefs = `
     storage_calc: Int
     pullrequests: String
     openshift: Openshift
+    openshift_project_pattern: String
     sshKeys: [SshKey]
     environments(type: EnvType, include_deleted: Boolean): [Environment]
     created: String
@@ -173,6 +173,7 @@ const typeDefs = `
     git_url: String!
     subfolder: String
     openshift: Int!
+    openshift_project_pattern: String
     active_systems_deploy: String
     active_systems_promote: String
     active_systems_remove: String
@@ -211,7 +212,6 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
-    project_pattern: String
     ssh_host: String
     ssh_port: String
   }
@@ -293,6 +293,7 @@ const typeDefs = `
     storage_calc: Int
     pullrequests: String
     openshift: Int
+    openshift_project_pattern: String
   }
 
   input UpdateProjectInput {
@@ -318,7 +319,6 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
-    project_pattern: String
     ssh_host: String
     ssh_port: String
   }
