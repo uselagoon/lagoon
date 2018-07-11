@@ -153,6 +153,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         :name,
         :customer,
         :git_url,
+        ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
   input.active_systems_deploy

@@ -34,6 +34,12 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
+  - name: PERSISTENT_STORAGE_CLASS
+    description: Name of the Storage Class to use
+    value: ""
+  - name: PERSISTENT_STORAGE_SIZE
+    description: Size of the Storage to request
+    value: "5Gi"
 objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -42,6 +48,8 @@ objects:
   spec:
     accessModes:
     - ReadWriteOnce
+    storageClassName: "${PERSISTENT_STORAGE_CLASS}"
     resources:
       requests:
-        storage: 5Gi
+        storage: ${PERSISTENT_STORAGE_SIZE}
+

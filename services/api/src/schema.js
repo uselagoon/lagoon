@@ -51,6 +51,7 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
+    project_pattern: String
     ssh_host: String
     ssh_port: String
     created: String
@@ -83,6 +84,7 @@ const typeDefs = `
     name: String
     customer: Customer
     git_url: String
+    subfolder: String
     notifications(type: NotificationType): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
@@ -169,6 +171,7 @@ const typeDefs = `
     name: String!
     customer: Int!
     git_url: String!
+    subfolder: String
     openshift: Int!
     active_systems_deploy: String
     active_systems_promote: String
@@ -208,6 +211,7 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
+    project_pattern: String
     ssh_host: String
     ssh_port: String
   }
@@ -280,6 +284,7 @@ const typeDefs = `
     name: String
     customer: Int
     git_url: String
+    subfolder: String
     active_systems_deploy: String
     active_systems_remove: String
     branches: String
@@ -313,6 +318,7 @@ const typeDefs = `
     token: String
     router_pattern: String
     project_user: String
+    project_pattern: String
     ssh_host: String
     ssh_port: String
   }

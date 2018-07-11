@@ -20,6 +20,10 @@ fi
 
 LAGOON_GIT_SHA=`git rev-parse HEAD`
 
+if [[ -n "$SUBFOLDER" ]]; then
+  cd $SUBFOLDER
+fi
+
 if [ ! -f .lagoon.yml ]; then
   echo "no .lagoon.yml file found"; exit 1;
 fi

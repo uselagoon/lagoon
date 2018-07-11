@@ -9,6 +9,7 @@ CREATE OR REPLACE PROCEDURE
     IN name                   varchar(100),
     IN customer               int,
     IN git_url                varchar(300),
+    IN subfolder              varchar(300),
     IN openshift              int,
     IN active_systems_deploy  varchar(300),
     IN active_systems_promote varchar(300),
@@ -40,6 +41,7 @@ CREATE OR REPLACE PROCEDURE
         name,
         customer,
         git_url,
+        subfolder,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -55,6 +57,7 @@ CREATE OR REPLACE PROCEDURE
         name,
         c.id,
         git_url,
+        subfolder,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -337,6 +340,7 @@ CREATE OR REPLACE PROCEDURE
     IN p_token           varchar(1000),
     IN p_router_pattern  varchar(300),
     IN p_project_user    varchar(100),
+    IN p_project_pattern varchar(300),
     IN p_ssh_host        varchar(300),
     IN p_ssh_port        varchar(50)
   )
@@ -354,6 +358,7 @@ CREATE OR REPLACE PROCEDURE
       token,
       router_pattern,
       project_user,
+      project_pattern,
       ssh_host,
       ssh_port
     ) VALUES (
@@ -363,6 +368,7 @@ CREATE OR REPLACE PROCEDURE
       p_token,
       p_router_pattern,
       p_project_user,
+      p_project_pattern,
       p_ssh_host,
       p_ssh_port
     );
