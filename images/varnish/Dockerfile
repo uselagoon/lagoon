@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine
+FROM alpine:3.7
 
 MAINTAINER amazee.io
 ENV LAGOON=varnish
