@@ -21,6 +21,7 @@ RUN find "/fluentd" -exec chmod g+rw {} \;
 RUN find "/fluentd" -type d -exec chmod g+x {} +
 
 ENV LOGS_FORWARDER_SHARED_KEY=secret \
+    LOGS_FORWARDER_TARGET_SHARED_KEY=secret \
     LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE=amazing1
 
 ENTRYPOINT ["/bin/entrypoint.sh"]
