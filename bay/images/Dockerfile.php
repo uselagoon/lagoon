@@ -17,3 +17,8 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
 RUN mkdir /bay
 COPY docker/services.yml /bay
 COPY docker/settings.php /bay
+
+ENV TZ=Australia/Melbourne
+RUN  apk add --no-cache tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone
