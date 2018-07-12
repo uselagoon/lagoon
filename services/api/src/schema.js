@@ -114,6 +114,8 @@ const typeDefs = `
     storages: [EnvironmentStorage]
     storage_month(month: Date): EnvironmentStorageMonth
     hits_month(month: Date): EnviornmentHitsMonth
+    lagoon_route: String
+    lagoon_routes: String
   }
 
   type EnviornmentHitsMonth {
