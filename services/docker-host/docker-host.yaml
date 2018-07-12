@@ -4,34 +4,68 @@ metadata:
   creationTimestamp: null
   name: lagoon-docker-host
 parameters:
-  - name: IMAGE
-    description: Image that should be used
-    value: amazeeiolagoon/master-docker-host
   - name: REPOSITORY_TO_UPDATE
     description: Repository that should be updated by the cronjob
     value: amazeeio
+  - name: SERVICE_NAME
+    description: Name of this service
+    value: docker-host
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    value: master
+  - name: SAFE_PROJECT
+    description: Which project this belongs to, special chars replaced with dashes
+    value: lagoon
+  - name: BRANCH
+    description: Which branch this belongs to, original value
+    value: master
+  - name: PROJECT
+    description: Which project this belongs to, original value
+    value: master
+  - name: LAGOON_GIT_SHA
+    description: git hash sha of the current deployment
+    value: '0000000000000000000000000000000000000000'
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: OPENSHIFT_PROJECT
+    description: Name of the Project that this service is in
+    value: lagoon
+  - name: REGISTRY
+    description: Registry where Images are pushed to
+    value: ""
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Recreate"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    value: amazeeiolagoon/master-docker-host
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: docker-host
-    name: docker-host
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
   spec:
     replicas: 1
     selector:
-      app: docker-host
-      deploymentconfig: docker-host
+        service: ${SERVICE_NAME}
+        branch: ${SAFE_BRANCH}
+        project: ${SAFE_PROJECT}
     strategy:
-      type: Recreate
+      type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
         labels:
-          app: docker-host
-          deploymentconfig: docker-host
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          project: ${SAFE_PROJECT}
       spec:
         containers:
-        - image: ${IMAGE}
+        - image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
@@ -40,7 +74,7 @@ objects:
             tcpSocket:
               port: 2375
             timeoutSeconds: 1
-          name: docker-host
+          name: ${SERVICE_NAME}
           env:
             - name: DOCKER_HOST
               value: localhost
@@ -60,7 +94,6 @@ objects:
             tcpSocket:
               port: 2375
             timeoutSeconds: 1
-          resources: {}
           securityContext:
             privileged: true
           volumeMounts:
@@ -80,15 +113,14 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: docker-host
-    name: docker-host
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
   spec:
     ports:
     - port: 2375
       protocol: TCP
       targetPort: 2375
     selector:
-      app: docker-host
-      deploymentconfig: docker-host
-  status:
-    loadBalancer: {}
+      service: ${SERVICE_NAME}

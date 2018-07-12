@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine
+FROM alpine:3.7
 
 MAINTAINER amazee.io
 ENV LAGOON=varnish
@@ -33,9 +33,10 @@ EXPOSE 8080
 # tells the local development environment on which port we are running
 ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 
-# Make http_resp_hdr_len and http_resp_size configurable (see in docker-entrypoint)
-ENV HTTP_RESP_HDR_LEN=8k
-ENV HTTP_RESP_SIZE=32k
+ENV HTTP_RESP_HDR_LEN=8k \
+    HTTP_RESP_SIZE=32k \
+    NUKE_LIMIT=150 \
+    CACHE_SIZE=100M
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
-CMD [" /varnish-start.sh"]
+CMD ["/varnish-start.sh"]

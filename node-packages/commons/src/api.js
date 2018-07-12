@@ -228,6 +228,8 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
           private_key
         }
         git_url
+        subfolder
+        openshift_project_pattern
         production_environment
       }
     }

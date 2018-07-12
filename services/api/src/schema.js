@@ -83,6 +83,7 @@ const typeDefs = `
     name: String
     customer: Customer
     git_url: String
+    subfolder: String
     notifications(type: NotificationType): [Notification]
     active_systems_deploy: String
     active_systems_promote: String
@@ -93,6 +94,7 @@ const typeDefs = `
     storage_calc: Int
     pullrequests: String
     openshift: Openshift
+    openshift_project_pattern: String
     sshKeys: [SshKey]
     environments(type: EnvType, include_deleted: Boolean): [Environment]
     created: String
@@ -169,7 +171,9 @@ const typeDefs = `
     name: String!
     customer: Int!
     git_url: String!
+    subfolder: String
     openshift: Int!
+    openshift_project_pattern: String
     active_systems_deploy: String
     active_systems_promote: String
     active_systems_remove: String
@@ -280,6 +284,7 @@ const typeDefs = `
     name: String
     customer: Int
     git_url: String
+    subfolder: String
     active_systems_deploy: String
     active_systems_remove: String
     branches: String
@@ -288,6 +293,7 @@ const typeDefs = `
     storage_calc: Int
     pullrequests: String
     openshift: Int
+    openshift_project_pattern: String
   }
 
   input UpdateProjectInput {
