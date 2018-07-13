@@ -26,6 +26,7 @@ export type LagoonConfigInput = {|
   project: string,
   api: string,
   ssh: string,
+  token: string,
 |};
 
 const configInputOptionsTypes = {
@@ -40,10 +41,12 @@ export function createConfig(
   inputOptions: LagoonConfigInput,
 ): Promise<void> {
   const errors = [];
+
   const inputOptionsWithoutEmptyStrings = R.reduce(
     (acc, [optionKey, optionVal]) => {
       // Validate
       const optionType = R.prop(optionKey, configInputOptionsTypes);
+
       if (!optionType) {
         errors.push(
           `- Invalid config option "${optionKey}". Valid options: ${R.join(
@@ -59,16 +62,20 @@ export function createConfig(
           )}`,
         );
       }
+
       // Filter out empty strings
       if (!R.both(R.is(String), R.isEmpty)(optionVal)) {
         acc[optionKey] = optionVal;
       }
+
       return acc;
     },
     {},
     R.toPairs(inputOptions),
   );
+
   if (R.length(errors) > 0) throw new Error(errors.join('\n'));
+
   const yamlConfig = yaml.safeDump(inputOptionsWithoutEmptyStrings);
   return writeFile(filepath, yamlConfig);
 }
@@ -92,7 +99,7 @@ function readConfig(): LagoonConfig | null {
   return parseConfig(yamlContent.toString());
 }
 
-export const config = readConfig();
+export const config = Object.freeze(readConfig());
 
 export const configDefaults = Object.freeze({
   token: path.join(os.homedir(), '.lagoon-token'),

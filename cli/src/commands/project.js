@@ -26,8 +26,12 @@ export const commandOptions = {
   [PROJECT]: PROJECT,
 };
 
+type OptionalOptions = {
+  project?: string,
+};
+
 type Options = {
-  project: string,
+  +project: string,
 };
 
 export function builder(yargs: Yargs): Yargs {
@@ -53,7 +57,7 @@ export function builder(yargs: Yargs): Yargs {
 }
 
 type PromptForQueryOptionsArgs = {|
-  options: Options,
+  options: OptionalOptions,
   clog: typeof console.log,
 |};
 
@@ -61,7 +65,7 @@ async function promptForQueryOptions({
   options,
   clog,
 }:
-PromptForQueryOptionsArgs): Promise<{ [key: typeof PROJECT]: string }> {
+PromptForQueryOptionsArgs): Promise<Options> {
   return inquirer.prompt([
     {
       type: 'input',
@@ -75,7 +79,7 @@ PromptForQueryOptionsArgs): Promise<{ [key: typeof PROJECT]: string }> {
 type ProjectDetailsArgs = {
   clog: typeof console.log,
   cerr: typeof console.error,
-  options: Options,
+  options: OptionalOptions,
 };
 
 export async function projectDetails({
