@@ -467,6 +467,18 @@
               "deprecationReason": null
             },
             {
+              "name": "subfolder",
+              "description": "",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "notifications",
               "description": "",
               "args": [
@@ -596,6 +608,18 @@
               "type": {
                 "kind": "OBJECT",
                 "name": "Openshift",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "openshift_project_pattern",
+              "description": "",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -2824,6 +2848,16 @@
               "defaultValue": null
             },
             {
+              "name": "subfolder",
+              "description": "",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
               "name": "active_systems_deploy",
               "description": "",
               "type": {
@@ -2902,6 +2936,16 @@
                 "ofType": null
               },
               "defaultValue": null
+            },
+            {
+              "name": "openshift_project_pattern",
+              "description": "",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
             }
           ],
           "interfaces": null,
@@ -2967,6 +3011,16 @@
               "defaultValue": null
             },
             {
+              "name": "subfolder",
+              "description": "",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
               "name": "openshift",
               "description": "",
               "type": {
@@ -2977,6 +3031,16 @@
                   "name": "Int",
                   "ofType": null
                 }
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "openshift_project_pattern",
+              "description": "",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
               },
               "defaultValue": null
             },

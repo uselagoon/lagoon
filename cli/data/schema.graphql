@@ -207,6 +207,7 @@ type Project {
   name: String
   customer: Customer
   git_url: String
+  subfolder: String
   notifications(type: NotificationType): [Notification]
   active_systems_deploy: String
   active_systems_promote: String
@@ -217,6 +218,7 @@ type Project {
   storage_calc: Int
   pullrequests: String
   openshift: Openshift
+  openshift_project_pattern: String
   sshKeys: [SshKey]
   environments(type: EnvType, include_deleted: Boolean): [Environment]
   created: String
@@ -227,7 +229,9 @@ input ProjectInput {
   name: String!
   customer: Int!
   git_url: String!
+  subfolder: String
   openshift: Int!
+  openshift_project_pattern: String
   active_systems_deploy: String
   active_systems_promote: String
   active_systems_remove: String
@@ -371,6 +375,7 @@ input UpdateProjectPatchInput {
   name: String
   customer: Int
   git_url: String
+  subfolder: String
   active_systems_deploy: String
   active_systems_remove: String
   branches: String
@@ -379,6 +384,7 @@ input UpdateProjectPatchInput {
   storage_calc: Int
   pullrequests: String
   openshift: Int
+  openshift_project_pattern: String
 }
 
 input UpdateSshKeyInput {
