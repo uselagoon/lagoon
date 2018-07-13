@@ -96,12 +96,16 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteProject
   (
-    IN p_pid int
+    IN p_project varchar(50)
   )
   BEGIN
-    DELETE FROM project_ssh_key WHERE pid = p_pid;
-    DELETE FROM project_notification WHERE pid = p_pid;
-    DELETE FROM project WHERE id = p_pid;
+    DECLARE v_pid int;
+
+    SELECT id INTO v_pid FROM project WHERE project.name = p_project;
+
+    DELETE FROM project_ssh_key WHERE pid = v_pid;
+    DELETE FROM project_notification WHERE pid = v_pid;
+    DELETE FROM project WHERE id = v_pid;
   END;
 $$
 
