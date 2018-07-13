@@ -214,15 +214,13 @@ InitArgs): Promise<number> {
         notify: true,
         clog,
       }),
+      filter: untildify,
     },
   ]);
 
   try {
     clog(`Creating file '${filepath}'...`);
-    await createConfig(
-      filepath,
-      R.over(R.lensProp(TOKEN), untildify, configInput),
-    );
+    await createConfig(filepath, configInput);
     clog(green('Configuration file created!'));
     return 0;
   } catch (e) {
