@@ -15,8 +15,11 @@ elasticsearch.password: "${LOGSDB_KIBANASERVER_PASSWORD}"\n\
 # Disable SSL verification because we use self-signed demo certificates\n\
 elasticsearch.ssl.verificationMode: none\n\
 \n\
-# Whitelist the Search Guard Multi Tenancy Header\n\\
-elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]' >> config/kibana.yml
+# Whitelist the Search Guard Multi Tenancy Header\n\
+elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]\n\
+\n\
+# Disable searchguard global tenant\n\
+searchguard.multitenancy.tenants.enable_global: false' >> config/kibana.yml
 
 RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.2.4-13/search-guard-kibana-plugin-6.2.4-13.zip
 
