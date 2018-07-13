@@ -48,7 +48,6 @@ export function builder(yargs: Yargs) {
       [OVERWRITE]: {
         describe: 'Overwrite the configuration file if it exists',
         type: 'boolean',
-        default: undefined,
       },
       [PROJECT]: {
         describe: 'Name of project to configure',

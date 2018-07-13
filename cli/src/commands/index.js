@@ -12,8 +12,6 @@ export type BaseHandlerArgs = {|
   cerr: typeof console.error,
 |};
 
-const notUndefined = R.complement(R.equals(undefined));
-
 export function getOptions({
   config,
   argv,
@@ -29,8 +27,7 @@ export function getOptions({
   return (R.pick(R.keys(commandOptions))({
     // Remove options from the config that should require user input every time
     ...R.omit(dynamicOptionKeys || [], config || {}),
-    // Filter out unspecified values (yargs sets them as `undefined`) so that they don't overwrite config values
-    ...R.filter(notUndefined, argv),
+    ...argv,
   }): {
     [key: $Keys<typeof commandOptions>]: any,
   });
