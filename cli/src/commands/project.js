@@ -8,10 +8,7 @@ import { visit } from '../cli/visit';
 import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import {
-  printGraphQLErrors,
-  printProjectConfigurationError,
-} from '../printErrors';
+import { printGraphQLErrors } from '../printErrors';
 import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
