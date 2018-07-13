@@ -215,7 +215,7 @@ export async function promptForProjectInput(
                 R.prop('allCustomers'),
               )(customersAndOptions);
               clog(
-                `${blue('!')} Using only authorized customer "${R.prop(
+                `${blue('!')} Using single authorized customer "${R.prop(
                   'name',
                   firstCustomer,
                 )}"`,
@@ -293,7 +293,7 @@ export async function promptForProjectInput(
                 R.prop('allOpenshifts'),
               )(openshiftsAndOptions);
               clog(
-                `${blue('!')} Using only authorized openshift "${R.prop(
+                `${blue('!')} Using single authorized openshift "${R.prop(
                   'name',
                   firstOpenshift,
                 )}"`,
