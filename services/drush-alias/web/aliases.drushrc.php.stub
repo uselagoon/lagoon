@@ -265,7 +265,7 @@ $defaults = [
 ];
 
 $aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path) {
-  $site_name = $environment->name;
+  $site_name = str_replace('/','-',$environment->name);
   $site_host = 'localhost';
 
   $alias = [];

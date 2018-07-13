@@ -378,24 +378,24 @@ do
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
   TEMPLATE_PARAMETERS=()
-  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
 
+  PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.class false)
+  if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
+      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_CLASS="${PERSISTENT_STORAGE_CLASS}")
+  fi
+
+  PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
+  if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
+      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
+  fi
+
+  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
     TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_PATH="${PERSISTENT_STORAGE_PATH}")
-
-    PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.class false)
-    if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
-      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_CLASS="${PERSISTENT_STORAGE_CLASS}")
-    fi
 
     PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.name false)
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
       TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_NAME="${PERSISTENT_STORAGE_NAME}")
-    fi
-
-    PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
-    if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
-      TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
     fi
   fi
 
@@ -427,7 +427,7 @@ do
 
       CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
       CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
@@ -450,7 +450,7 @@ do
 
       CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
       CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
 
       CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
@@ -522,6 +522,17 @@ do
     STATEFULSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
 
+  elif [ $SERVICE_ROLLOUT_TYPE == "statefulset" ]; then
+
+    STATEFULSET="${SERVICE_NAME}"
+    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
+
+  elif [ $SERVICE_ROLLOUT_TYPE == "deamonset" ]; then
+
+    DAEMONSET="${SERVICE_NAME}"
+    . /oc-build-deploy/scripts/exec-monitor-deamonset.sh
+
+
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
   fi
@@ -562,4 +573,3 @@ do
 
   let COUNTER=COUNTER+1
 done
-

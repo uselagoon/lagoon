@@ -24,7 +24,8 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/drupal-postgres.git && \
 	git --bare init /git/nginx.git && \
 	git --bare init /git/features.git && \
-  git --bare init /git/elasticsearch.git
+	git --bare init /git/features-subfolder.git && \
+    git --bare init /git/elasticsearch.git
 
 USER root
 

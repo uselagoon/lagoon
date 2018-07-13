@@ -260,13 +260,13 @@ services:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.yml
       lagoon.image: amazeeiolagoon/logs-db:${SAFE_BRANCH:-master}
-  logs-collector:
-    image: ${IMAGE_REPO:-lagoon}/logs-collector
+  logs-forwarder:
+    image: ${IMAGE_REPO:-lagoon}/logs-forwarder
     user: '111111111'
     labels:
       lagoon.type: custom
-      lagoon.template: services/logs-collector/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs-collector:${SAFE_BRANCH:-master}
+      lagoon.template: services/logs-forwarder/.lagoon.yml
+      lagoon.image: amazeeiolagoon/logs-forwarder:${SAFE_BRANCH:-master}
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui
     user: '111111111'
@@ -281,6 +281,7 @@ services:
     user: '111111111'
     ports:
     - "5140:5140/udp"
+    - "5044:5044"
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
@@ -305,3 +306,9 @@ services:
       lagoon.type: custom
       lagoon.template: services/storage-calculator/.lagoon.yml
       lagoon.image: amazeeiolagoon/storage-calculator:${SAFE_BRANCH:-master}
+  logs-collector:
+    image: openshift/origin-logging-fluentd:v3.6.1
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs-collector/.lagoon.yml
+      lagoon.rollout: daemonset

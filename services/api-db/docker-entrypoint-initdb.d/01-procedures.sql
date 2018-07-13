@@ -9,7 +9,9 @@ CREATE OR REPLACE PROCEDURE
     IN name                   varchar(100),
     IN customer               int,
     IN git_url                varchar(300),
+    IN subfolder              varchar(300),
     IN openshift              int,
+    IN openshift_project_pattern varchar(300),
     IN active_systems_deploy  varchar(300),
     IN active_systems_promote varchar(300),
     IN active_systems_remove  varchar(300),
@@ -40,6 +42,7 @@ CREATE OR REPLACE PROCEDURE
         name,
         customer,
         git_url,
+        subfolder,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -48,13 +51,15 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         storage_calc,
         pullrequests,
-        openshift
+        openshift,
+        openshift_project_pattern
     )
     SELECT
         id,
         name,
         c.id,
         git_url,
+        subfolder,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -63,7 +68,8 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         storage_calc,
         pullrequests,
-        os.id
+        os.id,
+        openshift_project_pattern
     FROM
         openshift AS os,
         customer AS c

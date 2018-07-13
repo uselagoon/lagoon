@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-logstash
+  name: lagoon-openshift-template-fluentd
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -46,6 +46,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
@@ -57,7 +58,6 @@ objects:
       type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
-        creationTimestamp: null
         labels:
           service: ${SERVICE_NAME}
           branch: ${SAFE_BRANCH}
@@ -67,75 +67,41 @@ objects:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
-          - containerPort: 9600
+          - containerPort: 24284
             protocol: TCP
           readinessProbe:
-            httpGet:
-              port: 9600
+            tcpSocket:
+              port: 24284
             initialDelaySeconds: 20
           livenessProbe:
-            httpGet:
-              port: 9600
+            tcpSocket:
+              port: 24284
             initialDelaySeconds: 120
-          envFrom:
-          - configMapRef:
-              name: lagoon-env
           env:
-            - name: CRONJOBS
-              value: ${CRONJOBS}
-            - name: SERVICE_NAME
-              value: ${SERVICE_NAME}
-            - name: RABBITMQ_USER
-              valueFrom:
-                secretKeyRef:
-                  key: RABBITMQ_USERNAME
-                  name: rabbitmq-username
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: RABBITMQ_PASSWORD
-                  name: rabbitmq-password
             - name: LOGSDB_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: LOGSDB_ADMIN_PASSWORD
                   name: logs-db-admin-password
-            - name: XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: LOGSDB_ADMIN_PASSWORD
-                  name: logs-db-admin-password
-            - name: XPACK_MONITORING_ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: LOGSDB_ADMIN_PASSWORD
-                  name: logs-db-admin-password
-            - name: LOGSTASH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: logstash-username
-                  key: LOGSTASH_USERNAME
-            - name: LOGSTASH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logstash-password
-                  key: LOGSTASH_PASSWORD
+          envFrom:
+          - configMapRef:
+              name: lagoon-env
           resources:
             requests:
               cpu: 10m
               memory: 10Mi
-    test: false
+          volumeMounts:
+          - mountPath: /fluentd/etc/
+            name: config
+        volumes:
+        - configMap:
+            items:
+            - key: FLUENT_CONF
+              path: fluent.conf
+            name: ${SERVICE_NAME}-config
+          name: config
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
-  status: {}
 - apiVersion: v1
   kind: Service
   metadata:
@@ -147,39 +113,64 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: logstash-mgmt
-      port: 9600
+    - name: secure-forward
+      port: 24284
       protocol: TCP
-      targetPort: 9600
-    - name: udp-input-module
-      port: 5140
-      protocol: UDP
-      targetPort: 5140
-    - name: tcp-input-module
-      port: 28777
-      protocol: TCP
-      targetPort: 28777
-    - name: beats-input-module
-      port: 5044
-      protocol: TCP
-      targetPort: 5044
+      targetPort: 24284
       type: NodePort
     selector:
       service: ${SERVICE_NAME}
 - apiVersion: v1
-  kind: Service
+  kind: ConfigMap
   metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: router-logs
-  spec:
-    ports:
-    - name: udp-input-module
-      port: 5140
-      protocol: UDP
-      targetPort: 5140
-    selector:
-      service: ${SERVICE_NAME}
+    name: ${SERVICE_NAME}-config
+  data:
+    FLUENT_CONF: |-
+      <system>
+        log_level info
+      </system>
+
+      <source>
+        @type secure_forward
+        @label @ELASTICSEARCH
+        self_hostname "#{ENV['HOSTNAME']}"
+        secure true
+        port 24284
+        shared_key "#{ENV['LOGS_FORWARDER_SHARED_KEY']}"
+        ca_cert_path /fluentd/ssl/ca_cert.pem
+        ca_private_key_path /fluentd/ssl/ca_key.pem
+        ca_private_key_passphrase "#{ENV['LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE']}"
+      </source>
+
+      <label @ELASTICSEARCH>
+          <filter **>
+            @type record_modifier
+            <record>
+              index_name container-logs-${record['kubernetes']['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
+            </record>
+          </filter>
+
+          # <filter **>
+          #   @type stdout
+          # </filter>
+
+          <match **>
+            @type elasticsearch
+            host logs-db
+            port 9200
+            target_index_key index_name
+            index_name container-logs-noproject-%Y.%m
+            <buffer tag,time>
+              @type memory
+              timekey 3600
+              flush_mode interval
+              flush_interval 1s
+              overflow_action block
+            </buffer>
+            id_key viaq_msg_id
+            remove_keys viaq_msg_id, viaq_index_name, kubernetes.master_url
+            type_name _doc
+            user admin
+            password "#{ENV['LOGSDB_ADMIN_PASSWORD']}"
+          </match>
+      </label>
