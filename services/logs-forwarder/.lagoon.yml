@@ -163,9 +163,11 @@ objects:
             <buffer tag,time>
               @type memory
               timekey 3600
+              timekey_wait 0s
               flush_mode interval
               flush_interval 1s
-              overflow_action block
+              chunk_limit_size 32MB
+              flush_thread_count 8
             </buffer>
             id_key viaq_msg_id
             remove_keys viaq_msg_id, viaq_index_name, kubernetes.master_url
