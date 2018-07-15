@@ -21,6 +21,7 @@ Learn more about Lagoon and [Local Development Environments](./local_development
 - [Setup a new Project in Lagoon](./setup_project.md)
 - General: [First Deployment](./first_deployment.md)
 - Drupal: [First Deployment Drupal](./drupal/first_deployment.md)
+- [Deployment & Build Process of Lagoon](./build_deploy_process.md)
 
 ## Overview of Lagoon Configuration Files
 
@@ -30,7 +31,7 @@ They main file that will be used by Lagoon to understand what should be deployed
 
 ### `docker-compose.yml`
 
-This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml]()
+This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml](/using_lagoon/docker-compose_yml.md)
 
 ### Dockerfiles
 
