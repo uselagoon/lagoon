@@ -168,10 +168,10 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}-beats
+    name: ${SERVICE_NAME}-lumberjack
   spec:
     ports:
-      - name: beats-input-module
+      - name: lumberjack-input-module
         port: 5044
         protocol: TCP
         targetPort: 5044
