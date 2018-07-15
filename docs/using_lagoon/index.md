@@ -30,7 +30,7 @@ They main file that will be used by Lagoon to understand what should be deployed
 
 ### `docker-compose.yml`
 
-This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml]()
+This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml](/using_lagoon/docker-compose_yml.md)
 
 ### Dockerfiles
 
