@@ -18,6 +18,8 @@ elasticsearch.ssl.verificationMode: none\n\
 # Whitelist the Search Guard Multi Tenancy Header\n\
 elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]\n\
 \n\
+# Enable multitenancy\n\
+searchguard.multitenancy.enabled: true\n\
 # Disable searchguard global tenant\n\
 searchguard.multitenancy.tenants.enable_global: false' >> config/kibana.yml
 
