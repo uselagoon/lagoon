@@ -21,6 +21,7 @@ Learn more about Lagoon and [Local Development Environments](./local_development
 - [Setup a new Project in Lagoon](./setup_project.md)
 - General: [First Deployment](./first_deployment.md)
 - Drupal: [First Deployment Drupal](./drupal/first_deployment.md)
+- [Deployment & Build Process of Lagoon](./build_deploy_process.md)
 
 ## Overview of Lagoon Configuration Files
 

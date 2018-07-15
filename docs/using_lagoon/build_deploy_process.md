@@ -36,7 +36,7 @@ For each Service defined in the `docker-compose.yml` Lagoon will check if Images
 - `LAGOON_GIT_SHA`
 - `LAGOON_GIT_BRANCH`
 - `LAGOON_PROJECT`
-- `LAGOON_BUILD_TYPE`
+- `LAGOON_BUILD_TYPE`  (either `pullrequest`, `branch` or `promote`)
 
 Plus if this is a Pull Request build:
 
