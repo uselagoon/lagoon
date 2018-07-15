@@ -181,23 +181,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: router-logs
-  spec:
-    ports:
-    - name: udp-input-module
-      port: 5140
-      protocol: UDP
-      targetPort: 5140
-    selector:
-      service: ${SERVICE_NAME}
-- apiVersion: v1
-  kind: Service
-  metadata:
     name: router-logs
   spec:
     externalName: ${SERVICE_NAME}.${OPENSHIFT_PROJECT}.svc.cluster.local
