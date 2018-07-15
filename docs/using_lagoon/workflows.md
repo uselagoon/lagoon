@@ -46,8 +46,32 @@ Additonally in Lagoon you can define that only Pull Request with a specific text
 
 ### Promotion
 
-Another way of deploying your code into a specific environment is the Promotion Workflow. The idea behind the promotion workflow comes from the fact that even if you merge (as an example) the branch `staging` into the `master` branch and it there where no changes in `master` before, so `master` and `staging` have the exact same code in the git repository it could still technically be possible that the resulting Docker Images are slighly different, this comes from the fact that between the last `staging` deployment and `master` deployment maybe some uptream Docker Images have changes or dependencies loaded from the various package managers have changed. This is a very small chance, but there is a technical chance.
+Another way of deploying your code into an environment is the Promotion Workflow. The idea behind the promotion workflow comes from the fact that even if you merge (as an example) the branch `staging` into the `master` branch and it there where no changes in `master` before, so `master` and `staging` have the exact same code in the git repository, it could still technically be possible that the resulting Docker Images are slighly different, this comes from the fact that between the last `staging` deployment and the current `master` deployment maybe some uptream Docker Images have changed or dependencies loaded from the various package managers have changed. This is a very small chance, but it's there.
 
-For this Lagoon has the understanding of promoting Lagoon Images from one Environment to another. Which basically means that it will take the already built and deployed Docker Image from one enviornment and will use the byte-by-byte same Docker Images for another enviornment.
+For this Lagoon has the understanding of promoting Lagoon Images from one environment to another. Which basically means that it will take the already built and deployed Docker Images from one enviornment and will use the exact same Docker Images for another environment.
 
-In o
+In our example we want to promote the docker images from `master` environment to the environment `production`:
+
+- First we need a regular deployed environment with the name `master`, make sure that the deployment sucessfully ran through.
+- Also make sure that you don't have a branch `production` in your Git Repository, as this could lead into weird confusions (like people pushing into this branch, etc.).
+- Now trigger a promotion deployment via this curl request:
+
+        curl -X POST \
+            https://rest.lagoon.amazeeio.cloud/promote \
+            -H 'Content-Type: application/json' \
+            -d '{
+                "projectName":"myproject",
+                "sourceEnvironmentName": "master",
+                "branchName": "production"
+            }'
+
+    This defines, that you like to promote from the source `master` to the destination `production` (yes it really uses `branchName` as destination, which is a bit unfortunate, but this is gonna be fixed soon.)
+
+Lagoon will now do the following:
+
+- Checkout the Git branch `master` in order to load the `.lagoon.yml` and `docker-compose.yml` (Lagoon still needs these in order to fully work)
+- Create all Kubernetes/OpenShift objects for the defined services in `docker-compose.yml` but with `LAGOON_GIT_BRANCH=production` as environment variable
+- Copy the newest Images from the `master` environment and use them (instead of building Images or tagging them from upstream)
+- Run all post-rollout tasks like a normal deployment
+
+You will receive the same notifications success or failures like any other deployment.
