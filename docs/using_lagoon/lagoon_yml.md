@@ -71,6 +71,7 @@ Tells the build script which docker-compose yaml file should be used in order to
 
 #### `routes.insecure`
 This allows you to define the behaviour of the automatic creates routes (NOT the custom routes per environment, see below for them). You can define:
+
 * `Allow` simply sets up both routes for http and https (this is the default).
 * `Redirect` will redirect any http requests to https
 * `None` will mean a route for http will _not_ be created, and no redirect
@@ -81,9 +82,11 @@ There are different type of tasks you can define, they differ when exactly they 
 
 #### `post_rollout.[i].run`
 Here you can specify tasks which need to run against your project, _after_:
+
 - all Images have been successfully built
 - all Containers are updated with the new Images
 - all Containers are running have passed their readyness checks
+
 Common uses are to run `drush updb`, `drush cim`, or clear various caches.
 
 * `name`
@@ -178,7 +181,7 @@ additional-yaml:
     ignore_error: true
 ```
 
-Each definition is keyd by a unique name (`secrets` and `logs-db-secrets` in the example above), and takes these keys:
+Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in the example above), and takes these keys:
 
 * `path` - the path to the yaml file
 * `command` - can either be `create` or `apply`, depending on if you like to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`
