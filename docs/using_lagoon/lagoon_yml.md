@@ -48,8 +48,8 @@ environments:
   master:
     routes:
       - nginx:
-        - domain.com
-        - "www.domain.com":
+        - example.com
+        - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
     cronjobs:
@@ -106,9 +106,9 @@ In the route section we identify the domain names which the environment will res
 
 The first element after the environment is the target service, `nginx` in our example. This is how we identify which service incoming requests will be sent to.
 
-The simplest route is the `domain.com` example above. This will assume that you want a Let's Encrypt certificate for your route and no redirect from https to http.
+The simplest route is the `example.com` example above. This will assume that you want a Let's Encrypt certificate for your route and no redirect from https to http.
 
-In the `"www.domain.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
+In the `"www.example.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
 
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route, this is the default. If you don't like a Let's Encrypt set this to `tls-acme: 'false'`
 * `Insecure` can be set to `None`, `Allow` or `Redirect`.
