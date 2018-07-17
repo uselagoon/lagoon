@@ -13,8 +13,12 @@ pages:
   - Service Types: using_lagoon/service_types.md
   - Build & Deployment Process: using_lagoon/build_deploy_process.md
   - Environment Types: using_lagoon/environment_types.md
+  - Docker Images:
+    - PHP-FPM: using_lagoon/docker_images/php-fpm.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
+  - Logging: using_lagoon/logging.md
+  - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
     - Lagoonize: using_lagoon/drupal/lagoonize.md
     - First Deployment: using_lagoon/drupal/first_deployment.md
