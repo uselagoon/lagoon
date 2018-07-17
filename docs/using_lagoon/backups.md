@@ -6,7 +6,7 @@ Lagoon differentiates between three backup categories: Short-, Mid- and Long-Ter
 
 These Backups are provided by Lagoon itself and are implemented for Databases only. Lagoon will automatically instruct the `mariadb` and `postgres` [services types](./service_types.md) to setup a cron which creates backups once a day (see example [backup script](https://github.com/amazeeio/lagoon/blob/docs/images/mariadb/mysql-backup.sh) for mariadb). These backups are kept for four days and automatically cleaned up after that.
 
-These Backups are accessible for developers directly with connecting to the corresponding container (like `mariadb`) and checking the [folder](https://github.com/amazeeio/lagoon/blob/docs/images/mariadb/mysql-backup.sh#L24) where the backups are stored). They can then be downloaded, extracted or in any other way used.
+These Backups are accessible for developers directly with connecting via the [Remote Shell](./remote_shell.md) to the corresponding container (like `mariadb`) and checking the [folder](https://github.com/amazeeio/lagoon/blob/docs/images/mariadb/mysql-backup.sh#L24) where the backups are stored). They can then be downloaded, extracted or in any other way used.
 
 ## Mid-Term Backups
 
