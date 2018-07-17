@@ -16,4 +16,4 @@ For amazee.io infrastructure: Every persistent storage and Docker Images are bac
 
 ## Long-Term Backups
 
-Long-Term Backups referr to Backups that are kept for multiple months and years. These types of Backups also depend heavy on the underlining Infrastructure. Check with your Lagoon Administrator what Backups are created on your infrastructure.
+Long-Term Backups refer to Backups that are kept for multiple months and years. These types of Backups also depend heavy on the underlining Infrastructure. Check with your Lagoon Administrator what Backups are created on your infrastructure.
