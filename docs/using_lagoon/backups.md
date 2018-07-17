@@ -1,6 +1,6 @@
 # Backups
 
-Lagoon differentiates between three backup solutions: Short-, Mid- and Long-Term Backups.
+Lagoon differentiates between three backup categories: Short-, Mid- and Long-Term Backups.
 
 ## Short-Term Backups
 

@@ -18,6 +18,7 @@ pages:
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
   - Logging: using_lagoon/logging.md
+  - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
     - Lagoonize: using_lagoon/drupal/lagoonize.md
