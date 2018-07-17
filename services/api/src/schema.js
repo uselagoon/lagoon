@@ -78,25 +78,107 @@ const typeDefs = `
 
   union Notification = NotificationRocketChat | NotificationSlack
 
+  """
+  Lagoon Project (like a git repository)
+  """
   type Project {
+    """
+    ID of project
+    """
     id: Int
+    """
+    Name of project
+    """
     name: String
+    """
+    Reference to customer object
+    """
     customer: Customer
+    """
+    Git URL, needs to be SSH Git URL in one of these two formats
+    - git@192.168.99.1/project1.git
+    - ssh://git@192.168.99.1:2222/project1.git
+    """
     git_url: String
+    """
+    Set if the .lagoon.yml should be found in a subfolder
+    Usefull if you have multiple Lagoon projects per Git Repository
+    """
     subfolder: String
+    """
+    Notifications that should be sent for this project
+    """
     notifications(type: NotificationType): [Notification]
+    """
+    Which internal Lagoon System is responsible for deploying
+    Currently only 'lagoon_openshiftBuildDeploy' exists
+    """
     active_systems_deploy: String
+    """
+    Which internal Lagoon System is responsible for promoting
+    Currently only 'lagoon_openshiftBuildDeploy' exists
+    """
     active_systems_promote: String
+    """
+    Which internal Lagoon System is responsible for promoting
+    Currently only 'lagoon_openshiftRemove' exists
+    """
     active_systems_remove: String
+    """
+    Which branches should be deployed, can be one of:
+    - \`true\` - all branches are deployed
+    - \`false\` - no branches are deployed
+    - REGEX - regex of all branches that should be deployed, example: \`^(master|staging)$\`
+    """
     branches: String
-    production_environment: String
-    auto_idle: Int
-    storage_calc: Int
+    """
+    Which Pull Requests should be deployed, can be one of:
+    - \`true\` - all pull requests are deployed
+    - \`false\` - no pull requests are deployed
+    - REGEX - regex of all Pull Request titles that should be deployed, example: \`[BUILD]\`
+    """
     pullrequests: String
+    """
+    Which environment(the name) should be marked as the production environment.
+    *Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly
+    """
+    production_environment: String
+    """
+    Should this project have auto idling enabled (\`1\` or \`0\`)
+    """
+    auto_idle: Int
+    """
+    Should storage for this environment be calculated (\`1\` or \`0\`)
+    """
+    storage_calc: Int
+    """
+    Reference to OpenShift Object this Project should be deployed to
+    """
     openshift: Openshift
+    """
+    Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project\}-$\{environmentname\}\`
+    """
     openshift_project_pattern: String
+    """
+    Which Developer SSH keys should have access to this project
+    """
     sshKeys: [SshKey]
-    environments(type: EnvType, include_deleted: Boolean): [Environment]
+    """
+    Deployed Environments for this Project
+    """
+    environments(
+      """
+      Filter by Environment Type
+      """
+      type: EnvType,
+      """
+      Include deleted Environments (by default deleted environment are hidden)
+      """
+      include_deleted: Boolean
+    ): [Environment]
+    """
+    Creation Timestamp of Project
+    """
     created: String
   }
 
