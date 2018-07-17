@@ -15,7 +15,7 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 
 ## Help?
 
-Questions? Ideas? Meet the maintainers and contributors: `#lagoon` in amazee.io RocketChat [https://amazeeio.rocket.chat]()
+Questions? Ideas? Meet the maintainers and contributors: `#lagoon` in amazee.io RocketChat [https://amazeeio.rocket.chat](https://amazeeio.rocket.chat)
 
 ## A couple of things about Lagoon
 1. Lagoon is based on microservices. A whole deployment and build workflow is very complex; not only do we have multiple sources (like Github, Bitbucket, Gitlab, etc.), multiple OpenShift servers and multiple notification systems (Slack, Rocketchat, etc.), but each deployment is unique and can take from seconds to hours. So it's built with flexibility and robustness in mind. Having microservices that all communicate through a messaging system (RabbitMQ) allows us to scale individual services up and down, survive down times of individual services and also to try out new parts of Lagoon in production without affecting others.
