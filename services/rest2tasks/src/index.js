@@ -40,15 +40,15 @@ app.post('/pullrequest/deploy', async (req, res) => {
     'headBranchName': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-_\/]+$/],
-        errorMessage: 'headBranchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+        options: [/^[a-zA-Z0-9-._\/]+$/],
+        errorMessage: 'headBranchName must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
       },
     },
     'baseBranchName': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-_\/]+$/],
-        errorMessage: 'baseBranchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+        options: [/^[a-zA-Z0-9-._\/]+$/],
+        errorMessage: 'baseBranchName must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
       },
     },
     'pullrequestTitle': {
@@ -212,8 +212,8 @@ app.post('/deploy', async (req, res) => {
     'branchName': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-_\/]+$/],
-        errorMessage: 'branchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+        options: [/^[a-zA-Z0-9-._\/]+$/],
+        errorMessage: 'branchName must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
       },
     },
     'sha': { //
@@ -296,15 +296,15 @@ app.post('/promote', async (req, res) => {
     'sourceEnvironmentName': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-_\/]+$/],
-        errorMessage: 'sourceEnvironmentName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+        options: [/^[a-zA-Z0-9-._\/]+$/],
+        errorMessage: 'sourceEnvironmentName must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
       },
     },
     'branchName': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-_\/]+$/],
-        errorMessage: 'branchName must be defined and must only contain alphanumeric, dashes, underline and slashes'
+        options: [/^[a-zA-Z0-9-._\/]+$/],
+        errorMessage: 'branchName must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
       },
     },
   });
@@ -370,8 +370,8 @@ app.post('/remove', async (req, res) => {
     'branch': {
       notEmpty: true,
       matches: {
-        options: [/^[a-zA-Z0-9-\/]+$/],
-        errorMessage: 'branch must be defined and must only contain alphanumeric, dashes and slashes'
+        options: [/^[a-zA-Z0-9-._\/]+$/],
+        errorMessage: 'branch must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
       },
     },
     'forceDeleteProductionEnvironment': {

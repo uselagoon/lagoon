@@ -23,7 +23,6 @@ else
   echo "Using service name: ${K8S_SVC_NAME}"
   # copy the pristine version to the one that can be edited
   cp ${CONTAINER_SCRIPTS_DIR}/galera.cnf ${EXTRA_DEFAULTS_FILE}
-
   /usr/bin/peer-finder -on-start="${CONTAINER_SCRIPTS_DIR}/configure-galera.sh" -service=${K8S_SVC_NAME}
 fi
 
@@ -62,7 +61,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     echo "pid is $pid"
 
     for i in {30..0}; do
-      if echo 'SELECT 1' | mysql &> /dev/null; then
+      if echo 'SELECT 1' | mysql -u root; then
         break
       fi
       echo 'MySQL init process in progress...'

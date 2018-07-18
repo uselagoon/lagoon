@@ -160,4 +160,9 @@ objects:
                     secretKeyRef:
                       name: jwtsecret
                       key: JWTSECRET
+                - name: LOGSDB_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: LOGSDB_ADMIN_PASSWORD
+                      name: logs-db-admin-password
             restartPolicy: OnFailure

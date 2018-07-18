@@ -23,7 +23,7 @@ If all is correct you should see a Notification in your configured Chat System:
 
 ![Deployment in Slack Start](/images/first_deployment_slack_start.jpg)
 
-This is the information for you that Lagoon just started to deploy your code. Depending on the size of the code and amount of containers this will take a couple of seconds. Just relax.
+This is the information for you that Lagoon just started to deploy your code. Depending on the size of the code and amount of containers this will take a couple of seconds. Just relax. If you like to know whats happening now, check out the [Deployment & Build Process of Lagoon](../build_deploy_process.md)
 
 ## 4. A fail
 
@@ -31,7 +31,7 @@ Depending of your post rollout tasks inside `.lagoon.yml` you probably run some 
 
 ## 5. Synchronize local Database to the remote Lagoon environment
 
-With full Drush Site Aliases support in Lagoon it is super easy to syncrhonize a local database with the remote lagoon enviornment.
+With full Drush Site Aliases support in Lagoon it is super easy to synchronize a local database with the remote lagoon environment.
 
 First let's make sure that you can see the Drush Site Aliases:
 

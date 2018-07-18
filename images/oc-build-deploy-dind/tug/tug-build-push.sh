@@ -11,6 +11,17 @@ docker login -u="${TUG_REGISTRY_USERNAME}" -p="${TUG_REGISTRY_PASSWORD}" ${TUG_R
 OPENSHIFT_REGISTRY=$TUG_REGISTRY
 REGISTRY_REPOSITORY=$TUG_REGISTRY_REPOSITORY
 
+# Make sure the images in IMAGES_PULL are available and can be tagged for pushing them to the external repository afterwards
+# In order to get the Service Name and the Image we need to get the Keys `${!IMAGES_PULL[@]}` of the Array first to resolve it to the value afterwards ${IMAGES_PULL[${IMAGE_NAME}]}
+
+for PULL_IMAGE_NAME in "${!IMAGES_PULL[@]}"
+do
+  PULL_IMAGE="${IMAGES_PULL[${PULL_IMAGE_NAME}]}"
+  TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${PULL_IMAGE_NAME}"
+  docker pull ${PULL_IMAGE}
+  docker tag ${PULL_IMAGE} ${TEMPORARY_IMAGE_NAME}
+done
+
 for IMAGE_NAME in "${IMAGES[@]}"
 do
   # Before the push the temporary name is resolved to the future tag with the registry in the image name
@@ -18,11 +29,11 @@ do
   ORIGINAL_IMAGE_NAME="${IMAGE_NAME}"
   IMAGE_NAME="${TUG_IMAGE_PREFIX}${IMAGE_NAME}"
   IMAGE_TAG="${SAFE_BRANCH}"
-  .  /oc-build-deploy/scripts/exec-push.sh
+  .  /oc-build-deploy/scripts/exec-push-parallel-tug.sh
   echo "${ORIGINAL_IMAGE_NAME}" >> /oc-build-deploy/tug/images
 done
 
-# Save the current environment variables so the tug deployment dan us them
+# Save the current environment variables so the tug deployment can use them
 echo "TYPE=\"${TYPE}\"" >> /oc-build-deploy/tug/env
 echo "SAFE_BRANCH=\"${SAFE_BRANCH}\"" >> /oc-build-deploy/tug/env
 echo "BRANCH=\"${BRANCH}\"" >> /oc-build-deploy/tug/env
@@ -47,4 +58,9 @@ BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
 TEMPORARY_IMAGE_NAME="${OPENSHIFT_PROJECT}-${IMAGE_NAME}"
 .  /oc-build-deploy/scripts/exec-build.sh
 IMAGE_TAG="${SAFE_BRANCH}"
-.  /oc-build-deploy/scripts/exec-push.sh
+.  /oc-build-deploy/scripts/exec-push-parallel-tug.sh
+
+# If we have Images to Push to the Registry, let's do so
+if [ -f /oc-build-deploy/lagoon/push ]; then
+  parallel --retries 4 < /oc-build-deploy/lagoon/push
+fi

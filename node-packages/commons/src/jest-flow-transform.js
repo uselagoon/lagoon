@@ -17,9 +17,10 @@
   directory of the target project.
 */
 
-var flowRemoveTypes = require('flow-remove-types');
+const flowRemoveTypes = require('flow-remove-types');
+
 module.exports = {
-  process(src, filename) {
+  process(src) {
     return flowRemoveTypes(src).toString();
   },
 };

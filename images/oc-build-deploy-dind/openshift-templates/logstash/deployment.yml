@@ -37,6 +37,9 @@ parameters:
   - name: SERVICE_IMAGE
     description: Pullable image of logstash service
     required: true
+  - name: CRONJOBS
+    description: Oneliner of Cronjobs
+    value: ""
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -78,6 +81,11 @@ objects:
           envFrom:
           - configMapRef:
               name: lagoon-env
+          env:
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
+          - name: CRONJOBS
+            value: ${CRONJOBS}
           resources:
             requests:
               cpu: 100m

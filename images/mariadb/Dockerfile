@@ -1,12 +1,13 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine
+FROM alpine:3.7
 
 MAINTAINER amazee.io
 
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -91,7 +92,7 @@ RUN apk add --no-cache --virtual .common-run-deps \
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
 
-COPY docker-entrypoint.bash /lagoon/entrypoints/90-mariadb-entrypoint
+COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
 COPY maxscale-entrypoint.sh /lagoon/entrypoints/80-maxscale
 COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 COPY maxscale.cnf /etc/maxscale.cnf
@@ -125,5 +126,5 @@ WORKDIR /var/lib/mysql
 VOLUME /var/lib/mysql
 EXPOSE 3306
 
-ENTRYPOINT ["/lagoon/entrypoints.bash"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["mysqld"]

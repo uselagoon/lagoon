@@ -1,187 +1,221 @@
-schema {
-  query: QueryRoot
-  mutation: MutationRoot
+type Customer {
+  id: Int
+  name: String
+  comment: String
+  private_key: String
+  sshKeys: [SshKey]
+  created: String
 }
 
-type BasicAuth {
-  username: String
-  password: String
+input CustomerInput {
+  id: Int
+  name: String!
+  comment: String
+  private_key: String
 }
 
-type Client implements Node {
-  id: ID!
-  clientName: String
-  fullJson: Json
+input DeleteCustomerInput {
+  name: String!
 }
 
-type ClientsConnection {
-  pageInfo: PageInfo!
-  edges: [ClientsEdge]
+input DeleteEnvironmentInput {
+  name: String!
+  project: String!
 }
 
-type ClientsEdge {
-  node: Client
-  cursor: String!
+input DeleteNotificationSlackInput {
+  name: String!
 }
 
-input CreateSiteGroupInput {
-  siteGroupName: String!
-  fullJson: Json!
-  clientMutationId: String!
+input DeleteOpenshiftInput {
+  name: String!
 }
 
-type CreateSiteGroupPayload {
-  siteGroup: SiteGroup
-  clientMutationId: String!
+input DeleteProjectInput {
+  id: Int!
 }
 
-input CreateSiteInput {
-  siteName: String!
-  siteHost: String!
-  fullJson: Json!
-  clientMutationId: String!
+input DeleteSshKeyInput {
+  name: String!
 }
 
-type CreateSitePayload {
-  site: Site
-  clientMutationId: String!
+type Environment {
+  id: Int
+  name: String
+  project: Project
+  git_type: String
+  environment_type: String
+  openshift_projectname: String
+  updated: String
+  created: String
 }
 
-type Cron {
-  type: String
-  minute: String
+input EnvironmentInput {
+  name: String!
+  project: Int!
+  git_type: GitType!
+  environment_type: EnvType!
+  openshift_projectname: String!
 }
 
-scalar Json
-
-type MutationRoot {
-  createSite(input: CreateSiteInput!): CreateSitePayload
-  updateSite(input: UpdateSiteInput!): UpdateSitePayload
-  createSiteGroup(input: CreateSiteGroupInput!): CreateSiteGroupPayload
-  updateSiteGroup(input: UpdateSiteGroupInput!): UpdateSiteGroupPayload
+enum EnvType {
+  PRODUCTION
+  DEVELOPMENT
 }
 
-interface Node {
-  id: ID!
+enum GitType {
+  BRANCH
+  PULLREQUEST
 }
 
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-  endCursor: String
+type Mutation {
+  addProject(input: ProjectInput!): Project
+  deleteProject(input: DeleteProjectInput!): String
+  addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+  deleteEnvironment(input: DeleteEnvironmentInput!): String
+  addSshKey(input: SshKeyInput!): SshKey
+  deleteSshKey(input: DeleteSshKeyInput!): String
+  addCustomer(input: CustomerInput!): Customer
+  deleteCustomer(input: DeleteCustomerInput!): String
+  addOpenshift(input: OpenshiftInput!): Openshift
+  deleteOpenshift(input: DeleteOpenshiftInput!): String
+  addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+  deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
+  addNotificationToProject(input: NotificationToProjectInput!): Project
+  removeNotificationFromProject(
+    input: RemoveNotificationFromProjectInput!
+  ): Project
+  addSshKeyToProject(input: SshKeyToProjectInput!): Project
+  removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
+  addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
+  removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
+  truncateTable(tableName: String!): String
 }
 
-type QueryRoot {
-  node(id: ID!): Node
-  viewer: Viewer
-  siteById(id: String!): Site
-  siteGroupById(id: String!): SiteGroup
-  siteGroupByName(name: String!): SiteGroup
-  siteGroupByGitUrl(giturl: String!): SiteGroup
-  clientById(id: String!): Client
+union Notification = NotificationSlack
+
+type NotificationSlack {
+  id: Int
+  name: String
+  webhook: String
+  channel: String
 }
 
-type Site implements Node {
-  id: ID!
-  siteHost: String
-  siteName: String
-  siteGroup: SiteGroup
-  siteBranch: String
-  siteEnvironment: String
-  serverInfrastructure: String
-  serverIdentifier: String
-  serverNames: [String]
-  webRoot: String
-  drupalVersion: String
-  SSLCertificateType: String
-  FPMProfile: String
-  domains: [String]
-  redirectDomains: [String]
-  redirects: Json
-  uid: Int
-  dbPassword: String
-  dbUser: String
-  cron: Cron
-  customCron: Json
-  envVariables: Json
-  noPrefixenvVariables: Json
-  phpValues: Json
-  phpAdminValues: Json
-  phpFlags: Json
-  phpAdminFlags: Json
-  xdebug: String
-  nginxSitespecific: Boolean
-  nginxSiteconfig: String
-  solrEnabled: Boolean
-  redisEnabled: Boolean
-  sshKeys: Json
-  phpVersion: String
-  redirectToHttps: String
-  ensure: Json
-  upstreamURL: String
-  deployStrategy: String
-  apc: String
-  jumpHost: String
-  basicAuth: BasicAuth
-  fullJson: Json
+input NotificationSlackInput {
+  name: String!
+  webhook: String!
+  channel: String!
 }
 
-type SiteGroup implements Node {
-  id: ID!
-  siteGroupName: String
-  client: Client
-  fullJson: Json
-  slack: Json
-  gitUrl: String
-  sites(after: String, first: Int, before: String, last: Int, branch: String): SitesConnection
+input NotificationToProjectInput {
+  project: String!
+  notificationType: String!
+  notificationName: String!
 }
 
-type SiteGroupsConnection {
-  pageInfo: PageInfo!
-  edges: [SiteGroupsEdge]
+type Openshift {
+  id: Int
+  name: String
+  console_url: String
+  token: String
+  router_pattern: String
+  project_user: String
+  ssh_host: String
+  ssh_port: String
+  created: String
 }
 
-type SiteGroupsEdge {
-  node: SiteGroup
-  cursor: String!
+input OpenshiftInput {
+  id: Int
+  name: String!
+  console_url: String!
+  token: String
+  router_pattern: String
+  project_user: String
+  ssh_host: String
+  ssh_port: String
 }
 
-type SitesConnection {
-  pageInfo: PageInfo!
-  edges: [SitesEdge]
+type Project {
+  id: Int
+  name: String
+  customer: Customer
+  git_url: String
+  notifications(type: String): [Notification]
+  active_systems_deploy: String
+  active_systems_remove: String
+  branches: String
+  production_environment: String
+  pullrequests: Boolean
+  openshift: Openshift
+  sshKeys: [SshKey]
+  environments: [Environment]
+  created: String
 }
 
-type SitesEdge {
-  node: Site
-  cursor: String!
+input ProjectInput {
+  id: Int
+  name: String!
+  customer: Int!
+  git_url: String!
+  openshift: Int!
+  active_systems_deploy: String
+  active_systems_remove: String
+  branches: String
+  pullrequests: Boolean
+  production_environment: String
 }
 
-input UpdateSiteGroupInput {
-  siteGroupName: String!
-  fullJson: Json!
-  clientMutationId: String!
+type Query {
+  projectByName(name: String!): Project
+  projectByGitUrl(gitUrl: String!): Project
+  allProjects(createdAfter: String, gitUrl: String): [Project]
+  allCustomers(createdAfter: String): [Customer]
+  allOpenshifts: [Openshift]
 }
 
-type UpdateSiteGroupPayload {
-  siteGroup: SiteGroup
-  clientMutationId: String!
+input RemoveNotificationFromProjectInput {
+  project: String!
+  notificationType: String!
+  notificationName: String!
 }
 
-input UpdateSiteInput {
-  siteName: String!
-  siteHost: String!
-  fullJson: Json!
-  clientMutationId: String!
+input RemoveSshKeyFromCustomerInput {
+  customer: String!
+  sshKey: String!
 }
 
-type UpdateSitePayload {
-  site: Site
-  clientMutationId: String!
+input RemoveSshKeyFromProjectInput {
+  project: String!
+  sshKey: String!
 }
 
-type Viewer {
-  allSites(after: String, first: Int, before: String, last: Int, environmentType: String): SitesConnection
-  allSiteGroups(after: String, first: Int, before: String, last: Int): SiteGroupsConnection
-  allClients(after: String, first: Int, before: String, last: Int): ClientsConnection
+type SshKey {
+  id: Int
+  name: String
+  keyValue: String
+  keyType: String
+  created: String
+}
+
+input SshKeyInput {
+  id: Int
+  name: String!
+  keyValue: String!
+  keyType: SshKeyType
+}
+
+input SshKeyToCustomerInput {
+  customer: String!
+  sshKey: String!
+}
+
+input SshKeyToProjectInput {
+  project: String!
+  sshKey: String!
+}
+
+enum SshKeyType {
+  SSH_RSA
+  SSH_ED25519
 }

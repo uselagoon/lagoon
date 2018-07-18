@@ -3,19 +3,19 @@
 # Tries to find the Dockerhost
 get_dockerhost() {
   # https://docs.docker.com/docker-for-mac/networking/#known-limitations-use-cases-and-workarounds
-  if timeout -t 1 ping -c1 docker.for.mac.localhost &> /dev/null; then
+  if busybox timeout -t 1 ping -c1 docker.for.mac.localhost &> /dev/null; then
     echo "docker.for.mac.localhost"
     return
   fi
 
   # https://docs.docker.com/docker-for-windows/release-notes/#docker-community-edition-17060-win13-release-notes-2017-06-01-17060-rc1-ce-win13-edge
-  if timeout -t 1 ping -c1 docker.for.win.localhost &> /dev/null; then
+  if busybox timeout -t 1 ping -c1 docker.for.win.localhost &> /dev/null; then
     echo "docker.for.win.localhost"
     return
   fi
 
   # https://github.com/amazeeio/pygmy/blob/267ba143158548628f190f05ecb5cb2c19212038/lib/pygmy/resolv_osx.rb#L26
-  if timeout -t 1 ping -c1 172.16.172.16 &> /dev/null; then
+  if busybox timeout -t 1 ping -c1 172.16.172.16 &> /dev/null; then
     echo "172.16.172.16"
     return
   fi

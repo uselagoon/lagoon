@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/logstash/logstash:6.1.1
+FROM docker.elastic.co/logstash/logstash:6.2.4
 
 MAINTAINER amazee.io
 ENV LAGOON=logstash
@@ -11,6 +11,8 @@ USER root
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home /home
+
+RUN curl -sL https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -26,3 +28,5 @@ RUN fix-permissions /usr/share/logstash/data \
     && fix-permissions /usr/share/logstash/config
 
 ENV LS_JAVA_OPTS "-Xms200m -Xmx200m"
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint"]

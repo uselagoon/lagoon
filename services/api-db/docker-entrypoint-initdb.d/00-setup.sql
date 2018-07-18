@@ -30,6 +30,13 @@ CREATE TABLE IF NOT EXISTS openshift (
        created         timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS notification_rocketchat (
+       id          int NOT NULL auto_increment PRIMARY KEY,
+       name        varchar(50) UNIQUE,
+       webhook     varchar(300),
+       channel     varchar(300)
+);
+
 CREATE TABLE IF NOT EXISTS notification_slack (
        id          int NOT NULL auto_increment PRIMARY KEY,
        name        varchar(50) UNIQUE,
@@ -43,6 +50,7 @@ CREATE TABLE IF NOT EXISTS project (
        name                   varchar(100) UNIQUE,
        customer               int REFERENCES customer (id),
        git_url                varchar(300),
+       subfolder              varchar(300),
        active_systems_deploy  varchar(300),
        active_systems_promote varchar(300),
        active_systems_remove  varchar(300),
@@ -50,7 +58,9 @@ CREATE TABLE IF NOT EXISTS project (
        pullrequests           varchar(300),
        production_environment varchar(100),
        auto_idle              int(1) NOT NULL default 1,
+       storage_calc           int(1) NOT NULL default 1,
        openshift              int REFERENCES openshift (id),
+       openshift_project_pattern varchar(300),
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -63,7 +73,17 @@ CREATE TABLE IF NOT EXISTS environment (
        openshift_projectname  varchar(100),
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
-       UNIQUE KEY `project_name` (`project`,`name`)
+       deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+       UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`)
+);
+
+CREATE TABLE IF NOT EXISTS environment_storage (
+       id                       int NOT NULL auto_increment PRIMARY KEY,
+       environment              int REFERENCES environment (id),
+       persistent_storage_claim varchar(100),
+       bytes_used               bigint,
+       updated                  date,
+       UNIQUE KEY `environment_persistent_storage_claim_updated` (`environment`,`persistent_storage_claim`, `updated`)
 );
 
 -- Junction Tables
@@ -71,7 +91,7 @@ CREATE TABLE IF NOT EXISTS environment (
 CREATE TABLE IF NOT EXISTS project_notification (
        nid              int,
        pid              int REFERENCES project (id),
-       type             ENUM('slack') NOT NULL,
+       type             ENUM('slack','rocketchat') NOT NULL,
        CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
 );
 
@@ -252,6 +272,143 @@ CREATE OR REPLACE PROCEDURE
 
   END;
 $$
+
+CREATE OR REPLACE PROCEDURE
+  add_enum_rocketchat_to_type_in_project_notification()
+
+  BEGIN
+    DECLARE column_type_project_notification_type varchar(50);
+
+    SELECT COLUMN_TYPE into column_type_project_notification_type
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE table_name = 'project_notification'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type';
+
+	  IF (column_type_project_notification_type = "enum('slack')") THEN
+      ALTER TABLE project_notification MODIFY type ENUM('slack','rocketchat');
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_deleted_to_environment()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'environment'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'deleted'
+            )  THEN
+      ALTER TABLE `environment` DROP INDEX project_name;
+      ALTER TABLE `environment` ADD `deleted` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00';
+      ALTER TABLE `environment` ADD UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`);
+
+    END IF;
+
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  add_storagecalc_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'storage_calc'
+            )  THEN
+      ALTER TABLE `project` ADD `storage_calc` int(1) NOT NULL default '1';
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_project_pattern_to_openshift()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'openshift'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'project_pattern'
+            )  THEN
+      ALTER TABLE `openshift` ADD `project_pattern` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_subfolder_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'subfolder'
+            )  THEN
+      ALTER TABLE `project` ADD `subfolder` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  delete_project_pattern_from_openshift()
+
+  BEGIN
+
+    IF EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'openshift'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'project_pattern'
+            )  THEN
+      ALTER TABLE `openshift` DROP COLUMN `project_pattern`;
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_project_pattern_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'openshift_project_pattern'
+            )  THEN
+      ALTER TABLE `project` ADD `openshift_project_pattern` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -261,3 +418,10 @@ CALL add_active_systems_promote_to_project;
 CALL rename_git_type_to_deploy_type_in_environment;
 CALL add_enum_promote_to_deploy_type_in_environment;
 CALL add_autoidle_to_project;
+CALL add_enum_rocketchat_to_type_in_project_notification();
+CALL add_deleted_to_environment;
+CALL add_storagecalc_to_project();
+CALL add_project_pattern_to_openshift();
+CALL add_subfolder_to_project();
+CALL delete_project_pattern_from_openshift();
+CALL add_openshift_project_pattern_to_project()

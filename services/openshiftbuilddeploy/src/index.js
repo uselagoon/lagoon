@@ -44,10 +44,11 @@ const messageConsumer = async msg => {
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
-    var openshiftProject = `${safeProjectName}-${safeBranchName}`
+    var openshiftProject = projectOpenShift.openshift_project_pattern ? projectOpenShift.openshift_project_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
     var openshiftProjectUser = projectOpenShift.openshift.project_user || ""
     var deployPrivateKey = projectOpenShift.customer.private_key
     var gitUrl = projectOpenShift.git_url
+    var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.router_pattern ? projectOpenShift.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
     var prHeadSha = headSha || ""
@@ -112,6 +113,8 @@ const messageConsumer = async msg => {
           "postCommit": {},
           "resources": {},
           "runPolicy": "Serial",
+          "successfulBuildsHistoryLimit": 1,
+          "failedBuildsHistoryLimit": 1,
           "source": {
               "git": {
                   "uri": gitUrl
@@ -142,6 +145,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "GIT_REF",
                           "value": gitRef
+                      },
+                      {
+                          "name": "SUBFOLDER",
+                          "value": subfolder
                       },
                       {
                           "name": "SAFE_BRANCH",

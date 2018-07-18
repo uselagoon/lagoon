@@ -15,6 +15,7 @@ COPY --from=golang /go/bin/envsubst /bin/envsubst
 # Copying commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
@@ -49,5 +50,5 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 

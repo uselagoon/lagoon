@@ -4,10 +4,13 @@
 Until then the setup of a new project involves talking to your Lagoon Administrator. They are anyway much friendlier then APIs ;)
 
 Please have the following information ready for your Lagoon Administrator:
+
 - SSH-Public Keys of everybody that will work on this project
 - The URL of the Git repository which will host the code (git@example.com:test/test.git)
-- The Git branch you would like to use as your production environment
-- Which Branches and Pull Requests you would like to deploy. Lagoon allows to filter Branches by their name with Regex, and Pull Requests by title again with Regex. Our suggestion is to deploy specific important Branches (like `develop` and `master`) and Pull Requests. But it's all your choice!
+- The Git branch you would like to use as your production environment (see [Environment Types](./environment_types.md))
+- Which Branches and Pull Requests you would like to deploy. Lagoon allows to filter Branches by their name with Regex, and Pull Requests by title again with Regex.
+
+Our suggestion is to deploy specific important Branches (like `develop` and `master`) and Pull Requests. But it's all your choice!
 
 ## 1. Make sure your project is Lagoonized
 

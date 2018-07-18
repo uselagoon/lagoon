@@ -1,177 +1,146 @@
-# amazee.io Command Line Interface
+# lagoon Command Line Interface
 
 ## Installation
 
-Install `io` with either `npm` or `yarn`.
+Install the CLI with either `npm` or `yarn`.
 
 ```sh
 # Either npm...
-npm install --global @lagoon/cli
+npm install --global @lagoon/lagu
 
 # ...or Yarn
-yarn global add @lagoon/cli
+yarn global add @lagoon/lagu
 ```
 
 ## Setup
 
-`io` needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#io-init):
+The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagoon-init):
 
 ```sh
 # Initialize project configuration
-io init
+lagu init
 ```
 
-For more options, see the [`io init` documentation](#io-init).
+For more options, see the [`lagoon init` documentation](#lagoon-init).
 
 ## Commands
 
-### `io init`
+### `lagu init`
 
 ```text
-$ io init --help
-io init - Create a .lagoon.yml config file in the current working
-directory
+$ lagu init --help
+lagu init - Create a .lagoon.yml config file in the current working directory
 
 Options:
-  --help           Show help                                           [boolean]
-  --overwrite      Overwrite the configuration file if it exists       [boolean]
-  --sitegroup, -s  Name of sitegroup to configure                       [string]
+  --version      Show version number                                   [boolean]
+  --help         Show help                                             [boolean]
+  --overwrite    Overwrite the configuration file if it exists         [boolean]
+  --project, -p  Name of project to configure                           [string]
 
 Examples:
-  io init                           Create a config file at ./.lagoon.yml.
-                                    This will confirm with the user whether to
-                                    overwrite the config if it already exists
-                                    and also prompt for a sitegroup name to add
-                                    to the config.
+  lagu init                                 Create a config file at
+                                            ./.lagoon.yml. This will confirm
+                                            with the user whether to overwrite
+                                            the config if it already exists and
+                                            also prompt for a project name to
+                                            add to the config.
 
-  io init --overwrite               Overwrite existing config file (do not
-                                    confirm with the user).
+  lagu init --overwrite                     Overwrite existing config file (do
+                                            not confirm with the user).
 
-  io init --overwrite false         Prevent overwriting of existing config file
-                                    (do not confirm with user).
+  lagu init --overwrite false               Prevent overwriting of existing
+                                            config file (do not confirm with
+                                            user).
 
-  io init --sitegroup my_sitegroup  Set sitegroup to "my_sitegroup" (do not
-                                    prompt the user).
+  lagu init --project my_project            Set project to "my_project" (do not
+                                            prompt the user).
 
-  io init -s my_sitegroup           Short form for setting sitegroup to
-                                    "my_sitegroup" (do not prompt the user).
+  lagu init -p my_project                   Short form for setting project to
+                                            "my_project" (do not prompt the
+                                            user).
 
-  io init --overwrite --sitegroup   Overwrite existing config files and set
-  my_sitegroup                      sitegroup to "my_sitegroup" (do not confirm
-                                    with or prompt the user).
+  lagu init --overwrite --project           Overwrite existing config files and
+  my_project                                set project to "my_project" (do not
+                                            confirm with or prompt the user).
 ```
 
-#### `io init` Examples
+#### `lagoon init` Examples
 
 ```text
-$ io init
-? File '/Users/Claudine/Projects/developermentify/.lagoon.yml' already exists! Overwrite? (y/N) y
-? Enter the name of the sitegroup to configure. my_sitegroup
-Creating file '/Users/Claudine/Projects/developermentify/.lagoon.yml'...
+$ lagu init
+? Enter the name of the project to configure. example
+Creating file '/Users/you/git/.lagoon.yml'...
 Configuration file created!
-Done in 10.56s.
 ```
 
 This will generate the following file:
 
 ```text
 $ cat .lagoon.yml
-sitegroup: my_sitegroup
-deploy_tasks:
-  task1:
-    before_deploy: []
-    after_deploy: []
+project: example
 ```
 
-### `io login`
+### `lagu login`
 
 ```text
-$ io login --help
-io login - Authenticate with amazee.io via an SSH key
+$ lagu login --help
+lagu login - Authenticate with lagoon via an SSH key
 
 Options:
+  --version       Show version number                                  [boolean]
   --help          Show help                                            [boolean]
   --identity, -i  Path to identity (private key)                        [string]
-
-Done in 1.86s.
 ```
 
-#### `io login` Examples
+#### `lagu login` Examples
 
 By default, the login command uses the SSH private key at `$HOME/.ssh/id_rsa`.
 
 ```text
-$ io login
+$ lagu login
 Login successful
-Done in 1.28s.
 ```
 
 If that file does not exist, the user will be prompted for the path:
 
 ```text
-$ io login
+$ lagu login
 ? Path to private key file /path/to/id_rsa
 Login successful
-Done in 3.42s.
 ```
 
 The path to the key can be also passed in via the `--identity` option (short form `-i`):
 
 ```text
-$ io login -i /path/to/id_rsa
+$ lagu login -i /path/to/id_rsa
 Login successful
-Done in 1.70s.
 ```
 
 If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
-$ io login -i /path/to/id_rsa
+$ lagu login -i /path/to/id_rsa
 ? Private key passphrase (never saved) [hidden]
 Login successful
-Done in 4.15s.
 ```
 
-### `io sites`
+## Development - docker
 
-```sh
-# List sites for the configured / given sitegroup
-io sites
-io sites -s my_sitegroup
-```
-
-#### `io sites` Examples
-
-TODO: Make examples
+- First build the cli image: `make build/cli` (dependencies are automatically build)
+- Run the cli docker container via `docker-compose up -d cli` (dependencies are automatically started)
+- Run a bash inside the container: `docker-compose exec cli bash`
+- Use `yarn execute login --identity ~/.ssh/id_rsa` to login
+- Now you can run commands via `yarn execute <cli command>`
 
 ## Development - local nodejs
 
-The `runCli.sh` script injects the necessary environment variables such as `process.env.API_URL`.
+The `execute <cli command>` yarn script can be used to run CLI commands during development.
 
-```sh
-../runCli.sh -- <commands>
+Additionally you want to add:
+
+```yaml
+api: http://localhost:3000
+ssh: localhost:2020
 ```
 
-For example:
-
-```sh
-../runCli.sh -- init --overwrite false --sitegroup my_sitegroup
-```
-
-## Development - inside docker
-
-There is already a docker container prepared that has the cli running. Run a new container with bash and then run `yarn run execute <command>`
-
-```sh
-docker-compose run --rm cli bash
-```
-
-### Old development instructions
-
-The instructions below were how we previously built (before `runCli.sh`), but they will not inject the necessary environment variables (for example, `process.env.API_URL`).
-
-```sh
-npm install      # Install dependencies
-npm run build    # Build files to the `dist` folder
-node .           # Run the CLI
-```
+to the `.lagoon.yml` file so that it uses the development api and ssh services

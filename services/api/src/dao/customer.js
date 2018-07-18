@@ -15,35 +15,63 @@ const Sql = {
     const { id, patch } = input;
     const { customers } = cred.permissions;
 
-    const query = knex('customer').where('id', '=', id);
+    const updateCustomerQuery = knex('customer').where('id', '=', id);
 
     if (cred.role !== 'admin' && !R.contains(id, customers)) {
-      query.whereIn('id', customers);
+      updateCustomerQuery.whereIn('id', customers);
     }
 
-    return query.update(patch).toString();
+    return updateCustomerQuery.update(patch).toString();
   },
-  selectCustomer: id => {
-    return knex('customer')
+  selectCustomer: id =>
+    knex('customer')
       .where('id', '=', id)
-      .toString();
-  },
+      .toString(),
   getCustomerByName: (cred, name) => {
-    const { customers, role } = cred.permissions;
+    const {
+      customers,
+      // role
+    } = cred.permissions;
 
-    const query = knex('customer').where('name', '=', name);
+    const getCustomerQuery = knex('customer').where('name', '=', name);
 
     if (cred.role !== 'admin') {
-      query.whereIn('id', customers);
+      getCustomerQuery.whereIn('id', customers);
     }
 
-    return query.toString();
+    return getCustomerQuery.toString();
+  },
+  selectCustomerIdByName: name =>
+    knex('customer')
+      .where('name', '=', name)
+      .select('id')
+      .toString(),
+};
+
+const Helpers = {
+  getCustomerIdByName: async (sqlClient, name) => {
+    const cidResult = await query(sqlClient, Sql.selectCustomerIdByName(name));
+
+    const amount = R.length(cidResult);
+    if (amount > 1) {
+      throw new Error(
+        `Multiple customer candidates for '${name}' (${amount} found). Do nothing.`,
+      );
+    }
+
+    if (amount === 0) {
+      throw new Error(`Not found: '${name}'`);
+    }
+
+    const cid = R.path(['0', 'id'], cidResult);
+
+    return cid;
   },
 };
 
-const addCustomer = sqlClient => async (cred, input) => {
+const addCustomer = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
+    throw new Error('Unauthorized.');
   }
 
   const prep = prepare(
@@ -62,7 +90,7 @@ const addCustomer = sqlClient => async (cred, input) => {
   return customer;
 };
 
-const getCustomerByProjectId = sqlClient => async (cred, pid) => {
+const getCustomerByProjectId = ({ sqlClient }) => async (cred, pid) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -75,9 +103,9 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
       JOIN customer c ON p.customer = c.id
       WHERE p.id = :pid
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
+  )}
     `;
   const prep = prepare(sqlClient, str);
 
@@ -86,7 +114,7 @@ const getCustomerByProjectId = sqlClient => async (cred, pid) => {
   return rows ? rows[0] : null;
 };
 
-const deleteCustomer = sqlClient => async (cred, input) => {
+const deleteCustomer = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -98,7 +126,7 @@ const deleteCustomer = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-const getAllCustomers = sqlClient => async (cred, args) => {
+const getAllCustomers = ({ sqlClient }) => async (cred, args) => {
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
     ifNotAdmin(cred.role, `${inClause('id', cred.permissions.customers)}`),
@@ -108,13 +136,13 @@ const getAllCustomers = sqlClient => async (cred, args) => {
   return rows;
 };
 
-const updateCustomer = sqlClient => async (cred, input) => {
-  const { customers } = cred.permissions;
-  const cid = input.id.toString();
-
-  if (cred.role !== 'admin' && !R.contains(cid, customers)) {
+const updateCustomer = ({ sqlClient }) => async (cred, input) => {
+  if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
+
+  const { customers } = cred.permissions;
+  const cid = input.id.toString();
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -126,7 +154,7 @@ const updateCustomer = sqlClient => async (cred, input) => {
   return R.prop(0, rows);
 };
 
-const getCustomerByName = sqlClient => async (cred, args) => {
+const getCustomerByName = ({ sqlClient }) => async (cred, args) => {
   const rows = await query(sqlClient, Sql.getCustomerByName(cred, args.name));
   return rows ? rows[0] : null;
 };
@@ -143,4 +171,5 @@ const Queries = {
 module.exports = {
   Sql,
   Queries,
+  Helpers,
 };

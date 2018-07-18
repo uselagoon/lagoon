@@ -37,6 +37,12 @@ parameters:
   - name: SERVICE_IMAGE
     description: Pullable image of service
     required: true
+  - name: CRONJOBS
+    description: Oneline of Cronjobs
+    value: ""
+  - name: PERSISTENT_STORAGE_SIZE
+    description: Size of the Storage to request
+    value: "5Gi"
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -84,6 +90,11 @@ objects:
           volumeMounts:
             - name: ${SERVICE_NAME}-data
               mountPath: /var/lib/mysql
+          env:
+          - name: SERVICE_NAME
+            value: ${SERVICE_NAME}
+          - name: CRONJOBS
+            value: ${CRONJOBS}
           envFrom:
           - configMapRef:
               name: lagoon-env

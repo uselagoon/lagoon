@@ -91,3 +91,11 @@
     branch: branch1
     expected_dot_env: branch1
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/subfolder.yaml
+  vars:
+    testname: "SUBFOLDER"
+    git_repo_name: features-subfolder.git
+    project: ci-features-subfolder
+    branch: branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

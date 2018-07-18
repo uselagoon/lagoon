@@ -17,7 +17,6 @@ export default function request(options: RequestOptions): Promise<Object> {
 
   const def = defer();
 
-  // eslint-disable-next-line global-require
   const protocolModule = port === 443 ? require('https') : require('http');
 
   const req = protocolModule.request(options, (res) => {

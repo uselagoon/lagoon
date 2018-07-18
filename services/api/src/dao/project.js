@@ -26,9 +26,35 @@ const Sql = {
     knex('project')
       .where('id', id)
       .toString(),
+  selectProjectIdByName: name =>
+    knex('project')
+      .where('name', name)
+      .select('id')
+      .toString(),
 };
 
-const getAllProjects = sqlClient => async (cred, args) => {
+const Helpers = {
+  getProjectIdByName: async (sqlClient, name) => {
+    const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
+
+    const amount = R.length(pidResult);
+    if (amount > 1) {
+      throw new Error(
+        `Multiple project candidates for '${name}' (${amount} found). Do nothing.`,
+      );
+    }
+
+    if (amount === 0) {
+      throw new Error(`Not found: '${name}'`);
+    }
+
+    const pid = R.path(['0', 'id'], pidResult);
+
+    return pid;
+  },
+};
+
+const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
 
   // We need one "WHERE" keyword, but we have multiple optional conditions
@@ -47,7 +73,7 @@ const getAllProjects = sqlClient => async (cred, args) => {
   return rows;
 };
 
-const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
+const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -66,7 +92,7 @@ const getProjectByEnvironmentId = sqlClient => async (cred, eid) => {
   return rows ? rows[0] : null;
 };
 
-const getProjectByGitUrl = sqlClient => async (cred, args) => {
+const getProjectByGitUrl = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -74,12 +100,12 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
       FROM project
       WHERE git_url = :gitUrl
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['customer', customers],
-          ['project.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([
+      ['customer', customers],
+      ['project.id', projects],
+    ])})`,
+  )}
       LIMIT 1
     `;
 
@@ -89,7 +115,7 @@ const getProjectByGitUrl = sqlClient => async (cred, args) => {
   return rows ? rows[0] : null;
 };
 
-const getProjectByName = sqlClient => async (cred, args) => {
+const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
       SELECT
@@ -97,12 +123,12 @@ const getProjectByName = sqlClient => async (cred, args) => {
       FROM project
       WHERE name = :name
       ${ifNotAdmin(
-        cred.role,
-        `AND (${inClauseOr([
-          ['customer', customers],
-          ['project.id', projects],
-        ])})`,
-      )}
+    cred.role,
+    `AND (${inClauseOr([
+      ['customer', customers],
+      ['project.id', projects],
+    ])})`,
+  )}
     `;
 
   const prep = prepare(sqlClient, str);
@@ -112,7 +138,7 @@ const getProjectByName = sqlClient => async (cred, args) => {
   return rows[0];
 };
 
-const addProject = sqlClient => async (cred, input) => {
+const addProject = ({ sqlClient }) => async (cred, input) => {
   const { customers } = cred.permissions;
   const cid = input.customer.toString();
 
@@ -127,26 +153,29 @@ const addProject = sqlClient => async (cred, input) => {
         :name,
         :customer,
         :git_url,
+        ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
+        ${input.openshift_project_pattern? ':openshift_project_pattern' : 'NULL'},
         ${
-          input.active_systems_deploy
-            ? ':active_systems_deploy'
-            : '"lagoon_openshiftBuildDeploy"'
-        },
+  input.active_systems_deploy
+    ? ':active_systems_deploy'
+    : '"lagoon_openshiftBuildDeploy"'
+},
         ${
-          input.active_systems_promote
-            ? ':active_systems_promote'
-            : '"lagoon_openshiftBuildDeploy"'
-        },
+  input.active_systems_promote
+    ? ':active_systems_promote'
+    : '"lagoon_openshiftBuildDeploy"'
+},
         ${
-          input.active_systems_remove
-            ? ':active_systems_remove'
-            : '"lagoon_openshiftRemove"'
-        },
+  input.active_systems_remove
+    ? ':active_systems_remove'
+    : '"lagoon_openshiftRemove"'
+},
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.production_environment ? ':production_environment' : 'NULL'},
-        ${input.auto_idle ? ':auto_idle' : '1'}
+        ${input.auto_idle ? ':auto_idle' : '1'},
+        ${input.storage_calc ? ':storage_calc' : '1'}
       );
     `,
   );
@@ -157,7 +186,7 @@ const addProject = sqlClient => async (cred, input) => {
   return project;
 };
 
-const deleteProject = sqlClient => async (cred, input) => {
+const deleteProject = ({ sqlClient }) => async (cred, input) => {
   const { projects } = cred.permissions;
   const pid = input.id.toString();
 
@@ -171,7 +200,7 @@ const deleteProject = sqlClient => async (cred, input) => {
   return 'success';
 };
 
-const updateProject = sqlClient => async (cred, input) => {
+const updateProject = ({ sqlClient }) => async (cred, input) => {
   const { projects } = cred.permissions;
   const pid = input.id.toString();
 
@@ -180,7 +209,7 @@ const updateProject = sqlClient => async (cred, input) => {
   }
 
   if (isPatchEmpty(input)) {
-    throw new Error('input.patch requires at least 1 attribute')
+    throw new Error('input.patch requires at least 1 attribute');
   }
 
   await query(sqlClient, Sql.updateProject(cred, input));
@@ -203,4 +232,5 @@ const Queries = {
 module.exports = {
   Sql,
   Queries,
+  Helpers,
 };

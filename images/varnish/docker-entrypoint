@@ -1,5 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 
 ep /etc/varnish/*
-
-exec "$@"

@@ -43,11 +43,14 @@ RUN mkdir -p /openshift-origin-client-tools && \
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
+RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
+
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 
 # Needed for jwt generation
-RUN npm -g install jwtgen
+RUN npm config set unsafe-perm true \
+    && npm -g install jwtgen
 
 COPY services/ssh/etc/ /etc/
 COPY services/ssh/home/ /home/
@@ -94,5 +97,5 @@ ENV AUTH_SERVER=http://auth-server:3000 \
 
 EXPOSE 2020
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/usr/sbin/sshd", "-e", "-D", "-f", "/etc/ssh/sshd_config"]

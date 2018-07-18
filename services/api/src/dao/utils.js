@@ -10,7 +10,7 @@ const ifNotAdmin = (role, str) =>
   all those SQL-esque helpers like whereAnd, inClause, etc.
   are subject to be obsolete. We are planning to migrate to
   a dedicated SQL-builder lib (knex)
-**/
+* */
 
 // Creates a WHERE statement with AND inbetween non-empty conditions
 const whereAnd = whereConds =>
@@ -18,9 +18,8 @@ const whereAnd = whereConds =>
     R.reduce((ret, str) => {
       if (ret === '') {
         return `WHERE ${str}`;
-      } else {
-        return `${ret} AND ${str}`;
       }
+      return `${ret} AND ${str}`;
     }, ''),
     R.filter(R.compose(R.not, R.isEmpty)),
   )(whereConds);
@@ -40,9 +39,8 @@ const inClauseOr = conds =>
     R.reduce((ret, str) => {
       if (ret === '') {
         return str;
-      } else {
-        return `${ret} OR ${str}`;
       }
+      return `${ret} OR ${str}`;
     }, ''),
     R.map(([field, values]) => inClause(field, values)),
   )(conds);
@@ -64,9 +62,13 @@ const query = (sqlClient, sql) =>
 // We use this just for consistency of the api calls
 const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
 
-const isPatchEmpty = R.compose(
-  R.isEmpty,
-  R.propOr({}, 'patch')
+const isPatchEmpty = R.compose(R.isEmpty, R.propOr({}, 'patch'));
+
+// Tells if a user tries to modify an sshKey in the given patch
+// payload
+const hasSshKeyPatch = R.compose(
+  R.anyPass([R.has('keyValue'), R.has('keyType')]),
+  R.propOr({}, 'patch'),
 );
 
 module.exports = {
@@ -78,4 +80,5 @@ module.exports = {
   query,
   whereAnd,
   isPatchEmpty,
+  hasSshKeyPatch,
 };
