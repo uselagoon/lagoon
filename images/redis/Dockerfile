@@ -24,5 +24,8 @@ COPY docker-entrypoint /lagoon/entrypoints/70-redis-entrypoint
 RUN fix-permissions /etc/redis/redis.conf \
     fix-permissions /data
 
+ARG LAGOON_VERSION
+RUN echo $LAGOON_VERSION > /etc/lagoon-version
+
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["redis-server", "/etc/redis/redis.conf"]

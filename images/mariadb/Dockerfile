@@ -117,6 +117,9 @@ COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/conta
 
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
 
+ARG LAGOON_VERSION
+RUN echo $LAGOON_VERSION > /etc/lagoon-version
+
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 RUN addgroup mysql root
 USER mysql

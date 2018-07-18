@@ -27,6 +27,9 @@ USER solr
 
 COPY 10-solr-port.sh /lagoon/entrypoints/
 
+ARG LAGOON_VERSION
+RUN echo $LAGOON_VERSION > /etc/lagoon-version
+
 # Define Volume so locally we get persistent cores
 VOLUME /opt/solr/server/solr/mycores/
 
