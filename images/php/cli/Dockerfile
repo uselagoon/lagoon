@@ -10,6 +10,7 @@ RUN apk update \
     && apk add git \
         mysql-client \
         unzip \
+        gzip  \
         bash \
         tini \
         openssh-client \
