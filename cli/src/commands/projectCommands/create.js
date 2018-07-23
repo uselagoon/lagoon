@@ -1,8 +1,10 @@
 // @flow
 
 import { green, blue } from 'chalk';
+import fuzzysearch from 'fuzzysearch';
 import { fromUrl as hostedGitInfoFromUrl } from 'hosted-git-info';
 import inquirer from 'inquirer';
+import autocompletePrompt from 'inquirer-autocomplete-prompt';
 import R from 'ramda';
 import { table } from 'table';
 
@@ -19,6 +21,9 @@ import { getOptions } from '..';
 import typeof Yargs from 'yargs';
 import type { inquirer$Question } from 'inquirer';
 import type { BaseHandlerArgs } from '..';
+
+// $FlowFixMe inquirer$PromptModule interface doesn't match autocompletePrompt module
+inquirer.registerPrompt('autocomplete', autocompletePrompt);
 
 export const command = 'create';
 export const description = 'Create new project';
@@ -186,11 +191,14 @@ export async function promptForProjectInput(
 ): Promise<Options> {
   const questions: Array<Question> = [
     {
-      type: 'list',
+      type: 'autocomplete',
       name: CUSTOMER,
       message: 'Customer:',
-      // $FlowFixMe Inquirer can also take values of numbers
-      choices: allCustomers,
+      source: async (answers, input) =>
+        R.filter(
+          customer => fuzzysearch(input || '', R.prop('name', customer)),
+          allCustomers,
+        ),
       // Using the `when` method of the question object, decide where to get the customer based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
       when(answers) {
@@ -264,11 +272,14 @@ export async function promptForProjectInput(
       }),
     },
     {
-      type: 'list',
+      type: 'autocomplete',
       name: OPENSHIFT,
       message: 'Openshift:',
-      // $FlowFixMe Inquirer can also take values of numbers
-      choices: allOpenshifts,
+      source: async (answers, input) =>
+        R.filter(
+          openshift => fuzzysearch(input || '', R.prop('name', openshift)),
+          allOpenshifts,
+        ),
       // Using the `when` method of the question object, decide where to get the openshift based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
       when(answers) {
