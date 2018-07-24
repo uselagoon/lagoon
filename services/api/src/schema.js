@@ -34,13 +34,38 @@ const typeDefs = `
     keyType: String
     created: String
   }
-
+  """
+  Lagoon Customer (used for grouping multiple Projects)
+  """
   type Customer {
+    """
+    Internal ID of this customer
+    """
     id: Int
+    """
+    Name of customer
+    """
     name: String
+    """
+    Arbitrary String for some comment
+    """
     comment: String
+    """
+    SSH Private Key of Customer
+    Will be used to authenticate against the Git Repos of the Project that are assigned to this project
+    Needs to be in single string separated by \`\n\`, example:
+    \`\`\`
+    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
+    \`\`\`
+    """
     private_key: String
+    """
+    Reference to SshKey API Objects which will have access to all Projects that are assigned to this Customer
+    """
     sshKeys: [SshKey]
+    """
+    Unix Timestamp of when this customer has been created.
+    """
     created: String
   }
 
@@ -182,19 +207,61 @@ const typeDefs = `
     created: String
   }
 
+  """
+  Lagoon Environment (for each branch, pullrequest there is an individual environment)
+  """
   type Environment {
+    """
+    Internal ID of this Environment
+    """
     id: Int
+    """
+    Name of this Environment
+    """
     name: String
+    """
+    Reference to the Project Object
+    """
     project: Project
+    """
+    Which Deployment Type this environment is, can be \`branch\`, \`pullrequest\`, \`promote\`
+    """
     deploy_type: String
+    """
+    Which Environment Type this environment is, can be \`production\`, \`development\`
+    """
     environment_type: String
+    """
+    Name of the OpenShift Project/Namespace this environemnt is deployed into
+    """
     openshift_projectname: String
+    """
+    Unix Timestamp of the last time this environment has been updated
+    """
     updated: String
+    """
+    Unix Timestamp if the creation time
+    """
     created: String
+    """
+    Unix Timestamp of when this project has been deleted
+    """
     deleted: String
+    """
+    Reference to EnvironmentHoursMonth API Object, which returns how many hours this environment ran in a specific month
+    """
     hours_month(month: Date): EnvironmentHoursMonth
+    """
+    Reference to EnvironmentStorage API Object, which shows the Storage consumption of this environment per day
+    """
     storages: [EnvironmentStorage]
+    """
+    Reference to EnvironmentStorageMonth API Object, which returns how many storage per day this environment used in a specific month
+    """
     storage_month(month: Date): EnvironmentStorageMonth
+    """
+    Reference to EnviornmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
+    """
     hits_month(month: Date): EnviornmentHitsMonth
   }
 
@@ -227,13 +294,37 @@ const typeDefs = `
   }
 
   type Query {
+    """
+    Returns Customer Object by a given name
+    """
     customerByName(name: String!): Customer
+    """
+    Returns Project Object by a given name
+    """
     projectByName(name: String!): Project
+    """
+    Returns Project Object by a given gitUrl (only the first one if there are multiple)
+    """
     projectByGitUrl(gitUrl: String!): Project
+    """
+    Returns Environment Object by a given openshiftProjectName
+    """
     environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
+    """
+    Returns all Project Objects matching given filters (all if no filter defined)
+    """
     allProjects(createdAfter: String, gitUrl: String): [Project]
+    """
+    Returns all Customer Objects matching given filter (all if no filter defined)
+    """
     allCustomers(createdAfter: String): [Customer]
+    """
+    Returns all OpenShift Objects
+    """
     allOpenshifts: [Openshift]
+    """
+    Returns all Environments matching given filter (all if no filter defined)
+    """
     allEnvironments(createdAfter: String): [Environment]
   }
 
@@ -465,7 +556,13 @@ const typeDefs = `
     updateProject(input: UpdateProjectInput!): Project
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
+    """
+    Add Environment or update if it is already existing
+    """
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+    """
+    Add or update Storage Information for Environment
+    """
     addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
     deleteEnvironment(input: DeleteEnvironmentInput!): String
     addSshKey(input: SshKeyInput!): SshKey
@@ -478,12 +575,18 @@ const typeDefs = `
     addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
     deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
+    """
+    Connect previous created Notification to a Project
+    """
     addNotificationToProject(input: NotificationToProjectInput!): Project
     removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
     addSshKeyToProject(input: SshKeyToProjectInput!): Project
     removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
     addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
     removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
+    """
+    Truncates a whole API Table. ** This is destructive, USE WITH CAUTION **
+    """
     truncateTable(tableName: String!): String
   }
 `;
