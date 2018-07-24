@@ -486,20 +486,13 @@ const resolvers = {
       const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
         args,
       );
-      return dao.getEnvironmentsByProjectId(
-        req.credentials,
-        project.id,
-        input,
-      );
+      return dao.getEnvironmentsByProjectId(req.credentials, project.id, input);
     },
   },
   Environment: {
     project: async (environment, args, req) => {
       const dao = getDao(req);
-      return dao.getProjectByEnvironmentId(
-        req.credentials,
-        environment.id,
-      );
+      return dao.getProjectByEnvironmentId(req.credentials, environment.id);
     },
     hours_month: async (environment, args, req) => {
       const dao = getDao(req);
@@ -566,10 +559,7 @@ const resolvers = {
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
-      return dao.getEnvironmentByOpenshiftProjectName(
-        req.credentials,
-        args,
-      );
+      return dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
