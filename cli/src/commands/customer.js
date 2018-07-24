@@ -51,28 +51,26 @@ export async function getCustomerDetails({
   cerr,
 }:
 GetCustomerDetailsArgs): Promise<number> {
-  const query = gql`
-    query CustomerByProjectName($project: String!) {
-      projectByName(name: $project) {
-        customer {
-          name
-          comment
-          private_key
-          sshKeys {
+  const result = await queryGraphQL({
+    cerr,
+    query: gql`
+      query CustomerByProjectName($project: String!) {
+        projectByName(name: $project) {
+          customer {
             name
-            keyValue
-            keyType
+            comment
+            private_key
+            sshKeys {
+              name
+              keyValue
+              keyType
+              created
+            }
             created
           }
-          created
         }
       }
-    }
-  `;
-
-  const result = await runGQLQuery({
-    cerr,
-    query,
+    `,
     variables: { project },
   });
 

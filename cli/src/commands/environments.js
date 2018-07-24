@@ -50,23 +50,21 @@ export async function listEnvironments({
   cerr,
 }:
 projectDetailsArgs): Promise<number> {
-  const query = gql`
-    query ProjectByName($project: String!) {
-      projectByName(name: $project) {
-        environments {
-          name
-          environment_type
-          deploy_type
-          created
-          updated
+  const result = await queryGraphQL({
+    cerr,
+    query: gql`
+      query ProjectByName($project: String!) {
+        projectByName(name: $project) {
+          environments {
+            name
+            environment_type
+            deploy_type
+            created
+            updated
+          }
         }
       }
-    }
-  `;
-
-  const result = await runGQLQuery({
-    cerr,
-    query,
+    `,
     variables: { project: projectName },
   });
 
