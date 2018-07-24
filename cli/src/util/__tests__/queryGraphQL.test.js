@@ -1,14 +1,14 @@
 // @flow
 
-import request from '../util/request';
+import { queryGraphQL } from '../queryGraphQL';
+import request from '../request';
 
-import * as allConfigExports from '../config';
-import * as allApiConfigExports from '../config/getApiConfig';
-import { runGQLQuery } from '../query';
+import * as allConfigExports from '../../config';
+import * as allApiConfigExports from '../../config/getApiConfig';
 
-jest.mock('../util/request');
+jest.mock('../request');
 
-jest.mock('../util/fs', () => ({
+jest.mock('../fs', () => ({
   fileExists: jest.fn(async () => true),
   readFile: jest.fn(async () => 'TOKEN'),
 }));
@@ -17,7 +17,7 @@ jest.mock('../util/fs', () => ({
 // this function casts given parameter to JestMockFn
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
-describe('runGQLQuery', () => {
+describe('queryGraphQL', () => {
   it('should reject because of missing hostname', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allConfigExports.config = {
@@ -27,7 +27,7 @@ describe('runGQLQuery', () => {
     const mockedRequest = _mock(request);
 
     try {
-      await runGQLQuery({
+      await queryGraphQL({
         cerr: jest.fn(),
         query: '',
       });
@@ -54,7 +54,7 @@ describe('runGQLQuery', () => {
       Promise.resolve({ data: 'data' }),
     );
 
-    const result = await runGQLQuery({
+    const result = await queryGraphQL({
       cerr: jest.fn(),
       query: 'test',
     });
@@ -93,7 +93,7 @@ describe('runGQLQuery', () => {
       Promise.resolve({ data: 'data' }),
     );
 
-    const result = await runGQLQuery({
+    const result = await queryGraphQL({
       cerr: jest.fn(),
       query: 'test',
     });

@@ -1,7 +1,7 @@
 // @flow
 
 import exit from 'exit';
-import { printErrors } from '../printErrors';
+import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
 import type { Argv } from 'yargs';

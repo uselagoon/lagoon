@@ -4,12 +4,12 @@ import { table } from 'table';
 import R from 'ramda';
 
 import { config } from '../config';
-import gql from '../gql';
-import { runGQLQuery } from '../query';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
 import {
   printGraphQLErrors,
   printProjectConfigurationError,
-} from '../printErrors';
+} from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseHandlerArgs } from '.';

@@ -1,6 +1,10 @@
 // @flow
 
-export default function gql(literals: string[], ...substitutions: any[]) {
+// A no-op tagged template function to signal that queries are GraphQL for tooling
+export default function gql(
+  literals: Array<string>,
+  ...substitutions: Array<any>
+) {
   let result = '';
 
   // run the loop only for the substitution count

@@ -1,15 +1,15 @@
 // @flow
 
-import { runGQLQuery } from '../../query';
+import { queryGraphQL } from '../../util/queryGraphQL';
 import { listProjects } from '../projects';
 
-jest.mock('../../query');
+jest.mock('../../util/queryGraphQL');
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('listProjects', () => {
   it('should list details for multiple projects', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allProjects: [
@@ -45,7 +45,7 @@ describe('listProjects', () => {
   });
 
   it('should print notice on empty projects array', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve([]));
+    _mock(queryGraphQL).mockImplementationOnce(() => Promise.resolve([]));
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -60,7 +60,7 @@ describe('listProjects', () => {
   });
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'something something error' }],
       }),

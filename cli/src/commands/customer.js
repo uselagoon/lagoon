@@ -5,12 +5,12 @@ import { red } from 'chalk';
 import R from 'ramda';
 
 import { config } from '../config';
-import gql from '../gql';
-import { runGQLQuery } from '../query';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
 import {
   printProjectConfigurationError,
   printGraphQLErrors,
-} from '../printErrors';
+} from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseHandlerArgs } from '.';

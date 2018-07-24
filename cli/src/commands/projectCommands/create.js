@@ -13,9 +13,9 @@ import {
   answerWithOptionIfSet,
 } from '../../cli/answerWithOption';
 import { config } from '../../config';
-import gql from '../../gql';
-import { printGraphQLErrors, printErrors } from '../../printErrors';
-import { runGQLQuery } from '../../query';
+import gql from '../../util/gql';
+import { printGraphQLErrors, printErrors } from '../../util/printErrors';
+import { queryGraphQL } from '../../util/queryGraphQL';
 import { getOptions } from '..';
 
 import typeof Yargs from 'yargs';
@@ -153,7 +153,7 @@ export async function getAllowedCustomersAndOpenshifts(
   allOpenshifts: ?Array<Openshift>,
   errors: ?Array<Error>,
 }> {
-  const customersAndOpenshiftsResults = await runGQLQuery({
+  const customersAndOpenshiftsResults = await queryGraphQL({
     query: gql`
       query AllCustomersAndOpenshiftsForProjectCreate {
         allCustomers {
@@ -401,7 +401,7 @@ createProjectArgs): Promise<number> {
     options,
   );
 
-  const addProjectResult = await runGQLQuery({
+  const addProjectResult = await queryGraphQL({
     query: gql`
       mutation AddProject($input: ProjectInput!) {
         addProject(input: $input) {

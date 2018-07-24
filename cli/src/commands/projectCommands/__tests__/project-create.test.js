@@ -1,7 +1,7 @@
 // @flow
 
 import R from 'ramda';
-import { runGQLQuery } from '../../../query';
+import { queryGraphQL } from '../../../util/queryGraphQL';
 
 import {
   CUSTOMER,
@@ -12,7 +12,7 @@ import {
   createProject,
 } from '../create';
 
-jest.mock('../../../query');
+jest.mock('../../../util/queryGraphQL');
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
@@ -47,7 +47,7 @@ describe('allOptionsSpecified', () => {
 
 describe('getAllowedCustomersAndOpenshifts', () => {
   it('should return all customers and all openshifts', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allCustomers: [
@@ -82,7 +82,7 @@ describe('getAllowedCustomersAndOpenshifts', () => {
 
 describe('createProject', () => {
   it('should display table after successful project creation', async () => {
-    _mock(runGQLQuery)
+    _mock(queryGraphQL)
       .mockImplementationOnce(() =>
         Promise.resolve({
           data: {
@@ -149,7 +149,7 @@ describe('createProject', () => {
   });
 
   it("should display error, if GraphQL sends error messages the first time it's called", async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'something something error' }],
       }),
@@ -165,7 +165,7 @@ describe('createProject', () => {
   });
 
   it("should display error, if GraphQL sends error messages the second time it's called", async () => {
-    _mock(runGQLQuery)
+    _mock(queryGraphQL)
       .mockImplementationOnce(() =>
         Promise.resolve({
           data: {
@@ -216,7 +216,7 @@ describe('createProject', () => {
   });
 
   it('should display error, if GraphQL response contains zero customers', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: { allCustomers: [], allOpenshifts: [] },
       }),
@@ -232,7 +232,7 @@ describe('createProject', () => {
   });
 
   it('should display error, if GraphQL response contains zero openshifts but one customer', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allCustomers: [

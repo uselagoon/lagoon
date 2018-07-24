@@ -7,7 +7,7 @@ import { getSshConfig } from '../config/getSshConfig';
 import { sshConnect } from '../ssh/sshConnect';
 import { sshExec } from '../ssh/sshExec';
 import { fileExists, writeFile } from '../util/fs';
-import { printErrors } from '../printErrors';
+import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseHandlerArgs } from '.';

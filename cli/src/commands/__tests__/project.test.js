@@ -1,9 +1,9 @@
 // @flow
 
-import { runGQLQuery } from '../../query';
+import { queryGraphQL } from '../../util/queryGraphQL';
 import { projectDetails } from '../project';
 
-jest.mock('../../query');
+jest.mock('../../util/queryGraphQL');
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
@@ -33,7 +33,7 @@ describe('projectDetails', () => {
   };
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockErrorResponse),
     );
 
@@ -51,7 +51,7 @@ describe('projectDetails', () => {
   });
 
   it('should show error on missing project', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
+    _mock(queryGraphQL).mockImplementationOnce(() => Promise.resolve({}));
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -67,7 +67,7 @@ describe('projectDetails', () => {
   });
 
   it('should show details for given project', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockResponse1),
     );
 

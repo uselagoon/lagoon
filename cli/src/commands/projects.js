@@ -3,9 +3,9 @@
 import { table } from 'table';
 import R from 'ramda';
 
-import gql from '../gql';
-import { runGQLQuery } from '../query';
-import { printGraphQLErrors } from '../printErrors';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
+import { printGraphQLErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
 import type { BaseHandlerArgs } from '.';
@@ -41,7 +41,7 @@ ListProjectsArgs): Promise<number> {
     }
   `;
 
-  const result = await runGQLQuery({
+  const result = await queryGraphQL({
     cerr,
     query,
   });

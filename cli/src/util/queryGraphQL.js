@@ -1,10 +1,10 @@
 // @flow
 
 import R from 'ramda';
-import { config, configDefaults } from './config';
-import { getApiConfig } from './config/getApiConfig';
-import { fileExists, readFile } from './util/fs';
-import request from './util/request';
+import { config, configDefaults } from '../config';
+import { getApiConfig } from '../config/getApiConfig';
+import { fileExists, readFile } from './fs';
+import request from './request';
 import { printErrors } from './printErrors';
 
 type QLQueryArgs = {
@@ -15,7 +15,7 @@ type QLQueryArgs = {
   pretty?: boolean,
 };
 
-export async function runGQLQuery({
+export async function queryGraphQL({
   cerr,
   query,
   variables,

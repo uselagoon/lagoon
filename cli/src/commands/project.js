@@ -6,9 +6,9 @@ import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { visit } from '../cli/visit';
 import { config } from '../config';
-import gql from '../gql';
-import { runGQLQuery } from '../query';
-import { printGraphQLErrors } from '../printErrors';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
+import { printGraphQLErrors } from '../util/printErrors';
 import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
@@ -90,7 +90,7 @@ ProjectDetailsArgs): Promise<number> {
     clog,
   });
 
-  const result = await runGQLQuery({
+  const result = await queryGraphQL({
     cerr,
     query: gql`
       query ProjectByName($project: String!) {

@@ -9,7 +9,7 @@ import untildify from 'untildify';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { configDefaults, createConfig } from '../config';
 import { fileExists } from '../util/fs';
-import { printErrors } from '../printErrors';
+import { printErrors } from '../util/printErrors';
 import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
