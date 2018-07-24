@@ -458,11 +458,11 @@ const resolvers = {
   Project: {
     customer: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByProjectId(req.credentials, project.id);
+      return dao.getCustomerByProjectId(req.credentials, project.id);
     },
     sshKeys: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByProjectId(req.credentials, project.id);
+      return dao.getSshKeysByProjectId(req.credentials, project.id);
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
@@ -471,7 +471,7 @@ const resolvers = {
         R.over(R.lensProp('type'), notificationTypeToString),
       )(args);
 
-      return await dao.getNotificationsByProjectId(
+      return dao.getNotificationsByProjectId(
         req.credentials,
         project.id,
         args_,
@@ -479,14 +479,14 @@ const resolvers = {
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getOpenshiftByProjectId(req.credentials, project.id);
+      return dao.getOpenshiftByProjectId(req.credentials, project.id);
     },
     environments: async (project, args, req) => {
       const dao = getDao(req);
       const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
         args,
       );
-      return await dao.getEnvironmentsByProjectId(
+      return dao.getEnvironmentsByProjectId(
         req.credentials,
         project.id,
         input,
@@ -496,14 +496,14 @@ const resolvers = {
   Environment: {
     project: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByEnvironmentId(
+      return dao.getProjectByEnvironmentId(
         req.credentials,
         environment.id,
       );
     },
     hours_month: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentHoursMonthByEnvironmentId(
+      return dao.getEnvironmentHoursMonthByEnvironmentId(
         req.credentials,
         environment.id,
         args,
@@ -511,14 +511,14 @@ const resolvers = {
     },
     storages: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentStorageByEnvironmentId(
+      return dao.getEnvironmentStorageByEnvironmentId(
         req.credentials,
         environment.id,
       );
     },
     storage_month: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentStorageMonthByEnvironmentId(
+      return dao.getEnvironmentStorageMonthByEnvironmentId(
         req.credentials,
         environment.id,
         args,
@@ -526,7 +526,7 @@ const resolvers = {
     },
     hits_month: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentHitsMonthByEnvironmentId(
+      return dao.getEnvironmentHitsMonthByEnvironmentId(
         req.credentials,
         environment.openshift_projectname,
         args,
@@ -548,49 +548,49 @@ const resolvers = {
   Customer: {
     sshKeys: async (customer, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByCustomerId(req.credentials, customer.id);
+      return dao.getSshKeysByCustomerId(req.credentials, customer.id);
     },
   },
   Query: {
     customerByName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByName(req.credentials, args);
+      return dao.getCustomerByName(req.credentials, args);
     },
     projectByGitUrl: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByGitUrl(req.credentials, args);
+      return dao.getProjectByGitUrl(req.credentials, args);
     },
     projectByName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByName(req.credentials, args);
+      return dao.getProjectByName(req.credentials, args);
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentByOpenshiftProjectName(
+      return dao.getEnvironmentByOpenshiftProjectName(
         req.credentials,
         args,
       );
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllProjects(req.credentials, args);
+      return dao.getAllProjects(req.credentials, args);
     },
     allCustomers: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllCustomers(req.credentials, args);
+      return dao.getAllCustomers(req.credentials, args);
     },
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllOpenshifts(req.credentials, args);
+      return dao.getAllOpenshifts(req.credentials, args);
     },
     // @TODO: check if we need these
     // allUnassignedSshKeys: async (root, args, req) => {
     //   const dao = getDao(req);
-    //   return await dao.getUnassignedSshKeys(req.credentials);
+    //   return dao.getUnassignedSshKeys(req.credentials);
     // },
     // allSshKeys: async (root, args, req) => {
     //   const dao = getDao(req);
-    //   return await dao.getAllSshKeys(req.credentials);
+    //   return dao.getAllSshKeys(req.credentials);
     // },
     // allUnassignedNotifications: async (root, args, req) => {
     //   const dao = getDao(req);
@@ -598,11 +598,11 @@ const resolvers = {
     //     R.over(R.lensProp('type'), notificationTypeToString),
     //   )(args);
 
-    //   return await dao.getUnassignedNotifications(req.credentials, args_);
+    //   return dao.getUnassignedNotifications(req.credentials, args_);
     // },
     allEnvironments: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllEnvironments(req.credentials, args);
+      return dao.getAllEnvironments(req.credentials, args);
     },
   },
   Mutation: {
