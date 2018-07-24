@@ -79,5 +79,3 @@ QLQueryArgs): Object {
     process.exit(1);
   }
 }
-
-export default runGQLQuery;
