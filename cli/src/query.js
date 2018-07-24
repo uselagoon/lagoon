@@ -62,8 +62,10 @@ QLQueryArgs): Object {
     rejectUnauthorized: false,
   };
 
+  let response;
+
   try {
-    return request(options);
+    response = await request(options);
   } catch (err) {
     const error = R.ifElse(
       // For socket hang ups...
@@ -78,4 +80,6 @@ QLQueryArgs): Object {
     printErrors(cerr, { message: error });
     process.exit(1);
   }
+
+  return response;
 }
