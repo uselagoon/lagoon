@@ -42,10 +42,13 @@ QLQueryArgs): Object {
 
   const { hostname, port } = getApiConfig();
 
+  const protocol = R.equals(port, 443) ? 'https:' : 'http:';
+
   const options = {
     hostname,
     path: '/graphql',
     port,
+    protocol,
     method: 'POST',
     headers,
     body: JSON.stringify(
@@ -66,7 +69,9 @@ QLQueryArgs): Object {
       // For socket hang ups...
       R.propEq('message', 'socket hang up'),
       // ...print a nicer error message...
-      R.always('Could not connect to Lagoon API.'),
+      R.always(
+        `Could not connect to Lagoon API at ${protocol}//${hostname}:${port}/graphql.`,
+      ),
       // ...otherwise just return the error message
       R.prop('message'),
     )(err);

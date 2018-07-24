@@ -66,6 +66,7 @@ describe('runGQLQuery', () => {
       hostname: 'api.lagoon.amazeeio.cloud',
       path: '/graphql',
       port: 443,
+      protocol: 'https:',
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -104,6 +105,7 @@ describe('runGQLQuery', () => {
       hostname: 'www.example.com',
       path: '/graphql',
       port: 443,
+      protocol: 'https:',
       method: 'POST',
       headers: {
         Accept: 'application/json',
