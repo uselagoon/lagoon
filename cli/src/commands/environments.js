@@ -91,7 +91,7 @@ projectDetailsArgs): Promise<number> {
 
   clog(
     table([
-      ['Name', 'Environmment Type', 'Deploy Type', 'Created', 'Updated'],
+      ['Name', 'Environment Type', 'Deploy Type', 'Created', 'Updated'],
       ...R.map(
         environment => [
           environment.name,
