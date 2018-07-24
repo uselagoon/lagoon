@@ -7,7 +7,7 @@ RUN apk add --update --virtual .build-deps \
  && gem install \
         fluent-plugin-elasticsearch \
         fluent-plugin-secure-forward \
-        fluent-plugin-record-reformer \
+        fluent-plugin-record-modifier \
  && gem sources --clear-all \
  && apk del .build-deps \
  && rm -rf /var/cache/apk/* \
@@ -21,6 +21,7 @@ RUN find "/fluentd" -exec chmod g+rw {} \;
 RUN find "/fluentd" -type d -exec chmod g+x {} +
 
 ENV LOGS_FORWARDER_SHARED_KEY=secret \
+    LOGS_FORWARDER_TARGET_SHARED_KEY=secret \
     LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE=amazing1
 
 ENTRYPOINT ["/bin/entrypoint.sh"]
