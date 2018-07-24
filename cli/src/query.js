@@ -60,7 +60,7 @@ QLQueryArgs): Object {
   };
 
   try {
-    return await request(options);
+    return request(options);
   } catch (err) {
     const error = R.ifElse(
       // For socket hang ups...
