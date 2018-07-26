@@ -190,6 +190,24 @@ const addOrUpdateEnvironment = (
   }
 `);
 
+const updateEnvironment = (
+  name: string,
+  projectId: number,
+  patch: string,
+): Promise<Object> =>
+  graphqlapi.query(`
+    mutation {
+      updateEnvironment(input: {
+        project: ${projectId},
+        name: "${name}",
+        patch: "${patch}"
+      }) {
+        id
+        name
+      }
+    }
+  `);
+
 async function deleteEnvironment(
   name: string,
   project: string,
