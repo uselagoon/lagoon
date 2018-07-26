@@ -450,6 +450,8 @@ const typeDefs = `
     deploy_type: DeployType
     environment_type: EnvType
     openshift_projectname: String
+    lagoon_route: String
+    lagoon_routes: String
   }
 
   input UpdateEnvironmentInput {
