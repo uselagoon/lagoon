@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
+const { updateEnvironment } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
