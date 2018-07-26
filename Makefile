@@ -103,8 +103,7 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 #######
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
-images :=     centos7 \
-							oc \
+images :=     oc \
 							mariadb \
 							mariadb-drupal \
 							postgres \
@@ -144,7 +143,6 @@ $(build-images):
 #    if the parent has been built
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
-build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
@@ -365,8 +363,6 @@ build/cli: build/ssh cli/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),cli/Dockerfile,cli)
 	touch $@
-
-build/local-git-server: build/centos7
 
 # Image with ansible test
 build/tests:
