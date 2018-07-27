@@ -30,7 +30,7 @@ async function bitbucketPullRequestClosed(webhook: WebhookRequestData, project: 
     try {
       const taskResult = await createRemoveTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
-        `*[${project.name}]* \`${meta.branch}\` deleted in <${body.pullrequest.destination.repository.links.html.href}|${body.pullrequest.destination.branch.name}>`
+        `*[${project.name}]* PR \`${body.pullrequest.id}\` deleted in <${body.pullrequest.destination.repository.links.html.href}|${body.pullrequest.destination.branch.name}>`
       )
       return;
     } catch (error) {
@@ -40,7 +40,7 @@ async function bitbucketPullRequestClosed(webhook: WebhookRequestData, project: 
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* \`${meta.branch}\` deleted. No remove task created, reason: ${error}`
+            `*[${project.name}]* \`${body.pullrequest.id}\` deleted. No remove task created, reason: ${error}`
           )
           return;
 
