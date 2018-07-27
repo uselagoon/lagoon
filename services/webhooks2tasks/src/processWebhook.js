@@ -10,6 +10,7 @@ const githubBranchDeleted = require('./handlers/githubBranchDeleted');
 const githubPush = require('./handlers/githubPush');
 const bitbucketPush = require('./handlers/bitbucketPush');
 const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
+const bitbucketPullRequestUpdated = require('./handlers/bitbucketPullRequestUpdated');
 const gitlabPush = require('./handlers/gitlabPush');
 const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
 const gitlabPullRequestClosed = require('./handlers/gitlabPullRequestClosed');
@@ -133,6 +134,10 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
         }
 
         break;
+      case "bitbucket:pullrequest:updated":
+        await handle(bitbucketPullRequestUpdated, webhook, project, `${webhooktype}:${event}`)
+
+      break;
 
       case "gitlab:push":
         if (body.after == '0000000000000000000000000000000000000000' ) {
