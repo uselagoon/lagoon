@@ -24,7 +24,7 @@ async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project:
     const baseSha = body.pullrequest.destination.commit.hash
 
     const data: deployData = {
-      pullrequestTitle: body.pullrequest.description,
+      pullrequestTitle: body.pullrequest.title,
       pullrequestNumber: body.pullrequest.id,
       projectName: project.name,
       type: 'pullrequest',
@@ -38,7 +38,7 @@ async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project:
     try {
       const taskResult = await createDeployTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
-        `*[${project.name}]* PR <${body.pullrequest.destination.repository.links.html.href}|#${body.pullrequest.id} (${body.description})> updated in <${body.pullrequest.destination.repository.links.html.href}|${body.pullrequest.destination.branch.name}>`
+        `*[${project.name}]* PR <${body.pullrequest.destination.repository.links.html.href}|#${body.pullrequest.id} (${body.title})> updated in <${body.pullrequest.destination.repository.links.html.href}|${body.pullrequest.destination.branch.name}>`
       )
       return;
     } catch (error) {
