@@ -1,9 +1,9 @@
 #!/bin/sh
 
 dsql () {
-	drush sql-sync $1 default -d -v
+	drush sql-sync $1 default
 }
 
 dfiles () {
-	drush rsync $1:%files default:%files -d -v
+	drush rsync $1:%files default:%files
 }
