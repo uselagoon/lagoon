@@ -9,3 +9,11 @@
     project: ci-bitbucket
     branch: bitbucket/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: bitbucket/pullrequest.yaml
+  vars:
+    testname: "BITBUCKET - PULLREQUEST"
+    node_version: 8
+    git_repo_name: bitbucket.git
+    project: ci-bitbucket
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
