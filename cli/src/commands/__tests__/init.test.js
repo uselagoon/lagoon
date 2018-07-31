@@ -7,7 +7,7 @@ jest.mock('fs');
 jest.mock('../../config');
 jest.mock('../../util/fs');
 
-function _mock(fn: any): JestMockFn {
+function _mock(fn: any): JestMockFn<any, any> {
   return fn;
 }
 
@@ -21,14 +21,17 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      _: [],
-      $0: '',
       cwd,
       clog,
       cerr,
       argv: {
+        _: [],
+        $0: '',
         overwrite: true,
         project: 'test_project',
+        api: '',
+        ssh: '',
+        token: '',
       },
     });
 
@@ -44,14 +47,17 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      _: [],
-      $0: '',
       cwd,
       clog,
       cerr,
       argv: {
+        _: [],
+        $0: '',
         overwrite: false,
         project: 'test_project',
+        api: '',
+        ssh: '',
+        token: '',
       },
     });
 
@@ -67,14 +73,17 @@ describe('handler', () => {
     const cwd = 'some/path';
 
     const code = await handler({
-      _: [],
-      $0: '',
       cwd,
       clog,
       cerr,
       argv: {
+        _: [],
+        $0: '',
         overwrite: false,
         project: 'test_project',
+        api: '',
+        ssh: '',
+        token: '',
       },
     });
 

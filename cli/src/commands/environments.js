@@ -12,7 +12,7 @@ import {
 } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'environments';
 export const description = 'Show environment details for a given project';
@@ -108,7 +108,7 @@ projectDetailsArgs): Promise<number> {
   return 0;
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     project: ?string,
   },

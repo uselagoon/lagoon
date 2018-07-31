@@ -5,7 +5,7 @@ import { listProjects } from '../projects';
 
 jest.mock('../../query');
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('listProjects', () => {
   it('should list details for multiple projects', async () => {

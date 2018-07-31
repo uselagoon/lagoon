@@ -86,6 +86,4 @@ describe('Sql', () => {
       expect(ret).toMatchSnapshot();
     });
   });
-
-
 });

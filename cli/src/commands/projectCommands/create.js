@@ -6,14 +6,19 @@ import inquirer from 'inquirer';
 import R from 'ramda';
 import { table } from 'table';
 
+import {
+  answerWithOptionIfSetOrPrompt,
+  answerWithOptionIfSet,
+} from '../../cli/answerWithOption';
 import { config } from '../../config';
 import gql from '../../gql';
 import { printGraphQLErrors, printErrors } from '../../printErrors';
 import { runGQLQuery } from '../../query';
+import { getOptions } from '..';
 
-import type Inquirer from 'inquirer';
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '..';
+import type { inquirer$Question } from 'inquirer';
+import type { BaseHandlerArgs } from '..';
 
 export const command = 'create';
 export const description = 'Create new project';
@@ -37,7 +42,7 @@ export const commandOptions = {
   [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-type Options = {|
+type OptionalOptions = {
   customer?: number,
   name?: string,
   git_url?: string,
@@ -45,13 +50,19 @@ type Options = {|
   branches?: string,
   pullrequests?: string,
   production_environment?: string,
-|};
+};
 
-export function allOptionsSpecified(options: {
-  // Relax exact object type to allow for future options
-  // https://github.com/facebook/flow/issues/2626#issuecomment-267449133
-  ...Options,
-}): boolean {
+type Options = {
+  +customer: number,
+  +name: string,
+  +git_url: string,
+  +openshift: number,
+  +branches: string,
+  +pullrequests: string,
+  +production_environment: string,
+};
+
+export function allOptionsSpecified(options: Options): boolean {
   // Return a boolean of whether all possible command options keys...
   return R.all(
     // ...are contained in keys of the provided object
@@ -92,9 +103,9 @@ export function builder(yargs: Yargs): Yargs {
       },
       [PULLREQUESTS]: {
         describe:
-          'Pull requests to deploy. Possible values include "false" (no pull requests) and "true" (all pull requests).',
+          'Pull requests to deploy. Possible values include "false" (no pull requests), "true" (all pull requests) and a regular expression to match pull request titles.',
         type: 'boolean',
-        alias: 'prs',
+        alias: 'r',
       },
       [PRODUCTION_ENVIRONMENT]: {
         describe: 'Production environment for new project',
@@ -107,12 +118,16 @@ export function builder(yargs: Yargs): Yargs {
       'Create new project (will prompt for all input values)\n',
     )
     .example(
-      `$0 ${command} --name my_project`,
+      `$0 ${command} --${NAME} my_project`,
       'Create a new project with the name "my_project" (will prompt for all other values).',
     )
     .example(
-      `$0 ${command} -u git@github.com:amazeeio/drupal-example.git -b '(staging|production)'`,
-      'Create a new project with the Git URL "git@github.com:amazeeio/drupal-example.git" which will have the "staging" and "production" branches deployed (will prompt for all other values).',
+      `$0 ${command} --${GIT_URL} git@github.com:amazeeio/drupal-example.git --${BRANCHES} '(staging|production)' --${PULLREQUESTS} '(Feature:|Hotfix:)`,
+      'Create a new project with the Git URL "git@github.com:amazeeio/drupal-example.git" which will have the "staging" and "production" branches and all pull requests with "Feature:" or "Hotfix:" in the title deployed (will prompt for all other values).',
+    )
+    .example(
+      `$0 ${command} --${CUSTOMER} 1 --${NAME} my_project --${GIT_URL} git@github.com:amazeeio/drupal-example.git --${OPENSHIFT} kickstart-openshift --${BRANCHES} '(staging|production)' --${PULLREQUESTS} '(Feature:|Hotfix:)' --${PRODUCTION_ENVIRONMENT} 'production'`,
+      'Create a new project with all options specified (will not prompt the user).',
     );
 }
 
@@ -162,88 +177,52 @@ export async function getAllowedCustomersAndOpenshifts(
   };
 }
 
-function notifyUsedOption(clog: typeof console.log, option: string): void {
-  clog(`${blue('!')} Using "${option}" option from arguments or config`);
-}
-
-// Return a [predicate, transformer] pair for use with R.cond(). The predicate and transformer functions expect an object with an "options" property containing the options to use.
-export function answerFromOptionsPropCond(
-  option: $Values<typeof commandOptions>,
-  answers: Inquirer.answers,
-  clog: typeof console.log,
-) {
-  return [
-    R.compose(
-      // Option is set
-      R.has(option),
-      R.prop('options'),
-    ),
-    (objectWithOptions: { options: Object }) => {
-      // Assign option key in the answers object to option value and let the user know
-      const propVal = R.path(['options', option], objectWithOptions);
-      notifyUsedOption(clog, option);
-      answers[option] = propVal;
-    },
-  ];
-}
-
-// Return a function to use with the `when` option of the question object.
-// https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
-export function answerFromOptions(
-  option: $Values<typeof commandOptions>,
-  options: Object,
-  clog: typeof console.log,
-) {
-  return (answers: Inquirer.answers) => {
-    const [predicate, transform] = answerFromOptionsPropCond(
-      option,
-      answers,
-      clog,
-    );
-    return R.ifElse(
-      // If the option exists...
-      predicate,
-      // ...use it and let the user know...
-      transform,
-      // ...otherwise return true to prompt the user to manually enter the option
-      R.T,
-    )({ options });
-  };
-}
-
 // Prompt the user to input data to be used for project creation
 export async function promptForProjectInput(
-  allCustomers: ?Array<Customer>,
-  allOpenshifts: ?Array<Openshift>,
+  allCustomers: Array<Customer>,
+  allOpenshifts: Array<Openshift>,
   clog: typeof console.log,
   options: Object,
-): Promise<Inquirer.answers> {
+): Promise<Options> {
   const questions: Array<Question> = [
     {
       type: 'list',
       name: CUSTOMER,
       message: 'Customer:',
+      // $FlowFixMe Inquirer can also take values of numbers
       choices: allCustomers,
       // Using the `when` method of the question object, decide where to get the customer based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
       when(answers) {
         return R.cond([
           // 1. If the `customer` is set in the command line arguments or the config, use that customer
-          answerFromOptionsPropCond(CUSTOMER, answers, clog),
+          answerWithOptionIfSet({
+            option: CUSTOMER,
+            answers,
+            notify: true,
+            clog,
+          }),
           // 2. If only one customer was returned from the allCustomers query, use that customer as the answer to the question and tell the user, not prompting them to choose.
           [
-            R.compose(R.equals(1), R.length, R.prop('allCustomers')),
+            R.compose(
+              R.equals(1),
+              R.length,
+              R.prop('allCustomers'),
+            ),
             (customersAndOptions) => {
-              const firstCustomer = R.compose(R.head, R.prop('allCustomers'))(
-                customersAndOptions,
-              );
+              const firstCustomer = R.compose(
+                R.head,
+                R.prop('allCustomers'),
+              )(customersAndOptions);
               clog(
-                `${blue('!')} Using only authorized customer "${R.prop(
+                `${blue('!')} Using single authorized customer "${R.prop(
                   'name',
                   firstCustomer,
                 )}"`,
               );
+              // $FlowFixMe Covariant property cannot be assigned
               answers.customer = R.prop('value', firstCustomer);
+              return false;
             },
           ],
           // 3. If more than one customer was returned from the allCustomers query, return true to prompt the user to choose from a list
@@ -255,14 +234,20 @@ export async function promptForProjectInput(
       type: 'input',
       name: NAME,
       message: 'Project name:',
-      validate: input => Boolean(input) || 'Please enter a project name.',
-      when: answerFromOptions(NAME, options, clog),
+      validate: (input: string) =>
+        Boolean(input) || 'Please enter a project name.',
+      when: answerWithOptionIfSetOrPrompt({
+        option: NAME,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: GIT_URL,
       message: 'Git URL:',
-      validate: input =>
+      validate: (input: string) =>
         // Verify that it is a valid hosted git url...
         hostedGitInfoFromUrl(input) !== undefined ||
         // ...or some other non-hosted formats https://stackoverflow.com/a/22312124/1268612
@@ -271,33 +256,51 @@ export async function promptForProjectInput(
         ) ||
         // If the input is invalid, prompt the user to enter a valid Git URL
         'Please enter a valid Git URL.',
-      when: answerFromOptions(GIT_URL, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: GIT_URL,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'list',
       name: OPENSHIFT,
       message: 'Openshift:',
+      // $FlowFixMe Inquirer can also take values of numbers
       choices: allOpenshifts,
       // Using the `when` method of the question object, decide where to get the openshift based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
       when(answers) {
         return R.cond([
           // 1. If the `openshift` is set in the command line arguments or the config, use that openshift
-          answerFromOptionsPropCond(OPENSHIFT, answers, clog),
+          answerWithOptionIfSet({
+            option: OPENSHIFT,
+            answers,
+            notify: true,
+            clog,
+          }),
           // 2. If only one openshift was returned from the allOpenshifts query, use that openshift as the answer to the question and tell the user, not prompting them to choose.
           [
-            R.compose(R.equals(1), R.length, R.prop('allOpenshifts')),
+            R.compose(
+              R.equals(1),
+              R.length,
+              R.prop('allOpenshifts'),
+            ),
             (openshiftsAndOptions) => {
-              const firstOpenshift = R.compose(R.head, R.prop('allOpenshifts'))(
-                openshiftsAndOptions,
-              );
+              const firstOpenshift = R.compose(
+                R.head,
+                R.prop('allOpenshifts'),
+              )(openshiftsAndOptions);
               clog(
-                `${blue('!')} Using only authorized openshift "${R.prop(
+                `${blue('!')} Using single authorized openshift "${R.prop(
                   'name',
                   firstOpenshift,
                 )}"`,
               );
+              // $FlowFixMe Covariant property cannot be assigned
               answers.openshift = R.prop('value', firstOpenshift);
+              return false;
             },
           ],
           // 3. If more than one openshift was returned from the allOpenshifts query, return true to prompt the user to choose from a list
@@ -310,21 +313,36 @@ export async function promptForProjectInput(
       name: BRANCHES,
       message: 'Deploy branches:',
       default: 'true',
-      when: answerFromOptions(BRANCHES, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: BRANCHES,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: PULLREQUESTS,
       message: 'Pull requests:',
       default: null,
-      when: answerFromOptions(PULLREQUESTS, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: PULLREQUESTS,
+        options,
+        notify: true,
+        clog,
+      }),
     },
     {
       type: 'input',
       name: PRODUCTION_ENVIRONMENT,
       message: 'Production environment:',
       default: null,
-      when: answerFromOptions(PRODUCTION_ENVIRONMENT, options, clog),
+      when: answerWithOptionIfSetOrPrompt({
+        option: PRODUCTION_ENVIRONMENT,
+        options,
+        notify: true,
+        clog,
+      }),
     },
   ];
 
@@ -334,10 +352,10 @@ export async function promptForProjectInput(
 type createProjectArgs = {
   clog: typeof console.log,
   cerr: typeof console.error,
-  options: Options,
+  options: OptionalOptions,
 };
 
-type Question = Inquirer.question & {
+type Question = inquirer$Question & {
   name: $Values<typeof commandOptions>,
 };
 
@@ -357,20 +375,20 @@ createProjectArgs): Promise<number> {
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  if (R.equals(R.length(allCustomers), 0)) {
-    return printErrors(cerr, 'No authorized customers found!');
+  if (!allCustomers || R.equals(R.length(allCustomers), 0)) {
+    return printErrors(cerr, { message: 'No authorized customers found!' });
   }
 
-  if (R.equals(R.length(allOpenshifts), 0)) {
-    return printErrors(cerr, 'No authorized openshifts found!');
+  if (!allOpenshifts || R.equals(R.length(allOpenshifts), 0)) {
+    return printErrors(cerr, { message: 'No authorized openshifts found!' });
   }
 
-  // If all options have been specified in the config or the command line options...
-  const projectInput = allOptionsSpecified(options)
-    ? // ...notify the user about using each of the options and then use that options object (`forEachObjIndexed` returns the object passed in as second parameter)...
-    R.forEachObjIndexed((value, key) => notifyUsedOption(clog, key), options)
-    : // ...otherwise, prompt for input for the missing options
-    await promptForProjectInput(allCustomers, allOpenshifts, clog, options);
+  const projectInput = await promptForProjectInput(
+    allCustomers,
+    allOpenshifts,
+    clog,
+    options,
+  );
 
   const addProjectResult = await runGQLQuery({
     query: gql`
@@ -395,8 +413,6 @@ createProjectArgs): Promise<number> {
     `,
     cerr,
     variables: {
-      // Just use the options and don't even go into the prompt if all options are already specified via . Otherwise inquirer will not set the correct answers.
-      // Ref: https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-364912436
       input: projectInput,
     },
   });
@@ -409,13 +425,12 @@ createProjectArgs): Promise<number> {
         R.prop('message', R.head(addProjectErrors)),
       )
     ) {
-      return printErrors(
-        cerr,
-        `Project name "${R.prop(
+      return printErrors(cerr, {
+        message: `Project name "${R.prop(
           'name',
           projectInput,
         )}" already exists! Please select a different project name.`,
-      );
+      });
     }
 
     return printGraphQLErrors(cerr, ...addProjectErrors);
@@ -444,23 +459,18 @@ createProjectArgs): Promise<number> {
   return 0;
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     customer: ?string,
   },
 };
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const notUndefined = R.complement(R.equals(undefined));
-  // Dynamic options are options that will likely change every time and shouldn't be specified in the config
-  const dynamicOptions = [NAME];
-
-  // Filter options to be only those included in the command options keys
-  const options = R.pick(R.values(commandOptions), {
-    // Remove options from the config that should require user input every time
-    ...R.omit(dynamicOptions, config),
-    // Filter out unspecified values (yargs sets them as `undefined`) so that they don't overwrite config values
-    ...R.filter(notUndefined, argv),
+  const options = getOptions({
+    config,
+    argv,
+    commandOptions,
+    dynamicOptionKeys: [NAME],
   });
 
   return createProject({ clog, cerr, options });

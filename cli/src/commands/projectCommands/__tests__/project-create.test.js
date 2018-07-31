@@ -14,16 +14,14 @@ import {
 
 jest.mock('../../../query');
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
-const options = R.mapObjIndexed(
-  (value, key) =>
-    // If the key is CUSTOMER or OPENSHIFT...
-    new RegExp(`${CUSTOMER}|${OPENSHIFT}`).test(key)
-      ? 0 // ...return a number to satisfy the Flow type...
-      : value, // ...otherwise just return the value
-  commandOptions,
-);
+// Satisfy Flow types
+const options = {
+  ...R.omit([CUSTOMER, OPENSHIFT], commandOptions),
+  [CUSTOMER]: 0,
+  [OPENSHIFT]: 0,
+};
 
 describe('allOptionsSpecified', () => {
   it('should return true when all options are specified', () => {
