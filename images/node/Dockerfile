@@ -30,9 +30,6 @@ WORKDIR /app
 
 EXPOSE 3000
 
-ARG LAGOON_VERSION
-RUN echo $LAGOON_VERSION > /etc/lagoon-version
-
 # tells the local development environment on which port we are running
 ENV LAGOON_LOCALDEV_HTTP_PORT=3000
 

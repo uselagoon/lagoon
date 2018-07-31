@@ -30,9 +30,6 @@ COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
 
 EXPOSE 8080
 
-ARG LAGOON_VERSION
-RUN echo $LAGOON_VERSION > /etc/lagoon-version
-
 # tells the local development environment on which port we are running
 ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 
