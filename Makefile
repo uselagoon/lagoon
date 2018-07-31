@@ -638,7 +638,7 @@ openshift-lagoon-setup:
 	oc -n lagoon adm policy add-scc-to-user privileged -z logs-collector; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	oc -n lagoon create serviceaccount lagoon-deployer; \
-	oc -n lagoon policy add-role-to-user edit -z openshiftbuilddeploy; \
+	oc -n lagoon policy add-role-to-user edit -z lagoon-deployer; \
 	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \

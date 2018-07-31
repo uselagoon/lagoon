@@ -1,5 +1,12 @@
 # Configure Webhooks
-From your Lagoon administrator, you will also need the route to the webhook-handler. You will add this to your repository as an outgoing webhook, and choose which events to send to Lagoon. Typically you will send all Push and Pull Request \ Merge Request events. In Lagoon it is possible to add a regex to determine which branches and pull requests actually result in a deploy.
+From your Lagoon administrator, you will also need the route to the
+webhook-handler. You will add this to your repository as an outgoing webhook,
+and choose which events to send to Lagoon. Typically you will send all Push and
+Pull Request \ Merge Request events. In Lagoon it is possible to add a regex to
+determine which branches and pull requests actually result in a deploy.
+
+If you are an amazee.io customer, the webhook url is:
+`https://hooks.lagoon.amazeeio.cloud`.
 
 ## Github
 
