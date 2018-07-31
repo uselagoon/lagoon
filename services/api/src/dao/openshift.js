@@ -55,7 +55,7 @@ const deleteOpenshift = ({ sqlClient }) => async (cred, input) => {
   }
 
   const prep = prepare(sqlClient, 'CALL deleteOpenshift(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';

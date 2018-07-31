@@ -16,8 +16,8 @@ import { printGraphQLErrors, printErrors } from '../../printErrors';
 import { runGQLQuery } from '../../query';
 import { getOptions } from '..';
 
-import type Inquirer from 'inquirer';
 import typeof Yargs from 'yargs';
+import type { inquirer$Question } from 'inquirer';
 import type { BaseHandlerArgs } from '..';
 
 export const command = 'create';
@@ -42,7 +42,7 @@ export const commandOptions = {
   [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-type Options = {
+type OptionalOptions = {
   customer?: number,
   name?: string,
   git_url?: string,
@@ -50,6 +50,16 @@ type Options = {
   branches?: string,
   pullrequests?: string,
   production_environment?: string,
+};
+
+type Options = {
+  +customer: number,
+  +name: string,
+  +git_url: string,
+  +openshift: number,
+  +branches: string,
+  +pullrequests: string,
+  +production_environment: string,
 };
 
 export function allOptionsSpecified(options: Options): boolean {
@@ -169,16 +179,17 @@ export async function getAllowedCustomersAndOpenshifts(
 
 // Prompt the user to input data to be used for project creation
 export async function promptForProjectInput(
-  allCustomers: ?Array<Customer>,
-  allOpenshifts: ?Array<Openshift>,
+  allCustomers: Array<Customer>,
+  allOpenshifts: Array<Openshift>,
   clog: typeof console.log,
   options: Object,
-): Promise<Inquirer.answers> {
+): Promise<Options> {
   const questions: Array<Question> = [
     {
       type: 'list',
       name: CUSTOMER,
       message: 'Customer:',
+      // $FlowFixMe Inquirer can also take values of numbers
       choices: allCustomers,
       // Using the `when` method of the question object, decide where to get the customer based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
@@ -204,12 +215,14 @@ export async function promptForProjectInput(
                 R.prop('allCustomers'),
               )(customersAndOptions);
               clog(
-                `${blue('!')} Using only authorized customer "${R.prop(
+                `${blue('!')} Using single authorized customer "${R.prop(
                   'name',
                   firstCustomer,
                 )}"`,
               );
+              // $FlowFixMe Covariant property cannot be assigned
               answers.customer = R.prop('value', firstCustomer);
+              return false;
             },
           ],
           // 3. If more than one customer was returned from the allCustomers query, return true to prompt the user to choose from a list
@@ -221,7 +234,8 @@ export async function promptForProjectInput(
       type: 'input',
       name: NAME,
       message: 'Project name:',
-      validate: input => Boolean(input) || 'Please enter a project name.',
+      validate: (input: string) =>
+        Boolean(input) || 'Please enter a project name.',
       when: answerWithOptionIfSetOrPrompt({
         option: NAME,
         options,
@@ -233,7 +247,7 @@ export async function promptForProjectInput(
       type: 'input',
       name: GIT_URL,
       message: 'Git URL:',
-      validate: input =>
+      validate: (input: string) =>
         // Verify that it is a valid hosted git url...
         hostedGitInfoFromUrl(input) !== undefined ||
         // ...or some other non-hosted formats https://stackoverflow.com/a/22312124/1268612
@@ -253,6 +267,7 @@ export async function promptForProjectInput(
       type: 'list',
       name: OPENSHIFT,
       message: 'Openshift:',
+      // $FlowFixMe Inquirer can also take values of numbers
       choices: allOpenshifts,
       // Using the `when` method of the question object, decide where to get the openshift based on conditions
       // https://github.com/SBoudrias/Inquirer.js/issues/517#issuecomment-288964496
@@ -278,12 +293,14 @@ export async function promptForProjectInput(
                 R.prop('allOpenshifts'),
               )(openshiftsAndOptions);
               clog(
-                `${blue('!')} Using only authorized openshift "${R.prop(
+                `${blue('!')} Using single authorized openshift "${R.prop(
                   'name',
                   firstOpenshift,
                 )}"`,
               );
+              // $FlowFixMe Covariant property cannot be assigned
               answers.openshift = R.prop('value', firstOpenshift);
+              return false;
             },
           ],
           // 3. If more than one openshift was returned from the allOpenshifts query, return true to prompt the user to choose from a list
@@ -335,10 +352,10 @@ export async function promptForProjectInput(
 type createProjectArgs = {
   clog: typeof console.log,
   cerr: typeof console.error,
-  options: Options,
+  options: OptionalOptions,
 };
 
-type Question = Inquirer.question & {
+type Question = inquirer$Question & {
   name: $Values<typeof commandOptions>,
 };
 
@@ -358,11 +375,11 @@ createProjectArgs): Promise<number> {
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  if (R.equals(R.length(allCustomers), 0)) {
+  if (!allCustomers || R.equals(R.length(allCustomers), 0)) {
     return printErrors(cerr, { message: 'No authorized customers found!' });
   }
 
-  if (R.equals(R.length(allOpenshifts), 0)) {
+  if (!allOpenshifts || R.equals(R.length(allOpenshifts), 0)) {
     return printErrors(cerr, { message: 'No authorized openshifts found!' });
   }
 

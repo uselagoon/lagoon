@@ -361,7 +361,7 @@ const typeDefs = `
   }
 
   input DeleteProjectInput {
-    id: Int!
+    project: String!
   }
 
   input UpdateProjectPatchInput {

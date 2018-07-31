@@ -3136,14 +3136,14 @@
           "fields": null,
           "inputFields": [
             {
-              "name": "id",
+              "name": "project",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "Int",
+                  "name": "String",
                   "ofType": null
                 }
               },
