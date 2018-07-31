@@ -16,6 +16,7 @@ export async function promptUntilValidKeyPath(
       // TODO: Move the fileExists validation logic to this object under the validate key to fail earlier
     },
   ]);
+
   if (
     !(await fileExists(
       // Expand tilde characters in paths

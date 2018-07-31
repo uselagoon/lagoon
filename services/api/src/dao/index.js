@@ -56,7 +56,7 @@ const truncateTable = ({ sqlClient }) => async (cred, args) => {
 
   const prep = prepare(sqlClient, `TRUNCATE table \`${tableName}\``);
 
-  const rows = await query(sqlClient, prep(args));
+  await query(sqlClient, prep(args));
 
   // TODO: eventually check rows for success
   return 'success';
@@ -76,7 +76,8 @@ const daoFns = {
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
-const make = (sqlClient, esClient) => R.map(fn => fn({sqlClient, esClient}), daoFns);
+const make = (sqlClient, esClient) =>
+  R.map(fn => fn({ sqlClient, esClient }), daoFns);
 
 module.exports = {
   ...daoFns,

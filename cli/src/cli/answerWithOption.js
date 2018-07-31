@@ -3,7 +3,7 @@
 import { blue } from 'chalk';
 import R from 'ramda';
 
-import type Inquirer from 'inquirer';
+import type { inquirer$Answers } from 'inquirer';
 
 function notifyOptionUsed(
   clog: typeof console.log,
@@ -23,7 +23,7 @@ export function answerWithOptionIfSet({
   clog,
 }: {
   option: string,
-  answers: Inquirer.answers,
+  answers: inquirer$Answers,
   notify?: boolean,
   clog: typeof console.log,
 }) {
@@ -33,13 +33,16 @@ export function answerWithOptionIfSet({
       R.has(option),
       R.prop('options'),
     ): ({ options: Object }) => boolean),
-    (objectWithOptions: { options: Object }): void => {
+    (objectWithOptions: { options: Object }): false => {
       // Assign option key in the answers object to option value and let the user know
       const propVal = R.path(['options', option], objectWithOptions);
       if (notify === true) {
         notifyOptionUsed(clog, option, propVal);
       }
+
+      // $FlowFixMe Covariant property cannot be assigned
       answers[option] = propVal;
+      return false;
     },
   ];
 }
@@ -56,8 +59,8 @@ export function answerWithOptionIfSetOrPrompt({
   options: Object,
   notify?: boolean,
   clog: typeof console.log,
-}) {
-  return (answers: Inquirer.answers) =>
+}): inquirer$Answers => boolean {
+  return (answers: inquirer$Answers) =>
     R.ifElse(
       // If the option exists, use it and let the user know...
       ...answerWithOptionIfSet({

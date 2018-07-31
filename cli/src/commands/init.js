@@ -13,6 +13,7 @@ import { printErrors } from '../printErrors';
 import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
+import type { LagoonConfigInput } from '../config';
 import type { BaseHandlerArgs } from '.';
 
 export const command = 'init';
@@ -33,7 +34,7 @@ export const commandOptions = {
   [TOKEN]: TOKEN,
 };
 
-type Options = {
+type OptionalOptions = {
   overwrite?: boolean,
   project?: string,
   api?: string,
@@ -48,7 +49,6 @@ export function builder(yargs: Yargs) {
       [OVERWRITE]: {
         describe: 'Overwrite the configuration file if it exists',
         type: 'boolean',
-        default: undefined,
       },
       [PROJECT]: {
         describe: 'Name of project to configure',
@@ -111,7 +111,7 @@ export function builder(yargs: Yargs) {
 
 type PromptForOverwriteArgs = {|
   filepath: string,
-  options: Options,
+  options: OptionalOptions,
   clog: typeof console.log,
 |};
 
@@ -139,7 +139,7 @@ PromptForOverwriteArgs): Promise<{ [key: typeof OVERWRITE]: boolean }> {
 
 type InitArgs = {|
   cwd: string,
-  options: Options,
+  options: OptionalOptions,
   clog: typeof console.log,
   cerr: typeof console.error,
 |};
@@ -167,7 +167,8 @@ InitArgs): Promise<number> {
     });
   }
 
-  const configInput = await inquirer.prompt([
+  // $FlowFixMe inquirer$Answers is inexact, LagoonConfigInput is exact
+  const configInput: LagoonConfigInput = await inquirer.prompt([
     {
       type: 'input',
       name: PROJECT,
@@ -215,15 +216,13 @@ InitArgs): Promise<number> {
         notify: true,
         clog,
       }),
+      filter: untildify,
     },
   ]);
 
   try {
     clog(`Creating file '${filepath}'...`);
-    await createConfig(
-      filepath,
-      R.over(R.lensProp(TOKEN), untildify, configInput),
-    );
+    await createConfig(filepath, configInput);
     clog(green('Configuration file created!'));
     return 0;
   } catch (e) {

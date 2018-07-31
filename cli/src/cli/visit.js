@@ -1,5 +1,6 @@
 // @flow
 
+import exit from 'exit';
 import { printErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
@@ -46,6 +47,6 @@ export function visit(cmd: CommandModule) {
             process.exit(exitCode);
           })
         // Process returned with an exit code of typically 0 (success) or 1 (failure)
-          .then(code => process.exit(code)),
+          .then(code => exit(code)),
     };
 }

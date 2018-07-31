@@ -33,7 +33,7 @@ describe('lagu', () => {
         '--token',
         tokenPath,
         '--project',
-        'ci-multiproject1',
+        'ci-github',
         '--api',
         'http://localhost:3000',
         '--ssh',
@@ -134,21 +134,7 @@ describe('lagu', () => {
   });
 
   it('should list all environments for a project (project read from .lagoon.yml)', async () => {
-    const results = spawnSync(CLI_PATH, ['environments'], {
-      reject: false,
-    });
-    expect(results.code).toBe(0);
-    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
-  });
-
-  it('should show project details (using --project option)', async () => {
-    const results = spawnSync(
-      CLI_PATH,
-      ['project', '--project', 'ci-multiproject1'],
-      {
-        cwd,
-      },
-    );
+    const results = spawnSync(CLI_PATH, ['environments'], { cwd });
     expect(results.code).toBe(0);
     expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });
@@ -165,6 +151,79 @@ describe('lagu', () => {
     const results = spawnSync(CLI_PATH, ['projects'], {
       cwd,
     });
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should create a project', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      [
+        'project',
+        'create',
+        '--customer',
+        '3',
+        '--name',
+        'e2e-test-project',
+        '--git_url',
+        'ssh://git@192.168.99.1:2222/git/e2e-test-project.git',
+        '--openshift',
+        '2',
+        '--branches',
+        'true',
+        '--pullrequests',
+        'true',
+        '--production_environment',
+        'master',
+      ],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should show newly-created project details (using --project option)', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      ['project', '--project', 'e2e-test-project'],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should list the new project among all projects', async () => {
+    const results = spawnSync(CLI_PATH, ['projects'], {
+      cwd,
+    });
+    expect(results.code).toBe(0);
+    expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
+  });
+
+  it('should delete the project', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      ['project', 'delete', '--project', 'e2e-test-project'],
+      {
+        cwd,
+      },
+    );
+    expect(results.code).toBe(0);
+    expect(results.stdout).toMatchSnapshot();
+  });
+
+  it('should not show deleted project details (using --project option)', async () => {
+    const results = spawnSync(
+      CLI_PATH,
+      ['project', '--project', 'e2e-test-project'],
+      {
+        cwd,
+      },
+    );
     expect(results.code).toBe(0);
     expect(stripCreatedDates(results.stdout)).toMatchSnapshot();
   });

@@ -38,7 +38,7 @@ input DeleteOpenshiftInput {
 }
 
 input DeleteProjectInput {
-  id: Int!
+  project: String!
 }
 
 input DeleteSshKeyInput {
