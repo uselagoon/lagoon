@@ -48,8 +48,8 @@ environments:
   master:
     routes:
       - nginx:
-        - domain.com
-        - "www.domain.com":
+        - example.com
+        - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
     cronjobs:
@@ -65,11 +65,13 @@ environments:
        service: cli
 ```
 ## General Settings
-### `docker-compose-yaml`
+
+##### `docker-compose-yaml`
 Tells the build script which docker-compose yaml file should be used in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml` but could be used for a specific lagoon docker-compose yaml file if you need something like that.
 
-## `routes.insecure`
+#### `routes.insecure`
 This allows you to define the behaviour of the automatic creates routes (NOT the custom routes per environment, see below for them). You can define:
+
 * `Allow` simply sets up both routes for http and https (this is the default).
 * `Redirect` will redirect any http requests to https
 * `None` will mean a route for http will _not_ be created, and no redirect
@@ -78,11 +80,13 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 
 There are different type of tasks you can define, they differ when exactly they are executed in a build flow:
 
-### `post_rollout.[i].run`
+#### `post_rollout.[i].run`
 Here you can specify tasks which need to run against your project, _after_:
+
 - all Images have been successfully built
 - all Containers are updated with the new Images
 - all Containers are running have passed their readyness checks
+
 Common uses are to run `drush updb`, `drush cim`, or clear various caches.
 
 * `name`
@@ -92,18 +96,19 @@ Common uses are to run `drush updb`, `drush cim`, or clear various caches.
 * `service`
     - The service which to run the task in. If following our drupal-example, this will be the CLI container, as it has all your site code, files, and a connection to the DB. Typically you do not need to change this.
 * `shell`
-    - Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells (like `bash`, you can define it here). This is usefull if you want to run some small if/else bash scripts within the post-rollouts.
+    - Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells (like `bash`, you can define it here). This is usefull if you want to run some small if/else bash scripts within the post-rollouts. (see the example above how to write a script with multiple lines)
 
 ## Environments
 Environment names match your deployed branches or pull requests, it allows you for each environment to have a different config, in our example it will apply to the `master` and `staging` environment.
-### `environments.[name].routes`
+
+#### `environments.[name].routes`
 In the route section we identify the domain names which the environment will respond to. It is typical to only have an environment with routes specified for your production environment. All environments receive a generated route, but sometimes there is a need for a non-production environment to have it's own domain name, you can specify it here, and then add that domain with your DNS provider as a CNAME to the generated route name (these routes publish in deploy messages).
 
 The first element after the environment is the target service, `nginx` in our example. This is how we identify which service incoming requests will be sent to.
 
-The simplest route is the `domain.com` example above. This will assume that you want a Let's Encrypt certificate for your route and no redirect from https to http.
+The simplest route is the `example.com` example above. This will assume that you want a Let's Encrypt certificate for your route and no redirect from https to http.
 
-In the `"www.domain.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
+In the `"www.example.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
 
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route, this is the default. If you don't like a Let's Encrypt set this to `tls-acme: 'false'`
 * `Insecure` can be set to `None`, `Allow` or `Redirect`.
@@ -111,7 +116,7 @@ In the `"www.domain.com"` example, we see two more options (also see the `:` at 
     * `Redirect` will redirect any http requests to https
     * `None` will mean a route for http will _not_ be created, and no redirect will take place
 
-### `environments.[name].cronjobs`
+#### `environments.[name].cronjobs`
 As most of the time it is not desireable to run the same cronjobs across all environments, you must explicitely define which jobs you want to run for each environment.
 
 * `name:`
@@ -125,14 +130,15 @@ As most of the time it is not desireable to run the same cronjobs across all env
 * `service:`
     * Which service of your project to run the command in. For most projects this is the `cli` service.
 
-### `environments.[name].types`
+#### `environments.[name].types`
 The Lagoon Build processes checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed.
 
 Sometime though you would like to override the type just for a single environment and not for all of them, like if you want a mariadb-galera high availability database for your production environment called `master`:
 
 `service-name: service-type`
-- `service-name` - is the name of the service from `docker-compose.yml` you would like to override
-- `service-type` - the type of the service you would like the service to override to.
+
+* `service-name` - is the name of the service from `docker-compose.yml` you would like to override
+* `service-type` - the type of the service you would like the service to override to.
 
 Example:
 
@@ -142,3 +148,41 @@ environments:
     types:
       mariadb: mariadb-galera
 ```
+
+## Specials
+
+#### `api`
+
+With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL `api`. This needs to be a full URL with a scheme, like: `http://localhost:3000`
+This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
+
+#### `ssh`
+
+With the key `ssh` you can define another SSH endpoing that should be used by `lagu` and `drush` to connect to the Lagoon Remote Shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020`
+This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
+
+
+#### `additional-yaml`
+
+The `additional-yaml` has a bit of super powers. Basically it allows you to create any arbitrary yaml configuration before during the build step (it still needs to be a valid kubernetes/openshift yaml though ;) ).
+
+Example:
+
+```
+additional-yaml:
+  secrets:
+    path: .lagoon.secrets.yaml
+    command: create
+    ignore_error: true
+
+  logs-db-secrets:
+    path: .lagoon.logs-db-secrets.yaml
+    command: create
+    ignore_error: true
+```
+
+Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in the example above), and takes these keys:
+
+* `path` - the path to the yaml file
+* `command` - can either be `create` or `apply`, depending on if you like to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`
+* `ignore_error` - either `true` or `false` (default), this allows you to instruct the lagoon build script to ignore any errors that might are returned during running the command. (This can be usefull to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist).
