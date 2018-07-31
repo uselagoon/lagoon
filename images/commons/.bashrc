@@ -30,3 +30,6 @@ if [ "$PS1" ]; then
     PS1="[${WHITE}$LAGOON_PROJECT${NORMAL}]$PS1"
   fi
 fi
+
+# Helpers
+alias ll="ls -l"
