@@ -9,7 +9,8 @@ RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.2.4-22.1 
     && echo "searchguard.audit.enable_rest: true" >> config/elasticsearch.yml \
     && chmod +x plugins/search-guard-6/tools/hash.sh \
     && sed -i 's/#kibana:/kibana:/' plugins/search-guard-6/sgconfig/sg_config.yml \
-    && sed -i 's/#do_not_fail_on_forbidden: false/do_not_fail_on_forbidden: true/' plugins/search-guard-6/sgconfig/sg_config.yml
+    && sed -i 's/#do_not_fail_on_forbidden: false/do_not_fail_on_forbidden: true/' plugins/search-guard-6/sgconfig/sg_config.yml \
+    && sed -i 's/#multitenancy_enabled: true/multitenancy_enabled: true/' plugins/search-guard-6/sgconfig/sg_config.yml
 
 ENV LOGSDB_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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 \
     LOGSDB_SLACK_USERNAME=x-pack \
