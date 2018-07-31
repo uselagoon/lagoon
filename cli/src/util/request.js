@@ -5,7 +5,7 @@ import defer from './defer';
 export type RequestOptions = {
   hostname: string,
   path?: string,
-  port?: number,
+  port: number,
   method: 'POST' | 'GET',
   headers?: Object,
   rejectUnauthorized?: boolean,
@@ -13,7 +13,7 @@ export type RequestOptions = {
 };
 
 export default function request(options: RequestOptions): Promise<Object> {
-  const { body, port = 443 } = options;
+  const { body, port } = options;
 
   const def = defer();
 

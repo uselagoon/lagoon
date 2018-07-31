@@ -1,23 +1,23 @@
 // @flow
 
-import os from 'os';
-import path from 'path';
 import { green } from 'chalk';
+import R from 'ramda';
+import { config, configDefaults } from '../config';
 import { fileExists, unlink } from '../util/fs';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
+
+const tokenFilePath = R.prop('token', { ...configDefaults, ...config });
 
 export const command = 'logout';
-export const description =
-  'Delete the authentication token in $HOME/.lagoon-token';
+export const description = `Delete the authentication token at ${tokenFilePath}`;
 
 export function builder(yargs: Yargs) {
   return yargs.usage(`$0 ${command} - ${description}`);
 }
 
-export async function handler({ clog }: BaseArgs): Promise<number> {
-  const tokenFilePath = path.join(os.homedir(), '.lagoon-token');
+export async function handler({ clog }: BaseHandlerArgs): Promise<number> {
   if (await fileExists(tokenFilePath)) {
     await unlink(tokenFilePath);
   }

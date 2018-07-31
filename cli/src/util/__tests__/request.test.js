@@ -43,6 +43,7 @@ describe('request', () => {
 
     const result = await request({
       hostname: '',
+      port: 443,
       path: '',
       method: 'POST',
       headers: { some: 'header' },
@@ -66,6 +67,7 @@ describe('request', () => {
 
     const result = await request({
       hostname: '',
+      port: 443,
       path: '',
       method: 'GET',
       headers: { some: 'header' },

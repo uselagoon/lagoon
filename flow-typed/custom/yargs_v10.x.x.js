@@ -5,7 +5,7 @@ declare module "yargs" {
   declare type Argv = {
     _: Array<string>,
     $0: string,
-    [key: string]: mixed
+    [key: string]: any
   };
 
   declare type Options = $Shape<{

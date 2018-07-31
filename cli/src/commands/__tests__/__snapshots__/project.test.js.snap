@@ -6,9 +6,7 @@ Array [
     "[31mOops! The lagoon API returned an error:[39m",
   ],
   Array [
-    "[31m{[39m
-[31m  \\"message\\": \\"something something error\\"[39m
-[31m}[39m",
+    "[31msomething something error[39m",
   ],
 ]
 `;

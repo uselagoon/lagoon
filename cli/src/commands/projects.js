@@ -8,7 +8,7 @@ import { runGQLQuery } from '../query';
 import { printGraphQLErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'projects';
 export const description = 'List all projects';
@@ -81,6 +81,6 @@ ListProjectsArgs): Promise<number> {
   return 0;
 }
 
-export async function handler({ clog, cerr }: BaseArgs): Promise<number> {
+export async function handler({ clog, cerr }: BaseHandlerArgs): Promise<number> {
   return listProjects({ clog, cerr });
 }
