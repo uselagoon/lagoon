@@ -43,6 +43,24 @@ Some teams might opt in to create the Pull Request against a shared `staging` br
 
 Additonally in Lagoon you can define that only Pull Request with a specific text in the title are deployed. Like `[BUILD]` defined as regex, will only deploy Pull Requests that have a title like `[BUILD] My Pull Request`, while a Pull Request with that title `My other Pull Request` is not automatically deployed. This helps to keep the amount of environments small and allows for Pull Requests that don't need an enviornment yet.
 
+#### Automatic Database Sync for Pull Requests
+
+Automatic Pull Request environments are a fantastic thing. But it would also be handy to have the Database synced from another environment.
+
+Following example will sync the staging database on the first rollout of the Pull Request environment:
+```
+tasks:
+  post-rollout:
+    - run:
+        name: IF no Drupal installed & Pullrequest = Sync database from staging
+        command: |
+            if [[ -n ${LAGOON_PR_BASE_BRANCH} && $(drush core-status bootstrap --pipe) == "" ]]; then
+                drush -y sql-sync @staging default
+            fi
+        service: cli
+        shell: bash
+```
+
 
 ### Promotion
 
