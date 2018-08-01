@@ -49,6 +49,13 @@ class ProjectNotFound extends Error {
   }
 }
 
+class EnvironmentNotFound extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'EnvironmentNotFound';
+  }
+}
+
 class NoActiveSystemsDefined extends Error {
   constructor(message: string) {
     super(message);
@@ -160,6 +167,34 @@ async function getActiveSystemForProject(
   }
 
   return result.project;
+}
+
+async function getEnvironmentByName(
+  name: string,
+  projectId: number
+): Promise<Project[]> {
+  const result = await graphqlapi.query(`
+    {
+      environmentByName(name: "${name}",project:${projectId}) {
+        id,
+        name,
+        lagoon_route,
+        lagoon_routes,
+        deploy_type,
+        environment_type,
+        openshift_projectname,
+        updated,
+        created,
+        deleted,
+      }
+    }
+  `);
+
+  if (!result || !result.environmentByName) {
+    throw new EnvironmentNotFound(`Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`);
+  }
+
+  return result;
 }
 
 const addOrUpdateEnvironment = (
