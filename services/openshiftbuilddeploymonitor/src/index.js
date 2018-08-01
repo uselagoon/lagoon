@@ -8,6 +8,7 @@ const uuidv4 = require('uuid/v4');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
 const { updateEnvironment } = require('@lagoon/commons/src/api');
+const { getEnvironmentByName } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
@@ -45,9 +46,12 @@ const messageConsumer = async msg => {
   } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received BuildDeployOpenshift monitoring task for project: ${projectName}, buildName: ${buildName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
-
-  const result = await getOpenShiftInfoForProject(projectName);
+  let result
+  result = await getOpenShiftInfoForProject(projectName);
   const projectOpenshift = result.project
+
+  result = await getEnvironmentByName(`${branchName}`, projectOpenshift.id)
+  const environmentOpenshift = result.environmentByName
 
   try {
     var gitSha = sha
@@ -80,8 +84,6 @@ const messageConsumer = async msg => {
 
   // kubernetes-client does not know about the OpenShift Resources, let's teach it.
   openshift.ns.addResource('builds');
-
-
 
   let projectStatus = {}
   try {
