@@ -232,7 +232,7 @@ const typeDefs = `
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
-    environmentByName(name: String!): Environment
+    environmentByName(name: String!, project: Int!): Environment
     environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
@@ -457,6 +457,7 @@ const typeDefs = `
 
   input UpdateEnvironmentInput {
     name: String!
+    id: Int!
     patch: UpdateEnvironmentPatchInput
   }
 
