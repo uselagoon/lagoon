@@ -53,22 +53,18 @@ export function builder(yargs: Yargs) {
       [PROJECT]: {
         describe: 'Name of project to configure',
         type: 'string',
-        alias: 'p',
       },
       [API]: {
         describe: 'API URL',
         type: 'string',
-        alias: 'a',
       },
       [SSH]: {
         describe: 'SSH URL',
         type: 'string',
-        alias: 's',
       },
       [TOKEN]: {
         describe: 'Path to the Lagoon token file',
         type: 'string',
-        alias: 't',
       },
     })
     .example(

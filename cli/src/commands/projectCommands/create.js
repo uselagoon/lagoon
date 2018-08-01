@@ -83,39 +83,32 @@ export function builder(yargs: Yargs): Yargs {
       [CUSTOMER]: {
         describe: 'Customer id to use for new project',
         type: 'number',
-        alias: 'c',
       },
       [NAME]: {
         describe: 'Name of new project',
         type: 'string',
-        alias: 'n',
       },
       [GIT_URL]: {
         describe: 'Git URL of new project',
         type: 'string',
-        alias: 'u',
       },
       [OPENSHIFT]: {
         describe: 'Openshift id to use for new project',
         type: 'number',
-        alias: 'o',
       },
       [BRANCHES]: {
         describe:
           'Branches to deploy. Possible values include "false" (no branches), "true" (all branches) and a regular expression to match branches.',
         type: 'string',
-        alias: 'b',
       },
       [PULLREQUESTS]: {
         describe:
           'Pull requests to deploy. Possible values include "false" (no pull requests), "true" (all pull requests) and a regular expression to match pull request titles.',
         type: 'boolean',
-        alias: 'r',
       },
       [PRODUCTION_ENVIRONMENT]: {
         describe: 'Production environment for new project',
         type: 'string',
-        alias: 'p',
       },
     })
     .example(

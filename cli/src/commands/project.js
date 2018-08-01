@@ -39,7 +39,6 @@ export function builder(yargs: Yargs): Yargs {
         demandOption: false,
         describe: 'Name of project',
         type: 'string',
-        alias: 'p',
       },
     })
     .example(

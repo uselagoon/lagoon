@@ -20,7 +20,6 @@ export function builder(yargs: Yargs) {
     identity: {
       describe: 'Path to identity (private key)',
       type: 'string',
-      alias: 'i',
     },
   });
 }
