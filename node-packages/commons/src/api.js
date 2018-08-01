@@ -227,15 +227,15 @@ const addOrUpdateEnvironment = (
 
 const updateEnvironment = (
   name: string,
-  projectId: number,
+  environmentId: number,
   patch: string,
 ): Promise<Object> =>
   graphqlapi.query(`
     mutation {
       updateEnvironment(input: {
-        project: ${projectId},
         name: "${name}",
-        patch: "${patch}"
+        id: ${environmentId},
+        patch: ${patch}
       }) {
         id
         name
