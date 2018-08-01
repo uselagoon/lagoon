@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
-VERSION := $(shell git describe --tags)
+VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Docker Image Tag that should be used when publishing to docker hub registry
 PUBLISH_TAG :=
 
