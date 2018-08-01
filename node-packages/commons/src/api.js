@@ -303,7 +303,9 @@ module.exports = {
   getSlackinfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
+  getEnvironmentByName,
   getProductionEnvironmentForProject,
   addOrUpdateEnvironment,
+  updateEnvironment,
   deleteEnvironment,
 };
