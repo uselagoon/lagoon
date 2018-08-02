@@ -673,3 +673,8 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
+
+.PHONY: push-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind:
+	rm -rf build/oc-build-deploy-dind
+	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
