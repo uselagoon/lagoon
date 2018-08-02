@@ -4,13 +4,21 @@ import { red } from 'chalk';
 import R from 'ramda';
 
 type Cerr = typeof console.error;
-type LaguError = { message: string };
+type LaguError = { +message: string, +stack?: string };
 
 export function printErrors(cerr: Cerr, ...errors: Array<LaguError>): number {
   R.compose(
     R.forEach(cerr),
     R.map(red),
-    R.map(R.prop('message')),
+    R.map(err =>
+      R.propOr(
+        // ...otherwise, use the message property as a fallback
+        R.prop('message', err),
+        // Try to get the stack...
+        'stack',
+        err,
+      ),
+    ),
   )(errors);
   return 1;
 }
