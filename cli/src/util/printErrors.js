@@ -43,7 +43,7 @@ export function printGraphQLErrors(
   }
   const errorMessage =
     R.length(errors) === 1
-      ? 'Oops! The lagoon API returned an error:'
-      : 'Oops! The lagoon API returned errors:';
+      ? 'Oops! The Lagoon API returned an error:'
+      : 'Oops! The Lagoon API returned errors:';
   return printErrors(cerr, { message: errorMessage }, ...errors);
 }

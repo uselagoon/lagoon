@@ -3,7 +3,7 @@
 exports[`listProjects should display error, if GraphQL sends error messages 1`] = `
 Array [
   Array [
-    "[31mOops! The lagoon API returned an error:[39m",
+    "[31mOops! The Lagoon API returned an error:[39m",
   ],
   Array [
     "[31msomething something error[39m",
