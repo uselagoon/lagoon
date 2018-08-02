@@ -61,6 +61,7 @@
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.55",
     "chalk": "^2.4.1",
+    "csv-stringify": "^3.1.1",
     "exit": "^0.1.2",
     "findup-sync": "^2.0.0",
     "fuzzysearch": "^1.0.3",
