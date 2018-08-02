@@ -31,7 +31,6 @@ export function builder(yargs: Yargs): Yargs {
         type: 'string',
       },
     })
-    .alias('p', 'project')
     .example(
       `$0 ${command}`,
       'Show environments for the project configured in .lagoon.yml',
