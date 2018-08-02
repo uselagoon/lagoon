@@ -20,7 +20,7 @@ const cwd = process.cwd();
 // Ref: https://github.com/yargs/yargs/blob/0942a1518aad77656c135439194f8f825bd8b33a/test/command.js#L570-L599
 // Ref (node-require-directory): https://github.com/troygoode/node-require-directory#visiting-objects-as-theyre-loaded
 // Ref (node-require-directory): https://github.com/troygoode/node-require-directory/blob/f043664108f4a4cdb9a1c10e42268d6db754c855/test/test.js#L161-L171
-export function visit(cmd: CommandModule) {
+export function setConfigForHandlers(cmd: CommandModule) {
   return JSON.stringify(cmd) === '{}'
     ? // If the cmd module is an empty object, just return the object
     cmd

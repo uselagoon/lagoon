@@ -2,7 +2,7 @@
 
 import yargs from 'yargs';
 import { printErrors } from './util/printErrors';
-import { visit } from './cli/visit';
+import { setConfigForHandlers } from './cli/setConfigForHandlers';
 
 export function run() {
   try {
@@ -10,7 +10,7 @@ export function run() {
     yargs
       // Use yargs.commandDir method to initialize a directory of commands
       // Ref: https://github.com/yargs/yargs/blob/e87f4873012e3541325e7ec6dafb11a93b5717e0/docs/advanced.md#commanddirdirectory-opts
-      .commandDir('./commands', { visit })
+      .commandDir('./commands', { visit: setConfigForHandlers })
       // Require entry of at least one command after `lagoon`, such as `lagoon login`.
       // `lagoon` by itself has no assigned function at the moment.
       .demandCommand()
@@ -26,3 +26,4 @@ export function run() {
     process.exit(exitCode);
   }
 }
+export { registerCommands as run } from './cli/registerCommands';

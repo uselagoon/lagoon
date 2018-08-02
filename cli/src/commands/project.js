@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 import { table } from 'table';
 import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
-import { visit } from '../cli/visit';
+import { setConfigForHandlers } from '../cli/setConfigForHandlers';
 import { config } from '../config';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
@@ -49,7 +49,7 @@ export function builder(yargs: Yargs): Yargs {
       `$0 ${command} --${PROJECT} myproject`,
       'Show details of project "myproject"',
     )
-    .commandDir('projectCommands', { visit });
+    .commandDir('projectCommands', { visit: setConfigForHandlers });
 }
 
 type PromptForQueryOptionsArgs = {|
