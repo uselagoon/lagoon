@@ -1,7 +1,7 @@
 // @flow
 
-import { table } from 'table';
 import R from 'ramda';
+import format from '../util/format';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import {
@@ -93,7 +93,7 @@ Args): Promise<number> {
   }
 
   clog(
-    table([
+    format([
       ['Name', 'Environment Type', 'Deploy Type', 'Created', 'Updated'],
       ...R.map(
         environment => [

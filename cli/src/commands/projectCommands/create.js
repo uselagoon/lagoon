@@ -6,12 +6,11 @@ import { fromUrl as hostedGitInfoFromUrl } from 'hosted-git-info';
 import inquirer from 'inquirer';
 import autocompletePrompt from 'inquirer-autocomplete-prompt';
 import R from 'ramda';
-import { table } from 'table';
-
 import {
   answerWithOptionIfSetOrPrompt,
   answerWithOptionIfSet,
 } from '../../cli/answerWithOption';
+import format from '../../util/format';
 import gql from '../../util/gql';
 import { printGraphQLErrors, printErrors } from '../../util/printErrors';
 import { queryGraphQL } from '../../util/queryGraphQL';
@@ -436,7 +435,7 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
   clog(green(`Project "${projectName}" created successfully:`));
 
   clog(
-    table([
+    format([
       ['Project Name', projectName],
       ['Customer', R.path(['customer', 'name'], project)],
       ['Git URL', R.prop('git_url', project)],

@@ -1,8 +1,8 @@
 // @flow
 
-import { table } from 'table';
 import { red } from 'chalk';
 import R from 'ramda';
+import format from '../util/format';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import {
@@ -100,7 +100,7 @@ Args): Promise<number> {
 
   clog(`Customer details for project '${project}':`);
   clog(
-    table([
+    format([
       ['Name', R.prop('name', customer)],
       ['Comment', R.prop('comment', customer)],
       [

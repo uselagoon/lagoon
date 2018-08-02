@@ -1,10 +1,11 @@
 // @flow
 
 import inquirer from 'inquirer';
-import { table } from 'table';
 import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { setConfigForHandlers } from '../cli/setConfigForHandlers';
+import { FORMAT_CHOICE_TABLE } from '../config/globalOptions';
+import format from '../util/format';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import { printGraphQLErrors } from '../util/printErrors';
@@ -118,17 +119,37 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
 
   clog(`Project details for '${projectName}':`);
   clog(
-    table([
-      ['Name', R.prop('name', project)],
-      ['Customer', R.path(['customer', 'name'], project)],
-      ['Git URL', R.prop('git_url', project)],
-      ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
-      ['Active Systems Remove', R.prop('active_systems_remove', project)],
-      ['Branches', String(R.prop('branches', project))],
-      ['Pull Requests', String(R.prop('pullrequests', project))],
-      ['Openshift', R.path(['openshift', 'name'], project)],
-      ['Created', R.path(['created'], project)],
-    ]),
+    format(
+      [
+        [
+          'Name',
+          'Customer',
+          'Git URL',
+          'Active Systems Deploy',
+          'Active Systems Remove',
+          'Branches',
+          'Pull Requests',
+          'Openshift',
+          'Created',
+        ],
+        [
+          R.prop('name', project),
+          R.path(['customer', 'name'], project),
+          R.prop('git_url', project),
+          R.prop('active_systems_deploy', project),
+          R.prop('active_systems_remove', project),
+          String(R.prop('branches', project)),
+          String(R.prop('pullrequests', project)),
+          R.path(['openshift', 'name'], project),
+          R.path(['created'], project),
+        ],
+      ],
+      {
+        transforms: {
+          [FORMAT_CHOICE_TABLE]: R.transpose,
+        },
+      },
+    ),
   );
 
   return 0;

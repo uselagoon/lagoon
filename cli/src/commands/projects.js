@@ -1,8 +1,8 @@
 // @flow
 
-import { table } from 'table';
 import R from 'ramda';
 
+import format from '../util/format';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import { printGraphQLErrors } from '../util/printErrors';
@@ -64,7 +64,7 @@ CommandHandlerArgs): Promise<number> {
   }
 
   clog(
-    table([
+    format([
       ['Project', 'Git URL', 'Branches', 'Pull Requests', 'Created'],
       ...R.map(
         project => [
