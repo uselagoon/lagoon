@@ -13,6 +13,12 @@ const tokenFilePath = R.prop('token', { ...configDefaults, ...config });
 export const command = 'logout';
 export const description = `Delete the authentication token at ${tokenFilePath}`;
 
+const TOKEN: 'token' = 'token';
+
+export const commandOptions = {
+  [TOKEN]: TOKEN,
+};
+
 export function builder(yargs: Yargs) {
   return yargs.usage(`$0 ${command} - ${description}`);
 }

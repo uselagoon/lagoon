@@ -17,11 +17,17 @@ import type { BaseHandlerArgs } from '.';
 export const command = 'environments';
 export const description = 'Show environment details for a given project';
 
+const PROJECT: 'project' = 'project';
+
+export const commandOptions = {
+  [PROJECT]: PROJECT,
+};
+
 export function builder(yargs: Yargs): Yargs {
   return yargs
     .usage(`$0 ${command} - ${description}`)
     .options({
-      project: {
+      [PROJECT]: {
         demandOption: false,
         describe: 'Name of project',
         type: 'string',
@@ -33,7 +39,7 @@ export function builder(yargs: Yargs): Yargs {
       'Show environments for the project configured in .lagoon.yml',
     )
     .example(
-      `$0 ${command} -p myproject`,
+      `$0 ${command} --${PROJECT} myproject`,
       'Show environments of project "myproject"',
     );
 }

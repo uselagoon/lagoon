@@ -18,11 +18,17 @@ import type { BaseHandlerArgs } from '.';
 export const command = 'customer';
 export const description = 'Show customer details for a given project name';
 
+const PROJECT: 'project' = 'project';
+
+export const commandOptions = {
+  [PROJECT]: PROJECT,
+};
+
 export function builder(yargs: Yargs) {
   return yargs
     .usage(`$0 ${command} - ${description}`)
     .options({
-      project: {
+      [PROJECT]: {
         demandOption: false,
         describe: 'Specify a project for the customer',
         type: 'string',
@@ -34,7 +40,7 @@ export function builder(yargs: Yargs) {
       'Show customer details for the project configured in .lagoon.yml',
     )
     .example(
-      `$0 ${command} -p myproject`,
+      `$0 ${command} --${PROJECT} myproject`,
       'Show customer details for the project "myproject"',
     );
 }
