@@ -128,7 +128,7 @@ ProjectDetailsArgs): Promise<number> {
   clog(`Project details for '${projectName}':`);
   clog(
     table([
-      ['Project Name', R.prop('name', project)],
+      ['Name', R.prop('name', project)],
       ['Customer', R.path(['customer', 'name'], project)],
       ['Git URL', R.prop('git_url', project)],
       ['Active Systems Deploy', R.prop('active_systems_deploy', project)],

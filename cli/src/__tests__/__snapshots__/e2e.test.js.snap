@@ -188,7 +188,7 @@ exports[`lagu should show customer details (using --project option) 1`] = `
 exports[`lagu should show newly-created project details (using --project option) 1`] = `
 "Project details for 'e2e-test-project':
 ╔═══════════════════════╤══════════════════════════════════════════════════════╗
-║ Project Name          │ e2e-test-project                                     ║
+║ Name                  │ e2e-test-project                                     ║
 ╟───────────────────────┼──────────────────────────────────────────────────────╢
 ║ Customer              │ ci-customer                                          ║
 ╟───────────────────────┼──────────────────────────────────────────────────────╢
@@ -212,7 +212,7 @@ exports[`lagu should show newly-created project details (using --project option)
 exports[`lagu should show project details (read from .lagoon.yml) 1`] = `
 "Project details for 'ci-github':
 ╔═══════════════════════╤════════════════════════════════════════════╗
-║ Project Name          │ ci-github                                  ║
+║ Name                  │ ci-github                                  ║
 ╟───────────────────────┼────────────────────────────────────────────╢
 ║ Customer              │ ci-customer                                ║
 ╟───────────────────────┼────────────────────────────────────────────╢
