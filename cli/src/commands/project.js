@@ -1,77 +1,116 @@
 // @flow
 
+import inquirer from 'inquirer';
 import { table } from 'table';
 import R from 'ramda';
-
-import { visit } from '../cli';
+import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
+import { visit } from '../cli/visit';
 import { config } from '../config';
 import gql from '../gql';
 import { runGQLQuery } from '../query';
-import {
-  printGraphQLErrors,
-  printProjectConfigurationError,
-} from '../printErrors';
+import { printGraphQLErrors } from '../printErrors';
+import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'project';
 export const description = 'Show project details';
+
+export const PROJECT: 'project' = 'project';
+
+export const commandOptions = {
+  [PROJECT]: PROJECT,
+};
+
+type OptionalOptions = {
+  project?: string,
+};
+
+type Options = {
+  +project: string,
+};
 
 export function builder(yargs: Yargs): Yargs {
   return yargs
     .usage(`$0 ${command} - ${description}`)
     .options({
-      project: {
+      [PROJECT]: {
         demandOption: false,
         describe: 'Name of project',
         type: 'string',
+        alias: 'p',
       },
     })
-    .alias('p', 'project')
     .example(
       `$0 ${command}`,
       'Show details for the project configured in .lagoon.yml',
     )
-    .example(`$0 ${command} myproject`, 'Show details of project "myproject"')
+    .example(
+      `$0 ${command} --${PROJECT} myproject`,
+      'Show details of project "myproject"',
+    )
     .commandDir('projectCommands', { visit });
 }
 
-type projectDetailsArgs = {
-  projectName: string,
+type PromptForQueryOptionsArgs = {|
+  options: OptionalOptions,
+  clog: typeof console.log,
+|};
+
+async function promptForQueryOptions({
+  options,
+  clog,
+}:
+PromptForQueryOptionsArgs): Promise<Options> {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: PROJECT,
+      message: 'Project name:',
+      when: answerWithOptionIfSetOrPrompt({ option: PROJECT, options, clog }),
+    },
+  ]);
+}
+
+type ProjectDetailsArgs = {
   clog: typeof console.log,
   cerr: typeof console.error,
+  options: OptionalOptions,
 };
 
 export async function projectDetails({
-  projectName,
   clog,
   cerr,
+  options,
 }:
-projectDetailsArgs): Promise<number> {
-  const query = gql`
-    query ProjectByName($project: String!) {
-      projectByName(name: $project) {
-        name
-        customer {
-          name
-        }
-        git_url
-        active_systems_deploy
-        active_systems_remove
-        branches
-        pullrequests
-        openshift {
-          name
-        }
-        created
-      }
-    }
-  `;
+ProjectDetailsArgs): Promise<number> {
+  const { project: projectName } = await promptForQueryOptions({
+    options,
+    clog,
+  });
 
   const result = await runGQLQuery({
     cerr,
-    query,
+    query: gql`
+      query ProjectByName($project: String!) {
+        projectByName(name: $project) {
+          name
+          customer {
+            name
+          }
+          git_url
+          active_systems_deploy
+          active_systems_remove
+          branches
+          pullrequests
+          openshift {
+            name
+          }
+          created
+        }
+      }
+    `,
     variables: { project: projectName },
   });
 
@@ -105,18 +144,13 @@ projectDetailsArgs): Promise<number> {
   return 0;
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     project: ?string,
   },
 };
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const projectName = R.prop('project', argv) || R.prop('project', config);
-
-  if (projectName == null) {
-    return printProjectConfigurationError(cerr);
-  }
-
-  return projectDetails({ projectName, clog, cerr });
+  const options = getOptions({ config, argv, commandOptions });
+  return projectDetails({ clog, cerr, options });
 }

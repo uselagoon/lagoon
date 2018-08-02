@@ -86,7 +86,9 @@ async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   return result.allProjects;
 }
 
-async function getRocketChatInfoForProject(project: string): Project {
+async function getRocketChatInfoForProject(
+  project: string,
+): Promise<Array<Object>> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationRocketChat {
       webhook

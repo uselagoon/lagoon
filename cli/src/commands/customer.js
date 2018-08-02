@@ -13,7 +13,7 @@ import {
 } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'customer';
 export const description = 'Show customer details for a given project name';
@@ -93,7 +93,7 @@ GetCustomerDetailsArgs): Promise<number> {
     R.always('\u221A'),
     R.always('\u2717'),
   );
-  const formatSshKeys = R.map(R.prop('name'));
+  const formatSshKeys: (Array<Object>) => Array<string> = R.map(R.prop('name'));
 
   clog(`Customer details for project '${project}':`);
   clog(
@@ -106,7 +106,7 @@ GetCustomerDetailsArgs): Promise<number> {
       ],
       [
         'SSH Keys',
-        R.join(', ', formatSshKeys(R.propOr([], 'sshKeys', customer))),
+        R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
       ],
       ['Created', R.prop('created', customer)],
     ]),
@@ -115,14 +115,14 @@ GetCustomerDetailsArgs): Promise<number> {
   return 0;
 }
 
-type Args = BaseArgs & {
+type Args = BaseHandlerArgs & {
   argv: {
     project: ?string,
   },
 };
 
 export async function handler({ argv, clog, cerr }: Args): Promise<number> {
-  const project = R.prop('project', argv) || R.prop('project', config);
+  const project: ?string = R.prop('project', argv) || R.prop('project', config);
 
   if (project == null) {
     return printProjectConfigurationError(cerr);
