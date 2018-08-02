@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`listProjects should display error, if GraphQL sends error messages 1`] = `
+exports[`handler should display error, if GraphQL sends error messages 1`] = `
 Array [
   Array [
     "[31mOops! The Lagoon API returned an error:[39m",
@@ -11,7 +11,7 @@ Array [
 ]
 `;
 
-exports[`listProjects should list details for multiple projects 1`] = `
+exports[`handler should list details for multiple projects 1`] = `
 Array [
   Array [
     "╔══════════════════════════╤══════════════════════════════════════════════╤══════════╤═══════════════╤═════════════════════╗
@@ -26,7 +26,7 @@ Array [
 ]
 `;
 
-exports[`listProjects should print notice on empty projects array 1`] = `
+exports[`handler should print notice on empty projects array 1`] = `
 Array [
   Array [
     "No projects found.",

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getCustomerDetails should show customer details 1`] = `
+exports[`handler should show customer details 1`] = `
 Array [
   Array [
     "Customer details for project 'some_project':",
@@ -22,7 +22,7 @@ Array [
 ]
 `;
 
-exports[`getCustomerDetails should show error message if GraphQL returns errors 1`] = `
+exports[`handler should show error message if GraphQL returns errors 1`] = `
 Array [
   Array [
     "[31mOops! The Lagoon API returned an error:[39m",
@@ -33,7 +33,7 @@ Array [
 ]
 `;
 
-exports[`getCustomerDetails should show message for non-existing projects 1`] = `
+exports[`handler should show message for non-existing projects 1`] = `
 Array [
   Array [
     "[31mNo customer found for project 'some_project'![39m",

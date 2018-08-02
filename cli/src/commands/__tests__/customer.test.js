@@ -1,9 +1,12 @@
 // @flow
 
 import { queryGraphQL } from '../../util/queryGraphQL';
-import { getCustomerDetails } from '../customer';
+import { handler } from '../customer';
 
 jest.mock('../../util/queryGraphQL');
+jest.mock('../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
@@ -25,7 +28,7 @@ const mockResponse = {
   },
 };
 
-describe('getCustomerDetails', () => {
+describe('handler', () => {
   it('should show customer details', async () => {
     _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockResponse),
@@ -34,10 +37,15 @@ describe('getCustomerDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getCustomerDetails({
-      project: 'some_project',
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(0);
@@ -54,10 +62,15 @@ describe('getCustomerDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getCustomerDetails({
-      project: 'some_project',
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(1);
@@ -70,10 +83,15 @@ describe('getCustomerDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getCustomerDetails({
-      project: 'some_project',
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(0);

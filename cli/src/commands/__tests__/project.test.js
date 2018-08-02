@@ -1,9 +1,12 @@
 // @flow
 
 import { queryGraphQL } from '../../util/queryGraphQL';
-import { projectDetails } from '../project';
+import { handler } from '../project';
 
 jest.mock('../../util/queryGraphQL');
+jest.mock('../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
@@ -11,7 +14,7 @@ const mockErrorResponse = {
   errors: [{ message: 'something something error' }],
 };
 
-describe('projectDetails', () => {
+describe('handler', () => {
   const mockResponse1 = {
     data: {
       projectByName: {
@@ -40,10 +43,15 @@ describe('projectDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
+    const code = await handler({
       clog,
       cerr,
-      options: { project: 'some_project' },
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(1);
@@ -56,10 +64,15 @@ describe('projectDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
+    const code = await handler({
       clog,
       cerr,
-      options: { project: 'not_existing' },
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'not_existing',
+      },
     });
 
     expect(code).toBe(0);
@@ -74,10 +87,15 @@ describe('projectDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
+    const code = await handler({
       clog,
       cerr,
-      options: { project: 'myproject' },
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'myproject',
+      },
     });
 
     expect(code).toBe(0);

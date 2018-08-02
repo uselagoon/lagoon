@@ -1,13 +1,16 @@
 // @flow
 
 import { queryGraphQL } from '../../util/queryGraphQL';
-import { listProjects } from '../projects';
+import { handler } from '../projects';
 
 jest.mock('../../util/queryGraphQL');
+jest.mock('../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
-describe('listProjects', () => {
+describe('handler', () => {
   it('should list details for multiple projects', async () => {
     _mock(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
@@ -35,9 +38,14 @@ describe('listProjects', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await listProjects({
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
     });
 
     expect(code).toBe(0);
@@ -50,9 +58,14 @@ describe('listProjects', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await listProjects({
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
     });
 
     expect(code).toBe(0);
@@ -69,9 +82,14 @@ describe('listProjects', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await listProjects({
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
     });
 
     expect(code).toBe(1);

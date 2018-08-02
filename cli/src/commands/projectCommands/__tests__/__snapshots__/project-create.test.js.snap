@@ -1,6 +1,28 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`createProject should display error, if GraphQL response contains zero customers 1`] = `
+exports[`getAllowedCustomersAndOpenshifts should return all customers and all openshifts 1`] = `
+Object {
+  "allCustomers": Array [
+    Object {
+      "name": "credentialtest-customer1",
+      "value": 1,
+    },
+    Object {
+      "name": "credentialtest-customer2",
+      "value": 2,
+    },
+  ],
+  "allOpenshifts": Array [
+    Object {
+      "name": "credentialtest-openshift",
+      "value": 1,
+    },
+  ],
+  "errors": undefined,
+}
+`;
+
+exports[`handler should display error, if GraphQL response contains zero customers 1`] = `
 Array [
   Array [
     "[31mNo authorized customers found![39m",
@@ -8,7 +30,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display error, if GraphQL response contains zero openshifts but one customer 1`] = `
+exports[`handler should display error, if GraphQL response contains zero openshifts but one customer 1`] = `
 Array [
   Array [
     "[31mNo authorized openshifts found![39m",
@@ -16,7 +38,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display error, if GraphQL sends error messages the first time it's called 1`] = `
+exports[`handler should display error, if GraphQL sends error messages the first time it's called 1`] = `
 Array [
   Array [
     "[31mOops! The Lagoon API returned an error:[39m",
@@ -27,7 +49,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display error, if GraphQL sends error messages the second time it's called 1`] = `
+exports[`handler should display error, if GraphQL sends error messages the second time it's called 1`] = `
 Array [
   Array [
     "[31mOops! The Lagoon API returned an error:[39m",
@@ -38,7 +60,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display table after successful project creation 1`] = `
+exports[`handler should display table after successful project creation 1`] = `
 Array [
   Array [
     "[34m![39m Set \\"customer\\" option to \\"1\\" from arguments or config",
@@ -87,26 +109,4 @@ Array [
 ",
   ],
 ]
-`;
-
-exports[`getAllowedCustomersAndOpenshifts should return all customers and all openshifts 1`] = `
-Object {
-  "allCustomers": Array [
-    Object {
-      "name": "credentialtest-customer1",
-      "value": 1,
-    },
-    Object {
-      "name": "credentialtest-customer2",
-      "value": 2,
-    },
-  ],
-  "allOpenshifts": Array [
-    Object {
-      "name": "credentialtest-openshift",
-      "value": 1,
-    },
-  ],
-  "errors": undefined,
-}
 `;

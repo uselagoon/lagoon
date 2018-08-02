@@ -9,10 +9,13 @@ import {
   allOptionsSpecified,
   commandOptions,
   getAllowedCustomersAndOpenshifts,
-  createProject,
+  handler,
 } from '../create';
 
 jest.mock('../../../util/queryGraphQL');
+jest.mock('../../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
 const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
@@ -80,7 +83,7 @@ describe('getAllowedCustomersAndOpenshifts', () => {
   });
 });
 
-describe('createProject', () => {
+describe('handler', () => {
   it('should display table after successful project creation', async () => {
     _mock(queryGraphQL)
       .mockImplementationOnce(() =>
@@ -130,10 +133,13 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({
+    const returnVal = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
       options: {
+        format: 'table',
+        token: 'token/path',
         customer: 1,
         name: 'test-project',
         git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
@@ -158,7 +164,15 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({ clog, cerr, options: {} });
+    const returnVal = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
+    });
 
     expect(returnVal).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
@@ -197,10 +211,13 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({
+    const returnVal = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
       options: {
+        format: 'table',
+        token: 'token/path',
         customer: 1,
         name: 'test-project',
         git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
@@ -225,7 +242,15 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({ clog, cerr, options: {} });
+    const returnVal = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
+    });
 
     expect(returnVal).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
@@ -249,7 +274,15 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({ clog, cerr, options: {} });
+    const returnVal = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
+    });
 
     expect(returnVal).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
