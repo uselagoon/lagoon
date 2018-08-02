@@ -9,7 +9,7 @@ import { config } from '../config';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import { printGraphQLErrors } from '../util/printErrors';
-import { getOptions } from '.';
+import { getCommandOptions } from '../util/getCommandOptions';
 
 import typeof Yargs from 'yargs';
 import type { BaseHandlerArgs } from '.';
@@ -150,6 +150,6 @@ type Args = BaseHandlerArgs & {
 };
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getOptions({ config, argv, commandOptions });
+  const options = getCommandOptions({ config, argv, commandOptions });
   return projectDetails({ clog, cerr, options });
 }

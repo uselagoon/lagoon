@@ -16,7 +16,7 @@ import { config } from '../../config';
 import gql from '../../util/gql';
 import { printGraphQLErrors, printErrors } from '../../util/printErrors';
 import { queryGraphQL } from '../../util/queryGraphQL';
-import { getOptions } from '..';
+import { getCommandOptions } from '../../util/getCommandOptions';
 
 import typeof Yargs from 'yargs';
 import type { inquirer$Question } from 'inquirer';
@@ -470,7 +470,7 @@ type Args = BaseHandlerArgs & {
 };
 
 export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getOptions({
+  const options = getCommandOptions({
     config,
     argv,
     commandOptions,

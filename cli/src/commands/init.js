@@ -9,8 +9,8 @@ import untildify from 'untildify';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { configDefaults, createConfig } from '../config';
 import { fileExists } from '../util/fs';
+import { getCommandOptions } from '../util/getCommandOptions';
 import { printErrors } from '../util/printErrors';
-import { getOptions } from '.';
 
 import typeof Yargs from 'yargs';
 import type { LagoonConfigInput } from '../config';
@@ -244,7 +244,7 @@ export async function handler({
   cerr,
 }:
 Args): Promise<number> {
-  const options = getOptions({
+  const options = getCommandOptions({
     config: null,
     argv,
     commandOptions,

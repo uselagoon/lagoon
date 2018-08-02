@@ -12,7 +12,7 @@ export type BaseHandlerArgs = {|
   cerr: typeof console.error,
 |};
 
-export function getOptions({
+export function getCommandOptions({
   config,
   argv,
   commandOptions,
