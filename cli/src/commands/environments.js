@@ -2,8 +2,6 @@
 
 import { table } from 'table';
 import R from 'ramda';
-
-import { config } from '../config';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import {
@@ -12,7 +10,7 @@ import {
 } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'environments';
 export const description = 'Show environment details for a given project';
@@ -44,18 +42,20 @@ export function builder(yargs: Yargs): Yargs {
     );
 }
 
-type projectDetailsArgs = {
-  projectName: string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function listEnvironments({
-  projectName,
+export async function handler({
+  options: { project: projectName },
   clog,
   cerr,
 }:
-projectDetailsArgs): Promise<number> {
+Args): Promise<number> {
+  if (projectName == null) {
+    return printProjectConfigurationError(cerr);
+  }
+
   const result = await queryGraphQL({
     cerr,
     query: gql`
@@ -110,20 +110,4 @@ projectDetailsArgs): Promise<number> {
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const projectName = R.prop('project', argv) || R.prop('project', config);
-
-  if (projectName == null) {
-    return printProjectConfigurationError(cerr);
-  }
-
-  return listEnvironments({ projectName, clog, cerr });
 }

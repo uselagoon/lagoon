@@ -7,14 +7,14 @@ import R from 'ramda';
 import tildify from 'tildify';
 import untildify from 'untildify';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
-import { configDefaults, createConfig } from '../config';
+import { globalOptionDefaults } from '../config/globalOptions';
+import { writeConfigFile } from '../configFile/writeConfigFile';
 import { fileExists } from '../util/fs';
-import { getCommandOptions } from '../util/getCommandOptions';
 import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { LagoonConfigInput } from '../config';
-import type { BaseHandlerArgs } from '.';
+import type { ConfigFileInput } from '../types/ConfigFile';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'init';
 export const description =
@@ -26,20 +26,28 @@ export const API: 'api' = 'api';
 export const SSH: 'ssh' = 'ssh';
 export const TOKEN: 'token' = 'token';
 
-export const commandOptions = {
+export const commandOptions = Object.freeze({
   [OVERWRITE]: OVERWRITE,
   [PROJECT]: PROJECT,
   [API]: API,
   [SSH]: SSH,
   [TOKEN]: TOKEN,
-};
+});
+
+export const dynamicOptionKeys = Object.freeze([
+  OVERWRITE,
+  PROJECT,
+  API,
+  SSH,
+  TOKEN,
+]);
 
 type OptionalOptions = {
   overwrite?: boolean,
   project?: string,
   api?: string,
   ssh?: string,
-  token?: string,
+  token: string,
 };
 
 export function builder(yargs: Yargs) {
@@ -133,16 +141,18 @@ PromptForOverwriteArgs): Promise<{ [key: typeof OVERWRITE]: boolean }> {
   ]);
 }
 
-type InitArgs = {|
-  cwd: string,
-  options: OptionalOptions,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-|};
+type Args = CommandHandlerArgsWithOptions<{
+  +overwrite?: boolean,
+  +project?: string,
+}>;
 
-async function init({
-  cwd, options, clog, cerr }:
-InitArgs): Promise<number> {
+export async function handler({
+  cwd,
+  options,
+  clog,
+  cerr,
+}:
+Args): Promise<number> {
   const filepath = path.join(cwd, '.lagoon.yml');
   const exists = await fileExists(filepath);
 
@@ -163,8 +173,10 @@ InitArgs): Promise<number> {
     });
   }
 
+  const defaultToken = R.prop(TOKEN, globalOptionDefaults);
+
   // $FlowFixMe inquirer$Answers is inexact, LagoonConfigInput is exact
-  const configInput: LagoonConfigInput = await inquirer.prompt([
+  const configInput: ConfigFileInput = await inquirer.prompt([
     {
       type: 'input',
       name: PROJECT,
@@ -204,11 +216,20 @@ InitArgs): Promise<number> {
       name: TOKEN,
       message: `Change the path for the token (default: ${R.compose(
         tildify,
-        R.prop('token'),
-      )(configDefaults)})`,
+        R.prop(TOKEN),
+      )(globalOptionDefaults)})`,
       when: answerWithOptionIfSetOrPrompt({
         option: TOKEN,
-        options,
+        options: (R.pickBy((val, key) =>
+          // Filter to options that...
+          R.or(
+            // ...either don't have the key TOKEN...
+            R.complement(R.equals)(TOKEN, key),
+            // ...or those that are a TOKEN that are the default value.
+            // This is to avoid writing the default value in the config file.
+            R.complement(R.equals)(defaultToken, val),
+          ),
+        )(options): { ...typeof options }),
         notify: true,
         clog,
       }),
@@ -218,7 +239,7 @@ InitArgs): Promise<number> {
 
   try {
     clog(`Creating file '${filepath}'...`);
-    await createConfig(filepath, configInput);
+    await writeConfigFile(filepath, configInput);
     clog(green('Configuration file created!'));
     return 0;
   } catch (e) {
@@ -228,33 +249,4 @@ InitArgs): Promise<number> {
       e,
     );
   }
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    overwrite: ?boolean,
-    project: ?string,
-  },
-};
-
-export async function handler({
-  cwd,
-  argv,
-  clog,
-  cerr,
-}:
-Args): Promise<number> {
-  const options = getCommandOptions({
-    config: null,
-    argv,
-    commandOptions,
-    dynamicOptionKeys: [OVERWRITE],
-  });
-
-  return init({
-    cwd,
-    options,
-    clog,
-    cerr,
-  });
 }

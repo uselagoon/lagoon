@@ -12,15 +12,13 @@ import {
   answerWithOptionIfSetOrPrompt,
   answerWithOptionIfSet,
 } from '../../cli/answerWithOption';
-import { config } from '../../config';
 import gql from '../../util/gql';
 import { printGraphQLErrors, printErrors } from '../../util/printErrors';
 import { queryGraphQL } from '../../util/queryGraphQL';
-import { getCommandOptions } from '../../util/getCommandOptions';
 
 import typeof Yargs from 'yargs';
 import type { inquirer$Question } from 'inquirer';
-import type { BaseHandlerArgs } from '..';
+import type { CommandHandlerArgsWithOptions } from '../../types/Command';
 
 // $FlowFixMe inquirer$PromptModule interface doesn't match autocompletePrompt module
 inquirer.registerPrompt('autocomplete', autocompletePrompt);
@@ -47,15 +45,7 @@ export const commandOptions = {
   [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-type OptionalOptions = {
-  customer?: number,
-  name?: string,
-  git_url?: string,
-  openshift?: number,
-  branches?: string,
-  pullrequests?: string,
-  production_environment?: string,
-};
+export const dynamicOptionsKeys = [NAME];
 
 type Options = {
   +customer: number,
@@ -353,22 +343,21 @@ export async function promptForProjectInput(
   return inquirer.prompt(questions);
 }
 
-type createProjectArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-  options: OptionalOptions,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +customer?: number,
+  +name?: string,
+  +git_url?: string,
+  +openshift?: number,
+  +branches?: string,
+  +pullrequests?: string,
+  +production_environment?: string,
+}>;
 
 type Question = inquirer$Question & {
   name: $Values<typeof commandOptions>,
 };
 
-export async function createProject({
-  clog,
-  cerr,
-  options,
-}:
-createProjectArgs): Promise<number> {
+export async function handler({ clog, cerr, options }: Args): Promise<number> {
   const {
     allCustomers,
     allOpenshifts,
@@ -461,21 +450,4 @@ createProjectArgs): Promise<number> {
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    customer: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getCommandOptions({
-    config,
-    argv,
-    commandOptions,
-    dynamicOptionKeys: [NAME],
-  });
-
-  return createProject({ clog, cerr, options });
 }

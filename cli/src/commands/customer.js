@@ -3,8 +3,6 @@
 import { table } from 'table';
 import { red } from 'chalk';
 import R from 'ramda';
-
-import { config } from '../config';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import {
@@ -13,7 +11,7 @@ import {
 } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'customer';
 export const description = 'Show customer details for a given project name';
@@ -45,18 +43,20 @@ export function builder(yargs: Yargs) {
     );
 }
 
-type GetCustomerDetailsArgs = {
-  project: string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function getCustomerDetails({
-  project,
+export async function handler({
+  options: { project },
   clog,
   cerr,
 }:
-GetCustomerDetailsArgs): Promise<number> {
+Args): Promise<number> {
+  if (project == null) {
+    return printProjectConfigurationError(cerr);
+  }
+
   const result = await queryGraphQL({
     cerr,
     query: gql`
@@ -117,20 +117,4 @@ GetCustomerDetailsArgs): Promise<number> {
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ argv, clog, cerr }: Args): Promise<number> {
-  const project: ?string = R.prop('project', argv) || R.prop('project', config);
-
-  if (project == null) {
-    return printProjectConfigurationError(cerr);
-  }
-
-  return getCustomerDetails({ project, clog, cerr });
 }

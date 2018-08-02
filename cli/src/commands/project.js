@@ -5,14 +5,12 @@ import { table } from 'table';
 import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { setConfigForHandlers } from '../cli/setConfigForHandlers';
-import { config } from '../config';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
 import { printGraphQLErrors } from '../util/printErrors';
-import { getCommandOptions } from '../util/getCommandOptions';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'project';
 export const description = 'Show project details';
@@ -72,18 +70,11 @@ PromptForQueryOptionsArgs): Promise<Options> {
   ]);
 }
 
-type ProjectDetailsArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-  options: OptionalOptions,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function projectDetails({
-  clog,
-  cerr,
-  options,
-}:
-ProjectDetailsArgs): Promise<number> {
+export async function handler({ clog, cerr, options }: Args): Promise<number> {
   const { project: projectName } = await promptForQueryOptions({
     options,
     clog,
@@ -141,15 +132,4 @@ ProjectDetailsArgs): Promise<number> {
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getCommandOptions({ config, argv, commandOptions });
-  return projectDetails({ clog, cerr, options });
 }

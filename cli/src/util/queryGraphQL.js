@@ -1,7 +1,7 @@
 // @flow
 
 import R from 'ramda';
-import { config, configDefaults } from '../config';
+import { getConfig } from '../config';
 import { getApiConfig } from '../config/getApiConfig';
 import { fileExists, readFile } from './fs';
 import request from './request';
@@ -30,7 +30,7 @@ QLQueryArgs): Object {
   };
 
   if (!headers.Authorization) {
-    const tokenFile = R.prop('token', { ...configDefaults, ...config });
+    const tokenFile = R.prop('token', getConfig());
     const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {

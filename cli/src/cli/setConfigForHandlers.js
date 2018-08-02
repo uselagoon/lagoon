@@ -1,17 +1,22 @@
 // @flow
 
 import exit from 'exit';
+import R from 'ramda';
+import { setConfig } from '../config';
+import { getCommandOptions } from '../util/getCommandOptions';
 import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
 import type { Argv } from 'yargs';
-import type { BaseHandlerArgs } from '../commands';
+import type { CommandHandlerArgs } from '../types/Command';
 
 export type CommandModule = {
   command: string,
+  commandOptions: { [key: string]: string },
+  dynamicOptionKeys: Array<string>,
   description: string,
   builder?: (yargs: Yargs) => Yargs,
-  handler: (handlerArgs: BaseHandlerArgs) => Promise<number>,
+  handler: (handlerArgs: CommandHandlerArgs) => Promise<number>,
 };
 
 const cwd = process.cwd();
@@ -29,24 +34,37 @@ export function setConfigForHandlers(cmd: CommandModule) {
     // functions for the promise.
     {
       ...cmd,
-      handler: (argv: Argv): Promise<void> =>
-        cmd
-          .handler({
-            argv,
-            cwd,
-            clog: console.log,
-            cerr: console.error,
-          })
+      handler: (argv: Argv): Promise<void> => {
+        const config = setConfig({
+          argv,
+          dynamicOptionKeys: R.prop('dynamicOptionKeys', cmd),
+        });
+
+        const options = getCommandOptions({
+          config,
+          commandOptions: R.prop('commandOptions', cmd),
+        });
+
+        return (
+          cmd
+            .handler({
+              options,
+              cwd,
+              clog: console.log,
+              cerr: console.error,
+            })
         // On errors, log error and then exit with a failure exit code
-          .catch((err) => {
-            const exitCode = printErrors(
-              console.error,
-              { message: `Uncaught error in ${cmd.command} command:` },
-              err,
-            );
-            process.exit(exitCode);
-          })
+            .catch((err) => {
+              const exitCode = printErrors(
+                console.error,
+                { message: `Uncaught error in ${cmd.command} command:` },
+                err,
+              );
+              process.exit(exitCode);
+            })
         // Process returned with an exit code of typically 0 (success) or 1 (failure)
-          .then(code => exit(code)),
+            .then(code => exit(code))
+        );
+      },
     };
 }

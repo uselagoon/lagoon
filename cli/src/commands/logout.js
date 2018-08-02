@@ -1,17 +1,13 @@
 // @flow
 
 import { green } from 'chalk';
-import R from 'ramda';
-import { config, configDefaults } from '../config';
 import { fileExists, unlink } from '../util/fs';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
-
-const tokenFilePath = R.prop('token', { ...configDefaults, ...config });
+import type { CommandHandlerArgs } from '../types/Command';
 
 export const command = 'logout';
-export const description = `Delete the authentication token at ${tokenFilePath}`;
+export const description = 'Delete the authentication token';
 
 const TOKEN: 'token' = 'token';
 
@@ -23,8 +19,12 @@ export function builder(yargs: Yargs) {
   return yargs.usage(`$0 ${command} - ${description}`);
 }
 
-export async function handler({ clog }: BaseHandlerArgs): Promise<number> {
-  if (await fileExists(tokenFilePath)) {
+export async function handler({
+  clog,
+  options: { token: tokenFilePath },
+}:
+CommandHandlerArgs): Promise<number> {
+  if (tokenFilePath && (await fileExists(tokenFilePath))) {
     await unlink(tokenFilePath);
   }
 
