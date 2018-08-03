@@ -104,7 +104,7 @@ Args): Promise<number> {
       ['Name', 'Comment', 'Deploy Private Key', 'SSH Key', 'Created'],
       [
         R.prop('name', customer),
-        R.prop('comment', customer),
+        String(R.prop('comment', customer)),
         formatDeployPrivateKey(R.prop('private_key', customer)),
         R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
         R.prop('created', customer),
