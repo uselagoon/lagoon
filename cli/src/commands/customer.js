@@ -101,17 +101,14 @@ Args): Promise<number> {
   clog(`Customer details for project '${project}':`);
   clog(
     format([
-      ['Name', R.prop('name', customer)],
-      ['Comment', R.prop('comment', customer)],
+      ['Name', 'Comment', 'Deploy Private Key', 'SSH Key', 'Created'],
       [
-        'Deploy Private Key',
+        R.prop('name', customer),
+        String(R.prop('comment', customer)),
         formatDeployPrivateKey(R.prop('private_key', customer)),
-      ],
-      [
-        'SSH Keys',
         R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
+        R.prop('created', customer),
       ],
-      ['Created', R.prop('created', customer)],
     ]),
   );
 

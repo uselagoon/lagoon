@@ -436,15 +436,28 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
 
   clog(
     format([
-      ['Project Name', projectName],
-      ['Customer', R.path(['customer', 'name'], project)],
-      ['Git URL', R.prop('git_url', project)],
-      ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
-      ['Active Systems Remove', R.prop('active_systems_remove', project)],
-      ['Branches', String(R.prop('branches', project))],
-      ['Pull Requests', String(R.prop('pullrequests', project))],
-      ['Openshift', R.path(['openshift', 'name'], project)],
-      ['Created', R.prop('created', project)],
+      [
+        'Name',
+        'Customer',
+        'Git URL',
+        'Active Systems Deploy',
+        'Active Systems Remove',
+        'Branches',
+        'Pull Requests',
+        'Openshift',
+        'Created',
+      ],
+      [
+        R.prop('name', project),
+        R.path(['customer', 'name'], project),
+        R.prop('git_url', project),
+        R.prop('active_systems_deploy', project),
+        R.prop('active_systems_remove', project),
+        R.prop('branches', project),
+        R.prop('pullrequests', project),
+        R.path(['openshift', 'name'], project),
+        R.path(['created'], project),
+      ],
     ]),
   );
 
