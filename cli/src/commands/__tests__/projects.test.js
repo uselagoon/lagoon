@@ -1,5 +1,6 @@
 // @flow
 
+import { getConfig } from '../../config';
 import { queryGraphQL } from '../../util/queryGraphQL';
 import { handler } from '../projects';
 
@@ -44,6 +45,135 @@ describe('handler', () => {
       cwd: 'some/path',
       options: {
         format: 'table',
+        token: 'token/path',
+      },
+    });
+
+    expect(code).toBe(0);
+    expect(clog.mock.calls).toMatchSnapshot();
+  });
+
+  it('should list details for multiple projects in json format', async () => {
+    _mock(getConfig).mockImplementationOnce(() => ({ format: 'json' }));
+
+    _mock(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve({
+        data: {
+          allProjects: [
+            {
+              name: 'credentialstest-project1',
+              git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+              branches: 'true',
+              pullrequests: null,
+              created: '2018-01-15 11:09:35',
+            },
+            {
+              name: 'credentialstest-project2',
+              git_url: 'ssh://git@192.168.99.1:2222/git/project2.git',
+              branches: 'true',
+              pullrequests: null,
+              created: '2018-01-15 11:09:35',
+            },
+          ],
+        },
+      }),
+    );
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const code = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'json',
+        token: 'token/path',
+      },
+    });
+
+    expect(code).toBe(0);
+    expect(clog.mock.calls).toMatchSnapshot();
+  });
+
+  it('should list details for multiple projects in csv format', async () => {
+    _mock(getConfig).mockImplementationOnce(() => ({ format: 'csv' }));
+
+    _mock(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve({
+        data: {
+          allProjects: [
+            {
+              name: 'credentialstest-project1',
+              git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+              branches: 'true',
+              pullrequests: null,
+              created: '2018-01-15 11:09:35',
+            },
+            {
+              name: 'credentialstest-project2',
+              git_url: 'ssh://git@192.168.99.1:2222/git/project2.git',
+              branches: 'true',
+              pullrequests: null,
+              created: '2018-01-15 11:09:35',
+            },
+          ],
+        },
+      }),
+    );
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const code = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'csv',
+        token: 'token/path',
+      },
+    });
+
+    expect(code).toBe(0);
+    expect(clog.mock.calls).toMatchSnapshot();
+  });
+
+  it('should list details for multiple projects in simple format', async () => {
+    _mock(getConfig).mockImplementationOnce(() => ({ format: 'simple' }));
+
+    _mock(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve({
+        data: {
+          allProjects: [
+            {
+              name: 'credentialstest-project1',
+              git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+              branches: 'true',
+              pullrequests: null,
+              created: '2018-01-15 11:09:35',
+            },
+            {
+              name: 'credentialstest-project2',
+              git_url: 'ssh://git@192.168.99.1:2222/git/project2.git',
+              branches: 'true',
+              pullrequests: null,
+              created: '2018-01-15 11:09:35',
+            },
+          ],
+        },
+      }),
+    );
+
+    const clog = jest.fn();
+    const cerr = jest.fn();
+
+    const code = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'simple',
         token: 'token/path',
       },
     });
