@@ -4,7 +4,6 @@ import inquirer from 'inquirer';
 import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
 import { setConfigForHandlers } from '../cli/setConfigForHandlers';
-import { FORMAT_CHOICE_TABLE } from '../config/globalOptions';
 import format from '../util/format';
 import gql from '../util/gql';
 import { queryGraphQL } from '../util/queryGraphQL';
@@ -117,39 +116,31 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
     return 0;
   }
 
-  clog(`Project details for '${projectName}':`);
   clog(
-    format(
+    format([
       [
-        [
-          'Name',
-          'Customer',
-          'Git URL',
-          'Active Systems Deploy',
-          'Active Systems Remove',
-          'Branches',
-          'Pull Requests',
-          'Openshift',
-          'Created',
-        ],
-        [
-          R.prop('name', project),
-          R.path(['customer', 'name'], project),
-          R.prop('git_url', project),
-          R.prop('active_systems_deploy', project),
-          R.prop('active_systems_remove', project),
-          String(R.prop('branches', project)),
-          String(R.prop('pullrequests', project)),
-          R.path(['openshift', 'name'], project),
-          R.path(['created'], project),
-        ],
+        'Name',
+        'Customer',
+        'Git URL',
+        'Active Systems Deploy',
+        'Active Systems Remove',
+        'Branches',
+        'Pull Requests',
+        'Openshift',
+        'Created',
       ],
-      {
-        transforms: {
-          [FORMAT_CHOICE_TABLE]: R.transpose,
-        },
-      },
-    ),
+      [
+        R.prop('name', project),
+        R.path(['customer', 'name'], project),
+        R.prop('git_url', project),
+        R.prop('active_systems_deploy', project),
+        R.prop('active_systems_remove', project),
+        String(R.prop('branches', project)),
+        String(R.prop('pullrequests', project)),
+        R.path(['openshift', 'name'], project),
+        R.path(['created'], project),
+      ],
+    ]),
   );
 
   return 0;
