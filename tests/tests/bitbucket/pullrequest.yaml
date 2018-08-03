@@ -49,7 +49,7 @@
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ pr_commit_hash }}"
-    expected_branch: "pr-1"
+    expected_branch: "pr-2"
     project: "{{ project }}"
     url: "{{ check_url }}"
 
@@ -95,7 +95,7 @@
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ pr_2nd_commit_hash }}"
-    expected_branch: "pr-1"
+    expected_branch: "pr-2"
     project: "{{ project }}"
     url: "{{ check_url }}"
 
