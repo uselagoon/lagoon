@@ -8,7 +8,9 @@ jest.mock('../../config', () => ({
   getConfig: jest.fn(() => ({ format: 'table' })),
 }));
 
-const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
+// Flow does not know which objects are actual mocks
+// this function casts given parameter to JestMockFn
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const mockResponse = {
   data: {
@@ -30,7 +32,7 @@ const mockResponse = {
 
 describe('handler', () => {
   it('should show customer details', async () => {
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockResponse),
     );
 
@@ -53,7 +55,7 @@ describe('handler', () => {
   });
 
   it('should show error message if GraphQL returns errors', async () => {
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'Something, something missing parameter X' }],
       }),
@@ -78,7 +80,9 @@ describe('handler', () => {
   });
 
   it('should show message for non-existing projects', async () => {
-    _mock(queryGraphQL).mockImplementationOnce(() => Promise.resolve({}));
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve({}),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();

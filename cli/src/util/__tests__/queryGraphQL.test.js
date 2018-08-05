@@ -15,7 +15,7 @@ jest.mock('../fs', () => ({
 
 // Flow does not know which objects are actual mocks
 // this function casts given parameter to JestMockFn
-const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('queryGraphQL', () => {
   it('should reject because of missing hostname', async () => {
@@ -25,7 +25,7 @@ describe('queryGraphQL', () => {
       format: 'table',
     });
 
-    const mockedRequest = _mock(request);
+    const mockedRequest = _castMockForFlow(request);
 
     try {
       await queryGraphQL({
@@ -53,7 +53,7 @@ describe('queryGraphQL', () => {
       format: 'table',
     });
 
-    const mockedRequest = _mock(request).mockImplementationOnce(() =>
+    const mockedRequest = _castMockForFlow(request).mockImplementationOnce(() =>
       Promise.resolve({ data: 'data' }),
     );
 
@@ -97,7 +97,7 @@ describe('queryGraphQL', () => {
       port: 443,
     });
 
-    const mockedRequest = _mock(request).mockImplementationOnce(() =>
+    const mockedRequest = _castMockForFlow(request).mockImplementationOnce(() =>
       Promise.resolve({ data: 'data' }),
     );
 

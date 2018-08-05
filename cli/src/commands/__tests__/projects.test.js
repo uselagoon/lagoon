@@ -9,11 +9,13 @@ jest.mock('../../config', () => ({
   getConfig: jest.fn(() => ({ format: 'table' })),
 }));
 
-const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
+// Flow does not know which objects are actual mocks
+// this function casts given parameter to JestMockFn
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('handler', () => {
   it('should list details for multiple projects', async () => {
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allProjects: [
@@ -54,9 +56,11 @@ describe('handler', () => {
   });
 
   it('should list details for multiple projects in json format', async () => {
-    _mock(getConfig).mockImplementationOnce(() => ({ format: 'json' }));
+    _castMockForFlow(getConfig).mockImplementationOnce(() => ({
+      format: 'json',
+    }));
 
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allProjects: [
@@ -97,9 +101,11 @@ describe('handler', () => {
   });
 
   it('should list details for multiple projects in csv format', async () => {
-    _mock(getConfig).mockImplementationOnce(() => ({ format: 'csv' }));
+    _castMockForFlow(getConfig).mockImplementationOnce(() => ({
+      format: 'csv',
+    }));
 
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allProjects: [
@@ -140,9 +146,11 @@ describe('handler', () => {
   });
 
   it('should list details for multiple projects in simple format', async () => {
-    _mock(getConfig).mockImplementationOnce(() => ({ format: 'simple' }));
+    _castMockForFlow(getConfig).mockImplementationOnce(() => ({
+      format: 'simple',
+    }));
 
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allProjects: [
@@ -183,7 +191,9 @@ describe('handler', () => {
   });
 
   it('should print notice on empty projects array', async () => {
-    _mock(queryGraphQL).mockImplementationOnce(() => Promise.resolve([]));
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve([]),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
@@ -203,7 +213,7 @@ describe('handler', () => {
   });
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(queryGraphQL).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'something something error' }],
       }),
