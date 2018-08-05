@@ -16,19 +16,19 @@ export default function format(data: FormatData) {
   return R.cond([
     [
       R.equals(FORMAT_CHOICE_TABLE),
-      R.always(require('../formatters/table').default(data)),
+      () => require('../formatters/table').default(data),
     ],
     [
       R.equals(FORMAT_CHOICE_SIMPLE),
-      R.always(require('../formatters/simple').default(data)),
+      () => require('../formatters/simple').default(data),
     ],
     [
       R.equals(FORMAT_CHOICE_JSON),
-      R.always(require('../formatters/json').default(data)),
+      () => require('../formatters/json').default(data),
     ],
     [
       R.equals(FORMAT_CHOICE_CSV),
-      R.always(require('../formatters/csv').default(data)),
+      () => require('../formatters/csv').default(data),
     ],
   ])(R.prop(FORMAT, getConfig()));
 }
