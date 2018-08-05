@@ -25,7 +25,7 @@ const colorHeadings = R.over(
   R.map(chalk.hex('#848484')),
 );
 
-export default function (data: FormatData) {
+export default function formatAsTable(data: FormatData) {
   return table(
     R.compose(
       showSingleDataRowHeadingsOnLeft,
