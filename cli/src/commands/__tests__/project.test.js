@@ -5,7 +5,7 @@ import { projectDetails } from '../project';
 
 jest.mock('../../query');
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const mockErrorResponse = {
   errors: [{ message: 'something something error' }],
@@ -41,9 +41,9 @@ describe('projectDetails', () => {
     const cerr = jest.fn();
 
     const code = await projectDetails({
-      projectName: 'some_project',
       clog,
       cerr,
+      options: { project: 'some_project' },
     });
 
     expect(code).toBe(1);
@@ -57,9 +57,9 @@ describe('projectDetails', () => {
     const cerr = jest.fn();
 
     const code = await projectDetails({
-      projectName: 'not_existing',
       clog,
       cerr,
+      options: { project: 'not_existing' },
     });
 
     expect(code).toBe(0);
@@ -75,9 +75,9 @@ describe('projectDetails', () => {
     const cerr = jest.fn();
 
     const code = await projectDetails({
-      projectName: 'myproject',
       clog,
       cerr,
+      options: { project: 'myproject' },
     });
 
     expect(code).toBe(0);

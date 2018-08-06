@@ -5,21 +5,21 @@ DELIMITER $$
 CREATE OR REPLACE PROCEDURE
   CreateProject
   (
-    IN id                     int,
-    IN name                   varchar(100),
-    IN customer               int,
-    IN git_url                varchar(300),
-    IN subfolder              varchar(300),
-    IN openshift              int,
+    IN id                        int,
+    IN name                      varchar(100),
+    IN customer                  int,
+    IN git_url                   varchar(300),
+    IN subfolder                 varchar(300),
+    IN openshift                 int,
     IN openshift_project_pattern varchar(300),
-    IN active_systems_deploy  varchar(300),
-    IN active_systems_promote varchar(300),
-    IN active_systems_remove  varchar(300),
-    IN branches               varchar(300),
-    IN pullrequests           varchar(300),
-    IN production_environment varchar(100),
-    IN auto_idle              int(1),
-    IN storage_calc           int(1)
+    IN active_systems_deploy     varchar(300),
+    IN active_systems_promote    varchar(300),
+    IN active_systems_remove     varchar(300),
+    IN branches                  varchar(300),
+    IN pullrequests              varchar(300),
+    IN production_environment    varchar(100),
+    IN auto_idle                 int(1),
+    IN storage_calc              int(1)
   )
   BEGIN
     DECLARE new_pid int;
@@ -96,12 +96,16 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteProject
   (
-    IN p_pid int
+    IN p_project varchar(50)
   )
   BEGIN
-    DELETE FROM project_ssh_key WHERE pid = p_pid;
-    DELETE FROM project_notification WHERE pid = p_pid;
-    DELETE FROM project WHERE id = p_pid;
+    DECLARE v_pid int;
+
+    SELECT id INTO v_pid FROM project WHERE project.name = p_project;
+
+    DELETE FROM project_ssh_key WHERE pid = v_pid;
+    DELETE FROM project_notification WHERE pid = v_pid;
+    DELETE FROM project WHERE id = v_pid;
   END;
 $$
 

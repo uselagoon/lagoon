@@ -79,7 +79,7 @@ For some situations though Lagoon needs your help to know where to put the persi
 
 * `lagoon.persistent` - the **absolute** path where the persistent storgage should be mounted (the above example uses `/app/web/sites/default/files/` which is where Drupal expects it's persistent storage)
 * `lagoon.persistent.name` - tells Lagoon to not create a new persistent storage for that service, but instead mounts the persistent storage of another defined service into this service
-* `lagoon.persistent.size` - the size of persistent storage you require (Lagoon usually gives you minimum `5GB` of persistent storage, if you need more define it here)
+* `lagoon.persistent.size` - the size of persistent storage you require (Lagoon usually gives you minimum `5G` of persistent storage, if you need more define it here)
 * `lagoon.persistent.class` - by default Lagoon automatically assigns the right Storage Class for your service (like SSDs for mysql, Bulk Storage for Nginx, etc.). If you need to overwrite this, you can do so here. - This is highly depending on the underlining Kubernetes/OpenShift that Lagoon runs on. Ask your Lagoon Administrator about this.
 
 ### Multi Container Pods
