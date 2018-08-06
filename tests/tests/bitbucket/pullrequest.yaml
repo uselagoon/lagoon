@@ -35,13 +35,13 @@
   hosts: localhost
   serial: 1
   vars:
-    git_base_branch: "pullrequest_base"
+    git_base_branch: "master"
     git_base_commit_hash: "{{ base_commit_hash }}"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_commit_hash }}"
     git_pr_number: "1"
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
-    git_pr_title: "PR Title"
+    git_pr_title: "pr-2"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-opened.yaml
 
@@ -57,11 +57,11 @@
   vars:
     url: "{{ check_url }}"
     expected_build_type: "pullrequest"
-    expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_branch: "master"
     expected_pr_base_sha: "{{ base_commit_hash }}"
     expected_pr_head_branch: "pullrequest_pr"
     expected_pr_head_sha: "{{ pr_commit_hash }}"
-    expected_pr_title: "PR Title"
+    expected_pr_title: "new pull request"
 
 - name: "{{ testname }} - git commit a second time into pull request branch"
   hosts: localhost
@@ -82,7 +82,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_base_branch: "pullrequest_base"
+    git_base_branch: "master"
     git_base_commit_hash: "{{ base_commit_hash }}"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
@@ -103,7 +103,7 @@
   vars:
     url: "{{ check_url }}"
     expected_build_type: "pullrequest"
-    expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_branch: "master"
     expected_pr_base_sha: "{{ base_commit_hash }}"
     expected_pr_head_branch: "pullrequest_pr"
     expected_pr_head_sha: "{{ pr_2nd_commit_hash }}"
@@ -113,7 +113,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_base_branch: "pullrequest_base"
+    git_base_branch: "master"
     git_base_commit_hash: "00000"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "00000"
