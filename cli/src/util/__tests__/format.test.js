@@ -5,7 +5,7 @@ import { getConfig } from '../../config';
 import formatAsTable from '../../formatters/table';
 import formatAsSimple from '../../formatters/simple';
 import formatAsJson from '../../formatters/json';
-import formatAsCSV from '../../formatters/csv';
+import formatAsCsv from '../../formatters/csv';
 
 jest.mock('../../config');
 jest.mock('../../formatters/table');
@@ -20,14 +20,14 @@ const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 const formatAsTableMock = _castMockForFlow(formatAsTable);
 const formatAsSimpleMock = _castMockForFlow(formatAsSimple);
 const formatAsJsonMock = _castMockForFlow(formatAsJson);
-const formatAsCSVMock = _castMockForFlow(formatAsCSV);
+const formatAsCsvMock = _castMockForFlow(formatAsCsv);
 
 describe('format', () => {
   afterEach(() => {
     formatAsTableMock.mockClear();
     formatAsSimpleMock.mockClear();
     formatAsJsonMock.mockClear();
-    formatAsCSVMock.mockClear();
+    formatAsCsvMock.mockClear();
   });
 
   it('should call table formatter with correct configuration', () => {
@@ -41,7 +41,7 @@ describe('format', () => {
     expect(formatAsTableMock.mock.calls).toMatchSnapshot();
     expect(formatAsSimpleMock.mock.calls.length).toBe(0);
     expect(formatAsJsonMock.mock.calls.length).toBe(0);
-    expect(formatAsCSVMock.mock.calls.length).toBe(0);
+    expect(formatAsCsvMock.mock.calls.length).toBe(0);
   });
 
   it('should call simple formatter with correct configuration', () => {
@@ -55,7 +55,7 @@ describe('format', () => {
     expect(formatAsSimpleMock.mock.calls).toMatchSnapshot();
     expect(formatAsTableMock.mock.calls.length).toBe(0);
     expect(formatAsJsonMock.mock.calls.length).toBe(0);
-    expect(formatAsCSVMock.mock.calls.length).toBe(0);
+    expect(formatAsCsvMock.mock.calls.length).toBe(0);
   });
 
   it('should call json formatter with correct configuration', () => {
@@ -66,7 +66,7 @@ describe('format', () => {
     expect(formatAsJsonMock.mock.calls).toMatchSnapshot();
     expect(formatAsTableMock.mock.calls.length).toBe(0);
     expect(formatAsSimpleMock.mock.calls.length).toBe(0);
-    expect(formatAsCSVMock.mock.calls.length).toBe(0);
+    expect(formatAsCsvMock.mock.calls.length).toBe(0);
   });
 
   it('should call csv formatter with correct configuration', () => {
@@ -74,9 +74,20 @@ describe('format', () => {
       format: 'csv',
     }));
     format([['Name', 'Customer'], ['test-project-csv', 'test-customer-csv']]);
-    expect(formatAsCSVMock.mock.calls).toMatchSnapshot();
+    expect(formatAsCsvMock.mock.calls).toMatchSnapshot();
     expect(formatAsTableMock.mock.calls.length).toBe(0);
     expect(formatAsSimpleMock.mock.calls.length).toBe(0);
     expect(formatAsJsonMock.mock.calls.length).toBe(0);
+  });
+
+  it("shouldn't call any formatter with an incorrect configuration", () => {
+    _castMockForFlow(getConfig).mockImplementationOnce(() => ({
+      format: 'non-existent formatting option',
+    }));
+    format([['Name', 'Customer'], ['test-project-none', 'test-customer-none']]);
+    expect(formatAsTableMock.mock.calls.length).toBe(0);
+    expect(formatAsSimpleMock.mock.calls.length).toBe(0);
+    expect(formatAsJsonMock.mock.calls.length).toBe(0);
+    expect(formatAsCsvMock.mock.calls.length).toBe(0);
   });
 });
