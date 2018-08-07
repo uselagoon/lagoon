@@ -237,6 +237,17 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
     }
 `);
 
+const getEnvironmentsForProject = (project: string): Promise<Object> =>
+graphqlapi.query(`
+  {
+    project:projectByName(name: "${project}"){
+      environment_limit
+      production_environment
+      environments { name, environment_type }
+    }
+  }
+`);
+
 const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
     {
@@ -253,6 +264,7 @@ module.exports = {
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
   getProductionEnvironmentForProject,
+  getEnvironmentsForProject,
   addOrUpdateEnvironment,
   deleteEnvironment,
 };
