@@ -19,6 +19,7 @@ CREATE OR REPLACE PROCEDURE
     IN pullrequests              varchar(300),
     IN production_environment    varchar(100),
     IN auto_idle                 int(1),
+    IN environment_limit         int,
     IN storage_calc              int(1)
   )
   BEGIN

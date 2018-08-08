@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS project (
        storage_calc           int(1) NOT NULL default 1,
        openshift              int REFERENCES openshift (id),
        openshift_project_pattern varchar(300),
+       environment_limit      int DEFAULT 2,
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -403,6 +404,25 @@ CREATE OR REPLACE PROCEDURE
                 AND column_name = 'openshift_project_pattern'
             )  THEN
       ALTER TABLE `project` ADD `openshift_project_pattern` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_environment_limit_to_project()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'project'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'environment_limit'
+            )  THEN
+      ALTER TABLE `project` ADD `environment_limit` int;
 
     END IF;
 
