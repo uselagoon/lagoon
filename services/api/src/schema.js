@@ -166,6 +166,10 @@ const typeDefs = `
     """
     sshKeys: [SshKey]
     """
+    How many environments can be deployed at one timeout
+    """
+    environment_limit: Int
+    """
     Deployed Environments for this Project
     """
     environments(

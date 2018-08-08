@@ -16,6 +16,7 @@ import type { ChannelWrapper } from './types';
 const {
   getActiveSystemForProject,
   getProductionEnvironmentForProject,
+  getEnvironmentsForProject,
 } = require('./api');
 
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
@@ -65,6 +66,13 @@ class CannotDeleteProductionEnvironment extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'CannotDeleteProductionEnvironment';
+  }
+}
+
+class EnvironmentLimit extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'EnvironmentLimit';
   }
 }
 
@@ -186,6 +194,12 @@ async function createDeployTask(deployData: Object) {
   } = deployData;
 
   const project = await getActiveSystemForProject(projectName, 'deploy');
+  const environments = await getEnvironmentsForProject(projectName);
+
+  //  { project:
+  //     { environment_limit: 1,
+  //       production_environment: 'master',
+  //       environments: [ { name: 'develop', environment_type: 'development' }, [Object] ] } }
 
   if (typeof project.active_systems_deploy === 'undefined') {
     throw new UnknownActiveSystem(
@@ -195,6 +209,28 @@ async function createDeployTask(deployData: Object) {
 
   switch (project.active_systems_deploy) {
     case 'lagoon_openshiftBuildDeploy':
+
+    if (environments.project.production_environment == branchName) {
+      logger.debug(
+        `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+      )
+    } else {
+      // strip out production environment
+      dev_environment = environments.project.environments.filter (e => e.environment_type=='development');
+      if (dev_environment.length >= environments.project.environment_limit ) {
+
+        if ( branchName in dev_environment.map(e => e.environment_type)) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+          )
+        } else {
+          throw new EnvironmentLimit(
+            `'${branchName}' would exceed the configured limit of ${environments.project.environment_limit} development environments for project ${projectName}`,
+          );
+        }
+      }
+    }
+
       if (type === 'branch') {
         switch (project.branches) {
           case undefined:
