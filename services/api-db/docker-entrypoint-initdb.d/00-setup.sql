@@ -444,4 +444,5 @@ CALL add_storagecalc_to_project();
 CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
-CALL add_openshift_project_pattern_to_project()
+CALL add_openshift_project_pattern_to_project();
+CALL add_environment_limit_to_project();
