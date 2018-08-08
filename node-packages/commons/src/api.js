@@ -243,7 +243,7 @@ graphqlapi.query(`
     project:projectByName(name: "${project}"){
       environment_limit
       production_environment
-      environments { name, environment_type }
+      environments(include_deleted:false) { name, environment_type }
     }
   }
 `);
