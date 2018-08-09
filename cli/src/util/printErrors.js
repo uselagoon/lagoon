@@ -11,13 +11,16 @@ export function printErrors(cerr: Cerr, ...errors: Array<LaguError>): number {
     R.forEach(cerr),
     R.map(red),
     R.map(err =>
-      R.propOr(
-        // ...otherwise, use the message property as a fallback
-        R.prop('message', err),
-        // Try to get the stack...
-        'stack',
-        err,
-      ),
+      R.ifElse(
+        R.is(String),
+        R.identity,
+        R.propOr(
+          // ...otherwise, use the message property as a fallback
+          R.prop('message', err),
+          // Try to get the stack...
+          'stack',
+        ),
+      )(err),
     ),
   )(errors);
   return 1;
