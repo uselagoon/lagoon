@@ -4,7 +4,7 @@ import execa from 'execa';
 import R from 'ramda';
 import { getSshConfig } from '../config/getSshConfig';
 
-export async function sshExec({
+export async function runSshCommand({
   command,
   identity,
 }: {

@@ -2,7 +2,7 @@
 
 import { green } from 'chalk';
 import { getSshConfig } from '../config/getSshConfig';
-import { sshExec } from '../ssh/sshExec';
+import { runSshCommand } from '../util/runSshCommand';
 import { writeFile } from '../util/fs';
 import { printErrors } from '../util/printErrors';
 
@@ -47,7 +47,7 @@ Args): Promise<number> {
   let token;
 
   try {
-    token = await sshExec({ command: 'token', identity });
+    token = await runSshCommand({ command: 'token', identity });
   } catch (err) {
     return printErrors(cerr, err);
   }
