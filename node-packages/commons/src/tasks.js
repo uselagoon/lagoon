@@ -196,6 +196,7 @@ async function createDeployTask(deployData: Object) {
   const project = await getActiveSystemForProject(projectName, 'deploy');
   const environments = await getEnvironmentsForProject(projectName);
 
+  // environments =
   //  { project:
   //     { environment_limit: 1,
   //       production_environment: 'master',
