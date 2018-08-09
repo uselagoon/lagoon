@@ -559,4 +559,55 @@ mutation FillAPI {
   ) {
     id
   }
+
+  CILimit: addProject(
+    input: {
+      id: 18
+      name: "ci-env-limit"
+      customer: 3
+      openshift: 2
+      git_url: "ssh://git@192.168.99.1:2222/git/node.git"
+    }
+  ) {
+    id
+  }
+
+  CILimitEnv1: addOrUpdateEnvironment(
+    input: {
+      name: "master"
+      project: 18
+      deploy_type: BRANCH
+      environment_type: PRODUCTION
+      openshift_projectname: "ci-env-limit"
+    }
+  ) {
+    id
+  }
+
+  CILimitEnv2: addOrUpdateEnvironment(
+    input: {
+      name: "develop"
+      project: 18
+      deploy_type: BRANCH
+      environment_type: DEVELOPMENT
+      openshift_projectname: "ci-env-limit"
+    }
+  ) {
+    id
+  }
+
+  CILimitEn3: addOrUpdateEnvironment(
+    input: {
+      name: "stage"
+      project: 18
+      deploy_type: BRANCH
+      environment_type: DEVELOPMENT
+      openshift_projectname: "ci-env-limit"
+    }
+  ) {
+    id
+  }
+
+
+
 }
