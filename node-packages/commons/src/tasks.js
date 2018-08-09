@@ -217,7 +217,7 @@ async function createDeployTask(deployData: Object) {
     } else {
       // strip out production environment
       dev_environment = environments.project.environments.filter (e => e.environment_type=='development');
-      if (dev_environment.length >= environments.project.environment_limit ) {
+      if (environments.project.environment_limit !== null && dev_environment.length >= environments.project.environment_limit ) {
 
         if ( branchName in dev_environment.map(e => e.environment_type)) {
           logger.debug(
