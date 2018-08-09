@@ -1,11 +1,9 @@
 // @flow
 
 import { green } from 'chalk';
-import R from 'ramda';
 import { getSshConfig } from '../config/getSshConfig';
-import { sshConnect } from '../ssh/sshConnect';
 import { sshExec } from '../ssh/sshExec';
-import { fileExists, writeFile } from '../util/fs';
+import { writeFile } from '../util/fs';
 import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
@@ -42,34 +40,28 @@ export async function handler({
   options: { identity, token: tokenFilePath },
 }:
 Args): Promise<number> {
-  if (R.complement(R.isNil)(identity) && !(await fileExists(identity))) {
-    return printErrors(cerr, {
-      message: `File does not exist at identity option path: ${identity}`,
-    });
-  }
-
-  let connection;
   const { username, host, port } = getSshConfig();
 
   console.log(`Logging in to lagoon at ${username}@${host}:${port}...`);
 
+  let token;
+
   try {
-    connection = await sshConnect({
-      identity,
-      cerr,
-    });
+    token = await sshExec({ command: 'token', identity });
   } catch (err) {
     return printErrors(cerr, err);
   }
 
-  const output = await sshExec(connection, 'token');
-  const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
+  if (!token) {
+    return printErrors(
+      cerr,
+      'Empty token returned from Lagoon authentication server.',
+    );
+  }
+
   await writeFile(tokenFilePath, token);
 
   clog(green('Logged in successfully.'));
-
-  // Be responsible and close the connection after our transaction.
-  connection.end();
 
   return 0;
 }
