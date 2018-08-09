@@ -455,6 +455,7 @@ const typeDefs = `
     openshift_projectname: String
     lagoon_route: String
     lagoon_routes: String
+    monitoring_urls
   }
 
   input UpdateEnvironmentInput {

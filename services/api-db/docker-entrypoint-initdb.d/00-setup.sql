@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS environment (
        openshift_projectname  varchar(100),
        lagoon_route           varchar(300),
        lagoon_routes          text,
+       monitoring_urls        text,
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
        deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
