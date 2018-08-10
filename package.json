@@ -7,9 +7,9 @@
     "cli"
   ],
   "devDependencies": {
-    "flow-bin": "^0.77.0",
+    "flow-bin": "^0.78.0",
     "glow": "^1.2.2",
-    "prettier": "^1.14.0"
+    "prettier": "^1.14.2"
   },
   "scripts": {
     "glow": "glow check"
