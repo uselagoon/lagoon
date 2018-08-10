@@ -1,0 +1,37 @@
+---
+- include: ../rest/branch.yaml
+  vars:
+    testname: "environment limits - allow production"
+    node_version: 8
+    git_repo_name: node.git
+    project: ci-env-limit
+    branch: master
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: ../rest/branch.yaml
+  vars:
+    testname: "environment limits - allow deployment of existing branch"
+    node_version: 8
+    git_repo_name: node.git
+    project: ci-env-limit
+    branch: stage
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: ../rest/branch.yaml
+  vars:
+    testname: "environment limits - prevent deployment of new branch"
+    node_version: 8
+    git_repo_name: node.git
+    project: ci-env-limit
+    branch: will-not-deploy
+    # check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+
+- name: "environment limits - check if site for project does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
