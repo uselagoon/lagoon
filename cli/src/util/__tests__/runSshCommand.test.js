@@ -1,11 +1,9 @@
 // @flow
 
 import execa from 'execa';
-// import { getSshConfig } from '../../config/getSshConfig';
 import { runSshCommand } from '../runSshCommand';
 
 jest.mock('execa');
-
 jest.mock('../../config/getSshConfig', () => ({
   getSshConfig: () => ({ username: 'lagoon', host: 'localhost', port: 2020 }),
 }));
