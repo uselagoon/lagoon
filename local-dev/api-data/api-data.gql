@@ -564,6 +564,7 @@ mutation FillAPI {
     input: {
       id: 18
       name: "ci-env-limit"
+      production_environment: master
       customer: 3
       openshift: 2
       git_url: "ssh://git@192.168.99.1:2222/git/node.git"
