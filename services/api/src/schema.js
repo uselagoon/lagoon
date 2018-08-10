@@ -158,7 +158,7 @@ const typeDefs = `
     """
     openshift: Openshift
     """
-    Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project\}-$\{environmentname\}\`
+    Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
     openshift_project_pattern: String
     """
