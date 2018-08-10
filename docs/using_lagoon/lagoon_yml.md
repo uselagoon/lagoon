@@ -149,6 +149,25 @@ environments:
       mariadb: mariadb-galera
 ```
 
+#### `environments.[name].templates`
+The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
+
+Sometime though you would like to override the template just for a single environment and not for all of them:
+
+`service-name: template-file`
+
+* `service-name` - is the name of the service from `docker-compose.yml` you would like to override
+* `template-file` - the path and name of the template to use for this service in this environment
+
+Example:
+
+```
+environments:
+  master:
+    templates:
+      mariadb: mariadb.master.deployment.yaml
+```
+
 ## Specials
 
 #### `api`

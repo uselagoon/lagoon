@@ -28,3 +28,6 @@ environments:
       schedule: "H * * * *"
       command: printf '%s_%s' "CRONJOB" "H" >> /files/cron.txt
       service: node
+  branch/env-specific-template:
+    templates:
+      node: .lagoon.node-env-specific.yml
