@@ -453,7 +453,7 @@ const typeDefs = `
   }
 
   input UpdateEnvironmentInput {
-    name: String!
+    id: Int!
     patch: UpdateEnvironmentPatchInput
   }
 
