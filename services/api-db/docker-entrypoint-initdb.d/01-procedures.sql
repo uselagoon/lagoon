@@ -19,8 +19,8 @@ CREATE OR REPLACE PROCEDURE
     IN pullrequests              varchar(300),
     IN production_environment    varchar(100),
     IN auto_idle                 int(1),
-    IN environment_limit         int,
-    IN storage_calc              int(1)
+    IN storage_calc              int(1),
+    IN environment_limit         int
   )
   BEGIN
     DECLARE new_pid int;
@@ -53,7 +53,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         pullrequests,
         openshift,
-        openshift_project_pattern
+        openshift_project_pattern,
+        environment_limit
     )
     SELECT
         id,
@@ -70,7 +71,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         pullrequests,
         os.id,
-        openshift_project_pattern
+        openshift_project_pattern,
+        environment_limit
     FROM
         openshift AS os,
         customer AS c

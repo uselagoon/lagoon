@@ -270,6 +270,7 @@ const typeDefs = `
     production_environment: String
     auto_idle: Int
     storage_calc: Int
+    environment_limit: Int
   }
 
   input EnvironmentInput {
@@ -382,6 +383,7 @@ const typeDefs = `
     pullrequests: String
     openshift: Int
     openshift_project_pattern: String
+    environment_limit: Int
   }
 
   input UpdateProjectInput {
