@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS project (
        storage_calc           int(1) NOT NULL default 1,
        openshift              int REFERENCES openshift (id),
        openshift_project_pattern varchar(300),
-       environment_limit      int DEFAULT 2,
+       environment_limit      int DEFAULT NULL,
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
