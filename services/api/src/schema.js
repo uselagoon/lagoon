@@ -3,9 +3,9 @@
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 const GraphQLDate = require('graphql-iso-date');
+const gql = require('./util/gql');
 
-const typeDefs = `
-
+const typeDefs = gql`
   scalar Date
 
   enum SshKeyType {
@@ -172,7 +172,7 @@ const typeDefs = `
       """
       Filter by Environment Type
       """
-      type: EnvType,
+      type: EnvType
       """
       Include deleted Environments (by default deleted environment are hidden)
       """
@@ -204,7 +204,6 @@ const typeDefs = `
     total: Int
   }
 
-
   type EnvironmentStorage {
     id: Int
     environment: Environment
@@ -232,7 +231,9 @@ const typeDefs = `
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
-    environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
+    environmentByOpenshiftProjectName(
+      openshiftProjectName: String!
+    ): Environment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
@@ -460,15 +461,21 @@ const typeDefs = `
   type Mutation {
     updateEnvironment(input: UpdateEnvironmentInput!): Environment
     updateSshKey(input: UpdateSshKeyInput!): SshKey
-    updateNotificationRocketChat(input: UpdateNotificationRocketChatInput!): NotificationRocketChat
-    updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
+    updateNotificationRocketChat(
+      input: UpdateNotificationRocketChatInput!
+    ): NotificationRocketChat
+    updateNotificationSlack(
+      input: UpdateNotificationSlackInput!
+    ): NotificationSlack
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
     updateProject(input: UpdateProjectInput!): Project
     addProject(input: ProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     addOrUpdateEnvironment(input: EnvironmentInput!): Environment
-    addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
+    addOrUpdateEnvironmentStorage(
+      input: EnvironmentStorageInput!
+    ): EnvironmentStorage
     deleteEnvironment(input: DeleteEnvironmentInput!): String
     addSshKey(input: SshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
@@ -476,12 +483,18 @@ const typeDefs = `
     deleteCustomer(input: DeleteCustomerInput!): String
     addOpenshift(input: OpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
-    addNotificationRocketChat(input: NotificationRocketChatInput!): NotificationRocketChat
+    addNotificationRocketChat(
+      input: NotificationRocketChatInput!
+    ): NotificationRocketChat
     addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
-    deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
+    deleteNotificationRocketChat(
+      input: DeleteNotificationRocketChatInput!
+    ): String
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
     addNotificationToProject(input: NotificationToProjectInput!): Project
-    removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
+    removeNotificationFromProject(
+      input: RemoveNotificationFromProjectInput!
+    ): Project
     addSshKeyToProject(input: SshKeyToProjectInput!): Project
     removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
     addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
