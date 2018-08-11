@@ -41,6 +41,7 @@ const typeDefs = gql`
     id: Int
     name: String
     comment: String
+    # TODO: Convert to camelcase
     private_key: String
     sshKeys: [SshKey]
     created: String
@@ -49,11 +50,16 @@ const typeDefs = gql`
   type Openshift {
     id: Int
     name: String
+    # TODO: Convert to camelcase
     console_url: String
     token: String
+    # TODO: Convert to camelcase
     router_pattern: String
+    # TODO: Convert to camelcase
     project_user: String
+    # TODO: Convert to camelcase
     ssh_host: String
+    # TODO: Convert to camelcase
     ssh_port: String
     created: String
   }
@@ -96,6 +102,7 @@ const typeDefs = gql`
     Reference to customer object
     """
     customer: Customer
+    # TODO: Convert to camelcase
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@192.168.99.1/project1.git
@@ -111,16 +118,19 @@ const typeDefs = gql`
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType): [Notification]
+    # TODO: Convert to camelcase
     """
     Which internal Lagoon System is responsible for deploying
     Currently only 'lagoon_openshiftBuildDeploy' exists
     """
     active_systems_deploy: String
+    # TODO: Convert to camelcase
     """
     Which internal Lagoon System is responsible for promoting
     Currently only 'lagoon_openshiftBuildDeploy' exists
     """
     active_systems_promote: String
+    # TODO: Convert to camelcase
     """
     Which internal Lagoon System is responsible for promoting
     Currently only 'lagoon_openshiftRemove' exists
@@ -140,15 +150,18 @@ const typeDefs = gql`
     - REGEX - regex of all Pull Request titles that should be deployed, example: \`[BUILD]\`
     """
     pullrequests: String
+    # TODO: Convert to camelcase
     """
     Which environment(the name) should be marked as the production environment.
     *Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly
     """
     production_environment: String
+    # TODO: Convert to camelcase
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     auto_idle: Int
+    # TODO: Convert to camelcase
     """
     Should storage for this environment be calculated (\`1\` or \`0\`)
     """
@@ -157,6 +170,7 @@ const typeDefs = gql`
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
+    # TODO: Convert to camelcase
     """
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
@@ -173,6 +187,7 @@ const typeDefs = gql`
       Filter by Environment Type
       """
       type: EnvType
+      # TODO: Convert to camelcase
       """
       Include deleted Environments (by default deleted environment are hidden)
       """
@@ -188,15 +203,21 @@ const typeDefs = gql`
     id: Int
     name: String
     project: Project
+    # TODO: Convert to camelcase
     deploy_type: String
+    # TODO: Convert to camelcase
     environment_type: String
+    # TODO: Convert to camelcase
     openshift_projectname: String
     updated: String
     created: String
     deleted: String
+    # TODO: Convert to camelcase
     hours_month(month: Date): EnvironmentHoursMonth
     storages: [EnvironmentStorage]
+    # TODO: Convert to camelcase
     storage_month(month: Date): EnvironmentStorageMonth
+    # TODO: Convert to camelcase
     hits_month(month: Date): EnviornmentHitsMonth
   }
 
@@ -207,13 +228,16 @@ const typeDefs = gql`
   type EnvironmentStorage {
     id: Int
     environment: Environment
+    # TODO: Convert to camelcase
     persistent_storage_claim: String
+    # TODO: Convert to camelcase
     bytes_used: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
+    # TODO: Convert to camelcase
     bytes_used: Float
   }
 
@@ -255,31 +279,44 @@ const typeDefs = gql`
     id: Int
     name: String!
     customer: Int!
+    # TODO: Convert to camelcase
     git_url: String!
     subfolder: String
     openshift: Int!
+    # TODO: Convert to camelcase
     openshift_project_pattern: String
+    # TODO: Convert to camelcase
     active_systems_deploy: String
+    # TODO: Convert to camelcase
     active_systems_promote: String
+    # TODO: Convert to camelcase
     active_systems_remove: String
     branches: String
     pullrequests: String
+    # TODO: Convert to camelcase
     production_environment: String
+    # TODO: Convert to camelcase
     auto_idle: Int
+    # TODO: Convert to camelcase
     storage_calc: Int
   }
 
   input EnvironmentInput {
     name: String!
     project: Int!
+    # TODO: Convert to camelcase
     deploy_type: DeployType!
+    # TODO: Convert to camelcase
     environment_type: EnvType!
+    # TODO: Convert to camelcase
     openshift_projectname: String!
   }
 
   input EnvironmentStorageInput {
     environment: Int!
+    # TODO: Convert to camelcase
     persistent_storage_claim: String!
+    # TODO: Convert to camelcase
     bytes_used: Int!
   }
 
@@ -287,17 +324,23 @@ const typeDefs = gql`
     id: Int
     name: String!
     comment: String
+    # TODO: Convert to camelcase
     private_key: String
   }
 
   input OpenshiftInput {
     id: Int
     name: String!
+    # TODO: Convert to camelcase
     console_url: String!
     token: String
+    # TODO: Convert to camelcase
     router_pattern: String
+    # TODO: Convert to camelcase
     project_user: String
+    # TODO: Convert to camelcase
     ssh_host: String
+    # TODO: Convert to camelcase
     ssh_port: String
   }
 
@@ -368,16 +411,23 @@ const typeDefs = gql`
   input UpdateProjectPatchInput {
     name: String
     customer: Int
+    # TODO: Convert to camelcase
     git_url: String
     subfolder: String
+    # TODO: Convert to camelcase
     active_systems_deploy: String
+    # TODO: Convert to camelcase
     active_systems_remove: String
     branches: String
+    # TODO: Convert to camelcase
     production_environment: String
+    # TODO: Convert to camelcase
     auto_idle: Int
+    # TODO: Convert to camelcase
     storage_calc: Int
     pullrequests: String
     openshift: Int
+    # TODO: Convert to camelcase
     openshift_project_pattern: String
   }
 
@@ -389,6 +439,7 @@ const typeDefs = gql`
   input UpdateCustomerPatchInput {
     name: String
     comment: String
+    # TODO: Convert to camelcase
     private_key: String
     created: String
   }
@@ -400,11 +451,16 @@ const typeDefs = gql`
 
   input UpdateOpenshiftPatchInput {
     name: String
+    # TODO: Convert to camelcase
     console_url: String
     token: String
+    # TODO: Convert to camelcase
     router_pattern: String
+    # TODO: Convert to camelcase
     project_user: String
+    # TODO: Convert to camelcase
     ssh_host: String
+    # TODO: Convert to camelcase
     ssh_port: String
   }
 
@@ -448,8 +504,11 @@ const typeDefs = gql`
 
   input UpdateEnvironmentPatchInput {
     project: Int
+    # TODO: Convert to camelcase
     deploy_type: DeployType
+    # TODO: Convert to camelcase
     environment_type: EnvType
+    # TODO: Convert to camelcase
     openshift_projectname: String
   }
 
@@ -589,6 +648,7 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getProjectByEnvironmentId(req.credentials, environment.id);
     },
+    // TODO: Convert to camelcase
     hours_month: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentHoursMonthByEnvironmentId(
@@ -604,6 +664,7 @@ const resolvers = {
         environment.id,
       );
     },
+    // TODO: Convert to camelcase
     storage_month: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentStorageMonthByEnvironmentId(
@@ -612,6 +673,7 @@ const resolvers = {
         args,
       );
     },
+    // TODO: Convert to camelcase
     hits_month: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentHitsMonthByEnvironmentId(
