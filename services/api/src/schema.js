@@ -5,6 +5,10 @@ const { makeExecutableSchema } = require('graphql-tools');
 const GraphQLDate = require('graphql-iso-date');
 const gql = require('./util/gql');
 
+// TODO: Re-enable Prettier after the problem with escaping interpolation in
+// embedded GraphQL in JS is fixed and new version released.
+// Ref: https://github.com/prettier/prettier/issues/4974
+// prettier-ignore
 const typeDefs = gql`
   scalar Date
 
