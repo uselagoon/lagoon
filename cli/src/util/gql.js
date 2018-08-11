@@ -1,6 +1,6 @@
 // @flow
 
-// A no-op tagged template function to signal that queries are GraphQL for tooling
+// A no-op tagged template function to mark strings as GraphQL for tooling
 export default function gql(
   literals: Array<string>,
   ...substitutions: Array<any>
