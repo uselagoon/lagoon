@@ -12,12 +12,14 @@ const Dao = require('./dao');
 
 /* ::
 import type MariaSQL from 'mariasql';
+import type elasticsearch from 'elasticsearch';
 
 type CreateAppArgs = {
   store?: Object,
   jwtSecret: string,
   jwtAudience: string,
   sqlClient: MariaSQL,
+  esClient: elasticsearch.Client,
 };
 */
 

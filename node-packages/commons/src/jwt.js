@@ -84,7 +84,7 @@ const createJWTWithoutSshKey = (args /* :  Args */) /* : string */ => {
   const { expiresIn, jwtSecret } = args;
 
   // We don't need any sshKey information
-  const payload = R.omit('sshKey', args.payload);
+  const payload = R.omit(['sshKey'], args.payload);
 
   // Sometimes we want some expiresIn values, if we don't know an exact payload.exp
   const options = expiresIn ? { expiresIn } : null;
@@ -103,7 +103,7 @@ const createJWTWithoutSshKey = (args /* :  Args */) /* : string */ => {
 // ssh-rsa base-64 [comment]
 // Gets plain key information without comment / type information
 const extractBase64Key /* : string => ?string */ = R.compose(
-  R.prop(1),
+  R.nth(1),
   R.split(' '),
   R.defaultTo(''),
 );

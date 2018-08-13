@@ -120,7 +120,7 @@ const deleteCustomer = ({ sqlClient }) => async (cred, input) => {
   }
   const prep = prepare(sqlClient, 'CALL deleteCustomer(:name)');
 
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed values
   return 'success';
@@ -141,7 +141,6 @@ const updateCustomer = ({ sqlClient }) => async (cred, input) => {
     throw new Error('Unauthorized');
   }
 
-  const { customers } = cred.permissions;
   const cid = input.id.toString();
 
   if (isPatchEmpty(input)) {

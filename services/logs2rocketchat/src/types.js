@@ -5,6 +5,6 @@
  */
 
 export type ChannelWrapper = {
-  sendToQueue: (evt: string, data: Buffer, opts: Object) => void,
-}
-
+  ack: any,
+  sendToQueue: (evt: string, data: Buffer, opts: Object) => void
+};

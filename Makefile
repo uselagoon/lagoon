@@ -103,8 +103,7 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 #######
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
-images :=     centos7 \
-							oc \
+images :=     oc \
 							mariadb \
 							mariadb-drupal \
 							postgres \
@@ -144,7 +143,6 @@ $(build-images):
 #    if the parent has been built
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
-build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
@@ -251,9 +249,11 @@ build/solr__6.6-drupal: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__9 \
+nodeimages := node__10 \
+							node__9 \
 							node__8 \
 							node__6 \
+							node__10-builder \
 							node__9-builder \
 							node__8-builder \
 							node__6-builder
@@ -277,6 +277,7 @@ base-images += $(nodeimages)
 s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
 build/node__6-builder: build/node__6 images/node/builder/Dockerfile
@@ -365,8 +366,6 @@ build/cli: build/ssh cli/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),cli/Dockerfile,cli)
 	touch $@
-
-build/local-git-server: build/centos7
 
 # Image with ansible test
 build/tests:

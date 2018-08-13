@@ -155,7 +155,11 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         :git_url,
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
-        ${input.openshift_project_pattern? ':openshift_project_pattern' : 'NULL'},
+        ${
+  input.openshift_project_pattern
+    ? ':openshift_project_pattern'
+    : 'NULL'
+},
         ${
   input.active_systems_deploy
     ? ':active_systems_deploy'
@@ -188,15 +192,20 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
 
 const deleteProject = ({ sqlClient }) => async (cred, input) => {
   const { projects } = cred.permissions;
-  const pid = input.id.toString();
 
-  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
-    throw new Error('Unauthorized');
+  // Will throw on invalid conditions
+  const pid = await Helpers.getProjectIdByName(sqlClient, input.project);
+
+  if (cred.role !== 'admin') {
+    if (!R.contains(pid, projects)) {
+      throw new Error('Unauthorized.');
+    }
   }
 
-  const prep = prepare(sqlClient, 'CALL DeleteProject(:id)');
-  const rows = await query(sqlClient, prep(input));
+  const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
+  await query(sqlClient, prep(input));
 
+  // TODO: maybe check rows for changed result
   return 'success';
 };
 

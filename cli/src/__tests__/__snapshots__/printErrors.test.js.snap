@@ -1,43 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`printErrors should print Errors (objects with a stack property) 1`] = `
+exports[`printErrors should print objects with a message key 1`] = `
 Array [
   Array [
-    "[31mReassigning the stack so that there's no paths to break the tests[39m",
-  ],
-]
-`;
-
-exports[`printErrors should print a mix of Errors, GraphQLErrors and strings 1`] = `
-Array [
-  Array [
-    "[31mReassigning the stack so that there's no paths to break the tests[39m",
-  ],
-  Array [
-    "[31m{[39m
-[31m  \\"message\\": \\"arbitraryValue\\"[39m
-[31m}[39m",
-  ],
-  Array [
-    "[31mAn error string[39m",
-  ],
-]
-`;
-
-exports[`printErrors should print objects with a message key but no stack key (GraphQLErrors) 1`] = `
-Array [
-  Array [
-    "[31m{[39m
-[31m  \\"message\\": \\"arbitraryValue\\"[39m
-[31m}[39m",
-  ],
-]
-`;
-
-exports[`printErrors should print regular strings 1`] = `
-Array [
-  Array [
-    "[31mAn error string[39m",
+    "[31marbitraryValue[39m",
   ],
 ]
 `;
@@ -48,14 +14,10 @@ Array [
     "[31mOops! The lagoon API returned errors:[39m",
   ],
   Array [
-    "[31m{[39m
-[31m  \\"message\\": \\"A GraphQLError message\\"[39m
-[31m}[39m",
+    "[31mA GraphQLError message[39m",
   ],
   Array [
-    "[31m{[39m
-[31m  \\"message\\": \\"Another GraphQLError message\\"[39m
-[31m}[39m",
+    "[31mAnother GraphQLError message[39m",
   ],
 ]
 `;
@@ -66,9 +28,7 @@ Array [
     "[31mOops! The lagoon API returned an error:[39m",
   ],
   Array [
-    "[31m{[39m
-[31m  \\"message\\": \\"A GraphQLError message\\"[39m
-[31m}[39m",
+    "[31mA GraphQLError message[39m",
   ],
 ]
 `;

@@ -1,30 +1,27 @@
-FROM amazeeio/mongo
-# commented as long as https://github.com/amazeeio/lagoon/issues/296 is not fixed
-# ARG IMAGE_REPO
-# FROM ${IMAGE_REPO:-lagoon}/commons as commons
-# FROM alpine:edge
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/commons as commons
+FROM alpine:edge
 
-# MAINTAINER amazee.io
-# ENV LAGOON=mongo
+MAINTAINER amazee.io
+ENV LAGOON=mongo
 
-# # Copying commons files
-# COPY --from=commons /lagoon /lagoon
-# COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
-# COPY --from=commons /sbin/tini /sbin/
-# COPY --from=commons /home /home
 
-# # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
-# # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
-# ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
+COPY --from=commons /lagoon /lagoon
+COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /home /home
 
-# RUN apk --no-cache add mongodb
+# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
+# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
+ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-# RUN mkdir -p /data/db /data/configdb && \
-#     fix-permissions /data/db && \
-#     fix-permissions /data/configdb
+RUN apk --no-cache add mongodb
 
-# VOLUME /data/db
-# EXPOSE 27017 28017
+RUN mkdir -p /data/db /data/configdb && \
+    fix-permissions /data/db && \
+    fix-permissions /data/configdb
 
-# ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
-# CMD [ "mongod", "--bind_ip", "0.0.0.0" ]
+VOLUME /data/db
+EXPOSE 27017 28017
+
+ENTRYPOINT ["/lagoon/entrypoints.sh"]
+CMD [ "mongod", "--bind_ip", "0.0.0.0" ]

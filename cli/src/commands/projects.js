@@ -8,7 +8,7 @@ import { runGQLQuery } from '../query';
 import { printGraphQLErrors } from '../printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { BaseHandlerArgs } from '.';
 
 export const command = 'projects';
 export const description = 'List all projects';
@@ -51,11 +51,17 @@ ListProjectsArgs): Promise<number> {
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const sortByName = R.sortBy(R.compose(R.toLower, R.propOr('', 'name')));
-
-  const projects = R.compose(sortByName, R.pathOr([], ['data', 'allProjects']))(
-    result,
+  const sortByName = R.sortBy(
+    R.compose(
+      R.toLower,
+      R.propOr('', 'name'),
+    ),
   );
+
+  const projects = R.compose(
+    sortByName,
+    R.pathOr([], ['data', 'allProjects']),
+  )(result);
 
   if (projects.length === 0) {
     clog('No projects found.');
@@ -81,6 +87,10 @@ ListProjectsArgs): Promise<number> {
   return 0;
 }
 
-export async function handler({ clog, cerr }: BaseArgs): Promise<number> {
+export async function handler({
+  clog,
+  cerr,
+}:
+BaseHandlerArgs): Promise<number> {
   return listProjects({ clog, cerr });
 }

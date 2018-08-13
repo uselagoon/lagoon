@@ -55,22 +55,31 @@ const deleteOpenshift = ({ sqlClient }) => async (cred, input) => {
   }
 
   const prep = prepare(sqlClient, 'CALL deleteOpenshift(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';
 };
 
 const getAllOpenshifts = ({ sqlClient }) => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  const { customers, projects } = cred.permissions;
 
-  // const { createdAfter } = args;
-  const prep = prepare(sqlClient, 'SELECT * FROM openshift');
+  const prep = prepare(
+    sqlClient,
+    `SELECT DISTINCT
+        o.*
+      FROM project p
+      JOIN openshift o ON o.id = p.openshift
+      ${ifNotAdmin(
+    cred.role,
+    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+  )}
+    `,
+  );
+
   const rows = await query(sqlClient, prep(args));
 
-  return rows.map(attrFilter.openshift(cred));
+  return R.map(attrFilter.openshift(cred), rows);
 };
 
 const getOpenshiftByProjectId = ({ sqlClient }) => async (cred, pid) => {

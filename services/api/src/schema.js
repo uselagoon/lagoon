@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 const GraphQLDate = require('graphql-iso-date');
@@ -359,7 +361,7 @@ const typeDefs = `
   }
 
   input DeleteProjectInput {
-    id: Int!
+    project: String!
   }
 
   input UpdateProjectPatchInput {
@@ -493,12 +495,18 @@ const typeDefs = `
 // then the input.patch[key] will be ommitted for the result
 const omitPatchKeyIfUndefined = key =>
   R.ifElse(
-    R.compose(notUndefined, R.path(['patch', key])),
+    R.compose(
+      notUndefined,
+      R.path(['patch', key]),
+    ),
     R.identity,
     R.over(R.lensPath(['patch']), R.omit([key])),
   );
 
-const notUndefined = R.compose(R.not, R.equals(undefined));
+const notUndefined = R.compose(
+  R.not,
+  R.equals(undefined),
+);
 
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
@@ -585,7 +593,10 @@ const resolvers = {
     },
     storages: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentStorageByEnvironmentId(req.credentials, environment.id);
+      return await dao.getEnvironmentStorageByEnvironmentId(
+        req.credentials,
+        environment.id,
+      );
     },
     storage_month: async (environment, args, req) => {
       const dao = getDao(req);
@@ -637,7 +648,10 @@ const resolvers = {
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+      return await dao.getEnvironmentByOpenshiftProjectName(
+        req.credentials,
+        args,
+      );
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
@@ -870,7 +884,10 @@ const resolvers = {
     addOrUpdateEnvironmentStorage: async (root, args, req) => {
       const dao = getDao(req);
 
-      const ret = await dao.addOrUpdateEnvironmentStorage(req.credentials, args.input);
+      const ret = await dao.addOrUpdateEnvironmentStorage(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     deleteEnvironment: async (root, args, req) => {

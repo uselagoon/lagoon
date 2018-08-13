@@ -5,7 +5,7 @@ import { getCustomerDetails } from '../customer';
 
 jest.mock('../../query');
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const mockResponse = {
   data: {
