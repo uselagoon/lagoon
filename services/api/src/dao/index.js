@@ -39,9 +39,8 @@ const {
 const getPermissions = ({ sqlClient }) => async (args) => {
   const prep = prepare(
     sqlClient,
-    'SELECT keyId as sshKeyId, projects, customers FROM permission WHERE sshKey = :sshKey',
+    'SELECT key_id as sshKeyId, projects, customers FROM permission WHERE ssh_key = :ssh_key',
   );
-
   const rows = await query(sqlClient, prep(args));
 
   return R.propOr(null, 0, rows);

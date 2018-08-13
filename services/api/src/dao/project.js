@@ -134,7 +134,6 @@ const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-
   return rows[0];
 };
 

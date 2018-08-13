@@ -37,7 +37,7 @@ describe('Sql', () => {
       const input = {
         id: 1,
         patch: {
-          keyType: 'ssh-rsa',
+          key_type: 'ssh-rsa',
         },
       };
       const ret = Sql.updateSshKey(cred, input);

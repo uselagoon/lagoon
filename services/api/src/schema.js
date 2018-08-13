@@ -769,12 +769,12 @@ const resolvers = {
 
     updateSshKey: async (root, args, req) => {
       // There is a possibility the sshKeyTypeToString transformation
-      // sets patch.keyType = undefined. This is not acceptable, therefore
+      // sets patch.key_type = undefined. This is not acceptable, therefore
       // we need to omit the key from the patch object completely
       // (null will still be accepted, since it should signal erasal of a field)
       const input = R.compose(
-        omitPatchKeyIfUndefined('keyType'),
-        R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
+        omitPatchKeyIfUndefined('key_type'),
+        R.over(R.lensPath(['patch', 'key_type']), sshKeyTypeToString),
       )(args.input);
 
       // TODO: should we validate the ssh-key / value format?

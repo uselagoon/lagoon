@@ -5,8 +5,8 @@ USE infrastructure;
 CREATE TABLE IF NOT EXISTS ssh_key (
        id            int NOT NULL auto_increment PRIMARY KEY,
        name          varchar(100) NOT NULL,
-       keyValue      varchar(5000) NOT NULL,
-       keyType       ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
+       key_value     varchar(5000) NOT NULL,
+       key_type      ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
        created       timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -124,8 +124,8 @@ DROP VIEW IF EXISTS permission;
 CREATE VIEW permission
 AS
   SELECT
-    sk.id AS keyId,
-    CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
+    sk.id AS key_id,
+    CONCAT(sk.key_type, ' ', sk.key_value) AS ssh_key,
     (SELECT
       GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
       FROM customer_ssh_key csk

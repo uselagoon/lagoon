@@ -80,7 +80,7 @@ const addCustomer = ({ sqlClient }) => async (cred, input) => {
         :id,
         :name,
         ${input.comment ? ':comment' : 'NULL'},
-        ${input.private_key ? ':private_key' : 'NULL'}
+        ${input.privateKey ? ':private_key' : 'NULL'}
       );
     `,
   );
@@ -110,7 +110,6 @@ const getCustomerByProjectId = ({ sqlClient }) => async (cred, pid) => {
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep({ pid }));
-
   return rows ? rows[0] : null;
 };
 

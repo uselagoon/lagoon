@@ -210,8 +210,8 @@ CREATE OR REPLACE PROCEDURE
   (
     IN id                     int,
     IN name                   varchar(100),
-    IN keyValue               varchar(5000),
-    IN keyType                varchar(300)
+    IN key_value              varchar(5000),
+    IN key_type               varchar(300)
   )
   BEGIN
     DECLARE new_sid int;
@@ -223,13 +223,13 @@ CREATE OR REPLACE PROCEDURE
     INSERT INTO ssh_key (
       id,
       name,
-      keyValue,
-      keyType
+      key_value,
+      key_type
     ) VALUES (
       id,
       name,
-      keyValue,
-      keyType
+      key_value,
+      key_type
     );
 
     IF (id = 0) THEN
@@ -241,8 +241,8 @@ CREATE OR REPLACE PROCEDURE
     SELECT
       sk.id,
       sk.name,
-      sk.keyValue,
-      sk.keyType,
+      sk.key_value,
+      sk.key_type,
       sk.created
     FROM ssh_key sk
     WHERE sk.id = new_sid;
