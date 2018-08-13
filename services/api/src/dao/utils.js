@@ -7,9 +7,9 @@ const ifNotAdmin = (role, str) =>
 
 /**
   ATTENTION:
-  all those SQL-esque helpers like whereAnd, inClause, etc.
-  are subject to be obsolete. We are planning to migrate to
-  a dedicated SQL-builder lib (knex)
+  All of the SQL helpers below such as whereAnd,
+  inClause, etc. are obsolete. They should be migrated to our
+  dedicated SQL-builder lib (knex).
 * */
 
 // Creates a WHERE statement with AND inbetween non-empty conditions
