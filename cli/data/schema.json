@@ -287,7 +287,7 @@
               "deprecationReason": null
             },
             {
-              "name": "private_key",
+              "name": "privateKey",
               "description": "",
               "args": [],
               "type": {
@@ -2748,7 +2748,7 @@
               "defaultValue": null
             },
             {
-              "name": "private_key",
+              "name": "privateKey",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3452,7 +3452,7 @@
               "defaultValue": null
             },
             {
-              "name": "private_key",
+              "name": "privateKey",
               "description": "",
               "type": {
                 "kind": "SCALAR",

@@ -160,7 +160,7 @@ The customer of the project. Can be used for an actual customer (if you use Lago
 
 ```
 mutation {
-  addCustomer(input: {name: "[fill me]", private_key: "[fill me]"}) {
+  addCustomer(input: {name: "[fill me]", privateKey: "[fill me]"}) {
     name
     id
   }

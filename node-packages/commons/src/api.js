@@ -227,7 +227,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
           router_pattern
         }
         customer {
-          private_key
+          privateKey
         }
         git_url
         subfolder

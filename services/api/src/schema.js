@@ -45,8 +45,7 @@ const typeDefs = gql`
     id: Int
     name: String
     comment: String
-    # TODO: Convert to camelcase
-    private_key: String
+    privateKey: String
     sshKeys: [SshKey]
     created: String
   }
@@ -328,8 +327,7 @@ const typeDefs = gql`
     id: Int
     name: String!
     comment: String
-    # TODO: Convert to camelcase
-    private_key: String
+    privateKey: String
   }
 
   input OpenshiftInput {
@@ -443,8 +441,7 @@ const typeDefs = gql`
   input UpdateCustomerPatchInput {
     name: String
     comment: String
-    # TODO: Convert to camelcase
-    private_key: String
+    privateKey: String
     created: String
   }
 

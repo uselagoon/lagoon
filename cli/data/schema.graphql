@@ -2,7 +2,7 @@ type Customer {
   id: Int
   name: String
   comment: String
-  private_key: String
+  privateKey: String
   sshKeys: [SshKey]
   created: String
 }
@@ -11,7 +11,7 @@ input CustomerInput {
   id: Int
   name: String!
   comment: String
-  private_key: String
+  privateKey: String
 }
 
 scalar Date
@@ -456,7 +456,7 @@ input UpdateCustomerInput {
 input UpdateCustomerPatchInput {
   name: String
   comment: String
-  private_key: String
+  privateKey: String
   created: String
 }
 

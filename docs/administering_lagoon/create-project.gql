@@ -3,7 +3,7 @@ mutation {
   # or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone
   # the Git repository of the project (the private key needs to be in a single string, where new lines are replaced by `\n`
   # see an example in /local-dev/api-data/api-data.sql)
-  addCustomer(input: {name: "customer-name", private_key: "[fill me]"}) {
+  addCustomer(input: {name: "customer-name", privateKey: "[fill me]"}) {
     name
     id
   }
