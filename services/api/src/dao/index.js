@@ -27,14 +27,7 @@
 
 const R = require('ramda');
 
-const {
-  ifNotAdmin,
-  whereAnd,
-  inClause,
-  inClauseOr,
-  query,
-  prepare,
-} = require('./utils');
+const { ifNotAdmin, query, prepare } = require('./utils');
 
 const getPermissions = ({ sqlClient }) => async (args) => {
   const prep = prepare(
@@ -82,7 +75,4 @@ module.exports = {
   ...daoFns,
   make,
   ifNotAdmin,
-  whereAnd,
-  inClause,
-  inClauseOr,
 };
