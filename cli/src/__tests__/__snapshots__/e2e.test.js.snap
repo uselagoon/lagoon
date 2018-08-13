@@ -3,7 +3,7 @@
 exports[`lagu should create a project 1`] = `
 "! Set \\"customer\\" option to \\"3\\" from arguments or config
 ! Set \\"name\\" option to \\"e2e-test-project\\" from arguments or config
-! Set \\"git_url\\" option to \\"ssh://git@192.168.99.1:2222/git/e2e-test-project.git\\" from arguments or config
+! Set \\"gitUrl\\" option to \\"ssh://git@192.168.99.1:2222/git/e2e-test-project.git\\" from arguments or config
 ! Set \\"openshift\\" option to \\"2\\" from arguments or config
 ! Set \\"branches\\" option to \\"true\\" from arguments or config
 ! Set \\"pullrequests\\" option to \\"true\\" from arguments or config

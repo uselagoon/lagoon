@@ -173,7 +173,7 @@ This is your git repository that should be deployed, it needs to contain a `.lag
 
 ```
 mutation {
-  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], git_url: "[fill me]"}) {
+  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], gitUrl: "[fill me]"}) {
     name
     customer {
       name
@@ -183,7 +183,7 @@ mutation {
       name
       id
     }
-    git_url,
+    gitUrl,
     active_systems_deploy,
     active_systems_remove,
     branches,
@@ -200,7 +200,7 @@ This is a good comand to see an overview of all Projects, OpenShifts and Custome
 query whatIsThereAlready{
   allProjects {
     name
-    git_url
+    gitUrl
   }
   allOpenshifts {
     name
@@ -222,7 +222,7 @@ query singleProject {
   projectByName(name: "[projectname]") {
     id
     branches
-    git_url
+    gitUrl
     pullrequests
     production_environment
     notifications(type: SLACK) {

@@ -105,13 +105,12 @@ const typeDefs = gql`
     Reference to customer object
     """
     customer: Customer
-    # TODO: Convert to camelcase
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@192.168.99.1/project1.git
     - ssh://git@192.168.99.1:2222/project1.git
     """
-    git_url: String
+    gitUrl: String
     """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
@@ -282,8 +281,7 @@ const typeDefs = gql`
     id: Int
     name: String!
     customer: Int!
-    # TODO: Convert to camelcase
-    git_url: String!
+    gitUrl: String!
     subfolder: String
     openshift: Int!
     # TODO: Convert to camelcase
@@ -413,8 +411,7 @@ const typeDefs = gql`
   input UpdateProjectPatchInput {
     name: String
     customer: Int
-    # TODO: Convert to camelcase
-    git_url: String
+    gitUrl: String
     subfolder: String
     # TODO: Convert to camelcase
     active_systems_deploy: String

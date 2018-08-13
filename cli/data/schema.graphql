@@ -266,7 +266,7 @@ type Project {
   - git@192.168.99.1/project1.git
   - ssh://git@192.168.99.1:2222/project1.git
   """
-  git_url: String
+  gitUrl: String
 
   """
   Set if the .lagoon.yml should be found in a subfolder
@@ -355,9 +355,7 @@ input ProjectInput {
   id: Int
   name: String!
   customer: Int!
-
-  """TODO: Convert to camelcase"""
-  git_url: String!
+  gitUrl: String!
   subfolder: String
   openshift: Int!
 
@@ -533,9 +531,7 @@ input UpdateProjectInput {
 input UpdateProjectPatchInput {
   name: String
   customer: Int
-
-  """TODO: Convert to camelcase"""
-  git_url: String
+  gitUrl: String
   subfolder: String
 
   """TODO: Convert to camelcase"""

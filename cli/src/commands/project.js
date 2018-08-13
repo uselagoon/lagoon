@@ -89,7 +89,7 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
           customer {
             name
           }
-          git_url
+          gitUrl
           active_systems_deploy
           active_systems_remove
           branches
@@ -132,7 +132,7 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
       [
         R.prop('name', project),
         R.path(['customer', 'name'], project),
-        R.prop('git_url', project),
+        R.prop('gitUrl', project),
         R.prop('active_systems_deploy', project),
         R.prop('active_systems_remove', project),
         R.prop('branches', project),

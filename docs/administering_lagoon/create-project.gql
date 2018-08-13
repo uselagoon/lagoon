@@ -19,7 +19,7 @@ mutation {
   }
 
   # This is your git repository that should be deployed, it needs to contain a `.lagoon.yml` file so Lagoon knows what it should do.
-  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], git_url: "[fill me]"}) {
+  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], gitUrl: "[fill me]"}) {
     name
     customer {
       name
@@ -27,7 +27,7 @@ mutation {
     openshift {
       name
     }
-    git_url,
+    gitUrl,
     active_systems_deploy,
     active_systems_promote,
     active_systems_remove,

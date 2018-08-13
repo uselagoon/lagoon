@@ -455,7 +455,7 @@
               "deprecationReason": null
             },
             {
-              "name": "git_url",
+              "name": "gitUrl",
               "description": "Git URL, needs to be SSH Git URL in one of these two formats\n- git@192.168.99.1/project1.git\n- ssh://git@192.168.99.1:2222/project1.git",
               "args": [],
               "type": {
@@ -2838,8 +2838,8 @@
               "defaultValue": null
             },
             {
-              "name": "git_url",
-              "description": "TODO: Convert to camelcase",
+              "name": "gitUrl",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2997,8 +2997,8 @@
               "defaultValue": null
             },
             {
-              "name": "git_url",
-              "description": "TODO: Convert to camelcase",
+              "name": "gitUrl",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,

@@ -52,7 +52,7 @@ mutation FillAPI {
       name: "credentialstest-project1"
       customer: 1
       openshift: 1
-      git_url: "ssh://git@192.168.99.1:2222/git/project1.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/project1.git"
     }
   ) {
     id
@@ -63,7 +63,7 @@ mutation FillAPI {
       name: "credentialstest-project2"
       customer: 2
       openshift: 1
-      git_url: "ssh://git@192.168.99.1:2222/git/project2.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/project2.git"
     }
   ) {
     id
@@ -229,7 +229,7 @@ mutation FillAPI {
       name: "ci-github"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/github.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/github.git"
     }
   ) {
     id
@@ -261,7 +261,7 @@ mutation FillAPI {
       name: "ci-gitlab"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/gitlab.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/gitlab.git"
     }
   ) {
     id
@@ -282,7 +282,7 @@ mutation FillAPI {
       name: "ci-bitbucket"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/bitbucket.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/bitbucket.git"
     }
   ) {
     id
@@ -303,7 +303,7 @@ mutation FillAPI {
       name: "ci-rest"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/rest.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/rest.git"
     }
   ) {
     id
@@ -324,7 +324,7 @@ mutation FillAPI {
       name: "ci-node"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/node.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
     }
   ) {
     id
@@ -345,7 +345,7 @@ mutation FillAPI {
       name: "ci-multiproject1"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
     }
   ) {
     id
@@ -366,7 +366,7 @@ mutation FillAPI {
       name: "ci-multiproject2"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
     }
   ) {
     id
@@ -387,7 +387,7 @@ mutation FillAPI {
       name: "ci-drupal"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/drupal.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal.git"
     }
   ) {
     id
@@ -408,7 +408,7 @@ mutation FillAPI {
       name: "ci-nginx"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/nginx.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/nginx.git"
     }
   ) {
     id
@@ -429,7 +429,7 @@ mutation FillAPI {
       name: "ci-features"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/features.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/features.git"
       production_environment: "master"
     }
   ) {
@@ -452,7 +452,7 @@ mutation FillAPI {
       name: "ci-features-subfolder"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
       production_environment: "master"
       subfolder: "subfolder1/subfolder2"
     }
@@ -476,7 +476,7 @@ mutation FillAPI {
       name: "ci-elasticsearch"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/elasticsearch.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/elasticsearch.git"
       production_environment: "master"
     }
   ) {
@@ -498,7 +498,7 @@ mutation FillAPI {
       name: "ci-drupal-galera"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"
     }
   ) {
     id
@@ -519,7 +519,7 @@ mutation FillAPI {
       name: "ci-drupal-postgres"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"
     }
   ) {
     id
@@ -570,7 +570,7 @@ mutation FillAPI {
       name: "lagoon"
       customer: 4
       openshift: 3
-      git_url: "git@github.com:amazeeio/lagoon.git"
+      gitUrl: "git@github.com:amazeeio/lagoon.git"
     }
   ) {
     id

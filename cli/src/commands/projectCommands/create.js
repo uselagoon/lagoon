@@ -27,7 +27,7 @@ export const description = 'Create new project';
 
 export const CUSTOMER: 'customer' = 'customer';
 export const NAME: 'name' = 'name';
-export const GIT_URL: 'git_url' = 'git_url';
+export const GIT_URL: 'gitUrl' = 'gitUrl';
 export const OPENSHIFT: 'openshift' = 'openshift';
 export const BRANCHES: 'branches' = 'branches';
 export const PULLREQUESTS: 'pullrequests' = 'pullrequests';
@@ -49,7 +49,7 @@ export const dynamicOptionsKeys = [NAME];
 type Options = {
   +customer: number,
   +name: string,
-  +git_url: string,
+  +gitUrl: string,
   +openshift: number,
   +branches: string,
   +pullrequests: string,
@@ -345,7 +345,7 @@ export async function promptForProjectInput(
 type Args = CommandHandlerArgsWithOptions<{
   +customer?: number,
   +name?: string,
-  +git_url?: string,
+  +gitUrl?: string,
   +openshift?: number,
   +branches?: string,
   +pullrequests?: string,
@@ -391,7 +391,7 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
           customer {
             name
           }
-          git_url
+          gitUrl
           active_systems_deploy
           active_systems_remove
           branches
@@ -450,7 +450,7 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
       [
         R.prop('name', project),
         R.path(['customer', 'name'], project),
-        R.prop('git_url', project),
+        R.prop('gitUrl', project),
         R.prop('active_systems_deploy', project),
         R.prop('active_systems_remove', project),
         R.prop('branches', project),

@@ -165,7 +165,7 @@ describe('lagu', () => {
         '3',
         '--name',
         'e2e-test-project',
-        '--git_url',
+        '--gitUrl',
         'ssh://git@192.168.99.1:2222/git/e2e-test-project.git',
         '--openshift',
         '2',

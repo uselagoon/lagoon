@@ -33,7 +33,7 @@ Enter this on the left window:
 query whatIsThere {
   allProjects {
     id
-    git_url
+    gitUrl
     name
     branches
     pullrequests
