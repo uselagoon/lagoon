@@ -47,15 +47,15 @@ const inClauseOr = conds =>
 
 // Promise wrapper for doing sql queries
 const query = (sqlClient, sql) =>
-  new Promise((res, rej) => {
+  new Promise((resolve, reject) => {
     sqlClient.query(sql, (err, rows) => {
       if (err) {
-        rej(err);
+        reject(err);
       }
-      res(rows);
+      resolve(rows);
     });
     setTimeout(() => {
-      rej('Timeout while talking to the Database');
+      reject('Timeout while talking to the Database');
     }, 2000);
   });
 
