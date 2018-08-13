@@ -14,8 +14,8 @@ Now we need a GraphQL client, technically this is just HTTP, but there is a nice
 
 Enter the API Endpoint URL that we learned from before in `GraphQL Endpoint` and suffix it with `/graphql` (important!). Then click on "Edit HTTP Headers" and add a new Header:
 
-* "Header name": `Authorization`
-* "Header value": `Bearer [jwt token]` (make sure that the jwt token has no spaces, as this would not work)
+- "Header name": `Authorization`
+- "Header value": `Bearer [jwt token]` (make sure that the jwt token has no spaces, as this would not work)
 
 Close the HTTP Header overlay (press ESC) and now we are ready to make the first GraphQL Request!
 
@@ -141,9 +141,9 @@ Now for every deployment you should see messages appear in your defined channel.
 
 The OpenShift Cluster that Lagoon should use to deploy to. Yes, Lagoon is not only capable to deploy into the OpenShift that it is running itself, but actually to any OpenShift anywhere in the world. We need to know the following infos for this to work:
 
-* `name` - Unique identifier of the OpenShift
-* `console_url` - URL of the OpenShift console (without any `/console` suffix)
-* `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
+- `name` - Unique identifier of the OpenShift
+- `console_url` - URL of the OpenShift console (without any `/console` suffix)
+- `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
 
 ```
 mutation {
@@ -265,12 +265,12 @@ query projectByGitUrl{
 }
 ```
 
-
 ### Update Objects
 
 The Lagoon GraphQL API cannot only display Objects and create Objects, it also has the capability to update exisitng Objects, all of this happens in full GraphQL best practices manner.
 
 Update the branches to deploy within a project:
+
 ```
 mutation editProjectBranches {
   updateProject(input:{id:109, patch:{branches:"^(prod|stage|dev|update)$"}}) {
@@ -280,6 +280,7 @@ mutation editProjectBranches {
 ```
 
 Update the production Environment within a project (Important: Needs a redeploy in order for all changes to be reflected in the containers):
+
 ```
 mutation editProjectProductionEnvironment {
   updateProject(input:{id:109, patch:{production_environment:"master"}}) {
