@@ -889,7 +889,7 @@
             },
             {
               "name": "console_url",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -913,7 +913,7 @@
             },
             {
               "name": "router_pattern",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -925,7 +925,7 @@
             },
             {
               "name": "project_user",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -937,7 +937,7 @@
             },
             {
               "name": "ssh_host",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -949,7 +949,7 @@
             },
             {
               "name": "ssh_port",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1053,7 +1053,7 @@
             },
             {
               "name": "deploy_type",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1065,7 +1065,7 @@
             },
             {
               "name": "environment_type",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1077,7 +1077,7 @@
             },
             {
               "name": "openshift_projectname",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1125,7 +1125,7 @@
             },
             {
               "name": "hours_month",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [
                 {
                   "name": "month",
@@ -1164,7 +1164,7 @@
             },
             {
               "name": "storage_month",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [
                 {
                   "name": "month",
@@ -1187,7 +1187,7 @@
             },
             {
               "name": "hits_month",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [
                 {
                   "name": "month",
@@ -1290,7 +1290,7 @@
             },
             {
               "name": "persistent_storage_claim",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1302,7 +1302,7 @@
             },
             {
               "name": "bytes_used",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1359,7 +1359,7 @@
             },
             {
               "name": "bytes_used",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2245,7 +2245,7 @@
             },
             {
               "name": "deploy_type",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "ENUM",
                 "name": "DeployType",
@@ -2255,7 +2255,7 @@
             },
             {
               "name": "environment_type",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "ENUM",
                 "name": "EnvType",
@@ -2265,7 +2265,7 @@
             },
             {
               "name": "openshift_projectname",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2619,7 +2619,7 @@
             },
             {
               "name": "console_url",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2639,7 +2639,7 @@
             },
             {
               "name": "router_pattern",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2649,7 +2649,7 @@
             },
             {
               "name": "project_user",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2659,7 +2659,7 @@
             },
             {
               "name": "ssh_host",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2669,7 +2669,7 @@
             },
             {
               "name": "ssh_port",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2839,7 +2839,7 @@
             },
             {
               "name": "git_url",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2859,7 +2859,7 @@
             },
             {
               "name": "active_systems_deploy",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2869,7 +2869,7 @@
             },
             {
               "name": "active_systems_remove",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2889,7 +2889,7 @@
             },
             {
               "name": "production_environment",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2899,7 +2899,7 @@
             },
             {
               "name": "auto_idle",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
@@ -2909,7 +2909,7 @@
             },
             {
               "name": "storage_calc",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
@@ -2939,7 +2939,7 @@
             },
             {
               "name": "openshift_project_pattern",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2998,7 +2998,7 @@
             },
             {
               "name": "git_url",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3036,7 +3036,7 @@
             },
             {
               "name": "openshift_project_pattern",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3046,7 +3046,7 @@
             },
             {
               "name": "active_systems_deploy",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3056,7 +3056,7 @@
             },
             {
               "name": "active_systems_promote",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3066,7 +3066,7 @@
             },
             {
               "name": "active_systems_remove",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3096,7 +3096,7 @@
             },
             {
               "name": "production_environment",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3106,7 +3106,7 @@
             },
             {
               "name": "auto_idle",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
@@ -3116,7 +3116,7 @@
             },
             {
               "name": "storage_calc",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
@@ -3190,7 +3190,7 @@
             },
             {
               "name": "deploy_type",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3204,7 +3204,7 @@
             },
             {
               "name": "environment_type",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3218,7 +3218,7 @@
             },
             {
               "name": "openshift_projectname",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3257,7 +3257,7 @@
             },
             {
               "name": "persistent_storage_claim",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3271,7 +3271,7 @@
             },
             {
               "name": "bytes_used",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3523,7 +3523,7 @@
             },
             {
               "name": "console_url",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3547,7 +3547,7 @@
             },
             {
               "name": "router_pattern",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3557,7 +3557,7 @@
             },
             {
               "name": "project_user",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3567,7 +3567,7 @@
             },
             {
               "name": "ssh_host",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3577,7 +3577,7 @@
             },
             {
               "name": "ssh_port",
-              "description": "",
+              "description": "TODO: Convert to camelcase",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",

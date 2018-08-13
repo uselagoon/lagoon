@@ -59,15 +59,27 @@ type Environment {
   id: Int
   name: String
   project: Project
+
+  """TODO: Convert to camelcase"""
   deploy_type: String
+
+  """TODO: Convert to camelcase"""
   environment_type: String
+
+  """TODO: Convert to camelcase"""
   openshift_projectname: String
   updated: String
   created: String
   deleted: String
+
+  """TODO: Convert to camelcase"""
   hours_month(month: Date): EnvironmentHoursMonth
   storages: [EnvironmentStorage]
+
+  """TODO: Convert to camelcase"""
   storage_month(month: Date): EnvironmentStorageMonth
+
+  """TODO: Convert to camelcase"""
   hits_month(month: Date): EnviornmentHitsMonth
 }
 
@@ -79,27 +91,43 @@ type EnvironmentHoursMonth {
 input EnvironmentInput {
   name: String!
   project: Int!
+
+  """TODO: Convert to camelcase"""
   deploy_type: DeployType!
+
+  """TODO: Convert to camelcase"""
   environment_type: EnvType!
+
+  """TODO: Convert to camelcase"""
   openshift_projectname: String!
 }
 
 type EnvironmentStorage {
   id: Int
   environment: Environment
+
+  """TODO: Convert to camelcase"""
   persistent_storage_claim: String
+
+  """TODO: Convert to camelcase"""
   bytes_used: Float
   updated: String
 }
 
 input EnvironmentStorageInput {
   environment: Int!
+
+  """TODO: Convert to camelcase"""
   persistent_storage_claim: String!
+
+  """TODO: Convert to camelcase"""
   bytes_used: Int!
 }
 
 type EnvironmentStorageMonth {
   month: String
+
+  """TODO: Convert to camelcase"""
   bytes_used: Float
 }
 
@@ -182,11 +210,21 @@ enum NotificationType {
 type Openshift {
   id: Int
   name: String
+
+  """TODO: Convert to camelcase"""
   console_url: String
   token: String
+
+  """TODO: Convert to camelcase"""
   router_pattern: String
+
+  """TODO: Convert to camelcase"""
   project_user: String
+
+  """TODO: Convert to camelcase"""
   ssh_host: String
+
+  """TODO: Convert to camelcase"""
   ssh_port: String
   created: String
 }
@@ -194,11 +232,21 @@ type Openshift {
 input OpenshiftInput {
   id: Int
   name: String!
+
+  """TODO: Convert to camelcase"""
   console_url: String!
   token: String
+
+  """TODO: Convert to camelcase"""
   router_pattern: String
+
+  """TODO: Convert to camelcase"""
   project_user: String
+
+  """TODO: Convert to camelcase"""
   ssh_host: String
+
+  """TODO: Convert to camelcase"""
   ssh_port: String
 }
 
@@ -307,17 +355,33 @@ input ProjectInput {
   id: Int
   name: String!
   customer: Int!
+
+  """TODO: Convert to camelcase"""
   git_url: String!
   subfolder: String
   openshift: Int!
+
+  """TODO: Convert to camelcase"""
   openshift_project_pattern: String
+
+  """TODO: Convert to camelcase"""
   active_systems_deploy: String
+
+  """TODO: Convert to camelcase"""
   active_systems_promote: String
+
+  """TODO: Convert to camelcase"""
   active_systems_remove: String
   branches: String
   pullrequests: String
+
+  """TODO: Convert to camelcase"""
   production_environment: String
+
+  """TODO: Convert to camelcase"""
   auto_idle: Int
+
+  """TODO: Convert to camelcase"""
   storage_calc: Int
 }
 
@@ -403,8 +467,14 @@ input UpdateEnvironmentInput {
 
 input UpdateEnvironmentPatchInput {
   project: Int
+
+  """TODO: Convert to camelcase"""
   deploy_type: DeployType
+
+  """TODO: Convert to camelcase"""
   environment_type: EnvType
+
+  """TODO: Convert to camelcase"""
   openshift_projectname: String
 }
 
@@ -437,11 +507,21 @@ input UpdateOpenshiftInput {
 
 input UpdateOpenshiftPatchInput {
   name: String
+
+  """TODO: Convert to camelcase"""
   console_url: String
   token: String
+
+  """TODO: Convert to camelcase"""
   router_pattern: String
+
+  """TODO: Convert to camelcase"""
   project_user: String
+
+  """TODO: Convert to camelcase"""
   ssh_host: String
+
+  """TODO: Convert to camelcase"""
   ssh_port: String
 }
 
@@ -453,16 +533,30 @@ input UpdateProjectInput {
 input UpdateProjectPatchInput {
   name: String
   customer: Int
+
+  """TODO: Convert to camelcase"""
   git_url: String
   subfolder: String
+
+  """TODO: Convert to camelcase"""
   active_systems_deploy: String
+
+  """TODO: Convert to camelcase"""
   active_systems_remove: String
   branches: String
+
+  """TODO: Convert to camelcase"""
   production_environment: String
+
+  """TODO: Convert to camelcase"""
   auto_idle: Int
+
+  """TODO: Convert to camelcase"""
   storage_calc: Int
   pullrequests: String
   openshift: Int
+
+  """TODO: Convert to camelcase"""
   openshift_project_pattern: String
 }
 
