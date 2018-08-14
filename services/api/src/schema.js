@@ -182,11 +182,10 @@ const typeDefs = gql`
       Filter by Environment Type
       """
       type: EnvType
-      # TODO: Convert to camelcase
       """
       Include deleted Environments (by default deleted environment are hidden)
       """
-      include_deleted: Boolean
+      includeDeleted: Boolean
     ): [Environment]
     """
     Creation Timestamp of Project

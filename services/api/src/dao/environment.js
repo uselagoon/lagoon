@@ -41,7 +41,7 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (
         *
       FROM environment e
       WHERE e.project = :pid
-      ${args.include_deleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
+      ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
       ${args.type ? 'AND e.environment_type = :type' : ''}
 
     `,

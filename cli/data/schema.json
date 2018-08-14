@@ -656,7 +656,7 @@
                   "defaultValue": null
                 },
                 {
-                  "name": "include_deleted",
+                  "name": "includeDeleted",
                   "description": "Include deleted Environments (by default deleted environment are hidden)",
                   "type": {
                     "kind": "SCALAR",
