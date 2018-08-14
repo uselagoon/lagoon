@@ -19,6 +19,14 @@ if (getenv('LAGOON_PROJECT')) {
 if (getenv('LAGOON_OVERRIDE_SSH')) {
   $ssh = getenv('LAGOON_OVERRIDE_SSH');
   drush_log("LAGOON_OVERRIDE_SSH is set, using '$ssh' as ssh");
+} else if (getenv('KUBERNETES_PORT')) {
+  drush_log("Running within a Kubernetes Cluster, checking if can reach 'ssh.lagoon.svc:2020'");
+  $fp = @fsockopen('ssh.lagoon.svc', 2020, $errno, $errstr, 0.2);
+  if ($fp) {
+    fclose($fp);
+    $ssh = "ssh.lagoon.svc:2020";
+    drush_log("Connected successfully to 'ssh.lagoon.svc:2020', using this as ssh endpoint.");
+  }
 }
 
 if (getenv('LAGOON_OVERRIDE_API')) {
