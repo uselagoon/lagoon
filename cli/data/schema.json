@@ -590,7 +590,7 @@
               "deprecationReason": null
             },
             {
-              "name": "storage_calc",
+              "name": "storageCalc",
               "description": "Should storage for this environment be calculated (`1` or `0`)",
               "args": [],
               "type": {
@@ -2908,8 +2908,8 @@
               "defaultValue": null
             },
             {
-              "name": "storage_calc",
-              "description": "TODO: Convert to camelcase",
+              "name": "storageCalc",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
@@ -3115,8 +3115,8 @@
               "defaultValue": null
             },
             {
-              "name": "storage_calc",
-              "description": "TODO: Convert to camelcase",
+              "name": "storageCalc",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",

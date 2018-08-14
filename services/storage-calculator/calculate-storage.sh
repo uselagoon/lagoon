@@ -7,7 +7,7 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query environments {
   environments:allProjects {
     name
-    storage_calc
+    storageCalc
     openshift {
       console_url
       token
@@ -29,7 +29,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
 do
   PROJECT_NAME=$(echo "$project" | jq -r '.name')
   OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
-  STORAGE_CALC=$(echo "$project" | jq -r '.storage_calc')
+  STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
   echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
   OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
   # loop through each environment of the current project

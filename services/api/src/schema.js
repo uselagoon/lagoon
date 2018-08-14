@@ -158,11 +158,10 @@ const typeDefs = gql`
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     autoIdle: Int
-    # TODO: Convert to camelcase
     """
     Should storage for this environment be calculated (\`1\` or \`0\`)
     """
-    storage_calc: Int
+    storageCalc: Int
     """
     Reference to OpenShift Object this Project should be deployed to
     """
@@ -286,8 +285,7 @@ const typeDefs = gql`
     pullrequests: String
     productionEnvironment: String
     autoIdle: Int
-    # TODO: Convert to camelcase
-    storage_calc: Int
+    storageCalc: Int
   }
 
   input EnvironmentInput {
@@ -404,8 +402,7 @@ const typeDefs = gql`
     branches: String
     productionEnvironment: String
     autoIdle: Int
-    # TODO: Convert to camelcase
-    storage_calc: Int
+    storageCalc: Int
     pullrequests: String
     openshift: Int
     # TODO: Convert to camelcase

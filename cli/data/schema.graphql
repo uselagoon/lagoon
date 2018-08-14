@@ -315,7 +315,7 @@ type Project {
   autoIdle: Int
 
   """Should storage for this environment be calculated (`1` or `0`)"""
-  storage_calc: Int
+  storageCalc: Int
 
   """Reference to OpenShift Object this Project should be deployed to"""
   openshift: Openshift
@@ -360,9 +360,7 @@ input ProjectInput {
   pullrequests: String
   productionEnvironment: String
   autoIdle: Int
-
-  """TODO: Convert to camelcase"""
-  storage_calc: Int
+  storageCalc: Int
 }
 
 type Query {
@@ -516,9 +514,7 @@ input UpdateProjectPatchInput {
   branches: String
   productionEnvironment: String
   autoIdle: Int
-
-  """TODO: Convert to camelcase"""
-  storage_calc: Int
+  storageCalc: Int
   pullrequests: String
   openshift: Int
 
