@@ -195,7 +195,7 @@ type Openshift {
   consoleUrl: String
   token: String
   routerPattern: String
-  project_user: String
+  projectUser: String
   ssh_host: String
   ssh_port: String
   created: String
@@ -207,7 +207,7 @@ input OpenshiftInput {
   consoleUrl: String!
   token: String
   routerPattern: String
-  project_user: String
+  projectUser: String
   ssh_host: String
   ssh_port: String
 }
@@ -450,7 +450,7 @@ input UpdateOpenshiftPatchInput {
   consoleUrl: String
   token: String
   routerPattern: String
-  project_user: String
+  projectUser: String
   ssh_host: String
   ssh_port: String
 }

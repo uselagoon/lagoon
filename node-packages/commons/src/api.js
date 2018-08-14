@@ -67,7 +67,7 @@ async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
         openshift {
           consoleUrl
           token
-          project_user
+          projectUser
           routerPattern
         }
       }
@@ -226,7 +226,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         openshift  {
           consoleUrl
           token
-          project_user
+          projectUser
           routerPattern
         }
         customer {

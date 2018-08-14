@@ -924,7 +924,7 @@
               "deprecationReason": null
             },
             {
-              "name": "project_user",
+              "name": "projectUser",
               "description": "",
               "args": [],
               "type": {
@@ -2648,7 +2648,7 @@
               "defaultValue": null
             },
             {
-              "name": "project_user",
+              "name": "projectUser",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3556,7 +3556,7 @@
               "defaultValue": null
             },
             {
-              "name": "project_user",
+              "name": "projectUser",
               "description": "",
               "type": {
                 "kind": "SCALAR",
