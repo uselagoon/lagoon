@@ -1,5 +1,22 @@
+const camelcaseKeys = require('camelcase-keys');
 const R = require('ramda');
-const knex = require('knex')({ client: 'mysql' });
+const snakecase = require('../util/snakeCase');
+const snakecaseKeys = require('snakecase-keys');
+const knex = require('knex')({
+  client: 'mysql',
+  // Simplified version of converting input to snake case and
+  // output to camel case from Objection.js
+  // Ref: https://github.com/Vincit/objection.js/blob/89481597099e33d913bd7a7e437ff7a487c62fbd/lib/utils/identifierMapping.js
+  wrapIdentifier: (identifier, origWrap) => origWrap(snakecase(identifier)),
+  parseJsonResponse: (response) => {
+    if (!response || typeof response !== 'object') {
+      return response;
+    } else if (Array.isArray(response)) {
+      return R.map(camelcaseKeys, response);
+    }
+    return camelcaseKeys(response);
+  },
+});
 
 // Useful for creating extra if-conditions for non-admins
 const ifNotAdmin = (role, str) =>
@@ -57,15 +74,18 @@ const query = (sqlClient, sql) =>
       if (err) {
         reject(err);
       }
-      resolve(rows);
+      resolve(R.length(rows) > 0 ? R.map(camelcaseKeys, rows) : rows);
     });
     setTimeout(() => {
       reject('Timeout while talking to the Database');
     }, 2000);
   });
 
-// We use this just for consistency of the api calls
-const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
+// Snakecase any input
+const prepare = (sqlClient, sql) => {
+  const prep = sqlClient.prepare(sql);
+  return input => prep(snakecaseKeys(input));
+};
 
 const isPatchEmpty = R.compose(
   R.isEmpty,
