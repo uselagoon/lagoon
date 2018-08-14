@@ -170,7 +170,7 @@ async function getActiveSystemForProject(
 const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
-  deploy_type: string,
+  deployType: string,
   environmentType: string,
   openshift_projectname: string,
 ): Promise<Object> =>
@@ -179,7 +179,7 @@ const addOrUpdateEnvironment = (
     addOrUpdateEnvironment(input: {
         name: "${name}",
         project: ${projectId},
-        deploy_type: ${deploy_type},
+        deployType: ${deployType},
         environmentType: ${environmentType},
         openshift_projectname: "${openshift_projectname}"
     }) {
@@ -188,7 +188,7 @@ const addOrUpdateEnvironment = (
       project {
         name
       }
-      deploy_type
+      deployType
       environmentType
       openshift_projectname
     }

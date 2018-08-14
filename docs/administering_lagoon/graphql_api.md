@@ -235,7 +235,7 @@ query singleProject {
     }
     environments {
       name
-      deploy_type
+      deployType
       environmentType
     }
     openshift {

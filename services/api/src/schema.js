@@ -202,8 +202,7 @@ const typeDefs = gql`
     id: Int
     name: String
     project: Project
-    # TODO: Convert to camelcase
-    deploy_type: String
+    deployType: String
     environmentType: String
     # TODO: Convert to camelcase
     openshift_projectname: String
@@ -298,8 +297,7 @@ const typeDefs = gql`
   input EnvironmentInput {
     name: String!
     project: Int!
-    # TODO: Convert to camelcase
-    deploy_type: DeployType!
+    deployType: DeployType!
     environmentType: EnvType!
     # TODO: Convert to camelcase
     openshift_projectname: String!
@@ -492,8 +490,7 @@ const typeDefs = gql`
 
   input UpdateEnvironmentPatchInput {
     project: Int
-    # TODO: Convert to camelcase
-    deploy_type: DeployType
+    deployType: DeployType
     environmentType: EnvType
     # TODO: Convert to camelcase
     openshift_projectname: String
@@ -742,10 +739,10 @@ const resolvers = {
   Mutation: {
     updateEnvironment: async (root, args, req) => {
       const input = R.compose(
-        omitPatchKeyIfUndefined('deploy_type'),
+        omitPatchKeyIfUndefined('deployType'),
         omitPatchKeyIfUndefined('environmentType'),
         R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
-        R.over(R.lensPath(['patch', 'deploy_type']), deployTypeToString),
+        R.over(R.lensPath(['patch', 'deployType']), deployTypeToString),
       )(args.input);
 
       const dao = getDao(req);
@@ -927,7 +924,7 @@ const resolvers = {
 
       const input = R.compose(
         R.over(R.lensProp('environmentType'), envTypeToString),
-        R.over(R.lensProp('deploy_type'), deployTypeToString),
+        R.over(R.lensProp('deployType'), deployTypeToString),
       )(args.input);
 
       const ret = await dao.addOrUpdateEnvironment(req.credentials, input);

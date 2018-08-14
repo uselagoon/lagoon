@@ -63,7 +63,7 @@ Args): Promise<number> {
           environments {
             name
             environmentType
-            deploy_type
+            deployType
             created
             updated
           }
@@ -99,7 +99,7 @@ Args): Promise<number> {
         environment => [
           R.prop('name', environment),
           R.prop('environmentType', environment),
-          R.prop('deploy_type', environment),
+          R.prop('deployType', environment),
           R.prop('created', environment),
           R.prop('updated', environment),
         ],

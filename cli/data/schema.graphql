@@ -59,12 +59,8 @@ type Environment {
   id: Int
   name: String
   project: Project
-
-  """TODO: Convert to camelcase"""
-  deploy_type: String
-
-  """TODO: Convert to camelcase"""
-  environment_type: String
+  deployType: String
+  environmentType: String
 
   """TODO: Convert to camelcase"""
   openshift_projectname: String
@@ -91,12 +87,8 @@ type EnvironmentHoursMonth {
 input EnvironmentInput {
   name: String!
   project: Int!
-
-  """TODO: Convert to camelcase"""
-  deploy_type: DeployType!
-
-  """TODO: Convert to camelcase"""
-  environment_type: EnvType!
+  deployType: DeployType!
+  environmentType: EnvType!
 
   """TODO: Convert to camelcase"""
   openshift_projectname: String!
@@ -459,12 +451,8 @@ input UpdateEnvironmentInput {
 
 input UpdateEnvironmentPatchInput {
   project: Int
-
-  """TODO: Convert to camelcase"""
-  deploy_type: DeployType
-
-  """TODO: Convert to camelcase"""
-  environment_type: EnvType
+  deployType: DeployType
+  environmentType: EnvType
 
   """TODO: Convert to camelcase"""
   openshift_projectname: String

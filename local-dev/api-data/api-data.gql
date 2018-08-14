@@ -247,7 +247,7 @@ mutation FillAPI {
     input: {
       name: "master"
       project: 3
-      deploy_type: BRANCH
+      deployType: BRANCH
       environmentType: PRODUCTION
       openshift_projectname: "ci-local"
     }

@@ -1052,8 +1052,8 @@
               "deprecationReason": null
             },
             {
-              "name": "deploy_type",
-              "description": "TODO: Convert to camelcase",
+              "name": "deployType",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1064,8 +1064,8 @@
               "deprecationReason": null
             },
             {
-              "name": "environment_type",
-              "description": "TODO: Convert to camelcase",
+              "name": "environmentType",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2244,8 +2244,8 @@
               "defaultValue": null
             },
             {
-              "name": "deploy_type",
-              "description": "TODO: Convert to camelcase",
+              "name": "deployType",
+              "description": "",
               "type": {
                 "kind": "ENUM",
                 "name": "DeployType",
@@ -2254,8 +2254,8 @@
               "defaultValue": null
             },
             {
-              "name": "environment_type",
-              "description": "TODO: Convert to camelcase",
+              "name": "environmentType",
+              "description": "",
               "type": {
                 "kind": "ENUM",
                 "name": "EnvType",
@@ -3189,8 +3189,8 @@
               "defaultValue": null
             },
             {
-              "name": "deploy_type",
-              "description": "TODO: Convert to camelcase",
+              "name": "deployType",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3203,8 +3203,8 @@
               "defaultValue": null
             },
             {
-              "name": "environment_type",
-              "description": "TODO: Convert to camelcase",
+              "name": "environmentType",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
