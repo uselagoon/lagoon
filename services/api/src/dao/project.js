@@ -154,7 +154,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
-  input.openshift_project_pattern
+  input.openshiftProjectPattern
     ? ':openshift_project_pattern'
     : 'NULL'
 },

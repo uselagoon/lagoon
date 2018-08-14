@@ -614,7 +614,7 @@
               "deprecationReason": null
             },
             {
-              "name": "openshift_project_pattern",
+              "name": "openshiftProjectPattern",
               "description": "Pattern of OpenShift Project/Namespace that should be generated, default: `${project}-${environmentname}`",
               "args": [],
               "type": {
@@ -2938,8 +2938,8 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_project_pattern",
-              "description": "TODO: Convert to camelcase",
+              "name": "openshiftProjectPattern",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3035,8 +3035,8 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_project_pattern",
-              "description": "TODO: Convert to camelcase",
+              "name": "openshiftProjectPattern",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",

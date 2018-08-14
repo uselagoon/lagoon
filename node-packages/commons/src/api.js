@@ -234,7 +234,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         }
         gitUrl
         subfolder
-        openshift_project_pattern
+        openshiftProjectPattern
         productionEnvironment
       }
     }

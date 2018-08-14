@@ -323,7 +323,7 @@ type Project {
   """
   Pattern of OpenShift Project/Namespace that should be generated, default: `${project}-${environmentname}`
   """
-  openshift_project_pattern: String
+  openshiftProjectPattern: String
 
   """Which Developer SSH keys should have access to this project"""
   sshKeys: [SshKey]
@@ -350,9 +350,7 @@ input ProjectInput {
   gitUrl: String!
   subfolder: String
   openshift: Int!
-
-  """TODO: Convert to camelcase"""
-  openshift_project_pattern: String
+  openshiftProjectPattern: String
   activeSystemsDeploy: String
   activeSystemsPromote: String
   activeSystemsRemove: String
@@ -517,9 +515,7 @@ input UpdateProjectPatchInput {
   storageCalc: Int
   pullrequests: String
   openshift: Int
-
-  """TODO: Convert to camelcase"""
-  openshift_project_pattern: String
+  openshiftProjectPattern: String
 }
 
 input UpdateSshKeyInput {

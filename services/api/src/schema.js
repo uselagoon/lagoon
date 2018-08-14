@@ -166,11 +166,10 @@ const typeDefs = gql`
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
-    # TODO: Convert to camelcase
     """
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    openshift_project_pattern: String
+    openshiftProjectPattern: String
     """
     Which Developer SSH keys should have access to this project
     """
@@ -276,8 +275,7 @@ const typeDefs = gql`
     gitUrl: String!
     subfolder: String
     openshift: Int!
-    # TODO: Convert to camelcase
-    openshift_project_pattern: String
+    openshiftProjectPattern: String
     activeSystemsDeploy: String
     activeSystemsPromote: String
     activeSystemsRemove: String
@@ -405,8 +403,7 @@ const typeDefs = gql`
     storageCalc: Int
     pullrequests: String
     openshift: Int
-    # TODO: Convert to camelcase
-    openshift_project_pattern: String
+    openshiftProjectPattern: String
   }
 
   input UpdateProjectInput {

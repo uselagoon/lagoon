@@ -44,7 +44,7 @@ const messageConsumer = async msg => {
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
-    var openshiftProject = projectOpenShift.openshift_project_pattern ? projectOpenShift.openshift_project_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
+    var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
     var openshiftProjectUser = projectOpenShift.openshift.project_user || ""
     var deployPrivateKey = projectOpenShift.customer.privateKey
     var gitUrl = projectOpenShift.gitUrl
