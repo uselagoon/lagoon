@@ -34,7 +34,7 @@ export const commandOptions = Object.freeze({
   [TOKEN]: TOKEN,
 });
 
-export const dynamicOptionKeys = Object.freeze([
+export const dynamicOptionsKeys = Object.freeze([
   OVERWRITE,
   PROJECT,
   API,
