@@ -149,12 +149,11 @@ const typeDefs = gql`
     - REGEX - regex of all Pull Request titles that should be deployed, example: \`[BUILD]\`
     """
     pullrequests: String
-    # TODO: Convert to camelcase
     """
     Which environment(the name) should be marked as the production environment.
     *Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly
     """
-    production_environment: String
+    productionEnvironment: String
     # TODO: Convert to camelcase
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
@@ -286,8 +285,7 @@ const typeDefs = gql`
     activeSystemsRemove: String
     branches: String
     pullrequests: String
-    # TODO: Convert to camelcase
-    production_environment: String
+    productionEnvironment: String
     # TODO: Convert to camelcase
     auto_idle: Int
     # TODO: Convert to camelcase
@@ -406,8 +404,7 @@ const typeDefs = gql`
     activeSystemsDeploy: String
     activeSystemsRemove: String
     branches: String
-    # TODO: Convert to camelcase
-    production_environment: String
+    productionEnvironment: String
     # TODO: Convert to camelcase
     auto_idle: Int
     # TODO: Convert to camelcase

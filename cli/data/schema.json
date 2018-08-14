@@ -566,7 +566,7 @@
               "deprecationReason": null
             },
             {
-              "name": "production_environment",
+              "name": "productionEnvironment",
               "description": "Which environment(the name) should be marked as the production environment.\n*Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly",
               "args": [],
               "type": {
@@ -2888,8 +2888,8 @@
               "defaultValue": null
             },
             {
-              "name": "production_environment",
-              "description": "TODO: Convert to camelcase",
+              "name": "productionEnvironment",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3095,8 +3095,8 @@
               "defaultValue": null
             },
             {
-              "name": "production_environment",
-              "description": "TODO: Convert to camelcase",
+              "name": "productionEnvironment",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",

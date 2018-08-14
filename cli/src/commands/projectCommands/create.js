@@ -31,8 +31,8 @@ export const GIT_URL: 'gitUrl' = 'gitUrl';
 export const OPENSHIFT: 'openshift' = 'openshift';
 export const BRANCHES: 'branches' = 'branches';
 export const PULLREQUESTS: 'pullrequests' = 'pullrequests';
-export const PRODUCTION_ENVIRONMENT: 'production_environment' =
-  'production_environment';
+export const PRODUCTION_ENVIRONMENT: 'productionEnvironment' =
+  'productionEnvironment';
 
 export const commandOptions = {
   [CUSTOMER]: CUSTOMER,
@@ -53,7 +53,7 @@ type Options = {
   +openshift: number,
   +branches: string,
   +pullrequests: string,
-  +production_environment: string,
+  +productionEnvironment: string,
 };
 
 export function allOptionsSpecified(options: Options): boolean {
@@ -349,7 +349,7 @@ type Args = CommandHandlerArgsWithOptions<{
   +openshift?: number,
   +branches?: string,
   +pullrequests?: string,
-  +production_environment?: string,
+  +productionEnvironment?: string,
 }>;
 
 type Question = inquirer$Question & {

@@ -430,7 +430,7 @@ mutation FillAPI {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/features.git"
-      production_environment: "master"
+      productionEnvironment: "master"
     }
   ) {
     id
@@ -453,7 +453,7 @@ mutation FillAPI {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
-      production_environment: "master"
+      productionEnvironment: "master"
       subfolder: "subfolder1/subfolder2"
     }
   ) {
@@ -477,7 +477,7 @@ mutation FillAPI {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/elasticsearch.git"
-      production_environment: "master"
+      productionEnvironment: "master"
     }
   ) {
     id

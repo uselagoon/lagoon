@@ -224,7 +224,7 @@ query singleProject {
     branches
     gitUrl
     pullrequests
-    production_environment
+    productionEnvironment
     notifications(type: SLACK) {
       ... on NotificationSlack {
         name
@@ -283,7 +283,7 @@ Update the production Environment within a project (Important: Needs a redeploy 
 
 ```
 mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{production_environment:"master"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master"}}) {
     id
   }
 }
@@ -293,7 +293,7 @@ You can also combine multiple changes at once:
 
 ```
 mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{production_environment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master", branches:"^(prod|stage|dev|update)$"}}) {
     id
   }
 }

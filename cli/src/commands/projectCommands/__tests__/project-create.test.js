@@ -124,7 +124,7 @@ describe('handler', () => {
               activeSystemsRemove: 'lagoon_openshiftRemove',
               branches: 'true',
               pullrequests: 'true',
-              production_environment: 'null',
+              productionEnvironment: 'null',
               openshift: {
                 name: 'credentialtest-openshift',
               },
@@ -150,7 +150,7 @@ describe('handler', () => {
         openshift: 1,
         branches: 'true',
         pullrequests: 'true',
-        production_environment: 'null',
+        productionEnvironment: 'null',
       },
     });
 
@@ -228,7 +228,7 @@ describe('handler', () => {
         openshift: 1,
         branches: 'true',
         pullrequests: 'true',
-        production_environment: 'null',
+        productionEnvironment: 'null',
       },
     });
 

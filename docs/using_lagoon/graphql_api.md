@@ -37,7 +37,7 @@ query whatIsThere {
     name
     branches
     pullrequests
-    production_environment
+    productionEnvironment
     environments {
       name
       environmentType
@@ -64,7 +64,7 @@ mutation editProjectBranches {
 Update the production Environment within a project (Important: Needs a redeploy in order for all changes to be reflected in the containers):
 ```
 mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{production_environment:"master"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master"}}) {
     id
   }
 }
@@ -74,7 +74,7 @@ You can also combine multiple changes at once:
 
 ```
 mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{production_environment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master", branches:"^(prod|stage|dev|update)$"}}) {
     id
   }
 }

@@ -329,11 +329,11 @@ async function createPromoteTask(promoteData: Object) {
 async function createRemoveTask(removeData: Object) {
   const { projectName, branch, forceDeleteProductionEnvironment } = removeData;
 
-  const production_environment = await getProductionEnvironmentForProject(
+  const productionEnvironment = await getProductionEnvironmentForProject(
     projectName,
   );
 
-  if (branch === production_environment.project.production_environment) {
+  if (branch === productionEnvironment.project.productionEnvironment) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,

@@ -39,7 +39,7 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(branchName)
     var safeProjectName = ocsafety(projectName)
-    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development';
+    var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");

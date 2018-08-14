@@ -63,7 +63,7 @@ async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
     {
       allProjects(gitUrl: "${gitUrl}") {
         name
-        production_environment
+        productionEnvironment
         openshift {
           console_url
           token
@@ -235,7 +235,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         gitUrl
         subfolder
         openshift_project_pattern
-        production_environment
+        productionEnvironment
       }
     }
 `);
@@ -244,7 +244,7 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
-        production_environment
+        productionEnvironment
       }
     }
 `);

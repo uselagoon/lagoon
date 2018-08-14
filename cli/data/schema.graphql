@@ -309,7 +309,7 @@ type Project {
   current and previous one) that are affected in order for the change to
   propagate correctly
   """
-  production_environment: String
+  productionEnvironment: String
 
   """Should this project have auto idling enabled (`1` or `0`)"""
   auto_idle: Int
@@ -358,9 +358,7 @@ input ProjectInput {
   activeSystemsRemove: String
   branches: String
   pullrequests: String
-
-  """TODO: Convert to camelcase"""
-  production_environment: String
+  productionEnvironment: String
 
   """TODO: Convert to camelcase"""
   auto_idle: Int
@@ -518,9 +516,7 @@ input UpdateProjectPatchInput {
   activeSystemsDeploy: String
   activeSystemsRemove: String
   branches: String
-
-  """TODO: Convert to camelcase"""
-  production_environment: String
+  productionEnvironment: String
 
   """TODO: Convert to camelcase"""
   auto_idle: Int

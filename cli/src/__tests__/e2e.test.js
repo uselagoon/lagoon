@@ -173,7 +173,7 @@ describe('lagu', () => {
         'true',
         '--pullrequests',
         'true',
-        '--production_environment',
+        '--productionEnvironment',
         'master',
       ],
       {

@@ -81,7 +81,7 @@ Array [
     "[34m![39m Set \\"pullrequests\\" option to \\"true\\" from arguments or config",
   ],
   Array [
-    "[34m![39m Set \\"production_environment\\" option to \\"null\\" from arguments or config",
+    "[34m![39m Set \\"productionEnvironment\\" option to \\"null\\" from arguments or config",
   ],
   Array [
     "[32mProject \\"test-project\\" created successfully:[39m",

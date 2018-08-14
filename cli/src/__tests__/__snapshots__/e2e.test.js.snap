@@ -7,7 +7,7 @@ exports[`lagu should create a project 1`] = `
 ! Set \\"openshift\\" option to \\"2\\" from arguments or config
 ! Set \\"branches\\" option to \\"true\\" from arguments or config
 ! Set \\"pullrequests\\" option to \\"true\\" from arguments or config
-! Set \\"production_environment\\" option to \\"master\\" from arguments or config
+! Set \\"productionEnvironment\\" option to \\"master\\" from arguments or config
 Project \\"e2e-test-project\\" created successfully:
 Name                   e2e-test-project
 Customer               ci-customer
