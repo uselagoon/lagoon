@@ -212,13 +212,13 @@ const typeDefs = gql`
     id: Int
     environment: Environment
     persistentStorageClaim: String
-    bytes_used: Float
+    bytesUsed: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    bytes_used: Float
+    bytesUsed: Float
   }
 
   type EnvironmentHoursMonth {
@@ -284,7 +284,7 @@ const typeDefs = gql`
   input EnvironmentStorageInput {
     environment: Int!
     persistentStorageClaim: String!
-    bytes_used: Int!
+    bytesUsed: Int!
   }
 
   input CustomerInput {
