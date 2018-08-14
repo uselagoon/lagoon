@@ -1163,8 +1163,8 @@
               "deprecationReason": null
             },
             {
-              "name": "storage_month",
-              "description": "TODO: Convert to camelcase",
+              "name": "storageMonth",
+              "description": "",
               "args": [
                 {
                   "name": "month",

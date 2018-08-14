@@ -67,9 +67,7 @@ type Environment {
   deleted: String
   hoursMonth(month: Date): EnvironmentHoursMonth
   storages: [EnvironmentStorage]
-
-  """TODO: Convert to camelcase"""
-  storage_month(month: Date): EnvironmentStorageMonth
+  storageMonth(month: Date): EnvironmentStorageMonth
 
   """TODO: Convert to camelcase"""
   hits_month(month: Date): EnviornmentHitsMonth
