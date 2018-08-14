@@ -578,7 +578,7 @@
               "deprecationReason": null
             },
             {
-              "name": "auto_idle",
+              "name": "autoIdle",
               "description": "Should this project have auto idling enabled (`1` or `0`)",
               "args": [],
               "type": {
@@ -2898,8 +2898,8 @@
               "defaultValue": null
             },
             {
-              "name": "auto_idle",
-              "description": "TODO: Convert to camelcase",
+              "name": "autoIdle",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",
@@ -3105,8 +3105,8 @@
               "defaultValue": null
             },
             {
-              "name": "auto_idle",
-              "description": "TODO: Convert to camelcase",
+              "name": "autoIdle",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "Int",

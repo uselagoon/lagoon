@@ -154,11 +154,10 @@ const typeDefs = gql`
     *Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly
     """
     productionEnvironment: String
-    # TODO: Convert to camelcase
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
-    auto_idle: Int
+    autoIdle: Int
     # TODO: Convert to camelcase
     """
     Should storage for this environment be calculated (\`1\` or \`0\`)
@@ -286,8 +285,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String
-    # TODO: Convert to camelcase
-    auto_idle: Int
+    autoIdle: Int
     # TODO: Convert to camelcase
     storage_calc: Int
   }
@@ -405,8 +403,7 @@ const typeDefs = gql`
     activeSystemsRemove: String
     branches: String
     productionEnvironment: String
-    # TODO: Convert to camelcase
-    auto_idle: Int
+    autoIdle: Int
     # TODO: Convert to camelcase
     storage_calc: Int
     pullrequests: String

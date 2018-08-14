@@ -312,7 +312,7 @@ type Project {
   productionEnvironment: String
 
   """Should this project have auto idling enabled (`1` or `0`)"""
-  auto_idle: Int
+  autoIdle: Int
 
   """Should storage for this environment be calculated (`1` or `0`)"""
   storage_calc: Int
@@ -359,9 +359,7 @@ input ProjectInput {
   branches: String
   pullrequests: String
   productionEnvironment: String
-
-  """TODO: Convert to camelcase"""
-  auto_idle: Int
+  autoIdle: Int
 
   """TODO: Convert to camelcase"""
   storage_calc: Int
@@ -517,9 +515,7 @@ input UpdateProjectPatchInput {
   activeSystemsRemove: String
   branches: String
   productionEnvironment: String
-
-  """TODO: Convert to camelcase"""
-  auto_idle: Int
+  autoIdle: Int
 
   """TODO: Convert to camelcase"""
   storage_calc: Int

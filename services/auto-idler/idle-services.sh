@@ -11,7 +11,7 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query developmentEnvironments {
   developmentEnvironments:allProjects {
     name
-    auto_idle
+    autoIdle
     openshift {
       console_url
       token
@@ -61,7 +61,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
-    AUTOIDLE=$(echo "$project" | jq -r '.auto_idle')
+    AUTOIDLE=$(echo "$project" | jq -r '.autoIdle')
 
     # Match the Project name to the Project Regex
     if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
