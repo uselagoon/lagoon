@@ -172,6 +172,34 @@ if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
 fi
 
 ##############################################
+### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
+##############################################
+
+
+COUNTER=0
+while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
+do
+  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
+  echo $TASK_TYPE
+  case "$TASK_TYPE" in
+    run)
+        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
+        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
+        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
+        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
+        . /oc-build-deploy/scripts/exec-tasks-run.sh
+        ;;
+    *)
+        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+
+  esac
+
+  let COUNTER=COUNTER+1
+done
+
+
+
+##############################################
 ### CREATE OPENSHIFT SERVICES AND ROUTES
 ##############################################
 
