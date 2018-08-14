@@ -195,7 +195,7 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
 
 const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
   cred,
-  openshift_projectname,
+  openshiftProjectName,
   args,
 ) => {
   const interested_month = args.month ? new Date(args.month) : new Date();
@@ -206,7 +206,7 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
 
   try {
     const result = await esClient.count({
-      index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
+      index: `router-logs-${openshiftProjectName}-${interested_month.getFullYear()}.${month_leading_zero}`,
       body: {
         query: {
           bool: {
@@ -278,7 +278,7 @@ const addOrUpdateEnvironment = ({ sqlClient }) => async (cred, input) => {
         :project,
         :deploy_type,
         :environment_type,
-        :openshift_projectname
+        :openshift_project_name
       );
     `,
   );

@@ -18,7 +18,7 @@ GRAPHQL='query developmentEnvironments {
       name
     }
     environments(type: DEVELOPMENT) {
-      openshift_projectname
+      openshiftProjectName
       name
     }
   }
@@ -72,7 +72,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
         # loop through each environment of the current project
         echo "$project" | jq -c '.environments[]' | while read environment
         do
-          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
           ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
           echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 

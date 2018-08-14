@@ -17,7 +17,7 @@ GRAPHQL='query developmentEnvironments {
       name
     }
     environments(type: DEVELOPMENT) {
-      openshift_projectname
+      openshiftProjectName
       name
     }
   }
@@ -43,7 +43,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
         # loop through each environment of the current lagoon project
         echo "$project" | jq -c '.environments[]' | while read environment
         do
-          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
           ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
 
           # First check if this openshift project exists

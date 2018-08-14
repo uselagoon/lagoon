@@ -1076,8 +1076,8 @@
               "deprecationReason": null
             },
             {
-              "name": "openshift_projectname",
-              "description": "TODO: Convert to camelcase",
+              "name": "openshiftProjectName",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2264,8 +2264,8 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_projectname",
-              "description": "TODO: Convert to camelcase",
+              "name": "openshiftProjectName",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3217,8 +3217,8 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_projectname",
-              "description": "TODO: Convert to camelcase",
+              "name": "openshiftProjectName",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,

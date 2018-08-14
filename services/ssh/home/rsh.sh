@@ -34,14 +34,14 @@ TOKEN=$(./token.sh "$USER_SSH_KEY")
 BEARER="Authorization: bearer $TOKEN"
 GRAPHQL="query getEnvironmentByOpenshiftProjectName {
   environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
-    openshift_projectname
+    openshiftProjectName
   }
 }"
 QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}') # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
 ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$QUERY\"}")
 
 # checking if the returned openshift projectname is the same as we are requesting. This will only be true if the user actually has access to this environment
-if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift_projectname')" == "$PROJECT" ]]; then
+if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshiftProjectName')" == "$PROJECT" ]]; then
   echo "no access to $PROJECT"
   exit
 fi

@@ -249,7 +249,7 @@ mutation FillAPI {
       project: 3
       deployType: BRANCH
       environmentType: PRODUCTION
-      openshift_projectname: "ci-local"
+      openshiftProjectName: "ci-local"
     }
   ) {
     id

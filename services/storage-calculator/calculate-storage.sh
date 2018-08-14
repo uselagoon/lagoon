@@ -14,7 +14,7 @@ GRAPHQL='query environments {
       name
     }
     environments {
-      openshift_projectname
+      openshiftProjectName
       name
       id
     }
@@ -35,7 +35,7 @@ do
   # loop through each environment of the current project
   echo "$project" | jq -c '.environments[]' | while read environment
   do
-    ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+    ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
     ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
     ENVIRONMENT_ID=$(echo "$environment" | jq -r '.id')
 

@@ -199,8 +199,7 @@ const typeDefs = gql`
     project: Project
     deployType: String
     environmentType: String
-    # TODO: Convert to camelcase
-    openshift_projectname: String
+    openshiftProjectName: String
     updated: String
     created: String
     deleted: String
@@ -290,8 +289,7 @@ const typeDefs = gql`
     project: Int!
     deployType: DeployType!
     environmentType: EnvType!
-    # TODO: Convert to camelcase
-    openshift_projectname: String!
+    openshiftProjectName: String!
   }
 
   input EnvironmentStorageInput {
@@ -479,8 +477,7 @@ const typeDefs = gql`
     project: Int
     deployType: DeployType
     environmentType: EnvType
-    # TODO: Convert to camelcase
-    openshift_projectname: String
+    openshiftProjectName: String
   }
 
   input UpdateEnvironmentInput {
@@ -649,7 +646,7 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getEnvironmentHitsMonthByEnvironmentId(
         req.credentials,
-        environment.openshift_projectname,
+        environment.openshiftProjectName,
         args,
       );
     },
