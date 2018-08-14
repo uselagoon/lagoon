@@ -171,7 +171,7 @@ const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
   deploy_type: string,
-  environment_type: string,
+  environmentType: string,
   openshift_projectname: string,
 ): Promise<Object> =>
   graphqlapi.query(`
@@ -180,7 +180,7 @@ const addOrUpdateEnvironment = (
         name: "${name}",
         project: ${projectId},
         deploy_type: ${deploy_type},
-        environment_type: ${environment_type},
+        environmentType: ${environmentType},
         openshift_projectname: "${openshift_projectname}"
     }) {
       id
@@ -189,7 +189,7 @@ const addOrUpdateEnvironment = (
         name
       }
       deploy_type
-      environment_type
+      environmentType
       openshift_projectname
     }
   }

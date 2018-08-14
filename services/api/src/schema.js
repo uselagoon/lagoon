@@ -926,7 +926,7 @@ const resolvers = {
       const dao = getDao(req);
 
       const input = R.compose(
-        R.over(R.lensProp('environment_type'), envTypeToString),
+        R.over(R.lensProp('environmentType'), envTypeToString),
         R.over(R.lensProp('deploy_type'), deployTypeToString),
       )(args.input);
 
