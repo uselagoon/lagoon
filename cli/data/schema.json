@@ -948,7 +948,7 @@
               "deprecationReason": null
             },
             {
-              "name": "ssh_port",
+              "name": "sshPort",
               "description": "",
               "args": [],
               "type": {
@@ -2668,7 +2668,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_port",
+              "name": "sshPort",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3576,7 +3576,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_port",
+              "name": "sshPort",
               "description": "",
               "type": {
                 "kind": "SCALAR",

@@ -58,7 +58,7 @@ const typeDefs = gql`
     routerPattern: String
     projectUser: String
     sshHost: String
-    ssh_port: String
+    sshPort: String
     created: String
   }
 
@@ -307,7 +307,7 @@ const typeDefs = gql`
     routerPattern: String
     projectUser: String
     sshHost: String
-    ssh_port: String
+    sshPort: String
   }
 
   input DeleteOpenshiftInput {
@@ -414,7 +414,7 @@ const typeDefs = gql`
     routerPattern: String
     projectUser: String
     sshHost: String
-    ssh_port: String
+    sshPort: String
   }
 
   input UpdateOpenshiftInput {

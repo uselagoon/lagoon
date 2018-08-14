@@ -38,7 +38,7 @@ const addOpenshift = ({ sqlClient }) => async (cred, input) => {
         ${input.routerPattern ? ':router_pattern' : 'NULL'},
         ${input.projectUser ? ':project_user' : 'NULL'},
         ${input.sshHost ? ':ssh_host' : 'NULL'},
-        ${input.ssh_port ? ':ssh_port' : 'NULL'}
+        ${input.sshPort ? ':ssh_port' : 'NULL'}
       );
     `,
   );

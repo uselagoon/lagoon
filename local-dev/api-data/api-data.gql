@@ -205,7 +205,7 @@ mutation FillAPI {
       routerPattern: "${project}.${branch}.192.168.99.100.xip.io"
       projectUser: "developer"
       sshHost: "192.168.99.1"
-      ssh_port: "2020"
+      sshPort: "2020"
     }
   ) {
     id

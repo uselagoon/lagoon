@@ -197,7 +197,7 @@ type Openshift {
   routerPattern: String
   projectUser: String
   sshHost: String
-  ssh_port: String
+  sshPort: String
   created: String
 }
 
@@ -209,7 +209,7 @@ input OpenshiftInput {
   routerPattern: String
   projectUser: String
   sshHost: String
-  ssh_port: String
+  sshPort: String
 }
 
 """Lagoon Project (like a git repository)"""
@@ -452,7 +452,7 @@ input UpdateOpenshiftPatchInput {
   routerPattern: String
   projectUser: String
   sshHost: String
-  ssh_port: String
+  sshPort: String
 }
 
 input UpdateProjectInput {
