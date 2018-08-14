@@ -75,7 +75,7 @@ const isPatchEmpty = R.compose(
 // Tells if a user tries to modify an sshKey in the given patch
 // payload
 const hasSshKeyPatch = R.compose(
-  R.anyPass([R.has('key_value'), R.has('key_type')]),
+  R.anyPass([R.has('keyValue'), R.has('keyType')]),
   R.propOr({}, 'patch'),
 );
 
