@@ -55,13 +55,9 @@ const typeDefs = gql`
     name: String
     consoleUrl: String
     token: String
-    # TODO: Convert to camelcase
-    router_pattern: String
-    # TODO: Convert to camelcase
+    routerPattern: String
     project_user: String
-    # TODO: Convert to camelcase
     ssh_host: String
-    # TODO: Convert to camelcase
     ssh_port: String
     created: String
   }
@@ -308,13 +304,9 @@ const typeDefs = gql`
     name: String!
     consoleUrl: String!
     token: String
-    # TODO: Convert to camelcase
-    router_pattern: String
-    # TODO: Convert to camelcase
+    routerPattern: String
     project_user: String
-    # TODO: Convert to camelcase
     ssh_host: String
-    # TODO: Convert to camelcase
     ssh_port: String
   }
 
@@ -419,13 +411,9 @@ const typeDefs = gql`
     name: String
     consoleUrl: String
     token: String
-    # TODO: Convert to camelcase
-    router_pattern: String
-    # TODO: Convert to camelcase
+    routerPattern: String
     project_user: String
-    # TODO: Convert to camelcase
     ssh_host: String
-    # TODO: Convert to camelcase
     ssh_port: String
   }
 

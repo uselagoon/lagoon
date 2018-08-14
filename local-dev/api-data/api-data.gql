@@ -202,7 +202,7 @@ mutation FillAPI {
       id: 2
       name: "ci-local"
       consoleUrl: "https://192.168.99.100:8443/"
-      router_pattern: "${project}.${branch}.192.168.99.100.xip.io"
+      routerPattern: "${project}.${branch}.192.168.99.100.xip.io"
       project_user: "developer"
       ssh_host: "192.168.99.1"
       ssh_port: "2020"

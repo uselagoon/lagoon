@@ -49,7 +49,7 @@ const messageConsumer = async msg => {
     var deployPrivateKey = projectOpenShift.customer.privateKey
     var gitUrl = projectOpenShift.gitUrl
     var subfolder = projectOpenShift.subfolder || ""
-    var routerPattern = projectOpenShift.openshift.router_pattern ? projectOpenShift.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
+    var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""

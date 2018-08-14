@@ -912,8 +912,8 @@
               "deprecationReason": null
             },
             {
-              "name": "router_pattern",
-              "description": "TODO: Convert to camelcase",
+              "name": "routerPattern",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -925,7 +925,7 @@
             },
             {
               "name": "project_user",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -937,7 +937,7 @@
             },
             {
               "name": "ssh_host",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -949,7 +949,7 @@
             },
             {
               "name": "ssh_port",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2638,8 +2638,8 @@
               "defaultValue": null
             },
             {
-              "name": "router_pattern",
-              "description": "TODO: Convert to camelcase",
+              "name": "routerPattern",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2649,7 +2649,7 @@
             },
             {
               "name": "project_user",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2659,7 +2659,7 @@
             },
             {
               "name": "ssh_host",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2669,7 +2669,7 @@
             },
             {
               "name": "ssh_port",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3546,8 +3546,8 @@
               "defaultValue": null
             },
             {
-              "name": "router_pattern",
-              "description": "TODO: Convert to camelcase",
+              "name": "routerPattern",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3557,7 +3557,7 @@
             },
             {
               "name": "project_user",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3567,7 +3567,7 @@
             },
             {
               "name": "ssh_host",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3577,7 +3577,7 @@
             },
             {
               "name": "ssh_port",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
