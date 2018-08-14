@@ -68,9 +68,7 @@ type Environment {
   hoursMonth(month: Date): EnvironmentHoursMonth
   storages: [EnvironmentStorage]
   storageMonth(month: Date): EnvironmentStorageMonth
-
-  """TODO: Convert to camelcase"""
-  hits_month(month: Date): EnviornmentHitsMonth
+  hitsMonth(month: Date): EnviornmentHitsMonth
 }
 
 type EnvironmentHoursMonth {

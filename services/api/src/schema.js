@@ -206,8 +206,7 @@ const typeDefs = gql`
     hoursMonth(month: Date): EnvironmentHoursMonth
     storages: [EnvironmentStorage]
     storageMonth(month: Date): EnvironmentStorageMonth
-    # TODO: Convert to camelcase
-    hits_month(month: Date): EnviornmentHitsMonth
+    hitsMonth(month: Date): EnviornmentHitsMonth
   }
 
   type EnviornmentHitsMonth {
@@ -637,8 +636,7 @@ const resolvers = {
         args,
       );
     },
-    // TODO: Convert to camelcase
-    hits_month: async (environment, args, req) => {
+    hitsMonth: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentHitsMonthByEnvironmentId(
         req.credentials,

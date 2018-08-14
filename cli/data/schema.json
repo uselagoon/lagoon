@@ -1186,8 +1186,8 @@
               "deprecationReason": null
             },
             {
-              "name": "hits_month",
-              "description": "TODO: Convert to camelcase",
+              "name": "hitsMonth",
+              "description": "",
               "args": [
                 {
                   "name": "month",
