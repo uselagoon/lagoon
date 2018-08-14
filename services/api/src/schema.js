@@ -211,16 +211,13 @@ const typeDefs = gql`
   type EnvironmentStorage {
     id: Int
     environment: Environment
-    # TODO: Convert to camelcase
-    persistent_storage_claim: String
-    # TODO: Convert to camelcase
+    persistentStorageClaim: String
     bytes_used: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    # TODO: Convert to camelcase
     bytes_used: Float
   }
 
@@ -286,9 +283,7 @@ const typeDefs = gql`
 
   input EnvironmentStorageInput {
     environment: Int!
-    # TODO: Convert to camelcase
-    persistent_storage_claim: String!
-    # TODO: Convert to camelcase
+    persistentStorageClaim: String!
     bytes_used: Int!
   }
 

@@ -1289,8 +1289,8 @@
               "deprecationReason": null
             },
             {
-              "name": "persistent_storage_claim",
-              "description": "TODO: Convert to camelcase",
+              "name": "persistentStorageClaim",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1302,7 +1302,7 @@
             },
             {
               "name": "bytes_used",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1359,7 +1359,7 @@
             },
             {
               "name": "bytes_used",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -3256,8 +3256,8 @@
               "defaultValue": null
             },
             {
-              "name": "persistent_storage_claim",
-              "description": "TODO: Convert to camelcase",
+              "name": "persistentStorageClaim",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -3271,7 +3271,7 @@
             },
             {
               "name": "bytes_used",
-              "description": "TODO: Convert to camelcase",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
