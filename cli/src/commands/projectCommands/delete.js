@@ -21,6 +21,8 @@ export const commandOptions = {
   [PROJECT]: PROJECT,
 };
 
+export const dynamicOptionsKeys = [PROJECT];
+
 type OptionalOptions = {
   project?: string,
 };
