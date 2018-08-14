@@ -120,24 +120,21 @@ const typeDefs = gql`
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType): [Notification]
-    # TODO: Convert to camelcase
     """
     Which internal Lagoon System is responsible for deploying
     Currently only 'lagoon_openshiftBuildDeploy' exists
     """
-    active_systems_deploy: String
-    # TODO: Convert to camelcase
+    activeSystemsDeploy: String
     """
     Which internal Lagoon System is responsible for promoting
     Currently only 'lagoon_openshiftBuildDeploy' exists
     """
-    active_systems_promote: String
-    # TODO: Convert to camelcase
+    activeSystemsPromote: String
     """
     Which internal Lagoon System is responsible for promoting
     Currently only 'lagoon_openshiftRemove' exists
     """
-    active_systems_remove: String
+    activeSystemsRemove: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -286,12 +283,9 @@ const typeDefs = gql`
     openshift: Int!
     # TODO: Convert to camelcase
     openshift_project_pattern: String
-    # TODO: Convert to camelcase
-    active_systems_deploy: String
-    # TODO: Convert to camelcase
-    active_systems_promote: String
-    # TODO: Convert to camelcase
-    active_systems_remove: String
+    activeSystemsDeploy: String
+    activeSystemsPromote: String
+    activeSystemsRemove: String
     branches: String
     pullrequests: String
     # TODO: Convert to camelcase
@@ -413,10 +407,8 @@ const typeDefs = gql`
     customer: Int
     gitUrl: String
     subfolder: String
-    # TODO: Convert to camelcase
-    active_systems_deploy: String
-    # TODO: Convert to camelcase
-    active_systems_remove: String
+    activeSystemsDeploy: String
+    activeSystemsRemove: String
     branches: String
     # TODO: Convert to camelcase
     production_environment: String

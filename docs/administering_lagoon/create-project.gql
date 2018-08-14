@@ -28,9 +28,9 @@ mutation {
       name
     }
     gitUrl,
-    active_systems_deploy,
-    active_systems_promote,
-    active_systems_remove,
+    activeSystemsDeploy,
+    activeSystemsPromote,
+    activeSystemsRemove,
     branches,
     pullrequests
   }

@@ -56,6 +56,8 @@ class NoActiveSystemsDefined extends Error {
   }
 }
 
+const capitalize = R.replace(/^\w/, R.toUpper);
+
 async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   const result = await graphqlapi.query(`
     {
@@ -139,10 +141,11 @@ async function getActiveSystemForProject(
   project: string,
   task: string,
 ): Promise<Object> {
+  const field = `activeSystems${capitalize(project)}`;
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
-        active_systems_${task}
+        ${field}
         branches
         pullrequests
       }
@@ -155,7 +158,7 @@ async function getActiveSystemForProject(
     );
   }
 
-  if (!result.project[`active_systems_${task}`]) {
+  if (!result.project[field]) {
     throw new NoActiveSystemsDefined(
       `Cannot find active system for task ${task} in project ${project}`,
     );

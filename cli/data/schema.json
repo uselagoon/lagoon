@@ -506,7 +506,7 @@
               "deprecationReason": null
             },
             {
-              "name": "active_systems_deploy",
+              "name": "activeSystemsDeploy",
               "description": "Which internal Lagoon System is responsible for deploying\nCurrently only 'lagoon_openshiftBuildDeploy' exists",
               "args": [],
               "type": {
@@ -518,7 +518,7 @@
               "deprecationReason": null
             },
             {
-              "name": "active_systems_promote",
+              "name": "activeSystemsPromote",
               "description": "Which internal Lagoon System is responsible for promoting\nCurrently only 'lagoon_openshiftBuildDeploy' exists",
               "args": [],
               "type": {
@@ -530,7 +530,7 @@
               "deprecationReason": null
             },
             {
-              "name": "active_systems_remove",
+              "name": "activeSystemsRemove",
               "description": "Which internal Lagoon System is responsible for promoting\nCurrently only 'lagoon_openshiftRemove' exists",
               "args": [],
               "type": {
@@ -2858,8 +2858,8 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_deploy",
-              "description": "TODO: Convert to camelcase",
+              "name": "activeSystemsDeploy",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -2868,8 +2868,8 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_remove",
-              "description": "TODO: Convert to camelcase",
+              "name": "activeSystemsRemove",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3045,8 +3045,8 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_deploy",
-              "description": "TODO: Convert to camelcase",
+              "name": "activeSystemsDeploy",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3055,8 +3055,8 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_promote",
-              "description": "TODO: Convert to camelcase",
+              "name": "activeSystemsPromote",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3065,8 +3065,8 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_remove",
-              "description": "TODO: Convert to camelcase",
+              "name": "activeSystemsRemove",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",

@@ -56,7 +56,6 @@ const Helpers = {
 
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
-
   // We need one "WHERE" keyword, but we have multiple optional conditions
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
@@ -160,17 +159,17 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
     : 'NULL'
 },
         ${
-  input.active_systems_deploy
+  input.activeSystemsDeploy
     ? ':active_systems_deploy'
     : '"lagoon_openshiftBuildDeploy"'
 },
         ${
-  input.active_systems_promote
+  input.activeSystemsPromote
     ? ':active_systems_promote'
     : '"lagoon_openshiftBuildDeploy"'
 },
         ${
-  input.active_systems_remove
+  input.activeSystemsRemove
     ? ':active_systems_remove'
     : '"lagoon_openshiftRemove"'
 },

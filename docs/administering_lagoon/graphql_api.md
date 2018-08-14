@@ -184,8 +184,8 @@ mutation {
       id
     }
     gitUrl,
-    active_systems_deploy,
-    active_systems_remove,
+    activeSystemsDeploy,
+    activeSystemsRemove,
     branches,
     pullrequests
   }
