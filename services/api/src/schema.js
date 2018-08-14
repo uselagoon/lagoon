@@ -204,8 +204,7 @@ const typeDefs = gql`
     project: Project
     # TODO: Convert to camelcase
     deploy_type: String
-    # TODO: Convert to camelcase
-    environment_type: String
+    environmentType: String
     # TODO: Convert to camelcase
     openshift_projectname: String
     updated: String
@@ -301,8 +300,7 @@ const typeDefs = gql`
     project: Int!
     # TODO: Convert to camelcase
     deploy_type: DeployType!
-    # TODO: Convert to camelcase
-    environment_type: EnvType!
+    environmentType: EnvType!
     # TODO: Convert to camelcase
     openshift_projectname: String!
   }
@@ -496,8 +494,7 @@ const typeDefs = gql`
     project: Int
     # TODO: Convert to camelcase
     deploy_type: DeployType
-    # TODO: Convert to camelcase
-    environment_type: EnvType
+    environmentType: EnvType
     # TODO: Convert to camelcase
     openshift_projectname: String
   }
@@ -746,8 +743,8 @@ const resolvers = {
     updateEnvironment: async (root, args, req) => {
       const input = R.compose(
         omitPatchKeyIfUndefined('deploy_type'),
-        omitPatchKeyIfUndefined('environment_type'),
-        R.over(R.lensPath(['patch', 'environment_type']), envTypeToString),
+        omitPatchKeyIfUndefined('environmentType'),
+        R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
         R.over(R.lensPath(['patch', 'deploy_type']), deployTypeToString),
       )(args.input);
 

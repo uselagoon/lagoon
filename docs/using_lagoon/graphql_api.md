@@ -40,7 +40,7 @@ query whatIsThere {
     production_environment
     environments {
       name
-      environment_type
+      environmentType
     }
   }
 }

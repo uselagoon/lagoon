@@ -236,7 +236,7 @@ query singleProject {
     environments {
       name
       deploy_type
-      environment_type
+      environmentType
     }
     openshift {
       id

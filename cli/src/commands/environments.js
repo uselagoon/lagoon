@@ -62,7 +62,7 @@ Args): Promise<number> {
         projectByName(name: $project) {
           environments {
             name
-            environment_type
+            environmentType
             deploy_type
             created
             updated
@@ -97,11 +97,11 @@ Args): Promise<number> {
       ['Name', 'Environment Type', 'Deploy Type', 'Created', 'Updated'],
       ...R.map(
         environment => [
-          environment.name,
-          environment.environment_type,
-          environment.deploy_type,
-          environment.created,
-          environment.updated,
+          R.prop('name', environment),
+          R.prop('environmentType', environment),
+          R.prop('deploy_type', environment),
+          R.prop('created', environment),
+          R.prop('updated', environment),
         ],
         environments,
       ),
