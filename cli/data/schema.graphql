@@ -65,9 +65,7 @@ type Environment {
   updated: String
   created: String
   deleted: String
-
-  """TODO: Convert to camelcase"""
-  hours_month(month: Date): EnvironmentHoursMonth
+  hoursMonth(month: Date): EnvironmentHoursMonth
   storages: [EnvironmentStorage]
 
   """TODO: Convert to camelcase"""

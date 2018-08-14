@@ -203,8 +203,7 @@ const typeDefs = gql`
     updated: String
     created: String
     deleted: String
-    # TODO: Convert to camelcase
-    hours_month(month: Date): EnvironmentHoursMonth
+    hoursMonth(month: Date): EnvironmentHoursMonth
     storages: [EnvironmentStorage]
     # TODO: Convert to camelcase
     storage_month(month: Date): EnvironmentStorageMonth
@@ -616,8 +615,7 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getProjectByEnvironmentId(req.credentials, environment.id);
     },
-    // TODO: Convert to camelcase
-    hours_month: async (environment, args, req) => {
+    hoursMonth: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentHoursMonthByEnvironmentId(
         req.credentials,
