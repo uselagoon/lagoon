@@ -250,7 +250,7 @@ const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (
       FROM environment e
         JOIN project p ON e.project = p.id
         JOIN customer c ON p.customer = c.id
-      WHERE e.openshift_projectname = :openshiftProjectName
+      WHERE e.openshift_project_name = :openshift_project_name
       ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
