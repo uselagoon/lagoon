@@ -760,7 +760,7 @@ const resolvers = {
       // There is a possibility the sshKeyTypeToString transformation
       // sets patch.keyType = undefined. This is not acceptable, therefore
       // we need to omit the key from the patch object completely
-      // (null will still be accepted, since it should signal erasal of a field)
+      // (null will still be accepted, since it should signal erasure of a field)
       const input = R.compose(
         omitPatchKeyIfUndefined('keyType'),
         R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
