@@ -936,7 +936,7 @@
               "deprecationReason": null
             },
             {
-              "name": "ssh_host",
+              "name": "sshHost",
               "description": "",
               "args": [],
               "type": {
@@ -2658,7 +2658,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_host",
+              "name": "sshHost",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3566,7 +3566,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_host",
+              "name": "sshHost",
               "description": "",
               "type": {
                 "kind": "SCALAR",

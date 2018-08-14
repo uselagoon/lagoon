@@ -57,7 +57,7 @@ const typeDefs = gql`
     token: String
     routerPattern: String
     projectUser: String
-    ssh_host: String
+    sshHost: String
     ssh_port: String
     created: String
   }
@@ -306,7 +306,7 @@ const typeDefs = gql`
     token: String
     routerPattern: String
     projectUser: String
-    ssh_host: String
+    sshHost: String
     ssh_port: String
   }
 
@@ -413,7 +413,7 @@ const typeDefs = gql`
     token: String
     routerPattern: String
     projectUser: String
-    ssh_host: String
+    sshHost: String
     ssh_port: String
   }
 
