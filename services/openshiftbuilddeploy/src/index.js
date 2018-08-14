@@ -42,7 +42,7 @@ const messageConsumer = async msg => {
     var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
-    var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
+    var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
     var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
     var openshiftProjectUser = projectOpenShift.openshift.project_user || ""

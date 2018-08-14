@@ -13,7 +13,7 @@ GRAPHQL='query developmentEnvironments {
     name
     autoIdle
     openshift {
-      console_url
+      consoleUrl
       token
       name
     }
@@ -60,7 +60,7 @@ set +eo pipefail
 echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.environments|length)>=1)' | while read project
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
-    OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
+    OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
     AUTOIDLE=$(echo "$project" | jq -r '.autoIdle')
 
     # Match the Project name to the Project Regex

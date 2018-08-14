@@ -12,7 +12,7 @@ GRAPHQL='query developmentEnvironments {
     name
     autoIdle
     openshift {
-      console_url
+      consoleUrl
       token
       name
     }
@@ -31,7 +31,7 @@ ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARE
 echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.environments|length)>=1)' | while read project
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
-    OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
+    OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
     AUTOIDLE=$(echo "$project" | jq -r '.autoIdle')
 
     if [[ $AUTOIDLE == "1" ]]; then

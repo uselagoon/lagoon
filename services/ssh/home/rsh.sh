@@ -54,7 +54,7 @@ ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
   environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
     project {
       openshift {
-        console_url
+        consoleUrl
         token
         name
       }
@@ -64,7 +64,7 @@ ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
 ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}') # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
 ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}")
 
-OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.console_url')
+OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.consoleUrl')
 OPENSHIFT_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.token')
 OPENSHIFT_NAME=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.name')
 

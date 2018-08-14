@@ -53,8 +53,7 @@ const typeDefs = gql`
   type Openshift {
     id: Int
     name: String
-    # TODO: Convert to camelcase
-    console_url: String
+    consoleUrl: String
     token: String
     # TODO: Convert to camelcase
     router_pattern: String
@@ -307,8 +306,7 @@ const typeDefs = gql`
   input OpenshiftInput {
     id: Int
     name: String!
-    # TODO: Convert to camelcase
-    console_url: String!
+    consoleUrl: String!
     token: String
     # TODO: Convert to camelcase
     router_pattern: String
@@ -419,8 +417,7 @@ const typeDefs = gql`
 
   input UpdateOpenshiftPatchInput {
     name: String
-    # TODO: Convert to camelcase
-    console_url: String
+    consoleUrl: String
     token: String
     # TODO: Convert to camelcase
     router_pattern: String

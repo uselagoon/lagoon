@@ -65,7 +65,7 @@ async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
         name
         productionEnvironment
         openshift {
-          console_url
+          consoleUrl
           token
           project_user
           router_pattern
@@ -224,7 +224,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
       project:projectByName(name: "${project}"){
         id
         openshift  {
-          console_url
+          consoleUrl
           token
           project_user
           router_pattern

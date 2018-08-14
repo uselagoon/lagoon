@@ -19,7 +19,7 @@ mutation FillAPI {
     input: {
       id: 1
       name: "credentialtest-openshift"
-      console_url: "https://localhost:8443/"
+      consoleUrl: "https://localhost:8443/"
     }
   ) {
     id
@@ -201,7 +201,7 @@ mutation FillAPI {
     input: {
       id: 2
       name: "ci-local"
-      console_url: "https://192.168.99.100:8443/"
+      consoleUrl: "https://192.168.99.100:8443/"
       router_pattern: "${project}.${branch}.192.168.99.100.xip.io"
       project_user: "developer"
       ssh_host: "192.168.99.1"
@@ -558,7 +558,7 @@ mutation FillAPI {
     input: {
       id: 3
       name: "kickstart-openshift"
-      console_url: "[REPLACE ME WITH OPENSHIFT URL]"
+      consoleUrl: "[REPLACE ME WITH OPENSHIFT URL]"
       token: "[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUTN TOKEN]"
     }
   ) {

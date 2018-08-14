@@ -888,8 +888,8 @@
               "deprecationReason": null
             },
             {
-              "name": "console_url",
-              "description": "TODO: Convert to camelcase",
+              "name": "consoleUrl",
+              "description": "",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2618,8 +2618,8 @@
               "defaultValue": null
             },
             {
-              "name": "console_url",
-              "description": "TODO: Convert to camelcase",
+              "name": "consoleUrl",
+              "description": "",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -3522,8 +3522,8 @@
               "defaultValue": null
             },
             {
-              "name": "console_url",
-              "description": "TODO: Convert to camelcase",
+              "name": "consoleUrl",
+              "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,

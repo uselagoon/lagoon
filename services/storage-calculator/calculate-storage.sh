@@ -9,7 +9,7 @@ GRAPHQL='query environments {
     name
     storageCalc
     openshift {
-      console_url
+      consoleUrl
       token
       name
     }
@@ -28,7 +28,7 @@ ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARE
 echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
 do
   PROJECT_NAME=$(echo "$project" | jq -r '.name')
-  OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
+  OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
   STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
   echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
   OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')

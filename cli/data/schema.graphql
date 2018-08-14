@@ -192,9 +192,7 @@ enum NotificationType {
 type Openshift {
   id: Int
   name: String
-
-  """TODO: Convert to camelcase"""
-  console_url: String
+  consoleUrl: String
   token: String
 
   """TODO: Convert to camelcase"""
@@ -214,9 +212,7 @@ type Openshift {
 input OpenshiftInput {
   id: Int
   name: String!
-
-  """TODO: Convert to camelcase"""
-  console_url: String!
+  consoleUrl: String!
   token: String
 
   """TODO: Convert to camelcase"""
@@ -467,9 +463,7 @@ input UpdateOpenshiftInput {
 
 input UpdateOpenshiftPatchInput {
   name: String
-
-  """TODO: Convert to camelcase"""
-  console_url: String
+  consoleUrl: String
   token: String
 
   """TODO: Convert to camelcase"""
