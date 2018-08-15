@@ -464,6 +464,13 @@ do
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
+
+  # Allow the template to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_TEMPLATE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.template.$SERVICE_NAME false)
+  if [ ! $ENVIRONMENT_TEMPLATE_OVERRIDE == "false" ]; then
+    OVERRIDE_TEMPLATE=$ENVIRONMENT_TEMPLATE_OVERRIDE
+  fi
+
   if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
     OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
     if [ -f $OPENSHIFT_TEMPLATE ]; then
@@ -507,6 +514,12 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
+
+  # Allow the rollout type to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.rollout.$SERVICE_NAME false)
+  if [ ! $ENVIRONMENT_SERVICE_ROLLOUT_TYPE == "false" ]; then
+    SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
+  fi
 
   # if mariadb-galera is a statefulset check also for maxscale
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
