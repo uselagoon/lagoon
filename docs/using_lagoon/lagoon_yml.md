@@ -150,9 +150,9 @@ environments:
 ```
 
 #### `environments.[name].templates`
-The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
+The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-templates))
 
-Sometime though you would like to override the template just for a single environment and not for all of them:
+Sometimes though you would like to override the template just for a single environment and not for all of them:
 
 `service-name: template-file`
 
@@ -166,6 +166,25 @@ environments:
   master:
     templates:
       mariadb: mariadb.master.deployment.yaml
+```
+
+#### `environments.[name].rollouts`
+The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
+
+Sometimes though you would like to override the rollout type just for a single environment, especially if you also overwrote the template type for the enviornment
+
+`service-name: rollout-type`
+
+* `service-name` - is the name of the service from `docker-compose.yml` you would like to override
+* `rollout-type` - the type of rollout, see [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-rollout-monitor-types)) for possible values
+
+Example:
+
+```
+environments:
+  master:
+    rollouts:
+      mariadb: statefulset
 ```
 
 ## Specials

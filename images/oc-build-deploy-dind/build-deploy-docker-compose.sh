@@ -521,6 +521,12 @@ do
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
+  # Allow the rollout type to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.rollouts.${SERVICE_NAME} false)
+  if [ ! $ENVIRONMENT_SERVICE_ROLLOUT_TYPE == "false" ]; then
+    SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
+  fi
+
   # if mariadb-galera is a statefulset check also for maxscale
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
 
