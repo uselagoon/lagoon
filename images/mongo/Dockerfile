@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:edge
+FROM alpine:3.8
 
 MAINTAINER amazee.io
 ENV LAGOON=mongo
