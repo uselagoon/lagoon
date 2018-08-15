@@ -180,7 +180,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.production_environment ? ':production_environment' : 'NULL'},
         ${input.auto_idle ? ':auto_idle' : '1'},
         ${input.storage_calc ? ':storage_calc' : '1'},
-        ${input.environment_limit ? ':environment_limit' : '2'}
+        ${input.environment_limit ? ':environment_limit' : '5'}
       );
     `,
   );
