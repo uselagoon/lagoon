@@ -113,6 +113,19 @@ const messageConsumer = async msg => {
     }
   }
 
+  try {
+    const configMapGet = Promise.promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get, { context: kubernetes.ns(openshiftProject).configmaps('lagoon-env') })
+    configMap = await configMapGet()
+  } catch (err) {
+    if (err.code == 404) {
+      logger.error(`configmap lagoon-env does not exist, bailing`)
+      return
+    } else {
+      logger.error(err)
+      throw new Error
+    }
+  }
+
   let logMessage = ''
   if (sha) {
     logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
@@ -123,16 +136,6 @@ const messageConsumer = async msg => {
   const buildPhase = buildstatus.status.phase.toLowerCase();
   const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
   const routesGet = Promise.promisify(openshift.ns(openshiftProject).routes.get, { context: openshift.ns(openshiftProject).routes })
-
-  const getAllRoutesURLs = async () => {
-    const allRoutesObject = await routesGet();
-    let hosts = []
-    hosts = allRoutesObject.items.map(route => {
-      const schema = ("tls" in route) ? 'https://' : 'http://'
-      return `${schema}${route.spec.host}`
-    })
-    return hosts
-  }
 
   let logLink = ""
   const meta = JSON.parse(msg.content.toString())
@@ -189,19 +192,13 @@ const messageConsumer = async msg => {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
       }
 
-      const routes = await getAllRoutesURLs()
+      const route = configMap.data.LAGOON_ROUTE
+      const routes = configMap.data.LAGOON_ROUTES.split(',').filter(e => e !== route);
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${routes.join("\n")}`
+        `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${route}\n ${routes.join("\n")}`
       )
       try {
-        const updateEnvironmentResult = await updateEnvironment(
-          branchName,
-          environmentOpenshift.id,
-          `{
-            lagoon_route: "${routes[0]}",
-            lagoon_routes: "${routes.join(",")}",
-            project: ${projectOpenshift.id}
-          }`)
+        logger.info(configMap.data.LAGOON_ROUTE)
         } catch (err) {
           logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
         }
