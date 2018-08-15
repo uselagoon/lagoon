@@ -11,17 +11,12 @@ const {
 
 // This contains the sql query generation logic
 const Sql = {
-  updateProject: (cred, input) => {
-    const { id, patch } = input;
-    const { projects } = cred.permissions;
-
-    const ret = knex('project')
+  updateProject: ({ permissions: { projects } }, { id, patch }) =>
+    knex('project')
       .where('id', '=', id)
       .whereIn('id', projects)
-      .update(patch);
-
-    return ret.toString();
-  },
+      .update(patch)
+      .toString(),
   selectProject: id =>
     knex('project')
       .where('id', id)
@@ -154,9 +149,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
-  input.openshiftProjectPattern
-    ? ':openshift_project_pattern'
-    : 'NULL'
+  input.openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'
 },
         ${
   input.activeSystemsDeploy
