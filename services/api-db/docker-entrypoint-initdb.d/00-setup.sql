@@ -108,6 +108,8 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
 );
 
 
+-- Views
+
 DROP VIEW IF EXISTS pid_skid;
 CREATE VIEW pid_skid
 AS
@@ -136,6 +138,8 @@ AS
       WHERE r.skid = sk.id
     ) AS projects
   FROM ssh_key sk;
+
+-- Migrations
 
 DELIMITER $$
 
