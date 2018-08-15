@@ -46,12 +46,11 @@ const messageConsumer = async msg => {
   } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received BuildDeployOpenshift monitoring task for project: ${projectName}, buildName: ${buildName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
-  let result
-  result = await getOpenShiftInfoForProject(projectName);
-  const projectOpenshift = result.project
+  const projectResult = await getOpenShiftInfoForProject(projectName);
+  const projectOpenshift = projectResult.project
 
-  result = await getEnvironmentByName(`${branchName}`, projectOpenshift.id)
-  const environmentOpenshift = result.environmentByName
+  const environmentResult = await getEnvironmentByName(`${branchName}`, projectOpenshift.id)
+  const environmentOpenshift = environmentResult.environmentByName
 
   try {
     var gitSha = sha
