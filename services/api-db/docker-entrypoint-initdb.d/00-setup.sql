@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS environment (
        project                int REFERENCES project (id),
        deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
        environment_type       ENUM('production', 'development') NOT NULL,
-       openshift_project_name  varchar(100),
+       openshift_project_name varchar(100),
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
        deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -151,10 +151,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'production_environment'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'production_environment'
+             )  THEN
       ALTER TABLE `project` ADD `production_environment` varchar(100);
 
     END IF;
@@ -170,10 +170,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'openshift'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'ssh_host'
-            )  THEN
+               WHERE table_name = 'openshift'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'ssh_host'
+             )  THEN
       ALTER TABLE `openshift` ADD `ssh_host` varchar(300);
       ALTER TABLE `openshift` ADD `ssh_port` varchar(50);
 
@@ -207,10 +207,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'active_systems_promote'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'active_systems_promote'
+             )  THEN
       ALTER TABLE `project` ADD `active_systems_promote` varchar(300);
       UPDATE project SET active_systems_promote = 'lagoon_openshiftBuildDeploy';
 
@@ -227,10 +227,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'environment'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'deploy_type'
-            )  THEN
+               WHERE table_name = 'environment'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'deploy_type'
+             )  THEN
       ALTER TABLE `environment` CHANGE `git_type` `deploy_type` ENUM('branch','pullrequest');
 
     END IF;
@@ -265,10 +265,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'auto_idle'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'auto_idle'
+             )  THEN
       ALTER TABLE `project` ADD `auto_idle` int(1) NOT NULL default '1';
 
 
@@ -304,10 +304,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'environment'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'deleted'
-            )  THEN
+               WHERE table_name = 'environment'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'deleted'
+             )  THEN
       ALTER TABLE `environment` DROP INDEX project_name;
       ALTER TABLE `environment` ADD `deleted` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00';
       ALTER TABLE `environment` ADD UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`);
@@ -326,10 +326,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'storage_calc'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'storage_calc'
+             )  THEN
       ALTER TABLE `project` ADD `storage_calc` int(1) NOT NULL default '1';
 
     END IF;
@@ -345,10 +345,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'openshift'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'project_pattern'
-            )  THEN
+               WHERE table_name = 'openshift'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'project_pattern'
+             )  THEN
       ALTER TABLE `openshift` ADD `project_pattern` varchar(300);
 
     END IF;
@@ -364,10 +364,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'subfolder'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'subfolder'
+              ) THEN
       ALTER TABLE `project` ADD `subfolder` varchar(300);
 
     END IF;
@@ -383,10 +383,10 @@ CREATE OR REPLACE PROCEDURE
     IF EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'openshift'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'project_pattern'
-            )  THEN
+               WHERE table_name = 'openshift'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'project_pattern'
+              ) THEN
       ALTER TABLE `openshift` DROP COLUMN `project_pattern`;
 
     END IF;
@@ -402,10 +402,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'openshift_project_pattern'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'openshift_project_pattern'
+             )  THEN
       ALTER TABLE `project` ADD `openshift_project_pattern` varchar(300);
 
     END IF;
