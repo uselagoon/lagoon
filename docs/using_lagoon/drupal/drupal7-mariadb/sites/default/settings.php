@@ -63,7 +63,7 @@ if (getenv('LAGOON')) {
 
 ### Base URL
 if (getenv('LAGOON_ROUTE')) {
-  $base_url = getenv('LAGOON_ROUTE')
+  $base_url = getenv('LAGOON_ROUTE');
 }
 
 ### Temp directory
