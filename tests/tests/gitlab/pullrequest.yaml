@@ -107,7 +107,7 @@
     expected_pr_head_sha: "{{ pr_2nd_commit_hash }}"
     expected_pr_title: "PR Title - UPDATE"
 
-- name: "{{ testname }} - webhook github pull request closed"
+- name: "{{ testname }} - webhook github pull request merged"
   hosts: localhost
   serial: 1
   vars:
