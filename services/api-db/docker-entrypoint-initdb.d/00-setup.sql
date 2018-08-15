@@ -413,6 +413,63 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  rename_keyValue_to_key_value_in_ssh_key()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = 'ssh_key'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'key_value'
+             )  THEN
+      ALTER TABLE `ssh_key` CHANGE `keyValue` `key_value` varchar(5000) NOT NULL;
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  rename_keyType_to_key_type_in_ssh_key()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = 'ssh_key'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'key_type'
+             )  THEN
+      ALTER TABLE `ssh_key` CHANGE `keyType` `key_type` ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa';
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  rename_openshift_projectname_to_openshift_project_name_in_environment()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = 'environment'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'openshift_project_name'
+             )  THEN
+      ALTER TABLE `environment` CHANGE `openshift_projectname` `openshift_project_name` varchar(100);
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
