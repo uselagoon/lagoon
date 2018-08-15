@@ -197,7 +197,15 @@ const messageConsumer = async msg => {
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${route}\n ${routes.join("\n")}`
       )
       try {
-        logger.info(configMap.data.LAGOON_ROUTE)
+        const updateEnvironmentResult = await updateEnvironment(
+          branchName,
+          environmentOpenshift.id,
+          `{
+            lagoon_route: "${configMap.data.LAGOON_ROUTE}",
+            lagoon_routes: "${configMap.data.LAGOON_ROUTES}",
+            monitoring_urls: "${configMap.data.LAGOON_MONITORING_URLS}",
+            project: ${projectOpenshift.id}
+          }`)
         } catch (err) {
           logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
         }
