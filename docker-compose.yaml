@@ -3,8 +3,8 @@ services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
     volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d/00-setup.sql:/docker-entrypoint-initdb.d/00-setup.sql
-      - ./services/api-db/docker-entrypoint-initdb.d/01-procedures.sql:/docker-entrypoint-initdb.d/01-procedures.sql
+      - ./services/api-db/docker-entrypoint-initdb.d/00-tables.sql:/docker-entrypoint-initdb.d/00-tables.sql
+      - ./services/api-db/docker-entrypoint-initdb.d/03-procedures.sql:/docker-entrypoint-initdb.d/03-procedures.sql
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - '3306:3306'
