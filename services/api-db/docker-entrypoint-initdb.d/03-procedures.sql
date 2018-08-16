@@ -1,6 +1,7 @@
 USE infrastructure;
 
 -- Stored procedures for the API DB
+-- DEPRECATED:
 -- Since these proved to be awkward to work with and
 -- prone to errors, we will write any further queries
 -- in the API service using knex.
