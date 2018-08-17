@@ -10,6 +10,14 @@ CREATE TABLE IF NOT EXISTS ssh_key (
   created       timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS user (
+  id            int NOT NULL auto_increment PRIMARY KEY,
+  email         varchar(100),
+  first_name    varchar(50),
+  last_name     varchar(50),
+  is_admin      int(1) NOT NULL default 1
+);
+
 CREATE TABLE IF NOT EXISTS customer (
   id             int NOT NULL auto_increment PRIMARY KEY,
   name           varchar(50) UNIQUE,
@@ -46,22 +54,22 @@ CREATE TABLE IF NOT EXISTS notification_slack (
 
 
 CREATE TABLE IF NOT EXISTS project (
-  id                     int NOT NULL auto_increment PRIMARY KEY,
-  name                   varchar(100) UNIQUE,
-  customer               int REFERENCES customer (id),
-  git_url                varchar(300),
-  subfolder              varchar(300),
-  active_systems_deploy  varchar(300),
-  active_systems_promote varchar(300),
-  active_systems_remove  varchar(300),
-  branches               varchar(300),
-  pullrequests           varchar(300),
-  production_environment varchar(100),
-  auto_idle              int(1) NOT NULL default 1,
-  storage_calc           int(1) NOT NULL default 1,
-  openshift              int REFERENCES openshift (id),
+  id                        int NOT NULL auto_increment PRIMARY KEY,
+  name                      varchar(100) UNIQUE,
+  customer                  int REFERENCES customer (id),
+  git_url                   varchar(300),
+  subfolder                 varchar(300),
+  active_systems_deploy     varchar(300),
+  active_systems_promote    varchar(300),
+  active_systems_remove     varchar(300),
+  branches                  varchar(300),
+  pullrequests              varchar(300),
+  production_environment    varchar(100),
+  auto_idle                 int(1) NOT NULL default 1,
+  storage_calc              int(1) NOT NULL default 1,
+  openshift                 int REFERENCES openshift (id),
   openshift_project_pattern varchar(300),
-  created                timestamp DEFAULT CURRENT_TIMESTAMP
+  created                   timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS environment (
@@ -95,14 +103,20 @@ CREATE TABLE IF NOT EXISTS project_notification (
   CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
 );
 
-CREATE TABLE IF NOT EXISTS customer_ssh_key (
-  cid int REFERENCES customer (id),
+CREATE TABLE IF NOT EXISTS user_ssh_key (
+  usid int REFERENCES user (id),
   skid int REFERENCES ssh_key (id),
-  CONSTRAINT customer_ssh_key_pkey PRIMARY KEY (cid, skid)
+  CONSTRAINT user_ssh_key_pkey PRIMARY KEY (usid, skid)
+)
+
+CREATE TABLE IF NOT EXISTS customer_user (
+  cid  int REFERENCES customer (id),
+  usid int REFERENCES user (id),
+  CONSTRAINT customer_user_pkey PRIMARY KEY (cid, usid)
 );
 
-CREATE TABLE IF NOT EXISTS project_ssh_key (
+CREATE TABLE IF NOT EXISTS project_user (
   pid int REFERENCES project (id),
-  skid int REFERENCES ssh_key (id),
-  CONSTRAINT project_ssh_key_pkey PRIMARY KEY (pid, skid)
+  usid int REFERENCES user (id),
+  CONSTRAINT project_user_pkey PRIMARY KEY (pid, usid)
 );
