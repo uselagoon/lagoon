@@ -50,7 +50,7 @@ const truncateTable = ({ sqlClient }) => async (cred, args) => {
 
   await query(sqlClient, prep(args));
 
-  // TODO: eventually check rows for success
+  // TODO: Check rows for success
   return 'success';
 };
 
