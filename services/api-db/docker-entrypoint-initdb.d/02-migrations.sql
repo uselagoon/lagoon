@@ -329,6 +329,14 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_legacy_pid_skid_view()
+
+  BEGIN
+    DROP VIEW IF EXISTS pid_skid;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -345,3 +353,4 @@ CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
 CALL add_openshift_project_pattern_to_project();
+CALL drop_legacy_pid_skid_view;
