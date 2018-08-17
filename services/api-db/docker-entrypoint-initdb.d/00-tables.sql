@@ -89,9 +89,9 @@ CREATE TABLE IF NOT EXISTS environment_storage (
 -- Junction Tables
 
 CREATE TABLE IF NOT EXISTS project_notification (
-  nid              int,
-  pid              int REFERENCES project (id),
-  type             ENUM('slack','rocketchat') NOT NULL,
+  nid      int,
+  pid      int REFERENCES project (id),
+  type     ENUM('slack','rocketchat') NOT NULL,
   CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
 );
 
