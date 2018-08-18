@@ -546,6 +546,7 @@ mutation FillAPI {
       customer: 4
       openshift: 3
       git_url: "git@github.com:amazeeio/lagoon.git"
+      openshift_project_pattern: "lagoon"
     }
   ) {
     id
