@@ -141,6 +141,18 @@ services:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/api:${SAFE_BRANCH:-master}
+  ui:
+    image: ${IMAGE_REPO:-lagoon}/ui
+    command: yarn run dev
+    volumes:
+      - ./services/ui:/app/services/ui
+      - ./node-packages:/app/node-packages:delegated
+    ports:
+      - "8888:3000"
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/ui/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/ui:${SAFE_BRANCH:-master}
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
