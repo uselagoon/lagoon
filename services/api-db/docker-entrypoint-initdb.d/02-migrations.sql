@@ -339,13 +339,13 @@ $$
 
 DELIMITER ;
 
-CALL add_production_environment_to_project;
-CALL add_ssh_to_openshift;
-CALL convert_project_pullrequest_to_varchar;
-CALL add_active_systems_promote_to_project;
-CALL rename_git_type_to_deploy_type_in_environment;
-CALL add_enum_promote_to_deploy_type_in_environment;
-CALL add_autoidle_to_project;
+CALL add_production_environment_to_project();
+CALL add_ssh_to_openshift();
+CALL convert_project_pullrequest_to_varchar();
+CALL add_active_systems_promote_to_project();
+CALL rename_git_type_to_deploy_type_in_environment();
+CALL add_enum_promote_to_deploy_type_in_environment();
+CALL add_autoidle_to_project();
 CALL add_enum_rocketchat_to_type_in_project_notification();
 CALL add_deleted_to_environment;
 CALL add_storagecalc_to_project();
@@ -353,4 +353,4 @@ CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
 CALL add_openshift_project_pattern_to_project();
-CALL drop_legacy_pid_skid_view;
+CALL drop_legacy_pid_skid_view();
