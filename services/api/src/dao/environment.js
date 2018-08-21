@@ -24,6 +24,29 @@ const Sql = {
       .toString(),
 };
 
+const getEnvironmentByName = ({ sqlClient }) => async (cred, args) => {
+  const { customers, projects } = cred.permissions;
+  const str = `
+      SELECT
+        *
+      FROM environment
+      WHERE name = :name
+      ${ifNotAdmin(
+    cred.role,
+    `AND (${inClauseOr([
+      ['customer', customers],
+      ['project.id', projects],
+    ])})`,
+  )}
+    `;
+
+  const prep = prepare(sqlClient, str);
+
+  const rows = await query(sqlClient, prep(args));
+
+  return rows[0];
+};
+
 const getEnvironmentsByProjectId = ({ sqlClient }) => async (
   cred,
   pid,
@@ -381,6 +404,7 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
 const Queries = {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
+  getEnvironmentByName,
   getEnvironmentByOpenshiftProjectName,
   getEnvironmentHoursMonthByEnvironmentId,
   getEnvironmentStorageByEnvironmentId,

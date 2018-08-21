@@ -198,6 +198,8 @@ const typeDefs = `
     storages: [EnvironmentStorage]
     storage_month(month: Date): EnvironmentStorageMonth
     hits_month(month: Date): EnviornmentHitsMonth
+    lagoon_route: String
+    lagoon_routes: String
   }
 
   type EnviornmentHitsMonth {
@@ -232,6 +234,7 @@ const typeDefs = `
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
+    environmentByName(name: String!, project: Int!): Environment
     environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
@@ -450,10 +453,14 @@ const typeDefs = `
     deploy_type: DeployType
     environment_type: EnvType
     openshift_projectname: String
+    lagoon_route: String
+    lagoon_routes: String
+    monitoring_urls: String
   }
 
   input UpdateEnvironmentInput {
     name: String!
+    id: Int!
     patch: UpdateEnvironmentPatchInput
   }
 
@@ -638,6 +645,10 @@ const resolvers = {
     projectByName: async (root, args, req) => {
       const dao = getDao(req);
       return dao.getProjectByName(req.credentials, args);
+    },
+    environmentByName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByName(req.credentials, args);
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
