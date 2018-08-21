@@ -487,3 +487,6 @@ CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
 CALL add_openshift_project_pattern_to_project();
+CALL rename_keyValue_to_key_value_in_ssh_key();
+CALL rename_keyType_to_key_type_in_ssh_key();
+CALL rename_openshift_projectname_in_environment();
