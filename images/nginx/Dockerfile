@@ -29,7 +29,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 RUN mkdir -p /app \
     && rm -f /etc/nginx/conf.d/default.conf \
-    && fix-permissions /usr/local/openresty/nginx/conf \
+    && fix-permissions /usr/local/openresty/nginx \
     && fix-permissions /var/run/
 
 COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint
