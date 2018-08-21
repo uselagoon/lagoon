@@ -673,13 +673,13 @@ const resolvers = {
       return dao.getAllOpenshifts(req.credentials, args);
     },
     // @TODO: check if we need these
-    // allUnassignedSshKeys: async (root, args, req) => {
-    //   const dao = getDao(req);
-    //   return dao.getUnassignedSshKeys(req.credentials);
-    // },
     // allSshKeys: async (root, args, req) => {
     //   const dao = getDao(req);
     //   return dao.getAllSshKeys(req.credentials);
+    // },
+    // allUnassignedSshKeys: async (root, args, req) => {
+    //   const dao = getDao(req);
+    //   return dao.getUnassignedSshKeys(req.credentials);
     // },
     // allUnassignedNotifications: async (root, args, req) => {
     //   const dao = getDao(req);
