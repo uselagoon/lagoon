@@ -7,9 +7,9 @@ const ifNotAdmin = (role, str) =>
 
 /**
   ATTENTION:
-  all those SQL-esque helpers like whereAnd, inClause, etc.
-  are subject to be obsolete. We are planning to migrate to
-  a dedicated SQL-builder lib (knex)
+  All of the SQL helpers below such as whereAnd,
+  inClause, etc. are obsolete. They should be migrated to our
+  dedicated SQL-builder lib (knex).
 * */
 
 // Creates a WHERE statement with AND inbetween non-empty conditions
@@ -21,7 +21,12 @@ const whereAnd = whereConds =>
       }
       return `${ret} AND ${str}`;
     }, ''),
-    R.filter(R.compose(R.not, R.isEmpty)),
+    R.filter(
+      R.compose(
+        R.not,
+        R.isEmpty,
+      ),
+    ),
   )(whereConds);
 
 // Creates an IN clause like this: $field IN (val1,val2,val3)
@@ -62,7 +67,10 @@ const query = (sqlClient, sql) =>
 // We use this just for consistency of the api calls
 const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
 
-const isPatchEmpty = R.compose(R.isEmpty, R.propOr({}, 'patch'));
+const isPatchEmpty = R.compose(
+  R.isEmpty,
+  R.propOr({}, 'patch'),
+);
 
 // Tells if a user tries to modify an sshKey in the given patch
 // payload

@@ -61,10 +61,10 @@ const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
     args.gitUrl ? 'git_url = :gitUrl' : '',
-    ifNotAdmin(
+    `(${ifNotAdmin(
       cred.role,
       inClauseOr([['customer', customers], ['project.id', projects]]),
-    ),
+    )})`,
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
