@@ -2199,14 +2199,14 @@
           "fields": null,
           "inputFields": [
             {
-              "name": "name",
+              "name": "id",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Int",
                   "ofType": null
                 }
               },

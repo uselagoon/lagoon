@@ -4,7 +4,7 @@ describe('Sql', () => {
   describe('updateEnvironment', () => {
     it('should create a proper query', () => {
       const input = {
-        name: 'e1',
+        id: 1,
         patch: {
           project: 1,
         },
@@ -15,7 +15,7 @@ describe('Sql', () => {
   });
   describe('selectEnvironment', () => {
     it('should create a proper query', () => {
-      const ret = Sql.selectEnvironmentByName('e1');
+      const ret = Sql.selectEnvironmentById(1);
       expect(ret).toMatchSnapshot();
     });
   });
