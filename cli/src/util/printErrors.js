@@ -6,21 +6,24 @@ import R from 'ramda';
 type Cerr = typeof console.error;
 type LaguError = { +message: string, +stack?: string };
 
-export function printErrors(cerr: Cerr, ...errors: Array<LaguError>): number {
+export function printErrors(
+  cerr: Cerr,
+  ...errors: Array<LaguError | string>
+): number {
   R.compose(
     R.forEach(cerr),
     R.map(red),
-    R.map(err =>
-      R.ifElse(
-        R.is(String),
-        R.identity,
-        R.propOr(
-          // ...otherwise, use the message property as a fallback
-          R.prop('message', err),
-          // Try to get the stack...
-          'stack',
-        ),
-      )(err),
+    R.map(
+      err =>
+        typeof err === 'string'
+          ? err
+          : R.propOr(
+            // ...otherwise, use the message property as a fallback
+            R.prop('message', err),
+            // Try to get the stack...
+            'stack',
+            err,
+          ),
     ),
   )(errors);
   return 1;
@@ -52,9 +55,10 @@ export function printGraphQLErrors(
         'No authentication token found. Please log in first with "lagoon login".\nOnline documentation: https://github.com/amazeeio/lagoon/blob/master/cli/README.md#lagoon-login',
     });
   }
-  const errorMessage =
-    R.length(errors) === 1
-      ? 'Oops! The Lagoon API returned an error:'
-      : 'Oops! The Lagoon API returned errors:';
-  return printErrors(cerr, { message: errorMessage }, ...errors);
+  const errorsPluralized = R.length(errors) === 1 ? 'an error' : 'errors';
+  return printErrors(
+    cerr,
+    `Oops! The Lagoon API returned ${errorsPluralized}:`,
+    ...errors,
+  );
 }

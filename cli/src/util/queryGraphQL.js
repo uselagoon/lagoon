@@ -77,7 +77,7 @@ QLQueryArgs): Object {
       // ...otherwise just return the error message
       R.prop('message'),
     )(err);
-    printErrors(cerr, { message: error });
+    printErrors(cerr, error);
     process.exit(1);
   }
 
