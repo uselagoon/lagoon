@@ -93,6 +93,8 @@ objects:
           volumeMounts:
           - mountPath: /fluentd/etc/
             name: config
+          - mountPath: /fluentd/buffer/
+            name: buffer
         volumes:
         - configMap:
             items:
@@ -100,6 +102,8 @@ objects:
               path: fluent.conf
             name: ${SERVICE_NAME}-config
           name: config
+        - emptyDir: {}
+          name: buffer
     triggers:
     - type: ConfigChange
 - apiVersion: v1
@@ -145,8 +149,15 @@ objects:
       <label @ELASTICSEARCH>
           <filter **>
             @type record_modifier
+            <replace>
+              # We run automated testing which creates project names in the form of e2e-0000000000-AAAAAAAAAAAAAAAAAAAAAAAAAA
+              # we just save them as with the project name 'e2'
+              key kubernetes.namespace_name
+              expression /^e2e-\d{10}-\S{26}$/
+              replace e2e
+            </replace>
             <record>
-              index_name container-logs-${record['kubernetes']['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
+              index_name container-logs-${record['kubernetes']['namespace_name']}-${Time.at(time).strftime("%G.%V")}
             </record>
           </filter>
 
@@ -159,15 +170,18 @@ objects:
             host logs-db
             port 9200
             target_index_key index_name
-            index_name container-logs-noproject-%Y.%m
+            index_name container-logs-noproject-%G.%V
             <buffer tag,time>
-              @type memory
+              @type file
+              path /fluentd/buffer/elasticsarch
               timekey 3600
               timekey_wait 0s
               flush_mode interval
               flush_interval 1s
-              chunk_limit_size 32MB
+              chunk_limit_size 256MB
+              total_limit_size 5GB
               flush_thread_count 8
+              overflow_action block
             </buffer>
             id_key viaq_msg_id
             remove_keys viaq_msg_id, viaq_index_name, kubernetes.master_url
