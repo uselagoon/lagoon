@@ -19,7 +19,7 @@ if (JWTSECRET == null) {
 
 if (JWTAUDIENCE == null) {
   logger.warn(
-    'No JWTAUDIENCE env variable set... this *might* cause api requests to fail',
+    'No JWTAUDIENCE env variable set... this may cause api requests to fail',
   );
 }
 

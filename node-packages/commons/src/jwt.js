@@ -65,8 +65,8 @@ const createJWT /* : Args => Promise<string> */ = async args =>
     // Sometimes we want some expiresIn values, if we don't know an exact payload.exp
     const options = expiresIn ? { expiresIn } : null;
 
-    // By passing an object, sign will add an issuer timestamp (iat)
-    // that means, the token hash will always be different on each creation
+    // By passing an object, sign will add an issued at timestamp (iat).
+    // Because of this, the token hash will be different for every call of this function.
     jwt.sign(payload, jwtSecret, options, (err, token) => {
       if (err) {
         rej(err);
@@ -89,8 +89,8 @@ const createJWTWithoutSshKey = (args /* :  Args */) /* : string */ => {
   // Sometimes we want some expiresIn values, if we don't know an exact payload.exp
   const options = expiresIn ? { expiresIn } : null;
 
-  // By passing an object, sign will add an issuer timestamp (iat)
-  // that means, the token hash will always be different on each creation
+  // By passing an object, sign will add an issued at timestamp (iat).
+  // Because of this, the token hash will be different for every call of this function.
   return jwt.sign(payload, jwtSecret, options);
 };
 

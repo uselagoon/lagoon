@@ -47,12 +47,12 @@ const notNaN = R.compose(
 
 const notEmptyOrNaN /* : Function */ = R.allPass([notEmpty, notNaN]);
 
-// input: comma separated string with ids (defaults to '' if null)
-// output: array of ids (as strings again..)
+// Input: Comma-separated string with ids (defaults to '' if null)
+// Output: Array of ids (as strings again..)
 const parseCommaSeparatedInts /* :  (?string) => Array<string> */ = R.compose(
-  // mariadb returns number ids as strings,...
-  // it's hard to compare ints with strings later on,
-  // so to stay compatible we keep the numbers as strings
+  // MariaDB returns number ids as strings. In order to avoid
+  // having to compare numbers with strings later on, this
+  // function casts them back to string.
   R.map(R.toString),
   R.filter(notEmptyOrNaN),
   R.map(strId => parseInt(strId)),
@@ -106,7 +106,7 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
   const ctx = req.app.get('context');
   const dao = ctx.dao;
 
-  // allow access to status withouth auth
+  // Allow access to status without auth
   if (req.url === '/status') {
     next();
     return;
@@ -139,7 +139,7 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
 
   try {
     if (decoded == null) {
-      throw new Error("Decoding token resulted in 'null' or 'undefined'");
+      throw new Error('Decoding token resulted in "null" or "undefined"');
     }
 
     const { sshKey, role = 'none', aud } = decoded;

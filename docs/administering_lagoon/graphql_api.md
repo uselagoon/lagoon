@@ -65,7 +65,7 @@ mutation addSSHKey {
 ```
 
 - `name` - Your identificator for this SSH Key, can by any string
-- `keyValue` - The actual SSH Public Key Value (withouth the type on front and no name at the end, so just something like `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`)
+- `keyValue` - The actual SSH Public Key Value (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`)
 - `keyType` - The type of the key, there are currently two types supported by Lagoon: `SSH_RSA` and `SSH_ED25519`
 
 After we added the key we can give this key access to either a single project or a whole customer, while access to a whole customer means that this SSH key has automatically access to all projects that are assigned to this customer.
