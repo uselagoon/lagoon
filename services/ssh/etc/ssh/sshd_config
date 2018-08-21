@@ -34,4 +34,3 @@ PermitUserEnvironment no
 #UseDNS yes
 PermitTunnel no
 Banner none
-UsePrivilegeSeparation yes
