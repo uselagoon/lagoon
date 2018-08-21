@@ -452,7 +452,8 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  rename_openshift_projectname_to_openshift_project_name_in_environment()
+  -- Rename environment.openshift_projectname to environment_openshift_project_name
+  rename_openshift_projectname_in_environment()
 
   BEGIN
 
@@ -485,4 +486,4 @@ CALL add_storagecalc_to_project();
 CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
-CALL add_openshift_project_pattern_to_project()
+CALL add_openshift_project_pattern_to_project();
