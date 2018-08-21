@@ -312,7 +312,8 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  rename_openshift_projectname_to_openshift_project_name_in_environment()
+  -- Rename environment.openshift_projectname to environment_openshift_project_name
+  rename_openshift_projectname_in_environment()
 
   BEGIN
     IF NOT EXISTS(
@@ -353,4 +354,7 @@ CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
 CALL add_openshift_project_pattern_to_project();
+CALL rename_keyValue_to_key_value_in_ssh_key();
+CALL rename_keyType_to_key_type_in_ssh_key();
+CALL rename_openshift_projectname_in_environment();
 CALL drop_legacy_pid_skid_view();
