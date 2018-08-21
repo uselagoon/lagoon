@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS user (
   email         varchar(100),
   first_name    varchar(50),
   last_name     varchar(50),
-  is_admin      int(1) NOT NULL default 1
+  comment       text
 );
 
 CREATE TABLE IF NOT EXISTS customer (

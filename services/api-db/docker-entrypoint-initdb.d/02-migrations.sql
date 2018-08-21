@@ -334,7 +334,113 @@ CREATE OR REPLACE PROCEDURE
   drop_legacy_pid_skid_view()
 
   BEGIN
-    DROP VIEW IF EXISTS pid_skid;
+    -- DROP VIEW IF EXISTS pid_skid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  create_users_for_orphaned_ssh_keys()
+
+  BEGIN
+    DECLARE ssh_key_id INT;
+    DECLARE ssh_key_name VARCHAR(100);
+    DECLARE user_comment TEXT;
+    DECLARE user_id INT;
+    DECLARE loop_done INTEGER DEFAULT 0;
+
+    -- Declare cursor to iterate over orphaned SSH keys (SSH keys which
+    -- have no matching entry in user_ssh_key junction table)
+    DECLARE orphaned_ssh_keys CURSOR FOR
+      SELECT ssh_key.id, ssh_key.name
+      FROM ssh_key
+      WHERE ssh_key.id NOT IN (
+        SELECT skid FROM user_ssh_key
+      );
+
+    -- When the next result is not found, stop the loop by setting loop_done variable
+    DECLARE CONTINUE HANDLER
+      FOR NOT FOUND SET loop_done = 1;
+
+    OPEN orphaned_ssh_keys;
+
+    insert_users_and_user_ssh_keys: LOOP
+      -- Fetch the current SSH key ID and name into variables
+      FETCH orphaned_ssh_keys INTO ssh_key_id, ssh_key_name;
+
+      IF loop_done = 1 THEN
+        LEAVE insert_users_and_user_ssh_keys;
+      END IF;
+
+      SET user_comment = CONCAT(
+        'User automatically migrated from SSH key with name "',
+        ssh_key_name,
+        '".'
+      );
+
+      -- Create a user
+      INSERT INTO user(
+        email,
+        first_name,
+        last_name,
+        comment
+      )
+      VALUES (
+        'auto-migrated-user@example.com',
+        'auto-migrated-user',
+        'auto-migrated-user',
+        user_comment
+      );
+
+      -- Select the id of that user and then create a row in the user_ssh_key junction table
+      SELECT id INTO user_id FROM user WHERE comment = user_comment;
+      INSERT INTO user_ssh_key(usid, skid) VALUES(user_id, ssh_key_id);
+
+      -- Copy SSH key customer permissions to new customer_user junction table
+      IF EXISTS (
+        SELECT NULL
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE
+          table_name = 'customer_ssh_key'
+          AND table_schema = 'infrastructure'
+      ) THEN
+        INSERT INTO customer_user(cid, usid)
+        SELECT customer_ssh_key.cid, user_id
+        FROM customer_ssh_key
+        WHERE customer_ssh_key.skid = ssh_key_id;
+      END IF;
+
+      -- Copy SSH key project permissions to new project_user junction table
+      IF EXISTS (
+        SELECT NULL
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE
+          table_name = 'project_ssh_key'
+          AND table_schema = 'infrastructure'
+      ) THEN
+        INSERT INTO project_user(pid, usid)
+        SELECT project_ssh_key.pid, user_id
+        FROM project_ssh_key
+        WHERE project_ssh_key.skid = ssh_key_id;
+      END IF;
+    END LOOP insert_users_and_user_ssh_keys;
+
+    CLOSE orphaned_ssh_keys;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_legacy_customer_ssh_key_junction_table()
+
+  BEGIN
+    -- DROP TABLE IF EXISTS customer_ssh_key;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_legacy_project_ssh_key_junction_table()
+
+  BEGIN
+    -- DROP TABLE IF EXISTS project_ssh_key;
   END;
 $$
 
@@ -358,3 +464,6 @@ CALL rename_keyValue_to_key_value_in_ssh_key();
 CALL rename_keyType_to_key_type_in_ssh_key();
 CALL rename_openshift_projectname_in_environment();
 CALL drop_legacy_pid_skid_view();
+CALL create_users_for_orphaned_ssh_keys();
+CALL drop_legacy_customer_ssh_key_junction_table();
+CALL drop_legacy_project_ssh_key_junction_table();
