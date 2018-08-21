@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS user_ssh_key (
   usid int REFERENCES user (id),
   skid int REFERENCES ssh_key (id),
   CONSTRAINT user_ssh_key_pkey PRIMARY KEY (usid, skid)
-)
+);
 
 CREATE TABLE IF NOT EXISTS customer_user (
   cid  int REFERENCES customer (id),
