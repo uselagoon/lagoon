@@ -104,6 +104,7 @@ As soon as Lagoon is done building and deploying it will send a second notificat
 ![Deployment in Slack Success](/images/first_deployment_slack_success.jpg)
 
 It tells you:
+
 - Which project has been deployed
 - Which branch and Git sha has been deployed
 - A link to the full Logs of the Build and Deployment
