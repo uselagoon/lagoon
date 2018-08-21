@@ -36,16 +36,16 @@ const decodeToken = (
   }
 };
 
-const notEmpty = R.compose(
-  R.not,
-  R.isEmpty,
-);
-const notNaN = R.compose(
-  R.not,
-  R.equals(NaN),
-);
-
-const notEmptyOrNaN /* : Function */ = R.allPass([notEmpty, notNaN]);
+const notEmptyOrNaN /* : Function */ = R.allPass([
+  R.compose(
+    R.not,
+    R.isEmpty,
+  ),
+  R.compose(
+    R.not,
+    R.equals(NaN),
+  ),
+]);
 
 // Input: Comma-separated string with ids (defaults to '' if null)
 // Output: Array of ids (as strings again..)
@@ -93,16 +93,10 @@ type CreateAuthMiddlewareFn =
 
 */
 
-const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
-  req,
-  res,
-  next,
-) => {
-  const {
-    // baseUri,
-    jwtSecret,
-    jwtAudience,
-  } = args;
+const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
+  jwtSecret,
+  jwtAudience,
+}) => async (req, res, next) => {
   const ctx = req.app.get('context');
   const dao = ctx.dao;
 
@@ -126,11 +120,12 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
   try {
     decoded = decodeToken(token, jwtSecret);
   } catch (e) {
-    logger.debug(`Error while decoding auth token: ${e.message}`);
+    const errorMessage = `Error while decoding auth token: ${e.message}`;
+    logger.debug(errorMessage);
     res.status(500).send({
       errors: [
         {
-          message: `Error while decoding auth token: ${e.message}`,
+          message: errorMessage,
         },
       ],
     });
