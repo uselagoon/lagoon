@@ -5,7 +5,7 @@ import type { Project } from './types';
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 const R = require('ramda');
-const { createJWTWithoutSshKey } = require('./jwt');
+const { createJWTWithoutUserId } = require('./jwt');
 const { logger } = require('./local-logging');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
@@ -23,7 +23,7 @@ if (JWTAUDIENCE == null) {
   );
 }
 
-const apiAdminToken = createJWTWithoutSshKey({
+const apiAdminToken = createJWTWithoutUserId({
   payload: {
     role: 'admin',
     iss: 'lagoon-commons',

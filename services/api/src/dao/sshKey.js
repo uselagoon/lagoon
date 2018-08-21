@@ -1,4 +1,5 @@
 const R = require('ramda');
+const sshpk = require('sshpk');
 const {
   ifNotAdmin,
   inClause,
@@ -9,12 +10,23 @@ const {
   query,
   hasSshKeyPatch,
 } = require('./utils');
-const { validateSshKey } = require('@lagoon/commons/src/jwt');
 
 const { getProjectIdByName } = require('./project').Helpers;
 const { getCustomerIdByName } = require('./customer').Helpers;
 
 const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
+
+const validateSshKey = (key /* : string */) /* : boolean */ => {
+  // Validate the format of the ssh key. This fails with an exception
+  // if the key is invalid. We are not actually interested in the
+  // result of the parsing and just use this for validation.
+  try {
+    sshpk.parseKey(key, 'ssh');
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 const Sql = {
   allowedToModify: (cred, id) => {
@@ -379,4 +391,5 @@ const Queries = {
 module.exports = {
   Sql,
   Queries,
+  validateSshKey,
 };

@@ -32,7 +32,7 @@ const { ifNotAdmin, query, prepare } = require('./utils');
 const getPermissions = ({ sqlClient }) => async (args) => {
   const prep = prepare(
     sqlClient,
-    'SELECT key_id as sshKeyId, projects, customers FROM permission WHERE ssh_key = :ssh_key',
+    'SELECT user_id, projects, customers FROM permission WHERE user_id = :user_id',
   );
   const rows = await query(sqlClient, prep(args));
 

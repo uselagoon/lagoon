@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Open a remote shell session to a container
+
 # takes arguments:
 # $1: API JWT Admin Token
 # $2: ssh public key of the connecting user
@@ -30,7 +32,7 @@ fi
 ##
 ## Check if this user has access to this OpenShift project by using an API token of that user
 ##
-TOKEN=$(./token.sh "$USER_SSH_KEY")
+TOKEN=$(./token.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY")
 BEARER="Authorization: bearer $TOKEN"
 GRAPHQL="query getEnvironmentByOpenshiftProjectName {
   environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {

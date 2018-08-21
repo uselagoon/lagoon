@@ -16,7 +16,7 @@ shift 1
 
 case $ACTION in
   'token')
-    ./token.sh "$USER_SSH_KEY"
+    ./token.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
     ;;
 
   'rsh')

@@ -27,7 +27,7 @@ const parseBearerToken = R.compose(
 const decodeToken = (
   token,
   secret,
-) /* : ?{aud: string, role: string, sshKey: string} */ => {
+) /* : ?{aud: string, role: string, userId: number} */ => {
   try {
     const decoded = jwt.verify(token, secret);
     return decoded;
@@ -137,7 +137,7 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
       throw new Error('Decoding token resulted in "null" or "undefined"');
     }
 
-    const { sshKey, role = 'none', aud } = decoded;
+    const { userId, role = 'none', aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
       logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
@@ -147,23 +147,27 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
       return;
     }
 
-    // We need this, since non-admin credentials are required to have an ssh-key
+    // We need this, since non-admin credentials are required to have an user id
     let nonAdminCreds = {};
 
     if (role !== 'admin') {
-      const rawPermissions = await dao.getPermissions({ sshKey });
+      const rawPermissions = await dao.getPermissions({ userId });
 
       if (rawPermissions == null) {
-        res
-          .status(401)
-          .send({ errors: [{ message: 'Unauthorized - Unknown SSH key' }] });
+        res.status(401).send({
+          errors: [
+            {
+              message: `Unauthorized - No permissions for user id ${userId}`,
+            },
+          ],
+        });
         return;
       }
 
       const permissions = parsePermissions(rawPermissions);
 
       nonAdminCreds = {
-        sshKey,
+        userId,
         permissions, // for read & write
       };
     }

@@ -9,7 +9,7 @@ require('dotenv-extended').load({
   defaults: path.join(__dirname, '..', '..', '.env.defaults'),
 });
 
-const { createJWTWithoutSshKey } = require('@lagoon/commons/src/jwt');
+const { createJWTWithoutUserId } = require('@lagoon/commons/src/jwt');
 
 const {
   buildClientSchema,
@@ -28,7 +28,7 @@ const payload = {
   role: 'admin',
 };
 
-const jwt = createJWTWithoutSshKey({
+const jwt = createJWTWithoutUserId({
   payload,
   jwtSecret,
 });
