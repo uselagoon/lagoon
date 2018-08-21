@@ -1,10 +1,10 @@
 mutation FillAPI {
   #### First making sure we clean the API
   truncateCustomers: truncateTable(tableName: "customer")
-  truncateCustomerSshKeys: truncateTable(tableName: "customer_ssh_key")
+  truncateCustomerUsers: truncateTable(tableName: "customer_user")
   truncateOpenshifts: truncateTable(tableName: "openshift")
   truncateProjects: truncateTable(tableName: "project")
-  truncateProjectSshKeys: truncateTable(tableName: "project_ssh_key")
+  truncateProjectUsers: truncateTable(tableName: "project_user")
   truncateNotificationSlack: truncateTable(tableName: "notification_slack")
   truncateNotificationRocketChats: truncateTable(
     tableName: "notification_rocketchat"
