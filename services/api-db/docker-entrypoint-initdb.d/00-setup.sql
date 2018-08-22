@@ -71,6 +71,9 @@ CREATE TABLE IF NOT EXISTS environment (
        deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
        environment_type       ENUM('production', 'development') NOT NULL,
        openshift_projectname  varchar(100),
+       lagoon_route           varchar(300),
+       lagoon_routes          text,
+       monitoring_urls        text,
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
        deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -409,6 +412,27 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_routes_monitoring_urls_to_environments()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'environment'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'lagoon_route'
+            )  THEN
+      ALTER TABLE `environment` ADD `lagoon_route`    varchar(300);
+      ALTER TABLE `environment` ADD `lagoon_routes`   text;
+      ALTER TABLE `environment` ADD `monitoring_urls` text;
+
+    END IF;
+
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project;
@@ -424,4 +448,5 @@ CALL add_storagecalc_to_project();
 CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
-CALL add_openshift_project_pattern_to_project()
+CALL add_openshift_project_pattern_to_project();
+CALL add_routes_monitoring_urls_to_environments();

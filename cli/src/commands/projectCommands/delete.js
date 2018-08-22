@@ -5,14 +5,12 @@ import inquirer from 'inquirer';
 import R from 'ramda';
 
 import { answerWithOptionIfSetOrPrompt } from '../../cli/answerWithOption';
-import { config } from '../../config';
-import gql from '../../gql';
-import { printGraphQLErrors, printErrors } from '../../printErrors';
-import { runGQLQuery } from '../../query';
-import { getOptions } from '..';
+import gql from '../../util/gql';
+import { printGraphQLErrors, printErrors } from '../../util/printErrors';
+import { queryGraphQL } from '../../util/queryGraphQL';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '..';
+import type { CommandHandlerArgsWithOptions } from '../../types/Command';
 
 export const command = 'delete';
 export const description = 'Delete a project';
@@ -39,7 +37,6 @@ export function builder(yargs: Yargs): Yargs {
         demandOption: false,
         describe: 'Name of project',
         type: 'string',
-        alias: 'p',
       },
     })
     .example(`$0 ${command}`, 'Delete a project (will prompt for project name)')
@@ -72,24 +69,17 @@ PromptForQueryOptionsArgs): Promise<Options> {
   ]);
 }
 
-type ProjectDetailsArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-  options: OptionalOptions,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function deleteProject({
-  clog,
-  cerr,
-  options,
-}:
-ProjectDetailsArgs): Promise<number> {
+export async function handler({ clog, cerr, options }: Args): Promise<number> {
   const { project: projectName } = await promptForQueryOptions({
     options,
     clog,
   });
 
-  const result = await runGQLQuery({
+  const result = await queryGraphQL({
     cerr,
     query: gql`
       mutation DeleteProject($input: DeleteProjectInput!) {
@@ -119,20 +109,4 @@ ProjectDetailsArgs): Promise<number> {
   clog(green(`Project "${projectName}" deleted successfully!`));
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getOptions({
-    config,
-    argv,
-    commandOptions,
-    dynamicOptionKeys: [PROJECT],
-  });
-  return deleteProject({ clog, cerr, options });
 }

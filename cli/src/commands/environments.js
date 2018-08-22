@@ -1,72 +1,75 @@
 // @flow
 
-import { table } from 'table';
 import R from 'ramda';
-
-import { config } from '../config';
-import gql from '../gql';
-import { runGQLQuery } from '../query';
+import format from '../util/format';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
 import {
   printGraphQLErrors,
   printProjectConfigurationError,
-} from '../printErrors';
+} from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'environments';
 export const description = 'Show environment details for a given project';
+
+const PROJECT: 'project' = 'project';
+
+export const commandOptions = {
+  [PROJECT]: PROJECT,
+};
 
 export function builder(yargs: Yargs): Yargs {
   return yargs
     .usage(`$0 ${command} - ${description}`)
     .options({
-      project: {
+      [PROJECT]: {
         demandOption: false,
         describe: 'Name of project',
         type: 'string',
       },
     })
-    .alias('p', 'project')
     .example(
       `$0 ${command}`,
       'Show environments for the project configured in .lagoon.yml',
     )
     .example(
-      `$0 ${command} -p myproject`,
+      `$0 ${command} --${PROJECT} myproject`,
       'Show environments of project "myproject"',
     );
 }
 
-type projectDetailsArgs = {
-  projectName: string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function listEnvironments({
-  projectName,
+export async function handler({
+  options: { project: projectName },
   clog,
   cerr,
 }:
-projectDetailsArgs): Promise<number> {
-  const query = gql`
-    query ProjectByName($project: String!) {
-      projectByName(name: $project) {
-        environments {
-          name
-          environment_type
-          deploy_type
-          created
-          updated
+Args): Promise<number> {
+  if (projectName == null) {
+    return printProjectConfigurationError(cerr);
+  }
+
+  const result = await queryGraphQL({
+    cerr,
+    query: gql`
+      query ProjectByName($project: String!) {
+        projectByName(name: $project) {
+          environments {
+            name
+            environment_type
+            deploy_type
+            created
+            updated
+          }
         }
       }
-    }
-  `;
-
-  const result = await runGQLQuery({
-    cerr,
-    query,
+    `,
     variables: { project: projectName },
   });
 
@@ -90,8 +93,8 @@ projectDetailsArgs): Promise<number> {
   }
 
   clog(
-    table([
-      ['Name', 'Environmment Type', 'Deploy Type', 'Created', 'Updated'],
+    format([
+      ['Name', 'Environment Type', 'Deploy Type', 'Created', 'Updated'],
       ...R.map(
         environment => [
           environment.name,
@@ -106,20 +109,4 @@ projectDetailsArgs): Promise<number> {
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const projectName = R.prop('project', argv) || R.prop('project', config);
-
-  if (projectName == null) {
-    return printProjectConfigurationError(cerr);
-  }
-
-  return listEnvironments({ projectName, clog, cerr });
 }
