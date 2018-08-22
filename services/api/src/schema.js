@@ -200,6 +200,7 @@ const typeDefs = `
     hits_month(month: Date): EnviornmentHitsMonth
     lagoon_route: String
     lagoon_routes: String
+    monitoring_urls: String
   }
 
   type EnviornmentHitsMonth {
