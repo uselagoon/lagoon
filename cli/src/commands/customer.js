@@ -1,78 +1,81 @@
 // @flow
 
-import { table } from 'table';
 import { red } from 'chalk';
 import R from 'ramda';
-
-import { config } from '../config';
-import gql from '../gql';
-import { runGQLQuery } from '../query';
+import format from '../util/format';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
 import {
   printProjectConfigurationError,
   printGraphQLErrors,
-} from '../printErrors';
+} from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'customer';
 export const description = 'Show customer details for a given project name';
+
+const PROJECT: 'project' = 'project';
+
+export const commandOptions = {
+  [PROJECT]: PROJECT,
+};
 
 export function builder(yargs: Yargs) {
   return yargs
     .usage(`$0 ${command} - ${description}`)
     .options({
-      project: {
+      [PROJECT]: {
         demandOption: false,
         describe: 'Specify a project for the customer',
         type: 'string',
       },
     })
-    .alias('p', 'project')
     .example(
       `$0 ${command}`,
       'Show customer details for the project configured in .lagoon.yml',
     )
     .example(
-      `$0 ${command} -p myproject`,
+      `$0 ${command} --${PROJECT} myproject`,
       'Show customer details for the project "myproject"',
     );
 }
 
-type GetCustomerDetailsArgs = {
-  project: string,
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function getCustomerDetails({
-  project,
+export async function handler({
+  options: { project },
   clog,
   cerr,
 }:
-GetCustomerDetailsArgs): Promise<number> {
-  const query = gql`
-    query CustomerByProjectName($project: String!) {
-      projectByName(name: $project) {
-        customer {
-          name
-          comment
-          private_key
-          sshKeys {
+Args): Promise<number> {
+  if (project == null) {
+    return printProjectConfigurationError(cerr);
+  }
+
+  const result = await queryGraphQL({
+    cerr,
+    query: gql`
+      query CustomerByProjectName($project: String!) {
+        projectByName(name: $project) {
+          customer {
             name
-            keyValue
-            keyType
+            comment
+            private_key
+            sshKeys {
+              name
+              keyValue
+              keyType
+              created
+            }
             created
           }
-          created
         }
       }
-    }
-  `;
-
-  const result = await runGQLQuery({
-    cerr,
-    query,
+    `,
     variables: { project },
   });
 
@@ -97,36 +100,17 @@ GetCustomerDetailsArgs): Promise<number> {
 
   clog(`Customer details for project '${project}':`);
   clog(
-    table([
-      ['Name', R.prop('name', customer)],
-      ['Comment', R.prop('comment', customer)],
+    format([
+      ['Name', 'Comment', 'Deploy Private Key', 'SSH Key', 'Created'],
       [
-        'Deploy Private Key',
+        R.prop('name', customer),
+        String(R.prop('comment', customer)),
         formatDeployPrivateKey(R.prop('private_key', customer)),
-      ],
-      [
-        'SSH Keys',
         R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
+        R.prop('created', customer),
       ],
-      ['Created', R.prop('created', customer)],
     ]),
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ argv, clog, cerr }: Args): Promise<number> {
-  const project: ?string = R.prop('project', argv) || R.prop('project', config);
-
-  if (project == null) {
-    return printProjectConfigurationError(cerr);
-  }
-
-  return getCustomerDetails({ project, clog, cerr });
 }

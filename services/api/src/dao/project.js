@@ -63,7 +63,7 @@ const getAllProjects = ({ sqlClient }) => async (cred, args) => {
     args.gitUrl ? 'git_url = :gitUrl' : '',
     ifNotAdmin(
       cred.role,
-      inClauseOr([['customer', customers], ['project.id', projects]]),
+      `(${inClauseOr([['customer', customers], ['project.id', projects]])})`,
     ),
   ]);
 

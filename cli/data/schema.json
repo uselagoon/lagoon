@@ -416,11 +416,11 @@
         {
           "kind": "OBJECT",
           "name": "Project",
-          "description": "",
+          "description": "Lagoon Project (like a git repository)",
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "ID of project",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -432,7 +432,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "Name of project",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -444,7 +444,7 @@
             },
             {
               "name": "customer",
-              "description": "",
+              "description": "Reference to customer object",
               "args": [],
               "type": {
                 "kind": "OBJECT",
@@ -456,7 +456,7 @@
             },
             {
               "name": "git_url",
-              "description": "",
+              "description": "Git URL, needs to be SSH Git URL in one of these two formats\n- git@192.168.99.1/project1.git\n- ssh://git@192.168.99.1:2222/project1.git",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -468,7 +468,7 @@
             },
             {
               "name": "subfolder",
-              "description": "",
+              "description": "Set if the .lagoon.yml should be found in a subfolder\nUsefull if you have multiple Lagoon projects per Git Repository",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -480,7 +480,7 @@
             },
             {
               "name": "notifications",
-              "description": "",
+              "description": "Notifications that should be sent for this project",
               "args": [
                 {
                   "name": "type",
@@ -507,7 +507,7 @@
             },
             {
               "name": "active_systems_deploy",
-              "description": "",
+              "description": "Which internal Lagoon System is responsible for deploying\nCurrently only 'lagoon_openshiftBuildDeploy' exists",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -519,7 +519,7 @@
             },
             {
               "name": "active_systems_promote",
-              "description": "",
+              "description": "Which internal Lagoon System is responsible for promoting\nCurrently only 'lagoon_openshiftBuildDeploy' exists",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -531,7 +531,7 @@
             },
             {
               "name": "active_systems_remove",
-              "description": "",
+              "description": "Which internal Lagoon System is responsible for promoting\nCurrently only 'lagoon_openshiftRemove' exists",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -543,7 +543,19 @@
             },
             {
               "name": "branches",
-              "description": "",
+              "description": "Which branches should be deployed, can be one of:\n- `true` - all branches are deployed\n- `false` - no branches are deployed\n- REGEX - regex of all branches that should be deployed, example: `^(master|staging)$`",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "pullrequests",
+              "description": "Which Pull Requests should be deployed, can be one of:\n- `true` - all pull requests are deployed\n- `false` - no pull requests are deployed\n- REGEX - regex of all Pull Request titles that should be deployed, example: `[BUILD]`",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -555,7 +567,7 @@
             },
             {
               "name": "production_environment",
-              "description": "",
+              "description": "Which environment(the name) should be marked as the production environment.\n*Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -567,7 +579,7 @@
             },
             {
               "name": "auto_idle",
-              "description": "",
+              "description": "Should this project have auto idling enabled (`1` or `0`)",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -579,7 +591,7 @@
             },
             {
               "name": "storage_calc",
-              "description": "",
+              "description": "Should storage for this environment be calculated (`1` or `0`)",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -590,20 +602,8 @@
               "deprecationReason": null
             },
             {
-              "name": "pullrequests",
-              "description": "",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "openshift",
-              "description": "",
+              "description": "Reference to OpenShift Object this Project should be deployed to",
               "args": [],
               "type": {
                 "kind": "OBJECT",
@@ -615,7 +615,7 @@
             },
             {
               "name": "openshift_project_pattern",
-              "description": "",
+              "description": "Pattern of OpenShift Project/Namespace that should be generated, default: `${project}-${environmentname}`",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -627,7 +627,7 @@
             },
             {
               "name": "sshKeys",
-              "description": "",
+              "description": "Which Developer SSH keys should have access to this project",
               "args": [],
               "type": {
                 "kind": "LIST",
@@ -643,11 +643,11 @@
             },
             {
               "name": "environments",
-              "description": "",
+              "description": "Deployed Environments for this Project",
               "args": [
                 {
                   "name": "type",
-                  "description": "",
+                  "description": "Filter by Environment Type",
                   "type": {
                     "kind": "ENUM",
                     "name": "EnvType",
@@ -657,7 +657,7 @@
                 },
                 {
                   "name": "include_deleted",
-                  "description": "",
+                  "description": "Include deleted Environments (by default deleted environment are hidden)",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Boolean",
@@ -680,7 +680,7 @@
             },
             {
               "name": "created",
-              "description": "",
+              "description": "Creation Timestamp of Project",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2199,14 +2199,14 @@
           "fields": null,
           "inputFields": [
             {
-              "name": "name",
+              "name": "id",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Int",
                   "ofType": null
                 }
               },

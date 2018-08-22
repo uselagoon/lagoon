@@ -1,6 +1,28 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`createProject should display error, if GraphQL response contains zero customers 1`] = `
+exports[`getAllowedCustomersAndOpenshifts should return all customers and all openshifts 1`] = `
+Object {
+  "allCustomers": Array [
+    Object {
+      "name": "credentialtest-customer1",
+      "value": 1,
+    },
+    Object {
+      "name": "credentialtest-customer2",
+      "value": 2,
+    },
+  ],
+  "allOpenshifts": Array [
+    Object {
+      "name": "credentialtest-openshift",
+      "value": 1,
+    },
+  ],
+  "errors": undefined,
+}
+`;
+
+exports[`handler should display error, if GraphQL response contains zero customers 1`] = `
 Array [
   Array [
     "[31mNo authorized customers found![39m",
@@ -8,7 +30,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display error, if GraphQL response contains zero openshifts but one customer 1`] = `
+exports[`handler should display error, if GraphQL response contains zero openshifts but one customer 1`] = `
 Array [
   Array [
     "[31mNo authorized openshifts found![39m",
@@ -16,10 +38,10 @@ Array [
 ]
 `;
 
-exports[`createProject should display error, if GraphQL sends error messages the first time it's called 1`] = `
+exports[`handler should display error, if GraphQL sends error messages the first time it's called 1`] = `
 Array [
   Array [
-    "[31mOops! The lagoon API returned an error:[39m",
+    "[31mOops! The Lagoon API returned an error:[39m",
   ],
   Array [
     "[31msomething something error[39m",
@@ -27,10 +49,10 @@ Array [
 ]
 `;
 
-exports[`createProject should display error, if GraphQL sends error messages the second time it's called 1`] = `
+exports[`handler should display error, if GraphQL sends error messages the second time it's called 1`] = `
 Array [
   Array [
-    "[31mOops! The lagoon API returned an error:[39m",
+    "[31mOops! The Lagoon API returned an error:[39m",
   ],
   Array [
     "[31msomething something error 2[39m",
@@ -38,7 +60,7 @@ Array [
 ]
 `;
 
-exports[`createProject should display table after successful project creation 1`] = `
+exports[`handler should display table after successful project creation 1`] = `
 Array [
   Array [
     "[34m![39m Set \\"customer\\" option to \\"1\\" from arguments or config",
@@ -65,48 +87,15 @@ Array [
     "[32mProject \\"test-project\\" created successfully:[39m",
   ],
   Array [
-    "╔═══════════════════════╤══════════════════════════════════════════════╗
-║ Project Name          │ test-project                                 ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Customer              │ credentialtest-customer1                     ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Git URL               │ ssh://git@192.168.99.1:2222/git/project1.git ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Active Systems Deploy │ lagoon_openshiftBuildDeploy                  ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Active Systems Remove │ lagoon_openshiftRemove                       ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Branches              │ true                                         ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Pull Requests         │ true                                         ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Openshift             │                                              ║
-╟───────────────────────┼──────────────────────────────────────────────╢
-║ Created               │ 2018-03-05 10:26:22                          ║
-╚═══════════════════════╧══════════════════════════════════════════════╝
-",
+    "[38;2;132;132;132mName[39m                   test-project
+[38;2;132;132;132mCustomer[39m               credentialtest-customer1
+[38;2;132;132;132mGit URL[39m                ssh://git@192.168.99.1:2222/git/project1.git
+[38;2;132;132;132mActive Systems Deploy[39m  lagoon_openshiftBuildDeploy
+[38;2;132;132;132mActive Systems Remove[39m  lagoon_openshiftRemove
+[38;2;132;132;132mBranches[39m               true
+[38;2;132;132;132mPull Requests[39m          true
+[38;2;132;132;132mOpenshift[39m              credentialtest-openshift
+[38;2;132;132;132mCreated[39m                2018-03-05 10:26:22",
   ],
 ]
-`;
-
-exports[`getAllowedCustomersAndOpenshifts should return all customers and all openshifts 1`] = `
-Object {
-  "allCustomers": Array [
-    Object {
-      "name": "credentialtest-customer1",
-      "value": 1,
-    },
-    Object {
-      "name": "credentialtest-customer2",
-      "value": 2,
-    },
-  ],
-  "allOpenshifts": Array [
-    Object {
-      "name": "credentialtest-openshift",
-      "value": 1,
-    },
-  ],
-  "errors": undefined,
-}
 `;
