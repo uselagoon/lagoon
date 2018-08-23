@@ -1,13 +1,16 @@
 import 'isomorphic-unfetch';
 import App, { Container } from 'next/app'
 import React from 'react'
+import getConfig from 'next/config'
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
 
+const {serverRuntimeConfig, publicRuntimeConfig} = getConfig()
+
 const client = new ApolloClient({
-  uri: 'http://localhost:3000/graphql',
+  uri: publicRuntimeConfig.API,
   headers: {
-    authorization: 'Bearer {token}',
+    authorization: `Bearer ${publicRuntimeConfig.API_TOKEN}`,
   },
 });
 

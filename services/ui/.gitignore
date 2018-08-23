@@ -3,3 +3,6 @@ node_modules
 
 #artifacts
 .next
+
+#environment
+.env
