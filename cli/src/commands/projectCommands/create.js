@@ -368,11 +368,11 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
   }
 
   if (!allCustomers || R.equals(R.length(allCustomers), 0)) {
-    return printErrors(cerr, { message: 'No authorized customers found!' });
+    return printErrors(cerr, 'No authorized customers found!');
   }
 
   if (!allOpenshifts || R.equals(R.length(allOpenshifts), 0)) {
-    return printErrors(cerr, { message: 'No authorized openshifts found!' });
+    return printErrors(cerr, 'No authorized openshifts found!');
   }
 
   const projectInput = await promptForProjectInput(

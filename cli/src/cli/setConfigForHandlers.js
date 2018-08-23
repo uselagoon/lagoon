@@ -57,7 +57,7 @@ export function setConfigForHandlers(cmd: CommandModule) {
             .catch((err) => {
               const exitCode = printErrors(
                 console.error,
-                { message: `Uncaught error in ${cmd.command} command:` },
+                `Uncaught error in ${cmd.command} command:`,
                 err,
               );
               process.exit(exitCode);
