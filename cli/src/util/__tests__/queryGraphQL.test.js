@@ -1,33 +1,34 @@
 // @flow
 
-import request from '../util/request';
+import { queryGraphQL } from '../queryGraphQL';
+import request from '../request';
 
-import * as allConfigExports from '../config';
-import * as allApiConfigExports from '../config/getApiConfig';
-import { runGQLQuery } from '../query';
+import * as allConfigExports from '../../config';
+import * as allApiConfigExports from '../../config/getApiConfig';
 
-jest.mock('../util/request');
+jest.mock('../request');
 
-jest.mock('../util/fs', () => ({
+jest.mock('../fs', () => ({
   fileExists: jest.fn(async () => true),
   readFile: jest.fn(async () => 'TOKEN'),
 }));
 
 // Flow does not know which objects are actual mocks
 // this function casts given parameter to JestMockFn
-const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
-describe('runGQLQuery', () => {
+describe('queryGraphQL', () => {
   it('should reject because of missing hostname', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
-    allConfigExports.config = {
+    allConfigExports.getConfig = () => ({
       api: 'invalid-url',
-    };
+      format: 'table',
+    });
 
-    const mockedRequest = _mock(request);
+    const mockedRequest = _castMockForFlow(request);
 
     try {
-      await runGQLQuery({
+      await queryGraphQL({
         cerr: jest.fn(),
         query: '',
       });
@@ -48,13 +49,15 @@ describe('runGQLQuery', () => {
 
   it('should do a POST request via GraphQL', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
-    allConfigExports.config = null;
+    allConfigExports.getConfig = () => ({
+      format: 'table',
+    });
 
-    const mockedRequest = _mock(request).mockImplementationOnce(() =>
+    const mockedRequest = _castMockForFlow(request).mockImplementationOnce(() =>
       Promise.resolve({ data: 'data' }),
     );
 
-    const result = await runGQLQuery({
+    const result = await queryGraphQL({
       cerr: jest.fn(),
       query: 'test',
     });
@@ -66,6 +69,7 @@ describe('runGQLQuery', () => {
       hostname: 'api.lagoon.amazeeio.cloud',
       path: '/graphql',
       port: 443,
+      protocol: 'https:',
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -83,16 +87,21 @@ describe('runGQLQuery', () => {
 
   it('should do a POST request to a custom API via GraphQL', async () => {
     // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
+    allConfigExports.getConfig = () => ({
+      format: 'table',
+    });
+
+    // $FlowFixMe Jest can mutate exports https://stackoverflow.com/a/42979724/1268612
     allApiConfigExports.getApiConfig = () => ({
       hostname: 'www.example.com',
       port: 443,
     });
 
-    const mockedRequest = _mock(request).mockImplementationOnce(() =>
+    const mockedRequest = _castMockForFlow(request).mockImplementationOnce(() =>
       Promise.resolve({ data: 'data' }),
     );
 
-    const result = await runGQLQuery({
+    const result = await queryGraphQL({
       cerr: jest.fn(),
       query: 'test',
     });
@@ -104,6 +113,7 @@ describe('runGQLQuery', () => {
       hostname: 'www.example.com',
       path: '/graphql',
       port: 443,
+      protocol: 'https:',
       method: 'POST',
       headers: {
         Accept: 'application/json',

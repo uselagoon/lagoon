@@ -1,10 +1,10 @@
 // @flow
 
 import R from 'ramda';
-import { config, configDefaults } from './config';
-import { getApiConfig } from './config/getApiConfig';
-import { fileExists, readFile } from './util/fs';
-import request from './util/request';
+import { getConfig } from '../config';
+import { getApiConfig } from '../config/getApiConfig';
+import { fileExists, readFile } from './fs';
+import request from './request';
 import { printErrors } from './printErrors';
 
 type QLQueryArgs = {
@@ -15,7 +15,7 @@ type QLQueryArgs = {
   pretty?: boolean,
 };
 
-export async function runGQLQuery({
+export async function queryGraphQL({
   cerr,
   query,
   variables,
@@ -30,7 +30,7 @@ QLQueryArgs): Object {
   };
 
   if (!headers.Authorization) {
-    const tokenFile = R.prop('token', { ...configDefaults, ...config });
+    const tokenFile = R.prop('token', getConfig());
     const tokenFileExists = await fileExists(tokenFile);
 
     if (tokenFileExists) {
@@ -42,10 +42,13 @@ QLQueryArgs): Object {
 
   const { hostname, port } = getApiConfig();
 
+  const protocol = R.equals(port, 443) ? 'https:' : 'http:';
+
   const options = {
     hostname,
     path: '/graphql',
     port,
+    protocol,
     method: 'POST',
     headers,
     body: JSON.stringify(
@@ -59,20 +62,24 @@ QLQueryArgs): Object {
     rejectUnauthorized: false,
   };
 
+  let response;
+
   try {
-    return await request(options);
+    response = await request(options);
   } catch (err) {
     const error = R.ifElse(
       // For socket hang ups...
       R.propEq('message', 'socket hang up'),
       // ...print a nicer error message...
-      R.always('Could not connect to Lagoon API.'),
+      R.always(
+        `Could not connect to Lagoon API at ${protocol}//${hostname}:${port}/graphql.`,
+      ),
       // ...otherwise just return the error message
       R.prop('message'),
     )(err);
     printErrors(cerr, { message: error });
     process.exit(1);
   }
-}
 
-export default runGQLQuery;
+  return response;
+}

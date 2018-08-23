@@ -2,7 +2,7 @@
 
 import url from 'url';
 import R from 'ramda';
-import { config } from '.';
+import { getConfig } from '.';
 
 export const getApiConfig: () => { hostname: string, port: number } = (() => {
   let allApiConfig;
@@ -32,7 +32,7 @@ export const getApiConfig: () => { hostname: string, port: number } = (() => {
         // API URL from environment variables
         envApiUrl ||
         // API URL from config
-        R.prop('api', config) ||
+        R.prop('api', getConfig()) ||
         // Default API URL
         'https://api.lagoon.amazeeio.cloud';
 

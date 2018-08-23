@@ -11,7 +11,7 @@ Array [
 exports[`printGraphQLErrors should print multiple GraphQLErrors 1`] = `
 Array [
   Array [
-    "[31mOops! The lagoon API returned errors:[39m",
+    "[31mOops! The Lagoon API returned errors:[39m",
   ],
   Array [
     "[31mA GraphQLError message[39m",
@@ -25,7 +25,7 @@ Array [
 exports[`printGraphQLErrors should print singular GraphQLErrors 1`] = `
 Array [
   Array [
-    "[31mOops! The lagoon API returned an error:[39m",
+    "[31mOops! The Lagoon API returned an error:[39m",
   ],
   Array [
     "[31mA GraphQLError message[39m",

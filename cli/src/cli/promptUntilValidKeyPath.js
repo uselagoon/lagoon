@@ -3,7 +3,7 @@
 import inquirer from 'inquirer';
 import untildify from 'untildify';
 import { fileExists } from '../util/fs';
-import { printErrors } from '../printErrors';
+import { printErrors } from '../util/printErrors';
 
 export async function promptUntilValidKeyPath(
   cerr: typeof console.error,
