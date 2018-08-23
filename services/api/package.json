@@ -19,6 +19,7 @@
     "@lagoon/commons": "3.0.2",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
+    "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
     "elasticsearch": "^15.0.0",

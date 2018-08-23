@@ -5,13 +5,17 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "next",
+    "dev": "next -p 3001",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
+    "apollo-boost": "^0.1.14",
+    "graphql": "^0.13.2",
+    "isomorphic-unfetch": "^2.1.1",
     "next": "^6.1.1",
     "react": "^16.4.2",
+    "react-apollo": "^2.1.11",
     "react-dom": "^16.4.2"
   }
 }
