@@ -166,6 +166,7 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
             await handle(gitlabPullRequestUpdated, webhook, project, `${webhooktype}:${event}:${body.object_attributes.action}`)
             break;
 
+          case 'merge':
           case 'close':
             await handle(gitlabPullRequestClosed, webhook, project, `${webhooktype}:${event}:${body.object_attributes.action}`)
             break;
