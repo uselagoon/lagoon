@@ -10,13 +10,13 @@ const query = gql`
     branches
     pullrequests
     created
-    git_url
-    production_environment
+    gitUrl
+    productionEnvironment
     environments {
       id
       name
-      environment_type
-      deploy_type
+      environmentType
+      deployType
       created
       updated
     }
