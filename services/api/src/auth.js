@@ -48,8 +48,8 @@ const notEmptyOrNaN /* : Function */ = R.allPass([
 ]);
 
 // Input: Comma-separated string with ids (defaults to '' if null)
-// Output: Array of ids (as strings again..)
-const parseCommaSeparatedInts /* :  (?string) => Array<string> */ = R.compose(
+// Output: Array of ids as strings
+const splitCommaSeparatedPermissions /* :  (?string) => Array<string> */ = R.compose(
   // MariaDB returns number ids as strings. In order to avoid
   // having to compare numbers with strings later on, this
   // function casts them back to string.
@@ -58,14 +58,6 @@ const parseCommaSeparatedInts /* :  (?string) => Array<string> */ = R.compose(
   R.map(strId => parseInt(strId)),
   R.split(','),
   R.defaultTo(''),
-);
-
-// rows: Result array of permissions table query
-// currently only parses the projects attribute
-const parsePermissions = R.compose(
-  R.over(R.lensProp('customers'), parseCommaSeparatedInts),
-  R.over(R.lensProp('projects'), parseCommaSeparatedInts),
-  R.defaultTo({}),
 );
 
 /* ::
@@ -164,11 +156,17 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
         return;
       }
 
-      const permissions = parsePermissions(rawPermissions);
+      // Split comma-separated permissions values to arrays
+      const permissions = R.compose(
+        R.over(R.lensProp('customers'), splitCommaSeparatedPermissions),
+        R.over(R.lensProp('projects'), splitCommaSeparatedPermissions),
+        R.defaultTo({}),
+      )(rawPermissions);
 
       nonAdminCreds = {
         userId,
-        permissions, // for read & write
+        // Read and write permissions
+        permissions,
       };
     }
 
@@ -188,5 +186,5 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
 
 module.exports = {
   createAuthMiddleware,
-  parseCommaSeparatedInts,
+  splitCommaSeparatedPermissions,
 };

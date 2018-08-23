@@ -1,23 +1,23 @@
 // @flow
 
-const { parseCommaSeparatedInts } = require('./auth');
+const { splitCommaSeparatedPermissions } = require('./auth');
 
-describe('parseCommaSeparatedInts', () => {
+describe('splitCommaSeparatedPermissions', () => {
   it('should parse a valid comma separated string w/ ints', () => {
-    expect(parseCommaSeparatedInts('1,2,3')).toEqual(['1', '2', '3']);
+    expect(splitCommaSeparatedPermissions('1,2,3')).toEqual(['1', '2', '3']);
   });
 
   it('should ignore empty splits', () => {
-    expect(parseCommaSeparatedInts('1,,2,3')).toEqual(['1', '2', '3']);
+    expect(splitCommaSeparatedPermissions('1,,2,3')).toEqual(['1', '2', '3']);
   });
 
   it('should ignore non-parsable values', () => {
-    expect(parseCommaSeparatedInts('1,foo,3')).toEqual(['1', '3']);
+    expect(splitCommaSeparatedPermissions('1,foo,3')).toEqual(['1', '3']);
   });
 
   it('should return [] on empty / null / undefined input', () => {
-    expect(parseCommaSeparatedInts('')).toEqual([]);
-    expect(parseCommaSeparatedInts(null)).toEqual([]);
-    expect(parseCommaSeparatedInts(undefined)).toEqual([]);
+    expect(splitCommaSeparatedPermissions('')).toEqual([]);
+    expect(splitCommaSeparatedPermissions(null)).toEqual([]);
+    expect(splitCommaSeparatedPermissions(undefined)).toEqual([]);
   });
 });
