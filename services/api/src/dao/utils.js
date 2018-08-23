@@ -67,7 +67,7 @@ const inClauseOr = conds =>
     R.map(([field, values]) => inClause(field, values)),
   )(conds);
 
-// Promise wrapper for doing sql queries
+// Promise wrapper for doing SQL queries, also camelcases any responses
 const query = (sqlClient, sql) =>
   new Promise((resolve, reject) => {
     sqlClient.query(sql, (err, rows) => {
