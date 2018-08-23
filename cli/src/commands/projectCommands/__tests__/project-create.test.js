@@ -119,12 +119,12 @@ describe('handler', () => {
               customer: {
                 name: 'credentialtest-customer1',
               },
-              git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
-              active_systems_deploy: 'lagoon_openshiftBuildDeploy',
-              active_systems_remove: 'lagoon_openshiftRemove',
+              gitUrl: 'ssh://git@192.168.99.1:2222/git/project1.git',
+              activeSystemsDeploy: 'lagoon_openshiftBuildDeploy',
+              activeSystemsRemove: 'lagoon_openshiftRemove',
               branches: 'true',
               pullrequests: 'true',
-              production_environment: 'null',
+              productionEnvironment: 'null',
               openshift: {
                 name: 'credentialtest-openshift',
               },
@@ -146,11 +146,11 @@ describe('handler', () => {
         token: 'token/path',
         customer: 1,
         name: 'test-project',
-        git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+        gitUrl: 'ssh://git@192.168.99.1:2222/git/project1.git',
         openshift: 1,
         branches: 'true',
         pullrequests: 'true',
-        production_environment: 'null',
+        productionEnvironment: 'null',
       },
     });
 
@@ -224,11 +224,11 @@ describe('handler', () => {
         token: 'token/path',
         customer: 1,
         name: 'test-project',
-        git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+        gitUrl: 'ssh://git@192.168.99.1:2222/git/project1.git',
         openshift: 1,
         branches: 'true',
         pullrequests: 'true',
-        production_environment: 'null',
+        productionEnvironment: 'null',
       },
     });
 

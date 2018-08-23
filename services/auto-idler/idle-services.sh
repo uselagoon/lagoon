@@ -11,14 +11,14 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query developmentEnvironments {
   developmentEnvironments:allProjects {
     name
-    auto_idle
+    autoIdle
     openshift {
-      console_url
+      consoleUrl
       token
       name
     }
     environments(type: DEVELOPMENT) {
-      openshift_projectname
+      openshiftProjectName
       name
     }
   }
@@ -60,8 +60,8 @@ set +eo pipefail
 echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.environments|length)>=1)' | while read project
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
-    OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
-    AUTOIDLE=$(echo "$project" | jq -r '.auto_idle')
+    OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
+    AUTOIDLE=$(echo "$project" | jq -r '.autoIdle')
 
     # Match the Project name to the Project Regex
     if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
@@ -72,7 +72,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
         # loop through each environment of the current project
         echo "$project" | jq -c '.environments[]' | while read environment
         do
-          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+          ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
           ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
           echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 

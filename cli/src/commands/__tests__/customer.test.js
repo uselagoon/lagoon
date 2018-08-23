@@ -18,7 +18,7 @@ const mockResponse = {
       customer: {
         name: 'customer1',
         comment: 'Comment about customer1',
-        private_key: 'PRIVATE_KEY',
+        privateKey: 'PRIVATE_KEY',
         sshKeys: [
           {
             name: 'a@example.com',

@@ -16,9 +16,9 @@ export const getConfig = (() => {
     // Dynamic options are options that will likely change every time and should only be specified dynamically.
     // Example: the --overwrite option is allowed to be passed as a command line option, but not allowed to be saved in and read from the config file
     // Example: the --token <path> option is allowed to be passed as a command line option and environment variable, but not allowed to be read from the config file
-    dynamicOptionKeys,
+    dynamicOptionsKeys,
   }: {
-    dynamicOptionKeys?: Array<string>,
+    dynamicOptionsKeys?: Array<string>,
   } = {}): Config => {
     if (!config) {
       if (R.isEmpty(argv)) {
@@ -31,7 +31,7 @@ export const getConfig = (() => {
         // An alternative would be to move everything into yargs (global options, command options, config using yargs.config, environment variables using yargs.env), but this doesn't allow us an easy way to filter out values from only some sources later with the dynamicOptionsKeys option./
         // Maybe just add an option to filter the configFile to readConfigFile?
         ...globalOptionDefaults,
-        ...R.omit(dynamicOptionKeys || [], readConfigFile() || {}),
+        ...R.omit(dynamicOptionsKeys || [], readConfigFile() || {}),
         ...argv,
       });
     }
@@ -42,12 +42,12 @@ export const getConfig = (() => {
 
 export function setConfig({
   argv: newArgv,
-  dynamicOptionKeys,
+  dynamicOptionsKeys,
 }: {
   argv: Argv,
-  dynamicOptionKeys: Array<string>,
+  dynamicOptionsKeys: Array<string>,
 }): Config {
   // Omit yargs-specific properties
   argv = R.omit(['_', '$0'], newArgv);
-  return getConfig({ dynamicOptionKeys });
+  return getConfig({ dynamicOptionsKeys });
 }

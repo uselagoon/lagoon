@@ -28,7 +28,7 @@ CommandHandlerArgs): Promise<number> {
     query AllProjects {
       allProjects {
         name
-        git_url
+        gitUrl
         branches
         pullrequests
         created
@@ -68,11 +68,11 @@ CommandHandlerArgs): Promise<number> {
       ['Project', 'Git URL', 'Branches', 'Pull Requests', 'Created'],
       ...R.map(
         project => [
-          project.name,
-          project.git_url,
-          String(project.branches),
-          String(project.pullrequests),
-          project.created,
+          R.prop('name', project),
+          R.prop('gitUrl', project),
+          String(R.prop('branches', project)),
+          String(R.prop('pullrequests', project)),
+          R.prop('created', project),
         ],
         projects,
       ),

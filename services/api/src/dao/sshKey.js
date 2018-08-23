@@ -119,8 +119,8 @@ const getSshKeysByProjectId = ({ sqlClient }) => async (cred, pid) => {
     `SELECT
       sk.id,
       sk.name,
-      sk.keyValue,
-      sk.keyType,
+      sk.key_value,
+      sk.key_type,
       sk.created
     FROM project_ssh_key ps
     JOIN ssh_key sk ON ps.skid = sk.id
@@ -145,7 +145,7 @@ const getCustomerSshKeys = ({ sqlClient }) => async (cred) => {
 
   const rows = await query(
     sqlClient,
-    `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
+    `SELECT CONCAT(sk.key_type, ' ', sk.key_value) as sshKey
        FROM ssh_key sk, customer c, customer_ssh_key csk
        WHERE csk.cid = c.id AND csk.skid = sk.id`,
   );
@@ -160,8 +160,8 @@ const getSshKeysByCustomerId = ({ sqlClient }) => async (cred, cid) => {
       SELECT
         id,
         name,
-        keyValue,
-        keyType,
+        key_value,
+        key_type,
         created
       FROM customer_ssh_key cs
       JOIN ssh_key sk ON cs.skid = sk.id
@@ -212,9 +212,9 @@ const addSshKey = ({ sqlClient }) => async (cred, input) => {
     `CALL CreateSshKey(
         :id,
         :name,
-        :keyValue,
-        :keyType
-      );
+        :key_value,
+        :key_type
+     );
     `,
   );
 
@@ -300,7 +300,7 @@ const addSshKeyToCustomer = ({ sqlClient }) => async (cred, input) => {
 
   const prep = prepare(
     sqlClient,
-    'CALL CreateCustomerSshKey(:customer, :sshKey)',
+    'CALL CreateCustomerSshKey(:customer, :ssh_key)',
   );
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);

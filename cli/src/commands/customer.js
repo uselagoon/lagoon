@@ -64,7 +64,7 @@ Args): Promise<number> {
           customer {
             name
             comment
-            private_key
+            privateKey
             sshKeys {
               name
               keyValue
@@ -91,11 +91,12 @@ Args): Promise<number> {
     return 0;
   }
 
-  const formatDeployPrivateKey = R.ifElse(
+  const convertPrivateKeyToSymbol = R.ifElse(
     R.identity,
-    R.always('\u221A'),
-    R.always('\u2717'),
+    R.always('\u221A'), // √
+    R.always('\u2717'), // ✗
   );
+
   const formatSshKeys: (Array<Object>) => Array<string> = R.map(R.prop('name'));
 
   clog(`Customer details for project '${project}':`);
@@ -105,7 +106,7 @@ Args): Promise<number> {
       [
         R.prop('name', customer),
         String(R.prop('comment', customer)),
-        formatDeployPrivateKey(R.prop('private_key', customer)),
+        convertPrivateKeyToSymbol(R.prop('privateKey', customer)),
         R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
         R.prop('created', customer),
       ],

@@ -56,15 +56,14 @@ const Helpers = {
 
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
-
   // We need one "WHERE" keyword, but we have multiple optional conditions
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
-    args.gitUrl ? 'git_url = :gitUrl' : '',
-    ifNotAdmin(
+    args.gitUrl ? 'git_url = :git_url' : '',
+    `(${ifNotAdmin(
       cred.role,
       inClauseOr([['customer', customers], ['project.id', projects]]),
-    ),
+    )})`,
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
@@ -98,7 +97,7 @@ const getProjectByGitUrl = ({ sqlClient }) => async (cred, args) => {
       SELECT
         *
       FROM project
-      WHERE git_url = :gitUrl
+      WHERE git_url = :git_url
       ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([
@@ -134,7 +133,6 @@ const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-
   return rows[0];
 };
 
@@ -156,30 +154,30 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
-  input.openshift_project_pattern
+  input.openshiftProjectPattern
     ? ':openshift_project_pattern'
     : 'NULL'
 },
         ${
-  input.active_systems_deploy
+  input.activeSystemsDeploy
     ? ':active_systems_deploy'
     : '"lagoon_openshiftBuildDeploy"'
 },
         ${
-  input.active_systems_promote
+  input.activeSystemsPromote
     ? ':active_systems_promote'
     : '"lagoon_openshiftBuildDeploy"'
 },
         ${
-  input.active_systems_remove
+  input.activeSystemsRemove
     ? ':active_systems_remove'
     : '"lagoon_openshiftRemove"'
 },
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
-        ${input.production_environment ? ':production_environment' : 'NULL'},
-        ${input.auto_idle ? ':auto_idle' : '1'},
-        ${input.storage_calc ? ':storage_calc' : '1'}
+        ${input.productionEnvironment ? ':production_environment' : 'NULL'},
+        ${input.autoIdle ? ':auto_idle' : '1'},
+        ${input.storageCalc ? ':storage_calc' : '1'}
       );
     `,
   );

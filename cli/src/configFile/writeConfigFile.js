@@ -2,6 +2,7 @@
 
 import yaml from 'js-yaml';
 import R from 'ramda';
+import toSnakeCase from 'to-snake-case';
 import { writeFile } from '../util/fs';
 
 import { configFileInputOptionsTypes } from '../types/ConfigFile';
@@ -13,7 +14,7 @@ export function writeConfigFile(
 ): Promise<void> {
   const errors = [];
 
-  const inputOptionsWithoutEmptyStrings = R.reduce(
+  const snakeCaseInputOptionsWithoutEmptyStrings = R.reduce(
     (acc, [optionKey, optionVal]) => {
       // Validate
       const optionType = R.prop(optionKey, configFileInputOptionsTypes);
@@ -36,7 +37,7 @@ export function writeConfigFile(
 
       // Filter out empty strings
       if (!R.both(R.is(String), R.isEmpty)(optionVal)) {
-        acc[optionKey] = optionVal;
+        acc[toSnakeCase(optionKey)] = optionVal;
       }
 
       return acc;
@@ -47,6 +48,6 @@ export function writeConfigFile(
 
   if (R.length(errors) > 0) throw new Error(errors.join('\n'));
 
-  const yamlConfig = yaml.safeDump(inputOptionsWithoutEmptyStrings);
+  const yamlConfig = yaml.safeDump(snakeCaseInputOptionsWithoutEmptyStrings);
   return writeFile(filepath, yamlConfig);
 }

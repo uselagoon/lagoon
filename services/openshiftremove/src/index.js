@@ -35,7 +35,7 @@ const messageConsumer = async function(msg) {
 
   try {
     var safeProjectName = ocsafety(projectName)
-    var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
+    var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
 
     var openshiftProject

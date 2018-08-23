@@ -13,7 +13,7 @@ import type { CommandHandlerArgs } from '../types/Command';
 export type CommandModule = {
   command: string,
   commandOptions: { [key: string]: string },
-  dynamicOptionKeys: Array<string>,
+  dynamicOptionsKeys: Array<string>,
   description: string,
   builder?: (yargs: Yargs) => Yargs,
   handler: (handlerArgs: CommandHandlerArgs) => Promise<number>,
@@ -37,7 +37,7 @@ export function setConfigForHandlers(cmd: CommandModule) {
       handler: (argv: Argv): Promise<void> => {
         const config = setConfig({
           argv,
-          dynamicOptionKeys: R.prop('dynamicOptionKeys', cmd),
+          dynamicOptionsKeys: R.prop('dynamicOptionsKeys', cmd),
         });
 
         const options = getCommandOptions({

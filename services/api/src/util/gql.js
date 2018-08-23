@@ -1,9 +1,9 @@
 // @flow
 
-// A no-op tagged template function to mark strings as GraphQL for tooling
-export default function gql(
-  literals: Array<string>,
-  ...substitutions: Array<any>
+// A no-op tagged template function to signal that queries are GraphQL for tooling
+module.exports = function gql(
+  literals /* : Array<string> */,
+  ...substitutions /* : Array<any> */
 ) {
   let result = '';
 
@@ -17,4 +17,4 @@ export default function gql(
   result += literals[literals.length - 1];
 
   return result;
-}
+};

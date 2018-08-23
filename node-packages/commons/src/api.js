@@ -56,17 +56,19 @@ class NoActiveSystemsDefined extends Error {
   }
 }
 
+const capitalize = R.replace(/^\w/, R.toUpper);
+
 async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   const result = await graphqlapi.query(`
     {
       allProjects(gitUrl: "${gitUrl}") {
         name
-        production_environment
+        productionEnvironment
         openshift {
-          console_url
+          consoleUrl
           token
-          project_user
-          router_pattern
+          projectUser
+          routerPattern
         }
       }
     }
@@ -139,10 +141,11 @@ async function getActiveSystemForProject(
   project: string,
   task: string,
 ): Promise<Object> {
+  const field = `activeSystems${capitalize(project)}`;
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
-        active_systems_${task}
+        ${field}
         branches
         pullrequests
       }
@@ -155,7 +158,7 @@ async function getActiveSystemForProject(
     );
   }
 
-  if (!result.project[`active_systems_${task}`]) {
+  if (!result.project[field]) {
     throw new NoActiveSystemsDefined(
       `Cannot find active system for task ${task} in project ${project}`,
     );
@@ -167,27 +170,27 @@ async function getActiveSystemForProject(
 const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
-  deploy_type: string,
-  environment_type: string,
-  openshift_projectname: string,
+  deployType: string,
+  environmentType: string,
+  openshiftProjectName: string,
 ): Promise<Object> =>
   graphqlapi.query(`
   mutation {
     addOrUpdateEnvironment(input: {
         name: "${name}",
         project: ${projectId},
-        deploy_type: ${deploy_type},
-        environment_type: ${environment_type},
-        openshift_projectname: "${openshift_projectname}"
+        deployType: ${deployType},
+        environmentType: ${environmentType},
+        openshiftProjectName: "${openshiftProjectName}"
     }) {
       id
       name
       project {
         name
       }
-      deploy_type
-      environment_type
-      openshift_projectname
+      deployType
+      environmentType
+      openshiftProjectName
     }
   }
 `);
@@ -221,18 +224,18 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
       project:projectByName(name: "${project}"){
         id
         openshift  {
-          console_url
+          consoleUrl
           token
-          project_user
-          router_pattern
+          projectUser
+          routerPattern
         }
         customer {
-          private_key
+          privateKey
         }
-        git_url
+        gitUrl
         subfolder
-        openshift_project_pattern
-        production_environment
+        openshiftProjectPattern
+        productionEnvironment
       }
     }
 `);
@@ -241,7 +244,7 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
-        production_environment
+        productionEnvironment
       }
     }
 `);
