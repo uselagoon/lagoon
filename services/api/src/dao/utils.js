@@ -32,11 +32,11 @@ const ifNotAdmin = (role, str) =>
 // Creates a WHERE statement with AND inbetween non-empty conditions
 const whereAnd = whereConds =>
   R.compose(
-    R.reduce((ret, str) => {
-      if (ret === '') {
-        return `WHERE ${str}`;
+    R.reduce((acc, curr) => {
+      if (acc === '') {
+        return `WHERE ${curr}`;
       }
-      return `${ret} AND ${str}`;
+      return `${acc} AND ${curr}`;
     }, ''),
     R.filter(
       R.compose(

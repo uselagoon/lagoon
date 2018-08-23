@@ -59,11 +59,11 @@ const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   // We need one "WHERE" keyword, but we have multiple optional conditions
   const where = whereAnd([
     args.createdAfter ? 'created >= :createdAfter' : '',
-    args.gitUrl ? 'git_url = :git_url' : '',
-    `(${ifNotAdmin(
+    args.gitUrl ? 'git_url = :gitUrl' : '',
+    ifNotAdmin(
       cred.role,
-      inClauseOr([['customer', customers], ['project.id', projects]]),
-    )})`,
+      `(${inClauseOr([['customer', customers], ['project.id', projects]])})`,
+    ),
   ]);
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
