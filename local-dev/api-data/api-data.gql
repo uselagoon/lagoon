@@ -590,7 +590,7 @@ mutation FillAPI {
     input: {
       id: 4
       name: "ui-openshift"
-      console_url: "https://localhost:8443/"
+      consoleUrl: "https://localhost:8443/"
     }
   ) {
     id
@@ -610,8 +610,8 @@ mutation FillAPI {
       name: "High Cotton"
       customer: 5
       openshift: 4
-      git_url: "test"
-      production_environment: "Master"
+      gitUrl: "test"
+      productionEnvironment: "Master"
     }
   ) {
     id
@@ -620,9 +620,9 @@ mutation FillAPI {
     input: {
       name: "Master"
       project: 18
-      deploy_type: BRANCH
-      environment_type: PRODUCTION
-      openshift_projectname: "ui-openshift"
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ui-openshift"
     }
   ) {
     id
@@ -631,9 +631,9 @@ mutation FillAPI {
     input: {
       name: "Staging"
       project: 18
-      deploy_type: BRANCH
-      environment_type: DEVELOPMENT
-      openshift_projectname: "ui-openshift"
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
     }
   ) {
     id
@@ -642,9 +642,9 @@ mutation FillAPI {
     input: {
       name: "Development"
       project: 18
-      deploy_type: BRANCH
-      environment_type: DEVELOPMENT
-      openshift_projectname: "ui-openshift"
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
     }
   ) {
     id
@@ -653,9 +653,9 @@ mutation FillAPI {
     input: {
       name: "PR-175"
       project: 18
-      deploy_type: PULLREQUEST
-      environment_type: DEVELOPMENT
-      openshift_projectname: "ui-openshift"
+      deployType: PULLREQUEST
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
     }
   ) {
     id
