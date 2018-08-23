@@ -6,6 +6,10 @@
 // The logic is split by domain model, that means that each
 // domain model has its own module / file.
 
+// We now use knex as our SQL query builder.
+//
+// Obsolete former notice:
+//
 // A WORD ABOUT DB SECURITY:
 // ---
 // We are heavily relying on building manual SQL strings,
@@ -57,12 +61,13 @@ const truncateTable = ({ sqlClient }) => async (cred, args) => {
 const daoFns = {
   getPermissions,
   truncateTable,
+  ...require('./customer').Queries,
   ...require('./environment').Queries,
   ...require('./notification').Queries,
   ...require('./openshift').Queries,
-  ...require('./customer').Queries,
   ...require('./project').Queries,
   ...require('./sshKey').Queries,
+  ...require('./user').Queries,
 };
 
 // Maps all dao functions to given sqlClient

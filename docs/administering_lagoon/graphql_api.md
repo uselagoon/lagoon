@@ -58,7 +58,7 @@ First we need to add a new SSH Public key to the API:
 
 ```
 mutation addSSHKey {
-  addSshKey(input:{name:"[name]", keyValue:"[keyValue]", keyType:SSH_RSA}) {
+  addSshKey(input:{name:"[name]", keyValue:"[keyValue]", keyType:SSH_RSA, userId:[user-id]}) {
     id
   }
 }
@@ -71,8 +71,8 @@ mutation addSSHKey {
 After we added the key we can give this key access to either a single project or a whole customer, while access to a whole customer means that this SSH key has automatically access to all projects that are assigned to this customer.
 
 ```
-mutation addSshKeyToCustomer {
-  addSshKeyToCustomer(input:{customer:"[customer-name]", sshKey:"[sshKey-name]"}) {
+mutation addUserToCustomer {
+  addUserToCustomer(input:{customer:"[customer-name]", userId:[user-id]}) {
     id
   }
 }
@@ -81,8 +81,8 @@ mutation addSshKeyToCustomer {
 or
 
 ```
-mutation addSshKeyToProject {
-  addSshKeyToProject(input:{project:"[project-name]", sshKey:"[sshKey-name]"}) {
+mutation addUserToProject {
+  addUserToProject(input:{project:"[project-name]", userId:[user-id]}) {
     id
   }
 }

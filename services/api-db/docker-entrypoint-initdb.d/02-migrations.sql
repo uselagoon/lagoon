@@ -444,6 +444,18 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_legacy_ssh_key_procedures()
+
+  BEGIN
+    -- DROP PROCEDURE IF EXISTS CreateProjectSshKey;
+    -- DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
+    -- DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
+    -- DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
+    -- DROP PROCEDURE IF EXISTS CreateSshKey;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -467,3 +479,4 @@ CALL drop_legacy_pid_skid_view();
 CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();
 CALL drop_legacy_project_ssh_key_junction_table();
+CALL drop_legacy_ssh_key_procedures();

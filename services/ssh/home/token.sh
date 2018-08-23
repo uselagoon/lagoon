@@ -15,7 +15,6 @@ server=${AUTH_SERVER}
 ## Get ID of user with given SSH key
 ##
 ADMIN_BEARER="Authorization: bearer $API_ADMIN_TOKEN"
-# TODO: Create this query :)
 ADMIN_GRAPHQL="query GetUserIdBySshKey {
   userBySshKey(keyValue: \"$USER_SSH_KEY\") {
     id
@@ -27,7 +26,7 @@ USER_ID=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" 
 
 header="Content-Type: application/json"
 
-# Prepare the post (containing the ssh public key) as a JSON object.
+# Prepare the post (containing the user id) as a JSON object.
 data="{\"userId\": \"$USER_ID\"}"
 
 # Submit the token request as a POST request with the JSON data

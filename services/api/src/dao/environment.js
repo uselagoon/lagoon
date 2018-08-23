@@ -378,22 +378,20 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
   return rows;
 };
 
-const Queries = {
-  addOrUpdateEnvironment,
-  addOrUpdateEnvironmentStorage,
-  getEnvironmentByOpenshiftProjectName,
-  getEnvironmentHoursMonthByEnvironmentId,
-  getEnvironmentStorageByEnvironmentId,
-  getEnvironmentStorageMonthByEnvironmentId,
-  getEnvironmentHitsMonthByEnvironmentId,
-  getEnvironmentByEnvironmentStorageId,
-  deleteEnvironment,
-  getEnvironmentsByProjectId,
-  updateEnvironment,
-  getAllEnvironments,
-};
-
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    addOrUpdateEnvironment,
+    addOrUpdateEnvironmentStorage,
+    getEnvironmentByOpenshiftProjectName,
+    getEnvironmentHoursMonthByEnvironmentId,
+    getEnvironmentStorageByEnvironmentId,
+    getEnvironmentStorageMonthByEnvironmentId,
+    getEnvironmentHitsMonthByEnvironmentId,
+    getEnvironmentByEnvironmentStorageId,
+    deleteEnvironment,
+    getEnvironmentsByProjectId,
+    updateEnvironment,
+    getAllEnvironments,
+  },
 };
