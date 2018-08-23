@@ -141,7 +141,7 @@ async function getActiveSystemForProject(
   project: string,
   task: string,
 ): Promise<Object> {
-  const field = `activeSystems${capitalize(project)}`;
+  const field = `activeSystems${capitalize(task)}`;
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
