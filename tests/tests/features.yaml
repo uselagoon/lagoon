@@ -53,7 +53,7 @@
     testname: "ENVIRONMENT TYPE DEVELOPMENT"
     git_repo_name: features.git
     project: ci-features
-    branch: develop
+    branch: environment-type
     environment_type: development
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
@@ -62,7 +62,7 @@
     testname: "CUSTOM DEPLOYMENT TEMPLATES docker-compose"
     git_repo_name: features.git
     project: ci-features
-    branch: develop
+    branch: branch/custom-template
     expected_template_filename: .lagoon.node.yml
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
@@ -115,5 +115,5 @@
     testname: "SUBFOLDER"
     git_repo_name: features-subfolder.git
     project: ci-features-subfolder
-    branch: branch1
+    branch: subfolder
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
