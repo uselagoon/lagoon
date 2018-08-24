@@ -22,7 +22,7 @@ ADMIN_GRAPHQL="query GetUserIdBySshKey {
 }"
 # GraphQL query on single line with \\n for newlines and escaped quotes
 ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-USER_ID=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}")
+USER_ID=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}" | jq --raw-output '.data.userBySshKey.id')
 
 header="Content-Type: application/json"
 
