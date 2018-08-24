@@ -149,7 +149,7 @@ services:
       - ./services/ui:/app/services/ui
       - ./node-packages:/app/node-packages:delegated
     ports:
-      - "8888:3000"
+      - "8888:3003"
     labels:
       lagoon.type: custom
       lagoon.template: services/ui/.lagoon.app.yml

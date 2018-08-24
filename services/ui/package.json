@@ -5,7 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "next -p 3001",
+    "dev": "next -p 3003",
     "build": "next build",
     "start": "next start"
   },
