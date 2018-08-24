@@ -243,7 +243,6 @@ const typeDefs = gql`
   type Query {
     userBySshKey(sshKey: String!): User
     customerByName(name: String!): Customer
-    userBySshKey(keyValue: String!): User
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
     environmentByOpenshiftProjectName(
