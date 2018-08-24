@@ -2,12 +2,12 @@
   "name": "ui",
   "version": "0.0.1",
   "description": "lagoon ui",
-  "main": "index.js",
+  "main": "src/index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "next -p 3003",
-    "build": "next build",
-    "start": "next start"
+    "dev": "next dev src -p 3003",
+    "build": "next build src",
+    "start": "next start src"
   },
   "dependencies": {
     "apollo-boost": "^0.1.14",

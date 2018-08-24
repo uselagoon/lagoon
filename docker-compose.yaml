@@ -146,8 +146,10 @@ services:
     image: ${IMAGE_REPO:-lagoon}/ui
     command: yarn run dev
     volumes:
-      - ./services/ui:/app/services/ui
-      - ./node-packages:/app/node-packages:delegated
+      - ./services/ui/src:/app/services/ui/src
+      - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
+      - ./services/ui/.env.schema:/app/services/ui/.env.schema
+      - ./services/ui/package.json:/app/services/ui/package.json
     ports:
       - "8888:3003"
     labels:

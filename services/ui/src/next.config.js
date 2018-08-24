@@ -8,5 +8,6 @@ module.exports = {
   publicRuntimeConfig: {
     API: envApiRoute || lagoonApiRoute,
     API_TOKEN: process.env.API_TOKEN,
-  }
+  },
+  distDir: '../build'
 }
