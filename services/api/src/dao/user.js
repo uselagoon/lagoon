@@ -144,7 +144,7 @@ const moveUserSshKeyToObject = ({
   },
 });
 
-const getUserBySshKey = ({ sqlClient }) => async ({ role }, sshKey) => {
+const getUserBySshKey = ({ sqlClient }) => async ({ role }, { sshKey }) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
