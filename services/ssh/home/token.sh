@@ -16,7 +16,7 @@ server=${AUTH_SERVER}
 ##
 ADMIN_BEARER="Authorization: bearer $API_ADMIN_TOKEN"
 ADMIN_GRAPHQL="query GetUserIdBySshKey {
-  userBySshKey(keyValue: \"$USER_SSH_KEY\") {
+  userBySshKey(sshKey: \"$USER_SSH_KEY\") {
     id
   }
 }"
