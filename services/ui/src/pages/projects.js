@@ -1,6 +1,6 @@
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
-import Project from '../components/Project';
+import ProjectOld from '../components/ProjectOld';
 
 const query = gql`
 {
@@ -31,7 +31,7 @@ export default () => <>
       if (loading) return <p>Loading...</p>;
       if (error) return <p>Error :(</p>;
 
-      const projects = data.allProjects.map(project => <Project key={project.id} project={project} />);
+      const projects = data.allProjects.map(project => <ProjectOld key={project.id} project={project} />);
 
       return <div>
         {projects}
