@@ -32,11 +32,11 @@ const ifNotAdmin = (role, str) =>
 // Creates a WHERE statement with AND inbetween non-empty conditions
 const whereAnd = whereConds =>
   R.compose(
-    R.reduce((ret, str) => {
-      if (ret === '') {
-        return `WHERE ${str}`;
+    R.reduce((acc, curr) => {
+      if (acc === '') {
+        return `WHERE ${curr}`;
       }
-      return `${ret} AND ${str}`;
+      return `${acc} AND ${curr}`;
     }, ''),
     R.filter(
       R.compose(
@@ -67,7 +67,7 @@ const inClauseOr = conds =>
     R.map(([field, values]) => inClause(field, values)),
   )(conds);
 
-// Promise wrapper for doing sql queries
+// Promise wrapper for doing SQL queries, also camelcases any responses
 const query = (sqlClient, sql) =>
   new Promise((resolve, reject) => {
     sqlClient.query(sql, (err, rows) => {

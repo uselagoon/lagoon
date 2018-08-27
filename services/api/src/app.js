@@ -3,6 +3,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const compression = require('compression');
+const cors = require('cors');
 const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
@@ -55,6 +56,9 @@ const createApp = (args /* : CreateAppArgs */) => {
       },
     }),
   );
+
+  // TODO: Restrict requests to lagoon domains?
+  app.use(cors());
 
   app.use(
     createAuthMiddleware({

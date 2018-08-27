@@ -144,6 +144,20 @@ services:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/api:${SAFE_BRANCH:-master}
+  ui:
+    image: ${IMAGE_REPO:-lagoon}/ui
+    command: yarn run dev
+    volumes:
+      - ./services/ui/src:/app/services/ui/src
+      - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
+      - ./services/ui/.env.schema:/app/services/ui/.env.schema
+      - ./services/ui/package.json:/app/services/ui/package.json
+    ports:
+      - "8888:3003"
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/ui/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/ui:${SAFE_BRANCH:-master}
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:

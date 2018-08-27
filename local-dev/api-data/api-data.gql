@@ -598,4 +598,80 @@ mutation FillAPI {
   ) {
     id
   }
+
+  #### Filling API with needed objects for UI
+  UIOpenshift: addOpenshift(
+    input: {
+      id: 4
+      name: "ui-openshift"
+      consoleUrl: "https://localhost:8443/"
+    }
+  ) {
+    id
+  }
+  UICustomer1: addCustomer(
+    input: {
+      id: 5
+      name: "ui-customer"
+      comment: "used to test the ui"
+    }
+  ) {
+    id
+  }
+  UIProject1: addProject(
+    input: {
+      id: 18
+      name: "High Cotton"
+      customer: 5
+      openshift: 4
+      gitUrl: "test"
+      productionEnvironment: "Master"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1: addOrUpdateEnvironment(
+    input: {
+      name: "Master"
+      project: 18
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment2: addOrUpdateEnvironment(
+    input: {
+      name: "Staging"
+      project: 18
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment3: addOrUpdateEnvironment(
+    input: {
+      name: "Development"
+      project: 18
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment4: addOrUpdateEnvironment(
+    input: {
+      name: "PR-175"
+      project: 18
+      deployType: PULLREQUEST
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
 }

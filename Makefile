@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
-
+VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Docker Image Tag that should be used when publishing to docker hub registry
 PUBLISH_TAG :=
 
@@ -77,7 +77,7 @@ PUBLISH_TAG :=
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
@@ -316,7 +316,8 @@ services :=       api \
 									auto-idler \
 									storage-calculator \
 									api-db \
-									drush-alias
+									drush-alias \
+									ui
 
 service-images += $(services)
 
@@ -329,7 +330,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
@@ -673,3 +674,14 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
+
+.PHONY: push-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind:
+	rm -rf build/oc-build-deploy-dind
+	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+
+
+
+.PHONY: ui-development
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui
