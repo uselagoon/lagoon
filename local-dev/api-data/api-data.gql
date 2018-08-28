@@ -610,11 +610,7 @@ mutation FillAPI {
     id
   }
   UICustomer1: addCustomer(
-    input: {
-      id: 5
-      name: "ui-customer"
-      comment: "used to test the ui"
-    }
+    input: { id: 5, name: "ui-customer", comment: "used to test the ui" }
   ) {
     id
   }
