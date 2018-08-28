@@ -58,6 +58,29 @@ class NoActiveSystemsDefined extends Error {
 
 const capitalize = R.replace(/^\w/, R.toUpper);
 
+const addCustomer = (
+  name: string,
+  id: number = null,
+  comment: string = null,
+  privateKey: string = null,
+): Promise<Object> =>
+  graphqlapi.query(`
+  mutation {
+    addCustomer(input: {
+        name: "${name}",
+        id: ${id},
+        comment: "${comment}",
+        privateKey: "${privateKey}"
+    }) {
+      id
+      name
+      comment
+      privateKey
+      created
+    }
+  }
+`);
+
 async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   const result = await graphqlapi.query(`
     {
@@ -250,6 +273,7 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
 `);
 
 module.exports = {
+  addCustomer,
   getProjectsByGitUrl,
   getRocketChatInfoForProject,
   getSlackinfoForProject,

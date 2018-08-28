@@ -3,24 +3,24 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getProjectsByGitUrl } = require('@lagoon/commons/src/api');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const githubPullRequestClosed = require('./handlers/githubPullRequestClosed');
-const githubPullRequestOpened = require('./handlers/githubPullRequestOpened');
-const githubPullRequestSynchronize = require('./handlers/githubPullRequestSynchronize');
-const githubBranchDeleted = require('./handlers/githubBranchDeleted');
-const githubPush = require('./handlers/githubPush');
-const bitbucketPush = require('./handlers/bitbucketPush');
-const bitbucketBranchDeleted = require('./handlers/bitbucketBranchDeleted');
-const bitbucketPullRequestUpdated = require('./handlers/bitbucketPullRequestUpdated');
-const bitbucketPullRequestClosed = require('./handlers/bitbucketPullRequestClosed');
-const gitlabPush = require('./handlers/gitlabPush');
-const gitlabBranchDeleted = require('./handlers/gitlabBranchDeleted');
-const gitlabPullRequestClosed = require('./handlers/gitlabPullRequestClosed');
-const gitlabPullRequestOpened = require('./handlers/gitlabPullRequestOpened');
-const gitlabPullRequestUpdated = require('./handlers/gitlabPullRequestUpdated');
+const githubPullRequestClosed = require('../handlers/githubPullRequestClosed');
+const githubPullRequestOpened = require('../handlers/githubPullRequestOpened');
+const githubPullRequestSynchronize = require('../handlers/githubPullRequestSynchronize');
+const githubBranchDeleted = require('../handlers/githubBranchDeleted');
+const githubPush = require('../handlers/githubPush');
+const bitbucketPush = require('../handlers/bitbucketPush');
+const bitbucketBranchDeleted = require('../handlers/bitbucketBranchDeleted');
+const bitbucketPullRequestUpdated = require('../handlers/bitbucketPullRequestUpdated');
+const bitbucketPullRequestClosed = require('../handlers/bitbucketPullRequestClosed');
+const gitlabPush = require('../handlers/gitlabPush');
+const gitlabBranchDeleted = require('../handlers/gitlabBranchDeleted');
+const gitlabPullRequestClosed = require('../handlers/gitlabPullRequestClosed');
+const gitlabPullRequestOpened = require('../handlers/gitlabPullRequestOpened');
+const gitlabPullRequestUpdated = require('../handlers/gitlabPullRequestUpdated');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg, Project } from './types';
 
-async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
+async function processProjects (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
   const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString())
 
   let projects: Project[]
@@ -224,4 +224,4 @@ async function unhandled(webhook: WebhookRequestData, project: Project, fullEven
   return
 }
 
-module.exports = processWebhook;
+module.exports = processProjects;
