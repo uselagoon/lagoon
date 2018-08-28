@@ -1,17 +1,104 @@
+input AddCustomerInput {
+  id: Int
+  name: String!
+  comment: String
+  privateKey: String
+}
+
+input AddEnvironmentInput {
+  name: String!
+  project: Int!
+  deployType: DeployType!
+  environmentType: EnvType!
+  openshiftProjectName: String!
+}
+
+input AddNotificationRocketChatInput {
+  name: String!
+  webhook: String!
+  channel: String!
+}
+
+input AddNotificationSlackInput {
+  name: String!
+  webhook: String!
+  channel: String!
+}
+
+input AddNotificationToProjectInput {
+  project: String!
+  notificationType: NotificationType!
+  notificationName: String!
+}
+
+input AddOpenshiftInput {
+  id: Int
+  name: String!
+  consoleUrl: String!
+  token: String
+  routerPattern: String
+  projectUser: String
+  sshHost: String
+  sshPort: String
+}
+
+input AddOrUpdateEnvironmentStorageInput {
+  environment: Int!
+  persistentStorageClaim: String!
+  bytesUsed: Int!
+}
+
+input AddProjectInput {
+  id: Int
+  name: String!
+  customer: Int!
+  gitUrl: String!
+  subfolder: String
+  openshift: Int!
+  openshiftProjectPattern: String
+  activeSystemsDeploy: String
+  activeSystemsPromote: String
+  activeSystemsRemove: String
+  branches: String
+  pullrequests: String
+  productionEnvironment: String
+  autoIdle: Int
+  storageCalc: Int
+}
+
+input AddSshKeyInput {
+  id: Int
+  name: String!
+  keyValue: String!
+  keyType: SshKeyType
+  userId: Int!
+}
+
+input AddUserInput {
+  id: Int
+  email: String
+  firstName: String
+  lastName: String
+  comment: String
+}
+
+input AddUserToCustomerInput {
+  customer: String!
+  userId: Int!
+}
+
+input AddUserToProjectInput {
+  project: String!
+  userId: Int!
+}
+
 type Customer {
   id: Int
   name: String
   comment: String
   privateKey: String
-  sshKeys: [SshKey]
+  users: [User]
   created: String
-}
-
-input CustomerInput {
-  id: Int
-  name: String!
-  comment: String
-  privateKey: String
 }
 
 scalar Date
@@ -45,6 +132,10 @@ input DeleteSshKeyInput {
   name: String!
 }
 
+input DeleteUserInput {
+  id: Int!
+}
+
 enum DeployType {
   BRANCH
   PULLREQUEST
@@ -76,26 +167,12 @@ type EnvironmentHoursMonth {
   hours: Int
 }
 
-input EnvironmentInput {
-  name: String!
-  project: Int!
-  deployType: DeployType!
-  environmentType: EnvType!
-  openshiftProjectName: String!
-}
-
 type EnvironmentStorage {
   id: Int
   environment: Environment
   persistentStorageClaim: String
   bytesUsed: Float
   updated: String
-}
-
-input EnvironmentStorageInput {
-  environment: Int!
-  persistentStorageClaim: String!
-  bytesUsed: Int!
 }
 
 type EnvironmentStorageMonth {
@@ -116,27 +193,30 @@ type Mutation {
   updateOpenshift(input: UpdateOpenshiftInput!): Openshift
   updateCustomer(input: UpdateCustomerInput!): Customer
   updateProject(input: UpdateProjectInput!): Project
-  addProject(input: ProjectInput!): Project
+  addProject(input: AddProjectInput!): Project
   deleteProject(input: DeleteProjectInput!): String
-  addOrUpdateEnvironment(input: EnvironmentInput!): Environment
-  addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
+  addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
+  addOrUpdateEnvironmentStorage(input: AddOrUpdateEnvironmentStorageInput!): EnvironmentStorage
   deleteEnvironment(input: DeleteEnvironmentInput!): String
-  addSshKey(input: SshKeyInput!): SshKey
+  addSshKey(input: AddSshKeyInput!): SshKey
   deleteSshKey(input: DeleteSshKeyInput!): String
-  addCustomer(input: CustomerInput!): Customer
+  addCustomer(input: AddCustomerInput!): Customer
   deleteCustomer(input: DeleteCustomerInput!): String
-  addOpenshift(input: OpenshiftInput!): Openshift
+  addOpenshift(input: AddOpenshiftInput!): Openshift
   deleteOpenshift(input: DeleteOpenshiftInput!): String
-  addNotificationRocketChat(input: NotificationRocketChatInput!): NotificationRocketChat
-  addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+  addNotificationRocketChat(input: AddNotificationRocketChatInput!): NotificationRocketChat
+  addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
   deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
   deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
-  addNotificationToProject(input: NotificationToProjectInput!): Project
+  addNotificationToProject(input: AddNotificationToProjectInput!): Project
   removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
-  addSshKeyToProject(input: SshKeyToProjectInput!): Project
-  removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
-  addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
-  removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
+  addUser(input: AddUserInput!): User
+  updateUser(input: UpdateUserInput!): User
+  deleteUser(input: DeleteUserInput!): String
+  addUserToProject(input: AddUserToProjectInput!): Project
+  removeUserFromProject(input: RemoveUserFromProjectInput!): Project
+  addUserToCustomer(input: AddUserToCustomerInput!): Customer
+  removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
   truncateTable(tableName: String!): String
 }
 
@@ -149,29 +229,11 @@ type NotificationRocketChat {
   channel: String
 }
 
-input NotificationRocketChatInput {
-  name: String!
-  webhook: String!
-  channel: String!
-}
-
 type NotificationSlack {
   id: Int
   name: String
   webhook: String
   channel: String
-}
-
-input NotificationSlackInput {
-  name: String!
-  webhook: String!
-  channel: String!
-}
-
-input NotificationToProjectInput {
-  project: String!
-  notificationType: NotificationType!
-  notificationName: String!
 }
 
 enum NotificationType {
@@ -189,17 +251,6 @@ type Openshift {
   sshHost: String
   sshPort: String
   created: String
-}
-
-input OpenshiftInput {
-  id: Int
-  name: String!
-  consoleUrl: String!
-  token: String
-  routerPattern: String
-  projectUser: String
-  sshHost: String
-  sshPort: String
 }
 
 """Lagoon Project (like a git repository)"""
@@ -286,7 +337,7 @@ type Project {
   openshiftProjectPattern: String
 
   """Which Developer SSH keys should have access to this project"""
-  sshKeys: [SshKey]
+  users: [User]
 
   """Deployed Environments for this Project"""
   environments(
@@ -303,25 +354,8 @@ type Project {
   created: String
 }
 
-input ProjectInput {
-  id: Int
-  name: String!
-  customer: Int!
-  gitUrl: String!
-  subfolder: String
-  openshift: Int!
-  openshiftProjectPattern: String
-  activeSystemsDeploy: String
-  activeSystemsPromote: String
-  activeSystemsRemove: String
-  branches: String
-  pullrequests: String
-  productionEnvironment: String
-  autoIdle: Int
-  storageCalc: Int
-}
-
 type Query {
+  userBySshKey(sshKey: String!): User
   customerByName(name: String!): Customer
   projectByName(name: String!): Project
   projectByGitUrl(gitUrl: String!): Project
@@ -338,14 +372,14 @@ input RemoveNotificationFromProjectInput {
   notificationName: String!
 }
 
-input RemoveSshKeyFromCustomerInput {
+input RemoveUserFromCustomerInput {
   customer: String!
-  sshKey: String!
+  userId: Int!
 }
 
-input RemoveSshKeyFromProjectInput {
+input RemoveUserFromProjectInput {
   project: String!
-  sshKey: String!
+  userId: Int!
 }
 
 type SshKey {
@@ -354,23 +388,6 @@ type SshKey {
   keyValue: String
   keyType: String
   created: String
-}
-
-input SshKeyInput {
-  id: Int
-  name: String!
-  keyValue: String!
-  keyType: SshKeyType
-}
-
-input SshKeyToCustomerInput {
-  customer: String!
-  sshKey: String!
-}
-
-input SshKeyToProjectInput {
-  project: String!
-  sshKey: String!
 }
 
 enum SshKeyType {
@@ -475,4 +492,25 @@ input UpdateSshKeyPatchInput {
   name: String
   keyValue: String
   keyType: SshKeyType
+}
+
+input UpdateUserInput {
+  id: Int!
+  patch: UpdateUserPatchInput!
+}
+
+input UpdateUserPatchInput {
+  email: String
+  firstName: String
+  lastName: String
+  comment: String
+}
+
+type User {
+  id: Int
+  email: String
+  firstName: String
+  lastName: String
+  comment: String
+  sshKeys: [SshKey]
 }
