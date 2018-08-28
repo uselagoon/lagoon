@@ -172,6 +172,34 @@ if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
 fi
 
 ##############################################
+### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
+##############################################
+
+
+COUNTER=0
+while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
+do
+  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
+  echo $TASK_TYPE
+  case "$TASK_TYPE" in
+    run)
+        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
+        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
+        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
+        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
+        . /oc-build-deploy/scripts/exec-tasks-run.sh
+        ;;
+    *)
+        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+
+  esac
+
+  let COUNTER=COUNTER+1
+done
+
+
+
+##############################################
 ### CREATE OPENSHIFT SERVICES AND ROUTES
 ##############################################
 
@@ -485,26 +513,39 @@ do
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
-  if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
-    OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
-    if [ -f $OPENSHIFT_TEMPLATE ]; then
+  ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.templates.$SERVICE_NAME false)
+  if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
+    # Generate deployment if service type defines it
+    OPENSHIFT_DEPLOYMENT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    if [ -f $OPENSHIFT_DEPLOYMENT_TEMPLATE ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_DEPLOYMENT_TEMPLATE
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
-  else
+
+    # Generate statefulset if service type defines it
+    OPENSHIFT_STATEFULSET_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
+    if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+    fi
+  elif [[ "${ENVIRONMENT_OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in .lagoon.yml, trying to use it
+
+    OPENSHIFT_TEMPLATE=$ENVIRONMENT_OVERRIDE_TEMPLATE
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in .lagoon.yml not found"; exit 1;
+    else
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+    fi
+  elif [[ "${OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in docker-compose, trying to use it
+
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in $DOCKER_COMPOSE_YAML not found"; exit 1;
     else
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
   fi
 
-  # Generate statefulset if service type defines them
-  OPENSHIFT_STATEFULSET_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
-  if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
-  fi
 done
 
 ##############################################
@@ -528,6 +569,12 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
+
+  # Allow the rollout type to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.rollouts.${SERVICE_NAME} false)
+  if [ ! $ENVIRONMENT_SERVICE_ROLLOUT_TYPE == "false" ]; then
+    SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
+  fi
 
   # if mariadb-galera is a statefulset check also for maxscale
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
@@ -585,7 +632,7 @@ do
         SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
         CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
         SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-post-rollout-tasks-run.sh
+        . /oc-build-deploy/scripts/exec-tasks-run.sh
         ;;
     *)
         echo "Task Type ${TASK_TYPE} not implemented"; exit 1;

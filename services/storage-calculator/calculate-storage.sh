@@ -7,14 +7,14 @@ BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 GRAPHQL='query environments {
   environments:allProjects {
     name
-    storage_calc
+    storageCalc
     openshift {
-      console_url
+      consoleUrl
       token
       name
     }
     environments {
-      openshift_projectname
+      openshiftProjectName
       name
       id
     }
@@ -28,14 +28,14 @@ ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARE
 echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
 do
   PROJECT_NAME=$(echo "$project" | jq -r '.name')
-  OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.console_url')
-  STORAGE_CALC=$(echo "$project" | jq -r '.storage_calc')
+  OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
+  STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
   echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
   OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
   # loop through each environment of the current project
   echo "$project" | jq -c '.environments[]' | while read environment
   do
-    ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshift_projectname')
+    ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
     ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
     ENVIRONMENT_ID=$(echo "$environment" | jq -r '.id')
 
@@ -45,7 +45,7 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
 
       MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"storage-calc-disabled\", bytes_used:0}) {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"storage-calc-disabled\", bytesUsed:0}) {
           id
         }
       }"
@@ -66,7 +66,7 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no PVCs found writing API with 0 bytes"
 
       MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"none\", bytes_used:0}) {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"none\", bytesUsed:0}) {
           id
         }
       }"
@@ -107,7 +107,7 @@ do
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} bytes"
 
         MUTATION="mutation addOrUpdateEnvironmentStorage {
-          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistent_storage_claim:\"${PVC}\", bytes_used:${STORAGE_BYTES}}) {
+          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"${PVC}\", bytesUsed:${STORAGE_BYTES}}) {
             id
           }
         }"

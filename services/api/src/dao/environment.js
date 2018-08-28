@@ -64,7 +64,7 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (
         *
       FROM environment e
       WHERE e.project = :pid
-      ${args.include_deleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
+      ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
       ${args.type ? 'AND e.environment_type = :type' : ''}
 
     `,
@@ -218,7 +218,7 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
 
 const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
   cred,
-  openshift_projectname,
+  openshiftProjectName,
   args,
 ) => {
   const interested_month = args.month ? new Date(args.month) : new Date();
@@ -229,7 +229,7 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
 
   try {
     const result = await esClient.count({
-      index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
+      index: `router-logs-${openshiftProjectName}-${interested_month.getFullYear()}.${month_leading_zero}`,
       body: {
         query: {
           bool: {
@@ -273,7 +273,7 @@ const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (
       FROM environment e
         JOIN project p ON e.project = p.id
         JOIN customer c ON p.customer = c.id
-      WHERE e.openshift_projectname = :openshiftProjectName
+      WHERE e.openshift_project_name = :openshift_project_name
       ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
@@ -301,7 +301,7 @@ const addOrUpdateEnvironment = ({ sqlClient }) => async (cred, input) => {
         :project,
         :deploy_type,
         :environment_type,
-        :openshift_projectname
+        :openshift_project_name
       );
     `,
   );

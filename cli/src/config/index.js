@@ -1,106 +1,53 @@
 // @flow
 
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import R from 'ramda';
-import { writeFile } from '../util/fs';
-import yaml from 'js-yaml';
-import findup from 'findup-sync';
+import { readConfigFile } from '../configFile/readConfigFile';
+import { globalOptionDefaults } from './globalOptions';
 
-// TODO: Type the rest of the config
-export type LagoonConfig = {|
-  api?: string,
-  branches?: boolean | RegExp,
-  customer?: number,
-  git_url?: string,
-  openshift?: number,
-  production_environment?: string,
-  project?: string,
-  pullrequests?: boolean | RegExp,
-  ssh?: string,
-  token?: string,
-|};
+import type { Argv } from 'yargs';
+import type { Config } from '../types/Config';
 
-export type LagoonConfigInput = {|
-  project: string,
-  api: string,
-  ssh: string,
-  token: string,
-|};
+let argv = {};
 
-const configInputOptionsTypes = {
-  project: String,
-  api: String,
-  ssh: String,
-  token: String,
-};
+export const getConfig = (() => {
+  let config;
 
-export function createConfig(
-  filepath: string,
-  inputOptions: LagoonConfigInput,
-): Promise<void> {
-  const errors = [];
-
-  const inputOptionsWithoutEmptyStrings = R.reduce(
-    (acc, [optionKey, optionVal]) => {
-      // Validate
-      const optionType = R.prop(optionKey, configInputOptionsTypes);
-
-      if (!optionType) {
-        errors.push(
-          `- Invalid config option "${optionKey}". Valid options: ${R.join(
-            ', ',
-            R.keys(configInputOptionsTypes),
-          )}`,
-        );
-      } else if (!R.is(optionType, optionVal)) {
-        errors.push(
-          `- Invalid config option value for "${optionKey}": "${optionVal}" expected type: ${R.prop(
-            'name',
-            optionType,
-          )}`,
+  return ({
+    // Dynamic options are options that will likely change every time and should only be specified dynamically.
+    // Example: the --overwrite option is allowed to be passed as a command line option, but not allowed to be saved in and read from the config file
+    // Example: the --token <path> option is allowed to be passed as a command line option and environment variable, but not allowed to be read from the config file
+    dynamicOptionsKeys,
+  }: {
+    dynamicOptionsKeys?: Array<string>,
+  } = {}): Config => {
+    if (!config) {
+      if (R.isEmpty(argv)) {
+        throw new Error(
+          'getConfig() called before argv initialized (setConfig() not yet called?)',
         );
       }
+      config = Object.freeze({
+        // Manually apply defaults instead of using yargs' `default` option in order to allow config file to override global defaults
+        // An alternative would be to move everything into yargs (global options, command options, config using yargs.config, environment variables using yargs.env), but this doesn't allow us an easy way to filter out values from only some sources later with the dynamicOptionsKeys option./
+        // Maybe just add an option to filter the configFile to readConfigFile?
+        ...globalOptionDefaults,
+        ...R.omit(dynamicOptionsKeys || [], readConfigFile() || {}),
+        ...argv,
+      });
+    }
 
-      // Filter out empty strings
-      if (!R.both(R.is(String), R.isEmpty)(optionVal)) {
-        acc[optionKey] = optionVal;
-      }
+    return config;
+  };
+})();
 
-      return acc;
-    },
-    {},
-    R.toPairs(inputOptions),
-  );
-
-  if (R.length(errors) > 0) throw new Error(errors.join('\n'));
-
-  const yamlConfig = yaml.safeDump(inputOptionsWithoutEmptyStrings);
-  return writeFile(filepath, yamlConfig);
+export function setConfig({
+  argv: newArgv,
+  dynamicOptionsKeys,
+}: {
+  argv: Argv,
+  dynamicOptionsKeys: Array<string>,
+}): Config {
+  // Omit yargs-specific properties
+  argv = R.omit(['_', '$0'], newArgv);
+  return getConfig({ dynamicOptionsKeys });
 }
-
-export function parseConfig(yamlContent: string): LagoonConfig {
-  // TODO: Add schema validation in here if necessary
-  return yaml.safeLoad(yamlContent);
-}
-
-/**
- * Finds and reads the lagoon.yml file
- */
-function readConfig(): LagoonConfig | null {
-  const configPath = findup('.lagoon.yml');
-
-  if (configPath == null) {
-    return null;
-  }
-
-  const yamlContent = fs.readFileSync(configPath);
-  return parseConfig(yamlContent.toString());
-}
-
-export const config = Object.freeze(readConfig());
-
-export const configDefaults = Object.freeze({
-  token: path.join(os.homedir(), '.lagoon-token'),
-});
