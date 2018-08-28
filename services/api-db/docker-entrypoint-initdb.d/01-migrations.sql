@@ -334,7 +334,7 @@ CREATE OR REPLACE PROCEDURE
   drop_legacy_pid_skid_view()
 
   BEGIN
-    -- DROP VIEW IF EXISTS pid_skid;
+    DROP VIEW IF EXISTS pid_skid;
   END;
 $$
 
@@ -432,7 +432,7 @@ CREATE OR REPLACE PROCEDURE
   drop_legacy_customer_ssh_key_junction_table()
 
   BEGIN
-    -- DROP TABLE IF EXISTS customer_ssh_key;
+    DROP TABLE IF EXISTS customer_ssh_key;
   END;
 $$
 
@@ -440,7 +440,7 @@ CREATE OR REPLACE PROCEDURE
   drop_legacy_project_ssh_key_junction_table()
 
   BEGIN
-    -- DROP TABLE IF EXISTS project_ssh_key;
+    DROP TABLE IF EXISTS project_ssh_key;
   END;
 $$
 
@@ -448,11 +448,11 @@ CREATE OR REPLACE PROCEDURE
   drop_legacy_ssh_key_procedures()
 
   BEGIN
-    -- DROP PROCEDURE IF EXISTS CreateProjectSshKey;
-    -- DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
-    -- DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
-    -- DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
-    -- DROP PROCEDURE IF EXISTS CreateSshKey;
+    DROP PROCEDURE IF EXISTS CreateProjectSshKey;
+    DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
+    DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
+    DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
+    DROP PROCEDURE IF EXISTS CreateSshKey;
   END;
 $$
 
