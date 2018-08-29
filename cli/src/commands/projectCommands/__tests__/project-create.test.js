@@ -1,7 +1,7 @@
 // @flow
 
 import R from 'ramda';
-import { runGQLQuery } from '../../../query';
+import { queryGraphQL } from '../../../util/queryGraphQL';
 
 import {
   CUSTOMER,
@@ -9,12 +9,17 @@ import {
   allOptionsSpecified,
   commandOptions,
   getAllowedCustomersAndOpenshifts,
-  createProject,
+  handler,
 } from '../create';
 
-jest.mock('../../../query');
+jest.mock('../../../util/queryGraphQL');
+jest.mock('../../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
-const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
+// Flow does not know which objects are actual mocks
+// this function casts given parameter to JestMockFn
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 // Satisfy Flow types
 const options = {
@@ -47,7 +52,7 @@ describe('allOptionsSpecified', () => {
 
 describe('getAllowedCustomersAndOpenshifts', () => {
   it('should return all customers and all openshifts', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allCustomers: [
@@ -80,9 +85,9 @@ describe('getAllowedCustomersAndOpenshifts', () => {
   });
 });
 
-describe('createProject', () => {
+describe('handler', () => {
   it('should display table after successful project creation', async () => {
-    _mock(runGQLQuery)
+    _castMockForFlow(queryGraphQL)
       .mockImplementationOnce(() =>
         Promise.resolve({
           data: {
@@ -114,13 +119,15 @@ describe('createProject', () => {
               customer: {
                 name: 'credentialtest-customer1',
               },
-              git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
-              active_systems_deploy: 'lagoon_openshiftBuildDeploy',
-              active_systems_remove: 'lagoon_openshiftRemove',
-              branches: true,
-              pullrequests: true,
-              production_environment: null,
-              openshift: 1,
+              gitUrl: 'ssh://git@192.168.99.1:2222/git/project1.git',
+              activeSystemsDeploy: 'lagoon_openshiftBuildDeploy',
+              activeSystemsRemove: 'lagoon_openshiftRemove',
+              branches: 'true',
+              pullrequests: 'true',
+              productionEnvironment: 'null',
+              openshift: {
+                name: 'credentialtest-openshift',
+              },
               created: '2018-03-05 10:26:22',
             },
           },
@@ -130,17 +137,20 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({
+    const returnVal = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
       options: {
+        format: 'table',
+        token: 'token/path',
         customer: 1,
         name: 'test-project',
-        git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+        gitUrl: 'ssh://git@192.168.99.1:2222/git/project1.git',
         openshift: 1,
         branches: 'true',
         pullrequests: 'true',
-        production_environment: 'null',
+        productionEnvironment: 'null',
       },
     });
 
@@ -149,7 +159,7 @@ describe('createProject', () => {
   });
 
   it("should display error, if GraphQL sends error messages the first time it's called", async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'something something error' }],
       }),
@@ -158,14 +168,22 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({ clog, cerr, options: {} });
+    const returnVal = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
+    });
 
     expect(returnVal).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
   });
 
   it("should display error, if GraphQL sends error messages the second time it's called", async () => {
-    _mock(runGQLQuery)
+    _castMockForFlow(queryGraphQL)
       .mockImplementationOnce(() =>
         Promise.resolve({
           data: {
@@ -197,17 +215,20 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({
+    const returnVal = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
       options: {
+        format: 'table',
+        token: 'token/path',
         customer: 1,
         name: 'test-project',
-        git_url: 'ssh://git@192.168.99.1:2222/git/project1.git',
+        gitUrl: 'ssh://git@192.168.99.1:2222/git/project1.git',
         openshift: 1,
         branches: 'true',
         pullrequests: 'true',
-        production_environment: 'null',
+        productionEnvironment: 'null',
       },
     });
 
@@ -216,7 +237,7 @@ describe('createProject', () => {
   });
 
   it('should display error, if GraphQL response contains zero customers', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: { allCustomers: [], allOpenshifts: [] },
       }),
@@ -225,14 +246,22 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({ clog, cerr, options: {} });
+    const returnVal = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
+    });
 
     expect(returnVal).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();
   });
 
   it('should display error, if GraphQL response contains zero openshifts but one customer', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         data: {
           allCustomers: [
@@ -249,7 +278,15 @@ describe('createProject', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const returnVal = await createProject({ clog, cerr, options: {} });
+    const returnVal = await handler({
+      clog,
+      cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+      },
+    });
 
     expect(returnVal).toBe(1);
     expect(cerr.mock.calls).toMatchSnapshot();

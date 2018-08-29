@@ -1634,14 +1634,14 @@ declare module ramda {
   // ): V | T;
   declare function pathOr(...args: Array<any>): any;
 
-  declare function pick<A>(
+  declare function pick<O: { [key: string]: any }>(
     keys: Array<string>,
     ...rest: Array<void>
-  ): (val: { [key: string]: A }) => { [key: string]: A };
-  declare function pick<A>(
+  ): (val: O) => { ...$Exact<O> };
+  declare function pick<O: { [key: string]: any }>(
     keys: Array<string>,
-    val: { [key: string]: A }
-  ): { [key: string]: A };
+    val: O
+  ): { ...$Exact<O> };
 
   declare function pickAll<A>(
     keys: Array<string>,
@@ -1652,14 +1652,14 @@ declare module ramda {
     val: { [key: string]: A }
   ): { [key: string]: ?A };
 
-  declare function pickBy<A>(
-    fn: BinaryPredicateFn2<A, string>,
+  declare function pickBy<O: { [key: string]: any }>(
+    fn: Function,
     ...rest: Array<void>
-  ): (val: { [key: string]: A }) => { [key: string]: A };
-  declare function pickBy<A>(
-    fn: BinaryPredicateFn2<A, string>,
-    val: { [key: string]: A }
-  ): { [key: string]: A };
+  ): (val: O) => { ...$Exact<O> };
+  declare function pickBy<O: { [key: string]: any }>(
+    fn: Function,
+    val: O
+  ): { ...$Exact<O> };
 
   declare function project<T>(
     keys: Array<string>,

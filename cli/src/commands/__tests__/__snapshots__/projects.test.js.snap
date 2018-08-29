@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`listProjects should display error, if GraphQL sends error messages 1`] = `
+exports[`handler should display error, if GraphQL sends error messages 1`] = `
 Array [
   Array [
-    "[31mOops! The lagoon API returned an error:[39m",
+    "[31mOops! The Lagoon API returned an error:[39m",
   ],
   Array [
     "[31msomething something error[39m",
@@ -11,22 +11,76 @@ Array [
 ]
 `;
 
-exports[`listProjects should list details for multiple projects 1`] = `
+exports[`handler should list details for multiple projects 1`] = `
 Array [
   Array [
-    "╔══════════════════════════╤══════════════════════════════════════════════╤══════════╤═══════════════╤═════════════════════╗
-║ Project                  │ Git URL                                      │ Branches │ Pull Requests │ Created             ║
-╟──────────────────────────┼──────────────────────────────────────────────┼──────────┼───────────────┼─────────────────────╢
-║ credentialstest-project1 │ ssh://git@192.168.99.1:2222/git/project1.git │ true     │ null          │ 2018-01-15 11:09:35 ║
-╟──────────────────────────┼──────────────────────────────────────────────┼──────────┼───────────────┼─────────────────────╢
-║ credentialstest-project2 │ ssh://git@192.168.99.1:2222/git/project2.git │ true     │ null          │ 2018-01-15 11:09:35 ║
-╚══════════════════════════╧══════════════════════════════════════════════╧══════════╧═══════════════╧═════════════════════╝
+    "[38;2;132;132;132mProject[39m                   [38;2;132;132;132mGit URL[39m                                       [38;2;132;132;132mBranches[39m  [38;2;132;132;132mPull Requests[39m  [38;2;132;132;132mCreated[39m
+credentialstest-project1  ssh://git@192.168.99.1:2222/git/project1.git  true      null           2018-01-15 11:09:35
+credentialstest-project2  ssh://git@192.168.99.1:2222/git/project2.git  true      null           2018-01-15 11:09:35",
+  ],
+]
+`;
+
+exports[`handler should list details for multiple projects in csv format 1`] = `
+Array [
+  Array [
+    "Project,Git URL,Branches,Pull Requests,Created
+credentialstest-project1,ssh://git@192.168.99.1:2222/git/project1.git,true,null,2018-01-15 11:09:35
+credentialstest-project2,ssh://git@192.168.99.1:2222/git/project2.git,true,null,2018-01-15 11:09:35
 ",
   ],
 ]
 `;
 
-exports[`listProjects should print notice on empty projects array 1`] = `
+exports[`handler should list details for multiple projects in json format 1`] = `
+Array [
+  Array [
+    Array [
+      Array [
+        "Project",
+        "Git URL",
+        "Branches",
+        "Pull Requests",
+        "Created",
+      ],
+      Array [
+        "credentialstest-project1",
+        "ssh://git@192.168.99.1:2222/git/project1.git",
+        "true",
+        "null",
+        "2018-01-15 11:09:35",
+      ],
+      Array [
+        "credentialstest-project2",
+        "ssh://git@192.168.99.1:2222/git/project2.git",
+        "true",
+        "null",
+        "2018-01-15 11:09:35",
+      ],
+    ],
+  ],
+]
+`;
+
+exports[`handler should list details for multiple projects in simple format 1`] = `
+Array [
+  Array [
+    "Project: credentialstest-project1
+Git URL: ssh://git@192.168.99.1:2222/git/project1.git
+Branches: true
+Pull Requests: null
+Created: 2018-01-15 11:09:35
+
+Project: credentialstest-project2
+Git URL: ssh://git@192.168.99.1:2222/git/project2.git
+Branches: true
+Pull Requests: null
+Created: 2018-01-15 11:09:35",
+  ],
+]
+`;
+
+exports[`handler should print notice on empty projects array 1`] = `
 Array [
   Array [
     "No projects found.",

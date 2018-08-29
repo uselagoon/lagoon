@@ -7,26 +7,27 @@ jest.mock('fs');
 jest.mock('../../config');
 jest.mock('../../util/fs');
 
-function _mock(fn: any): JestMockFn<any, any> {
-  return fn;
-}
+// Flow does not know which objects are actual mocks
+// this function casts given parameter to JestMockFn
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 describe('handler', () => {
   // TODO: Also write a test where it bails
   it('should overwrite existing config file if overwrite option passed as true', async () => {
-    _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
+    _castMockForFlow(fileExists).mockImplementationOnce(() =>
+      Promise.resolve(true),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
     const cwd = 'some/path';
 
     const code = await handler({
-      cwd,
       clog,
       cerr,
-      argv: {
-        _: [],
-        $0: '',
+      cwd,
+      options: {
+        format: 'table',
         overwrite: true,
         project: 'test_project',
         api: '',
@@ -40,19 +41,20 @@ describe('handler', () => {
   });
 
   it('should not overwrite config file when `overwrite` option set to false', async () => {
-    _mock(fileExists).mockImplementationOnce(() => Promise.resolve(true));
+    _castMockForFlow(fileExists).mockImplementationOnce(() =>
+      Promise.resolve(true),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
     const cwd = 'some/path';
 
     const code = await handler({
-      cwd,
       clog,
       cerr,
-      argv: {
-        _: [],
-        $0: '',
+      cwd,
+      options: {
+        format: 'table',
         overwrite: false,
         project: 'test_project',
         api: '',
@@ -66,19 +68,20 @@ describe('handler', () => {
   });
 
   it('should write default yaml to given cwd + .lagoon.yml', async () => {
-    _mock(fileExists).mockImplementationOnce(() => Promise.resolve(false));
+    _castMockForFlow(fileExists).mockImplementationOnce(() =>
+      Promise.resolve(false),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
     const cwd = 'some/path';
 
     const code = await handler({
-      cwd,
       clog,
       cerr,
-      argv: {
-        _: [],
-        $0: '',
+      cwd,
+      options: {
+        format: 'table',
         overwrite: false,
         project: 'test_project',
         api: '',

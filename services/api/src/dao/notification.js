@@ -180,9 +180,11 @@ const Helpers = {
     });
 
     if (!R.isEmpty(pids)) {
-      const hasAccess = R.compose(R.not, R.isEmpty, R.intersection(projects))(
-        pids,
-      );
+      const hasAccess = R.compose(
+        R.not,
+        R.isEmpty,
+        R.intersection(projects),
+      )(pids);
 
       return hasAccess;
     }
@@ -268,7 +270,10 @@ const deleteNotificationRocketChat = ({ sqlClient }) => async (cred, input) => {
     // that there are no assigned notifications the user doesn't
     // has access to
     if (R.length(nonAllowed) > 0) {
-      const ids = R.compose(R.join(','), R.map(R.prop('nid')));
+      const ids = R.compose(
+        R.join(','),
+        R.map(R.prop('nid')),
+      );
       throw new Error(`Unauthorized for following projects: ${ids}`);
     }
   }
@@ -300,7 +305,10 @@ const deleteNotificationSlack = ({ sqlClient }) => async (cred, input) => {
     // that there are no assigned notifications the user doesn't
     // has access to
     if (R.length(nonAllowed) > 0) {
-      const ids = R.compose(R.join(','), R.map(R.prop('nid')));
+      const ids = R.compose(
+        R.join(','),
+        R.map(R.prop('nid')),
+      );
       throw new Error(`Unauthorized for following projects: ${ids}`);
     }
   }
@@ -312,15 +320,15 @@ const deleteNotificationSlack = ({ sqlClient }) => async (cred, input) => {
   return 'success';
 };
 
-const removeNotificationFromProject = ({ sqlClient }) => async (cred, input) => {
+const removeNotificationFromProject = ({ sqlClient }) => async (
+  cred,
+  input,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('unauthorized.');
   }
 
-  await query(
-    sqlClient,
-    Sql.deleteProjectNotification(cred, input),
-  );
+  await query(sqlClient, Sql.deleteProjectNotification(cred, input));
   const select = await query(sqlClient, Sql.selectProjectByName(input));
   const project = R.path([0], select);
 
@@ -329,7 +337,11 @@ const removeNotificationFromProject = ({ sqlClient }) => async (cred, input) => 
 
 const NOTIFICATION_TYPES = ['slack', 'rocketchat'];
 
-const getNotificationsByProjectId = ({ sqlClient }) => async (cred, pid, args) => {
+const getNotificationsByProjectId = ({ sqlClient }) => async (
+  cred,
+  pid,
+  args,
+) => {
   const { type: argsType } = args;
 
   // Types to collect notifications from all different

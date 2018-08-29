@@ -5,8 +5,8 @@ USE infrastructure;
 CREATE TABLE IF NOT EXISTS ssh_key (
        id            int NOT NULL auto_increment PRIMARY KEY,
        name          varchar(100) NOT NULL,
-       keyValue      varchar(5000) NOT NULL,
-       keyType       ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
+       key_value     varchar(5000) NOT NULL,
+       key_type      ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
        created       timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS environment (
        project                int REFERENCES project (id),
        deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
        environment_type       ENUM('production', 'development') NOT NULL,
-       openshift_projectname  varchar(100),
+       openshift_project_name varchar(100),
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
        deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -107,35 +107,7 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
        CONSTRAINT project_ssh_key_pkey PRIMARY KEY (pid, skid)
 );
 
-
-DROP VIEW IF EXISTS pid_skid;
-CREATE VIEW pid_skid
-AS
-  SELECT DISTINCT
-          p.id as pid, csk.skid as skid
-        FROM customer_ssh_key csk
-        INNER JOIN customer c ON csk.cid = c.id
-        INNER JOIN project p ON p.customer = c.id
-        UNION DISTINCT
-        SELECT psk.pid AS pid, psk.skid as skid
-        FROM project_ssh_key psk;
-
-DROP VIEW IF EXISTS permission;
-CREATE VIEW permission
-AS
-  SELECT
-    sk.id AS keyId,
-    CONCAT(sk.keyType, ' ', sk.keyValue) AS sshKey,
-    (SELECT
-      GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
-      FROM customer_ssh_key csk
-      WHERE csk.skid = sk.id) as customers,
-    (SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
-      FROM
-      pid_skid AS r
-      WHERE r.skid = sk.id
-    ) AS projects
-  FROM ssh_key sk;
+-- Migrations
 
 DELIMITER $$
 
@@ -147,10 +119,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'production_environment'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'production_environment'
+             )  THEN
       ALTER TABLE `project` ADD `production_environment` varchar(100);
 
     END IF;
@@ -166,10 +138,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'openshift'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'ssh_host'
-            )  THEN
+               WHERE table_name = 'openshift'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'ssh_host'
+             )  THEN
       ALTER TABLE `openshift` ADD `ssh_host` varchar(300);
       ALTER TABLE `openshift` ADD `ssh_port` varchar(50);
 
@@ -203,10 +175,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'active_systems_promote'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'active_systems_promote'
+             )  THEN
       ALTER TABLE `project` ADD `active_systems_promote` varchar(300);
       UPDATE project SET active_systems_promote = 'lagoon_openshiftBuildDeploy';
 
@@ -223,10 +195,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'environment'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'deploy_type'
-            )  THEN
+               WHERE table_name = 'environment'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'deploy_type'
+             )  THEN
       ALTER TABLE `environment` CHANGE `git_type` `deploy_type` ENUM('branch','pullrequest');
 
     END IF;
@@ -261,10 +233,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'auto_idle'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'auto_idle'
+             )  THEN
       ALTER TABLE `project` ADD `auto_idle` int(1) NOT NULL default '1';
 
 
@@ -300,10 +272,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'environment'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'deleted'
-            )  THEN
+               WHERE table_name = 'environment'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'deleted'
+             )  THEN
       ALTER TABLE `environment` DROP INDEX project_name;
       ALTER TABLE `environment` ADD `deleted` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00';
       ALTER TABLE `environment` ADD UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`);
@@ -322,10 +294,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'storage_calc'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'storage_calc'
+             )  THEN
       ALTER TABLE `project` ADD `storage_calc` int(1) NOT NULL default '1';
 
     END IF;
@@ -341,10 +313,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'openshift'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'project_pattern'
-            )  THEN
+               WHERE table_name = 'openshift'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'project_pattern'
+             )  THEN
       ALTER TABLE `openshift` ADD `project_pattern` varchar(300);
 
     END IF;
@@ -360,10 +332,10 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'subfolder'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'subfolder'
+              ) THEN
       ALTER TABLE `project` ADD `subfolder` varchar(300);
 
     END IF;
@@ -379,10 +351,10 @@ CREATE OR REPLACE PROCEDURE
     IF EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'openshift'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'project_pattern'
-            )  THEN
+               WHERE table_name = 'openshift'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'project_pattern'
+              ) THEN
       ALTER TABLE `openshift` DROP COLUMN `project_pattern`;
 
     END IF;
@@ -398,11 +370,69 @@ CREATE OR REPLACE PROCEDURE
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE table_name = 'project'
-                AND table_schema = 'infrastructure'
-                AND column_name = 'openshift_project_pattern'
-            )  THEN
+               WHERE table_name = 'project'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'openshift_project_pattern'
+             )  THEN
       ALTER TABLE `project` ADD `openshift_project_pattern` varchar(300);
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  rename_keyValue_to_key_value_in_ssh_key()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = 'ssh_key'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'key_value'
+             )  THEN
+      ALTER TABLE `ssh_key` CHANGE `keyValue` `key_value` varchar(5000) NOT NULL;
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  rename_keyType_to_key_type_in_ssh_key()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = 'ssh_key'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'key_type'
+             )  THEN
+      ALTER TABLE `ssh_key` CHANGE `keyType` `key_type` ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa';
+
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  -- Rename environment.openshift_projectname to environment_openshift_project_name
+  rename_openshift_projectname_in_environment()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = 'environment'
+                 AND table_schema = 'infrastructure'
+                 AND column_name = 'openshift_project_name'
+             )  THEN
+      ALTER TABLE `environment` CHANGE `openshift_projectname` `openshift_project_name` varchar(100);
 
     END IF;
 
@@ -424,4 +454,39 @@ CALL add_storagecalc_to_project();
 CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
-CALL add_openshift_project_pattern_to_project()
+CALL add_openshift_project_pattern_to_project();
+CALL rename_keyValue_to_key_value_in_ssh_key();
+CALL rename_keyType_to_key_type_in_ssh_key();
+CALL rename_openshift_projectname_in_environment();
+
+
+-- Views
+
+DROP VIEW IF EXISTS pid_skid;
+CREATE VIEW pid_skid
+AS
+  SELECT DISTINCT
+          p.id as pid, csk.skid as skid
+        FROM customer_ssh_key csk
+        INNER JOIN customer c ON csk.cid = c.id
+        INNER JOIN project p ON p.customer = c.id
+        UNION DISTINCT
+        SELECT psk.pid AS pid, psk.skid as skid
+        FROM project_ssh_key psk;
+
+DROP VIEW IF EXISTS permission;
+CREATE VIEW permission
+AS
+  SELECT
+    sk.id AS key_id,
+    CONCAT(sk.key_type, ' ', sk.key_value) AS ssh_key,
+    (SELECT
+      GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
+      FROM customer_ssh_key csk
+      WHERE csk.skid = sk.id) as customers,
+    (SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+      FROM
+      pid_skid AS r
+      WHERE r.skid = sk.id
+    ) AS projects
+  FROM ssh_key sk;

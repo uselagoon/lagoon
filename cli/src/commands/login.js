@@ -1,65 +1,67 @@
 // @flow
 
 import { green } from 'chalk';
-import R from 'ramda';
-import { config, configDefaults } from '../config';
 import { getSshConfig } from '../config/getSshConfig';
-import { sshConnect } from '../ssh/sshConnect';
-import { sshExec } from '../ssh/sshExec';
-import { fileExists, writeFile } from '../util/fs';
-import { printErrors } from '../printErrors';
+import { runSshCommand } from '../util/runSshCommand';
+import { writeFile } from '../util/fs';
+import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'login';
 export const description = 'Authenticate with lagoon via an SSH key';
+
+const IDENTITY: 'identity' = 'identity';
+const TOKEN: 'token' = 'token';
+
+export const commandOptions = {
+  [IDENTITY]: IDENTITY,
+  [TOKEN]: TOKEN,
+};
 
 export function builder(yargs: Yargs) {
   return yargs.usage(`$0 ${command} - ${description}`).options({
     identity: {
       describe: 'Path to identity (private key)',
       type: 'string',
-      alias: 'i',
     },
   });
 }
 
-type Args = BaseHandlerArgs & {
-  argv: {
-    identity: string,
-  },
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +identity: string,
+  +token: string,
+}>;
 
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  if (argv.identity != null && !(await fileExists(argv.identity))) {
-    return printErrors(cerr, {
-      message: 'File does not exist at identity option path!',
-    });
-  }
-
-  let connection;
+export async function handler({
+  clog,
+  cerr,
+  options: { identity, token: tokenFilePath },
+}:
+Args): Promise<number> {
   const { username, host, port } = getSshConfig();
 
   console.log(`Logging in to lagoon at ${username}@${host}:${port}...`);
+
+  let token;
+
   try {
-    connection = await sshConnect({
-      identity: argv.identity,
-      cerr,
-    });
+    token = await runSshCommand({ command: 'token', identity });
   } catch (err) {
     return printErrors(cerr, err);
   }
 
-  const output = await sshExec(connection, 'token');
-  const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
-  const tokenFilePath = R.prop('token', { ...configDefaults, ...config });
+  if (!token) {
+    return printErrors(
+      cerr,
+      'Empty token returned from Lagoon authentication server.',
+    );
+  }
+
   await writeFile(tokenFilePath, token);
 
   clog(green('Logged in successfully.'));
-
-  // Be responsible and close the connection after our transaction.
-  connection.end();
 
   return 0;
 }

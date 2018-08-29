@@ -1,7 +1,7 @@
 // @flow
 
 import R from 'ramda';
-import { config } from '.';
+import { getConfig } from '.';
 
 export const getSshConfig = (() => {
   let allSshConfig;
@@ -21,7 +21,7 @@ export const getSshConfig = (() => {
           if (R.length(split) === 2) return split;
         }
         return [null, null];
-      })(R.prop('ssh', config));
+      })(R.prop('ssh', getConfig()));
 
       const host: string =
         // Host from environment variable
