@@ -417,18 +417,12 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-<<<<<<< HEAD
   add_routes_monitoring_urls_to_environments()
-=======
-  rename_keyValue_to_key_value_in_ssh_key()
->>>>>>> master
-
   BEGIN
 
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
-<<<<<<< HEAD
               WHERE table_name = 'environment'
                 AND table_schema = 'infrastructure'
                 AND column_name = 'lagoon_route'
@@ -436,7 +430,11 @@ CREATE OR REPLACE PROCEDURE
       ALTER TABLE `environment` ADD `lagoon_route`    varchar(300);
       ALTER TABLE `environment` ADD `lagoon_routes`   text;
       ALTER TABLE `environment` ADD `monitoring_urls` text;
-=======
+
+CREATE OR REPLACE PROCEDURE
+  rename_keyValue_to_key_value_in_ssh_key()
+  BEGIN
+
                WHERE table_name = 'ssh_key'
                  AND table_schema = 'infrastructure'
                  AND column_name = 'key_value'
@@ -481,7 +479,6 @@ CREATE OR REPLACE PROCEDURE
                  AND column_name = 'openshift_project_name'
              )  THEN
       ALTER TABLE `environment` CHANGE `openshift_projectname` `openshift_project_name` varchar(100);
->>>>>>> master
 
     END IF;
 
@@ -504,10 +501,7 @@ CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
 CALL add_openshift_project_pattern_to_project();
-<<<<<<< HEAD
 CALL add_routes_monitoring_urls_to_environments();
-=======
 CALL rename_keyValue_to_key_value_in_ssh_key();
 CALL rename_keyType_to_key_type_in_ssh_key();
 CALL rename_openshift_projectname_in_environment();
->>>>>>> master
