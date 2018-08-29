@@ -294,9 +294,16 @@ services:
   logs2logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
+    command:
+      - "--config.reload.automatic"
+      - "--config.reload.interval"
+      - "1s"
     ports:
-      - '5140:5140/udp'
-      - '5044:5044'
+    - "5140:5140/udp"
+    - "5141:5141/udp"
+    - "5140:5140/tcp"
+    volumes:
+      - "./services/logs2logs-db/pipeline:/usr/share/logstash/pipeline"
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
