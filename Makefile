@@ -52,7 +52,7 @@ SHELL := /bin/bash
 #######
 
 # Parameter for all `docker build` commands, can be overwritten with `DOCKER_BUILD_PARAMS=` in cli
-DOCKER_BUILD_PARAMS := --quiet
+DOCKER_BUILD_PARAMS :=
 
 # Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.15.1
@@ -673,3 +673,14 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
+
+.PHONY: push-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind:
+	rm -rf build/oc-build-deploy-dind
+	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+
+
+
+.PHONY: ui-development
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui

@@ -113,7 +113,7 @@
        replication is in use, this should match the replication
        configuration.
     -->
-  <dataDir>${solr.data.dir:}</dataDir>
+  <dataDir>/var/solr/${solr.core.name}</dataDir>
 
 
   <!-- The DirectoryFactory to use for indexes.
