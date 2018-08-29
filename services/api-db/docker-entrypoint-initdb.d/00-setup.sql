@@ -386,6 +386,7 @@ $$
 
 CREATE OR REPLACE PROCEDURE
   add_routes_monitoring_urls_to_environments()
+
   BEGIN
 
     IF NOT EXISTS(
@@ -398,11 +399,19 @@ CREATE OR REPLACE PROCEDURE
       ALTER TABLE `environment` ADD `lagoon_route`    varchar(300);
       ALTER TABLE `environment` ADD `lagoon_routes`   text;
       ALTER TABLE `environment` ADD `monitoring_urls` text;
+    END IF;
+
+  END;
+$$
 
 CREATE OR REPLACE PROCEDURE
   rename_keyValue_to_key_value_in_ssh_key()
+
   BEGIN
 
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
                WHERE table_name = 'ssh_key'
                  AND table_schema = 'infrastructure'
                  AND column_name = 'key_value'
