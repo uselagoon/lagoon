@@ -110,38 +110,6 @@ CREATE TABLE IF NOT EXISTS project_ssh_key (
        CONSTRAINT project_ssh_key_pkey PRIMARY KEY (pid, skid)
 );
 
-
--- Views
-
-DROP VIEW IF EXISTS pid_skid;
-CREATE VIEW pid_skid
-AS
-  SELECT DISTINCT
-          p.id as pid, csk.skid as skid
-        FROM customer_ssh_key csk
-        INNER JOIN customer c ON csk.cid = c.id
-        INNER JOIN project p ON p.customer = c.id
-        UNION DISTINCT
-        SELECT psk.pid AS pid, psk.skid as skid
-        FROM project_ssh_key psk;
-
-DROP VIEW IF EXISTS permission;
-CREATE VIEW permission
-AS
-  SELECT
-    sk.id AS key_id,
-    CONCAT(sk.key_type, ' ', sk.key_value) AS ssh_key,
-    (SELECT
-      GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
-      FROM customer_ssh_key csk
-      WHERE csk.skid = sk.id) as customers,
-    (SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
-      FROM
-      pid_skid AS r
-      WHERE r.skid = sk.id
-    ) AS projects
-  FROM ssh_key sk;
-
 -- Migrations
 
 DELIMITER $$
@@ -505,3 +473,35 @@ CALL add_routes_monitoring_urls_to_environments();
 CALL rename_keyValue_to_key_value_in_ssh_key();
 CALL rename_keyType_to_key_type_in_ssh_key();
 CALL rename_openshift_projectname_in_environment();
+
+
+-- Views
+
+DROP VIEW IF EXISTS pid_skid;
+CREATE VIEW pid_skid
+AS
+  SELECT DISTINCT
+          p.id as pid, csk.skid as skid
+        FROM customer_ssh_key csk
+        INNER JOIN customer c ON csk.cid = c.id
+        INNER JOIN project p ON p.customer = c.id
+        UNION DISTINCT
+        SELECT psk.pid AS pid, psk.skid as skid
+        FROM project_ssh_key psk;
+
+DROP VIEW IF EXISTS permission;
+CREATE VIEW permission
+AS
+  SELECT
+    sk.id AS key_id,
+    CONCAT(sk.key_type, ' ', sk.key_value) AS ssh_key,
+    (SELECT
+      GROUP_CONCAT(DISTINCT csk.cid SEPARATOR ',')
+      FROM customer_ssh_key csk
+      WHERE csk.skid = sk.id) as customers,
+    (SELECT GROUP_CONCAT(DISTINCT r.pid SEPARATOR ',')
+      FROM
+      pid_skid AS r
+      WHERE r.skid = sk.id
+    ) AS projects
+  FROM ssh_key sk;

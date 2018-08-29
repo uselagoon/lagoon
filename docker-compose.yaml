@@ -273,7 +273,7 @@ services:
     user: '111111111'
     labels:
       lagoon.type: elasticsearch
-      lagoon.template: services/logs-db/.lagoon.yml
+      lagoon.template: services/logs-db/.lagoon.single.yml
       lagoon.image: amazeeiolagoon/logs-db:${SAFE_BRANCH:-master}
   logs-forwarder:
     image: ${IMAGE_REPO:-lagoon}/logs-forwarder

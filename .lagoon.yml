@@ -24,6 +24,10 @@ tasks:
         service: logs-db-ui
 
 environments:
-  develop:
+  master:
     types:
       logs-db: elasticsearch-cluster
+    templates:
+      logs-db: services/logs-db/.lagoon.cluster.yml
+    rollouts:
+      logs-db: statefulset
