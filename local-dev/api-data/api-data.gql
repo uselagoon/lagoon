@@ -11,6 +11,7 @@ mutation FillAPI {
   )
   truncateProjectNotification: truncateTable(tableName: "project_notification")
   truncateSshKeys: truncateTable(tableName: "ssh_key")
+  truncateEnvironments: truncateTable(tableName: "environment")
 
   #### Filling API with needed Objects to run the Credentialstests
 
