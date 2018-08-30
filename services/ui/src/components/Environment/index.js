@@ -1,12 +1,17 @@
 import React from 'react';
 
-export default ({ environment }) => {
-  const productionLabel = environment.environmentType == 'production' ? <div>Prod</div> : '';
-  return (
-    <div>
-      {productionLabel}
-      <label>Branch</label>
-      <div>{environment.name}</div>
-    </div>
-  );
-};
+export default ({ environment }) => (
+  <div>
+    <label>Environment Type</label>
+    <div>{environment.environmentType}</div>
+
+    <label>Deployment Type</label>
+    <div>{environment.deployType}</div>
+
+    <label>Created</label>
+    <div>{environment.created}</div>
+
+    <label>Last Deploy</label>
+    <div>{environment.updated}</div>
+  </div>
+);

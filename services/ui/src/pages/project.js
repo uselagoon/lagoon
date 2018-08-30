@@ -1,28 +1,32 @@
 import React from 'react';
-import { withRouter } from 'next/router'
-import Link from 'next/link'
+import { withRouter } from 'next/router';
+import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Header from '../components/Header';
-import Environment from '../components/Environment';
+import Breadcrumbs from '../components/Breadcrumbs';
+import Environment from '../components/EnvironmentTeaser';
 
 const query = gql`
-query getProject($name: String!){
-  projectByName (name: $name){
-    id
-    name
-    branches
-    pullrequests
-    created
-    gitUrl
-    productionEnvironment
-    environments {
+  query getProject($name: String!){
+    projectByName (name: $name){
       id
       name
-      environmentType
+      branches
+      pullrequests
+      created
+      gitUrl
+      productionEnvironment
+      environments {
+        id
+        name
+        created
+        updated
+        deployType
+        environmentType
+      }
     }
   }
-}
 `;
 const Project = withRouter((props) => {
   return (
@@ -34,8 +38,7 @@ const Project = withRouter((props) => {
         return (
           <div>
             <Header />
-            <h4>Project</h4>
-            <h2>{project.name}</h2>
+            <Breadcrumbs project={project.name}/>
             <label>Created</label>
             <div>{project.created}</div>
             <label>Git URL</label>
@@ -48,7 +51,7 @@ const Project = withRouter((props) => {
             <h3>Environments</h3>
             <div>
               {!project.environments.length && `No Environments`}
-              {project.environments.map(environment => <Environment key={environment.id} environment={environment} />)}
+              {project.environments.map(environment => <Environment key={environment.id} environment={environment.name} project={project.name}/>)}
             </div>
           </div>
         );
