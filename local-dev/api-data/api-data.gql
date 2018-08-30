@@ -622,7 +622,7 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: PRODUCTION
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-master"
     }
   ) {
     id
@@ -633,7 +633,7 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-staging"
     }
   ) {
     id
@@ -644,7 +644,7 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-development"
     }
   ) {
     id
@@ -655,7 +655,7 @@ mutation FillAPI {
       project: 18
       deployType: PULLREQUEST
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-pr-175"
     }
   ) {
     id

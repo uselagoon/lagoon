@@ -5,36 +5,39 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Header from '../components/Header';
 import Breadcrumbs from '../components/Breadcrumbs';
+import NavTabs from '../components/NavTabs';
 import EnvironmentData from '../components/Environment';
 
 const query = gql`
-  query getProject($name: String!){
-    projectByName (name: $name){
+  query getEnvironment($openshiftProjectName: String!){
+    environmentByOpenshiftProjectName(openshiftProjectName: $openshiftProjectName) {
+      id
       name
-      environments {
-        id
+      created
+      updated
+      deployType
+      environmentType
+      openshiftProjectName
+      project {
         name
-        created
-        updated
-        deployType
-        environmentType
       }
     }
   }
 `;
 const Environment = withRouter((props) => {
   return (
-    <Query query={query} variables={{name: props.router.query.project}}>
+    <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
       {({ loading, error, data }) => {
         if (loading) return null;
         if (error) return `Error!: ${error}`;
-        const project = data.projectByName;
-        const environment = project.environments
-          .filter(environment => environment.name === props.router.query.env).shift();
+        const environment = data.environmentByOpenshiftProjectName;
         return (
           <div>
-            <Header />
-            <Breadcrumbs project={project.name} environment={environment.name}/>
+            <div>
+              <Header />
+              <Breadcrumbs project={environment.project.name} environment={environment}/>
+            </div>
+            <NavTabs activeTab='overview' environment={environment.openshiftProjectName}/>
             <EnvironmentData key={environment.id} environment={environment} />
           </div>
         );

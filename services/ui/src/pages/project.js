@@ -5,7 +5,8 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Header from '../components/Header';
 import Breadcrumbs from '../components/Breadcrumbs';
-import Environment from '../components/EnvironmentTeaser';
+import NavTabs from '../components/NavTabs';
+import ProjectData from '../components/Project';
 
 const query = gql`
   query getProject($name: String!){
@@ -24,6 +25,7 @@ const query = gql`
         updated
         deployType
         environmentType
+        openshiftProjectName
       }
     }
   }
@@ -37,22 +39,11 @@ const Project = withRouter((props) => {
         const project = data.projectByName;
         return (
           <div>
-            <Header />
-            <Breadcrumbs project={project.name}/>
-            <label>Created</label>
-            <div>{project.created}</div>
-            <label>Git URL</label>
-            <div>{project.gitUrl}</div>
-            <label>Branches enabled</label>
-            <div>{project.branches}</div>
-            <label>Pull requests enabled</label>
-            <div>{project.pullrequests}</div>
-
-            <h3>Environments</h3>
             <div>
-              {!project.environments.length && `No Environments`}
-              {project.environments.map(environment => <Environment key={environment.id} environment={environment.name} project={project.name}/>)}
+              <Header />
+              <Breadcrumbs project={project.name}/>
             </div>
+            <ProjectData key={project.id} project={project} />
           </div>
         );
       }}

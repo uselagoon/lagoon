@@ -17,11 +17,11 @@ return (
       </Link>
     }
     {environment &&
-      <Link href={{ pathname: '/environment/', query: { project: project, env: environment } }}>
+      <Link href={{ pathname: '/environment', query: { name: environment.openshiftProjectName } }}>
         <a>
           <div>
             <h4>Environment</h4>
-            <h2>{environment}</h2>
+            <h2>{environment.name}</h2>
           </div>
         </a>
       </Link>

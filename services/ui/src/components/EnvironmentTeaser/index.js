@@ -7,12 +7,12 @@ export default ({ environment, project }) => {
   return (
     <div key={environment.id}>
       <Link
-        href={{ pathname: '/environment/', query: { project: project, env: environment } }}
+        href={{ pathname: '/environment', query: { name: environment.openshiftProjectName } }}
       >
         <a>
           {productionLabel}
           <label>Branch</label>
-          <div>{environment}</div>
+          <div>{environment.name}</div>
         </a>
       </Link>
     </div>
