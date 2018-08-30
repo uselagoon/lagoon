@@ -22,15 +22,25 @@ FROM amazeeio/solr:6.6
 
 COPY .lagoon/solr /solr-conf/conf
 
-CMD ["solr-precreate", "drupal", "/solr-conf"]
+RUN precreate-core drupal /solr-conf
+
+CMD ["solr-foreground"]
 ```
 
 The goal is to have your solr configuration files exist at `/solr-conf/conf` in the image you are building.
 
 ## Multiple cores
 
-To implement multiple cores, you will also need to ship your own solr schema as above, the only change needed is to the `CMD` of the Dockerfile, repeat the pattern of `precreate corename /solr-conf/ ;` for each core you require.
+To implement multiple cores, you will also need to ship your own solr schema as above, the only change needed is to the `CMD` of the Dockerfile, repeat the pattern of `precreate-core corename /solr-conf/ ;` for each core you require.
 
 ```
-CMD ["sh", "-c", "precreate-core drupal /solr-conf/ ; precreate-core core1 /solr-conf/ ; precreate-core core2 /solr-conf/ ; precreate-core core3 /solr-conf/ ; solr start -f"]
+
+FROM amazeeio/solr:6.6-drupal
+
+RUN precreate-core drupal-index1 /solr-conf
+RUN precreate-core drupal-index2 /solr-conf
+RUN precreate-core drupal-index3 /solr-conf
+
+CMD ["solr-foreground"]
+
 ```
