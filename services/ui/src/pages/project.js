@@ -3,7 +3,7 @@ import { withRouter } from 'next/router';
 import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
-import Header from '../components/Header';
+import Page from '../layouts/main'
 import Breadcrumbs from '../components/Breadcrumbs';
 import NavTabs from '../components/NavTabs';
 import ProjectData from '../components/Project';
@@ -32,22 +32,29 @@ const query = gql`
 `;
 const Project = withRouter((props) => {
   return (
-    <Query query={query} variables={{name: props.router.query.name}}>
-      {({ loading, error, data }) => {
-        if (loading) return null;
-        if (error) return `Error!: ${error}`;
-        const project = data.projectByName;
-        return (
-          <div>
+    <Page>
+      <Query query={query} variables={{name: props.router.query.name}}>
+        {({ loading, error, data }) => {
+          if (loading) return null;
+          if (error) return `Error!: ${error}`;
+          const project = data.projectByName;
+          const breadcrumbs = [
+            {
+              header: 'Project',
+              title: project.name,
+              pathname: '/project',
+              query: {name: project.name}
+            }
+          ];
+          return (
             <div>
-              <Header />
-              <Breadcrumbs projectName={project.name}/>
+              <Breadcrumbs breadcrumbs={breadcrumbs} />
+              <ProjectData project={project} />
             </div>
-            <ProjectData project={project} />
-          </div>
-        );
-      }}
-    </Query>
+          );
+        }}
+      </Query>
+    </Page>
   )
 });
 

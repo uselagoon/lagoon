@@ -1,27 +1,43 @@
 import React from 'react';
 import Link from 'next/link';
 
-export default ({projectName, environment}) => (
-  <div>
-    {projectName &&
-      <Link href={{ pathname: '/project', query: { name: projectName } }}>
-        <a>
-          <div>
-            <h4>Project</h4>
-            <h2>{projectName}</h2>
-          </div>
-        </a>
-      </Link>
-    }
-    {environment &&
-      <Link href={{ pathname: '/environment', query: { name: environment.openshiftProjectName } }}>
-        <a>
-          <div>
-            <h4>Environment</h4>
-            <h2>{environment.name}</h2>
-          </div>
-        </a>
-      </Link>
-    }
+export default ({ breadcrumbs}) => (
+  <div className='breadcrumbs-wrapper'>
+    <div className='breadcrumbs'>
+      {breadcrumbs.map(breadcrumb =>
+        <div key={breadcrumb.title} className='breadcrumb'>
+          <Link href={breadcrumb.query ? {pathname: breadcrumb.pathname, query: breadcrumb.query} : {pathname: breadcrumb.pathname}}>
+            <a>
+              <div>
+                <h4>{breadcrumb.header}</h4>
+                <h2>{breadcrumb.title}</h2>
+              </div>
+            </a>
+          </Link>
+        </div>)}
+    </div>
+    <style jsx>{`
+      .breadcrumbs-wrapper {
+        border-bottom: 1px solid #999;
+      }
+      .breadcrumbs {
+        display:flex;
+        margin: 0 auto;
+        max-width: 1400px;
+      }
+      .breadcrumb {
+        border-left: 1px solid #999;
+      }
+      .breadcrumb a {
+        display: block;
+        padding: 20px 40px;
+      }
+      .breadcrumb:first-child {
+        border-left: none;
+      }
+      .breadcrumb:first-child a {
+        padding-left: 20px;
+      }
+  `}</style>
   </div>
 );

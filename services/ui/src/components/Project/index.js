@@ -2,25 +2,59 @@ import React from 'react';
 import Environment from '../EnvironmentTeaser';
 
 export default ({ project }) => (
-  <div>
-    <label>Created</label>
-    <div>{project.created}</div>
-    <label>Git URL</label>
-    <div>{project.gitUrl}</div>
-    <label>Branches enabled</label>
-    <div>{project.branches}</div>
-    <label>Pull requests enabled</label>
-    <div>{project.pullrequests}</div>
-
-    <h3>Environments</h3>
-    <div>
-      {!project.environments.length && `No Environments`}
-      {project.environments.map(environment =>
-        <Environment
-          key={environment.id}
-          environment={environment}
-          project={project.name}
-        />)}
+  <div className='content-wrapper'>
+    <div className='details'>
+      <div className='field'>
+        <label>Created</label>
+        <div>{project.created}</div>
+      </div>
+      <div className='field'>
+        <label>Git URL</label>
+        <div>{project.gitUrl}</div>
+      </div>
+      <div className='field'>
+        <label>Branches enabled</label>
+        <div>{project.branches}</div>
+        </div>
+      <div className='field'>
+        <label>Pull requests enabled</label>
+        <div>{project.pullrequests}</div>
+      </div>
     </div>
+    <div className="environments-wrapper">
+      <h3>Environments</h3>
+      <div className="environments">
+        {!project.environments.length && `No Environments`}
+        {project.environments.map(environment =>
+          <Environment
+            key={environment.id}
+            environment={environment}
+            project={project.name}
+          />)}
+      </div>
+    </div>
+    <style jsx>{`
+      @media all and (min-width: 668px) {
+        .content-wrapper {
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+      .environments-wrapper {
+        flex-grow: 1;
+      }
+      .details {
+        margin-right: 40px;
+        min-width:30%;
+        padding: 20px 0;
+      }
+      @media all and (min-width: 450px) {
+        .environments {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+        }
+      }
+    `}</style>
   </div>
 );

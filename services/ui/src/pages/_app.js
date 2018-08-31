@@ -1,6 +1,7 @@
 import 'isomorphic-unfetch';
 import App, { Container } from 'next/app'
 import React from 'react'
+import Head from 'next/head';
 import getConfig from 'next/config'
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
@@ -18,6 +19,10 @@ class MyApp extends App {
   render() {
     const { Component, pageProps } = this.props
     return <Container>
+      <Head>
+        <link rel="stylesheet" href="/static/normalize.css" />
+        <link rel="stylesheet" href="/static/global.css" />
+      </Head>
       <ApolloProvider client={client}>
         <Component {...pageProps} />
       </ApolloProvider>
