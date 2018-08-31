@@ -199,29 +199,39 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
   args,
 ) => {
   const interested_month = args.month ? new Date(args.month) : new Date();
-  const month_leading_zero =
-    interested_month.getMonth() + 1 < 10
-      ? `0${interested_month.getMonth() + 1}`
-      : interested_month.getMonth() + 1;
+  const now = new Date();
+  const interested_month_relative = interested_month.getMonth() - now.getMonth();
+  // Elasticsearch needs relative numbers with + or - in front. The - already exists, so we add the + if it's a positive number.
+  const interested_month_relative_plus_sign = (interested_month_relative < 0 ? "":"+") + interested_month_relative;
 
   try {
     const result = await esClient.count({
-      index: `router-logs-${openshiftProjectName}-${interested_month.getFullYear()}.${month_leading_zero}`,
+      index: `router-logs-${openshiftProjectName}-*`,
       body: {
-        query: {
-          bool: {
-            must_not: [
+        "query": {
+          "bool": {
+            "must": [
               {
-                match_phrase: {
-                  request_header_useragent: {
-                    query: 'StatusCake',
-                  },
-                },
-              },
+                "range": {
+                  "@timestamp": {
+                    "gte": `now${interested_month_relative_plus_sign}M/M`,
+                    "lte": `now${interested_month_relative_plus_sign}M/M`
+                  }
+                }
+              }
             ],
-          },
-        },
-      },
+            "must_not": [
+              {
+                "match_phrase": {
+                  "request_header_useragent": {
+                    "query": "StatusCake"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     });
 
     const response = {
