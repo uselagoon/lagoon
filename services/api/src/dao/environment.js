@@ -369,7 +369,7 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
   }
 
   const where = whereAnd([
-    args.createdAfter ? 'created >= :createdAfter' : '',
+    args.createdAfter ? 'created >= :created_after' : '',
     'deleted = "0000-00-00 00:00:00"',
   ]);
 
