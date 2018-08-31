@@ -35,10 +35,10 @@ const Environment = withRouter((props) => {
           <div>
             <div>
               <Header />
-              <Breadcrumbs project={environment.project.name} environment={environment}/>
+              <Breadcrumbs projectName={environment.project.name} environment={environment}/>
             </div>
             <NavTabs activeTab='overview' environment={environment.openshiftProjectName}/>
-            <EnvironmentData key={environment.id} environment={environment} />
+            <EnvironmentData environment={environment} />
           </div>
         );
       }}

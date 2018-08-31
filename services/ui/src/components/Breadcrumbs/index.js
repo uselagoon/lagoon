@@ -1,17 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 
-export default ({project, environment}) => {
-  const projectURL = project ? `/project/${project.replace(/\s+/g, '-').toLowerCase()}` : ';'
-  const environmentURL = environment ? `/project/${project}/${environment}`.replace(/\s+/g, '-').toLowerCase() : '';
-return (
+export default ({projectName, environment}) => (
   <div>
-    {project &&
-      <Link href={{ pathname: '/project', query: { name: project } }}>
+    {projectName &&
+      <Link href={{ pathname: '/project', query: { name: projectName } }}>
         <a>
           <div>
             <h4>Project</h4>
-            <h2>{project}</h2>
+            <h2>{projectName}</h2>
           </div>
         </a>
       </Link>
@@ -27,4 +24,4 @@ return (
       </Link>
     }
   </div>
-)};
+);

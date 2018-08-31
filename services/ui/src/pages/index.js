@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Header from '../components/Header';
-import Project from '../components/ProjectTeaser';
 
 const query = gql`
 {
@@ -24,8 +23,6 @@ export default () => <>
     {({ loading, error, data }) => {
       if (loading) return <p>Loading...</p>;
       if (error) return <p>Error :(</p>;
-      const projects = data.allProjects
-        .map(project => <Project key={project.id} project={project} />);
       return (
         <table>
           <thead>
@@ -35,7 +32,17 @@ export default () => <>
           </tr>
           </thead>
           <tbody>
-            {projects}
+          {data.allProjects
+            .filter(key => ['name', 'environments', '__typename'].includes(key) ? false: true)
+            .map(project => <tr key={project.id}>
+              <td>
+                <Link href={{ pathname: '/project', query: { name: project.name } }}>
+                  <a>{project.name}</a>
+                </Link>
+              </td>
+              <td>{project.customer.name}</td>
+            </tr>)
+          }
           </tbody>
         </table>
       );

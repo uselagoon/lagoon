@@ -3,9 +3,8 @@ import Link from 'next/link';
 
 export default ({ environment, project }) => {
   const productionLabel = environment.environmentType == 'production' ? <div>Prod</div> : '';
-  const environmentURL = `/project/${project}/${environment}`.replace(/\s+/g, '-').toLowerCase();
   return (
-    <div key={environment.id}>
+    <div>
       <Link
         href={{ pathname: '/environment', query: { name: environment.openshiftProjectName } }}
       >

@@ -41,9 +41,9 @@ const Project = withRouter((props) => {
           <div>
             <div>
               <Header />
-              <Breadcrumbs project={project.name}/>
+              <Breadcrumbs projectName={project.name}/>
             </div>
-            <ProjectData key={project.id} project={project} />
+            <ProjectData project={project} />
           </div>
         );
       }}
