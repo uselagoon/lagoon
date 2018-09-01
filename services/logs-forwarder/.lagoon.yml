@@ -154,11 +154,14 @@ objects:
             <record>
               namespace_name "${record['kubernetes']['namespace_name']}"
             </record>
+          </filter>
+          <filter **>
+            @type record_modifier
             <replace>
               # We run automated testing which creates project names in the form of e2e-0000000000-AAAAAAAAAAAAAAAAAAAAAAAAAA
               # we just save them as with the project name 'e2'
               key namespace_name
-              expression /^e2e-\d{10}-\S{26}$/
+              expression /^e2e-\\d{10}-\\S{26}$/
               replace e2e
             </replace>
           </filter>
@@ -202,7 +205,7 @@ objects:
       </label>
     CONTAINER_LOGS_JSON: |-
       {
-        "template" : "service-logs-*",
+        "template" : "container-logs-*",
         "version" : 60002,
         "settings" : {
           "index.refresh_interval" : "5s",
