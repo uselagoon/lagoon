@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { bp, color } from '../../variables';
 
 export default ({ environment, project }) => {
   const productionLabel = environment.environmentType == 'production' ? <div>Prod</div> : '';
@@ -16,22 +17,18 @@ export default ({ environment, project }) => {
       </Link>
       <style jsx>{`
         .environment {
-          border: 1px solid #999;
+          border: 1px solid ${color.grey};
           margin-bottom: 20px;
-        }
-        .environment a {
-          display: block;
-          height: 100%;
-          padding: 20px;
-        }
-        @media all and (min-width: 450px) {
-          .environment {
+          @media ${bp.xs_smallUp} {
             min-width: calc(50% - 10px);
           }
-        }
-        @media all and (min-width: 950px) {
-          .environment {
+          @media ${bp.desktopUp} {
             min-width: calc(33.33% - 20px);
+          }
+          a {
+            display: block;
+            height: 100%;
+            padding: 20px;
           }
         }
       `}</style>

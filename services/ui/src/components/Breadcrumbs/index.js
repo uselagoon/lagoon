@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { color } from '../../variables';
 
 export default ({ breadcrumbs}) => (
   <div className='breadcrumbs-wrapper'>
@@ -18,7 +19,7 @@ export default ({ breadcrumbs}) => (
     </div>
     <style jsx>{`
       .breadcrumbs-wrapper {
-        border-bottom: 1px solid #999;
+        border-bottom: 1px solid ${color.midGrey};
       }
       .breadcrumbs {
         display:flex;
@@ -26,17 +27,17 @@ export default ({ breadcrumbs}) => (
         max-width: 1400px;
       }
       .breadcrumb {
-        border-left: 1px solid #999;
-      }
-      .breadcrumb a {
-        display: block;
-        padding: 20px 40px;
-      }
-      .breadcrumb:first-child {
-        border-left: none;
-      }
-      .breadcrumb:first-child a {
-        padding-left: 20px;
+        border-left: 1px solid ${color.midGrey};
+        a {
+          display: block;
+          padding: 20px 40px;
+        }
+        &:first-child {
+          border-left: none;
+          a {
+            padding-left: 20px;
+          }
+        }
       }
   `}</style>
   </div>

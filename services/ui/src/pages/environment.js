@@ -7,6 +7,7 @@ import Page from '../layouts/main'
 import Breadcrumbs from '../components/Breadcrumbs';
 import NavTabs from '../components/NavTabs';
 import EnvironmentData from '../components/Environment';
+import { bp } from '../variables';
 
 const query = gql`
   query getEnvironment($openshiftProjectName: String!){
@@ -54,13 +55,13 @@ const Environment = withRouter((props) => {
                 <EnvironmentData environment={environment} />
               </div>
               <style jsx>{`
-                @media all and (min-width: 668px) {
-                  .content-wrapper {
+                .content-wrapper {
+                  @media ${bp.tabletUp} {
                     display: flex;
                     padding: 0;
                   }
                 }
-            `}</style>
+              `}</style>
             </div>
           );
         }}

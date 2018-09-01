@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { bp, color } from '../../variables';
 
 export default ({activeTab, environment}) => (
   <ul className='navigation'>
@@ -25,18 +26,17 @@ export default ({activeTab, environment}) => (
     </li>
   <style jsx>{`
     .navigation {
-      background: #d1d1d1;
-      margin-right: 40px;
+      background: ${color.midGrey};
+      margin: 0 40px 0 0;
       min-width: 30%;
-    }
-    li {
-      border-bottom: 1px solid #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    @media all and (min-width: 1200px) {
-      .navigation {
+      padding-bottom: 60px;
+      @media ${bp.wideUp} {
         min-width: 25%;
+      }
+      li {
+        border-bottom: 1px solid ${color.white};
+        margin: 0;
+        padding: 20px;
       }
     }
   `}</style>

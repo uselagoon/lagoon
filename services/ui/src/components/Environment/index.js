@@ -1,4 +1,5 @@
 import React from 'react';
+import { bp, color } from '../../variables';
 
 export default ({ environment }) => (
   <div className='content-wrapper'>
@@ -23,28 +24,26 @@ export default ({ environment }) => (
     <style jsx>{`
       .details {
         width: 100%;
-      }
-      @media all and (min-width: 668px) {
-        .details {
+        @media ${bp.tabletUp} {
           display: flex;
           flex-wrap: wrap;
         }
         .field {
-          margin: 20px 20px 20px 0;
-          min-width: calc(50% - 20px);
-          padding:20px 0;
-        }
-        .field:nth-child(odd) {
-          border-right: 1px solid #d1d1d1;
-        }
-      }
-      @media all and (min-width: 1200px) {
-        .field {
-          border-right: 1px solid #d1d1d1;
-          min-width: calc(25% - 20px);
-        }
-        .field:last-child {
-          border-right: none;
+          @media ${bp.tabletUp} {
+            margin: 20px 20px 20px 0;
+            min-width: calc(50% - 20px);
+            padding:20px 0;
+            &:nth-child(odd) {
+              border-right: 1px solid ${color.midGrey};
+            }
+          }
+          @media ${bp.wideUp} {
+            border-right: 1px solid ${color.midGrey};
+            min-width: calc(25% - 20px);
+            &:last-child {
+              border-right: none;
+            }
+          }
         }
       }
   `}</style>

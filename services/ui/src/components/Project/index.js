@@ -1,5 +1,6 @@
 import React from 'react';
 import Environment from '../EnvironmentTeaser';
+import { bp } from '../../variables';
 
 export default ({ project }) => (
   <div className='content-wrapper'>
@@ -34,25 +35,25 @@ export default ({ project }) => (
       </div>
     </div>
     <style jsx>{`
-      @media all and (min-width: 668px) {
-        .content-wrapper {
+      .content-wrapper {
+        @media ${bp.tabletUp} {
           display: flex;
           justify-content: space-between;
         }
-      }
-      .environments-wrapper {
-        flex-grow: 1;
-      }
-      .details {
-        margin-right: 40px;
-        min-width:30%;
-        padding: 20px 0;
-      }
-      @media all and (min-width: 450px) {
-        .environments {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
+        .details {
+          margin-right: 40px;
+          min-width:30%;
+          padding: 20px 0;
+        }
+        .environments-wrapper {
+          flex-grow: 1;
+          .environments {
+            @media ${bp.xs_smallUp} {
+              display: flex;
+              flex-wrap: wrap;
+              justify-content: space-between;
+            }
+          }
         }
       }
     `}</style>
