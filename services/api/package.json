@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,9 @@
   "dependencies": {
     "@lagoon/commons": "3.0.2",
     "body-parser": "^1.18.2",
+    "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",
+    "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
     "elasticsearch": "^15.0.0",
@@ -35,11 +37,12 @@
     "ramda": "^0.24.1",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
+    "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.1",
     "winston": "^2.4.0"
   },
   "devDependencies": {
-    "jest": "^22.0.0",
+    "jest": "^23.4.2",
     "prettier": "^1.13.7",
     "prettier-eslint-cli": "^4.7.1"
   }

@@ -19,7 +19,7 @@ mutation FillAPI {
     input: {
       id: 1
       name: "credentialtest-openshift"
-      console_url: "https://localhost:8443/"
+      consoleUrl: "https://localhost:8443/"
     }
   ) {
     id
@@ -52,7 +52,7 @@ mutation FillAPI {
       name: "credentialstest-project1"
       customer: 1
       openshift: 1
-      git_url: "ssh://git@192.168.99.1:2222/git/project1.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/project1.git"
     }
   ) {
     id
@@ -63,7 +63,7 @@ mutation FillAPI {
       name: "credentialstest-project2"
       customer: 2
       openshift: 1
-      git_url: "ssh://git@192.168.99.1:2222/git/project2.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/project2.git"
     }
   ) {
     id
@@ -156,22 +156,42 @@ mutation FillAPI {
 
   #### Filling API with needed Objects for CI
   # Customer with a private key that has access to the local-git server
-  # prettier-ignore
-  CiCustomer: addCustomer(input: {id:3, name: "ci-customer", private_key: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"}) {
+  CiCustomer: addCustomer(
+    input: {
+      id: 3
+      name: "ci-customer"
+      privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
+    }
+  ) {
     id
   }
-  CiCustomerSshKey: addSshKey(
+  CiCustomerSshKeyRsa: addSshKey(
     input: {
       id: 4
-      name: "ci-customer-sshkey"
+      name: "ci-customer-sshkey-rsa"
       keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw=="
       keyType: SSH_RSA
     }
   ) {
     id
   }
-  CiCustomerSshKeyAdd: addSshKeyToCustomer(
-    input: { customer: "ci-customer", sshKey: "ci-customer-sshkey" }
+  CiCustomerSshKeyAddRsa: addSshKeyToCustomer(
+    input: { customer: "ci-customer", sshKey: "ci-customer-sshkey-rsa" }
+  ) {
+    name
+  }
+  CiCustomerSshKeyEd25519: addSshKey(
+    input: {
+      id: 5
+      name: "ci-customer-sshkey-ed25519"
+      keyValue: "AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
+      keyType: SSH_ED25519
+    }
+  ) {
+    id
+  }
+  CiCustomerSshKeyAddEd25519: addSshKeyToCustomer(
+    input: { customer: "ci-customer", sshKey: "ci-customer-sshkey-ed25519" }
   ) {
     name
   }
@@ -181,11 +201,11 @@ mutation FillAPI {
     input: {
       id: 2
       name: "ci-local"
-      console_url: "https://192.168.99.100:8443/"
-      router_pattern: "${project}.${branch}.192.168.99.100.xip.io"
-      project_user: "developer"
-      ssh_host: "192.168.99.1"
-      ssh_port: "2020"
+      consoleUrl: "https://192.168.99.100:8443/"
+      routerPattern: "${project}.${branch}.192.168.99.100.xip.io"
+      projectUser: "developer"
+      sshHost: "192.168.99.1"
+      sshPort: "2020"
     }
   ) {
     id
@@ -209,7 +229,7 @@ mutation FillAPI {
       name: "ci-github"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/github.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/github.git"
     }
   ) {
     id
@@ -227,9 +247,9 @@ mutation FillAPI {
     input: {
       name: "master"
       project: 3
-      deploy_type: BRANCH
-      environment_type: PRODUCTION
-      openshift_projectname: "ci-local"
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ci-local"
     }
   ) {
     id
@@ -241,7 +261,7 @@ mutation FillAPI {
       name: "ci-gitlab"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/gitlab.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/gitlab.git"
     }
   ) {
     id
@@ -262,7 +282,7 @@ mutation FillAPI {
       name: "ci-bitbucket"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/bitbucket.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/bitbucket.git"
     }
   ) {
     id
@@ -283,7 +303,7 @@ mutation FillAPI {
       name: "ci-rest"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/rest.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/rest.git"
     }
   ) {
     id
@@ -304,7 +324,7 @@ mutation FillAPI {
       name: "ci-node"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/node.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
     }
   ) {
     id
@@ -325,7 +345,7 @@ mutation FillAPI {
       name: "ci-multiproject1"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
     }
   ) {
     id
@@ -346,7 +366,7 @@ mutation FillAPI {
       name: "ci-multiproject2"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
     }
   ) {
     id
@@ -367,7 +387,7 @@ mutation FillAPI {
       name: "ci-drupal"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/drupal.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal.git"
     }
   ) {
     id
@@ -388,7 +408,7 @@ mutation FillAPI {
       name: "ci-nginx"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/nginx.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/nginx.git"
     }
   ) {
     id
@@ -409,8 +429,8 @@ mutation FillAPI {
       name: "ci-features"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/features.git"
-      production_environment: "master"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/features.git"
+      productionEnvironment: "master"
     }
   ) {
     id
@@ -432,9 +452,9 @@ mutation FillAPI {
       name: "ci-features-subfolder"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
-      production_environment: "master"
-      subfolder:"subfolder1/subfolder2"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
+      productionEnvironment: "master"
+      subfolder: "subfolder1/subfolder2"
     }
   ) {
     id
@@ -456,8 +476,8 @@ mutation FillAPI {
       name: "ci-elasticsearch"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/elasticsearch.git"
-      production_environment: "master"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/elasticsearch.git"
+      productionEnvironment: "master"
     }
   ) {
     id
@@ -478,7 +498,7 @@ mutation FillAPI {
       name: "ci-drupal-galera"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"
     }
   ) {
     id
@@ -499,7 +519,7 @@ mutation FillAPI {
       name: "ci-drupal-postgres"
       customer: 3
       openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"
     }
   ) {
     id
@@ -516,8 +536,13 @@ mutation FillAPI {
 
   #### Lagoon Kickstart Objects
   # Customer with a private key that has access to the local-git server.
-  # prettier-ignore
-  KickstartCustomer: addCustomer(input: {id: 4, name: "kickstart-customer", private_key: "-----BEGIN RSA PRIVATE KEY-----\nMIIJKAIBAAKCAgEAxGZZrOV7Islo5p51Moabfd1YB8qbHvQZfJDZJmSU4jNxMf8G\nQH8KIM6ndi60xIiDlkh9R50Gs0fgnPaBwpjMjcUay5EvzBJdMmd/EPhg359+4f5Z\nQiGTVaB5UoGJKg9DEK4Xxi+QLpQ1CiJXvd3QOqnQlJZ2WYwz4kdLxF0d+sRrl+0G\nAISt9Gg9kq6wa7k7RRr4/OyD/9DhDr1GXvHXFPRv6QqKq084CqiUaarP7OcbZKi5\nEyMkf0s86ZTttQPqQijWsenLAw6t7J0vM38eojPDMFX4fJ7wVvbHmsdcwb2YxwD0\nk7I85mV5uM99v7owJ/0YSJGcN2YESq8c68rbRp1iSfDhchd9SUyYMFlrj3R+dxte\nTwvN2W5hIEld8Ip+dUWUVaaTeLkFLmqmVhvcMJNmuj+Wnp9USwki6U5HdpgBJPT5\nYJia3/LyE5IlPaRfZ+vBDQqKOeeqkncVtqcZ468ylT0qpqjtV4OSuCzl+P/TeJ+K\npCxDoqp88yQpYRYn9ztvEVvOkT8RERnT0/NVCNKAwHFOXrkK/BJs/h3fj2NddeVC\nJXdwiB4m+T2C/RHtGxVColqUf2nEntXxweuJgqBz+4YxXqRrKu4p5L4NuudcFAyg\nbIRpbaTZDI+vmmXnTXNP6ymMo5fNJ0/IPEBAoDkkc6ZmKdM5Yth6RaCzolsCAwEA\nAQKCAgBRL4n0SaxcFevyISCLMU+HeP8RwXPcGMWMU4ggMcXFt8QcCbK46Ir0QtjA\nps/8yf2zGuYGu2dwps63s8KyAV3VYNwRuEOM1S6HTncdOb850YGuw+h7yMtRwxND\nwt5Db6mmdIDJYRH13zgJp2ajytRv25CoS4ZCwA0WhahRVLi214kudUFc53vNI2YI\ng4PUE+7nQx4X12E9V0ghQqabStdBB0ZXjA8Ef6vH5CXthDmNUX9mXcSbn5RPtndI\ni1Kz2Bl3HdCaHO3ZprDItbU0UWEFZeZSzcb5JO5u1HZwiebTA5/q638uqqg4CUyG\n0+bEYZ/Ud/AY13A/CkHN6ZNH+UQotCH3GLyaTQq6OhyXlgMBojn3xs9iMUclFcuy\nkbZ1jAxqci25pxCIeNDHBDKRyxgSkDPna8ZZ4eKGXjIZzsds4+IDkYJLMg0OCtd2\nKm+ZPM2CFU2YCqt11dlr0higGK/9gdpajJMVgEYAmigQ670LdcBc4XIOpPMrR70a\nPjbF9ze/UqtKDWtz8KMIUcvr0CjhHa3XRgMJiM34hIOZU6xf6rjEgkN2Geq24u1b\nhUW8URb+5dcasQ9iIfkNn3R+zK5PzyvQNf6+XrbVjpLqPHXJYrD85EKlXkPqiE6y\n3ehYMrIaZIY6gMuIVcg8AEtsm5EwQY7ETw4YnMQLKfyweLsHEQKCAQEA5vavDyQj\nn6PqfF1Ntr3N/FfwRr/167HB+/3wHT+FwRpCw62ACeBC0iFXmzG2wfQfot60fUGa\nQEJiUDGZFvBM0tiTpzmgGG7QpRbPe1919Sl5LZeLA9bngRnmqn5zAkmVTeBCO/4F\nMSk9hnBZ0v0W3DqNmjuIH298g3gl4VJeKpILd62LbhjvhjT/LXlekYDEj3p9Xob8\n1OQxFJgftFyg4P07RRaUzsNLhqEdY3VxDcUMb9459fEYeb7sYig+zVPaZQ31aMVK\nj6K+XiH5M5uKJWkPdMDUG84jreFAdBY9kGCuSulTWgmTLlMKSI85q5hkckY2EQQL\n5u456xfyuFcnEwKCAQEA2bCCcqcGIAiMwk/6z7XIJeUsSUg+ObvkEdogk5n6Y1Ea\nt5LxMpQzhG6SHJ2f38VyKgv9e/jnwXI8eiejper6OeQEBG4+AedcLYi0V5SUMIgD\nX4bxT9+qCwYrwt9YHkJySk237WZUWJPVfxHg0vqNYyD/CXBowx0nm8jEuZ8iT+CW\nO2uZq+0DO2WqoYT54lZux6aEzm+oAkzwJJVXJcUVPg7bJXK1ObOzvHpkZJxHL8+S\nKufzew/CXALKWHoCkEP/P8b7oxjcjQI3KK0EM2fABNvN28+qscqTqQjfAsNw24Ob\nP8rL8amgd/x7iddIbEpOSoLAH1gVoxJXA0oqkC6YmQKCAQEAiIeoomW1nUgTdCLf\nrrfyzUnaoqgVIpf42RKa319OnQD+GJg2iSAFwBuvovE3XN4H2YqW3Thri7LyVP+M\nxM+WSkl2tzLMXcUcF4staXvbyeoTVQ0xQzrFrT53aa/IIsEGvntkC/y0awQ6937w\nylWMLvF6BYNNi2+nBjx+//xl5/pfRwbS1mltJkOr2ODXM2IQT9STyc44JU0jak4m\n58Kd44IuiD+6BaPSwKn7KnEhPIeQO4z9bFJyKn3fVIL/5Pa9smEXAjEmS1Rj/ldM\n7eHzPvwlA9p9SFaKJt5x8G25ROCyB1x4RlBEreyutofcCoDSV+8DRPnEY2XN3RhS\nBgCW+wKCAQAyHrqaDSyS2YUXA/UaN59CYlZk9PYmssTa+16+vRfyH+1H0NQpsgd+\neTq4ze3ORpZ3adVN4svxNQ0JjvDVtZkxFPd70aoDJDKL5UqoU3QfDGHCb75FhpiO\n+ze+IVAXf3Ly+pvbU9Edp8PjAsnBqaA9743orXHhYmgJLRtmJWZv/6R3P9ncxLAW\nz9yOXaBu5TmSTBuNsBV9mhs8QQoUjyDJ7f+0yolBJMfAIGnW5EhbkK31pPvhHIrC\nRn4yCr1mW9F77KNpNMMq0BTFD7jE4SFLvRPThSem0Z5Xr8wwxbDJSa7H7DgyhryE\ng6Qp42AwVpdZ/mqfjNdGeWWBQ2UzVxcZAoIBAHNXgjD3umcKciYRAbltNJrXx9xk\ndAv8I69oEMCy4hCmvKUjy/UI9NqXFjBb/G6VGgh6NUE9o9o27t1Y5Plm0izyCA1M\nDFruaRfjyJ8qjbEifcqRtcF3rzsBiXIwdmbN6qT4PUipN2elpUAd7J1OIwGIIe3u\nCWNyOTNL+2+oQ/Eg1Y99mg3yrsVyOwhynVE80/X5cy07bXXR5rv1x4NKSVbPhlnt\nL6J5iAoqoDKICzjcgF5x3mj9YFWZrC3aRxRrN5RoEgeVdcXeK56UJqXHjmKN++m3\nc8OPEIBZiD8UJuhSNSOLiBFrGz6toy6rpHavqqknGhVWotXsAs1h8LNkBe8=\n-----END RSA PRIVATE KEY-----"}) {
+  KickstartCustomer: addCustomer(
+    input: {
+      id: 4
+      name: "kickstart-customer"
+      privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
+    }
+  ) {
     id
   }
   KickstartRocketChat: addNotificationRocketChat(
@@ -533,7 +558,7 @@ mutation FillAPI {
     input: {
       id: 3
       name: "kickstart-openshift"
-      console_url: "[REPLACE ME WITH OPENSHIFT URL]"
+      consoleUrl: "[REPLACE ME WITH OPENSHIFT URL]"
       token: "[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUTN TOKEN]"
     }
   ) {
@@ -545,7 +570,7 @@ mutation FillAPI {
       name: "lagoon"
       customer: 4
       openshift: 3
-      git_url: "git@github.com:amazeeio/lagoon.git"
+      gitUrl: "git@github.com:amazeeio/lagoon.git"
     }
   ) {
     id
@@ -560,55 +585,121 @@ mutation FillAPI {
     id
   }
 
-  CILimit: addProject(
+  #### Filling API with needed objects for UI
+  UIOpenshift: addOpenshift(
     input: {
-      id: 18
-      name: "ci-env-limit"
-      production_environment: "master"
-      customer: 3
-      openshift: 2
-      git_url: "ssh://git@192.168.99.1:2222/git/node.git"
+      id: 4
+      name: "ui-openshift"
+      consoleUrl: "https://localhost:8443/"
     }
   ) {
     id
   }
+  UICustomer1: addCustomer(
+    input: {
+      id: 5
+      name: "ui-customer"
+      comment: "used to test the ui"
+    }
+  ) {
+    id
+  }
+  UIProject1: addProject(
+    input: {
+      id: 18
+      name: "High Cotton"
+      customer: 5
+      openshift: 4
+      gitUrl: "test"
+      productionEnvironment: "Master"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1: addOrUpdateEnvironment(
+    input: {
+      name: "Master"
+      project: 18
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment2: addOrUpdateEnvironment(
+    input: {
+      name: "Staging"
+      project: 18
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment3: addOrUpdateEnvironment(
+    input: {
+      name: "Development"
+      project: 18
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment4: addOrUpdateEnvironment(
+    input: {
+      name: "PR-175"
+      project: 18
+      deployType: PULLREQUEST
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift"
+    }
+  ) {
+    id
+  }
+
+  CILimit: addProject(
+    input: {
+      id: 19
+      name: "ci-env-limit"
+      productionEnvironment: "master"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
+    }
+  ) { id }
 
   CILimitEnv1: addOrUpdateEnvironment(
     input: {
       name: "master"
-      project: 18
-      deploy_type: BRANCH
-      environment_type: PRODUCTION
-      openshift_projectname: "ci-env-limit"
+      project: 19
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ci-env-limit"
     }
-  ) {
-    id
-  }
+  ){  id }
 
   CILimitEnv2: addOrUpdateEnvironment(
     input: {
       name: "develop"
-      project: 18
-      deploy_type: BRANCH
-      environment_type: DEVELOPMENT
-      openshift_projectname: "ci-env-limit"
+      project: 19
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ci-env-limit"
     }
-  ) {
-    id
-  }
+  ) { id }
 
   CILimitEn3: addOrUpdateEnvironment(
     input: {
       name: "stage"
-      project: 18
-      deploy_type: BRANCH
-      environment_type: DEVELOPMENT
-      openshift_projectname: "ci-env-limit"
+      project: 19
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ci-env-limit"
     }
-  ) {
-    id
-  }
-
-
+  ) { id }
 
 }

@@ -11,3 +11,5 @@ git fetch --tags --progress $REMOTE +refs/heads/*:refs/remotes/origin/*
 
 git checkout --force "${3}"
 git merge ${2}
+
+git submodule update --init --recursive

@@ -1,17 +1,22 @@
 // @flow
 
-import { runGQLQuery } from '../../query';
-import { projectDetails } from '../project';
+import { queryGraphQL } from '../../util/queryGraphQL';
+import { handler } from '../project';
 
-jest.mock('../../query');
+jest.mock('../../util/queryGraphQL');
+jest.mock('../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
-const _mock = (mockFn: any): JestMockFn<any, any> => mockFn;
+// Flow does not know which objects are actual mocks
+// this function casts given parameter to JestMockFn
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const mockErrorResponse = {
   errors: [{ message: 'something something error' }],
 };
 
-describe('projectDetails', () => {
+describe('handler', () => {
   const mockResponse1 = {
     data: {
       projectByName: {
@@ -19,11 +24,11 @@ describe('projectDetails', () => {
         customer: {
           name: 'credentialtest-customer1',
         },
-        git_url: 'project1.git',
-        active_systems_deploy: 'lagoon_openshiftBuildDeploy',
-        active_systems_remove: 'lagoon_openshiftRemove',
+        gitUrl: 'project1.git',
+        activeSystemsDeploy: 'lagoon_openshiftBuildDeploy',
+        activeSystemsRemove: 'lagoon_openshiftRemove',
         branches: 'true',
-        pullrequests: null,
+        pullrequests: 'null',
         openshift: {
           name: 'credentialtest-openshift',
         },
@@ -33,17 +38,22 @@ describe('projectDetails', () => {
   };
 
   it('should display error, if GraphQL sends error messages', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockErrorResponse),
     );
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
+    const code = await handler({
       clog,
       cerr,
-      options: { project: 'some_project' },
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(1);
@@ -51,15 +61,22 @@ describe('projectDetails', () => {
   });
 
   it('should show error on missing project', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve({}),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
+    const code = await handler({
       clog,
       cerr,
-      options: { project: 'not_existing' },
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'not_existing',
+      },
     });
 
     expect(code).toBe(0);
@@ -67,17 +84,22 @@ describe('projectDetails', () => {
   });
 
   it('should show details for given project', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockResponse1),
     );
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await projectDetails({
+    const code = await handler({
       clog,
       cerr,
-      options: { project: 'myproject' },
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'myproject',
+      },
     });
 
     expect(code).toBe(0);

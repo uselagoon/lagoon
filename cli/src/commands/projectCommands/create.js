@@ -6,21 +6,18 @@ import { fromUrl as hostedGitInfoFromUrl } from 'hosted-git-info';
 import inquirer from 'inquirer';
 import autocompletePrompt from 'inquirer-autocomplete-prompt';
 import R from 'ramda';
-import { table } from 'table';
-
 import {
   answerWithOptionIfSetOrPrompt,
   answerWithOptionIfSet,
 } from '../../cli/answerWithOption';
-import { config } from '../../config';
-import gql from '../../gql';
-import { printGraphQLErrors, printErrors } from '../../printErrors';
-import { runGQLQuery } from '../../query';
-import { getOptions } from '..';
+import format from '../../util/format';
+import gql from '../../util/gql';
+import { printGraphQLErrors, printErrors } from '../../util/printErrors';
+import { queryGraphQL } from '../../util/queryGraphQL';
 
 import typeof Yargs from 'yargs';
 import type { inquirer$Question } from 'inquirer';
-import type { BaseHandlerArgs } from '..';
+import type { CommandHandlerArgsWithOptions } from '../../types/Command';
 
 // $FlowFixMe inquirer$PromptModule interface doesn't match autocompletePrompt module
 inquirer.registerPrompt('autocomplete', autocompletePrompt);
@@ -30,12 +27,12 @@ export const description = 'Create new project';
 
 export const CUSTOMER: 'customer' = 'customer';
 export const NAME: 'name' = 'name';
-export const GIT_URL: 'git_url' = 'git_url';
+export const GIT_URL: 'gitUrl' = 'gitUrl';
 export const OPENSHIFT: 'openshift' = 'openshift';
 export const BRANCHES: 'branches' = 'branches';
 export const PULLREQUESTS: 'pullrequests' = 'pullrequests';
-export const PRODUCTION_ENVIRONMENT: 'production_environment' =
-  'production_environment';
+export const PRODUCTION_ENVIRONMENT: 'productionEnvironment' =
+  'productionEnvironment';
 
 export const commandOptions = {
   [CUSTOMER]: CUSTOMER,
@@ -47,24 +44,16 @@ export const commandOptions = {
   [PRODUCTION_ENVIRONMENT]: PRODUCTION_ENVIRONMENT,
 };
 
-type OptionalOptions = {
-  customer?: number,
-  name?: string,
-  git_url?: string,
-  openshift?: number,
-  branches?: string,
-  pullrequests?: string,
-  production_environment?: string,
-};
+export const dynamicOptionsKeys = [NAME];
 
 type Options = {
   +customer: number,
   +name: string,
-  +git_url: string,
+  +gitUrl: string,
   +openshift: number,
   +branches: string,
   +pullrequests: string,
-  +production_environment: string,
+  +productionEnvironment: string,
 };
 
 export function allOptionsSpecified(options: Options): boolean {
@@ -83,39 +72,32 @@ export function builder(yargs: Yargs): Yargs {
       [CUSTOMER]: {
         describe: 'Customer id to use for new project',
         type: 'number',
-        alias: 'c',
       },
       [NAME]: {
         describe: 'Name of new project',
         type: 'string',
-        alias: 'n',
       },
       [GIT_URL]: {
         describe: 'Git URL of new project',
         type: 'string',
-        alias: 'u',
       },
       [OPENSHIFT]: {
         describe: 'Openshift id to use for new project',
         type: 'number',
-        alias: 'o',
       },
       [BRANCHES]: {
         describe:
           'Branches to deploy. Possible values include "false" (no branches), "true" (all branches) and a regular expression to match branches.',
         type: 'string',
-        alias: 'b',
       },
       [PULLREQUESTS]: {
         describe:
           'Pull requests to deploy. Possible values include "false" (no pull requests), "true" (all pull requests) and a regular expression to match pull request titles.',
         type: 'boolean',
-        alias: 'r',
       },
       [PRODUCTION_ENVIRONMENT]: {
         describe: 'Production environment for new project',
         type: 'string',
-        alias: 'p',
       },
     })
     .example(
@@ -153,7 +135,7 @@ export async function getAllowedCustomersAndOpenshifts(
   allOpenshifts: ?Array<Openshift>,
   errors: ?Array<Error>,
 }> {
-  const customersAndOpenshiftsResults = await runGQLQuery({
+  const customersAndOpenshiftsResults = await queryGraphQL({
     query: gql`
       query AllCustomersAndOpenshiftsForProjectCreate {
         allCustomers {
@@ -360,22 +342,21 @@ export async function promptForProjectInput(
   return inquirer.prompt(questions);
 }
 
-type createProjectArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-  options: OptionalOptions,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +customer?: number,
+  +name?: string,
+  +gitUrl?: string,
+  +openshift?: number,
+  +branches?: string,
+  +pullrequests?: string,
+  +productionEnvironment?: string,
+}>;
 
 type Question = inquirer$Question & {
   name: $Values<typeof commandOptions>,
 };
 
-export async function createProject({
-  clog,
-  cerr,
-  options,
-}:
-createProjectArgs): Promise<number> {
+export async function handler({ clog, cerr, options }: Args): Promise<number> {
   const {
     allCustomers,
     allOpenshifts,
@@ -387,11 +368,11 @@ createProjectArgs): Promise<number> {
   }
 
   if (!allCustomers || R.equals(R.length(allCustomers), 0)) {
-    return printErrors(cerr, { message: 'No authorized customers found!' });
+    return printErrors(cerr, 'No authorized customers found!');
   }
 
   if (!allOpenshifts || R.equals(R.length(allOpenshifts), 0)) {
-    return printErrors(cerr, { message: 'No authorized openshifts found!' });
+    return printErrors(cerr, 'No authorized openshifts found!');
   }
 
   const projectInput = await promptForProjectInput(
@@ -401,7 +382,7 @@ createProjectArgs): Promise<number> {
     options,
   );
 
-  const addProjectResult = await runGQLQuery({
+  const addProjectResult = await queryGraphQL({
     query: gql`
       mutation AddProject($input: ProjectInput!) {
         addProject(input: $input) {
@@ -410,9 +391,9 @@ createProjectArgs): Promise<number> {
           customer {
             name
           }
-          git_url
-          active_systems_deploy
-          active_systems_remove
+          gitUrl
+          activeSystemsDeploy
+          activeSystemsRemove
           branches
           pullrequests
           openshift {
@@ -454,35 +435,31 @@ createProjectArgs): Promise<number> {
   clog(green(`Project "${projectName}" created successfully:`));
 
   clog(
-    table([
-      ['Project Name', projectName],
-      ['Customer', R.path(['customer', 'name'], project)],
-      ['Git URL', R.prop('git_url', project)],
-      ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
-      ['Active Systems Remove', R.prop('active_systems_remove', project)],
-      ['Branches', String(R.prop('branches', project))],
-      ['Pull Requests', String(R.prop('pullrequests', project))],
-      ['Openshift', R.path(['openshift', 'name'], project)],
-      ['Created', R.prop('created', project)],
+    format([
+      [
+        'Name',
+        'Customer',
+        'Git URL',
+        'Active Systems Deploy',
+        'Active Systems Remove',
+        'Branches',
+        'Pull Requests',
+        'Openshift',
+        'Created',
+      ],
+      [
+        R.prop('name', project),
+        R.path(['customer', 'name'], project),
+        R.prop('gitUrl', project),
+        R.prop('activeSystemsDeploy', project),
+        R.prop('activeSystemsRemove', project),
+        R.prop('branches', project),
+        R.prop('pullrequests', project),
+        R.path(['openshift', 'name'], project),
+        R.path(['created'], project),
+      ],
     ]),
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    customer: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getOptions({
-    config,
-    argv,
-    commandOptions,
-    dynamicOptionKeys: [NAME],
-  });
-
-  return createProject({ clog, cerr, options });
 }

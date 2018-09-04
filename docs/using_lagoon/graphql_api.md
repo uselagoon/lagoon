@@ -4,13 +4,13 @@
 
 API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need a JWT (JSON Web Token) which will authenticate you against the API via your SSH Public Key. To generate such token, use the Remote Shell via the `token` command:
 
-```
+```bash
 ssh -p [PORT] -t lagoon@[HOST] token
 ```
 
 Example for amazee.io:
 
-```
+```bash
 ssh -p 32222 -t lagoon@ssh.lagoon.amazeeio.cloud token
 ```
 
@@ -29,18 +29,18 @@ Close the HTTP Header overlay (press ESC) and now we are ready to make the first
 
 Enter this on the left window:
 
-```
+```GraphQL
 query whatIsThere {
   allProjects {
     id
-    git_url
+    gitUrl
     name
     branches
     pullrequests
-    production_environment
+    productionEnvironment
     environments {
       name
-      environment_type
+      environmentType
     }
   }
 }
@@ -50,10 +50,11 @@ And press the Play button (or press CTRL+ENTER). If all went well, you should se
 
 ## Mutations
 
-The Lagoon GraphQL API cannot only display Objects and create Objects, it also has the capability to update exisitng Objects, all of this happens in full GraphQL best practices manner.
+The Lagoon GraphQL API cannot only display Objects and create Objects, it also has the capability to update existing Objects, all of this happens in full GraphQL best practices manner.
 
 Update the branches to deploy within a project:
-```
+
+```GraphQL
 mutation editProjectBranches {
   updateProject(input:{id:109, patch:{branches:"^(prod|stage|dev|update)$"}}) {
     id
@@ -62,19 +63,20 @@ mutation editProjectBranches {
 ```
 
 Update the production Environment within a project (Important: Needs a redeploy in order for all changes to be reflected in the containers):
-```
+
+```GraphQL
 mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{production_environment:"master"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master"}}) {
     id
   }
 }
 ```
 
-You can also combine multiple changes at once:
+You can also combine multiple changes into a single query:
 
-```
+```GraphQL
 mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{production_environment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master", branches:"^(prod|stage|dev|update)$"}}) {
     id
   }
 }

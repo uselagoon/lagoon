@@ -202,13 +202,13 @@ async function createDeployTask(deployData: Object) {
   //       production_environment: 'master',
   //       environments: [ { name: 'develop', environment_type: 'development' }, [Object] ] } }
 
-  if (typeof project.active_systems_deploy === 'undefined') {
+  if (typeof project.activeSystemsDeploy === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for tasks 'deploy' in for project ${projectName}`,
     );
   }
 
-  switch (project.active_systems_deploy) {
+  switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
 
     if (environments.project.production_environment == branchName) {
@@ -330,7 +330,7 @@ async function createDeployTask(deployData: Object) {
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
-          project.active_systems_deploy
+          project.activeSystemsDeploy
         }' for task 'deploy' in for project ${projectName}`,
       );
   }
@@ -346,20 +346,20 @@ async function createPromoteTask(promoteData: Object) {
 
   const project = await getActiveSystemForProject(projectName, 'promote');
 
-  if (typeof project.active_systems_promote === 'undefined') {
+  if (typeof project.activeSystemsPromote === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for tasks 'deploy' in for project ${projectName}`,
     );
   }
 
-  switch (project.active_systems_promote) {
+  switch (project.activeSystemsPromote) {
     case 'lagoon_openshiftBuildDeploy':
       return sendToLagoonTasks('builddeploy-openshift', promoteData);
 
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
-          project.active_systems_promote
+          project.activeSystemsPromote
         }' for task 'deploy' in for project ${projectName}`,
       );
   }
@@ -368,11 +368,11 @@ async function createPromoteTask(promoteData: Object) {
 async function createRemoveTask(removeData: Object) {
   const { projectName, branch, forceDeleteProductionEnvironment } = removeData;
 
-  const production_environment = await getProductionEnvironmentForProject(
+  const productionEnvironment = await getProductionEnvironmentForProject(
     projectName,
   );
 
-  if (branch === production_environment.project.production_environment) {
+  if (branch === productionEnvironment.project.productionEnvironment) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
@@ -382,20 +382,20 @@ async function createRemoveTask(removeData: Object) {
 
   const project = await getActiveSystemForProject(projectName, 'remove');
 
-  if (typeof project.active_systems_remove === 'undefined') {
+  if (typeof project.activeSystemsRemove === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for tasks 'remove' in for project ${projectName}`,
     );
   }
 
-  switch (project.active_systems_remove) {
+  switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
       return sendToLagoonTasks('remove-openshift', removeData);
 
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
-          project.active_systems_remove
+          project.activeSystemsRemove
         }' for task 'remove' in for project ${projectName}`,
       );
   }

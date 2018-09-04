@@ -41,7 +41,7 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (
         *
       FROM environment e
       WHERE e.project = :pid
-      ${args.include_deleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
+      ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
       ${args.type ? 'AND e.environment_type = :type' : ''}
 
     `,
@@ -195,33 +195,43 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
 
 const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
   cred,
-  openshift_projectname,
+  openshiftProjectName,
   args,
 ) => {
   const interested_month = args.month ? new Date(args.month) : new Date();
-  const month_leading_zero =
-    interested_month.getMonth() + 1 < 10
-      ? `0${interested_month.getMonth() + 1}`
-      : interested_month.getMonth() + 1;
+  const now = new Date();
+  const interested_month_relative = interested_month.getMonth() - now.getMonth();
+  // Elasticsearch needs relative numbers with + or - in front. The - already exists, so we add the + if it's a positive number.
+  const interested_month_relative_plus_sign = (interested_month_relative < 0 ? "":"+") + interested_month_relative;
 
   try {
     const result = await esClient.count({
-      index: `router-logs-${openshift_projectname}-${interested_month.getFullYear()}.${month_leading_zero}`,
+      index: `router-logs-${openshiftProjectName}-*`,
       body: {
-        query: {
-          bool: {
-            must_not: [
+        "query": {
+          "bool": {
+            "must": [
               {
-                match_phrase: {
-                  request_header_useragent: {
-                    query: 'StatusCake',
-                  },
-                },
-              },
+                "range": {
+                  "@timestamp": {
+                    "gte": `now${interested_month_relative_plus_sign}M/M`,
+                    "lte": `now${interested_month_relative_plus_sign}M/M`
+                  }
+                }
+              }
             ],
-          },
-        },
-      },
+            "must_not": [
+              {
+                "match_phrase": {
+                  "request_header_useragent": {
+                    "query": "StatusCake"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     });
 
     const response = {
@@ -250,7 +260,7 @@ const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (
       FROM environment e
         JOIN project p ON e.project = p.id
         JOIN customer c ON p.customer = c.id
-      WHERE e.openshift_projectname = :openshiftProjectName
+      WHERE e.openshift_project_name = :openshift_project_name
       ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
@@ -278,7 +288,7 @@ const addOrUpdateEnvironment = ({ sqlClient }) => async (cred, input) => {
         :project,
         :deploy_type,
         :environment_type,
-        :openshift_projectname
+        :openshift_project_name
       );
     `,
   );
@@ -369,7 +379,7 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
   }
 
   const where = whereAnd([
-    args.createdAfter ? 'created >= :createdAfter' : '',
+    args.createdAfter ? 'created >= :created_after' : '',
     'deleted = "0000-00-00 00:00:00"',
   ]);
 

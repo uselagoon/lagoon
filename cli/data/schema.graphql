@@ -2,7 +2,7 @@ type Customer {
   id: Int
   name: String
   comment: String
-  private_key: String
+  privateKey: String
   sshKeys: [SshKey]
   created: String
 }
@@ -11,7 +11,7 @@ input CustomerInput {
   id: Int
   name: String!
   comment: String
-  private_key: String
+  privateKey: String
 }
 
 scalar Date
@@ -59,16 +59,16 @@ type Environment {
   id: Int
   name: String
   project: Project
-  deploy_type: String
-  environment_type: String
-  openshift_projectname: String
+  deployType: String
+  environmentType: String
+  openshiftProjectName: String
   updated: String
   created: String
   deleted: String
-  hours_month(month: Date): EnvironmentHoursMonth
+  hoursMonth(month: Date): EnvironmentHoursMonth
   storages: [EnvironmentStorage]
-  storage_month(month: Date): EnvironmentStorageMonth
-  hits_month(month: Date): EnviornmentHitsMonth
+  storageMonth(month: Date): EnvironmentStorageMonth
+  hitsMonth(month: Date): EnviornmentHitsMonth
 }
 
 type EnvironmentHoursMonth {
@@ -79,28 +79,28 @@ type EnvironmentHoursMonth {
 input EnvironmentInput {
   name: String!
   project: Int!
-  deploy_type: DeployType!
-  environment_type: EnvType!
-  openshift_projectname: String!
+  deployType: DeployType!
+  environmentType: EnvType!
+  openshiftProjectName: String!
 }
 
 type EnvironmentStorage {
   id: Int
   environment: Environment
-  persistent_storage_claim: String
-  bytes_used: Float
+  persistentStorageClaim: String
+  bytesUsed: Float
   updated: String
 }
 
 input EnvironmentStorageInput {
   environment: Int!
-  persistent_storage_claim: String!
-  bytes_used: Int!
+  persistentStorageClaim: String!
+  bytesUsed: Int!
 }
 
 type EnvironmentStorageMonth {
   month: String
-  bytes_used: Float
+  bytesUsed: Float
 }
 
 enum EnvType {
@@ -182,45 +182,124 @@ enum NotificationType {
 type Openshift {
   id: Int
   name: String
-  console_url: String
+  consoleUrl: String
   token: String
-  router_pattern: String
-  project_user: String
-  ssh_host: String
-  ssh_port: String
+  routerPattern: String
+  projectUser: String
+  sshHost: String
+  sshPort: String
   created: String
 }
 
 input OpenshiftInput {
   id: Int
   name: String!
-  console_url: String!
+  consoleUrl: String!
   token: String
-  router_pattern: String
-  project_user: String
-  ssh_host: String
-  ssh_port: String
+  routerPattern: String
+  projectUser: String
+  sshHost: String
+  sshPort: String
 }
 
+"""Lagoon Project (like a git repository)"""
 type Project {
+  """ID of project"""
   id: Int
+
+  """Name of project"""
   name: String
+
+  """Reference to customer object"""
   customer: Customer
-  git_url: String
+
+  """
+  Git URL, needs to be SSH Git URL in one of these two formats
+  - git@192.168.99.1/project1.git
+  - ssh://git@192.168.99.1:2222/project1.git
+  """
+  gitUrl: String
+
+  """
+  Set if the .lagoon.yml should be found in a subfolder
+  Usefull if you have multiple Lagoon projects per Git Repository
+  """
   subfolder: String
+
+  """Notifications that should be sent for this project"""
   notifications(type: NotificationType): [Notification]
-  active_systems_deploy: String
-  active_systems_promote: String
-  active_systems_remove: String
+
+  """
+  Which internal Lagoon System is responsible for deploying
+  Currently only 'lagoon_openshiftBuildDeploy' exists
+  """
+  activeSystemsDeploy: String
+
+  """
+  Which internal Lagoon System is responsible for promoting
+  Currently only 'lagoon_openshiftBuildDeploy' exists
+  """
+  activeSystemsPromote: String
+
+  """
+  Which internal Lagoon System is responsible for promoting
+  Currently only 'lagoon_openshiftRemove' exists
+  """
+  activeSystemsRemove: String
+
+  """
+  Which branches should be deployed, can be one of:
+  - `true` - all branches are deployed
+  - `false` - no branches are deployed
+  - REGEX - regex of all branches that should be deployed, example: `^(master|staging)$`
+  """
   branches: String
-  production_environment: String
-  auto_idle: Int
-  storage_calc: Int
+
+  """
+  Which Pull Requests should be deployed, can be one of:
+  - `true` - all pull requests are deployed
+  - `false` - no pull requests are deployed
+  - REGEX - regex of all Pull Request titles that should be deployed, example: `[BUILD]`
+  """
   pullrequests: String
+
+  """
+  Which environment(the name) should be marked as the production environment.
+  *Important:* If you change this, you need to deploy both environments (the
+  current and previous one) that are affected in order for the change to
+  propagate correctly
+  """
+  productionEnvironment: String
+
+  """Should this project have auto idling enabled (`1` or `0`)"""
+  autoIdle: Int
+
+  """Should storage for this environment be calculated (`1` or `0`)"""
+  storageCalc: Int
+
+  """Reference to OpenShift Object this Project should be deployed to"""
   openshift: Openshift
-  openshift_project_pattern: String
+
+  """
+  Pattern of OpenShift Project/Namespace that should be generated, default: `${project}-${environmentname}`
+  """
+  openshiftProjectPattern: String
+
+  """Which Developer SSH keys should have access to this project"""
   sshKeys: [SshKey]
-  environments(type: EnvType, include_deleted: Boolean): [Environment]
+
+  """Deployed Environments for this Project"""
+  environments(
+    """Filter by Environment Type"""
+    type: EnvType
+
+    """
+    Include deleted Environments (by default deleted environment are hidden)
+    """
+    includeDeleted: Boolean
+  ): [Environment]
+
+  """Creation Timestamp of Project"""
   created: String
 }
 
@@ -228,18 +307,18 @@ input ProjectInput {
   id: Int
   name: String!
   customer: Int!
-  git_url: String!
+  gitUrl: String!
   subfolder: String
   openshift: Int!
-  openshift_project_pattern: String
-  active_systems_deploy: String
-  active_systems_promote: String
-  active_systems_remove: String
+  openshiftProjectPattern: String
+  activeSystemsDeploy: String
+  activeSystemsPromote: String
+  activeSystemsRemove: String
   branches: String
   pullrequests: String
-  production_environment: String
-  auto_idle: Int
-  storage_calc: Int
+  productionEnvironment: String
+  autoIdle: Int
+  storageCalc: Int
 }
 
 type Query {
@@ -313,20 +392,20 @@ input UpdateCustomerInput {
 input UpdateCustomerPatchInput {
   name: String
   comment: String
-  private_key: String
+  privateKey: String
   created: String
 }
 
 input UpdateEnvironmentInput {
-  name: String!
+  id: Int!
   patch: UpdateEnvironmentPatchInput
 }
 
 input UpdateEnvironmentPatchInput {
   project: Int
-  deploy_type: DeployType
-  environment_type: EnvType
-  openshift_projectname: String
+  deployType: DeployType
+  environmentType: EnvType
+  openshiftProjectName: String
 }
 
 input UpdateNotificationRocketChatInput {
@@ -358,12 +437,12 @@ input UpdateOpenshiftInput {
 
 input UpdateOpenshiftPatchInput {
   name: String
-  console_url: String
+  consoleUrl: String
   token: String
-  router_pattern: String
-  project_user: String
-  ssh_host: String
-  ssh_port: String
+  routerPattern: String
+  projectUser: String
+  sshHost: String
+  sshPort: String
 }
 
 input UpdateProjectInput {
@@ -374,17 +453,17 @@ input UpdateProjectInput {
 input UpdateProjectPatchInput {
   name: String
   customer: Int
-  git_url: String
+  gitUrl: String
   subfolder: String
-  active_systems_deploy: String
-  active_systems_remove: String
+  activeSystemsDeploy: String
+  activeSystemsRemove: String
   branches: String
-  production_environment: String
-  auto_idle: Int
-  storage_calc: Int
+  productionEnvironment: String
+  autoIdle: Int
+  storageCalc: Int
   pullrequests: String
   openshift: Int
-  openshift_project_pattern: String
+  openshiftProjectPattern: String
 }
 
 input UpdateSshKeyInput {
