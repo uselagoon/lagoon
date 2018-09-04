@@ -570,7 +570,7 @@ mutation FillAPI {
       name: "lagoon"
       customer: 4
       openshift: 3
-      git_url: "git@github.com:amazeeio/lagoon.git"
+      gitUrl: "git@github.com:amazeeio/lagoon.git"
       openshiftProjectPattern: "lagoon"
     }
   ) {
