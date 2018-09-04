@@ -71,8 +71,8 @@ CREATE TABLE IF NOT EXISTS environment (
        deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
        environment_type       ENUM('production', 'development') NOT NULL,
        openshift_project_name varchar(100),
-       lagoon_route           varchar(300),
-       lagoon_routes          text,
+       route                  varchar(300),
+       routes                 text,
        monitoring_urls        text,
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -394,10 +394,10 @@ CREATE OR REPLACE PROCEDURE
                 FROM INFORMATION_SCHEMA.COLUMNS
               WHERE table_name = 'environment'
                 AND table_schema = 'infrastructure'
-                AND column_name = 'lagoon_route'
+                AND column_name = 'route'
             )  THEN
-      ALTER TABLE `environment` ADD `lagoon_route`    varchar(300);
-      ALTER TABLE `environment` ADD `lagoon_routes`   text;
+      ALTER TABLE `environment` ADD `route`    varchar(300);
+      ALTER TABLE `environment` ADD `routes`   text;
       ALTER TABLE `environment` ADD `monitoring_urls` text;
     END IF;
 

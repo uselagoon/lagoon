@@ -202,9 +202,9 @@ const typeDefs = gql`
     storages: [EnvironmentStorage]
     storageMonth(month: Date): EnvironmentStorageMonth
     hitsMonth(month: Date): EnviornmentHitsMonth
-    lagoon_route: String
-    lagoon_routes: String
-    monitoring_urls: String
+    route: String
+    routes: String
+    monitoringUrls: String
   }
 
   type EnviornmentHitsMonth {
@@ -459,9 +459,9 @@ const typeDefs = gql`
     deployType: DeployType
     environmentType: EnvType
     openshiftProjectName: String
-    lagoon_route: String
-    lagoon_routes: String
-    monitoring_urls: String
+    route: String
+    routes: String
+    monitoringUrls: String
   }
 
   input UpdateEnvironmentInput {

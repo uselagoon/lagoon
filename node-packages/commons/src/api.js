@@ -180,14 +180,14 @@ async function getEnvironmentByName(
 ): Promise<Project[]> {
   const result = await graphqlapi.query(`
     {
-      environmentByName(name: "${name}",project:${projectId}) {
+      environmentByName(name: "${name}", project:${projectId}) {
         id,
         name,
-        lagoon_route,
-        lagoon_routes,
-        deploy_type,
-        environment_type,
-        openshift_projectname,
+        route,
+        routes,
+        deployType,
+        environmentType,
+        openshiftProjectName,
         updated,
         created,
         deleted,
@@ -231,14 +231,12 @@ const addOrUpdateEnvironment = (
 `);
 
 const updateEnvironment = (
-  name: string,
   environmentId: number,
   patch: string,
 ): Promise<Object> =>
   graphqlapi.query(`
     mutation {
       updateEnvironment(input: {
-        name: "${name}",
         id: ${environmentId},
         patch: ${patch}
       }) {

@@ -326,7 +326,7 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-
 
 # If no MONITORING_URLS were specified, fall back to the ROUTE of the project
 if [ -z "$MONITORING_URLS"]; then
-  echo "No monitoring_urls provided, falling back to ROUTE"
+  echo "No monitoring_urls provided, using ROUTE"
   MONITORING_URLS="${ROUTE}"
 fi
 

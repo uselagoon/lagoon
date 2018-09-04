@@ -30,7 +30,8 @@ const getEnvironmentByName = ({ sqlClient }) => async (cred, args) => {
       SELECT
         *
       FROM environment
-      WHERE name = :name
+      WHERE name = :name AND
+      project = :project
       ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([

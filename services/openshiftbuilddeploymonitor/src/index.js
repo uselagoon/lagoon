@@ -47,15 +47,15 @@ const messageConsumer = async msg => {
 
   logger.verbose(`Received BuildDeployOpenshift monitoring task for project: ${projectName}, buildName: ${buildName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
   const projectResult = await getOpenShiftInfoForProject(projectName);
-  const projectOpenshift = projectResult.project
+  const project = projectResult.project
 
-  const environmentResult = await getEnvironmentByName(`${branchName}`, projectOpenshift.id)
-  const environmentOpenshift = environmentResult.environmentByName
+  const environmentResult = await getEnvironmentByName(branchName, project.id)
+  const environment = environmentResult.environmentByName
 
   try {
     var gitSha = sha
-    var openshiftConsole = projectOpenshift.openshift.consoleUrl.replace(/\/$/, "");
-    var openshiftToken = projectOpenshift.openshift.token || ""
+    var openshiftConsole = project.openshift.consoleUrl.replace(/\/$/, "");
+    var openshiftToken = project.openshift.token || ""
   } catch(error) {
     logger.warn(`Error while loading information for project ${projectName}: ${error}`)
     throw(error)
@@ -198,13 +198,12 @@ const messageConsumer = async msg => {
       )
       try {
         const updateEnvironmentResult = await updateEnvironment(
-          branchName,
-          environmentOpenshift.id,
+          environment.id,
           `{
-            lagoon_route: "${configMap.data.LAGOON_ROUTE}",
-            lagoon_routes: "${configMap.data.LAGOON_ROUTES}",
-            monitoring_urls: "${configMap.data.LAGOON_MONITORING_URLS}",
-            project: ${projectOpenshift.id}
+            route: "${configMap.data.LAGOON_ROUTE}",
+            routes: "${configMap.data.LAGOON_ROUTES}",
+            monitoringUrls: "${configMap.data.LAGOON_MONITORING_URLS}",
+            project: ${project.id}
           }`)
         } catch (err) {
           logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
