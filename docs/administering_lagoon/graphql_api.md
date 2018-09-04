@@ -188,7 +188,7 @@ mutation {
     activeSystemsRemove,
     branches,
     pullrequests
-  }gx
+  }
 }
 ```
 
