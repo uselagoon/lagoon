@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:edge
+FROM alpine:3.8
 
 MAINTAINER amazee.io
 ENV LAGOON=mongo
@@ -8,6 +8,7 @@ ENV LAGOON=mongo
 
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
 # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
@@ -23,5 +24,5 @@ RUN mkdir -p /data/db /data/configdb && \
 VOLUME /data/db
 EXPOSE 27017 28017
 
-ENTRYPOINT ["/lagoon/entrypoints.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD [ "mongod", "--bind_ip", "0.0.0.0" ]

@@ -46,6 +46,8 @@ module.exports = {
     'no-restricted-globals': 'off',
     // Disable Airbnb stylistic rule
     'no-restricted-syntax': 'off',
+    // Disable Airbnb stylistic rule
+    'no-throw-literal': 'off',
     // Rule to prevent prefixing of underscores on variable names. We disable this Airbnb setting because we use some underscore prefixes in our code.
     'no-underscore-dangle': 'off',
     // Disable Airbnb stylistic rule

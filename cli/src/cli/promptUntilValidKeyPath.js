@@ -3,7 +3,7 @@
 import inquirer from 'inquirer';
 import untildify from 'untildify';
 import { fileExists } from '../util/fs';
-import { printErrors } from '../printErrors';
+import { printErrors } from '../util/printErrors';
 
 export async function promptUntilValidKeyPath(
   cerr: typeof console.error,
@@ -23,7 +23,7 @@ export async function promptUntilValidKeyPath(
       untildify(privateKeyPath),
     ))
   ) {
-    printErrors(cerr, { message: 'File does not exist at given path!' });
+    printErrors(cerr, 'File does not exist at given path!');
     return promptUntilValidKeyPath(cerr);
   }
   return privateKeyPath;

@@ -1,5 +1,11 @@
 USE infrastructure;
 
+-- Stored procedures for the API DB
+-- Since these proved to be awkward to work with and
+-- prone to errors, we will write any further queries
+-- in the API service using knex.
+-- Example using knex: https://github.com/amazeeio/lagoon/blob/3c5da25fe9caa442a4443c73b1dc00eb4afb411e/services/api/src/dao/project.js#L14-L24
+
 DELIMITER $$
 
 CREATE OR REPLACE PROCEDURE
@@ -116,7 +122,7 @@ CREATE OR REPLACE PROCEDURE
     IN pid                    int,
     IN deploy_type               ENUM('branch', 'pullrequest', 'promote'),
     IN environment_type       ENUM('production', 'development'),
-    IN openshift_projectname  varchar(100)
+    IN openshift_project_name  varchar(100)
   )
   BEGIN
     INSERT INTO environment (
@@ -124,7 +130,7 @@ CREATE OR REPLACE PROCEDURE
         project,
         deploy_type,
         environment_type,
-        openshift_projectname,
+        openshift_project_name,
         deleted
     )
     SELECT
@@ -132,7 +138,7 @@ CREATE OR REPLACE PROCEDURE
         p.id,
         deploy_type,
         environment_type,
-        openshift_projectname,
+        openshift_project_name,
         '0000-00-00 00:00:00'
     FROM
         project AS p
@@ -210,8 +216,8 @@ CREATE OR REPLACE PROCEDURE
   (
     IN id                     int,
     IN name                   varchar(100),
-    IN keyValue               varchar(5000),
-    IN keyType                varchar(300)
+    IN key_value              varchar(5000),
+    IN key_type               varchar(300)
   )
   BEGIN
     DECLARE new_sid int;
@@ -223,13 +229,13 @@ CREATE OR REPLACE PROCEDURE
     INSERT INTO ssh_key (
       id,
       name,
-      keyValue,
-      keyType
+      key_value,
+      key_type
     ) VALUES (
       id,
       name,
-      keyValue,
-      keyType
+      key_value,
+      key_type
     );
 
     IF (id = 0) THEN
@@ -241,8 +247,8 @@ CREATE OR REPLACE PROCEDURE
     SELECT
       sk.id,
       sk.name,
-      sk.keyValue,
-      sk.keyType,
+      sk.key_value,
+      sk.key_type,
       sk.created
     FROM ssh_key sk
     WHERE sk.id = new_sid;

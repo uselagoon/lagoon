@@ -287,7 +287,7 @@
               "deprecationReason": null
             },
             {
-              "name": "private_key",
+              "name": "privateKey",
               "description": "",
               "args": [],
               "type": {
@@ -416,11 +416,11 @@
         {
           "kind": "OBJECT",
           "name": "Project",
-          "description": "",
+          "description": "Lagoon Project (like a git repository)",
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "ID of project",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -432,7 +432,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "Name of project",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -444,7 +444,7 @@
             },
             {
               "name": "customer",
-              "description": "",
+              "description": "Reference to customer object",
               "args": [],
               "type": {
                 "kind": "OBJECT",
@@ -455,8 +455,8 @@
               "deprecationReason": null
             },
             {
-              "name": "git_url",
-              "description": "",
+              "name": "gitUrl",
+              "description": "Git URL, needs to be SSH Git URL in one of these two formats\n- git@192.168.99.1/project1.git\n- ssh://git@192.168.99.1:2222/project1.git",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -468,7 +468,7 @@
             },
             {
               "name": "subfolder",
-              "description": "",
+              "description": "Set if the .lagoon.yml should be found in a subfolder\nUsefull if you have multiple Lagoon projects per Git Repository",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -480,7 +480,7 @@
             },
             {
               "name": "notifications",
-              "description": "",
+              "description": "Notifications that should be sent for this project",
               "args": [
                 {
                   "name": "type",
@@ -506,8 +506,8 @@
               "deprecationReason": null
             },
             {
-              "name": "active_systems_deploy",
-              "description": "",
+              "name": "activeSystemsDeploy",
+              "description": "Which internal Lagoon System is responsible for deploying\nCurrently only 'lagoon_openshiftBuildDeploy' exists",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -518,8 +518,8 @@
               "deprecationReason": null
             },
             {
-              "name": "active_systems_promote",
-              "description": "",
+              "name": "activeSystemsPromote",
+              "description": "Which internal Lagoon System is responsible for promoting\nCurrently only 'lagoon_openshiftBuildDeploy' exists",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -530,8 +530,8 @@
               "deprecationReason": null
             },
             {
-              "name": "active_systems_remove",
-              "description": "",
+              "name": "activeSystemsRemove",
+              "description": "Which internal Lagoon System is responsible for promoting\nCurrently only 'lagoon_openshiftRemove' exists",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -543,47 +543,11 @@
             },
             {
               "name": "branches",
-              "description": "",
+              "description": "Which branches should be deployed, can be one of:\n- `true` - all branches are deployed\n- `false` - no branches are deployed\n- REGEX - regex of all branches that should be deployed, example: `^(master|staging)$`",
               "args": [],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "production_environment",
-              "description": "",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "auto_idle",
-              "description": "",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Int",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "storage_calc",
-              "description": "",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Int",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -591,7 +555,7 @@
             },
             {
               "name": "pullrequests",
-              "description": "",
+              "description": "Which Pull Requests should be deployed, can be one of:\n- `true` - all pull requests are deployed\n- `false` - no pull requests are deployed\n- REGEX - regex of all Pull Request titles that should be deployed, example: `[BUILD]`",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -602,8 +566,44 @@
               "deprecationReason": null
             },
             {
+              "name": "productionEnvironment",
+              "description": "Which environment(the name) should be marked as the production environment.\n*Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "autoIdle",
+              "description": "Should this project have auto idling enabled (`1` or `0`)",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "storageCalc",
+              "description": "Should storage for this environment be calculated (`1` or `0`)",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "openshift",
-              "description": "",
+              "description": "Reference to OpenShift Object this Project should be deployed to",
               "args": [],
               "type": {
                 "kind": "OBJECT",
@@ -614,8 +614,8 @@
               "deprecationReason": null
             },
             {
-              "name": "openshift_project_pattern",
-              "description": "",
+              "name": "openshiftProjectPattern",
+              "description": "Pattern of OpenShift Project/Namespace that should be generated, default: `${project}-${environmentname}`",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -627,7 +627,7 @@
             },
             {
               "name": "sshKeys",
-              "description": "",
+              "description": "Which Developer SSH keys should have access to this project",
               "args": [],
               "type": {
                 "kind": "LIST",
@@ -643,11 +643,11 @@
             },
             {
               "name": "environments",
-              "description": "",
+              "description": "Deployed Environments for this Project",
               "args": [
                 {
                   "name": "type",
-                  "description": "",
+                  "description": "Filter by Environment Type",
                   "type": {
                     "kind": "ENUM",
                     "name": "EnvType",
@@ -656,8 +656,8 @@
                   "defaultValue": null
                 },
                 {
-                  "name": "include_deleted",
-                  "description": "",
+                  "name": "includeDeleted",
+                  "description": "Include deleted Environments (by default deleted environment are hidden)",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Boolean",
@@ -680,7 +680,7 @@
             },
             {
               "name": "created",
-              "description": "",
+              "description": "Creation Timestamp of Project",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -888,7 +888,7 @@
               "deprecationReason": null
             },
             {
-              "name": "console_url",
+              "name": "consoleUrl",
               "description": "",
               "args": [],
               "type": {
@@ -912,7 +912,7 @@
               "deprecationReason": null
             },
             {
-              "name": "router_pattern",
+              "name": "routerPattern",
               "description": "",
               "args": [],
               "type": {
@@ -924,7 +924,7 @@
               "deprecationReason": null
             },
             {
-              "name": "project_user",
+              "name": "projectUser",
               "description": "",
               "args": [],
               "type": {
@@ -936,7 +936,7 @@
               "deprecationReason": null
             },
             {
-              "name": "ssh_host",
+              "name": "sshHost",
               "description": "",
               "args": [],
               "type": {
@@ -948,7 +948,7 @@
               "deprecationReason": null
             },
             {
-              "name": "ssh_port",
+              "name": "sshPort",
               "description": "",
               "args": [],
               "type": {
@@ -1052,7 +1052,7 @@
               "deprecationReason": null
             },
             {
-              "name": "deploy_type",
+              "name": "deployType",
               "description": "",
               "args": [],
               "type": {
@@ -1064,7 +1064,7 @@
               "deprecationReason": null
             },
             {
-              "name": "environment_type",
+              "name": "environmentType",
               "description": "",
               "args": [],
               "type": {
@@ -1076,7 +1076,7 @@
               "deprecationReason": null
             },
             {
-              "name": "openshift_projectname",
+              "name": "openshiftProjectName",
               "description": "",
               "args": [],
               "type": {
@@ -1124,7 +1124,7 @@
               "deprecationReason": null
             },
             {
-              "name": "hours_month",
+              "name": "hoursMonth",
               "description": "",
               "args": [
                 {
@@ -1163,7 +1163,7 @@
               "deprecationReason": null
             },
             {
-              "name": "storage_month",
+              "name": "storageMonth",
               "description": "",
               "args": [
                 {
@@ -1186,7 +1186,7 @@
               "deprecationReason": null
             },
             {
-              "name": "hits_month",
+              "name": "hitsMonth",
               "description": "",
               "args": [
                 {
@@ -1289,7 +1289,7 @@
               "deprecationReason": null
             },
             {
-              "name": "persistent_storage_claim",
+              "name": "persistentStorageClaim",
               "description": "",
               "args": [],
               "type": {
@@ -1301,7 +1301,7 @@
               "deprecationReason": null
             },
             {
-              "name": "bytes_used",
+              "name": "bytesUsed",
               "description": "",
               "args": [],
               "type": {
@@ -1358,7 +1358,7 @@
               "deprecationReason": null
             },
             {
-              "name": "bytes_used",
+              "name": "bytesUsed",
               "description": "",
               "args": [],
               "type": {
@@ -2199,14 +2199,14 @@
           "fields": null,
           "inputFields": [
             {
-              "name": "name",
+              "name": "id",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Int",
                   "ofType": null
                 }
               },
@@ -2244,7 +2244,7 @@
               "defaultValue": null
             },
             {
-              "name": "deploy_type",
+              "name": "deployType",
               "description": "",
               "type": {
                 "kind": "ENUM",
@@ -2254,7 +2254,7 @@
               "defaultValue": null
             },
             {
-              "name": "environment_type",
+              "name": "environmentType",
               "description": "",
               "type": {
                 "kind": "ENUM",
@@ -2264,7 +2264,7 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_projectname",
+              "name": "openshiftProjectName",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2618,7 +2618,7 @@
               "defaultValue": null
             },
             {
-              "name": "console_url",
+              "name": "consoleUrl",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2638,7 +2638,7 @@
               "defaultValue": null
             },
             {
-              "name": "router_pattern",
+              "name": "routerPattern",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2648,7 +2648,7 @@
               "defaultValue": null
             },
             {
-              "name": "project_user",
+              "name": "projectUser",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2658,7 +2658,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_host",
+              "name": "sshHost",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2668,7 +2668,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_port",
+              "name": "sshPort",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2748,7 +2748,7 @@
               "defaultValue": null
             },
             {
-              "name": "private_key",
+              "name": "privateKey",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2838,7 +2838,7 @@
               "defaultValue": null
             },
             {
-              "name": "git_url",
+              "name": "gitUrl",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2858,7 +2858,7 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_deploy",
+              "name": "activeSystemsDeploy",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2868,7 +2868,7 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_remove",
+              "name": "activeSystemsRemove",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2888,7 +2888,7 @@
               "defaultValue": null
             },
             {
-              "name": "production_environment",
+              "name": "productionEnvironment",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2898,7 +2898,7 @@
               "defaultValue": null
             },
             {
-              "name": "auto_idle",
+              "name": "autoIdle",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2908,7 +2908,7 @@
               "defaultValue": null
             },
             {
-              "name": "storage_calc",
+              "name": "storageCalc",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2938,7 +2938,7 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_project_pattern",
+              "name": "openshiftProjectPattern",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -2997,7 +2997,7 @@
               "defaultValue": null
             },
             {
-              "name": "git_url",
+              "name": "gitUrl",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3035,7 +3035,7 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_project_pattern",
+              "name": "openshiftProjectPattern",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3045,7 +3045,7 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_deploy",
+              "name": "activeSystemsDeploy",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3055,7 +3055,7 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_promote",
+              "name": "activeSystemsPromote",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3065,7 +3065,7 @@
               "defaultValue": null
             },
             {
-              "name": "active_systems_remove",
+              "name": "activeSystemsRemove",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3095,7 +3095,7 @@
               "defaultValue": null
             },
             {
-              "name": "production_environment",
+              "name": "productionEnvironment",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3105,7 +3105,7 @@
               "defaultValue": null
             },
             {
-              "name": "auto_idle",
+              "name": "autoIdle",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3115,7 +3115,7 @@
               "defaultValue": null
             },
             {
-              "name": "storage_calc",
+              "name": "storageCalc",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3189,7 +3189,7 @@
               "defaultValue": null
             },
             {
-              "name": "deploy_type",
+              "name": "deployType",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3203,7 +3203,7 @@
               "defaultValue": null
             },
             {
-              "name": "environment_type",
+              "name": "environmentType",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3217,7 +3217,7 @@
               "defaultValue": null
             },
             {
-              "name": "openshift_projectname",
+              "name": "openshiftProjectName",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3256,7 +3256,7 @@
               "defaultValue": null
             },
             {
-              "name": "persistent_storage_claim",
+              "name": "persistentStorageClaim",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3270,7 +3270,7 @@
               "defaultValue": null
             },
             {
-              "name": "bytes_used",
+              "name": "bytesUsed",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3452,7 +3452,7 @@
               "defaultValue": null
             },
             {
-              "name": "private_key",
+              "name": "privateKey",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3522,7 +3522,7 @@
               "defaultValue": null
             },
             {
-              "name": "console_url",
+              "name": "consoleUrl",
               "description": "",
               "type": {
                 "kind": "NON_NULL",
@@ -3546,7 +3546,7 @@
               "defaultValue": null
             },
             {
-              "name": "router_pattern",
+              "name": "routerPattern",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3556,7 +3556,7 @@
               "defaultValue": null
             },
             {
-              "name": "project_user",
+              "name": "projectUser",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3566,7 +3566,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_host",
+              "name": "sshHost",
               "description": "",
               "type": {
                 "kind": "SCALAR",
@@ -3576,7 +3576,7 @@
               "defaultValue": null
             },
             {
-              "name": "ssh_port",
+              "name": "sshPort",
               "description": "",
               "type": {
                 "kind": "SCALAR",

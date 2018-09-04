@@ -1,18 +1,16 @@
 // @flow
 
 import inquirer from 'inquirer';
-import { table } from 'table';
 import R from 'ramda';
 import { answerWithOptionIfSetOrPrompt } from '../cli/answerWithOption';
-import { visit } from '../cli/visit';
-import { config } from '../config';
-import gql from '../gql';
-import { runGQLQuery } from '../query';
-import { printGraphQLErrors } from '../printErrors';
-import { getOptions } from '.';
+import { setConfigForHandlers } from '../cli/setConfigForHandlers';
+import format from '../util/format';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
+import { printGraphQLErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseHandlerArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
 export const command = 'project';
 export const description = 'Show project details';
@@ -39,7 +37,6 @@ export function builder(yargs: Yargs): Yargs {
         demandOption: false,
         describe: 'Name of project',
         type: 'string',
-        alias: 'p',
       },
     })
     .example(
@@ -50,7 +47,7 @@ export function builder(yargs: Yargs): Yargs {
       `$0 ${command} --${PROJECT} myproject`,
       'Show details of project "myproject"',
     )
-    .commandDir('projectCommands', { visit });
+    .commandDir('projectCommands', { visit: setConfigForHandlers });
 }
 
 type PromptForQueryOptionsArgs = {|
@@ -73,24 +70,17 @@ PromptForQueryOptionsArgs): Promise<Options> {
   ]);
 }
 
-type ProjectDetailsArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-  options: OptionalOptions,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +project?: string,
+}>;
 
-export async function projectDetails({
-  clog,
-  cerr,
-  options,
-}:
-ProjectDetailsArgs): Promise<number> {
+export async function handler({ clog, cerr, options }: Args): Promise<number> {
   const { project: projectName } = await promptForQueryOptions({
     options,
     clog,
   });
 
-  const result = await runGQLQuery({
+  const result = await queryGraphQL({
     cerr,
     query: gql`
       query ProjectByName($project: String!) {
@@ -99,9 +89,9 @@ ProjectDetailsArgs): Promise<number> {
           customer {
             name
           }
-          git_url
-          active_systems_deploy
-          active_systems_remove
+          gitUrl
+          activeSystemsDeploy
+          activeSystemsRemove
           branches
           pullrequests
           openshift {
@@ -126,31 +116,32 @@ ProjectDetailsArgs): Promise<number> {
     return 0;
   }
 
-  clog(`Project details for '${projectName}':`);
   clog(
-    table([
-      ['Project Name', R.prop('name', project)],
-      ['Customer', R.path(['customer', 'name'], project)],
-      ['Git URL', R.prop('git_url', project)],
-      ['Active Systems Deploy', R.prop('active_systems_deploy', project)],
-      ['Active Systems Remove', R.prop('active_systems_remove', project)],
-      ['Branches', String(R.prop('branches', project))],
-      ['Pull Requests', String(R.prop('pullrequests', project))],
-      ['Openshift', R.path(['openshift', 'name'], project)],
-      ['Created', R.path(['created'], project)],
+    format([
+      [
+        'Name',
+        'Customer',
+        'Git URL',
+        'Active Systems Deploy',
+        'Active Systems Remove',
+        'Branches',
+        'Pull Requests',
+        'Openshift',
+        'Created',
+      ],
+      [
+        R.prop('name', project),
+        R.path(['customer', 'name'], project),
+        R.prop('gitUrl', project),
+        R.prop('activeSystemsDeploy', project),
+        R.prop('activeSystemsRemove', project),
+        R.prop('branches', project),
+        R.prop('pullrequests', project),
+        R.path(['openshift', 'name'], project),
+        R.path(['created'], project),
+      ],
     ]),
   );
 
   return 0;
-}
-
-type Args = BaseHandlerArgs & {
-  argv: {
-    project: ?string,
-  },
-};
-
-export async function handler({ clog, cerr, argv }: Args): Promise<number> {
-  const options = getOptions({ config, argv, commandOptions });
-  return projectDetails({ clog, cerr, options });
 }

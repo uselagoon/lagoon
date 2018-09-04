@@ -6,5 +6,5 @@ const importLocal = require('import-local');
 const localImportFailed = !importLocal(__filename);
 
 if (localImportFailed) {
-  require('../build/cli').run();
+  require('../build').run();
 }

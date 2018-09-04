@@ -50,7 +50,7 @@ const messageConsumer = async msg => {
 
   try {
     var gitSha = sha
-    var openshiftConsole = projectOpenshift.openshift.console_url.replace(/\/$/, "");
+    var openshiftConsole = projectOpenshift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenshift.openshift.token || ""
   } catch(error) {
     logger.warn(`Error while loading information for project ${projectName}: ${error}`)
