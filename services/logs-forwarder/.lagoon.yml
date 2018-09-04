@@ -93,13 +93,19 @@ objects:
           volumeMounts:
           - mountPath: /fluentd/etc/
             name: config
+          - mountPath: /fluentd/buffer/
+            name: buffer
         volumes:
         - configMap:
             items:
             - key: FLUENT_CONF
               path: fluent.conf
+            - key: CONTAINER_LOGS_JSON
+              path: container-logs.json
             name: ${SERVICE_NAME}-config
           name: config
+        - emptyDir: {}
+          name: buffer
     triggers:
     - type: ConfigChange
 - apiVersion: v1
@@ -146,7 +152,23 @@ objects:
           <filter **>
             @type record_modifier
             <record>
-              index_name container-logs-${record['kubernetes']['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
+              namespace_name "${record['kubernetes']['namespace_name']}"
+            </record>
+          </filter>
+          <filter **>
+            @type record_modifier
+            <replace>
+              # We run automated testing which creates project names in the form of e2e-0000000000-AAAAAAAAAAAAAAAAAAAAAAAAAA
+              # we just save them as with the project name 'e2'
+              key namespace_name
+              expression /^e2e-\\d{10}-\\S{26}$/
+              replace e2e
+            </replace>
+          </filter>
+          <filter **>
+            @type record_modifier
+            <record>
+              index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%G.%V")}
             </record>
           </filter>
 
@@ -158,21 +180,74 @@ objects:
             @type elasticsearch
             host logs-db
             port 9200
+            templates { "container-logs": "/fluentd/etc/container-logs.json"}
+            template_overwrite true
             target_index_key index_name
-            index_name container-logs-noproject-%Y.%m
+            index_name container-logs-noproject-%G.%V
             <buffer tag,time>
-              @type memory
+              @type file
+              path /fluentd/buffer/elasticsarch
               timekey 3600
               timekey_wait 0s
               flush_mode interval
               flush_interval 1s
-              chunk_limit_size 32MB
+              chunk_limit_size 256MB
+              total_limit_size 5GB
               flush_thread_count 8
+              overflow_action block
             </buffer>
             id_key viaq_msg_id
-            remove_keys viaq_msg_id, viaq_index_name, kubernetes.master_url
+            remove_keys viaq_msg_id, viaq_index_name, namespace_name, kubernetes.master_url
             type_name _doc
             user admin
             password "#{ENV['LOGSDB_ADMIN_PASSWORD']}"
           </match>
       </label>
+    CONTAINER_LOGS_JSON: |-
+      {
+        "template" : "container-logs-*",
+        "version" : 60002,
+        "settings" : {
+          "index.refresh_interval" : "5s",
+          "number_of_shards": 1,
+          "number_of_replicas": 2
+        },
+        "mappings" : {
+          "_default_" : {
+            "dynamic_templates" : [ {
+              "message_field" : {
+                "path_match" : "message",
+                "match_mapping_type" : "string",
+                "mapping" : {
+                  "type" : "text",
+                  "norms" : false
+                }
+              }
+            }, {
+              "string_fields" : {
+                "match" : "*",
+                "match_mapping_type" : "string",
+                "mapping" : {
+                  "type" : "text", "norms" : false,
+                  "fields" : {
+                    "keyword" : { "type": "keyword", "ignore_above": 256 }
+                  }
+                }
+              }
+            } ],
+            "properties" : {
+              "@timestamp": { "type": "date"},
+              "@version": { "type": "keyword"},
+              "geoip"  : {
+                "dynamic": true,
+                "properties" : {
+                  "ip": { "type": "ip" },
+                  "location" : { "type" : "geo_point" },
+                  "latitude" : { "type" : "half_float" },
+                  "longitude" : { "type" : "half_float" }
+                }
+              }
+            }
+          }
+        }
+      }
