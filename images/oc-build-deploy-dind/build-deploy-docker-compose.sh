@@ -252,7 +252,7 @@ do
 
       OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
 
-      TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_INSECURE}")
+      TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_AUTOGENERATE_INSECURE}")
       .  /oc-build-deploy/scripts/exec-openshift-resources.sh
     fi
 
