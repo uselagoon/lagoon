@@ -47,10 +47,10 @@ const Project = withRouter((props) => {
             }
           ];
           return (
-            <div>
+            <React.Fragment>
               <Breadcrumbs breadcrumbs={breadcrumbs} />
               <ProjectData project={project} />
-            </div>
+            </React.Fragment>
           );
         }}
       </Query>

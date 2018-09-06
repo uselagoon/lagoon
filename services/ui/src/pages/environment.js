@@ -48,7 +48,7 @@ const Environment = withRouter((props) => {
             }
           ];
           return (
-            <div>
+            <React.Fragment>
               <Breadcrumbs breadcrumbs={breadcrumbs}/>
               <div className='content-wrapper'>
                 <NavTabs activeTab='overview' environment={environment.openshiftProjectName}/>
@@ -62,7 +62,7 @@ const Environment = withRouter((props) => {
                   }
                 }
               `}</style>
-            </div>
+            </React.Fragment>
           );
         }}
       </Query>
