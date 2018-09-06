@@ -7383,7 +7383,7 @@ prop-types@15.6.0:
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
 
-prop-types@^15.6.0:
+prop-types@^15.5.10, prop-types@^15.6.0:
   version "15.6.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.2.tgz#05d5ca77b4453e985d60fc7ff8c859094a497102"
   dependencies:
@@ -7559,6 +7559,13 @@ react-dom@^16.4.2:
 react-lifecycles-compat@3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
+
+react-typekit@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/react-typekit/-/react-typekit-1.1.3.tgz#0a1f731a47dc1ffbd8496ccf7ccaea869a644cbd"
+  dependencies:
+    lodash "^4.17.4"
+    prop-types "^15.5.10"
 
 react@^16.4.2:
   version "16.4.2"

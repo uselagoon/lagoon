@@ -5,7 +5,8 @@ import Head from 'next/head';
 import getConfig from 'next/config'
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
-import { bp, color } from '../variables';
+import Typekit from 'react-typekit';
+import { bp, color, fontSize } from '../variables';
 
 const {serverRuntimeConfig, publicRuntimeConfig} = getConfig()
 
@@ -22,6 +23,7 @@ class MyApp extends App {
     return <Container>
       <Head>
         <link rel="stylesheet" href="/static/normalize.css" />
+        <Typekit kitId="ggo2pml" />
       </Head>
       <ApolloProvider client={client}>
         <Component {...pageProps} />
@@ -31,19 +33,18 @@ class MyApp extends App {
           box-sizing: border-box;
         }
         body {
-          font-family: Arial;
-          font-size: 16px;
+          color: ${color.black};
+          font-family: "source-sans-pro", sans-serif;
+          ${fontSize(16)};
           height: 100%;
           line-height: 1.25rem;
           overflow-x: hidden;
           .content-wrapper {
-            margin: 0 auto;
-            max-width: 1400px;
-            padding: 0 20px;
+            background-color: ${color.almostWhite};
             width: 100%;
           }
           a {
-            color: #000;
+            color: ${color.black};
             text-decoration: none;
           }
           p {
@@ -59,17 +60,20 @@ class MyApp extends App {
           em {
             font-style: normal;
           }
-          h1 {
-            font-size: 30px;
-            line-height: 40px;
-            margin-top: 50px;
-          }
           h2 {
-            font-weight: 700;
-            line-height: 25px;
+            ${fontSize(36, 42)};
+            font-weight: normal;
+            margin: 0 0 38px;
+          }
+          h3 {
+            ${fontSize(30, 42)};
+            font-weight: normal;
+            margin: 0 0 36px;
           }
           h4 {
-            margin: 0;
+            ${fontSize(25, 42)};
+            font-weight: normal;
+            margin: 4px 0 20px;
           }
           ul {
             list-style: none;
@@ -104,10 +108,16 @@ class MyApp extends App {
             }
           }
           .field {
-            margin-bottom: 20px;
-            label {
-              font-weight: bold;
+            line-height: 25px;
+            a {
+              color: ${color.lightBlue};
             }
+          }
+          label {
+            color: ${color.darkGrey};
+            font-family: "source-code-pro", sans-serif;
+            ${fontSize(13)};
+            text-transform: uppercase;
           }
         }
       `}</style>

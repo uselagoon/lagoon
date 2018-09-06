@@ -19,6 +19,7 @@
     "react": "^16.4.2",
     "react-apollo": "^2.1.11",
     "react-dom": "^16.4.2",
+    "react-typekit": "^1.1.3",
     "styled-jsx-plugin-postcss": "^0.1.3"
   },
   "postcss": {

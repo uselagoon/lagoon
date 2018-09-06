@@ -10,7 +10,7 @@ export default ({ breadcrumbs}) => (
           <Link href={breadcrumb.query ? {pathname: breadcrumb.pathname, query: breadcrumb.query} : {pathname: breadcrumb.pathname}}>
             <a>
               <div>
-                <h4>{breadcrumb.header}</h4>
+                <label>{breadcrumb.header}</label>
                 <h2>{breadcrumb.title}</h2>
               </div>
             </a>
@@ -19,23 +19,23 @@ export default ({ breadcrumbs}) => (
     </div>
     <style jsx>{`
       .breadcrumbs-wrapper {
+        background-color: ${color.white};
         border-bottom: 1px solid ${color.midGrey};
       }
       .breadcrumbs {
         display:flex;
-        margin: 0 auto;
-        max-width: 1400px;
+        margin: 0 calc((100% / 16) * 1);
       }
       .breadcrumb {
         border-left: 1px solid ${color.midGrey};
         a {
           display: block;
-          padding: 20px 40px;
+          padding: 42px 20px 0;
         }
         &:first-child {
           border-left: none;
           a {
-            padding-left: 20px;
+            padding-left: 0;
           }
         }
       }

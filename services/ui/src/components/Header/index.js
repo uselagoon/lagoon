@@ -7,8 +7,11 @@ export default () => (
     <Link href="/"><a>Home</a></Link>
     <style jsx>{`
       .header {
-        background: ${color.grey};
-        padding: 10px 20px;
+        background: ${color.blue};
+        padding: 14px 20px;
+        a {
+          color: ${color.white};
+        }
       }
   `}</style>
   </div>

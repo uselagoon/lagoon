@@ -1,16 +1,25 @@
 // Breakpoints in px
-const BP_TINY = 350;
-const BP_XS = 450;
-const BP_TABLET = 668;
+const BP_TINY = 450;
+const BP_XS = 600;
+const BP_TABLET = 768;
 const BP_DESKTOP = 960;
 const BP_WIDE = 1200;
 const BP_EXTRAWIDE = 1400;
 
 export const color = {
+  black: '#1a1a1a',
   white: '#fff',
-  lightGrey: '#efefef',
-  midGrey: '#d1d1d1',
-  grey: '#999',
+  almostWhite: '#fafafc',
+  lightestGrey: '#f5f6fa',
+  lightGrey: '#f0f1f5',
+  midGrey: '#ebecf0',
+  grey: '#a8b4bc',
+  darkGrey: '#5f6f7a',
+  green: '#4fda9d',
+  lightestBlue: '#6fb3ff',
+  lightBlue: '#497ffa',
+  blue: '#4578e6',
+  brightBlue: '#2bc0d8',
 };
 
 export const bp = {
@@ -32,3 +41,23 @@ export const bp = {
   desktop_wide: `all and (min-width: ${BP_DESKTOP / 16}em) and (max-width: ${(BP_WIDE - 1) / 16}em)`,
   wide_extraWide: `all and (min-width: ${BP_WIDE / 16}em) and (max-width: ${(BP_EXTRAWIDE - 1) / 16}em)`,
 };
+
+export const pxToRem = pxValue => `${pxValue / 16}rem`;
+
+export const fontSize = (sizeInPx, lineHeight = false) => `
+  font-size: ${sizeInPx}px;
+  font-size: ${pxToRem(sizeInPx)};
+
+  ${lineHeight === true &&
+    `
+    line-height: ${sizeInPx * 1.66666667}px;
+    line-height: ${pxToRem(sizeInPx * 1.66666667)};
+  `}
+
+  ${lineHeight !== false &&
+    lineHeight !== true &&
+    `
+    line-height: ${lineHeight}px;
+    line-height: ${pxToRem(lineHeight)};
+  `}
+`;
