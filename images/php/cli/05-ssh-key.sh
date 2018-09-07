@@ -11,3 +11,8 @@ elif [ ! -z "$SSH_PRIVATE_KEY" ]; then
 elif [ ! -z "$LAGOON_SSH_PRIVATE_KEY" ]; then
   echo -e "$LAGOON_SSH_PRIVATE_KEY" > /home/.ssh/key
 fi
+
+# add a new line to the key. OpenSSH is very picky that keys are always end with a newline
+echo >> /home/.ssh/key
+# Fix permissions of SSH key
+chmod 400 /home/.ssh/key
