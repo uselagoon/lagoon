@@ -19,6 +19,8 @@ cp /var/run/secrets/lagoon/ssh/ssh-privatekey ~/.ssh/key
 # Add a new line to the key, as some ssh key formats need a new line
 echo "" >> ~/.ssh/key
 
+export SSH_PRIVATE_KEY=$(cat ~/.ssh/key | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+
 echo -e "Host * \n    StrictHostKeyChecking no" > ~/.ssh/config
 chmod 400 ~/.ssh/*
 
