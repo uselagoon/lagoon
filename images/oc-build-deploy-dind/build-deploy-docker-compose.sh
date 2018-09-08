@@ -208,7 +208,18 @@ done
 
 YAML_CONFIG_FILE="services-routes"
 
-ROUTES_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure Allow)
+# BC for routes.insecure, which is now called routes.autogenerate.insecure
+BC_ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure false)
+if [ ! $BC_ROUTES_AUTOGENERATE_INSECURE == "false" ]; then
+  echo "=== routes.insecure is now defined in routes.autogenerate.insecure, pleae update your .lagoon.yml file"
+  ROUTES_AUTOGENERATE_INSECURE=$BC_ROUTES_AUTOGENERATE_INSECURE
+else
+  # By default we allow insecure traffic on autogenerate routes
+  ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
+fi
+
+ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
+
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -232,18 +243,22 @@ do
     .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 
-  OPENSHIFT_ROUTES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/routes.yml"
-  if [ -f $OPENSHIFT_ROUTES_TEMPLATE ]; then
+  if [ $ROUTES_AUTOGENERATE_ENABLED == "true" ]; then
 
-    # The very first generated route is set as MAIN_GENERATED_ROUTE
-    if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
-      MAIN_GENERATED_ROUTE=$SERVICE_NAME
+    OPENSHIFT_ROUTES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/routes.yml"
+    if [ -f $OPENSHIFT_ROUTES_TEMPLATE ]; then
+
+      # The very first generated route is set as MAIN_GENERATED_ROUTE
+      if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
+        MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      fi
+
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
+
+      TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_AUTOGENERATE_INSECURE}")
+      .  /oc-build-deploy/scripts/exec-openshift-resources.sh
     fi
 
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
-
-    TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_INSECURE}")
-    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 done
 
