@@ -37,6 +37,8 @@ For each Service defined in the `docker-compose.yml` Lagoon will check if Images
 - `LAGOON_GIT_BRANCH`
 - `LAGOON_PROJECT`
 - `LAGOON_BUILD_TYPE`  (either `pullrequest`, `branch` or `promote`)
+- `LAGOON_SSH_PRIVATE_KEY` the SSH private key that is used to clone the source repository, use `RUN /lagoon/entrypoints/05-ssh-key.sh` to convert the build argument into an actual key at `/home/.ssh/key` which will be used by ssh and git automatically. For safety, remove the key again via `RUN rm /home/.ssh/key`
+- `LAGOON_GIT_SOURCE_REPOSITORY` the full Git URL of the Source Repository
 
 Plus if this is a Pull Request build:
 
