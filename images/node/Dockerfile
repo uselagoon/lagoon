@@ -26,6 +26,10 @@ RUN apk update \
     && apk upgrade \
     && rm -rf /var/cache/apk/*
 
+# Make sure Bower and NPM are allowed to be running as root
+RUN echo '{ "allow_root": true }' > /home/.bowerrc \
+    && echo 'unsafe-perm=true' > /home/.npmrc
+
 WORKDIR /app
 
 EXPOSE 3000
