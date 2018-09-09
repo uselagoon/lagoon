@@ -309,6 +309,20 @@ if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
 fi
 
 ##############################################
+### CUSTOM MONITORING_URLS FROM .lagoon.yml
+##############################################
+URL_COUNTER=0
+while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
+  MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
+  if [[ $URL_COUNTER > 0 ]]; then
+    MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
+  else
+    MONITORING_URLS="${MONITORING_URL}"
+  fi
+  let URL_COUNTER=URL_COUNTER+1
+done
+
+##############################################
 ### PROJECT WIDE ENV VARIABLES
 ##############################################
 
@@ -328,6 +342,12 @@ fi
 # Load all routes with correct schema and comma separated
 ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
+# If no MONITORING_URLS were specified, fall back to the ROUTE of the project
+if [ -z "$MONITORING_URLS"]; then
+  echo "No monitoring_urls provided, using ROUTE"
+  MONITORING_URLS="${ROUTE}"
+fi
+
 # Generate a Config Map with project wide env variables
 oc process --local --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
@@ -340,6 +360,7 @@ oc process --local --insecure-skip-tls-verify \
   -p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" \
   -p ROUTE="${ROUTE}" \
   -p ROUTES="${ROUTES}" \
+  -p MONITORING_URLS="${MONITORING_URLS}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
 if [ "$TYPE" == "pullrequest" ]; then
