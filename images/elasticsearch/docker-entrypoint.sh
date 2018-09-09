@@ -14,5 +14,3 @@ else
   # copy the pristine version to the one that can be edited
   /usr/bin/peer-finder -on-start="/lagoon/configure-es.sh" -service=${K8S_SVC_NAME}
 fi
-
-exec $@

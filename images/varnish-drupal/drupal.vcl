@@ -95,7 +95,7 @@ sub vcl_recv {
   }
 
   # Only allow BAN requests from IP addresses in the 'purge' ACL.
-  if (req.method == "BAN") {
+  if (req.method == "BAN" || req.method == "URIBAN" || req.method == "PURGE") {
       # Only allow BAN from defined ACL
       if (!client.ip ~ purge) {
           return (synth(403, "Your IP is not allowed."));
@@ -104,25 +104,27 @@ sub vcl_recv {
       # Only allows BAN if the Host Header has the style of with "${SERVICE_NAME:-varnish}:8080" or "${SERVICE_NAME:-varnish}".
       # Such a request is only possible from within the Docker network, as a request from external goes trough the Kubernetes Router and for that needs a proper Host Header
       if (!req.http.host ~ "^${SERVICE_NAME:-varnish}(:\d+)?$") {
-          return (synth(403, "BAN only allowed from within own network."));
+          return (synth(403, "Only allowed from within own network."));
       }
 
-      # Logic for the ban, using the Cache-Tags header.
-      if (req.http.Cache-Tags) {
-          ban("obj.http.Cache-Tags ~ " + req.http.Cache-Tags);
-      }
-      else {
-          return (synth(403, "Cache-Tags header missing."));
+      if (req.method == "BAN") {
+        # Logic for the ban, using the Cache-Tags header.
+        if (req.http.Cache-Tags) {
+            ban("obj.http.Cache-Tags ~ " + req.http.Cache-Tags);
+            # Throw a synthetic page so the request won't go to the backend.
+            return (synth(200, "Ban added."));
+        }
+        else {
+            return (synth(403, "Cache-Tags header missing."));
+        }
       }
 
-      # Throw a synthetic page so the request won't go to the backend.
-      return (synth(200, "Ban added."));
-  }
+      if (req.method == "URIBAN" || req.method == "PURGE") {
+        ban("req.url ~ " + req.url);
+        # Throw a synthetic page so the request won't go to the backend.
+        return (synth(200, "Ban added."));
+      }
 
-  if (req.method == "URIBAN") {
-    ban("req.http.host == " + req.http.host + " && req.url == " + req.url);
-    # Throw a synthetic page so the request won't go to the backend.
-    return (synth(200, "Ban added."));
   }
 
   # Non-RFC2616 or CONNECT which is weird, we pipe that
@@ -213,7 +215,7 @@ sub vcl_recv {
   if (req.http.Cookie) {
     set req.http.CookieCheck = ";" + req.http.Cookie;
     set req.http.CookieCheck = regsuball(req.http.CookieCheck, "; +", ";");
-    set req.http.CookieCheck = regsuball(req.http.CookieCheck, ";(SESS[a-z0-9]+|SSESS[a-z0-9]+|NO_CACHE)=", "; \1=");
+    set req.http.CookieCheck = regsuball(req.http.CookieCheck, ";(${VARNISH_COOKIECHECK:-SESS[a-z0-9]+|SSESS[a-z0-9]+|NO_CACHE})=", "; \1=");
     set req.http.CookieCheck = regsuball(req.http.CookieCheck, ";[^ ][^;]*", "");
     set req.http.CookieCheck = regsuball(req.http.CookieCheck, "^[; ]+|[; ]+$", "");
 

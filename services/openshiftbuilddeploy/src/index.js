@@ -39,16 +39,17 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(branchName)
     var safeProjectName = ocsafety(projectName)
-    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development';
+    var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
-    var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
+    var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
-    var openshiftProject = `${safeProjectName}-${safeBranchName}`
-    var openshiftProjectUser = projectOpenShift.openshift.project_user || ""
-    var deployPrivateKey = projectOpenShift.customer.private_key
-    var gitUrl = projectOpenShift.git_url
-    var routerPattern = projectOpenShift.openshift.router_pattern ? projectOpenShift.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
+    var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
+    var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
+    var deployPrivateKey = projectOpenShift.customer.privateKey
+    var gitUrl = projectOpenShift.gitUrl
+    var subfolder = projectOpenShift.subfolder || ""
+    var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
@@ -144,6 +145,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "GIT_REF",
                           "value": gitRef
+                      },
+                      {
+                          "name": "SUBFOLDER",
+                          "value": subfolder
                       },
                       {
                           "name": "SAFE_BRANCH",

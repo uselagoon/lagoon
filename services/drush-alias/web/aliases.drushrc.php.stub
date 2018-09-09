@@ -194,7 +194,7 @@ $query = sprintf('{
   project:projectByName(name: "%s") {
     environments {
       name
-      openshift_projectname
+      openshiftProjectName
     }
   }
 }
@@ -265,7 +265,7 @@ $defaults = [
 ];
 
 $aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path) {
-  $site_name = $environment->name;
+  $site_name = str_replace('/','-',$environment->name);
   $site_host = 'localhost';
 
   $alias = [];
@@ -277,7 +277,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
 
   $alias[$site_name] = [
     'remote-host' => "$ssh_host",
-    'remote-user' => "$environment->openshift_projectname",
+    'remote-user' => "$environment->openshiftProjectName",
     'root' => "$drupal_path",
     'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
   ] + $defaults;

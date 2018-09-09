@@ -62,9 +62,8 @@ if (getenv('LAGOON')) {
 }
 
 ### Base URL
-if (getenv('LAGOON_ROUTES')) {
-  $routes = explode(',', getenv('LAGOON_ROUTES'));
-  $base_url = $routes[0];
+if (getenv('LAGOON_ROUTE')) {
+  $base_url = getenv('LAGOON_ROUTE');
 }
 
 ### Temp directory

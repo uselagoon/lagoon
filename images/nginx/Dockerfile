@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM nginx:alpine
+FROM openresty/openresty:alpine
 
 MAINTAINER amazee.io
 ENV LAGOON=nginx
@@ -20,6 +20,8 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
 RUN apk add --no-cache openssl
 
+RUN rm -Rf /etc/nginx && ln -s /usr/local/openresty/nginx/conf /etc/nginx
+
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
 COPY fastcgi.conf /etc/nginx/fastcgi_params
@@ -29,8 +31,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 RUN mkdir -p /app \
     && rm -f /etc/nginx/conf.d/default.conf \
-    && fix-permissions /etc/nginx/ \
-    && fix-permissions /var/cache/nginx \
+    && fix-permissions /usr/local/openresty/nginx \
     && fix-permissions /var/run/
 
 COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint

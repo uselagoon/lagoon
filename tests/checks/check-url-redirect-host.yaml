@@ -7,7 +7,7 @@
     HEADER_Host: "{{ host }}"
     validate_certs: no
   register: result
-  until: result.location | regex_search(expected_redirect_location)
+  until: result.location | default('') | regex_search(expected_redirect_location)
   retries: 5
   delay: 10
 - debug: msg="Success!!!"

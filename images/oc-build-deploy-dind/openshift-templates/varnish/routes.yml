@@ -31,6 +31,9 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: ROUTES_INSECURE
+    description: Setting of insecure Routes
+    value: Allow
 objects:
 - apiVersion: v1
   kind: Route
@@ -51,5 +54,5 @@ objects:
       kind: Service
       name: ${SERVICE_NAME}
     tls:
-      insecureEdgeTerminationPolicy: Allow
+      insecureEdgeTerminationPolicy: ${ROUTES_INSECURE}
       termination: edge

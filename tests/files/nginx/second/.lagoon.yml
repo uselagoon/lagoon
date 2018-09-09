@@ -1,5 +1,8 @@
 docker-compose-yaml: docker-compose.yml
 
+routes:
+  autogenerate:
+    insecure: Redirect
 
 environments:
   nginx:

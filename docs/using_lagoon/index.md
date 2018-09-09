@@ -21,16 +21,17 @@ Learn more about Lagoon and [Local Development Environments](./local_development
 - [Setup a new Project in Lagoon](./setup_project.md)
 - General: [First Deployment](./first_deployment.md)
 - Drupal: [First Deployment Drupal](./drupal/first_deployment.md)
+- [Deployment & Build Process of Lagoon](./build_deploy_process.md)
 
 ## Overview of Lagoon Configuration Files
 
 ### `.lagoon.yml`
 
-They main file that will be used by Lagoon to understand what should be deployed and many more things. See [Documentation for .lagoon.yml]()
+They main file that will be used by Lagoon to understand what should be deployed and many more things. See [Documentation for .lagoon.yml](/using_lagoon/lagoon_yml.md)
 
 ### `docker-compose.yml`
 
-This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml]()
+This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml](/using_lagoon/docker-compose_yml.md)
 
 ### Dockerfiles
 
@@ -40,18 +41,18 @@ Some Docker Images and Containers need additional customizations from the provid
 
 ## Supported Services & Base Images by Lagoon
 
-| Type           | Versions      | Dockerfile                                                                                                   | Notes                |
-| ---------------| --------------| -------------------------------------------------------------------------------------------------------------| ---------------------|
-| nginx          | 1.12          | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile)                   |                      |
-| nginx-drupal   |               | [nginx-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile)     |                      |
-| php-fpm        | 5.6, 7.0, 7.1 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile)               |                      |
-| php-cli        | 5.6, 7.0, 7.1 | [php/cli/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile)               |                      |
-| php-cli-drupal | 5.6, 7.0, 7.1 | [php/cli-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) |                      |
-| mariadb        | 10            | [mariadb/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile)               |                      |
-| mariadb-drupal | 10            | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |                      |
-| mongo          | 3.6           | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile)                   |                      |
-| solr           |               |                                                                                                              |                      |
-| solr-drupal    |               |                                                                                                              |                      |
-| redis          |               |                                                                                                              |                      |
-| varnish        |               |                                                                                                              |                      |
-| varnish-drupal |               |                                                                                                              |                      |
+| Type           | Versions           | Dockerfile                                                                                                   |
+| ---------------| -------------------| -------------------------------------------------------------------------------------------------------------|
+| nginx | 1.12 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
+| nginx-drupal | | [nginx-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) |
+| [php-fpm](docker_images/php-fpm.md) | 5.6, 7.0, 7.1, 7.2 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
+| php-cli | 5.6, 7.0, 7.1, 7.2 | [php/cli/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile) |
+| php-cli-drupal | 5.6, 7.0, 7.1, 7.2 | [php/cli-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) |
+| mariadb | 10 | [mariadb/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile) |
+| mariadb-drupal | 10 | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |
+| mongo | 3.6 | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile) |
+| solr | 5.5, 6.6 | |
+| solr-drupal | 5.5, 6.6 | |
+| redis | | |
+| varnish | 5 | |
+| varnish-drupal | 5 | |

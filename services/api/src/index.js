@@ -1,12 +1,27 @@
+// @flow
+
+const elasticsearch = require('elasticsearch');
+const MariaSQL = require('mariasql');
 const logger = require('./logger');
 const createServer = require('./server');
-const MariaSQL = require('mariasql');
 
 (async () => {
   logger.debug('Starting to boot the application.');
 
   try {
-    const { JWTSECRET, JWTAUDIENCE } = process.env;
+    const { JWTSECRET, JWTAUDIENCE, LOGSDB_ADMIN_PASSWORD } = process.env;
+
+    if (JWTSECRET == null) {
+      throw new Error(
+        'Required environment variable JWTSECRET is undefined or null!',
+      );
+    }
+
+    if (JWTAUDIENCE == null) {
+      throw new Error(
+        'Required environment variable JWTAUDIENCE is undefined or null!',
+      );
+    }
 
     const sqlClient = new MariaSQL({
       host: 'api-db',
@@ -14,6 +29,12 @@ const MariaSQL = require('mariasql');
       user: 'api',
       password: 'api',
       db: 'infrastructure',
+    });
+
+    const esClient = new elasticsearch.Client({
+      host: 'logs-db:9200',
+      log: 'warning',
+      httpAuth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`,
     });
 
     sqlClient.on('error', (error) => {
@@ -24,6 +45,7 @@ const MariaSQL = require('mariasql');
       jwtSecret: JWTSECRET,
       jwtAudience: JWTAUDIENCE,
       sqlClient,
+      esClient,
     });
 
     logger.debug('Finished booting the application.');

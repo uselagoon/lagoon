@@ -4,6 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/oc
 ENV LAGOON=auto-idler
 
 RUN apk add --no-cache tini jq openssl bash curl nodejs nodejs-npm \
+    && npm config set unsafe-perm true \
     && npm -g install jwtgen
 
 COPY create_jwt.sh idle-services.sh idle-clis.sh /

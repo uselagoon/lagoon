@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
-
+VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Docker Image Tag that should be used when publishing to docker hub registry
 PUBLISH_TAG :=
 
@@ -77,7 +77,7 @@ PUBLISH_TAG :=
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
@@ -103,8 +103,7 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 #######
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
-images :=     centos7 \
-							oc \
+images :=     oc \
 							mariadb \
 							mariadb-drupal \
 							postgres \
@@ -144,7 +143,6 @@ $(build-images):
 #    if the parent has been built
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
-build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
@@ -251,9 +249,11 @@ build/solr__6.6-drupal: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__9 \
+nodeimages := node__10 \
+							node__9 \
 							node__8 \
 							node__6 \
+							node__10-builder \
 							node__9-builder \
 							node__8-builder \
 							node__6-builder
@@ -277,6 +277,7 @@ base-images += $(nodeimages)
 s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
 build/node__6-builder: build/node__6 images/node/builder/Dockerfile
@@ -308,13 +309,15 @@ services :=       api \
 									webhooks2tasks \
 									hacky-rest2tasks-ui \
 									rabbitmq \
+									logs-forwarder \
 									logs-db \
 									logs-db-ui \
 									logs2logs-db \
 									auto-idler \
 									storage-calculator \
 									api-db \
-									drush-alias
+									drush-alias \
+									ui
 
 service-images += $(services)
 
@@ -327,7 +330,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
@@ -364,8 +367,6 @@ build/cli: build/ssh cli/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),cli/Dockerfile,cli)
 	touch $@
-
-build/local-git-server: build/centos7
 
 # Image with ansible test
 build/tests:
@@ -619,9 +620,11 @@ minishift/login-docker-registry:
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5140; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
+	oc -n lagoon policy add-role-to-user admin -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
@@ -629,7 +632,16 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \
-	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
+	oc -n lagoon create serviceaccount logs-collector; \
+	oc -n lagoon adm policy add-cluster-role-to-user cluster-reader -z logs-collector; \
+	oc -n lagoon adm policy add-scc-to-user hostaccess -z logs-collector; \
+	oc -n lagoon adm policy add-scc-to-user privileged -z logs-collector; \
+	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
+	oc -n lagoon create serviceaccount lagoon-deployer; \
+	oc -n lagoon policy add-role-to-user edit -z lagoon-deployer; \
+	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
+	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
+	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
@@ -639,7 +651,8 @@ openshift-lagoon-setup:
 .PHONY: openshift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	bash -c "oc process -n lagoon -p IMAGE=docker-registry.default.svc:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f openshift-setup/docker-host-minishift.yaml | oc -n lagoon apply -f -";
+	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140; \
 
 # Stop OpenShift Cluster
 .PHONY: minishift/stop
@@ -661,3 +674,14 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
+
+.PHONY: push-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind:
+	rm -rf build/oc-build-deploy-dind
+	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+
+
+
+.PHONY: ui-development
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui

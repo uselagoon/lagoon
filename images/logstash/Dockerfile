@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/logstash/logstash:6.1.1
+FROM docker.elastic.co/logstash/logstash:6.2.4
 
 MAINTAINER amazee.io
 ENV LAGOON=logstash

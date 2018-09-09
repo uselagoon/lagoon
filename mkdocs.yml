@@ -8,11 +8,25 @@ pages:
   - Setup a new Project in Lagoon: using_lagoon/setup_project.md
   - Configure Webhooks: using_lagoon/configure_webhooks.md
   - First Deployment: using_lagoon/first_deployment.md
+  - .lagoon.yml: using_lagoon/lagoon_yml.md
+  - .docker-compose.yml: using_lagoon/docker-compose_yml.md
+  - Service Types: using_lagoon/service_types.md
+  - Build & Deployment Process: using_lagoon/build_deploy_process.md
+  - Environment Types: using_lagoon/environment_types.md
+  - Docker Images:
+    - PHP-FPM: using_lagoon/docker_images/php-fpm.md
+  - Workflows: using_lagoon/workflows.md
+  - Backups: using_lagoon/backups.md
+  - Logging: using_lagoon/logging.md
+  - Remote Shell: using_lagoon/remote_shell.md
+  - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
     - Lagoonize: using_lagoon/drupal/lagoonize.md
     - First Deployment: using_lagoon/drupal/first_deployment.md
     - Drush 9: using_lagoon/drupal/drush9.md
     - Services:
+      - MariaDB: using_lagoon/drupal/services/mariadb.md
+      - Solr: using_lagoon/drupal/services/solr.md
       - Varnish: using_lagoon/drupal/services/varnish.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md

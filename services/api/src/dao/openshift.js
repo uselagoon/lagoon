@@ -24,7 +24,7 @@ const Sql = {
       .toString(),
 };
 
-const addOpenshift = sqlClient => async (cred, input) => {
+const addOpenshift = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Project creation unauthorized.');
   }
@@ -35,10 +35,10 @@ const addOpenshift = sqlClient => async (cred, input) => {
         :name,
         :console_url,
         ${input.token ? ':token' : 'NULL'},
-        ${input.router_pattern ? ':router_pattern' : 'NULL'},
-        ${input.project_user ? ':project_user' : 'NULL'},
-        ${input.ssh_host ? ':ssh_host' : 'NULL'},
-        ${input.ssh_port ? ':ssh_port' : 'NULL'}
+        ${input.routerPattern ? ':router_pattern' : 'NULL'},
+        ${input.projectUser ? ':project_user' : 'NULL'},
+        ${input.sshHost ? ':ssh_host' : 'NULL'},
+        ${input.sshPort ? ':ssh_port' : 'NULL'}
       );
     `,
   );
@@ -49,31 +49,40 @@ const addOpenshift = sqlClient => async (cred, input) => {
   return openshift;
 };
 
-const deleteOpenshift = sqlClient => async (cred, input) => {
+const deleteOpenshift = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
 
   const prep = prepare(sqlClient, 'CALL deleteOpenshift(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';
 };
 
-const getAllOpenshifts = sqlClient => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+const getAllOpenshifts = ({ sqlClient }) => async (cred, args) => {
+  const { customers, projects } = cred.permissions;
 
-  // const { createdAfter } = args;
-  const prep = prepare(sqlClient, 'SELECT * FROM openshift');
+  const prep = prepare(
+    sqlClient,
+    `SELECT DISTINCT
+        o.*
+      FROM project p
+      JOIN openshift o ON o.id = p.openshift
+      ${ifNotAdmin(
+    cred.role,
+    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+  )}
+    `,
+  );
+
   const rows = await query(sqlClient, prep(args));
 
-  return rows.map(attrFilter.openshift(cred));
+  return R.map(attrFilter.openshift(cred), rows);
 };
 
-const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
+const getOpenshiftByProjectId = ({ sqlClient }) => async (cred, pid) => {
   const { customers, projects } = cred.permissions;
 
   const prep = prepare(
@@ -95,7 +104,7 @@ const getOpenshiftByProjectId = sqlClient => async (cred, pid) => {
   return rows ? attrFilter.openshift(cred, rows[0]) : null;
 };
 
-const updateOpenshift = sqlClient => async (cred, input) => {
+const updateOpenshift = ({ sqlClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }

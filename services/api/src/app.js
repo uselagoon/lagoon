@@ -3,6 +3,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const compression = require('compression');
+const cors = require('cors');
 const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
@@ -12,12 +13,14 @@ const Dao = require('./dao');
 
 /* ::
 import type MariaSQL from 'mariasql';
+import type elasticsearch from 'elasticsearch';
 
 type CreateAppArgs = {
   store?: Object,
   jwtSecret: string,
   jwtAudience: string,
   sqlClient: MariaSQL,
+  esClient: elasticsearch.Client,
 };
 */
 
@@ -27,13 +30,15 @@ const createApp = (args /* : CreateAppArgs */) => {
     jwtSecret,
     jwtAudience,
     sqlClient,
+    esClient,
   } = args;
   const app = express();
 
-  const dao = Dao.make(sqlClient);
+  const dao = Dao.make(sqlClient, esClient);
 
   app.set('context', {
     sqlClient,
+    esClient,
     dao,
   });
 
@@ -51,6 +56,9 @@ const createApp = (args /* : CreateAppArgs */) => {
       },
     }),
   );
+
+  // TODO: Restrict requests to lagoon domains?
+  app.use(cors());
 
   app.use(
     createAuthMiddleware({
