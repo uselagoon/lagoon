@@ -22,7 +22,7 @@ tasks:
     - run:
         name: IF no Drupal installed drush si with no email sending
         command: |
-            if [[ $(drush core-status bootstrap --pipe) == "" ]]; then
+            if ! drush status --fields=bootstrap | grep -q "Successful"; then
                 # no drupal installed, we install drupal from scratch
                 drush -y si
             else
