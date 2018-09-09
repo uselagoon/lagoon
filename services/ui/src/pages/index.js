@@ -12,6 +12,9 @@ const query = gql`
     customer {
       name
     }
+    environments(type: PRODUCTION) {
+      route
+    }
   }
 }
 `;
@@ -39,6 +42,9 @@ export default () => <>
                   <td>
                     <Link href={{ pathname: '/project', query: { name: project.name } }}>
                       <a>{project.name}</a>
+                    </Link>
+                    <Link href={{ pathname: '/project', query: { name: project.name } }}>
+                      <a>{project.environments.map(environment => environment.route)}</a>
                     </Link>
                   </td>
                   <td>{project.customer.name}</td>
