@@ -11,6 +11,7 @@ mutation FillAPI {
   )
   truncateProjectNotification: truncateTable(tableName: "project_notification")
   truncateSshKeys: truncateTable(tableName: "ssh_key")
+  truncateEnvironments: truncateTable(tableName: "environment")
 
   #### Filling API with needed Objects to run the Credentialstests
 
@@ -592,6 +593,7 @@ mutation FillAPI {
       customer: 4
       openshift: 3
       gitUrl: "git@github.com:amazeeio/lagoon.git"
+      openshiftProjectPattern: "lagoon"
     }
   ) {
     id
@@ -643,7 +645,7 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: PRODUCTION
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-master"
     }
   ) {
     id
@@ -654,7 +656,7 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-staging"
     }
   ) {
     id
@@ -665,7 +667,7 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-development"
     }
   ) {
     id
@@ -676,7 +678,7 @@ mutation FillAPI {
       project: 18
       deployType: PULLREQUEST
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-pr-175"
     }
   ) {
     id
