@@ -39,9 +39,9 @@ Hint: If you don't like any of these configs, you have three possibilities:
 This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](./php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000. This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :) Here a short description of what this file does:
 
 - listens on port 9000 via ipv4 and ipv6
-- uses the pm `dynamic` and creates betwwen 2-20 children
+- uses the pm `dynamic` and creates between 2-20 children
 - respawns fpm pool children after 500 requests to prevent memory leaks
-- replies with `pong` when makeing an fastcgi request to `/ping` (good for automated testing if the pool started)
+- replies with `pong` when making an fastcgi request to `/ping` (good for automated testing if the pool started)
 - `catch_workers_output = yes` to see php errors
 - `clear_env = no` to be able to inject PHP environment variables via regular Docker environment variables
 
@@ -52,7 +52,7 @@ Environment variables are meant to do common behavior changes of php.
 | Environment Variable | Default | Description  |
 |--------|---------|---|
 | `PHP_MAX_EXECUTION_TIME` | `900` | Maximum execution time of each script, in seconds,  [see php.net](http://php.net/max-execution-time) |
-| `PHP_MAX_INPUT_VARS` | 1000 | How many input variables will be accepted, [see php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars) |
+| `PHP_MAX_INPUT_VARS` | `1000` | How many input variables will be accepted, [see php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars) |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume,   [see php.net](http://php.net/memory-limit) |
 | `PHP_DISPLAY_ERRORS` | `Off` | This determines whether errors should be printed to the screen as part of the output or if they should be hidden from the user, [see php.net](http://php.net/display-errors) |
 | `PHP_DISPLAY_STARTUP_ERRORS` | `Off` | Even when display_errors is on, errors that occur during PHP's startup sequence are not displayed. It's strongly recommended to keep it off, except for debugging., [see php.net](http://php.net/display-startup-errors) |
