@@ -44,7 +44,6 @@ RUN \
     rm -rf /var/lib/mysql/* /etc/mysql/; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
 
-
 COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
