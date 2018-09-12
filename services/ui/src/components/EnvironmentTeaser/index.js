@@ -22,7 +22,6 @@ export default ({ environment, project }) => {
           margin-bottom: 48px;
           min-height: 120px;
           position: relative;
-          transition: all 0.5s ease;
           width: 100%;
           &::after {
             box-shadow: 0px 12px 40px 0px rgba(0,0,0,0.14);
@@ -33,6 +32,7 @@ export default ({ environment, project }) => {
             left: calc(50% + 80%);
             margin-left: -120%;
             position: absolute;
+            transition: box-shadow 0.5s ease;
             width: 80%;
           }
           &:hover {
@@ -54,8 +54,12 @@ export default ({ environment, project }) => {
             width: calc(50% - 24px);
           }
           @media ${bp.extraWideUp} {
+            margin-left: 48px;
             min-width: calc((100% / 3) - 32px);
             width: calc((100% / 3) - 32px);
+            &:nth-child(3n + 1) {
+              margin-left: 0;
+            }
           }
           a {
             background-color: ${color.white};
@@ -68,6 +72,7 @@ export default ({ environment, project }) => {
             overflow: hidden;
             padding: 16px 20px;
             position: relative;
+            transition: background-image 0.5s ease-in-out;
             z-index: 10;
           }
           &.branch {

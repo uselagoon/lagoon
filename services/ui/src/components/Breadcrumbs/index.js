@@ -27,13 +27,26 @@ export default ({ breadcrumbs}) => (
         margin: 0 calc((100% / 16) * 1);
       }
       .breadcrumb {
-        border-left: 1px solid ${color.midGrey};
+        position: relative;
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 30px;
+          width: 1px;
+          height: 100%;
+          background: ${color.midGrey};
+          transform-origin: 100% 0;
+          transform: skew(-12deg);
+        }
         a {
           display: block;
-          padding: 42px 20px 0;
+          padding: 42px 76px 0 96px;
         }
         &:first-child {
-          border-left: none;
+          &::after {
+            content: none;
+          }
           a {
             padding-left: 0;
           }
