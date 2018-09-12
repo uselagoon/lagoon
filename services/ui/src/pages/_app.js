@@ -41,7 +41,13 @@ class MyApp extends App {
           overflow-x: hidden;
           .content-wrapper {
             background-color: ${color.almostWhite};
+            flex: 1 0 auto;
             width: 100%;
+          }
+          #__next {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
           }
           a {
             color: ${color.black};
@@ -118,6 +124,35 @@ class MyApp extends App {
             font-family: "source-code-pro", sans-serif;
             ${fontSize(13)};
             text-transform: uppercase;
+          }
+          .field-wrapper {
+            display: flex;
+            margin-bottom: 18px;
+            @media ${bp.xs_smallUp} {
+              margin-bottom: 30px;
+            }
+            &::before {
+              @media ${bp.xs_smallUp} {
+                background-position: top 11px right 14px;
+                background-repeat: no-repeat;
+                background-size: 20px;
+                border-right: 1px solid ${color.midGrey};
+                content: '';
+                display: block;
+                height: 60px;
+                left: 0;
+                margin-right: 14px;
+                min-width: calc((100vw / 16) * 1.5);
+                padding-right: 14px;
+                position: absolute;
+                width: calc((100vw / 16) * 1.5);
+              }
+            }
+            & > div {
+              @media ${bp.xs_smallUp} {
+                margin-top: 8px;
+              }
+            }
           }
         }
       `}</style>

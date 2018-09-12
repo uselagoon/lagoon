@@ -4,31 +4,32 @@ import { bp, color } from '../../variables';
 
 export default ({activeTab, environment}) => (
   <ul className='navigation'>
-    <li className='overview'>
+    <li className={`overview ${activeTab == 'overview' ? 'active' : ''}`}>
       <Link href={{ pathname: '/environment', query: { name: environment } }}>
         <a>Overview</a>
       </Link>
     </li>
-    <li className='deployments'>
+    <li className={`deployments ${activeTab == 'deployments' ? 'active' : ''}`}>
       <Link href="/">
         <a>Deployments</a>
       </Link>
     </li>
-    <li className='events'>
+    <li className={`events ${activeTab == 'events' ? 'active' : ''}`}>
       <Link href="/">
         <a>Events</a>
       </Link>
     </li>
-    <li className='containers'>
+    <li className={`containers ${activeTab == 'containers' ? 'active' : ''}`}>
       <Link href="/">
         <a>Containers</a>
       </Link>
     </li>
   <style jsx>{`
     .navigation {
-      background: ${color.midGrey};
+      background: ${color.lightestGrey};
+      border-right: 1px solid ${color.midGrey};
+      margin: 0;
       @media ${bp.tabletUp} {
-        margin: 0 40px 0 0;
         min-width: 30%;
         padding-bottom: 60px;
       }
@@ -36,37 +37,87 @@ export default ({activeTab, environment}) => (
         min-width: 25%;
       }
       li {
-        border-bottom: 1px solid ${color.white};
+        border-bottom: 1px solid ${color.midGrey};
         margin: 0;
-        padding: 20px 20px 20px 60px;
+        padding: 20px 20px 19px 60px;
         position: relative;
+        @media ${bp.wideUp} {
+          padding-left: calc((100vw / 16) * 1);
+        }
         &::before {
           background-color: ${color.linkBlue};
           background-position: center center;
           background-repeat: no-repeat;
           content: '';
           display: block;
-          height: 60px;
+          height: 59px;
           left: 0;
           position: absolute;
           top: 0;
+          transition: all 0.3s ease-in-out;
           width: 45px;
         }
-        &.overview::before {
-          background-image: url('/static/images/overview.png');
-          background-size: 18px;
+        a {
+          color: ${color.darkGrey};
         }
-        &.deployments::before {
-          background-image: url('/static/images/deployments.png');
-          background-size: 21px 16px;
+        &:hover {
+          &::before {
+            background-color: ${color.lightestGrey};
+          }
+          a {
+            color: ${color.black};
+          }
         }
-        &.events::before {
-          background-image: url('/static/images/events.png');
-          background-size: 15px 18px;
+        &.active {
+          &::before {
+            background-color: ${color.almostWhite};
+          }
+          background-color: ${color.almostWhite};
+          border-right: 1px solid ${color.almostWhite};
+          width: calc(100% + 1px);
+          a {
+            color: ${color.black};
+          }
         }
-        &.containers::before {
-          background-image: url('/static/images/containers.png');
-          background-size: 20px 19px;
+        &.overview {
+          &::before {
+            background-image: url('/static/images/overview.png');
+            background-size: 18px;
+          }
+          &.active::before,
+          &:hover::before {
+            background-image: url('/static/images/overview-active.png');
+          }
+        }
+        &.deployments {
+          &::before {
+            background-image: url('/static/images/deployments.png');
+            background-size: 21px 16px;
+          }
+          &.active::before,
+          &:hover::before {
+            background-image: url('/static/images/deployments-active.png');
+          }
+        }
+        &.events {
+          &::before {
+            background-image: url('/static/images/events.png');
+            background-size: 15px 18px;
+          }
+          &.active::before,
+          &:hover::before {
+            background-image: url('/static/images/events-active.png');
+          }
+        }
+        &.containers {
+          &::before {
+            background-image: url('/static/images/containers.png');
+            background-size: 20px 19px;
+          }
+          &.active::before,
+          &:hover::before {
+            background-image: url('/static/images/containers-active.png');
+          }
         }
       }
     }
