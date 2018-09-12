@@ -145,7 +145,7 @@ class Project extends React.Component {
                     max-width: 100%;
                   }
                   .field {
-                    color: ${color.lightBlue};
+                    color: ${color.linkBlue};
                     max-width: 100%;
                     overflow: hidden;
                     text-overflow: ellipsis;

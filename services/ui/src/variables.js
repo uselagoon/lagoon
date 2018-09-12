@@ -17,7 +17,8 @@ export const color = {
   darkGrey: '#5f6f7a',
   green: '#4fda9d',
   lightestBlue: '#6fb3ff',
-  lightBlue: '#497ffa',
+  linkBlue: '#497ffa',
+  lightBlue: '#4c84ff',
   blue: '#4578e6',
   brightBlue: '#2bc0d8',
 };

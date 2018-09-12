@@ -110,7 +110,7 @@ class MyApp extends App {
           .field {
             line-height: 25px;
             a {
-              color: ${color.lightBlue};
+              color: ${color.linkBlue};
             }
           }
           label {

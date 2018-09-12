@@ -19,7 +19,7 @@ export default ({ environment, project }) => {
         .environment {
           border: 1px solid ${color.lightestGrey};
           box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.03);
-          border-radius: 2px;
+          border-radius: 3px;
           margin-bottom: 48px;
           min-height: 120px;
           position: relative;
@@ -78,7 +78,7 @@ export default ({ environment, project }) => {
             background-position: right 32px bottom -6px;
             background-repeat: no-repeat;
             background-size: 40px 50px;
-            border-radius: 2px;
+            border-radius: 3px;
             display: block;
             height: 100%;
             overflow: hidden;
