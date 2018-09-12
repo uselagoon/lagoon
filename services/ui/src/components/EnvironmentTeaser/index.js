@@ -98,6 +98,9 @@ export default ({ environment, project }) => {
           &.pullrequest {
             a {
               background-image: url('/static/images/pr.png');
+              &:hover {
+                background-image: url('/static/images/pr-hover.png');
+              }
             }
           }
           .productionLabel {
