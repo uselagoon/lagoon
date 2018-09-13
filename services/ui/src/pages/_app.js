@@ -52,6 +52,32 @@ class MyApp extends App {
           a {
             color: ${color.black};
             text-decoration: none;
+            &.hover-state {
+              position: relative;
+              transition: all 0.2s ease-in-out;
+              &::before,
+              &::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                width: 0px;
+                height: 1px;
+                transition: all 0.2s ease-in-out;
+                transition-duration: 0.75s;
+                opacity: 0;
+              }
+              &::after {
+                left: 0;
+                background-color: ${color.linkBlue};
+              }
+              &:hover {
+                &::before,
+                &::after {
+                  width: 100%;
+                  opacity: 1;
+                }
+              }
+            }
           }
           p {
             margin: 0 0 1.25rem;

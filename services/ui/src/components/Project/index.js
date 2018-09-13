@@ -11,6 +11,7 @@ class Project extends React.Component {
     this.state = {
       project: [],
       gitUrl: this.props.project.gitUrl,
+      copied: false,
     };
   }
 
@@ -28,7 +29,7 @@ class Project extends React.Component {
           <div className='field-wrapper origin'>
             <div>
               <label>Origin</label>
-              <div className='field'><a href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
+              <div className='field'><a className='hover-state' href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
             </div>
           </div>
           <div className='field-wrapper giturl'>
@@ -37,7 +38,14 @@ class Project extends React.Component {
               <div className='field'>
                 {this.props.project.gitUrl}
               </div>
-              <CopyToClipboard text={this.state.gitUrl}>
+              <span className='copied' style={this.state.copied ? {top: '4px', opacity: '0'} : null}>Copied</span>
+              <CopyToClipboard text={this.state.gitUrl} onCopy={() => {
+                  this.setState({copied: true});
+                  setTimeout(function(){
+                     this.setState({copied:false});
+                  }.bind(this),3000);
+                }
+              }>
                 <span className='copy'></span>
               </CopyToClipboard>
             </div>
@@ -167,14 +175,25 @@ class Project extends React.Component {
                     background-size: 16px;
                     border-left: 1px solid ${color.lightestGrey};
                     bottom: 0;
-                    height: 38px;
+                    height: 37px;
                     position: absolute;
                     right: 0;
-                    width: 38px;
+                    width: 37px;
                     transform: all 0.5s;
                     &:hover {
-                      background-color: ${color.midGrey};
+                      background-image: url('/static/images/copy-hover.png')
                     }
+                  }
+                  .copied {
+                    background-color: ${color.midGrey};
+                    ${fontSize(9, 16)};
+                    border-radius: 3px;
+                    padding: 0 4px;
+                    position: absolute;
+                    right: 0;
+                    text-transform: uppercase;
+                    top: 30px;
+                    transition: top 1.25s, opacity 2.5s ease-in;
                   }
                 }
                 &.branches {

@@ -32,7 +32,7 @@ export default ({ environment }) => (
       <div className='field-wrapper source'>
         <div>
           <label>Source</label>
-          <div className='field'><a href='#'>Master</a></div>
+          <div className='field'><a href='#' className='hover-state'>Master</a></div>
         </div>
       </div>
       <div className='field-wrapper routes'>
