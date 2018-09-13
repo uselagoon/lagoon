@@ -1,7 +1,7 @@
 {
   "name": "api",
   "version": "3.0.0",
-  "description": "",
+  "description": "Lagoon GraphQL API",
   "main": "index.js",
   "engines": {
     "node": ">=8.12.0"
