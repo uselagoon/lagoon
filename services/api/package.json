@@ -7,7 +7,6 @@
     "node": ">=8.12.0"
   },
   "scripts": {
-    "build": "echo 'hi'",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
