@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import moment from 'moment';
 import { bp, color } from '../../variables';
 
@@ -38,7 +39,9 @@ export default ({ environment }) => (
       <div className='field-wrapper routes'>
         <div>
           <label>Routes</label>
-          <div className='field'>{environment.routes}</div>
+          <div className='field'>
+            {environment.routes.split(',').map(route => <div><Link href={route}><a className='hover-state'>{route}</a></Link></div>)}
+          </div>
         </div>
       </div>
     </div>
