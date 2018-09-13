@@ -29,6 +29,7 @@ export default ({activeTab, environment}) => (
       background: ${color.lightestGrey};
       border-right: 1px solid ${color.midGrey};
       margin: 0;
+      z-index: 10;
       @media ${bp.tabletUp} {
         min-width: 30%;
         padding-bottom: 60px;
@@ -39,10 +40,10 @@ export default ({activeTab, environment}) => (
       li {
         border-bottom: 1px solid ${color.midGrey};
         margin: 0;
-        padding: 20px 20px 19px 60px;
+        padding: 0;
         position: relative;
-        @media ${bp.wideUp} {
-          padding-left: calc((100vw / 16) * 1);
+        &:hover {
+          background-color: ${color.white};
         }
         &::before {
           background-color: ${color.linkBlue};
@@ -59,13 +60,10 @@ export default ({activeTab, environment}) => (
         }
         a {
           color: ${color.darkGrey};
-        }
-        &:hover {
-          &::before {
-            background-color: ${color.lightestGrey};
-          }
-          a {
-            color: ${color.black};
+          display: block;
+          padding: 20px 20px 19px 60px;
+          @media ${bp.wideUp} {
+            padding-left: calc((100vw / 16) * 1);
           }
         }
         &.active {
@@ -84,8 +82,7 @@ export default ({activeTab, environment}) => (
             background-image: url('/static/images/overview.png');
             background-size: 18px;
           }
-          &.active::before,
-          &:hover::before {
+          &.active::before {
             background-image: url('/static/images/overview-active.png');
           }
         }
@@ -94,8 +91,7 @@ export default ({activeTab, environment}) => (
             background-image: url('/static/images/deployments.png');
             background-size: 21px 16px;
           }
-          &.active::before,
-          &:hover::before {
+          &.active::before {
             background-image: url('/static/images/deployments-active.png');
           }
         }
@@ -104,8 +100,7 @@ export default ({activeTab, environment}) => (
             background-image: url('/static/images/events.png');
             background-size: 15px 18px;
           }
-          &.active::before,
-          &:hover::before {
+          &.active::before{
             background-image: url('/static/images/events-active.png');
           }
         }
@@ -114,8 +109,7 @@ export default ({activeTab, environment}) => (
             background-image: url('/static/images/containers.png');
             background-size: 20px 19px;
           }
-          &.active::before,
-          &:hover::before {
+          &.active::before {
             background-image: url('/static/images/containers-active.png');
           }
         }
