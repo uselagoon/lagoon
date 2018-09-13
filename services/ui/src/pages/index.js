@@ -13,7 +13,7 @@ const query = gql`
     customer {
       name
     }
-    environments {
+    environments(type: PRODUCTION) {
       route
     }
   }
