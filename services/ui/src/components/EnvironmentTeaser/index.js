@@ -5,7 +5,7 @@ import { bp, color, fontSize } from '../../variables';
 export default ({ environment, project }) => {
   const environmentLabel = environment.deployType === 'branch' ? environment.deployType : 'PR';
   return (
-    <div className={`environment ${environment.deployType}`} >
+    <div className={`environment box ${environment.deployType}`} >
       <Link
         href={{ pathname: '/environment', query: { name: environment.openshiftProjectName } }}
       >
@@ -17,30 +17,8 @@ export default ({ environment, project }) => {
       </Link>
       <style jsx>{`
         .environment {
-          border: 1px solid ${color.lightestGrey};
-          box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.03);
-          border-radius: 3px;
           margin-bottom: 48px;
           min-height: 120px;
-          position: relative;
-          width: 100%;
-          &::after {
-            bottom: 8px;
-            content: '';
-            display: block;
-            height: 20px;
-            left: calc(50% + 80%);
-            margin-left: -120%;
-            position: absolute;
-            transition: box-shadow 0.5s ease;
-            width: 80%;
-          }
-          &:hover {
-            border: 1px solid ${color.brightBlue};
-            &::after {
-              box-shadow: 0px 12px 40px 0px rgba(73,127,250,0.5);
-            }
-          }
           @media ${bp.xs_smallUp} {
             margin-left: 48px;
             min-width: calc(50% - 24px);
@@ -74,18 +52,9 @@ export default ({ environment, project }) => {
             }
           }
           a {
-            background-color: ${color.white};
             background-position: right 32px bottom -6px;
             background-repeat: no-repeat;
             background-size: 40px 50px;
-            border-radius: 3px;
-            display: block;
-            height: 100%;
-            overflow: hidden;
-            padding: 16px 20px;
-            position: relative;
-            transition: background-image 0.5s ease-in-out;
-            z-index: 10;
           }
           &.branch {
             a {
