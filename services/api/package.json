@@ -1,8 +1,11 @@
 {
   "name": "api",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">=8.12.0"
+  },
   "scripts": {
     "build": "echo 'hi'",
     "format": "prettier-eslint --write '**/*.js'",
@@ -16,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "4.0.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",
@@ -34,7 +37,7 @@
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
     "nodemon": "^1.12.1",
-    "ramda": "^0.24.1",
+    "ramda": "^0.25.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "snakecase-keys": "^1.2.0",
@@ -42,8 +45,8 @@
     "winston": "^2.4.0"
   },
   "devDependencies": {
-    "jest": "^23.4.2",
-    "prettier": "^1.13.7",
+    "jest": "^23.6.0",
+    "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1"
   }
 }
