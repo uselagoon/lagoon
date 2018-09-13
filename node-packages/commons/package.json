@@ -1,17 +1,20 @@
 {
   "name": "@lagoon/commons",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "description": "lagoon node commons",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "license": "MIT",
+  "engines": {
+    "node": ">=8.12.0"
+  },
   "scripts": {
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest"
   },
   "devDependencies": {
-    "jest": "^23.4.2",
-    "prettier": "^1.13.7",
+    "jest": "^23.6.0",
+    "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1"
   },
   "dependencies": {
@@ -21,7 +24,7 @@
     "jsonwebtoken": "^8.0.1",
     "lokka": "^1.7.0",
     "lokka-transport-http": "^1.6.1",
-    "ramda": "^0.24.1",
+    "ramda": "^0.25.0",
     "winston": "^2.4.0",
     "winston-logstash": "^0.4.0"
   }
