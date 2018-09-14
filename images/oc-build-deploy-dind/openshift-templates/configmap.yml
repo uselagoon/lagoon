@@ -28,6 +28,9 @@ parameters:
   - name: ROUTES
     description: All routes of this project
     value: ""
+  - name: MONITORING_URLS
+    description: The routes specified for monitoring the production environment of this project
+    value: ""
 objects:
 - kind: ConfigMap
   apiVersion: v1
@@ -41,3 +44,4 @@ objects:
     LAGOON_ENVIRONMENT_TYPE: ${ENVIRONMENT_TYPE}
     LAGOON_ROUTE: ${ROUTE}
     LAGOON_ROUTES: ${ROUTES}
+    LAGOON_MONITORING_URLS: ${MONITORING_URLS}
