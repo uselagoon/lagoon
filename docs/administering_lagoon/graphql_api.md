@@ -2,7 +2,7 @@
 
 #### Connect to GraphQL API
 
-Direct API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate such token, open the terminal of the `auth-ssh` pod (you can either do that via the OpenShift UI or via `oc rsh`) and run:
+Direct API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate such token, open the terminal of the `auto-idler` pod (you can either do that via the OpenShift UI or via `oc rsh`) and run:
 
         ./create_jwt.sh
 
