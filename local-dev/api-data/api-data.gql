@@ -650,6 +650,17 @@ mutation FillAPI {
   ) {
     id
   }
+  UIProject1Environment1Update: updateEnvironment(
+    input: {
+      id: 2
+      patch: {
+        route: "http://highcotton.org"
+        routes: "http://highcotton.org,https://varnish-highcotton-org-prod.us.amazee.io,https://nginx-highcotton-org-prod.us.amazee.io"
+      }
+    }
+  ) {
+    id
+  }
   UIProject1Environment2: addOrUpdateEnvironment(
     input: {
       name: "Staging"
@@ -657,6 +668,17 @@ mutation FillAPI {
       deployType: BRANCH
       environmentType: DEVELOPMENT
       openshiftProjectName: "ui-openshift-staging"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment2Update: updateEnvironment(
+    input: {
+      id: 3
+      patch: {
+        route: "https://varnish-highcotton-org-staging.us.amazee.io"
+        routes: "https://varnish-highcotton-org-staging.us.amazee.io,https://nginx-highcotton-org-staging.us.amazee.io"
+      }
     }
   ) {
     id
@@ -672,6 +694,17 @@ mutation FillAPI {
   ) {
     id
   }
+  UIProject1Environment3Update: updateEnvironment(
+    input: {
+      id: 4
+      patch: {
+        route: "https://varnish-highcotton-org-development.us.amazee.io"
+        routes: "https://varnish-highcotton-org-development.us.amazee.io,https://nginx-highcotton-org-development.us.amazee.io"
+      }
+    }
+  ) {
+    id
+  }
   UIProject1Environment4: addOrUpdateEnvironment(
     input: {
       name: "PR-175"
@@ -679,6 +712,17 @@ mutation FillAPI {
       deployType: PULLREQUEST
       environmentType: DEVELOPMENT
       openshiftProjectName: "ui-openshift-pr-175"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment4Update: updateEnvironment(
+    input: {
+      id: 5
+      patch: {
+        route: "https://varnish-highcotton-org-pr-175.us.amazee.io"
+        routes: "https://varnish-highcotton-org-pr-175.us.amazee.io,https://nginx-highcotton-org-pr-175.us.amazee.io"
+      }
     }
   ) {
     id

@@ -20,6 +20,10 @@ export default ({ environment }) => (
         <label>Last Deploy</label>
         <div>{environment.updated}</div>
       </div>
+      <div className='field'>
+        <label>Routes</label>
+        <div>{environment.routes}</div>
+      </div>
     </div>
     <style jsx>{`
       .details {

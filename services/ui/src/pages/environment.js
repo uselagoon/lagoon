@@ -18,6 +18,7 @@ const query = gql`
       updated
       deployType
       environmentType
+      routes
       openshiftProjectName
       project {
         name

@@ -112,19 +112,6 @@ const messageConsumer = async msg => {
     }
   }
 
-  try {
-    const configMapGet = Promise.promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get, { context: kubernetes.ns(openshiftProject).configmaps('lagoon-env') })
-    configMap = await configMapGet()
-  } catch (err) {
-    if (err.code == 404) {
-      logger.error(`configmap lagoon-env does not exist, bailing`)
-      return
-    } else {
-      logger.error(err)
-      throw new Error
-    }
-  }
-
   let logMessage = ''
   if (sha) {
     logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
@@ -189,6 +176,18 @@ const messageConsumer = async msg => {
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+      }
+
+      try {
+        const configMapGet = Promise.promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get, { context: kubernetes.ns(openshiftProject).configmaps('lagoon-env') })
+        configMap = await configMapGet()
+      } catch (err) {
+        if (err.code == 404) {
+          logger.error(`configmap lagoon-env does not exist, continuing without routes information`)
+        } else {
+          logger.error(err)
+          throw new Error
+        }
       }
 
       const route = configMap.data.LAGOON_ROUTE
