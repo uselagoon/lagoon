@@ -53,6 +53,7 @@ COPY 55-cli-helpers.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
 
 # SSH Key and Agent Setup
+COPY 05-ssh-key.sh /lagoon/entrypoints/
 COPY 10-ssh-agent.sh /lagoon/entrypoints/
 COPY ssh_config /etc/ssh/ssh_config
 COPY id_ed25519_lagoon_cli.key /home/.ssh/lagoon_cli.key

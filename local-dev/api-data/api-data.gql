@@ -11,6 +11,7 @@ mutation FillAPI {
   )
   truncateProjectNotification: truncateTable(tableName: "project_notification")
   truncateSshKeys: truncateTable(tableName: "ssh_key")
+  truncateEnvironments: truncateTable(tableName: "environment")
 
   #### Filling API with needed Objects to run the Credentialstests
 
@@ -571,6 +572,7 @@ mutation FillAPI {
       customer: 4
       openshift: 3
       gitUrl: "git@github.com:amazeeio/lagoon.git"
+      openshiftProjectPattern: "lagoon"
     }
   ) {
     id
@@ -622,7 +624,18 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: PRODUCTION
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-master"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1Update: updateEnvironment(
+    input: {
+      id: 2
+      patch: {
+        route: "http://highcotton.org"
+        routes: "http://highcotton.org,https://varnish-highcotton-org-prod.us.amazee.io,https://nginx-highcotton-org-prod.us.amazee.io"
+      }
     }
   ) {
     id
@@ -633,7 +646,18 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-staging"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment2Update: updateEnvironment(
+    input: {
+      id: 3
+      patch: {
+        route: "https://varnish-highcotton-org-staging.us.amazee.io"
+        routes: "https://varnish-highcotton-org-staging.us.amazee.io,https://nginx-highcotton-org-staging.us.amazee.io"
+      }
     }
   ) {
     id
@@ -644,7 +668,18 @@ mutation FillAPI {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-development"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment3Update: updateEnvironment(
+    input: {
+      id: 4
+      patch: {
+        route: "https://varnish-highcotton-org-development.us.amazee.io"
+        routes: "https://varnish-highcotton-org-development.us.amazee.io,https://nginx-highcotton-org-development.us.amazee.io"
+      }
     }
   ) {
     id
@@ -655,7 +690,18 @@ mutation FillAPI {
       project: 18
       deployType: PULLREQUEST
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift"
+      openshiftProjectName: "ui-openshift-pr-175"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment4Update: updateEnvironment(
+    input: {
+      id: 5
+      patch: {
+        route: "https://varnish-highcotton-org-pr-175.us.amazee.io"
+        routes: "https://varnish-highcotton-org-pr-175.us.amazee.io,https://nginx-highcotton-org-pr-175.us.amazee.io"
+      }
     }
   ) {
     id
