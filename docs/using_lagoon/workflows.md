@@ -54,13 +54,12 @@ tasks:
     - run:
         name: IF no Drupal installed & Pullrequest = Sync database from staging
         command: |
-            if [[ -n ${LAGOON_PR_BASE_BRANCH} && $(drush core-status bootstrap --pipe) == "" ]]; then
+            if [[ -n ${LAGOON_PR_BASE_BRANCH} ]] && ! drush status --fields=bootstrap | grep -q "Successful"; then
                 drush -y sql-sync @staging default
             fi
         service: cli
         shell: bash
 ```
-
 
 ### Promotion
 

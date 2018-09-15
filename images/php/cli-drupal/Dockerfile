@@ -11,6 +11,6 @@ RUN curl -L -o /usr/local/bin/drupal https://github.com/hechoendrupal/drupal-con
     && php -d memory_limit=-1 /usr/local/bin/composer global require drush/drush:8.1.15 \
     && mkdir -p /home/.drush
 
-COPY drushrc.php /home/.drush/drushrc.php
+COPY drushrc.php drush.yml /home/.drush/
 
 RUN fix-permissions /home/.drush

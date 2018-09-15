@@ -72,6 +72,9 @@ CREATE TABLE IF NOT EXISTS environment (
        deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
        environment_type       ENUM('production', 'development') NOT NULL,
        openshift_project_name varchar(100),
+       route                  varchar(300),
+       routes                 text,
+       monitoring_urls        text,
        updated                timestamp DEFAULT CURRENT_TIMESTAMP,
        created                timestamp DEFAULT CURRENT_TIMESTAMP,
        deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -398,6 +401,26 @@ ALTER TABLE `project` ADD `environment_limit` int;
 
 
 CREATE OR REPLACE PROCEDURE
+  add_routes_monitoring_urls_to_environments()
+
+  BEGIN
+
+    IF NOT EXISTS(
+              SELECT NULL
+                FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_name = 'environment'
+                AND table_schema = 'infrastructure'
+                AND column_name = 'route'
+            )  THEN
+      ALTER TABLE `environment` ADD `route`    varchar(300);
+      ALTER TABLE `environment` ADD `routes`   text;
+      ALTER TABLE `environment` ADD `monitoring_urls` text;
+    END IF;
+
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   rename_keyValue_to_key_value_in_ssh_key()
 
 
@@ -474,6 +497,7 @@ CALL add_project_pattern_to_openshift();
 CALL add_subfolder_to_project();
 CALL delete_project_pattern_from_openshift();
 CALL add_openshift_project_pattern_to_project();
+CALL add_routes_monitoring_urls_to_environments();
 CALL rename_keyValue_to_key_value_in_ssh_key();
 CALL rename_keyType_to_key_type_in_ssh_key();
 CALL rename_openshift_projectname_in_environment();
