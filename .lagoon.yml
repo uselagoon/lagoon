@@ -15,6 +15,10 @@ additional-yaml:
 tasks:
   post-rollout:
     - run:
+        name: update database schema
+        command: /rerun_initdb.sh
+        service: api-db
+    - run:
         name: 'check\set kibana index patterns'
         command: cd /lagoon/kibana-init/; sh index-patterns.sh
         service: logs-db-ui
