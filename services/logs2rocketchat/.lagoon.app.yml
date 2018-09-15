@@ -106,12 +106,4 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
   status: {}
