@@ -119,7 +119,8 @@ images :=     oc \
 							elasticsearch \
 							kibana \
 							logstash \
-							docker-host
+							docker-host \
+							athenapdf-service
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -160,6 +161,7 @@ build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
+build/athenapdf-service: images/athenapdf-service/Dockerfile
 
 #######
 ####### PHP Images
