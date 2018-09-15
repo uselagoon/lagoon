@@ -573,6 +573,12 @@ done
 ##############################################
 
 if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+
+  # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
+  if [ "$CI" == "true" ]; then
+    sed -i s/podAntiAffinity/podAffinity/g /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+  fi
+
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 
