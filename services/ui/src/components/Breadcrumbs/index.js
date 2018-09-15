@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { color } from '../../variables';
+import { bp, color, fontSize } from '../../variables';
 
 export default ({ breadcrumbs}) => (
   <div className='breadcrumbs-wrapper'>
@@ -24,16 +24,40 @@ export default ({ breadcrumbs}) => (
       }
       .breadcrumbs {
         display:flex;
-        margin: 0 calc((100% / 16) * 1);
+        margin: 0 calc((100vw / 16) * 1);
       }
       .breadcrumb {
-        border-left: 1px solid ${color.midGrey};
+        position: relative;
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 30px;
+          width: 1px;
+          height: 100%;
+          background: ${color.midGrey};
+          transform-origin: 100% 0;
+          transform: skew(-12deg);
+        }
         a {
           display: block;
-          padding: 42px 20px 0;
+          padding: 32px 16px 0 46px;
+          @media ${bp.tabletUp} {
+            padding: 42px 76px 0 96px;
+          }
+        }
+        h2 {
+          ${fontSize(28)};
+          margin-bottom: 24px;
+          @media ${bp.tabletUp} {
+            ${fontSize(36)};
+            margin-bottom: 38px;
+          }
         }
         &:first-child {
-          border-left: none;
+          &::after {
+            content: none;
+          }
           a {
             padding-left: 0;
           }

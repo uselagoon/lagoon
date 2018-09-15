@@ -41,7 +41,7 @@ objects:
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
-    replicas: 1
+    replicas: 3
     selector:
       service: ${SERVICE_NAME}
     strategy:
@@ -54,6 +54,16 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: service
+                      operator: In
+                      values:
+                        - ${SERVICE_NAME}
+                topologyKey: kubernetes.io/hostname
         containers:
         - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
           name: ${SERVICE_NAME}

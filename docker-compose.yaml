@@ -64,7 +64,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
     environment:
-      - CI_USE_OPENSHIFT_REGISTRY=${CI_USE_OPENSHIFT_REGISTRY:-true}
+      - CI=${CI:-true}
     volumes:
       - ./services/openshiftbuilddeploy/src:/app/services/openshiftbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
@@ -281,7 +281,7 @@ services:
     user: '111111111'
     labels:
       lagoon.type: custom
-      lagoon.template: services/logs-forwarder/.lagoon.yml
+      lagoon.template: services/logs-forwarder/.lagoon.single.yml
       lagoon.image: amazeeiolagoon/logs-forwarder:${SAFE_BRANCH:-master}
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui

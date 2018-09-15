@@ -76,6 +76,11 @@ objects:
                 secretKeyRef:
                   name: jwtsecret
                   key: JWTSECRET
+            - name: LOGSDB_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: LOGSDB_ADMIN_PASSWORD
+                  name: logs-db-admin-password
           volumeMounts:
             - mountPath: /var/run/secrets/lagoon/sshkey/
               name: lagoon-sshkey
@@ -101,6 +106,7 @@ objects:
     name: cronjob-idle-clis
   spec:
     schedule: "*/15 * * * *"
+    suspend: true # we're running cronjobs now via the lagoon cronjob system
     concurrencyPolicy: Forbid
     jobTemplate:
       spec:
@@ -134,6 +140,7 @@ objects:
     name: cronjob-idle-services
   spec:
     schedule: "*/30 * * * *"
+    suspend: true # we're running cronjobs now via the lagoon cronjob system
     concurrencyPolicy: Forbid
     jobTemplate:
       spec:
