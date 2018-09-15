@@ -19,7 +19,7 @@ COPY --from=yarn-workspace-builder /app/.env.defaults .
 COPY . .
 
 # Verify that all dependencies have been installed via the yarn-workspace-builder
-RUN yarn check --integrity
+RUN yarn check --verify-tree
 
 # Making sure we run in production
 ENV NODE_ENV=production
