@@ -31,6 +31,15 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Rolling"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
+  - name: CRONJOBS
+    description: Oneliner of Cronjobs
+    value: ""
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -45,7 +54,7 @@ objects:
     selector:
       service: ${SERVICE_NAME}
     strategy:
-      resources: {}
+      type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
         creationTimestamp: null
@@ -65,7 +74,7 @@ objects:
                         - ${SERVICE_NAME}
                 topologyKey: kubernetes.io/hostname
         containers:
-        - image: ${REGISTRY}/${OPENSHIFT_PROJECT}/${SERVICE_NAME}:latest
+        - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 3000
@@ -90,6 +99,10 @@ objects:
                 secretKeyRef:
                   name: jwtsecret
                   key: JWTSECRET
+            - name: SERVICE_NAME
+              value: ${SERVICE_NAME}
+            - name: CRONJOBS
+              value: ${CRONJOBS}
           envFrom:
           - configMapRef:
               name: lagoon-env
