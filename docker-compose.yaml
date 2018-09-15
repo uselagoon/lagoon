@@ -280,7 +280,7 @@ services:
     user: '111111111'
     labels:
       lagoon.type: custom
-      lagoon.template: services/logs-forwarder/.lagoon.yml
+      lagoon.template: services/logs-forwarder/.lagoon.single.yml
       lagoon.image: amazeeiolagoon/logs-forwarder:${SAFE_BRANCH:-master}
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui

@@ -33,5 +33,7 @@ environments:
       logs-db: elasticsearch-cluster
     templates:
       logs-db: services/logs-db/.lagoon.cluster.yml
+      logs-forwarder: services/logs-forwarder/.lagoon.multi.yml
     rollouts:
       logs-db: statefulset
+      logs-forwarder: statefulset
