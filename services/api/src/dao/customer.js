@@ -131,7 +131,7 @@ const deleteCustomer = ({ sqlClient }) => async (cred, input) => {
 
 const getAllCustomers = ({ sqlClient }) => async (cred, args) => {
   const where = whereAnd([
-    args.createdAfter ? 'created >= :createdAfter' : '',
+    args.createdAfter ? 'created >= :created_after' : '',
     ifNotAdmin(cred.role, `${inClause('id', cred.permissions.customers)}`),
   ]);
   const prep = prepare(sqlClient, `SELECT * FROM customer ${where}`);

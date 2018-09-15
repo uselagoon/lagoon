@@ -79,9 +79,7 @@ const getAllProjects = ({ sqlClient }) => async (cred, args) => {
 };
 
 const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  const { customers, projects } = cred.permissions;
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -89,6 +87,14 @@ const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
       FROM environment e
       JOIN project p ON e.project = p.id
       WHERE e.id = :eid
+      ${ifNotAdmin(
+    cred.role,
+    `AND (${inClauseOr([
+      ['p.customer', customers],
+      ['p.id', projects],
+    ])})`,
+  )}
+      LIMIT 1
     `,
   );
 

@@ -211,6 +211,9 @@ const typeDefs = gql`
     storages: [EnvironmentStorage]
     storageMonth(month: Date): EnvironmentStorageMonth
     hitsMonth(month: Date): EnviornmentHitsMonth
+    route: String
+    routes: String
+    monitoringUrls: String
   }
 
   type EnviornmentHitsMonth {
@@ -245,6 +248,7 @@ const typeDefs = gql`
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
+    environmentByName(name: String!, project: Int!): Environment
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
@@ -490,6 +494,9 @@ const typeDefs = gql`
     deployType: DeployType
     environmentType: EnvType
     openshiftProjectName: String
+    route: String
+    routes: String
+    monitoringUrls: String
   }
 
   input UpdateEnvironmentInput {
@@ -697,6 +704,10 @@ const resolvers = {
     projectByName: async (root, args, req) => {
       const dao = getDao(req);
       return dao.getProjectByName(req.credentials, args);
+    },
+    environmentByName: async (root, args, req) => {
+      const dao = getDao(req);
+      return await dao.getEnvironmentByName(req.credentials, args);
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
