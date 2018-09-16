@@ -18,14 +18,12 @@ COPY --from=yarn-workspace-builder /app/.env.defaults .
 # Copying files from our service
 COPY . .
 
-# Running yarn install in case some dependencies are not here
-RUN yarn install --frozen-lockfile
+# Verify that all dependencies have been installed via the yarn-workspace-builder
+RUN yarn check --verify-tree
 
 # Making sure we run in production
 ENV NODE_ENV=production \
     LOGSDB_ADMIN_PASSWORD=admin
-
-RUN yarn run build
 
 # The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.

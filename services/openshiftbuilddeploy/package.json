@@ -11,7 +11,7 @@
   "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
   "license": "MIT",
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "4.0.0",
     "bluebird": "^3.5.1",
     "es7-sleep": "^1.0.0",
     "flow-remove-types": "^1.2.1",
