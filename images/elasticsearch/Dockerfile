@@ -34,8 +34,8 @@ node.name: "${HOSTNAME}"\n\
 node.master: "${NODE_MASTER}"\n\
 discovery.zen.minimum_master_nodes: "${DISCOVERY_ZEN_MINIMUM_MASTER_NODES}"' >> config/elasticsearch.yml
 
-ENV ES_JAVA_OPTS "-Xms200m -Xmx200m" \
-    DISCOVERY_ZEN_MINIMUM_MASTER_NODES=1\
+ENV ES_JAVA_OPTS="-Xms200m -Xmx200m" \
+    DISCOVERY_ZEN_MINIMUM_MASTER_NODES=1 \
     NODE_MASTER=true
 
 VOLUME [ "/usr/share/elasticsearch/data" ]
