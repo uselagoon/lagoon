@@ -40,7 +40,7 @@ export default ({ environment }) => (
         <div>
           <label>Routes</label>
           <div className='field'>
-            {environment.routes.split(',').map(route => <div key={route}><Link href={route}><a className='hover-state'>{route}</a></Link></div>)}
+            {environment.routes ? environment.routes.split(',').map(route => <div key={route}><Link href={route}><a className='hover-state'>{route}</a></Link></div>) : ''}
           </div>
         </div>
       </div>
