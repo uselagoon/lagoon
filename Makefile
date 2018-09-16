@@ -119,6 +119,7 @@ images :=     oc \
 							elasticsearch \
 							kibana \
 							logstash \
+							curator \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -159,6 +160,7 @@ build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
+build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 
 #######
@@ -311,6 +313,7 @@ services :=       api \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
+									logs-db-curator \
 									logs2logs-db \
 									auto-idler \
 									storage-calculator \
@@ -333,6 +336,7 @@ build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddep
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
+build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db: build/mariadb
