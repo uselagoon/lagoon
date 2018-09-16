@@ -219,17 +219,6 @@ services:
       - '2222:22'
     labels:
       lagoon.type: none
-  hacky-rest2tasks-ui:
-    image: ${IMAGE_REPO:-lagoon}/hacky-rest2tasks-ui
-    command: yarn run dev
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
-    labels:
-      lagoon.type: none
   remotedev:
     image: jhen0409/remotedev-server
     command: node main.js

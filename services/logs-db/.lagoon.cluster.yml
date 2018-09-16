@@ -108,6 +108,8 @@ objects:
                   fieldPath: metadata.namespace
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
+            - name: DISCOVERY_ZEN_MINIMUM_MASTER_NODES
+              value: '2'
             - name: CRONJOBS
               value: ${CRONJOBS}
             - name: LOGSDB_ADMIN_PASSWORD

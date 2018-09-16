@@ -89,8 +89,8 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 There are different type of tasks you can define, they differ when exactly they are executed in a build flow:
 
 ### `pre_rollout.[i].run`
-The taks defined as pre_rollout tasks will run against your project _before_ the new Images get built.
-This feature enables you for example to create a database dump before a rollout is running. This will make it easier to roll-back in case of an issue with the rollout.
+The taks defined as `pre_rollout` tasks will run against your project _after_ the new images have been built sucessfully and _before_ the project gets altered in any way.
+This feature enables you for example to create a database dump before the rollout is running. This will make it easier to roll-back in case of an issue with the rollout.
 
 #### `post_rollout.[i].run`
 Here you can specify tasks which need to run against your project, _after_:

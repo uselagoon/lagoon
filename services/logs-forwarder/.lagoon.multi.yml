@@ -150,7 +150,7 @@ objects:
   data:
     FLUENT_CONF: |-
       <system>
-        log_level info
+        log_level warn
       </system>
 
       <source>
@@ -189,6 +189,11 @@ objects:
             </record>
           </filter>
 
+          <filter **>
+            @type record_transformer
+            remove_keys viaq_index_name,namespace_name,hostname,$.kubernetes.master_url,$.docker.container_id,$.kubernetes.namespace_id,$.kubernetes.pod_id,$.pipeline_metadata.collector
+          </filter>
+
           # <filter **>
           #   @type stdout
           # </filter>
@@ -214,7 +219,7 @@ objects:
               overflow_action block
             </buffer>
             id_key viaq_msg_id
-            remove_keys viaq_msg_id, viaq_index_name, namespace_name, kubernetes.master_url
+            remove_keys viaq_msg_id
             type_name _doc
             user admin
             password "#{ENV['LOGSDB_ADMIN_PASSWORD']}"
