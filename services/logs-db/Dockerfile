@@ -6,7 +6,7 @@ RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.2.4-22.1 
     && chmod a+x plugins/search-guard-6/tools/install_demo_configuration.sh \
     && plugins/search-guard-6/tools/install_demo_configuration.sh -y \
     && sed -i 's/searchguard.ssl.http.*//' config/elasticsearch.yml \
-    && echo "searchguard.audit.enable_rest: true" >> config/elasticsearch.yml \
+    && sed -i 's/searchguard.audit.type: internal_elasticsearch//' config/elasticsearch.yml \
     && chmod +x plugins/search-guard-6/tools/hash.sh \
     && sed -i 's/#kibana:/kibana:/' plugins/search-guard-6/sgconfig/sg_config.yml \
     && sed -i 's/#do_not_fail_on_forbidden: false/do_not_fail_on_forbidden: true/' plugins/search-guard-6/sgconfig/sg_config.yml \

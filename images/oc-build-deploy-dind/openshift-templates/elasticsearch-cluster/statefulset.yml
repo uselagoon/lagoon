@@ -104,6 +104,8 @@ objects:
               value: ${SERVICE_NAME}
             - name: CRONJOBS
               value: ${CRONJOBS}
+            - name: DISCOVERY_ZEN_MINIMUM_MASTER_NODES
+              value: '2'
         volumes:
         - name: ${SERVICE_NAME}
           emptyDir: {}
