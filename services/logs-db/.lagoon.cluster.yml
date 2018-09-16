@@ -44,7 +44,7 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     serviceName: ${SERVICE_NAME}
-    replicas: 3
+    replicas: 2
     selector:
       matchLabels:
         service: ${SERVICE_NAME}
