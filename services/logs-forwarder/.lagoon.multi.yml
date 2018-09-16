@@ -185,7 +185,7 @@ objects:
           <filter **>
             @type record_modifier
             <record>
-              index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%G.%V")}
+              index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
             </record>
           </filter>
 
@@ -205,7 +205,7 @@ objects:
             templates { "container-logs": "/fluentd/etc/container-logs.json"}
             template_overwrite true
             target_index_key index_name
-            index_name container-logs-noproject-%G.%V
+            index_name container-logs-noproject-%Y.%m
             <buffer tag,time>
               @type file
               path /fluentd/buffer/elasticsarch

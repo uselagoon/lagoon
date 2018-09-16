@@ -109,3 +109,5 @@ objects:
         resources:
           requests:
             storage: 5Gi
+    updateStrategy:
+      type: RollingUpdate

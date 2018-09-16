@@ -122,6 +122,8 @@ objects:
                 secretKeyRef:
                   key: LOGSDB_KIBANASERVER_PASSWORD
                   name: logs-db-kibanaserver-password
+    updateStrategy:
+      type: RollingUpdate
     volumeClaimTemplates:
       - metadata:
           name: ${SERVICE_NAME}
@@ -226,6 +228,8 @@ objects:
                 secretKeyRef:
                   key: LOGSDB_KIBANASERVER_PASSWORD
                   name: logs-db-kibanaserver-password
+    updateStrategy:
+      type: RollingUpdate
     volumeClaimTemplates:
       - metadata:
           name: ${SERVICE_NAME}-archive
