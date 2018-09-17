@@ -183,7 +183,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
         ${input.autoIdle ? ':auto_idle' : '1'},
-        ${input.storageCalc ? ':storage_calc' : '1'}
+        ${input.storageCalc ? ':storage_calc' : '1'},
         ${input.environmentLimit ? ':environment_limit' : '5'}
 
       );
