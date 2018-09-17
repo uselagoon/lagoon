@@ -21,15 +21,7 @@ done
 
 for datadir in /var/solr/* ; do
   if [ -d ${datadir}/data ]; then
-    echo "${datadir}/data is in old format, copying to ${datadir}."
-    cp -Rpv ${datadir}/data/* ${datadir}/
+    echo "${datadir}/data is in old format, moving to ${datadir}."
+    mv -v ${datadir}/data/* ${datadir}/
   fi
-
-  echo "if this core is working properly, you may delete the following files:"
-  for f in conf core.properties data; do
-    if [ -e ${datadir}/${f} ]; then
-      echo ${datadir}/${f};
-    fi
-  done
-
 done
