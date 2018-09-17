@@ -37,9 +37,9 @@ To implement multiple cores, you will also need to ship your own solr schema as 
 
 FROM amazeeio/solr:6.6-drupal
 
-RUN precreate-core drupal-index1 /solr-conf
-RUN precreate-core drupal-index2 /solr-conf
-RUN precreate-core drupal-index3 /solr-conf
+RUN precreate-core drupal-index1 /solr-conf && \
+    precreate-core drupal-index2 /solr-conf && \
+    precreate-core drupal-index3 /solr-conf
 
 CMD ["solr-foreground"]
 
