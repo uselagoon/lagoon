@@ -73,7 +73,7 @@ mutation FillAPI {
   }
 
   ### SSH Keys:
-  ## credentialtestbothcustomeraccess: Access to customer1 and customer2
+  ## credentialtestbothcustomeraccess_user: Access to customer1 and customer2
   CredentialtestCustomerAccessUser: addUser(
     input: { id: 1, comment: "credentialtestbothcustomeraccess_user" }
   ) {
@@ -101,7 +101,7 @@ mutation FillAPI {
     name
   }
 
-  ## credentialtestbothprojectaccess: Access to project1 and project2
+  ## credentialtestbothprojectaccess_user: Access to project1 and project2
   CredentialtestProjectAccessUser: addUser(
     input: { id: 2, comment: "credentialtestbothprojectaccess_user" }
   ) {
@@ -129,7 +129,7 @@ mutation FillAPI {
     name
   }
 
-  ## credentialtestcrossaccess: Access to customer1 and project2
+  ## credentialtestcrossaccess_user: Access to customer1 and project2
   CredentialtestCrossAccessUser: addUser(
     input: { id: 3, comment: "credentialtestcrossaccess_user" }
   ) {
