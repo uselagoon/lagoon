@@ -7,7 +7,7 @@ for core in $(ls /opt/solr/server/solr/mycores/); do
 
   if [ $? -ge 1 ]; then
     echo "${core}/conf/solrconfig.xml is missing updated dataDir path." > /dev/stderr
-    echo 'please ensure your config has the exact config: <dataDir>/var/solr/${solr.core.name}</dataDir>' > /dev/stderr
+    echo 'please ensure your config has the exact line: <dataDir>/var/solr/${solr.core.name}</dataDir>' > /dev/stderr
     exit 2
   fi
 
