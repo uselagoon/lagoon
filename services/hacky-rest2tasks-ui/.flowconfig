@@ -1,9 +1,0 @@
-[include]
-
-[libs]
-flow-typed
-
-[options]
-module.system.node.resolve_dirname=screens
-module.system.node.resolve_dirname=components
-module.system.node.resolve_dirname=shared
