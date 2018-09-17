@@ -41,11 +41,43 @@ class MyApp extends App {
           overflow-x: hidden;
           .content-wrapper {
             background-color: ${color.almostWhite};
+            flex: 1 0 auto;
             width: 100%;
+          }
+          #__next {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
           }
           a {
             color: ${color.black};
             text-decoration: none;
+            &.hover-state {
+              position: relative;
+              transition: all 0.2s ease-in-out;
+              &::before,
+              &::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                width: 0px;
+                height: 1px;
+                transition: all 0.2s ease-in-out;
+                transition-duration: 0.75s;
+                opacity: 0;
+              }
+              &::after {
+                left: 0;
+                background-color: ${color.linkBlue};
+              }
+              &:hover {
+                &::before,
+                &::after {
+                  width: 100%;
+                  opacity: 1;
+                }
+              }
+            }
           }
           p {
             margin: 0 0 1.25rem;
@@ -71,9 +103,9 @@ class MyApp extends App {
             margin: 0 0 36px;
           }
           h4 {
-            ${fontSize(25, 42)};
+            ${fontSize(25, 38)};
             font-weight: normal;
-            margin: 4px 0 20px;
+            margin: 4px 0 0;
           }
           ul {
             list-style: none;
@@ -98,19 +130,44 @@ class MyApp extends App {
               }
             }
           }
-          table {
+          .box {
+            border: 1px solid ${color.lightestGrey};
+            box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.03);
+            border-radius: 3px;
+            position: relative;
             width: 100%;
-            tr {
-              text-align: left;
-              td {
-                padding: 10px 0;
+            &::after {
+              bottom: 4px;
+              content: '';
+              display: block;
+              height: 20px;
+              left: 15px;
+              position: absolute;
+              transition: box-shadow 0.5s ease;
+              width: calc(100% - 30px);
+            }
+            &:hover {
+              border: 1px solid ${color.brightBlue};
+              &::after {
+                box-shadow: 0px 12px 40px 0px rgba(73,127,250,0.5);
               }
+            }
+            a {
+              background-color: ${color.white};
+              border-radius: 3px;
+              display: block;
+              height: 100%;
+              overflow: hidden;
+              padding: 16px 20px;
+              position: relative;
+              transition: background-image 0.5s ease-in-out;
+              z-index: 10;
             }
           }
           .field {
             line-height: 25px;
             a {
-              color: ${color.lightBlue};
+              color: ${color.linkBlue};
             }
           }
           label {
@@ -118,6 +175,35 @@ class MyApp extends App {
             font-family: "source-code-pro", sans-serif;
             ${fontSize(13)};
             text-transform: uppercase;
+          }
+          .field-wrapper {
+            display: flex;
+            margin-bottom: 18px;
+            @media ${bp.xs_smallUp} {
+              margin-bottom: 30px;
+            }
+            &::before {
+              @media ${bp.xs_smallUp} {
+                background-position: top 11px right 14px;
+                background-repeat: no-repeat;
+                background-size: 20px;
+                border-right: 1px solid ${color.midGrey};
+                content: '';
+                display: block;
+                height: 60px;
+                left: 0;
+                margin-right: 14px;
+                min-width: calc((100vw / 16) * 1.5);
+                padding-right: 14px;
+                position: absolute;
+                width: calc((100vw / 16) * 1.5);
+              }
+            }
+            & > div {
+              @media ${bp.xs_smallUp} {
+                margin-top: 8px;
+              }
+            }
           }
         }
       `}</style>
