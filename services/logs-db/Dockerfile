@@ -17,7 +17,8 @@ ENV LOGSDB_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T0QMAFMT5/B6X4CU9T
     LOGSDB_SLACK_CHANNEL=#lagoon-dev-alerts \
     LOGSDB_PAGERDUTY_KEY=XXXXU4yGzC2QassuXXXX  \
     LOGSDB_ADMIN_PASSWORD=admin \
-    LOGSDB_KIBANASERVER_PASSWORD=kibanaserver
+    LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
+    BOX_TYPE=live
 
 COPY elasticsearch.yml.append elasticsearch.yml.append
 RUN cat elasticsearch.yml.append >> config/elasticsearch.yml

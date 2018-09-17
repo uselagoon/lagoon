@@ -46,3 +46,7 @@ environments:
         schedule: "*/30 * * * *"
         command: /idle-services.sh
         service: auto-idler
+      - name: curator
+        schedule: "01 0 * * * "
+        command: /usr/bin/curator --config curator.yml actions.yml
+        service: logs-db-curator

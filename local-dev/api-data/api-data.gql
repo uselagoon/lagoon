@@ -709,8 +709,8 @@ mutation FillAPI {
     input: {
       id: 5
       patch: {
-        route: "https://varnish-highcotton-org-pr-175.us.amazee.io"
-        routes: "https://varnish-highcotton-org-pr-175.us.amazee.io,https://nginx-highcotton-org-pr-175.us.amazee.io"
+        route: "" # intentionally empty, for testing
+        routes: "" # intentionally empty, for testing
       }
     }
   ) {

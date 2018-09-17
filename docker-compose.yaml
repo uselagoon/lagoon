@@ -281,6 +281,13 @@ services:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
       lagoon.image: amazeeiolagoon/logs-db-ui:${SAFE_BRANCH:-master}
+  logs-db-curator:
+    image: ${IMAGE_REPO:-lagoon}/logs-db-curator
+    user: '111111111'
+    labels:
+      lagoon.type: cli
+      lagoon.template: services/logs-db-curator/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs-db-curator:${SAFE_BRANCH:-master}
   logs2logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
