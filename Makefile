@@ -52,7 +52,7 @@ SHELL := /bin/bash
 #######
 
 # Parameter for all `docker build` commands, can be overwritten with `DOCKER_BUILD_PARAMS=` in cli
-DOCKER_BUILD_PARAMS :=
+DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.15.1
