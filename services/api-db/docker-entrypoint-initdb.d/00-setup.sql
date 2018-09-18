@@ -398,7 +398,10 @@ CREATE OR REPLACE PROCEDURE
                AND column_name = 'environment_limit'
            )  THEN
 ALTER TABLE `project` ADD `environment_limit` int;
+    END IF;
 
+  END;
+$$
 
 CREATE OR REPLACE PROCEDURE
   add_routes_monitoring_urls_to_environments()
