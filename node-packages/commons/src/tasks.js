@@ -208,19 +208,22 @@ async function createDeployTask(deployData: Object) {
     );
   }
 
+
+
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
 
-    if (environments.project.production_environment == branchName) {
+    if (environments.project.productionEnvironment == branchName) {
       logger.debug(
         `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
       )
     } else {
       // get a list of non-production environments
-      dev_environments = environments.project.environments.filter (e => e.environment_type=='development').map(e => e.name)
+      console.log(environments.project);
+      dev_environments = environments.project.environments.filter (e => e.environmentType=='development').map(e => e.name)
       logger.debug( `projectName: ${projectName}, branchName: ${branchName}, existing environments are `, dev_environments)
 
-      if (environments.project.environment_limit !== null && dev_environments.length >= environments.project.environment_limit ) {
+      if (environments.project.environmentLimit !== null && dev_environments.length >= environments.project.environmentLimit ) {
 
         if ( dev_environments.find(  function(i){ return i == branchName })) {
           logger.debug(
@@ -228,7 +231,7 @@ async function createDeployTask(deployData: Object) {
           )
         } else {
           throw new EnvironmentLimit(
-            `'${branchName}' would exceed the configured limit of ${environments.project.environment_limit} development environments for project ${projectName}`,
+            `'${branchName}' would exceed the configured limit of ${environments.project.environmentLimit} development environments for project ${projectName}`,
           );
         }
       }

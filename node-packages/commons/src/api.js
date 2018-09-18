@@ -295,9 +295,9 @@ const getEnvironmentsForProject = (project: string): Promise<Object> =>
 graphqlapi.query(`
   {
     project:projectByName(name: "${project}"){
-      environment_limit
-      production_environment
-      environments(include_deleted:false) { name, environment_type }
+      environmentLimit
+      productionEnvironment
+      environments(includeDeleted:false) { name, environmentType }
     }
   }
 `);
