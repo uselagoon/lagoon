@@ -83,8 +83,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image:
-        amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -151,7 +150,7 @@ services:
       - ./services/ui/.env.schema:/app/services/ui/.env.schema
       - ./services/ui/package.json:/app/services/ui/package.json
     ports:
-      - "8888:3003"
+      - '8888:3003'
     labels:
       lagoon.type: custom
       lagoon.template: services/ui/.lagoon.app.yml
