@@ -25,8 +25,8 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-ENV OC_VERSION=v3.6.0 \
-    OC_HASH=c4dd4cf \
+ENV OC_VERSION=v3.7.2 \
+    OC_HASH=282e43f \
 		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389 \
 		GLIBC_VERSION=2.28-r0
 
