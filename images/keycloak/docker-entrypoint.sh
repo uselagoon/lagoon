@@ -23,7 +23,7 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/jboss/keycloak/bin/kcadm.sh config credentials ---config $CONFIG_PATH -server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     if [ $KEYCLOAK_REALM ]; then
         echo Creating realm $KEYCLOAK_REALM
