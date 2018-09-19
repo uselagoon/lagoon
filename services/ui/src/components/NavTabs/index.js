@@ -79,38 +79,38 @@ export default ({activeTab, environment}) => (
         }
         &.overview {
           &::before {
-            background-image: url('/static/images/overview.png');
+            background-image: url('/static/images/overview.svg');
             background-size: 18px;
           }
           &.active::before {
-            background-image: url('/static/images/overview-active.png');
+            background-image: url('/static/images/overview-active.svg');
           }
         }
         &.deployments {
           &::before {
-            background-image: url('/static/images/deployments.png');
+            background-image: url('/static/images/deployments.svg');
             background-size: 21px 16px;
           }
           &.active::before {
-            background-image: url('/static/images/deployments-active.png');
+            background-image: url('/static/images/deployments-active.svg');
           }
         }
         &.events {
           &::before {
-            background-image: url('/static/images/events.png');
+            background-image: url('/static/images/events.svg');
             background-size: 15px 18px;
           }
           &.active::before{
-            background-image: url('/static/images/events-active.png');
+            background-image: url('/static/images/events-active.svg');
           }
         }
         &.containers {
           &::before {
-            background-image: url('/static/images/containers.png');
+            background-image: url('/static/images/containers.svg');
             background-size: 20px 19px;
           }
           &.active::before {
-            background-image: url('/static/images/containers-active.png');
+            background-image: url('/static/images/containers-active.svg');
           }
         }
       }

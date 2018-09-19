@@ -103,7 +103,7 @@ class MyApp extends App {
             margin: 0 0 36px;
           }
           h4 {
-            ${fontSize(25, 38)};
+            ${fontSize(25, 36)};
             font-weight: normal;
             margin: 4px 0 0;
           }
@@ -135,6 +135,7 @@ class MyApp extends App {
             box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.03);
             border-radius: 3px;
             position: relative;
+            transition: all 0.5s ease;
             width: 100%;
             &::after {
               bottom: 4px;
@@ -148,6 +149,8 @@ class MyApp extends App {
             }
             &:hover {
               border: 1px solid ${color.brightBlue};
+              top: -3px;
+              z-index: 100;
               &::after {
                 box-shadow: 0px 12px 40px 0px rgba(73,127,250,0.5);
               }
@@ -184,19 +187,19 @@ class MyApp extends App {
             }
             &::before {
               @media ${bp.xs_smallUp} {
-                background-position: top 11px right 14px;
+                background-position: top 10px right 18px;
                 background-repeat: no-repeat;
-                background-size: 20px;
+                background-size: 18px 18px;
                 border-right: 1px solid ${color.midGrey};
                 content: '';
                 display: block;
                 height: 60px;
                 left: 0;
+                margin-left: calc(((100vw / 16) * 1.5) - 25px);
                 margin-right: 14px;
-                min-width: calc((100vw / 16) * 1.5);
                 padding-right: 14px;
                 position: absolute;
-                width: calc((100vw / 16) * 1.5);
+                width: 25px;
               }
             }
             & > div {

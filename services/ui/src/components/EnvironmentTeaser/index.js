@@ -17,8 +17,8 @@ export default ({ environment, project }) => {
       </Link>
       <style jsx>{`
         .environment {
-          margin-bottom: 48px;
-          min-height: 120px;
+          margin-bottom: 46px;
+          min-height: 122px;
           @media ${bp.xs_smallUp} {
             margin-left: 48px;
             min-width: calc(50% - 24px);
@@ -55,6 +55,7 @@ export default ({ environment, project }) => {
             background-position: right 32px bottom -6px;
             background-repeat: no-repeat;
             background-size: 40px 50px;
+            padding: 19px 20px;
           }
           &.branch {
             a {
