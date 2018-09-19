@@ -120,6 +120,7 @@ images :=     oc \
 							kibana \
 							logstash \
 							athenapdf-service \
+							keycloak \
 							curator \
 							docker-host
 
@@ -164,6 +165,7 @@ build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
+build/keycloak: images/keycloak/Dockerfile
 
 #######
 ####### PHP Images
