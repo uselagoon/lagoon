@@ -11,6 +11,7 @@ class Project extends React.Component {
     this.state = {
       project: [],
       gitUrl: this.props.project.gitUrl,
+      copied: false,
     };
   }
 
@@ -28,7 +29,7 @@ class Project extends React.Component {
           <div className='field-wrapper origin'>
             <div>
               <label>Origin</label>
-              <div className='field'><a href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
+              <div className='field'><a className='hover-state' href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
             </div>
           </div>
           <div className='field-wrapper giturl'>
@@ -37,7 +38,14 @@ class Project extends React.Component {
               <div className='field'>
                 {this.props.project.gitUrl}
               </div>
-              <CopyToClipboard text={this.state.gitUrl}>
+              <span className='copied' style={this.state.copied ? {top: '4px', opacity: '0'} : null}>Copied</span>
+              <CopyToClipboard text={this.state.gitUrl} onCopy={() => {
+                  this.setState({copied: true});
+                  setTimeout(function(){
+                     this.setState({copied:false});
+                  }.bind(this),3000);
+                }
+              }>
                 <span className='copy'></span>
               </CopyToClipboard>
             </div>
@@ -77,69 +85,49 @@ class Project extends React.Component {
               background-color: ${color.lightestGrey};
               border-bottom: 1px solid ${color.midGrey};
               border-right: 1px solid ${color.midGrey};
-              padding: 32px calc((100% / 16) * 1);
+              padding: 32px calc((100vw / 16) * 1);
               @media ${bp.xs_smallUp} {
-                padding-left: calc(((100% / 16) * 1.5) + 28px);
+                padding: 24px calc((100vw / 16) * 1) 24px calc(((100vw / 16) * 1.5) + 28px);
               }
               @media ${bp.tabletUp} {
                 min-width:50%;
-                padding: 56px calc(((100% / 16) * 1) + 28px);
+                padding: 48px calc(((100vw / 16) * 1) + 28px);
                 width: 50%;
               }
               @media ${bp.desktopUp} {
                 min-width:40%;
-                padding: 56px calc((100% / 16) * 1);
+                padding: 48px calc((100vw / 16) * 1);
                 width:40%;
               }
               @media ${bp.wideUp} {
                 min-width:33.33%;
-                min-width: calc((100% / 16) * 5);
+                min-width: calc((100vw / 16) * 5);
                 width:33.33%;
-                width: calc((100% / 16) * 5);
+                width: calc((100vw / 16) * 5);
               }
               .field-wrapper {
-                display: flex;
-                margin-bottom: 18px;
                 overflow: hidden;
                 white-space: nowrap;
-                @media ${bp.xs_smallUp} {
-                  margin-bottom: 38px;
-                }
                 &::before {
-                  @media ${bp.xs_smallUp} {
-                    background-position: top right 14px;
-                    background-repeat: no-repeat;
-                    background-size: 20px;
-                    border-right: 1px solid ${color.midGrey};
-                    content: '';
-                    display: block;
-                    height: 60px;
-                    left: 0;
-                    margin-right: 14px;
-                    min-width: calc((100% / 16) * 1.5);
-                    padding-right: 14px;
-                    position: absolute;
-                    width: calc((100% / 16) * 1.5);
-                  }
                   @media ${bp.tabletUp} {
-                    min-width: calc((100% / 16) * 1);
-                    width: calc((100% / 16) * 1);
+                    min-width: calc((100vw / 16) * 1);
+                    width: calc((100vw / 16) * 1);
                   }
                   @media ${bp.desktopUp} {
-                    min-width: calc(((100% / 16) * 1) - 28px);
-                    width: calc(((100% / 16) * 1) - 28px);
+                    min-width: calc(((100vw / 16) * 1) - 28px);
+                    width: calc(((100vw / 16) * 1) - 28px);
                   }
                 }
                 &.created {
                   &::before {
                     background-image: url('/static/images/calendar.png');
-                    background-size: 16px 17px;
+                    background-size: 17px 16px;
                   }
                 }
                 &.origin {
                   &::before {
                     background-image: url('/static/images/origin.png');
-                    background-size: 20px 20px;
+                    background-size: 19px 17px;
                   }
                   & > div {
                     max-width: 100%;
@@ -164,7 +152,7 @@ class Project extends React.Component {
                   &::before {
                     background-image: url('/static/images/giturl.png');
                     background-size: 20px 20px;
-                    height: 76px;
+                    height: 84px;
                   }
                   .field {
                     background-color: ${color.white};
@@ -175,7 +163,7 @@ class Project extends React.Component {
                     margin-top: 6px;
                     max-width: 100%;
                     overflow: hidden;
-                    padding: 6px 48px 7px 15px;
+                    padding: 6px 48px 6px 15px;
                     position: relative;
                     @media ${bp.xs_smallUp} {
                       margin-left: -13px;
@@ -187,14 +175,25 @@ class Project extends React.Component {
                     background-size: 16px;
                     border-left: 1px solid ${color.lightestGrey};
                     bottom: 0;
-                    height: 38px;
+                    height: 37px;
                     position: absolute;
                     right: 0;
-                    width: 38px;
+                    width: 37px;
                     transform: all 0.5s;
                     &:hover {
-                      background-color: ${color.midGrey};
+                      background-image: url('/static/images/copy-hover.png')
                     }
+                  }
+                  .copied {
+                    background-color: ${color.midGrey};
+                    ${fontSize(9, 16)};
+                    border-radius: 3px;
+                    padding: 0 4px;
+                    position: absolute;
+                    right: 0;
+                    text-transform: uppercase;
+                    top: 30px;
+                    transition: top 1.25s, opacity 2.5s ease-in;
                   }
                 }
                 &.branches {
@@ -213,7 +212,7 @@ class Project extends React.Component {
             }
             .environments-wrapper {
               flex-grow: 1;
-              padding: 40px calc((100% / 16) * 1);
+              padding: 40px calc((100vw / 16) * 1);
               .environments {
                 display: block;
                 @media ${bp.tinyUp} {

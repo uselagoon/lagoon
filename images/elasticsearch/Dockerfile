@@ -26,9 +26,17 @@ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-RUN echo "xpack.security.enabled: false" >> config/elasticsearch.yml
+RUN sed -i 's/discovery.zen.minimum_master_nodes: 1//' config/elasticsearch.yml
 
-ENV ES_JAVA_OPTS "-Xms200m -Xmx200m"
+RUN echo $'xpack.security.enabled: false\n\
+\n\
+node.name: "${HOSTNAME}"\n\
+node.master: "${NODE_MASTER}"\n\
+discovery.zen.minimum_master_nodes: "${DISCOVERY_ZEN_MINIMUM_MASTER_NODES}"' >> config/elasticsearch.yml
+
+ENV ES_JAVA_OPTS="-Xms200m -Xmx200m" \
+    DISCOVERY_ZEN_MINIMUM_MASTER_NODES=1 \
+    NODE_MASTER=true
 
 VOLUME [ "/usr/share/elasticsearch/data" ]
 

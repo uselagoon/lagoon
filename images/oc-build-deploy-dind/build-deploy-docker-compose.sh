@@ -101,7 +101,9 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
+  set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
+  set -x
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
 
 
@@ -190,7 +192,7 @@ do
         SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
         CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
         SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-tasks-run.sh
+        . /oc-build-deploy/scripts/exec-pre-tasks-run.sh
         ;;
     *)
         echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
@@ -571,6 +573,12 @@ done
 ##############################################
 
 if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+
+  # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
+  if [ "$CI" == "true" ]; then
+    sed -i s/podAntiAffinity/podAffinity/g /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+  fi
+
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 
