@@ -59,17 +59,17 @@ export default ({ environment, project }) => {
           }
           &.branch {
             a {
-              background-image: url('/static/images/branch.png');
+              background-image: url('/static/images/environment-branch.svg');
               &:hover {
-                background-image: url('/static/images/branch-hover.png');
+                background-image: url('/static/images/environment-branch-hover.svg');
               }
             }
           }
           &.pullrequest {
             a {
-              background-image: url('/static/images/pr.png');
+              background-image: url('/static/images/environment-pull-request.svg');
               &:hover {
-                background-image: url('/static/images/pr-hover.png');
+                background-image: url('/static/images/environment-pull-request-hover.svg');
               }
             }
           }
