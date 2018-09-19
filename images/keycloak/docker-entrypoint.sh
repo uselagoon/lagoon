@@ -4,7 +4,7 @@
 # https://github.com/stefanjacobs/keycloak_min/blob/f26927426e60c1ec29fc0c0980e5a694a45dcc05/run.sh
 
 function is_keycloak_running {
-    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${KEYCLOAK_PORT}/auth/admin/realms)
+    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/auth/admin/realms)
     if [[ $http_code -eq 401 ]]; then
         return 0
     else
@@ -20,7 +20,7 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    ${KCH}/bin/kcadm.sh config credentials --server http://localhost:${KEYCLOAK_PORT}/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    ${KCH}/bin/kcadm.sh config credentials --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     if [ $KEYCLOAK_REALM ]; then
         echo Creating realm $KEYCLOAK_REALM
