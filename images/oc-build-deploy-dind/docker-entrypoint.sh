@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xe
+set -e
 
 if docker -H docker-host.lagoon.svc info &> /dev/null; then
     export DOCKER_HOST=docker-host.lagoon.svc
