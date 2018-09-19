@@ -29,3 +29,7 @@ ENV TMPDIR=/tmp \
     ENV=/home/.bashrc \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
+
+COPY docker-entrypoint.sh /opt/jboss/tools/docker-entrypoint.sh
+
+ENTRYPOINT ["/opt/jboss/tools/docker-entrypoint.sh"]
