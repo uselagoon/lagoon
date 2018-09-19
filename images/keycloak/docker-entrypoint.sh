@@ -67,11 +67,9 @@ function configure_keycloak {
 
 if [ ! -f /opt/jboss/keycloak/standalone/data/docker-container-configuration-done ]; then
     touch /opt/jboss/keycloak/standalone/data/docker-container-configuration-done
+    /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
     configure_keycloak &
 fi
-
-/opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
-
 
 # 2. The second part of this entrypoint script comes from the official JBoss entrypoint script:
 # https://github.com/jboss-dockerfiles/keycloak/blob/4.3.0.Final/server/docker-entrypoint.sh
