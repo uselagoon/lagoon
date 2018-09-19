@@ -18,21 +18,21 @@ const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const Sql = {
   allowedToModify: (cred, id) => {
-    const query = knex('ssh_key AS sk')
+    const allowedQuery = knex('ssh_key AS sk')
       .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
       .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
 
-    if (cred.role != 'admin') {
+    if (cred.role !== 'admin') {
       const { customers, projects } = cred.permissions;
-      query.where('sk.id', '=', id).andWhere(function () {
-        this.where(function () {
+      allowedQuery.where('sk.id', '=', id).andWhere(function allowedWhere() {
+        this.where(function allowedWhereIn() {
           this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
         });
         this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
       });
     }
 
-    return query
+    return allowedQuery
       .select('sk.id', 'ps.pid', 'cs.cid')
       .select(knex.raw('IF(COUNT(sk.id) > 0, 1, 0) as allowed'))
       .limit(1)
@@ -65,20 +65,20 @@ const Sql = {
   selectAllSshKeys: (cred) => {
     const { customers, projects } = cred.permissions;
 
-    const query = knex('ssh_key AS sk')
+    const sshKeysQuery = knex('ssh_key AS sk')
       .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
       .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
 
-    if (cred.role != 'admin') {
-      query.where(function () {
-        this.where(function () {
+    if (cred.role !== 'admin') {
+      sshKeysQuery.where(function sshKeysWhere() {
+        this.where(function sshKeysWhereIn() {
           this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
         });
         this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
       });
     }
 
-    return query.select('sk.*').toString();
+    return sshKeysQuery.select('sk.*').toString();
   },
 };
 
@@ -119,8 +119,8 @@ const getSshKeysByProjectId = ({ sqlClient }) => async (cred, pid) => {
     `SELECT
       sk.id,
       sk.name,
-      sk.keyValue,
-      sk.keyType,
+      sk.key_value,
+      sk.key_type,
       sk.created
     FROM project_ssh_key ps
     JOIN ssh_key sk ON ps.skid = sk.id
@@ -145,7 +145,7 @@ const getCustomerSshKeys = ({ sqlClient }) => async (cred) => {
 
   const rows = await query(
     sqlClient,
-    `SELECT CONCAT(sk.keyType, ' ', sk.keyValue) as sshKey
+    `SELECT CONCAT(sk.key_type, ' ', sk.key_value) as sshKey
        FROM ssh_key sk, customer c, customer_ssh_key csk
        WHERE csk.cid = c.id AND csk.skid = sk.id`,
   );
@@ -160,8 +160,8 @@ const getSshKeysByCustomerId = ({ sqlClient }) => async (cred, cid) => {
       SELECT
         id,
         name,
-        keyValue,
-        keyType,
+        key_value,
+        key_type,
         created
       FROM customer_ssh_key cs
       JOIN ssh_key sk ON cs.skid = sk.id
@@ -179,7 +179,7 @@ const getAllSshKeys = ({ sqlClient }) => async (cred) => {
   return rows;
 };
 
-const getUnassignedSshKeys = ({ sqlClient }) => async (cred) => {
+const getUnassignedSshKeys = ({ sqlClient }) => async () => {
   const rows = await query(sqlClient, Sql.selectUnassignedSshKeys());
 
   return rows;
@@ -197,7 +197,7 @@ const deleteSshKey = ({ sqlClient }) => async (cred, input) => {
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   return 'success';
 };
@@ -212,9 +212,9 @@ const addSshKey = ({ sqlClient }) => async (cred, input) => {
     `CALL CreateSshKey(
         :id,
         :name,
-        :keyValue,
-        :keyType
-      );
+        :key_value,
+        :key_type
+     );
     `,
   );
 
@@ -300,7 +300,7 @@ const addSshKeyToCustomer = ({ sqlClient }) => async (cred, input) => {
 
   const prep = prepare(
     sqlClient,
-    'CALL CreateCustomerSshKey(:customer, :sshKey)',
+    'CALL CreateCustomerSshKey(:customer, :ssh_key)',
   );
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);

@@ -1,4 +1,6 @@
-# lagoon Command Line Interface
+# lagu
+
+> lagoon Command Line Interface
 
 ## Installation
 
@@ -14,14 +16,14 @@ yarn global add @lagoon/lagu
 
 ## Setup
 
-The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagoon-init):
+The CLI needs a configuration file at `<project directory>/.lagoon.yml`, which can be created with [the `init` command](#lagu-init):
 
 ```sh
 # Initialize project configuration
-lagu init
+$ lagu init
 ```
 
-For more options, see the [`lagoon init` documentation](#lagoon-init).
+For more options, see the [`lagu init` documentation](#lagu-init).
 
 ## Commands
 
@@ -35,7 +37,7 @@ Options:
   --version      Show version number                                   [boolean]
   --help         Show help                                             [boolean]
   --overwrite    Overwrite the configuration file if it exists         [boolean]
-  --project, -p  Name of project to configure                           [string]
+  --project      Name of project to configure                           [string]
 
 Examples:
   lagu init                                 Create a config file at
@@ -55,16 +57,12 @@ Examples:
   lagu init --project my_project            Set project to "my_project" (do not
                                             prompt the user).
 
-  lagu init -p my_project                   Short form for setting project to
-                                            "my_project" (do not prompt the
-                                            user).
-
   lagu init --overwrite --project           Overwrite existing config files and
   my_project                                set project to "my_project" (do not
                                             confirm with or prompt the user).
 ```
 
-#### `lagoon init` Examples
+#### `lagu init` Examples
 
 ```text
 $ lagu init
@@ -87,9 +85,9 @@ $ lagu login --help
 lagu login - Authenticate with lagoon via an SSH key
 
 Options:
-  --version       Show version number                                  [boolean]
-  --help          Show help                                            [boolean]
-  --identity, -i  Path to identity (private key)                        [string]
+  --version   Show version number                                  [boolean]
+  --help      Show help                                            [boolean]
+  --identity  Path to identity (private key)                        [string]
 ```
 
 #### `lagu login` Examples
@@ -109,17 +107,17 @@ $ lagu login
 Login successful
 ```
 
-The path to the key can be also passed in via the `--identity` option (short form `-i`):
+The path to the key can be also passed in via the `--identity` option:
 
 ```text
-$ lagu login -i /path/to/id_rsa
+$ lagu login --identity ./local-dev/id_ed25519
 Login successful
 ```
 
 If the private key has a passphrase, the user will be prompted to enter it. The passphrase will never be saved.
 
 ```text
-$ lagu login -i /path/to/id_rsa
+$ lagu login --identity ./local-dev/id_ed25519
 ? Private key passphrase (never saved) [hidden]
 Login successful
 ```
@@ -129,18 +127,16 @@ Login successful
 - First build the cli image: `make build/cli` (dependencies are automatically build)
 - Run the cli docker container via `docker-compose up -d cli` (dependencies are automatically started)
 - Run a bash inside the container: `docker-compose exec cli bash`
-- Use `yarn execute login --identity ~/.ssh/id_rsa` to login
+- Use `yarn execute login` to login
 - Now you can run commands via `yarn execute <cli command>`
 
 ## Development - local nodejs
 
 The `execute <cli command>` yarn script can be used to run CLI commands during development.
 
-Additionally you want to add:
+Additionally the following parameters should be set in the `.lagoon.yml` file. They can also be configured with the `init` command.
 
 ```yaml
 api: http://localhost:3000
 ssh: localhost:2020
 ```
-
-to the `.lagoon.yml` file so that it uses the development api and ssh services

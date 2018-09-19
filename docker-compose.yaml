@@ -4,10 +4,10 @@ services:
     image: ${IMAGE_REPO:-lagoon}/api-db
     volumes:
       - ./services/api-db/docker-entrypoint-initdb.d/00-setup.sql:/docker-entrypoint-initdb.d/00-setup.sql
-      - ./services/api-db/docker-entrypoint-initdb.d/01-procedures.sql:/docker-entrypoint-initdb.d/00-procedures.sql
+      - ./services/api-db/docker-entrypoint-initdb.d/01-procedures.sql:/docker-entrypoint-initdb.d/01-procedures.sql
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
-      - "3306:3306"
+      - '3306:3306'
     labels:
       lagoon.type: mariadb
       lagoon.image: amazeeiolagoon/api-db:${SAFE_BRANCH:-master}
@@ -31,7 +31,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
     ports:
-      - "7777:3000"
+      - '7777:3000'
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages:delegated
@@ -42,8 +42,8 @@ services:
   rabbitmq:
     image: ${IMAGE_REPO:-lagoon}/rabbitmq
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - '15672:15672'
+      - '5672:5672'
     labels:
       lagoon.type: custom
       lagoon.template: services/rabbitmq/.lagoon.app.yml
@@ -62,7 +62,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
     environment:
-      - CI_USE_OPENSHIFT_REGISTRY=${CI_USE_OPENSHIFT_REGISTRY:-true}
+      - CI=${CI:-true}
     volumes:
       - ./services/openshiftbuilddeploy/src:/app/services/openshiftbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
@@ -83,7 +83,8 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
+      lagoon.image:
+        amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -121,7 +122,7 @@ services:
       - ./services/rest2tasks/src:/app/services/rest2tasks/src
       - ./node-packages:/app/node-packages:delegated
     ports:
-      - "5555:3000"
+      - '5555:3000'
     labels:
       lagoon.type: custom
       lagoon.template: services/rest2tasks/.lagoon.app.yml
@@ -136,18 +137,32 @@ services:
       - api-db
       - local-api-data-watcher-pusher
     ports:
-      - "3000:3000"
+      - '3000:3000'
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/api:${SAFE_BRANCH:-master}
+  ui:
+    image: ${IMAGE_REPO:-lagoon}/ui
+    command: yarn run dev
+    volumes:
+      - ./services/ui/src:/app/services/ui/src
+      - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
+      - ./services/ui/.env.schema:/app/services/ui/.env.schema
+      - ./services/ui/package.json:/app/services/ui/package.json
+    ports:
+      - "8888:3003"
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/ui/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/ui:${SAFE_BRANCH:-master}
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
       - api
       - auth-server
     ports:
-      - "2020:2020"
+      - '2020:2020'
     environment:
       - OPENSHIFT_CONSOLE_URL=https://192.168.99.100:8443
     user: '111111111'
@@ -168,7 +183,7 @@ services:
       - ./services/auth-server/src:/app/services/auth-server/src
     user: '111111111'
     ports:
-      - "3001:3000"
+      - '3001:3000'
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
@@ -200,18 +215,7 @@ services:
     environment:
       - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw== ansible-testing
     ports:
-      - "2222:22"
-    labels:
-      lagoon.type: none
-  hacky-rest2tasks-ui:
-    image: ${IMAGE_REPO:-lagoon}/hacky-rest2tasks-ui
-    command: yarn run dev
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - XPACK_MONITORING_ELASTICSEARCH_URL=http://elasticsearch:9200
+      - '2222:22'
     labels:
       lagoon.type: none
   remotedev:
@@ -221,7 +225,7 @@ services:
       - ADAPTER=
       - PORT=9090
     ports:
-      - "9090:9090"
+      - '9090:9090'
     labels:
       lagoon.type: none
   local-api-data-watcher-pusher:
@@ -247,7 +251,7 @@ services:
     volumes:
       - ./services/drush-alias/web/aliases.drushrc.php.stub:/app/aliases.drushrc.php.stub
     ports:
-    - "8087:8080"
+      - '8087:8080'
     labels:
       lagoon.type: custom
       lagoon.template: services/drush-alias/.lagoon.app.yml
@@ -258,30 +262,37 @@ services:
     user: '111111111'
     labels:
       lagoon.type: elasticsearch
-      lagoon.template: services/logs-db/.lagoon.yml
+      lagoon.template: services/logs-db/.lagoon.single.yml
       lagoon.image: amazeeiolagoon/logs-db:${SAFE_BRANCH:-master}
   logs-forwarder:
     image: ${IMAGE_REPO:-lagoon}/logs-forwarder
     user: '111111111'
     labels:
       lagoon.type: custom
-      lagoon.template: services/logs-forwarder/.lagoon.yml
+      lagoon.template: services/logs-forwarder/.lagoon.single.yml
       lagoon.image: amazeeiolagoon/logs-forwarder:${SAFE_BRANCH:-master}
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui
     user: '111111111'
     ports:
-      - "5601:5601"
+      - '5601:5601'
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
       lagoon.image: amazeeiolagoon/logs-db-ui:${SAFE_BRANCH:-master}
+  logs-db-curator:
+    image: ${IMAGE_REPO:-lagoon}/logs-db-curator
+    user: '111111111'
+    labels:
+      lagoon.type: cli
+      lagoon.template: services/logs-db-curator/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs-db-curator:${SAFE_BRANCH:-master}
   logs2logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
     ports:
-    - "5140:5140/udp"
-    - "5044:5044"
+      - '5140:5140/udp'
+      - '5044:5044'
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
@@ -290,9 +301,9 @@ services:
     image: ${IMAGE_REPO:-lagoon}/auto-idler
     user: '111111111'
     volumes:
-    - "./services/auto-idler/idle-services.sh:/idle-services.sh"
-    - "./services/auto-idler/idle-clis.sh:/idle-clis.sh"
-    - "./services/auto-idler/create_jwt.sh:/create_jwt.sh"
+      - './services/auto-idler/idle-services.sh:/idle-services.sh'
+      - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
+      - './services/auto-idler/create_jwt.sh:/create_jwt.sh'
     labels:
       lagoon.type: custom
       lagoon.template: services/auto-idler/.lagoon.yml
@@ -301,7 +312,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/storage-calculator
     user: '111111111'
     volumes:
-    - "./services/storage-calculator/calculate-storage.sh:/calculate-storage.sh"
+      - './services/storage-calculator/calculate-storage.sh:/calculate-storage.sh'
     labels:
       lagoon.type: custom
       lagoon.template: services/storage-calculator/.lagoon.yml

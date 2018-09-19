@@ -17,12 +17,14 @@ const normalizePort = (value) => {
 
 /* ::
 import type MariaSQL from 'mariasql';
+import type elasticsearch from 'elasticsearch';
 
 type CreateServerArgs = {
   store?: Object,
   jwtSecret: string,
   jwtAudience: string,
   sqlClient: MariaSQL,
+  esClient: elasticsearch.Client,
 };
 */
 

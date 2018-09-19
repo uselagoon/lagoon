@@ -12,7 +12,7 @@ const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lag
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
-const ciUseOpenshiftRegistry = process.env.CI_USE_OPENSHIFT_REGISTRY || "false"
+const CI = process.env.CI || "false"
 const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 
 const messageConsumer = async msg => {
@@ -39,17 +39,17 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(branchName)
     var safeProjectName = ocsafety(projectName)
-    var environmentType = branchName === projectOpenShift.production_environment ? 'production' : 'development';
+    var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
-    var openshiftConsole = projectOpenShift.openshift.console_url.replace(/\/$/, "");
+    var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
-    var openshiftProject = projectOpenShift.openshift_project_pattern ? projectOpenShift.openshift_project_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
-    var openshiftProjectUser = projectOpenShift.openshift.project_user || ""
-    var deployPrivateKey = projectOpenShift.customer.private_key
-    var gitUrl = projectOpenShift.git_url
+    var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
+    var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
+    var deployPrivateKey = projectOpenShift.customer.privateKey
+    var gitUrl = projectOpenShift.gitUrl
     var subfolder = projectOpenShift.subfolder || ""
-    var routerPattern = projectOpenShift.openshift.router_pattern ? projectOpenShift.openshift.router_pattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
+    var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
     var prHeadSha = headSha || ""
     var prBaseBranchName = baseBranchName || ""
@@ -86,7 +86,7 @@ const messageConsumer = async msg => {
 
     let buildFromImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
-    if (ciUseOpenshiftRegistry == "true") {
+    if (CI == "true") {
       buildFromImage = {
         "kind": "ImageStreamTag",
         "namespace": "lagoon",
@@ -182,8 +182,8 @@ const messageConsumer = async msg => {
           }
       }
     }
-    if (ciUseOpenshiftRegistry == "true") {
-      buildconfig.spec.strategy.customStrategy.env.push({"name": "CI_USE_OPENSHIFT_REGISTRY","value": ciUseOpenshiftRegistry})
+    if (CI == "true") {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "CI","value": CI})
     }
     if (type == "pullrequest") {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_HEAD_BRANCH","value": prHeadBranchName})

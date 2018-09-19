@@ -1,10 +1,15 @@
 {
   "name": "lagoon",
   "private": true,
-  "workspaces": ["node-packages/*", "services/*", "cli"],
+  "workspaces": [
+    "node-packages/*",
+    "services/*",
+    "cli"
+  ],
   "devDependencies": {
-    "flow-bin": "^0.69.0",
-    "glow": "^1.2.2"
+    "flow-bin": "^0.78.0",
+    "glow": "^1.2.2",
+    "prettier": "^1.14.2"
   },
   "scripts": {
     "glow": "glow check"

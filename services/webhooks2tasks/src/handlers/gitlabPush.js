@@ -43,7 +43,7 @@ console.log(skip_deploy)
     }
 
     let logMessage = `\`<${body.project.http_url}/tree/${meta.branch}|${meta.branch}>\``
-    if (sha) {
+    if (sha && (body.commits.length > 0)) {
       const shortSha: string = sha.substring(0, 7)
       logMessage = `${logMessage} (<${body.commits[0].url}|${shortSha}>)`
     }

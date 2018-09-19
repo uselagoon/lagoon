@@ -39,20 +39,20 @@ const Sql = {
   deleteProjectNotification: (cred, input) => {
     const { project, notificationType, notificationName } = input;
 
-    const query = knex('project_notification AS pn')
+    const deleteQuery = knex('project_notification AS pn')
       .joinRaw(
         `LEFT JOIN notification_${notificationType} AS nt ON pn.nid = nt.id AND pn.type = ?`,
         [notificationType],
       )
       .leftJoin('project AS p', 'pn.pid', '=', 'p.id');
 
-    if (cred.role != 'admin') {
+    if (cred.role !== 'admin') {
       const { projects } = cred.permissions;
 
-      query.whereIn('pn.pid', projects);
+      deleteQuery.whereIn('pn.pid', projects);
     }
 
-    return query
+    return deleteQuery
       .where('p.name', project)
       .andWhere('nt.name', notificationName)
       .del()
@@ -93,17 +93,17 @@ const Sql = {
   },
   selectNotificationsByTypeByProjectId: (cred, input) => {
     const { type, pid } = input;
-    const query = knex('project_notification AS pn').joinRaw(
+    const selectQuery = knex('project_notification AS pn').joinRaw(
       `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
       [type],
     );
 
-    if (cred.role != 'admin') {
+    if (cred.role !== 'admin') {
       const { projects } = cred.permissions;
-      query.whereIn('pn.pid', projects);
+      selectQuery.whereIn('pn.pid', projects);
     }
 
-    return query
+    return selectQuery
       .where('pn.pid', '=', pid)
       .select('nt.*', 'pn.type')
       .toString();
@@ -180,9 +180,11 @@ const Helpers = {
     });
 
     if (!R.isEmpty(pids)) {
-      const hasAccess = R.compose(R.not, R.isEmpty, R.intersection(projects))(
-        pids,
-      );
+      const hasAccess = R.compose(
+        R.not,
+        R.isEmpty,
+        R.intersection(projects),
+      )(pids);
 
       return hasAccess;
     }
@@ -236,7 +238,7 @@ const addNotificationToProject = ({ sqlClient }) => async (cred, input) => {
   }
   projectNotification.notificationType = input.notificationType;
 
-  const result = await query(
+  await query(
     sqlClient,
     Sql.createProjectNotification(cred, projectNotification),
   );
@@ -268,13 +270,16 @@ const deleteNotificationRocketChat = ({ sqlClient }) => async (cred, input) => {
     // that there are no assigned notifications the user doesn't
     // has access to
     if (R.length(nonAllowed) > 0) {
-      const ids = R.compose(R.join(','), R.map(R.prop('nid')));
+      const ids = R.compose(
+        R.join(','),
+        R.map(R.prop('nid')),
+      );
       throw new Error(`Unauthorized for following projects: ${ids}`);
     }
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteNotificationRocketChat(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -300,27 +305,30 @@ const deleteNotificationSlack = ({ sqlClient }) => async (cred, input) => {
     // that there are no assigned notifications the user doesn't
     // has access to
     if (R.length(nonAllowed) > 0) {
-      const ids = R.compose(R.join(','), R.map(R.prop('nid')));
+      const ids = R.compose(
+        R.join(','),
+        R.map(R.prop('nid')),
+      );
       throw new Error(`Unauthorized for following projects: ${ids}`);
     }
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteNotificationSlack(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';
 };
 
-const removeNotificationFromProject = ({ sqlClient }) => async (cred, input) => {
+const removeNotificationFromProject = ({ sqlClient }) => async (
+  cred,
+  input,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('unauthorized.');
   }
 
-  const rows = await query(
-    sqlClient,
-    Sql.deleteProjectNotification(cred, input),
-  );
+  await query(sqlClient, Sql.deleteProjectNotification(cred, input));
   const select = await query(sqlClient, Sql.selectProjectByName(input));
   const project = R.path([0], select);
 
@@ -329,13 +337,16 @@ const removeNotificationFromProject = ({ sqlClient }) => async (cred, input) => 
 
 const NOTIFICATION_TYPES = ['slack', 'rocketchat'];
 
-const getNotificationsByProjectId = ({ sqlClient }) => async (cred, pid, args) => {
-  const { customers, projects } = cred.permissions;
-  const { type } = args;
+const getNotificationsByProjectId = ({ sqlClient }) => async (
+  cred,
+  pid,
+  args,
+) => {
+  const { type: argsType } = args;
 
   // Types to collect notifications from all different
   // notification type tables
-  const types = type == null ? NOTIFICATION_TYPES : [type];
+  const types = argsType == null ? NOTIFICATION_TYPES : [argsType];
 
   const results = await Promise.all(
     types.map(type =>
@@ -397,8 +408,8 @@ const updateNotificationSlack = ({ sqlClient }) => async (cred, input) => {
 };
 
 const getUnassignedNotifications = ({ sqlClient }) => async (cred, args) => {
-  const { type } = args;
-  const types = type == null ? NOTIFICATION_TYPES : [type];
+  const { type: argsType } = args;
+  const types = argsType == null ? NOTIFICATION_TYPES : [argsType];
   const results = await Promise.all(
     types.map(type =>
       query(sqlClient, Sql.selectUnassignedNotificationsByType(cred, type)),

@@ -101,6 +101,11 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
+  set +x
+  BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
+  set -x
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
+
 
   if [ "$TYPE" == "pullrequest" ]; then
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
@@ -172,12 +177,51 @@ if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
 fi
 
 ##############################################
+### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
+##############################################
+
+
+COUNTER=0
+while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
+do
+  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
+  echo $TASK_TYPE
+  case "$TASK_TYPE" in
+    run)
+        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
+        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
+        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
+        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
+        . /oc-build-deploy/scripts/exec-pre-tasks-run.sh
+        ;;
+    *)
+        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+
+  esac
+
+  let COUNTER=COUNTER+1
+done
+
+
+
+##############################################
 ### CREATE OPENSHIFT SERVICES AND ROUTES
 ##############################################
 
 YAML_CONFIG_FILE="services-routes"
 
-ROUTES_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure Allow)
+# BC for routes.insecure, which is now called routes.autogenerate.insecure
+BC_ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure false)
+if [ ! $BC_ROUTES_AUTOGENERATE_INSECURE == "false" ]; then
+  echo "=== routes.insecure is now defined in routes.autogenerate.insecure, pleae update your .lagoon.yml file"
+  ROUTES_AUTOGENERATE_INSECURE=$BC_ROUTES_AUTOGENERATE_INSECURE
+else
+  # By default we allow insecure traffic on autogenerate routes
+  ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
+fi
+
+ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
+
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -201,18 +245,22 @@ do
     .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 
-  OPENSHIFT_ROUTES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/routes.yml"
-  if [ -f $OPENSHIFT_ROUTES_TEMPLATE ]; then
+  if [ $ROUTES_AUTOGENERATE_ENABLED == "true" ]; then
 
-    # The very first generated route is set as MAIN_GENERATED_ROUTE
-    if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
-      MAIN_GENERATED_ROUTE=$SERVICE_NAME
+    OPENSHIFT_ROUTES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/routes.yml"
+    if [ -f $OPENSHIFT_ROUTES_TEMPLATE ]; then
+
+      # The very first generated route is set as MAIN_GENERATED_ROUTE
+      if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
+        MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      fi
+
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
+
+      TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_AUTOGENERATE_INSECURE}")
+      .  /oc-build-deploy/scripts/exec-openshift-resources.sh
     fi
 
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_ROUTES_TEMPLATE
-
-    TEMPLATE_PARAMETERS+=(-p ROUTES_INSECURE="${ROUTES_INSECURE}")
-    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
   fi
 done
 
@@ -263,6 +311,20 @@ if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
 fi
 
 ##############################################
+### CUSTOM MONITORING_URLS FROM .lagoon.yml
+##############################################
+URL_COUNTER=0
+while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
+  MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
+  if [[ $URL_COUNTER > 0 ]]; then
+    MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
+  else
+    MONITORING_URLS="${MONITORING_URL}"
+  fi
+  let URL_COUNTER=URL_COUNTER+1
+done
+
+##############################################
 ### PROJECT WIDE ENV VARIABLES
 ##############################################
 
@@ -282,6 +344,12 @@ fi
 # Load all routes with correct schema and comma separated
 ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
+# If no MONITORING_URLS were specified, fall back to the ROUTE of the project
+if [ -z "$MONITORING_URLS"]; then
+  echo "No monitoring_urls provided, using ROUTE"
+  MONITORING_URLS="${ROUTE}"
+fi
+
 # Generate a Config Map with project wide env variables
 oc process --local --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
@@ -294,6 +362,7 @@ oc process --local --insecure-skip-tls-verify \
   -p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" \
   -p ROUTE="${ROUTE}" \
   -p ROUTES="${ROUTES}" \
+  -p MONITORING_URLS="${MONITORING_URLS}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
 if [ "$TYPE" == "pullrequest" ]; then
@@ -464,26 +533,39 @@ do
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
-  if [ "${OVERRIDE_TEMPLATE}" == "false" ]; then
-    OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
-    if [ -f $OPENSHIFT_TEMPLATE ]; then
+  ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.templates.$SERVICE_NAME false)
+  if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
+    # Generate deployment if service type defines it
+    OPENSHIFT_DEPLOYMENT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
+    if [ -f $OPENSHIFT_DEPLOYMENT_TEMPLATE ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_DEPLOYMENT_TEMPLATE
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
-  else
+
+    # Generate statefulset if service type defines it
+    OPENSHIFT_STATEFULSET_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
+    if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+    fi
+  elif [[ "${ENVIRONMENT_OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in .lagoon.yml, trying to use it
+
+    OPENSHIFT_TEMPLATE=$ENVIRONMENT_OVERRIDE_TEMPLATE
+    if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in .lagoon.yml not found"; exit 1;
+    else
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+    fi
+  elif [[ "${OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in docker-compose, trying to use it
+
     OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
     if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE not found"; exit 1;
+      echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in $DOCKER_COMPOSE_YAML not found"; exit 1;
     else
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
     fi
   fi
 
-  # Generate statefulset if service type defines them
-  OPENSHIFT_STATEFULSET_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
-  if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
-  fi
 done
 
 ##############################################
@@ -491,6 +573,12 @@ done
 ##############################################
 
 if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+
+  # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
+  if [ "$CI" == "true" ]; then
+    sed -i s/podAntiAffinity/podAffinity/g /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+  fi
+
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 
@@ -507,6 +595,12 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
+
+  # Allow the rollout type to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.rollouts.${SERVICE_NAME} false)
+  if [ ! $ENVIRONMENT_SERVICE_ROLLOUT_TYPE == "false" ]; then
+    SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
+  fi
 
   # if mariadb-galera is a statefulset check also for maxscale
   if [ $SERVICE_TYPE == "mariadb-galera" ]; then
@@ -564,7 +658,7 @@ do
         SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
         CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
         SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-post-rollout-tasks-run.sh
+        . /oc-build-deploy/scripts/exec-tasks-run.sh
         ;;
     *)
         echo "Task Type ${TASK_TYPE} not implemented"; exit 1;

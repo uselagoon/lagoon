@@ -22,7 +22,9 @@ module.exports = {
     // Fix the erroring of dev dependencies in updateSchema script
     'import/no-extraneous-dependencies': [
       'error',
-      { devDependencies: ['**/scripts/*.js'] },
+      {
+        devDependencies: ['**/*.test.js', '**/scripts/*.js'],
+      },
     ],
     // Code style rule to prefer a default export instead of a single named export, currently we disable this Airbnb setting to allow this behavior. We can decide later to turn this on again if we want.
     'import/prefer-default-export': 'off',
@@ -44,6 +46,8 @@ module.exports = {
     'no-restricted-globals': 'off',
     // Disable Airbnb stylistic rule
     'no-restricted-syntax': 'off',
+    // Disable Airbnb stylistic rule
+    'no-throw-literal': 'off',
     // Rule to prevent prefixing of underscores on variable names. We disable this Airbnb setting because we use some underscore prefixes in our code.
     'no-underscore-dangle': 'off',
     // Disable Airbnb stylistic rule

@@ -1,14 +1,14 @@
 // @flow
 
-import { table } from 'table';
 import R from 'ramda';
 
-import gql from '../gql';
-import { runGQLQuery } from '../query';
-import { printGraphQLErrors } from '../printErrors';
+import format from '../util/format';
+import gql from '../util/gql';
+import { queryGraphQL } from '../util/queryGraphQL';
+import { printGraphQLErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { CommandHandlerArgs } from '../types/Command';
 
 export const command = 'projects';
 export const description = 'List all projects';
@@ -19,21 +19,16 @@ export function builder(yargs: Yargs) {
     .example(`$0 ${command}`, 'List all projects');
 }
 
-type ListProjectsArgs = {
-  clog: typeof console.log,
-  cerr: typeof console.error,
-};
-
-export async function listProjects({
+export async function handler({
   clog,
   cerr,
 }:
-ListProjectsArgs): Promise<number> {
+CommandHandlerArgs): Promise<number> {
   const query = gql`
     query AllProjects {
       allProjects {
         name
-        git_url
+        gitUrl
         branches
         pullrequests
         created
@@ -41,7 +36,7 @@ ListProjectsArgs): Promise<number> {
     }
   `;
 
-  const result = await runGQLQuery({
+  const result = await queryGraphQL({
     cerr,
     query,
   });
@@ -51,11 +46,17 @@ ListProjectsArgs): Promise<number> {
     return printGraphQLErrors(cerr, ...errors);
   }
 
-  const sortByName = R.sortBy(R.compose(R.toLower, R.propOr('', 'name')));
-
-  const projects = R.compose(sortByName, R.pathOr([], ['data', 'allProjects']))(
-    result,
+  const sortByName = R.sortBy(
+    R.compose(
+      R.toLower,
+      R.propOr('', 'name'),
+    ),
   );
+
+  const projects = R.compose(
+    sortByName,
+    R.pathOr([], ['data', 'allProjects']),
+  )(result);
 
   if (projects.length === 0) {
     clog('No projects found.');
@@ -63,15 +64,15 @@ ListProjectsArgs): Promise<number> {
   }
 
   clog(
-    table([
+    format([
       ['Project', 'Git URL', 'Branches', 'Pull Requests', 'Created'],
       ...R.map(
         project => [
-          project.name,
-          project.git_url,
-          String(project.branches),
-          String(project.pullrequests),
-          project.created,
+          R.prop('name', project),
+          R.prop('gitUrl', project),
+          String(R.prop('branches', project)),
+          String(R.prop('pullrequests', project)),
+          R.prop('created', project),
         ],
         projects,
       ),
@@ -79,8 +80,4 @@ ListProjectsArgs): Promise<number> {
   );
 
   return 0;
-}
-
-export async function handler({ clog, cerr }: BaseArgs): Promise<number> {
-  return listProjects({ clog, cerr });
 }

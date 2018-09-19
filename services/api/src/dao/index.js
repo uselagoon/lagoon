@@ -27,21 +27,13 @@
 
 const R = require('ramda');
 
-const {
-  ifNotAdmin,
-  whereAnd,
-  inClause,
-  inClauseOr,
-  query,
-  prepare,
-} = require('./utils');
+const { ifNotAdmin, query, prepare } = require('./utils');
 
 const getPermissions = ({ sqlClient }) => async (args) => {
   const prep = prepare(
     sqlClient,
-    'SELECT keyId as sshKeyId, projects, customers FROM permission WHERE sshKey = :sshKey',
+    'SELECT key_id as sshKeyId, projects, customers FROM permission WHERE ssh_key = :ssh_key',
   );
-
   const rows = await query(sqlClient, prep(args));
 
   return R.propOr(null, 0, rows);
@@ -56,7 +48,7 @@ const truncateTable = ({ sqlClient }) => async (cred, args) => {
 
   const prep = prepare(sqlClient, `TRUNCATE table \`${tableName}\``);
 
-  const rows = await query(sqlClient, prep(args));
+  await query(sqlClient, prep(args));
 
   // TODO: eventually check rows for success
   return 'success';
@@ -76,13 +68,11 @@ const daoFns = {
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
-const make = (sqlClient, esClient) => R.map(fn => fn({sqlClient, esClient}), daoFns);
+const make = (sqlClient, esClient) =>
+  R.map(fn => fn({ sqlClient, esClient }), daoFns);
 
 module.exports = {
   ...daoFns,
   make,
   ifNotAdmin,
-  whereAnd,
-  inClause,
-  inClauseOr,
 };

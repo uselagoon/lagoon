@@ -1,3 +1,5 @@
+// @flow
+
 const { parseCommaSeparatedInts } = require('./auth');
 
 describe('parseCommaSeparatedInts', () => {

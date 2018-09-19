@@ -2,7 +2,7 @@
 
 #### Connect to GraphQL API
 
-Direct API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate such token, open the terminal of the `auth-ssh` pod (you can either do that via the OpenShift UI or via `oc rsh`) and run:
+Direct API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate such token, open the terminal of the `auto-idler` pod (you can either do that via the OpenShift UI or via `oc rsh`) and run:
 
         ./create_jwt.sh
 
@@ -14,8 +14,8 @@ Now we need a GraphQL client, technically this is just HTTP, but there is a nice
 
 Enter the API Endpoint URL that we learned from before in `GraphQL Endpoint` and suffix it with `/graphql` (important!). Then click on "Edit HTTP Headers" and add a new Header:
 
-* "Header name": `Authorization`
-* "Header value": `Bearer [jwt token]` (make sure that the jwt token has no spaces, as this would not work)
+- "Header name": `Authorization`
+- "Header value": `Bearer [jwt token]` (make sure that the jwt token has no spaces, as this would not work)
 
 Close the HTTP Header overlay (press ESC) and now we are ready to make the first GraphQL Request!
 
@@ -38,7 +38,7 @@ In order for Lagoon to deploy a project there is an example graphql in `create-p
 1.  `customer` The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone the Git repository of the project (the private key needs to be in a single string, where new lines are replaced by `\n` - see an example in /local-dev/api-data/api-data.sql)
 2.  `openshift` The OpenShift Cluster that Lagoon should use to deploy to. Yes Lagoon is not only capable to deploy into the OpenShift that it is running itself, but actually to any OpenShift anywhere in the world. We need to know the following infos for this to work:
     1.  `name` - Unique identifier of the OpenShift
-    2.  `console_url` - URL of the OpenShift console (without any `/console` suffix)
+    2.  `consoleUrl` - URL of the OpenShift console (without any `/console` suffix)
     3.  `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
 3.  `project` This is your git repository that should be deployed, it needs to contain a `.lagoon.yml` file so Lagoon knows what it should do.
 
@@ -141,13 +141,13 @@ Now for every deployment you should see messages appear in your defined channel.
 
 The OpenShift Cluster that Lagoon should use to deploy to. Yes, Lagoon is not only capable to deploy into the OpenShift that it is running itself, but actually to any OpenShift anywhere in the world. We need to know the following infos for this to work:
 
-* `name` - Unique identifier of the OpenShift
-* `console_url` - URL of the OpenShift console (without any `/console` suffix)
-* `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
+- `name` - Unique identifier of the OpenShift
+- `consoleUrl` - URL of the OpenShift console (without any `/console` suffix)
+- `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
 
 ```
 mutation {
-  addOpenshift(input: {name: "my-openshift", console_url:"[fill me]", token: "[fill me]"}) {
+  addOpenshift(input: {name: "my-openshift", consoleUrl:"[fill me]", token: "[fill me]"}) {
     name
     id
   }
@@ -160,7 +160,7 @@ The customer of the project. Can be used for an actual customer (if you use Lago
 
 ```
 mutation {
-  addCustomer(input: {name: "[fill me]", private_key: "[fill me]"}) {
+  addCustomer(input: {name: "[fill me]", privateKey: "[fill me]"}) {
     name
     id
   }
@@ -173,7 +173,7 @@ This is your git repository that should be deployed, it needs to contain a `.lag
 
 ```
 mutation {
-  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], git_url: "[fill me]"}) {
+  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], gitUrl: "[fill me]"}) {
     name
     customer {
       name
@@ -183,9 +183,9 @@ mutation {
       name
       id
     }
-    git_url,
-    active_systems_deploy,
-    active_systems_remove,
+    gitUrl,
+    activeSystemsDeploy,
+    activeSystemsRemove,
     branches,
     pullrequests
   }
@@ -200,7 +200,7 @@ This is a good comand to see an overview of all Projects, OpenShifts and Custome
 query whatIsThereAlready{
   allProjects {
     name
-    git_url
+    gitUrl
   }
   allOpenshifts {
     name
@@ -222,9 +222,9 @@ query singleProject {
   projectByName(name: "[projectname]") {
     id
     branches
-    git_url
+    gitUrl
     pullrequests
-    production_environment
+    productionEnvironment
     notifications(type: SLACK) {
       ... on NotificationSlack {
         name
@@ -235,8 +235,8 @@ query singleProject {
     }
     environments {
       name
-      deploy_type
-      environment_type
+      deployType
+      environmentType
     }
     openshift {
       id
@@ -265,12 +265,12 @@ query projectByGitUrl{
 }
 ```
 
-
 ### Update Objects
 
 The Lagoon GraphQL API cannot only display Objects and create Objects, it also has the capability to update exisitng Objects, all of this happens in full GraphQL best practices manner.
 
 Update the branches to deploy within a project:
+
 ```
 mutation editProjectBranches {
   updateProject(input:{id:109, patch:{branches:"^(prod|stage|dev|update)$"}}) {
@@ -280,9 +280,10 @@ mutation editProjectBranches {
 ```
 
 Update the production Environment within a project (Important: Needs a redeploy in order for all changes to be reflected in the containers):
+
 ```
 mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{production_environment:"master"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master"}}) {
     id
   }
 }
@@ -292,7 +293,7 @@ You can also combine multiple changes at once:
 
 ```
 mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{production_environment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"master", branches:"^(prod|stage|dev|update)$"}}) {
     id
   }
 }

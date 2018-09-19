@@ -79,7 +79,7 @@ For some situations though Lagoon needs your help to know where to put the persi
 
 * `lagoon.persistent` - the **absolute** path where the persistent storgage should be mounted (the above example uses `/app/web/sites/default/files/` which is where Drupal expects it's persistent storage)
 * `lagoon.persistent.name` - tells Lagoon to not create a new persistent storage for that service, but instead mounts the persistent storage of another defined service into this service
-* `lagoon.persistent.size` - the size of persistent storage you require (Lagoon usually gives you minimum `5GB` of persistent storage, if you need more define it here)
+* `lagoon.persistent.size` - the size of persistent storage you require (Lagoon usually gives you minimum `5G` of persistent storage, if you need more define it here)
 * `lagoon.persistent.class` - by default Lagoon automatically assigns the right Storage Class for your service (like SSDs for mysql, Bulk Storage for Nginx, etc.). If you need to overwrite this, you can do so here. - This is highly depending on the underlining Kubernetes/OpenShift that Lagoon runs on. Ask your Lagoon Administrator about this.
 
 ### Multi Container Pods
@@ -125,11 +125,24 @@ Additionally twice the `lagoon.name: nginx` is defined, which will cause Lagoon 
 
 ### Advanced Usage
 
-#### Custom DeploymentConfig Templates
+#### Custom Templates
 
-If you need some changes on the OpenShift DeploymentConfig Templates, you can define your own template via `lagoon.template`. Check out the shipped Templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). Important: The template is called with `oc process`, so you should define the same parameters like in the default templates.
+If you need some changes on the OpenShift Templates, you can define your own template via `lagoon.template`. Check out the shipped Templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). Important: The template is called with `oc process`, so you should define the same parameters like in the default templates.
 
-#### Custom Types
+You can also overwrite the templates only for a specific environment, this is done in the [`.lagoon.yml`](/using_lagoon/lagoon_yml.md/#environmentsnametypes)
+
+#### Custom Rollout Monitor Types
+
+By default Lagoon expects that the way services from custom templates are rolled out is done via a `DeploymentConfig` object within Openshift/Kubernetes and monitors the rollout based on such object. In some cases the services that are defined via custom deployment need a different way of monitoring, this can be defined via `lagoon.rollout`:
+
+- `deploymentconfig` (this is the default) - expects a `DeplomentConfig` object in the template for the service
+- `statefulset` - expects a `Statefulset` object in the template for the service
+- `daemonset` - expects a `Daemonset` object in the template for the service
+- `false` - will not monitor any rollouts and just be happy of the template applies and does not throw any errors
+
+You can also overwrite the rollout only for a specific environment, this is done in the [`.lagoon.yml`](/using_lagoon/lagoon_yml.md/#environmentsnamerollouts)
+
+#### Custom Type
 
 Feeling adventurous and would like to do something completely customized? Welcome to the Danger-Zone!
 

@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
-
+VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Docker Image Tag that should be used when publishing to docker hub registry
 PUBLISH_TAG :=
 
@@ -77,7 +77,7 @@ PUBLISH_TAG :=
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
@@ -103,8 +103,7 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 #######
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
-images :=     centos7 \
-							oc \
+images :=     oc \
 							mariadb \
 							mariadb-drupal \
 							postgres \
@@ -120,6 +119,7 @@ images :=     centos7 \
 							elasticsearch \
 							kibana \
 							logstash \
+							curator \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -144,7 +144,6 @@ $(build-images):
 #    if the parent has been built
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
-build/centos7: images/centos7/Dockerfile
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
@@ -161,6 +160,7 @@ build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
+build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 
 #######
@@ -251,9 +251,11 @@ build/solr__6.6-drupal: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__9 \
+nodeimages := node__10 \
+							node__9 \
 							node__8 \
 							node__6 \
+							node__10-builder \
 							node__9-builder \
 							node__8-builder \
 							node__6-builder
@@ -277,6 +279,7 @@ base-images += $(nodeimages)
 s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
 build/node__6-builder: build/node__6 images/node/builder/Dockerfile
@@ -306,16 +309,17 @@ services :=       api \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
-									hacky-rest2tasks-ui \
 									rabbitmq \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
+									logs-db-curator \
 									logs2logs-db \
 									auto-idler \
 									storage-calculator \
 									api-db \
-									drush-alias
+									drush-alias \
+									ui
 
 service-images += $(services)
 
@@ -328,11 +332,11 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli: build/yarn-workspace-builder
-build/hacky-rest2tasks-ui: build/node__8
+build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
+build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db: build/mariadb
@@ -365,8 +369,6 @@ build/cli: build/ssh cli/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),cli/Dockerfile,cli)
 	touch $@
-
-build/local-git-server: build/centos7
 
 # Image with ansible test
 build/tests:
@@ -486,7 +488,7 @@ push-docker-host-image: build/docker-host minishift/login-docker-registry
 	docker push $$(cat minishift):30000/lagoon/docker-host | cat
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
@@ -674,3 +676,14 @@ ifeq ($(ARCH), Darwin)
 else
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
+
+.PHONY: push-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind:
+	rm -rf build/oc-build-deploy-dind
+	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+
+
+
+.PHONY: ui-development
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui
