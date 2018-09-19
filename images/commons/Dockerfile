@@ -1,6 +1,6 @@
 FROM alpine
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 
 ENV LAGOON=commons
 

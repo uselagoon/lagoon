@@ -3,7 +3,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM php:${PHP_VERSION}-fpm-alpine
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=php
 
 # Copy commons files

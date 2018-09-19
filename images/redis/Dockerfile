@@ -2,7 +2,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM redis:alpine
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=redis
 
 # Copy commons files

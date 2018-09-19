@@ -2,7 +2,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM arachnysdocker/athenapdf-service:2.13.0
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=athenapdf-service
 
 # Copy commons files

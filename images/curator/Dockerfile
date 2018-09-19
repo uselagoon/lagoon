@@ -4,7 +4,7 @@ FROM bobrik/curator
 
 USER root
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=curator
 
 # Copy commons files

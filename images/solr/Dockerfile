@@ -3,7 +3,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM solr:${SOLR_MAJ_MIN_VERSION}-alpine
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=solr
 
 # Copy commons files

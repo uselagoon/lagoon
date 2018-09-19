@@ -2,7 +2,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM ubuntu:latest
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 
 # Copy commons files
 COPY --from=commons /lagoon /lagoon

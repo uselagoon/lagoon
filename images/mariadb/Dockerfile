@@ -2,7 +2,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM alpine:3.7
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
@@ -21,7 +21,7 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV BACKUPS_DIR="/var/lib/mysql/backup"
 
 ENV MARIADB_DATABASE=lagoon \

@@ -7,7 +7,7 @@ RUN go get github.com/a8m/envsubst/cmd/envsubst
 
 FROM docker:stable
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=oc
 
 COPY --from=golang /go/bin/envsubst /bin/envsubst
