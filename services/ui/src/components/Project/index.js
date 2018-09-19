@@ -72,7 +72,20 @@ class Project extends React.Component {
                 key={environment.id}
                 environment={environment}
                 project={this.props.project.name}
-              />)}
+              />)
+              .sort((a, b) => {
+                const environmentTypes = {
+                  production: 1,
+                  development: 2,
+                };
+                const deployTypes = {
+                  branch: 1,
+                  pullrequest: 2,
+                };
+                return environmentTypes[a.props.environment.environmentType] - environmentTypes[b.props.environment.environmentType] ||
+                  deployTypes[a.props.environment.deployType] - deployTypes[b.props.environment.deployType];
+              })
+            }
           </div>
         </div>
         <style jsx>{`
