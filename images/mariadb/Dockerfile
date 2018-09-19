@@ -21,7 +21,6 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-LABEL maintainer="amazee.io"
 ENV BACKUPS_DIR="/var/lib/mysql/backup"
 
 ENV MARIADB_DATABASE=lagoon \
