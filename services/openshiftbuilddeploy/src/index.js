@@ -12,7 +12,7 @@ const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lag
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
-const ciUseOpenshiftRegistry = process.env.CI_USE_OPENSHIFT_REGISTRY || "false"
+const CI = process.env.CI || "false"
 const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 
 const messageConsumer = async msg => {
@@ -86,7 +86,7 @@ const messageConsumer = async msg => {
 
     let buildFromImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
-    if (ciUseOpenshiftRegistry == "true") {
+    if (CI == "true") {
       buildFromImage = {
         "kind": "ImageStreamTag",
         "namespace": "lagoon",
@@ -182,8 +182,8 @@ const messageConsumer = async msg => {
           }
       }
     }
-    if (ciUseOpenshiftRegistry == "true") {
-      buildconfig.spec.strategy.customStrategy.env.push({"name": "CI_USE_OPENSHIFT_REGISTRY","value": ciUseOpenshiftRegistry})
+    if (CI == "true") {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "CI","value": CI})
     }
     if (type == "pullrequest") {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PR_HEAD_BRANCH","value": prHeadBranchName})

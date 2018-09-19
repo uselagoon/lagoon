@@ -6,7 +6,7 @@ OPENSHIFT_REGISTRY=docker-registry.default.svc:5000
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$OPENSHIFT_PROJECT
 
-if [ "$CI_USE_OPENSHIFT_REGISTRY" == "true" ]; then
+if [ "$CI" == "true" ]; then
   CI_OVERRIDE_IMAGE_REPO=${OPENSHIFT_REGISTRY}/lagoon
 else
   CI_OVERRIDE_IMAGE_REPO=""
