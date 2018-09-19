@@ -2,8 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
+import Highlighter from "react-highlight-words";
 import Page from '../layouts/main'
-import { bp, color } from '../variables';
+import { bp, color, fontSize } from '../variables';
 
 const query = gql`
 {
@@ -59,16 +60,35 @@ class StartPage extends React.Component {
                   </div>
                   {data.allProjects
                     .filter(key => ['name', 'environments', '__typename'].includes(key) ? false: true &&
-                      key.name.includes(this.state.searchInput) || key.customer.name.includes(this.state.searchInput))
+                      key.name.toLowerCase().includes(this.state.searchInput.toLowerCase()) || key.customer.name.toLowerCase().includes(this.state.searchInput.toLowerCase()))
                     .map(project => <div className="box" key={project.id}>
                       <Link href={{ pathname: '/project', query: { name: project.name } }}>
                         <a>
                           <div className="project">
-
-                            <h4>{project.name}</h4>
-                            <div className="route">{project.environments.map(environment => environment.route ? environment.route.replace(/^https?\:\/\//i, "") : '')}</div>
+                            <h4>
+                              <Highlighter
+                                searchWords={[this.state.searchInput]}
+                                autoEscape={true}
+                                textToHighlight={project.name}
+                              />
+                            </h4>
+                            <div className="route">
+                              {project.environments.map(environment => (
+                                <Highlighter
+                                  searchWords={[this.state.searchInput]}
+                                  autoEscape={true}
+                                  textToHighlight={environment.route ? environment.route.replace(/^https?\:\/\//i, "") : ''}
+                                />))
+                              }
+                            </div>
                           </div>
-                          <div className="customer">{project.customer.name}</div>
+                          <div className="customer">
+                            <Highlighter
+                              searchWords={[this.state.searchInput]}
+                              autoEscape={true}
+                              textToHighlight={project.customer.name}
+                            />
+                          </div>
                         </a>
                       </Link>
                     </div>)
@@ -158,6 +178,11 @@ class StartPage extends React.Component {
                       @media ${bp.tinyUp} {
                         width: 50%;
                       }
+                    }
+                    .project-name {
+                      ${fontSize(25, 36)};
+                      font-weight: normal;
+                      margin: 4px 0 0;
                     }
                     .route {
                       color: ${color.linkBlue};
