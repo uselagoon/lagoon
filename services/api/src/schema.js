@@ -707,7 +707,7 @@ const resolvers = {
     },
     environmentByName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentByName(req.credentials, args);
+      return dao.getEnvironmentByName(req.credentials, args);
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
