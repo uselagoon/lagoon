@@ -21,7 +21,9 @@ USER root
 
 RUN mkdir /var/solr
 RUN fix-permissions /var/solr \
-    && fix-permissions /opt/solr/server/logs
+    && fix-permissions /opt/solr/server/logs \
+    && fix-permissions /opt/solr/server/solr
+
 
 # solr really doesn't like to be run as root, so we define the default user agin
 USER solr
