@@ -36,7 +36,6 @@
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
-    "nodemon": "^1.12.1",
     "ramda": "^0.25.0",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
@@ -44,6 +43,7 @@
   },
   "devDependencies": {
     "jest": "^23.6.0",
+    "nodemon": "^1.12.1",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1"
   }
