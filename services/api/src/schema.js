@@ -245,7 +245,7 @@ const typeDefs = gql`
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
-    allEnvironments(createdAfter: String): [Environment]
+    allEnvironments(createdAfter: String, envType: EnvType): [Environment]
   }
 
   input SshKeyInput {
