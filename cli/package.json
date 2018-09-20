@@ -18,7 +18,6 @@
     "preversion": "yarn test",
     "version": "yarn run build",
     "postversion": "git push && git push --tags",
-    "update-schema": "node scripts/updateSchema.js",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "yarn run lint && jest",

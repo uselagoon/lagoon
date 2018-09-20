@@ -38,7 +38,7 @@
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "snakecase-keys": "^1.2.0",
-    "sshpk": "^1.14.1",
+    "sshpk": "^1.14.2",
     "winston": "^2.4.0"
   },
   "devDependencies": {

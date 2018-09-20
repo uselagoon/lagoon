@@ -41,12 +41,21 @@ const typeDefs = gql`
     created: String
   }
 
+  type User {
+    id: Int
+    email: String
+    firstName: String
+    lastName: String
+    comment: String
+    sshKeys: [SshKey]
+  }
+
   type Customer {
     id: Int
     name: String
     comment: String
     privateKey: String
-    sshKeys: [SshKey]
+    users: [User]
     created: String
   }
 
@@ -168,7 +177,7 @@ const typeDefs = gql`
     """
     Which Developer SSH keys should have access to this project
     """
-    sshKeys: [SshKey]
+    users: [User]
     """
     Deployed Environments for this Project
     """
@@ -235,6 +244,7 @@ const typeDefs = gql`
   }
 
   type Query {
+    userBySshKey(sshKey: String!): User
     customerByName(name: String!): Customer
     projectByName(name: String!): Project
     projectByGitUrl(gitUrl: String!): Project
@@ -248,18 +258,19 @@ const typeDefs = gql`
     allEnvironments(createdAfter: String): [Environment]
   }
 
-  input SshKeyInput {
+  input AddSshKeyInput {
     id: Int
     name: String!
     keyValue: String!
     keyType: SshKeyType
+    userId: Int!
   }
 
   input DeleteSshKeyInput {
     name: String!
   }
 
-  input ProjectInput {
+  input AddProjectInput {
     id: Int
     name: String!
     customer: Int!
@@ -277,7 +288,7 @@ const typeDefs = gql`
     storageCalc: Int
   }
 
-  input EnvironmentInput {
+  input AddEnvironmentInput {
     name: String!
     project: Int!
     deployType: DeployType!
@@ -285,20 +296,20 @@ const typeDefs = gql`
     openshiftProjectName: String!
   }
 
-  input EnvironmentStorageInput {
+  input AddOrUpdateEnvironmentStorageInput {
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
   }
 
-  input CustomerInput {
+  input AddCustomerInput {
     id: Int
     name: String!
     comment: String
     privateKey: String
   }
 
-  input OpenshiftInput {
+  input AddOpenshiftInput {
     id: Int
     name: String!
     consoleUrl: String!
@@ -317,13 +328,13 @@ const typeDefs = gql`
     name: String!
   }
 
-  input NotificationRocketChatInput {
+  input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
     channel: String!
   }
 
-  input NotificationSlackInput {
+  input AddNotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
@@ -337,7 +348,7 @@ const typeDefs = gql`
     name: String!
   }
 
-  input NotificationToProjectInput {
+  input AddNotificationToProjectInput {
     project: String!
     notificationType: NotificationType!
     notificationName: String!
@@ -349,24 +360,48 @@ const typeDefs = gql`
     notificationName: String!
   }
 
-  input SshKeyToProjectInput {
+  input AddUserInput {
+    id: Int
+    email: String
+    firstName: String
+    lastName: String
+    comment: String
+  }
+
+  input UpdateUserPatchInput {
+    email: String
+    firstName: String
+    lastName: String
+    comment: String
+  }
+
+  input UpdateUserInput {
+    id: Int!
+    patch: UpdateUserPatchInput!
+  }
+
+  input DeleteUserInput {
+    id: Int!
+  }
+
+  input AddUserToProjectInput {
     project: String!
-    sshKey: String!
+    userId: Int!
   }
 
-  input RemoveSshKeyFromProjectInput {
+  input RemoveUserFromProjectInput {
     project: String!
-    sshKey: String!
+    userId: Int!
   }
 
-  input SshKeyToCustomerInput {
+  input AddUserToCustomerInput {
     customer: String!
-    sshKey: String!
+    userId: Int!
   }
 
-  input RemoveSshKeyFromCustomerInput {
+  input RemoveUserFromCustomerInput {
     customer: String!
-    sshKey: String!
+    userId: Int!
   }
 
   input DeleteProjectInput {
@@ -481,35 +516,38 @@ const typeDefs = gql`
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     updateCustomer(input: UpdateCustomerInput!): Customer
     updateProject(input: UpdateProjectInput!): Project
-    addProject(input: ProjectInput!): Project
+    addProject(input: AddProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
-    addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+    addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
     addOrUpdateEnvironmentStorage(
-      input: EnvironmentStorageInput!
+      input: AddOrUpdateEnvironmentStorageInput!
     ): EnvironmentStorage
     deleteEnvironment(input: DeleteEnvironmentInput!): String
-    addSshKey(input: SshKeyInput!): SshKey
+    addSshKey(input: AddSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
-    addCustomer(input: CustomerInput!): Customer
+    addCustomer(input: AddCustomerInput!): Customer
     deleteCustomer(input: DeleteCustomerInput!): String
-    addOpenshift(input: OpenshiftInput!): Openshift
+    addOpenshift(input: AddOpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
     addNotificationRocketChat(
-      input: NotificationRocketChatInput!
+      input: AddNotificationRocketChatInput!
     ): NotificationRocketChat
-    addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
+    addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
     deleteNotificationRocketChat(
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
-    addNotificationToProject(input: NotificationToProjectInput!): Project
+    addNotificationToProject(input: AddNotificationToProjectInput!): Project
     removeNotificationFromProject(
       input: RemoveNotificationFromProjectInput!
     ): Project
-    addSshKeyToProject(input: SshKeyToProjectInput!): Project
-    removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
-    addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
-    removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
+    addUser(input: AddUserInput!): User
+    updateUser(input: UpdateUserInput!): User
+    deleteUser(input: DeleteUserInput!): String
+    addUserToProject(input: AddUserToProjectInput!): Project
+    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
+    addUserToCustomer(input: AddUserToCustomerInput!): Customer
+    removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
     truncateTable(tableName: String!): String
   }
 `;
@@ -566,9 +604,9 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getCustomerByProjectId(req.credentials, project.id);
     },
-    sshKeys: async (project, args, req) => {
+    users: async (project, args, req) => {
       const dao = getDao(req);
-      return dao.getSshKeysByProjectId(req.credentials, project.id);
+      return dao.getUsersByProjectId(req.credentials, project.id);
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
@@ -645,12 +683,16 @@ const resolvers = {
     },
   },
   Customer: {
-    sshKeys: async (customer, args, req) => {
+    users: async ({ id }, args, req) => {
       const dao = getDao(req);
-      return dao.getSshKeysByCustomerId(req.credentials, customer.id);
+      return dao.getUsersByCustomerId(req.credentials, id);
     },
   },
   Query: {
+    userBySshKey: async (root, args, req) => {
+      const dao = getDao(req);
+      return dao.getUserBySshKey(req.credentials, args);
+    },
     customerByName: async (root, args, req) => {
       const dao = getDao(req);
       return dao.getCustomerByName(req.credentials, args);
@@ -684,14 +726,6 @@ const resolvers = {
       return dao.getAllOpenshifts(req.credentials, args);
     },
     // @TODO: check if we need these
-    // allUnassignedSshKeys: async (root, args, req) => {
-    //   const dao = getDao(req);
-    //   return dao.getUnassignedSshKeys(req.credentials);
-    // },
-    // allSshKeys: async (root, args, req) => {
-    //   const dao = getDao(req);
-    //   return dao.getAllSshKeys(req.credentials);
-    // },
     // allUnassignedNotifications: async (root, args, req) => {
     //   const dao = getDao(req);
     //   const args_ = R.compose(
@@ -862,30 +896,39 @@ const resolvers = {
       );
       return ret;
     },
-    addSshKeyToProject: async (root, args, req) => {
+    addUser: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSshKeyToProject(req.credentials, args.input);
+      const ret = await dao.addUser(req.credentials, args.input);
       return ret;
     },
-    removeSshKeyFromProject: async (root, args, req) => {
+    updateUser: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeSshKeyFromProject(
-        req.credentials,
-        args.input,
-      );
+      const ret = await dao.updateUser(req.credentials, args.input);
       return ret;
     },
-    addSshKeyToCustomer: async (root, args, req) => {
+    deleteUser: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSshKeyToCustomer(req.credentials, args.input);
+      const ret = await dao.deleteUser(req.credentials, args.input);
       return ret;
     },
-    removeSshKeyFromCustomer: async (root, args, req) => {
+    addUserToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeSshKeyFromCustomer(
-        req.credentials,
-        args.input,
-      );
+      const ret = await dao.addUserToProject(req.credentials, args.input);
+      return ret;
+    },
+    removeUserFromProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeUserFromProject(req.credentials, args.input);
+      return ret;
+    },
+    addUserToCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addUserToCustomer(req.credentials, args.input);
+      return ret;
+    },
+    removeUserFromCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeUserFromCustomer(req.credentials, args.input);
       return ret;
     },
     addOrUpdateEnvironment: async (root, args, req) => {

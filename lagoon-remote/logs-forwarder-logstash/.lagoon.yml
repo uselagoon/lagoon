@@ -118,3 +118,11 @@ objects:
     externalName: ${SERVICE_NAME}.${OPENSHIFT_PROJECT}.svc.cluster.local
     sessionAffinity: None
     type: ExternalName
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: application-logs
+  spec:
+    externalName: ${SERVICE_NAME}.${OPENSHIFT_PROJECT}.svc.cluster.local
+    sessionAffinity: None
+    type: ExternalName

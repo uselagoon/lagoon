@@ -224,38 +224,40 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
 ) => {
   const interested_month = args.month ? new Date(args.month) : new Date();
   const now = new Date();
-  const interested_month_relative = interested_month.getMonth() - now.getMonth();
+  const interested_month_relative =
+    interested_month.getMonth() - now.getMonth();
   // Elasticsearch needs relative numbers with + or - in front. The - already exists, so we add the + if it's a positive number.
-  const interested_month_relative_plus_sign = (interested_month_relative < 0 ? "":"+") + interested_month_relative;
+  const interested_month_relative_plus_sign =
+    (interested_month_relative < 0 ? '' : '+') + interested_month_relative;
 
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
       body: {
-        "query": {
-          "bool": {
-            "must": [
+        query: {
+          bool: {
+            must: [
               {
-                "range": {
-                  "@timestamp": {
-                    "gte": `now${interested_month_relative_plus_sign}M/M`,
-                    "lte": `now${interested_month_relative_plus_sign}M/M`
-                  }
-                }
-              }
+                range: {
+                  '@timestamp': {
+                    gte: `now${interested_month_relative_plus_sign}M/M`,
+                    lte: `now${interested_month_relative_plus_sign}M/M`,
+                  },
+                },
+              },
             ],
-            "must_not": [
+            must_not: [
               {
-                "match_phrase": {
-                  "request_header_useragent": {
-                    "query": "StatusCake"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
+                match_phrase: {
+                  request_header_useragent: {
+                    query: 'StatusCake',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
     });
 
     const response = {
@@ -412,23 +414,21 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
   return rows;
 };
 
-const Queries = {
-  addOrUpdateEnvironment,
-  addOrUpdateEnvironmentStorage,
-  getEnvironmentByName,
-  getEnvironmentByOpenshiftProjectName,
-  getEnvironmentHoursMonthByEnvironmentId,
-  getEnvironmentStorageByEnvironmentId,
-  getEnvironmentStorageMonthByEnvironmentId,
-  getEnvironmentHitsMonthByEnvironmentId,
-  getEnvironmentByEnvironmentStorageId,
-  deleteEnvironment,
-  getEnvironmentsByProjectId,
-  updateEnvironment,
-  getAllEnvironments,
-};
-
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    addOrUpdateEnvironment,
+    addOrUpdateEnvironmentStorage,
+    getEnvironmentByName,
+    getEnvironmentByOpenshiftProjectName,
+    getEnvironmentHoursMonthByEnvironmentId,
+    getEnvironmentStorageByEnvironmentId,
+    getEnvironmentStorageMonthByEnvironmentId,
+    getEnvironmentHitsMonthByEnvironmentId,
+    getEnvironmentByEnvironmentStorageId,
+    deleteEnvironment,
+    getEnvironmentsByProjectId,
+    updateEnvironment,
+    getAllEnvironments,
+  },
 };

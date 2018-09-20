@@ -31,7 +31,7 @@ ENV TMPDIR=/tmp \
 RUN fix-permissions /usr/share/kibana
 
 # tells the local development environment on which port we are running
-ENV LAGOON_LOCALDEV_HTTP_PORT=5601
+# ENV LAGOON_LOCALDEV_HTTP_PORT=5601
 
 ENV NODE_OPTIONS="--max-old-space-size=200"
 
