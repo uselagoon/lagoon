@@ -189,7 +189,9 @@ const addUser = ({ sqlClient }) => async (
     id, email, firstName, lastName, comment,
   },
 ) => {
-  await query(
+  const {
+    info: { insertId },
+  } = await query(
     sqlClient,
     Sql.insertUser({
       id,
@@ -199,7 +201,7 @@ const addUser = ({ sqlClient }) => async (
       comment,
     }),
   );
-  const rows = await query(sqlClient, Sql.selectUser(id));
+  const rows = await query(sqlClient, Sql.selectUser(insertId));
   return R.prop(0, rows);
 };
 
