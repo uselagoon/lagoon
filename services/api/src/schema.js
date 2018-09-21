@@ -172,7 +172,7 @@ const typeDefs = gql`
     """
     How many environments can be deployed at one timeout
     """
-    environmentLimit: Int
+    developmentEnvironmentsLimit: Int
     """
     Deployed Environments for this Project
     """
@@ -279,7 +279,7 @@ const typeDefs = gql`
     productionEnvironment: String
     autoIdle: Int
     storageCalc: Int
-    environmentLimit: Int
+    developmentEnvironmentsLimit: Int
 
   }
 
@@ -393,7 +393,7 @@ const typeDefs = gql`
     pullrequests: String
     openshift: Int
     openshiftProjectPattern: String
-    environmentLimit: Int
+    developmentEnvironmentsLimit: Int
 
   }
 

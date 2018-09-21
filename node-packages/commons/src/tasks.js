@@ -198,7 +198,7 @@ async function createDeployTask(deployData: Object) {
 
   // environments =
   //  { project:
-  //     { environment_limit: 1,
+  //     { environment_deployments_limit: 1,
   //       production_environment: 'master',
   //       environments: [ { name: 'develop', environment_type: 'development' }, [Object] ] } }
 
@@ -223,7 +223,7 @@ async function createDeployTask(deployData: Object) {
       dev_environments = environments.project.environments.filter (e => e.environmentType=='development').map(e => e.name)
       logger.debug( `projectName: ${projectName}, branchName: ${branchName}, existing environments are `, dev_environments)
 
-      if (environments.project.environmentLimit !== null && dev_environments.length >= environments.project.environmentLimit ) {
+      if (environments.project.developmentEnvironmentsLimit !== null && dev_environments.length >= environments.project.developmentEnvironmentsLimit ) {
 
         if ( dev_environments.find(  function(i){ return i == branchName })) {
           logger.debug(
@@ -231,7 +231,7 @@ async function createDeployTask(deployData: Object) {
           )
         } else {
           throw new EnvironmentLimit(
-            `'${branchName}' would exceed the configured limit of ${environments.project.environmentLimit} development environments for project ${projectName}`,
+            `'${branchName}' would exceed the configured limit of ${environments.project.developmentEnvironmentsLimit} development environments for project ${projectName}`,
           );
         }
       }
