@@ -2,6 +2,7 @@
   "name": "webhooks2tasks",
   "version": "1.0.0",
   "description": "lagoon handler for webhooks",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "build/index.js",
   "engines": {
     "node": ">=8.12.0"

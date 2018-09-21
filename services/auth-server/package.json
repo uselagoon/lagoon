@@ -1,6 +1,12 @@
 {
   "name": "auth-server",
   "version": "1.0.0",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Patrick Stapfer <patrick@amazee.io>",
+    "Karl Horky <karl.horky@gmail.com>",
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)"
+  ],
   "engines": {
     "node": ">=8.12.0"
   },

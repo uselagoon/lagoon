@@ -8,7 +8,10 @@
     "build": "flow-remove-types --out-dir build/ src/",
     "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
   },
-  "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)"
+  ],
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
