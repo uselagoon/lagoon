@@ -59,8 +59,17 @@ class StartPage extends React.Component {
                     />
                   </div>
                   {data.allProjects
-                    .filter(key => ['name', 'environments', '__typename'].includes(key) ? false: true &&
-                      key.name.toLowerCase().includes(this.state.searchInput.toLowerCase()) || key.customer.name.toLowerCase().includes(this.state.searchInput.toLowerCase()))
+                    .filter(key => {
+                      const sortByName = key.name.toLowerCase().includes(this.state.searchInput.toLowerCase());
+                      const sortByCustomer = key.customer.name.toLowerCase().includes(this.state.searchInput.toLowerCase());
+                      let sortByUrl = '';
+                      if (key.environments[0] !== void 0) {
+                        if (key.environments[0].route !== null) {
+                          sortByUrl = key.environments[0].route.toLowerCase().includes(this.state.searchInput.toLowerCase());
+                        }
+                      }
+                      return ['name', 'environments', '__typename'].includes(key) ? false: true && sortByName || sortByCustomer || sortByUrl;
+                    })
                     .map(project => <div className="box" key={project.id}>
                       <Link href={{ pathname: '/project', query: { name: project.name } }}>
                         <a>
