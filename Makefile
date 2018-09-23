@@ -163,7 +163,7 @@ build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: images/athenapdf-service/Dockerfiles
+build/athenapdf-service: images/athenapdf-service/Dockerfile
 
 #######
 ####### PHP Images
