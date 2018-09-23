@@ -16,6 +16,9 @@ sed -i 's@{kibanaserver-hash}@'"$LOGSDB_KIBANASERVER_PASSWORD_HASH"'@' plugins/s
 sed -i 's@{admin-password}@'"$LOGSDB_ADMIN_PASSWORD"'@' plugins/search-guard-6/sgconfig/sg_internal_users.yml
 sed -i 's@{kibanaserver-password}@'"$LOGSDB_KIBANA_PASSWORD"'@' plugins/search-guard-6/sgconfig/sg_internal_users.yml
 
+
+ep plugins/search-guard-6/sgconfig/sg_config.yml
+
 /usr/local/bin/docker-entrypoint.sh &
 
 RET=1

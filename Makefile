@@ -120,7 +120,6 @@ images :=     oc \
 							kibana \
 							logstash \
 							athenapdf-service \
-							keycloak \
 							curator \
 							docker-host
 
@@ -164,8 +163,7 @@ build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: images/athenapdf-service/Dockerfile
-build/keycloak: images/keycloak/Dockerfile
+build/athenapdf-service: images/athenapdf-service/Dockerfiles
 
 #######
 ####### PHP Images
@@ -323,6 +321,8 @@ services :=       api \
 									storage-calculator \
 									api-db \
 									drush-alias \
+									keycloak \
+									keycloak-db \
 									ui
 
 service-images += $(services)
@@ -344,6 +344,7 @@ build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db: build/mariadb
+build/keycloak-db: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons

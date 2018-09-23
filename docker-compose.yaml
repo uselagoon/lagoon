@@ -193,22 +193,21 @@ services:
   keycloak:
     image: ${IMAGE_REPO:-lagoon}/keycloak
     user: '111111111'
-    environment:
-      KEYCLOAK_ADMIN_USER: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KEYCLOAK_REALM: lagoon
-      # KEYCLOAK_REALM_ROLES: user,finance,reporting
-      KEYCLOAK_USER: user
-      KEYCLOAK_PASSWORD: user
-      # KEYCLOAK_CLIENT_IDS: example_client
-      # KEYCLOAK_CLIENT_WEB_ORIGINS: ''
-      # KEYCLOAK_CLIENT_REDIRECT_URIS: ''
-      KEYCLOAK_USER_USERNAME: user
-      # KEYCLOAK_USER_ROLES: user,reporting
-      KEYCLOAK_USER_PASSWORD: password
-      # KEYCLOAK_REALM_SETTINGS: '{"supportedLocales":["en", "de", "fr"], "defaultLocale":"en", "resetPasswordAllowed": true, "loginTheme": "keycloak"}'
+    depends_on:
+      - keycloak-db
     ports:
       - '8088:8080'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/keycloak/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/keycloak:${SAFE_BRANCH:-master}
+  keycloak-db:
+    image: ${IMAGE_REPO:-lagoon}/keycloak-db
+    ports:
+      - '3336:3306'
+    labels:
+      lagoon.type: mariadb
+      lagoon.image: amazeeiolagoon/keycloak-db:${SAFE_BRANCH:-master}
   tests:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -281,6 +280,8 @@ services:
   logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs-db
     user: '111111111'
+    environment:
+      KEYCLOAK_URL: http://docker.for.mac.localhost:8088
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml
@@ -297,6 +298,8 @@ services:
     user: '111111111'
     ports:
       - '5601:5601'
+    environment:
+      KEYCLOAK_URL: http://docker.for.mac.localhost:8088
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
