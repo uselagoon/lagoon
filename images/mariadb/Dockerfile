@@ -116,6 +116,7 @@ COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scri
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
 
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
+RUN touch /var/log/mysql-slow.log && /bin/fix-permissions /var/log/mysql-slow.log
 
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 RUN addgroup mysql root
