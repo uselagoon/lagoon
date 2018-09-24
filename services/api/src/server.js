@@ -35,7 +35,6 @@ const createServer = async (args /* : CreateServerArgs */) => {
   const port = normalizePort(process.env.PORT || '3000');
   const server = http.createServer(createApp(args));
 
-  // $FlowFixMe https://github.com/facebook/flow/pull/4176
   const listen = util.promisify(server.listen).bind(server);
   await listen(port);
 
