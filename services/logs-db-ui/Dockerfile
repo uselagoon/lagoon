@@ -4,9 +4,12 @@ FROM ${IMAGE_REPO:-lagoon}/kibana
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
     LOGSDB_ADMIN_PASSWORD=admin \
-    ELASTICSEARCH_URL=http://logs-db:9200
+    ELASTICSEARCH_URL=http://logs-db:9200 \
+    KEYCLOAK_URL=http://docker.for.mac.localhost:8088 \
+    SEARCHGUARD_OPENID_CLIENT_SECRET=xxxx
 
 RUN echo $'xpack.security.enabled: false\n\
+xpack.monitoring.enabled: false\n\
 \n\
 # Configure the Kibana internal server user\n\
 elasticsearch.username: "kibanaserver"\n\
@@ -22,6 +25,7 @@ elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]\n\
 searchguard.multitenancy.enabled: true\n\
 # Disable searchguard global tenant\n\
 searchguard.multitenancy.tenants.enable_global: false\n\
+searchguard.multitenancy.tenants.enable_private: false\n\
 # v14 and above: Enable OpenID authentication\n\
 searchguard.auth.type: "openid"\n\
 \n\
@@ -41,7 +45,7 @@ searchguard.openid.scope: "profile email"\n\
 searchguard.openid.header: "Authorization"\n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.2.4-14/search-guard-kibana-plugin-6.2.4-14.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.0-14/search-guard-kibana-plugin-6.4.0-14.zip
 
 COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/

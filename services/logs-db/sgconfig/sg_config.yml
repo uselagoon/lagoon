@@ -66,6 +66,7 @@ searchguard:
       #server_username: kibanaserver
       #index: '.kibana'
       do_not_fail_on_forbidden: true
+    multi_rolespan_enabled: true
     http:
       anonymous_auth_enabled: false
       xff:

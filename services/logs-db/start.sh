@@ -2,8 +2,6 @@
 
 set -m
 
-echo "node.attr.box_type: $BOX_TYPE" >> config/elasticsearch.yml
-
 # Create hashes for the passwords
 LOGSDB_ADMIN_PASSWORD_HASH=$(plugins/search-guard-6/tools/hash.sh -env LOGSDB_ADMIN_PASSWORD)
 LOGSDB_KIBANASERVER_PASSWORD_HASH=$(plugins/search-guard-6/tools/hash.sh -env LOGSDB_KIBANASERVER_PASSWORD)
@@ -14,7 +12,7 @@ sed -i 's@{kibanaserver-hash}@'"$LOGSDB_KIBANASERVER_PASSWORD_HASH"'@' plugins/s
 
 # Fill clear text passwords, for easyness
 sed -i 's@{admin-password}@'"$LOGSDB_ADMIN_PASSWORD"'@' plugins/search-guard-6/sgconfig/sg_internal_users.yml
-sed -i 's@{kibanaserver-password}@'"$LOGSDB_KIBANA_PASSWORD"'@' plugins/search-guard-6/sgconfig/sg_internal_users.yml
+sed -i 's@{kibanaserver-password}@'"$LOGSDB_KIBANASERVER_PASSWORD"'@' plugins/search-guard-6/sgconfig/sg_internal_users.yml
 
 
 ep plugins/search-guard-6/sgconfig/sg_config.yml

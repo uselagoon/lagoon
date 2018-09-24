@@ -282,6 +282,8 @@ services:
     user: '111111111'
     environment:
       KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+    ports:
+      - '9200:9200'
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml
