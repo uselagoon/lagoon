@@ -90,10 +90,7 @@ const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
       WHERE e.id = :eid
       ${ifNotAdmin(
     cred.role,
-    `AND (${inClauseOr([
-      ['p.customer', customers],
-      ['p.id', projects],
-    ])})`,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
   )}
       LIMIT 1
     `,
