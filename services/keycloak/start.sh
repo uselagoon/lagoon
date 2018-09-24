@@ -61,8 +61,10 @@ function configure_keycloak {
         echo "Set password for user ${user_id}"
 
         local group_id=$(/opt/jboss/keycloak/bin/kcadm.sh create groups --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=admin 2>&1 | sed -e 's/Created new group with id //g' -e "s/'//g")
+        # Add the role "realm-admin" defined on the client realm-management to the group matching the group_id.
+        /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r lagoon --cclientid realm-management --rolename realm-admin --gid ${group_id}
         /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/groups/${group_id} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
-        echo "Created group 'admin' and made user ${KEYCLOAK_ADMIN_USERNAME} member of it"
+        echo "Created group 'admin' with realm role 'realm-admin' and made user '$KEYCLOAK_ADMIN_USERNAME' member of it"
     fi
 
     echo "Initial config of Keycloak done. Log in via superadmin user '$KEYCLOAK_SUPERADMIN_USER' and password '$KEYCLOAK_SUPERADMIN_PASSWORD'"
