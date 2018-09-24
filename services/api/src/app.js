@@ -21,6 +21,7 @@ type CreateAppArgs = {
   jwtAudience: string,
   sqlClient: MariaSQL,
   esClient: elasticsearch.Client,
+  keycloakClient: Object,
 };
 */
 
@@ -31,10 +32,11 @@ const createApp = (args /* : CreateAppArgs */) => {
     jwtAudience,
     sqlClient,
     esClient,
+    keycloakClient,
   } = args;
   const app = express();
 
-  const dao = Dao.make(sqlClient, esClient);
+  const dao = Dao.make(sqlClient, esClient, keycloakClient);
 
   app.set('context', {
     sqlClient,

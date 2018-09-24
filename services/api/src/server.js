@@ -25,6 +25,7 @@ type CreateServerArgs = {
   jwtAudience: string,
   sqlClient: MariaSQL,
   esClient: elasticsearch.Client,
+  keycloakClient: Object
 };
 */
 

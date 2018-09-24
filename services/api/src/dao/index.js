@@ -73,8 +73,10 @@ const daoFns = {
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
-const make = (sqlClient, esClient) =>
-  R.map(fn => fn({ sqlClient, esClient }), daoFns);
+// esClient: the elasticsearch client instance provided by the elasticsearch module
+// keycloakClient: the Keycloak client instance provided by the keycloak-admin-client module
+const make = (sqlClient, esClient, keycloakClient) =>
+  R.map(fn => fn({ sqlClient, esClient, keycloakClient }), daoFns);
 
 module.exports = {
   ...daoFns,

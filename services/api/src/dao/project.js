@@ -1,3 +1,4 @@
+const createKeycloakClient = require('keycloak-admin-client');
 const R = require('ramda');
 const {
   ifNotAdmin,
@@ -148,7 +149,7 @@ const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   return rows[0];
 };
 
-const addProject = ({ sqlClient }) => async (cred, input) => {
+const addProject = ({ sqlClient, keycloakClient }) => async (cred, input) => {
   const { customers } = cred.permissions;
   const cid = input.customer.toString();
 
@@ -194,6 +195,11 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
 
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
+
+  // Create a group in Keycloak named the same as the project
+  await keycloakClient.groups.create('lagoon', {
+    name: R.prop('name', project),
+  });
 
   return project;
 };

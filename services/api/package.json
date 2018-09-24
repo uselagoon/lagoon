@@ -33,6 +33,7 @@
     "graphql-iso-date": "^3.5.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
+    "keycloak-admin-client": "amazeeio/keycloak-admin-client#groups",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
