@@ -39,7 +39,7 @@ const createServer = async (args /* : CreateServerArgs */) => {
   await listen(port);
 
   logger.debug(
-    `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
+    `Finished booting the server. The server is reachable at port ${port.toString()}.`,
   );
 
   return server;
