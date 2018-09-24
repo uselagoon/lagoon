@@ -65,7 +65,7 @@ function configure_keycloak {
         echo "Created group 'admin' and made user ${KEYCLOAK_ADMIN_USERNAME} member of it"
     fi
 
-    echo "Initial Config of KeyCloak done. Login via user '$KEYCLOAK_SUPERADMIN_USER' and password '$KEYCLOAK_SUPERADMIN_PASSWORD'"
+    echo "Initial config of Keycloak done. Log in via superadmin user '$KEYCLOAK_SUPERADMIN_USER' and password '$KEYCLOAK_SUPERADMIN_PASSWORD'"
 }
 
 if [ ! -f /opt/jboss/keycloak/standalone/data/docker-container-configuration-done ]; then
