@@ -1,4 +1,3 @@
-const createKeycloakClient = require('keycloak-admin-client');
 const R = require('ramda');
 const {
   ifNotAdmin,
