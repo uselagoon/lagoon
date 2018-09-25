@@ -26,7 +26,6 @@
     "lokka": "^1.7.0",
     "lokka-transport-http": "^1.6.1",
     "ramda": "^0.25.0",
-    "sshpk": "^1.14.2",
     "winston": "^2.4.0",
     "winston-logstash": "^0.4.0"
   }

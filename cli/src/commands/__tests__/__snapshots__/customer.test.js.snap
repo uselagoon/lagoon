@@ -9,7 +9,7 @@ Array [
     "[38;2;132;132;132mName[39m                customer1
 [38;2;132;132;132mComment[39m             Comment about customer1
 [38;2;132;132;132mDeploy Private Key[39m  √
-[38;2;132;132;132mSSH Key[39m             a@example.com
+[38;2;132;132;132mUsers[39m               0
 [38;2;132;132;132mCreated[39m             Wed May 18 2011 00:00:00 GMT+0000 (UTC)",
   ],
 ]

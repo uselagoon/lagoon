@@ -7,7 +7,7 @@ const cors = require('cors');
 const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
-const { createAuthMiddleware } = require('./auth');
+const { createAuthMiddleware } = require('./authMiddleware');
 
 const Dao = require('./dao');
 

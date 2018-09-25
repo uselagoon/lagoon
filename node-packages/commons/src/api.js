@@ -5,7 +5,7 @@ import type { Project, CustomerPatch, ProjectPatch } from './types';
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 const R = require('ramda');
-const { createJWTWithoutSshKey } = require('./jwt');
+const { createJWTWithoutUserId } = require('./jwt');
 const { logger } = require('./local-logging');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
@@ -19,11 +19,11 @@ if (JWTSECRET == null) {
 
 if (JWTAUDIENCE == null) {
   logger.warn(
-    'No JWTAUDIENCE env variable set... this *might* cause api requests to fail',
+    'No JWTAUDIENCE env variable set... this may cause api requests to fail',
   );
 }
 
-const apiAdminToken = createJWTWithoutSshKey({
+const apiAdminToken = createJWTWithoutUserId({
   payload: {
     role: 'admin',
     iss: 'lagoon-commons',

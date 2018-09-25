@@ -65,11 +65,8 @@ Args): Promise<number> {
             name
             comment
             privateKey
-            sshKeys {
-              name
-              keyValue
-              keyType
-              created
+            users {
+              id
             }
             created
           }
@@ -97,17 +94,17 @@ Args): Promise<number> {
     R.always('\u2717'), // ✗
   );
 
-  const formatSshKeys: (Array<Object>) => Array<string> = R.map(R.prop('name'));
+  const formatUsers: (Array<Object>) => Array<string> = R.map(R.prop('id'));
 
   clog(`Customer details for project '${project}':`);
   clog(
     format([
-      ['Name', 'Comment', 'Deploy Private Key', 'SSH Key', 'Created'],
+      ['Name', 'Comment', 'Deploy Private Key', 'Users', 'Created'],
       [
         R.prop('name', customer),
         String(R.prop('comment', customer)),
         convertPrivateKeyToSymbol(R.prop('privateKey', customer)),
-        R.join(', ', formatSshKeys(R.propOr([], 'sshKeys')(customer))),
+        R.join(', ', formatUsers(R.propOr([], 'users')(customer))),
         R.prop('created', customer),
       ],
     ]),
