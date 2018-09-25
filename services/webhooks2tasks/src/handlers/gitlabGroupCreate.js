@@ -2,31 +2,47 @@
 
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { getGroup } = require('@lagoon/commons/src/gitlabApi');
 const { addCustomer } = require('@lagoon/commons/src/api');
 
-import type { WebhookRequestData, ChannelWrapper  } from '../types';
+import type { WebhookRequestData } from '../types';
 
 async function gitlabGroupCreate(webhook: WebhookRequestData) {
+  const { webhooktype, event, uuid, body } = webhook;
 
-    const {
-      webhooktype,
-      event,
+  try {
+    const group = await getGroup(body.group_id);
+    const { path: name, id } = group;
+
+    const meta = {
+      data: group,
+      customer: name
+    };
+
+    await addCustomer(name, id);
+
+    sendToLagoonLogs(
+      'info',
+      '',
       uuid,
-      body,
-    } = webhook;
+      `${webhooktype}:${event}:handled`,
+      meta,
+      `Created customer ${name}`
+    );
 
-    try {
-      const result = await addCustomer(body.path, body.group_id);
-      sendToLagoonLogs('info', '', uuid, `${webhooktype}:${event}:handled`, {},
-        `Created customer ${body.path}`
-      )
-      return;
-    } catch (error) {
-      sendToLagoonLogs('warning', '', uuid, `${webhooktype}:${event}:unhandled`, {},
-        `Could not create customer ${body.path}, reason: ${error}`
-      );
-      return;
-    }
+    return;
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      uuid,
+      `${webhooktype}:${event}:unhandled`,
+      { data: body },
+      `Could not create customer, reason: ${error}`
+    );
+
+    return;
+  }
 }
 
 module.exports = gitlabGroupCreate;

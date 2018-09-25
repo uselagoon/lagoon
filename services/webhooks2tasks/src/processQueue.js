@@ -1,7 +1,7 @@
 // @flow
 
 const processProjects = require('./webhooks/projects');
-const processOther = require('./webhooks/other');
+const processDataSync = require('./webhooks/dataSync');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -17,7 +17,7 @@ function processQueue (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWr
   // organizations or users. Since these don't have associated projects, they
   // must be handled separately.
   if (webhooktype == 'gitlab' && !giturl) {
-    processOther(rabbitMsg, channelWrapperWebhooks);
+    processDataSync(rabbitMsg, channelWrapperWebhooks);
   }
   else {
     processProjects(rabbitMsg, channelWrapperWebhooks);
