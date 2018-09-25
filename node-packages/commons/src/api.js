@@ -1,6 +1,6 @@
 // @flow
 
-import type { Project, CustomerPatch } from './types';
+import type { Project, CustomerPatch, ProjectPatch } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -115,6 +115,67 @@ const deleteCustomer = (name: string): Promise<Object> =>
   ($name: String!) {
     deleteCustomer(input: {
       name: $name
+    })
+  }
+  `,
+    { name },
+  );
+
+const projectFragment = graphqlapi.createFragment(`
+fragment on Project {
+  id
+  name
+  gitUrl
+}
+`);
+
+const addProject = (
+  name: string,
+  customer: number,
+  gitUrl: string,
+  openshift: number,
+  id: number = null,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+    ($name: String!, $customer: Int!, $gitUrl: String!, $openshift: Int!, $id: Int) {
+      addProject(input: {
+        name: $name,
+        customer: $customer,
+        gitUrl: $gitUrl,
+        openshift: $openshift,
+        id: $id,
+      }) {
+        ...${projectFragment}
+      }
+    }
+  `,
+    {
+      name, customer, gitUrl, openshift, id,
+    },
+  );
+
+const updateProject = (id: number, patch: ProjectPatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateProjectPatchInput!) {
+    updateProject(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${projectFragment}
+    }
+  }
+  `,
+    { id, patch },
+  );
+
+const deleteProject = (name: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($name: String!) {
+    deleteProject(input: {
+      project: $name
     })
   }
   `,
@@ -364,6 +425,9 @@ module.exports = {
   addCustomer,
   updateCustomer,
   deleteCustomer,
+  addProject,
+  updateProject,
+  deleteProject,
   getProjectsByGitUrl,
   getRocketChatInfoForProject,
   getSlackinfoForProject,

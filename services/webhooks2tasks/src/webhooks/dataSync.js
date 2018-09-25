@@ -5,6 +5,9 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const gitlabGroupCreate = require('../handlers/gitlabGroupCreate');
 const gitlabGroupUpdate = require('../handlers/gitlabGroupUpdate');
 const gitlabGroupDelete = require('../handlers/gitlabGroupDelete');
+const gitlabProjectCreate = require('../handlers/gitlabProjectCreate');
+const gitlabProjectUpdate = require('../handlers/gitlabProjectUpdate');
+const gitlabProjectDelete = require('../handlers/gitlabProjectDelete');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -21,13 +24,27 @@ async function processOther(
       await handle(gitlabGroupCreate, webhook, `${webhooktype}:${event}`);
       break;
 
-    case "gitlab:group_rename":
-    case "gitlab:PLACEHOLDER_group_update":
+    case 'gitlab:group_rename':
+    case 'gitlab:PLACEHOLDER_group_update':
       await handle(gitlabGroupUpdate, webhook, `${webhooktype}:${event}`);
       break;
 
-    case "gitlab:group_destroy":
+    case 'gitlab:group_destroy':
       await handle(gitlabGroupDelete, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case 'gitlab:project_create':
+      await handle(gitlabProjectCreate, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case 'gitlab:project_transfer':
+    case 'gitlab:project_rename':
+    case 'gitlab:project_update':
+      await handle(gitlabProjectUpdate, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:project_destroy":
+      await handle(gitlabProjectDelete, webhook, `${webhooktype}:${event}`);
       break;
 
     default:

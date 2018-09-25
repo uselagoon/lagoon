@@ -27,3 +27,19 @@ export type CustomerPatch = {
   privateKey: ?string,
   created: ?string,
 };
+
+export type ProjectPatch = {
+  name: ?string,
+  customer: ?number,
+  giturl: ?string,
+  subfolder: ?string,
+  activesystemsdeploy: ?string,
+  activesystemsremove: ?string,
+  branches: ?string,
+  productionenvironment: ?string,
+  autoidle: ?number,
+  storagecalc: ?number,
+  pullrequests: ?string,
+  openshift: ?number,
+  openshiftprojectpattern: ?string,
+}

@@ -56,7 +56,9 @@ const getRequest = async (url: string): Object => {
 };
 
 const getGroup = async (groupId: number): Object => getRequest(`groups/${groupId}`);
+const getProject = async (projectId: number): Object => getRequest(`projects/${projectId}`);
 
 module.exports = {
   getGroup,
+  getProject,
 };
