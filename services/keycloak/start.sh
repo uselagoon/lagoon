@@ -23,7 +23,7 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_SUPERADMIN_USER --password $KEYCLOAK_SUPERADMIN_PASSWORD --realm master
+    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     if [ $KEYCLOAK_REALM ]; then
         echo Creating realm $KEYCLOAK_REALM
@@ -51,28 +51,27 @@ function configure_keycloak {
         echo $KEYCLOAK_REALM_SETTINGS | /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -f -
     fi
 
-    if [ $KEYCLOAK_ADMIN_USERNAME ]; then
-        echo Creating user $KEYCLOAK_ADMIN_USERNAME
+    if [ $KEYCLOAK_LAGOON_ADMIN_USERNAME ]; then
+        echo Creating user $KEYCLOAK_LAGOON_ADMIN_USERNAME
         # grep would have been nice instead of the double sed, but we don't have gnu grep available, only the busybox grep which is very limited
-        local user_id=$(echo '{"username": "'$KEYCLOAK_ADMIN_USERNAME'", "enabled": true}' \
+        local user_id=$(echo '{"username": "'$KEYCLOAK_LAGOON_ADMIN_USERNAME'", "enabled": true}' \
         | /opt/jboss/keycloak/bin/kcadm.sh create users --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f - 2>&1  | sed -e 's/Created new user with id //g' -e "s/'//g")
         echo "Created user with id ${user_id}"
-        /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/reset-password --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s type=password -s value=${KEYCLOAK_ADMIN_PASSWORD} -s temporary=false -n
+        /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/reset-password --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s type=password -s value=${KEYCLOAK_LAGOON_ADMIN_PASSWORD} -s temporary=false -n
         echo "Set password for user ${user_id}"
 
-        local group_id=$(/opt/jboss/keycloak/bin/kcadm.sh create groups --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=admin 2>&1 | sed -e 's/Created new group with id //g' -e "s/'//g")
-        # Add the role "realm-admin" defined on the client realm-management to the group matching the group_id.
-        /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r lagoon --cclientid realm-management --rolename realm-admin --gid ${group_id}
+        local group_name="lagoonadmin"
+        local group_id=$(/opt/jboss/keycloak/bin/kcadm.sh create groups --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${group_name} 2>&1 | sed -e 's/Created new group with id //g' -e "s/'//g")
         /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/groups/${group_id} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
-        echo "Created group 'admin' with realm role 'realm-admin' and made user '$KEYCLOAK_ADMIN_USERNAME' member of it"
+        echo "Created group '$group_name' and made user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' member of it"
     fi
 
-    echo "Initial config of Keycloak done. Log in via superadmin user '$KEYCLOAK_SUPERADMIN_USER' and password '$KEYCLOAK_SUPERADMIN_PASSWORD'"
+    echo "Initial config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }
 
 if [ ! -f /opt/jboss/keycloak/standalone/data/docker-container-configuration-done ]; then
     touch /opt/jboss/keycloak/standalone/data/docker-container-configuration-done
-    /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_SUPERADMIN_USER --password $KEYCLOAK_SUPERADMIN_PASSWORD
+    /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
     configure_keycloak &
 fi
 
