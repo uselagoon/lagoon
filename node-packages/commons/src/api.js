@@ -1,6 +1,6 @@
 // @flow
 
-import type { Project } from './types';
+import type { Project, CustomerPatch } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -65,6 +65,16 @@ class NoActiveSystemsDefined extends Error {
 
 const capitalize = R.replace(/^\w/, R.toUpper);
 
+const customerFragment = graphqlapi.createFragment(`
+fragment on Customer {
+  id
+  name
+  comment
+  privateKey
+  created
+}
+`);
+
 const addCustomer = (
   name: string,
   id: number = null,
@@ -79,14 +89,37 @@ const addCustomer = (
         comment: "${comment}",
         privateKey: "${privateKey}"
     }) {
-      id
-      name
-      comment
-      privateKey
-      created
+      ...${customerFragment}
     }
   }
 `);
+
+const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateCustomerPatchInput!) {
+    updateCustomer(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${customerFragment}
+    }
+  }
+  `,
+    { id, patch },
+  );
+
+const deleteCustomer = (name: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($name: String!) {
+    deleteCustomer(input: {
+      name: $name
+    })
+  }
+  `,
+    { name },
+  );
 
 async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   const result = await graphqlapi.query(`
@@ -199,7 +232,7 @@ async function getActiveSystemForProject(
 
 async function getEnvironmentByName(
   name: string,
-  projectId: number
+  projectId: number,
 ): Promise<Project[]> {
   const result = await graphqlapi.query(`
     {
@@ -219,7 +252,11 @@ async function getEnvironmentByName(
   `);
 
   if (!result || !result.environmentByName) {
-    throw new EnvironmentNotFound(`Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`);
+    throw new EnvironmentNotFound(
+      `Cannot find environment for projectId ${projectId}, name ${name}\n${
+        result.environmentByName
+      }`,
+    );
   }
 
   return result;
@@ -325,6 +362,8 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
 
 module.exports = {
   addCustomer,
+  updateCustomer,
+  deleteCustomer,
   getProjectsByGitUrl,
   getRocketChatInfoForProject,
   getSlackinfoForProject,

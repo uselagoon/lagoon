@@ -2,11 +2,11 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
-const { addCustomer } = require('@lagoon/commons/src/api');
+const { updateCustomer } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
-async function gitlabGroupCreate(webhook: WebhookRequestData) {
+async function gitlabGroupUpdate(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
@@ -18,7 +18,10 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       customer: id
     };
 
-    await addCustomer(name, id, comment);
+    await updateCustomer(id, {
+      name,
+      comment
+    });
 
     sendToLagoonLogs(
       'info',
@@ -26,7 +29,7 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Created customer ${name}`
+      `Updated customer ${name}`
     );
 
     return;
@@ -37,11 +40,11 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not create customer, reason: ${error}`
+      `Could not update customer, reason: ${error}`
     );
 
     return;
   }
 }
 
-module.exports = gitlabGroupCreate;
+module.exports = gitlabGroupUpdate;

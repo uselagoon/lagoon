@@ -20,3 +20,10 @@ export type Project = {
   name: string,
   openshift: Object,
 };
+
+export type CustomerPatch = {
+  name: ?string,
+  comment: ?string,
+  privateKey: ?string,
+  created: ?string,
+};

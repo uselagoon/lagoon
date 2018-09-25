@@ -3,6 +3,8 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const gitlabGroupCreate = require('../handlers/gitlabGroupCreate');
+const gitlabGroupUpdate = require('../handlers/gitlabGroupUpdate');
+const gitlabGroupDelete = require('../handlers/gitlabGroupDelete');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -17,6 +19,15 @@ async function processOther(
   switch (`${webhooktype}:${event}`) {
     case 'gitlab:group_create':
       await handle(gitlabGroupCreate, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:group_rename":
+    case "gitlab:PLACEHOLDER_group_update":
+      await handle(gitlabGroupUpdate, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:group_destroy":
+      await handle(gitlabGroupDelete, webhook, `${webhooktype}:${event}`);
       break;
 
     default:
