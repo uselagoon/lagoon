@@ -109,3 +109,5 @@ objects:
         volumes:
         - name: ${SERVICE_NAME}
           emptyDir: {}
+    updateStrategy:
+      type: RollingUpdate

@@ -1,5 +1,5 @@
 {
-    "template" : "lagoon-logs-*",
+    "template" : "application-logs-*",
     "version" : 60002,
     "settings" : {
       "index.refresh_interval" : "5s",
