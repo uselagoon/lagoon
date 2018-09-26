@@ -1,6 +1,6 @@
 // @flow
 
-import type { Project, CustomerPatch, ProjectPatch } from './types';
+import type { Project, CustomerPatch, UserPatch, ProjectPatch } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -121,6 +121,72 @@ const deleteCustomer = (name: string): Promise<Object> =>
     { name },
   );
 
+const userFragment = graphqlapi.createFragment(`
+fragment on User {
+  id
+  email
+  firstName
+  lastName
+}
+`);
+
+const addUser = (
+  id: number,
+  email: string,
+  firstName: string,
+  lastName: ?string = null,
+  comment: ?string = null,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int, $email: String, $firstName: String, $lastName: String, $comment: String) {
+    addUser(input: {
+      id: $id
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      comment: $comment
+    }) {
+      ...${userFragment}
+    }
+  }
+`,
+    {
+      id,
+      email,
+      firstName,
+      lastName,
+      comment,
+    },
+  );
+
+const updateUser = (id: number, patch: UserPatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateUserPatchInput!) {
+    updateUser(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${userFragment}
+    }
+  }
+  `,
+    { id, patch },
+  );
+
+const deleteUser = (id: int): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!) {
+    deleteUser(input: {
+      id: $id
+    })
+  }
+  `,
+    { id },
+  );
+
 const projectFragment = graphqlapi.createFragment(`
 fragment on Project {
   id
@@ -151,7 +217,11 @@ const addProject = (
     }
   `,
     {
-      name, customer, gitUrl, openshift, id,
+      name,
+      customer,
+      gitUrl,
+      openshift,
+      id,
     },
   );
 
@@ -425,6 +495,9 @@ module.exports = {
   addCustomer,
   updateCustomer,
   deleteCustomer,
+  addUser,
+  updateUser,
+  deleteUser,
   addProject,
   updateProject,
   deleteProject,

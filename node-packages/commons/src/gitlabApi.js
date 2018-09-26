@@ -55,10 +55,14 @@ const getRequest = async (url: string): Object => {
   }
 };
 
-const getGroup = async (groupId: number): Object => getRequest(`groups/${groupId}`);
-const getProject = async (projectId: number): Object => getRequest(`projects/${projectId}`);
+const getGroup = async (groupId: number): Object =>
+  getRequest(`groups/${groupId}`);
+const getProject = async (projectId: number): Object =>
+  getRequest(`projects/${projectId}`);
+const getUser = async (userId: number): Object => getRequest(`users/${userId}`);
 
 module.exports = {
   getGroup,
   getProject,
+  getUser,
 };

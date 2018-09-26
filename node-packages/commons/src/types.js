@@ -28,6 +28,13 @@ export type CustomerPatch = {
   created: ?string,
 };
 
+export type UserPatch = {
+  email: ?string,
+  firstName: ?string,
+  lastName: ?string,
+  comment: ?string,
+};
+
 export type ProjectPatch = {
   name: ?string,
   customer: ?number,
@@ -42,4 +49,4 @@ export type ProjectPatch = {
   pullrequests: ?string,
   openshift: ?number,
   openshiftprojectpattern: ?string,
-}
+};
