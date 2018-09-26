@@ -21,15 +21,6 @@ async function gitlabPush(webhook: WebhookRequestData, project: Project) {
 
     const skip_deploy = body.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
 
-    if (skip_deploy) {
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:skipped`, meta,
-        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
-      )
-      return;
-    }
-
-console.log(skip_deploy)
-
     const meta = {
       branch: branchName,
       sha: sha
@@ -46,6 +37,13 @@ console.log(skip_deploy)
     if (sha && (body.commits.length > 0)) {
       const shortSha: string = sha.substring(0, 7)
       logMessage = `${logMessage} (<${body.commits[0].url}|${shortSha}>)`
+    }
+
+    if (skip_deploy) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:skipped`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
+      )
+      return;
     }
 
     try {
