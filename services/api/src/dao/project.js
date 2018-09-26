@@ -193,9 +193,7 @@ const addProject = ({ sqlClient, keycloakClient }) => async (cred, input) => {
   const project = R.path([0, 0], rows);
 
   // Create a group in Keycloak named the same as the project
-  await keycloakClient.groups.create('lagoon', {
-    name: R.prop('name', project),
-  });
+  await keycloakClient.groups.create(R.pick(['name'], project));
 
   return project;
 };

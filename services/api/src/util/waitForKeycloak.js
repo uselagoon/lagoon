@@ -1,36 +1,39 @@
 // @flow
 
-const createKeycloakClient = require('keycloak-admin-client');
+const KeycloakAdminClient = require('keycloak-admin').default;
 const logger = require('../logger');
 
 /* ::
 
-type WaitForKeycloakArgs = {
+type ConnectionSettings = {
   baseUrl?: string,
+  realmName?: string,
+  requestConfig?: Object,
+}
+
+type UserSettings = {
   username?: string,
   password?: string,
-  grant_type?: string,
-  client_id?: string,
-  realmName?: string,
-  accessToken?: string,
+  grantType?: string,
+  clientId?: string,
 };
 
 */
 
-async function waitForKeycloak(settings /* : WaitForKeycloakArgs */) {
-  let displayWaitingMessage = true;
+async function waitForKeycloak(
+  connectionSettings /* : ConnectionSettings */,
+  userSettings /* : UserSettings */,
+) {
   let keycloakClient;
   let keycloakReady = false;
 
   do {
     try {
-      keycloakClient = await createKeycloakClient(settings);
+      keycloakClient = new KeycloakAdminClient(connectionSettings);
+      await keycloakClient.auth(userSettings);
       keycloakReady = true;
     } catch (err) {
-      if (displayWaitingMessage) {
-        logger.debug('Waiting for Keycloak to start...');
-        displayWaitingMessage = false;
-      }
+      logger.debug('Waiting for Keycloak to start...');
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   } while (!keycloakReady);

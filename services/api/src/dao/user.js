@@ -183,7 +183,7 @@ const getUsersByProjectId = ({ sqlClient }) => async (
   return R.map(moveUserSshKeyToObject, rows);
 };
 
-const addUser = ({ sqlClient }) => async (
+const addUser = ({ sqlClient, keycloakClient }) => async (
   cred,
   {
     id, email, firstName, lastName, comment,
@@ -202,7 +202,9 @@ const addUser = ({ sqlClient }) => async (
     }),
   );
   const rows = await query(sqlClient, Sql.selectUser(insertId));
-  return R.prop(0, rows);
+  const user = R.prop(0, rows);
+  keycloakClient.users.create(R.pick(['email', 'firstName', 'lastName'], user));
+  return user;
 };
 
 const updateUser = ({ sqlClient }) => async (

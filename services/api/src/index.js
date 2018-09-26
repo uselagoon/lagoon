@@ -8,14 +8,18 @@ const logger = require('./logger');
 const createServer = require('./server');
 
 (async () => {
-  const keycloakClient = await waitForKeycloak({
-    baseUrl: 'http://keycloak:8080/auth',
-    username: 'admin',
-    password: 'admin',
-    grant_type: 'password',
-    client_id: 'admin-cli',
-    realmName: 'lagoon',
-  });
+  const keycloakClient = await waitForKeycloak(
+    {
+      baseUrl: 'http://keycloak:8080/auth',
+      realmName: 'master',
+    },
+    {
+      username: 'admin',
+      password: 'admin',
+      grantType: 'password',
+      clientId: 'admin-cli',
+    },
+  );
 
   logger.debug('Starting to boot the application.');
 
