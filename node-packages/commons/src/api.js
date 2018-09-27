@@ -1,11 +1,11 @@
 // @flow
 
-import type { Project, CustomerPatch, ProjectPatch } from './types';
+import type { Project, CustomerPatch, UserPatch, ProjectPatch } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
 const R = require('ramda');
-const { createJWTWithoutSshKey } = require('./jwt');
+const { createJWTWithoutUserId } = require('./jwt');
 const { logger } = require('./local-logging');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
@@ -19,11 +19,11 @@ if (JWTSECRET == null) {
 
 if (JWTAUDIENCE == null) {
   logger.warn(
-    'No JWTAUDIENCE env variable set... this *might* cause api requests to fail',
+    'No JWTAUDIENCE env variable set... this may cause api requests to fail',
   );
 }
 
-const apiAdminToken = createJWTWithoutSshKey({
+const apiAdminToken = createJWTWithoutUserId({
   payload: {
     role: 'admin',
     iss: 'lagoon-commons',
@@ -65,6 +65,28 @@ class NoActiveSystemsDefined extends Error {
 
 const capitalize = R.replace(/^\w/, R.toUpper);
 
+const sshKeyFragment = graphqlapi.createFragment(`
+fragment on SshKey {
+  id
+  name
+  keyValue
+  keyType
+}
+`);
+
+const userFragment = graphqlapi.createFragment(`
+fragment on User {
+  id
+  email
+  firstName
+  lastName
+  sshKeys {
+    id
+    name
+  }
+}
+`);
+
 const customerFragment = graphqlapi.createFragment(`
 fragment on Customer {
   id
@@ -72,27 +94,49 @@ fragment on Customer {
   comment
   privateKey
   created
+  users {
+    ...${userFragment}
+  }
+}
+`);
+
+const projectFragment = graphqlapi.createFragment(`
+fragment on Project {
+  id
+  name
+  gitUrl
+  users {
+    ...${userFragment}
+  }
 }
 `);
 
 const addCustomer = (
   name: string,
-  id: number = null,
-  comment: string = null,
-  privateKey: string = null,
+  id: ?number = null,
+  comment: ?string = null,
+  privateKey: ?string = null,
 ): Promise<Object> =>
-  graphqlapi.query(`
-  mutation {
+  graphqlapi.mutate(
+    `
+  ($name: String!, $id: Int, $comment: String, $privateKey: String) {
     addCustomer(input: {
-        name: "${name}",
-        id: ${id},
-        comment: "${comment}",
-        privateKey: "${privateKey}"
+        name: $name
+        id: $id
+        comment: $comment
+        privateKey: $privateKey
     }) {
       ...${customerFragment}
     }
   }
-`);
+`,
+    {
+      name,
+      id,
+      comment,
+      privateKey,
+    },
+  );
 
 const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
   graphqlapi.mutate(
@@ -121,20 +165,191 @@ const deleteCustomer = (name: string): Promise<Object> =>
     { name },
   );
 
-const projectFragment = graphqlapi.createFragment(`
-fragment on Project {
-  id
-  name
-  gitUrl
-}
-`);
+const getUserBySshKey = (sshKey: string): Promise<Object> =>
+  graphqlapi.query(
+    `
+  query userBySshKey($sshKey: String!) {
+    userBySshKey(sshKey: $sshKey) {
+      ...${userFragment}
+    }
+  }
+`,
+    { sshKey },
+  );
+
+const addUser = (
+  id: number,
+  email: string,
+  firstName: string,
+  lastName: ?string = null,
+  comment: ?string = null,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int, $email: String, $firstName: String, $lastName: String, $comment: String) {
+    addUser(input: {
+      id: $id
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      comment: $comment
+    }) {
+      ...${userFragment}
+    }
+  }
+`,
+    {
+      id,
+      email,
+      firstName,
+      lastName,
+      comment,
+    },
+  );
+
+const updateUser = (id: number, patch: UserPatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateUserPatchInput!) {
+    updateUser(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${userFragment}
+    }
+  }
+  `,
+    { id, patch },
+  );
+
+const deleteUser = (id: number): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!) {
+    deleteUser(input: {
+      id: $id
+    })
+  }
+  `,
+    { id },
+  );
+
+const addUserToCustomer = (userId: number, customer: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $customer: String!) {
+    addUserToCustomer(input: {
+      userId: $userId
+      customer: $customer
+    }) {
+      ...${customerFragment}
+    }
+  }
+  `,
+    { userId, customer },
+  );
+
+const removeUserFromCustomer = (
+  userId: number,
+  customer: string,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $customer: String!) {
+    removeUserFromCustomer(input: {
+      userId: $userId
+      customer: $customer
+    }) {
+      ...${customerFragment}
+    }
+  }
+  `,
+    { userId, customer },
+  );
+
+const addUserToProject = (userId: number, project: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $project: String!) {
+    addUserToProject(input: {
+      userId: $userId
+      project: $project
+    }) {
+      ...${projectFragment}
+    }
+  }
+  `,
+    { userId, project },
+  );
+
+const removeUserFromProject = (
+  userId: number,
+  project: string,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $project: String!) {
+    removeUserFromProject(input: {
+      userId: $userId
+      project: $project
+    }) {
+      ...${projectFragment}
+    }
+  }
+  `,
+    { userId, project },
+  );
+
+const addSshKey = (
+  id: number,
+  name: string,
+  keyValue: string,
+  keyType: string,
+  userId: number,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $name: String!, $keyValue: String!, $keyType: SshKeyType!, $userId: Int!) {
+    addSshKey(input: {
+      id: $id
+      name: $name
+      keyValue: $keyValue
+      keyType: $keyType
+      userId: $userId
+    }) {
+      ...${sshKeyFragment}
+    }
+  }
+  `,
+    {
+      id,
+      name,
+      keyValue,
+      userId,
+      keyType,
+    },
+  );
+
+const deleteSshKey = (name: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+    ($name: String!) {
+      deleteSshKey(input: {
+        name: $name
+      })
+    }
+    `,
+    {
+      name,
+    },
+  );
 
 const addProject = (
   name: string,
   customer: number,
   gitUrl: string,
   openshift: number,
-  id: number = null,
+  id: ?number = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
@@ -151,7 +366,11 @@ const addProject = (
     }
   `,
     {
-      name, customer, gitUrl, openshift, id,
+      name,
+      customer,
+      gitUrl,
+      openshift,
+      id,
     },
   );
 
@@ -425,6 +644,16 @@ module.exports = {
   addCustomer,
   updateCustomer,
   deleteCustomer,
+  getUserBySshKey,
+  addUser,
+  updateUser,
+  deleteUser,
+  addUserToCustomer,
+  removeUserFromCustomer,
+  addUserToProject,
+  removeUserFromProject,
+  addSshKey,
+  deleteSshKey,
   addProject,
   updateProject,
   deleteProject,

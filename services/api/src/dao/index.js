@@ -6,6 +6,10 @@
 // The logic is split by domain model, that means that each
 // domain model has its own module / file.
 
+// We now use knex as our SQL query builder.
+//
+// Obsolete former notice:
+//
 // A WORD ABOUT DB SECURITY:
 // ---
 // We are heavily relying on building manual SQL strings,
@@ -32,7 +36,7 @@ const { ifNotAdmin, query, prepare } = require('./utils');
 const getPermissions = ({ sqlClient }) => async (args) => {
   const prep = prepare(
     sqlClient,
-    'SELECT key_id as sshKeyId, projects, customers FROM permission WHERE ssh_key = :ssh_key',
+    'SELECT user_id, projects, customers FROM permission WHERE user_id = :user_id',
   );
   const rows = await query(sqlClient, prep(args));
 
@@ -50,19 +54,20 @@ const truncateTable = ({ sqlClient }) => async (cred, args) => {
 
   await query(sqlClient, prep(args));
 
-  // TODO: eventually check rows for success
+  // TODO: Check rows for success
   return 'success';
 };
 
 const daoFns = {
   getPermissions,
   truncateTable,
+  ...require('./customer').Queries,
   ...require('./environment').Queries,
   ...require('./notification').Queries,
   ...require('./openshift').Queries,
-  ...require('./customer').Queries,
   ...require('./project').Queries,
   ...require('./sshKey').Queries,
+  ...require('./user').Queries,
 };
 
 // Maps all dao functions to given sqlClient
