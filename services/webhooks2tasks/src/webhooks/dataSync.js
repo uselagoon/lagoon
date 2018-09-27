@@ -15,6 +15,8 @@ const gitlabUserCustomerAdd = require('../handlers/gitlabUserCustomerAdd');
 const gitlabUserCustomerRemove = require('../handlers/gitlabUserCustomerRemove');
 const gitlabUserProjectAdd = require('../handlers/gitlabUserProjectAdd');
 const gitlabUserProjectRemove = require('../handlers/gitlabUserProjectRemove');
+const gitlabSshKeyAdd = require('../handlers/gitlabSshKeyAdd');
+const gitlabSshKeyRemove = require('../handlers/gitlabSshKeyRemove');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -81,6 +83,14 @@ async function processOther(
 
     case "gitlab:user_remove_from_team":
       await handle(gitlabUserProjectRemove, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:key_create":
+      await handle(gitlabSshKeyAdd, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:key_destroy":
+      await handle(gitlabSshKeyRemove, webhook, `${webhooktype}:${event}`);
       break;
 
     default:

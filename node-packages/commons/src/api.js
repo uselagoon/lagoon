@@ -65,12 +65,25 @@ class NoActiveSystemsDefined extends Error {
 
 const capitalize = R.replace(/^\w/, R.toUpper);
 
+const sshKeyFragment = graphqlapi.createFragment(`
+fragment on SshKey {
+  id
+  name
+  keyValue
+  keyType
+}
+`);
+
 const userFragment = graphqlapi.createFragment(`
 fragment on User {
   id
   email
   firstName
   lastName
+  sshKeys {
+    id
+    name
+  }
 }
 `);
 
@@ -118,7 +131,10 @@ const addCustomer = (
   }
 `,
     {
-      name, id, comment, privateKey,
+      name,
+      id,
+      comment,
+      privateKey,
     },
   );
 
@@ -147,6 +163,18 @@ const deleteCustomer = (name: string): Promise<Object> =>
   }
   `,
     { name },
+  );
+
+const getUserBySshKey = (sshKey: string): Promise<Object> =>
+  graphqlapi.query(
+    `
+  query userBySshKey($sshKey: String!) {
+    userBySshKey(sshKey: $sshKey) {
+      ...${userFragment}
+    }
+  }
+`,
+    { sshKey },
   );
 
 const addUser = (
@@ -270,6 +298,50 @@ const removeUserFromProject = (
   }
   `,
     { userId, project },
+  );
+
+const addSshKey = (
+  id: number,
+  name: string,
+  keyValue: string,
+  keyType: string,
+  userId: number,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $name: String!, $keyValue: String!, $keyType: SshKeyType!, $userId: Int!) {
+    addSshKey(input: {
+      id: $id
+      name: $name
+      keyValue: $keyValue
+      keyType: $keyType
+      userId: $userId
+    }) {
+      ...${sshKeyFragment}
+    }
+  }
+  `,
+    {
+      id,
+      name,
+      keyValue,
+      userId,
+      keyType,
+    },
+  );
+
+const deleteSshKey = (name: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+    ($name: String!) {
+      deleteSshKey(input: {
+        name: $name
+      })
+    }
+    `,
+    {
+      name,
+    },
   );
 
 const addProject = (
@@ -572,6 +644,7 @@ module.exports = {
   addCustomer,
   updateCustomer,
   deleteCustomer,
+  getUserBySshKey,
   addUser,
   updateUser,
   deleteUser,
@@ -579,6 +652,8 @@ module.exports = {
   removeUserFromCustomer,
   addUserToProject,
   removeUserFromProject,
+  addSshKey,
+  deleteSshKey,
   addProject,
   updateProject,
   deleteProject,
