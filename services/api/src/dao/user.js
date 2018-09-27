@@ -19,6 +19,9 @@ const Sql = {
       .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
       .where('sk.key_value', keyValue)
       .andWhere('sk.key_type', keyType)
+      .select(
+        'user.*'
+      )
       .toString(),
   selectUsersByProjectId: ({ projectId }) =>
     knex('user')
@@ -31,6 +34,7 @@ const Sql = {
         'user.first_name',
         'user.last_name',
         'user.comment',
+        'user.gitlab_id',
         'sk.id as ssh_key_id',
         'sk.name as ssh_key_name',
         'sk.key_value as ssh_key_value',
@@ -50,6 +54,7 @@ const Sql = {
         'user.first_name',
         'user.last_name',
         'user.comment',
+        'user.gitlab_id',
         'sk.id as ssh_key_id',
         'sk.name as ssh_key_name',
         'sk.key_value as ssh_key_value',
@@ -59,7 +64,7 @@ const Sql = {
       .where('cu.cid', customerId)
       .toString(),
   insertUser: ({
-    id, email, firstName, lastName, comment,
+    id, email, firstName, lastName, comment, gitlabId,
   }) =>
     knex('user')
       .insert({
@@ -68,6 +73,7 @@ const Sql = {
         first_name: firstName,
         last_name: lastName,
         comment,
+        gitlab_id: gitlabId,
       })
       .toString(),
   updateUser: ({ id, patch }) =>
@@ -124,6 +130,7 @@ const moveUserSshKeyToObject = ({
   firstName,
   lastName,
   comment,
+  gitlabId,
   sshKeyId,
   sshKeyName,
   sshKeyValue,
@@ -135,6 +142,7 @@ const moveUserSshKeyToObject = ({
   firstName,
   lastName,
   comment,
+  gitlabId,
   sshKey: {
     id: sshKeyId,
     name: sshKeyName,
@@ -186,7 +194,7 @@ const getUsersByProjectId = ({ sqlClient }) => async (
 const addUser = ({ sqlClient }) => async (
   cred,
   {
-    id, email, firstName, lastName, comment,
+    id, email, firstName, lastName, comment, gitlabId,
   },
 ) => {
   const {
@@ -199,6 +207,7 @@ const addUser = ({ sqlClient }) => async (
       firstName,
       lastName,
       comment,
+      gitlabId,
     }),
   );
   const rows = await query(sqlClient, Sql.selectUser(insertId));
@@ -209,7 +218,7 @@ const updateUser = ({ sqlClient }) => async (
   { role, userId },
   {
     id, patch, patch: {
-      email, firstName, lastName, comment,
+      email, firstName, lastName, comment, gitlabId,
     },
   },
 ) => {
@@ -230,6 +239,7 @@ const updateUser = ({ sqlClient }) => async (
         firstName,
         lastName,
         comment,
+        gitlabId,
       },
     }),
   );

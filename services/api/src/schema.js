@@ -47,6 +47,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
+    gitlabId: Int
     sshKeys: [SshKey]
   }
 
@@ -259,10 +260,10 @@ const typeDefs = gql`
   }
 
   input AddSshKeyInput {
-    id: Int
+    id: Int!
     name: String!
     keyValue: String!
-    keyType: SshKeyType
+    keyType: SshKeyType!
     userId: Int!
   }
 
@@ -366,6 +367,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
+    gitlabId: Int
   }
 
   input UpdateUserPatchInput {
@@ -373,6 +375,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
+    gitlabId: Int
   }
 
   input UpdateUserInput {
@@ -687,6 +690,12 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getUsersByCustomerId(req.credentials, id);
     },
+  },
+  User: {
+    sshKeys: async({ id }, args, req) => {
+      const dao = getDao(req);
+      return dao.getUserSshKeys(req.credentials, id);
+    }
   },
   Query: {
     userBySshKey: async (root, args, req) => {
