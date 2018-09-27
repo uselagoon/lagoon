@@ -19,6 +19,9 @@ const Sql = {
       .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
       .where('sk.key_value', keyValue)
       .andWhere('sk.key_type', keyType)
+      .select(
+        'user.*'
+      )
       .toString(),
   selectUsersByProjectId: ({ projectId }) =>
     knex('user')

@@ -259,10 +259,10 @@ const typeDefs = gql`
   }
 
   input AddSshKeyInput {
-    id: Int
+    id: Int!
     name: String!
     keyValue: String!
-    keyType: SshKeyType
+    keyType: SshKeyType!
     userId: Int!
   }
 
@@ -687,6 +687,12 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getUsersByCustomerId(req.credentials, id);
     },
+  },
+  User: {
+    sshKeys: async({ id }, args, req) => {
+      const dao = getDao(req);
+      return dao.getUserSshKeys(req.credentials, id);
+    }
   },
   Query: {
     userBySshKey: async (root, args, req) => {
