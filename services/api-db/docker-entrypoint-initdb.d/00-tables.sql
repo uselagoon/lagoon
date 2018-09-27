@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS user (
   first_name    varchar(50),
   last_name     varchar(50),
   comment       text,
-  data          longtext
+  gitlab_id     int
 );
 
 CREATE TABLE IF NOT EXISTS customer (

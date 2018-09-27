@@ -47,7 +47,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
-    data: String
+    gitlabId: Int
     sshKeys: [SshKey]
   }
 
@@ -367,7 +367,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
-    data: String
+    gitlabId: Int
   }
 
   input UpdateUserPatchInput {
@@ -375,7 +375,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
-    data: String
+    gitlabId: Int
   }
 
   input UpdateUserInput {
