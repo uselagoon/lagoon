@@ -11,7 +11,10 @@ const gitlabProjectDelete = require('../handlers/gitlabProjectDelete');
 const gitlabUserCreate = require('../handlers/gitlabUserCreate');
 const gitlabUserUpdate = require('../handlers/gitlabUserUpdate');
 const gitlabUserDelete = require('../handlers/gitlabUserDelete');
-
+const gitlabUserCustomerAdd = require('../handlers/gitlabUserCustomerAdd');
+const gitlabUserCustomerRemove = require('../handlers/gitlabUserCustomerRemove');
+const gitlabUserProjectAdd = require('../handlers/gitlabUserProjectAdd');
+const gitlabUserProjectRemove = require('../handlers/gitlabUserProjectRemove');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -62,6 +65,22 @@ async function processOther(
 
     case "gitlab:user_destroy":
       await handle(gitlabUserDelete, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:user_add_to_group":
+      await handle(gitlabUserCustomerAdd, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:user_remove_from_group":
+      await handle(gitlabUserCustomerRemove, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:user_add_to_team":
+      await handle(gitlabUserProjectAdd, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case "gitlab:user_remove_from_team":
+      await handle(gitlabUserProjectRemove, webhook, `${webhooktype}:${event}`);
       break;
 
     default:

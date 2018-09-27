@@ -65,6 +65,15 @@ class NoActiveSystemsDefined extends Error {
 
 const capitalize = R.replace(/^\w/, R.toUpper);
 
+const userFragment = graphqlapi.createFragment(`
+fragment on User {
+  id
+  email
+  firstName
+  lastName
+}
+`);
+
 const customerFragment = graphqlapi.createFragment(`
 fragment on Customer {
   id
@@ -72,27 +81,46 @@ fragment on Customer {
   comment
   privateKey
   created
+  users {
+    ...${userFragment}
+  }
+}
+`);
+
+const projectFragment = graphqlapi.createFragment(`
+fragment on Project {
+  id
+  name
+  gitUrl
+  users {
+    ...${userFragment}
+  }
 }
 `);
 
 const addCustomer = (
   name: string,
-  id: number = null,
-  comment: string = null,
-  privateKey: string = null,
+  id: ?number = null,
+  comment: ?string = null,
+  privateKey: ?string = null,
 ): Promise<Object> =>
-  graphqlapi.query(`
-  mutation {
+  graphqlapi.mutate(
+    `
+  ($name: String!, $id: Int, $comment: String, $privateKey: String) {
     addCustomer(input: {
-        name: "${name}",
-        id: ${id},
-        comment: "${comment}",
-        privateKey: "${privateKey}"
+        name: $name
+        id: $id
+        comment: $comment
+        privateKey: $privateKey
     }) {
       ...${customerFragment}
     }
   }
-`);
+`,
+    {
+      name, id, comment, privateKey,
+    },
+  );
 
 const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
   graphqlapi.mutate(
@@ -120,15 +148,6 @@ const deleteCustomer = (name: string): Promise<Object> =>
   `,
     { name },
   );
-
-const userFragment = graphqlapi.createFragment(`
-fragment on User {
-  id
-  email
-  firstName
-  lastName
-}
-`);
 
 const addUser = (
   id: number,
@@ -175,7 +194,7 @@ const updateUser = (id: number, patch: UserPatch): Promise<Object> =>
     { id, patch },
   );
 
-const deleteUser = (id: int): Promise<Object> =>
+const deleteUser = (id: number): Promise<Object> =>
   graphqlapi.mutate(
     `
   ($id: Int!) {
@@ -187,20 +206,78 @@ const deleteUser = (id: int): Promise<Object> =>
     { id },
   );
 
-const projectFragment = graphqlapi.createFragment(`
-fragment on Project {
-  id
-  name
-  gitUrl
-}
-`);
+const addUserToCustomer = (userId: number, customer: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $customer: String!) {
+    addUserToCustomer(input: {
+      userId: $userId
+      customer: $customer
+    }) {
+      ...${customerFragment}
+    }
+  }
+  `,
+    { userId, customer },
+  );
+
+const removeUserFromCustomer = (
+  userId: number,
+  customer: string,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $customer: String!) {
+    removeUserFromCustomer(input: {
+      userId: $userId
+      customer: $customer
+    }) {
+      ...${customerFragment}
+    }
+  }
+  `,
+    { userId, customer },
+  );
+
+const addUserToProject = (userId: number, project: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $project: String!) {
+    addUserToProject(input: {
+      userId: $userId
+      project: $project
+    }) {
+      ...${projectFragment}
+    }
+  }
+  `,
+    { userId, project },
+  );
+
+const removeUserFromProject = (
+  userId: number,
+  project: string,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($userId: Int!, $project: String!) {
+    removeUserFromProject(input: {
+      userId: $userId
+      project: $project
+    }) {
+      ...${projectFragment}
+    }
+  }
+  `,
+    { userId, project },
+  );
 
 const addProject = (
   name: string,
   customer: number,
   gitUrl: string,
   openshift: number,
-  id: number = null,
+  id: ?number = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
@@ -498,6 +575,10 @@ module.exports = {
   addUser,
   updateUser,
   deleteUser,
+  addUserToCustomer,
+  removeUserFromCustomer,
+  addUserToProject,
+  removeUserFromProject,
   addProject,
   updateProject,
   deleteProject,

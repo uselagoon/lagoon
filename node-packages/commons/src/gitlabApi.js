@@ -55,14 +55,44 @@ const getRequest = async (url: string): Object => {
   }
 };
 
+const getUserByUsername = async (username: string): Object => {
+  try {
+    const response = await gitlabapi.get('users', {
+      params: {
+        username,
+      },
+    });
+
+    if (response.data.length === 0) {
+      throw new APIError(`No user found with username: ${username}`);
+    }
+
+    return response.data[0];
+  } catch (error) {
+    if (error.response) {
+      throw new APIError(
+        R.pathOr(error.message, ['data', 'message'], error.response),
+      );
+    } else if (error.request) {
+      throw new NetworkError(error.message);
+    } else {
+      throw error;
+    }
+  }
+};
+
 const getGroup = async (groupId: number): Object =>
   getRequest(`groups/${groupId}`);
 const getProject = async (projectId: number): Object =>
   getRequest(`projects/${projectId}`);
 const getUser = async (userId: number): Object => getRequest(`users/${userId}`);
+const getSshKey = async (keyId: number): Object =>
+  getRequest(`keys/${keyId}`);
 
 module.exports = {
   getGroup,
   getProject,
   getUser,
+  getSshKey,
+  getUserByUsername,
 };
