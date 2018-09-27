@@ -26,15 +26,7 @@ async function gitlabUserCreate(webhook: WebhookRequestData) {
       lastName = R.tail(nameParts).join(' ');
     }
 
-    const data = {
-      sync_source: 'gitlab',
-      sync_gitlab: {
-        userId: id,
-        userName: username,
-      },
-    };
-
-    await addUser(id, email, firstName, lastName, null, JSON.stringify(data));
+    await addUser(id, email, firstName, lastName, null, id);
 
     sendToLagoonLogs(
       'info',
