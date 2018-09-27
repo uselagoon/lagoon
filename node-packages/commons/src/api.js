@@ -80,6 +80,7 @@ fragment on User {
   email
   firstName
   lastName
+  data
   sshKeys {
     id
     name
@@ -183,16 +184,18 @@ const addUser = (
   firstName: string,
   lastName: ?string = null,
   comment: ?string = null,
+  data: ?string = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: Int, $email: String, $firstName: String, $lastName: String, $comment: String) {
+  ($id: Int, $email: String, $firstName: String, $lastName: String, $comment: String, $data: String) {
     addUser(input: {
       id: $id
       email: $email
       firstName: $firstName
       lastName: $lastName
       comment: $comment
+      data: $data
     }) {
       ...${userFragment}
     }
@@ -204,6 +207,7 @@ const addUser = (
       firstName,
       lastName,
       comment,
+      data,
     },
   );
 
