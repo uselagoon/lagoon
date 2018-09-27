@@ -8,6 +8,9 @@ const logger = require('./logger');
 const createServer = require('./server');
 
 (async () => {
+
+  const { JWTSECRET, JWTAUDIENCE, LOGSDB_ADMIN_PASSWORD, KEYCLOAK_ADMIN_PASSWORD } = process.env;
+
   const keycloakClient = await waitAndInitKeycloak(
     {
       baseUrl: 'http://keycloak:8080/auth',
@@ -15,7 +18,7 @@ const createServer = require('./server');
     },
     {
       username: 'admin',
-      password: 'admin',
+      password: KEYCLOAK_ADMIN_PASSWORD,
       grantType: 'password',
       clientId: 'admin-cli',
     },
@@ -24,7 +27,6 @@ const createServer = require('./server');
   logger.debug('Starting to boot the application.');
 
   try {
-    const { JWTSECRET, JWTAUDIENCE, LOGSDB_ADMIN_PASSWORD } = process.env;
 
     if (JWTSECRET == null) {
       throw new Error(

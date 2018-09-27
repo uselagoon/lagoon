@@ -40,12 +40,9 @@ searchguard.openid.client_secret: "${SEARCHGUARD_OPENID_CLIENT_SECRET}"\n\
 \n\
 # optional: the scope of the identity token\n\
 searchguard.openid.scope: "profile email"\n\
-\n\
-# optional: the HTTP header name of the JWT. Default: Authorization\n\
-searchguard.openid.header: "Authorization"\n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.0-14/search-guard-kibana-plugin-6.4.0-14.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.0-15/search-guard-kibana-plugin-6.4.0-15.zip
 
 COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/

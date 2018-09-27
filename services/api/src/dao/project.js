@@ -10,6 +10,8 @@ const {
   isPatchEmpty,
 } = require('./utils');
 
+const got = require('got');
+
 // This contains the sql query generation logic
 const Sql = {
   updateProject: ({ permissions: { projects } }, { id, patch }) =>
@@ -213,6 +215,8 @@ const addProject = ({ sqlClient, keycloakClient }) => async (cred, input) => {
       throw err;
     }
   }
+
+  await got()
 
   return project;
 };
