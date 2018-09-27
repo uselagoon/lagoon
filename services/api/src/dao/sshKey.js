@@ -31,7 +31,8 @@ const Sql = {
   selectSshKeyIdsByUserId: userId =>
     knex('user_ssh_key')
       .select('skid')
-      .where('usid', userId),
+      .where('usid', '=', userId)
+      .toString(),
   selectAllCustomerSshKeys: (cred) => {
     if (cred.role !== 'admin') {
       throw new Error('Unauthorized');
@@ -110,7 +111,7 @@ const updateSshKey = ({ sqlClient }) => async (
 ) => {
   if (role !== 'admin') {
     const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(R.prop('id'), rows);
+    const sshKeyIds = R.map(R.pipe(R.prop('skid'), parseInt), rows);
     if (!R.contains(id, sshKeyIds)) {
       throw new Error('Unauthorized.');
     }
@@ -157,7 +158,7 @@ const deleteSshKey = ({ sqlClient }) => async ({ role, userId }, input) => {
     const skid = R.path(['0', 'id'], skidResult);
 
     const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(R.prop('id'), rows);
+    const sshKeyIds = R.map(R.prop('skid'), rows);
     if (!R.contains(skid, sshKeyIds)) {
       throw new Error('Unauthorized.');
     }
