@@ -47,6 +47,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
+    data: String
     sshKeys: [SshKey]
   }
 
@@ -366,6 +367,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
+    data: String
   }
 
   input UpdateUserPatchInput {
@@ -373,6 +375,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     comment: String
+    data: String
   }
 
   input UpdateUserInput {

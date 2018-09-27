@@ -34,6 +34,7 @@ const Sql = {
         'user.first_name',
         'user.last_name',
         'user.comment',
+        'user.data',
         'sk.id as ssh_key_id',
         'sk.name as ssh_key_name',
         'sk.key_value as ssh_key_value',
@@ -53,6 +54,7 @@ const Sql = {
         'user.first_name',
         'user.last_name',
         'user.comment',
+        'user.data',
         'sk.id as ssh_key_id',
         'sk.name as ssh_key_name',
         'sk.key_value as ssh_key_value',
@@ -62,7 +64,7 @@ const Sql = {
       .where('cu.cid', customerId)
       .toString(),
   insertUser: ({
-    id, email, firstName, lastName, comment,
+    id, email, firstName, lastName, comment, data,
   }) =>
     knex('user')
       .insert({
@@ -71,6 +73,7 @@ const Sql = {
         first_name: firstName,
         last_name: lastName,
         comment,
+        data,
       })
       .toString(),
   updateUser: ({ id, patch }) =>
@@ -127,6 +130,7 @@ const moveUserSshKeyToObject = ({
   firstName,
   lastName,
   comment,
+  data,
   sshKeyId,
   sshKeyName,
   sshKeyValue,
@@ -138,6 +142,7 @@ const moveUserSshKeyToObject = ({
   firstName,
   lastName,
   comment,
+  data,
   sshKey: {
     id: sshKeyId,
     name: sshKeyName,
@@ -189,7 +194,7 @@ const getUsersByProjectId = ({ sqlClient }) => async (
 const addUser = ({ sqlClient }) => async (
   cred,
   {
-    id, email, firstName, lastName, comment,
+    id, email, firstName, lastName, comment, data,
   },
 ) => {
   const {
@@ -202,6 +207,7 @@ const addUser = ({ sqlClient }) => async (
       firstName,
       lastName,
       comment,
+      data,
     }),
   );
   const rows = await query(sqlClient, Sql.selectUser(insertId));
@@ -212,7 +218,7 @@ const updateUser = ({ sqlClient }) => async (
   { role, userId },
   {
     id, patch, patch: {
-      email, firstName, lastName, comment,
+      email, firstName, lastName, comment, data,
     },
   },
 ) => {
@@ -233,6 +239,7 @@ const updateUser = ({ sqlClient }) => async (
         firstName,
         lastName,
         comment,
+        data,
       },
     }),
   );
