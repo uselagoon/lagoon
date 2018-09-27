@@ -688,6 +688,12 @@ const resolvers = {
       return dao.getUsersByCustomerId(req.credentials, id);
     },
   },
+  User: {
+    sshKeys: async({ id }, args, req) => {
+      const dao = getDao(req);
+      return dao.getUserSshKeys(req.credentials, id);
+    }
+  },
   Query: {
     userBySshKey: async (root, args, req) => {
       const dao = getDao(req);

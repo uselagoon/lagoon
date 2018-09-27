@@ -33,6 +33,11 @@ const Sql = {
       .select('skid')
       .where('usid', '=', userId)
       .toString(),
+  selectSshKeysByUserId: userId =>
+    knex('ssh_key as sk')
+      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
+      .where('usk.usid', '=', userId)
+      .toString(),
   selectAllCustomerSshKeys: (cred) => {
     if (cred.role !== 'admin') {
       throw new Error('Unauthorized');
@@ -74,6 +79,19 @@ const getCustomerSshKeys = ({ sqlClient }) => async (cred) => {
   }
   const rows = await query(sqlClient, Sql.selectAllCustomerSshKeys(cred));
   return R.map(R.prop('sshKey'), rows);
+};
+
+const getUserSshKeys = ({ sqlClient }) => async (
+  { role, credentialsUserId },
+  userId,
+) => {
+  if (role !== 'admin' && !R.equals(credentialsUserId, userId)) {
+    throw new Error('Unauthorized.');
+  }
+
+  const queryString = Sql.selectSshKeysByUserId(userId);
+  const rows = await query(sqlClient, queryString);
+  return rows;
 };
 
 const addSshKey = ({ sqlClient }) => async (
@@ -174,6 +192,7 @@ module.exports = {
   Sql,
   Queries: {
     getCustomerSshKeys,
+    getUserSshKeys,
     addSshKey,
     updateSshKey,
     deleteSshKey,
