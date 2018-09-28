@@ -10,6 +10,8 @@ const {
   whereAnd,
 } = require('./utils');
 
+const logger = require('../logger');
+
 const Sql = {
   updateCustomer: (cred, input) => {
     const { id, patch } = input;
@@ -46,6 +48,10 @@ const Sql = {
       .where('name', '=', name)
       .select('id')
       .toString(),
+  selectCustomerNames: () =>
+    knex('customer')
+      .select('name')
+      .toString(),
 };
 
 const Helpers = {
@@ -71,9 +77,47 @@ const Helpers = {
 
     return cid;
   },
+  getAllCustomerNames: async (sqlClient) =>
+    await query(sqlClient, Sql.selectCustomerNames()),
 };
 
-const addCustomer = ({ sqlClient }) => async (cred, input) => {
+const updateSearchGuardWithCustomers = async ({ sqlClient, searchguardClient }) => {
+  const customerNames = await Helpers.getAllCustomerNames(sqlClient);
+
+  const tenants = R.reduce(
+    (acc, elem) => {
+      acc[R.prop('name', elem)] = 'RW';
+      return acc;
+    },
+    {"admin_tenant": "RW"},
+    customerNames,
+  );
+
+  try {
+    // Create or Update the lagoonadmin role which has access to all tenants (all customers)
+    await searchguardClient.put(`roles/lagoonadmin`, {
+      body: {
+        "cluster": [
+          "UNLIMITED"
+        ],
+        "indices": {
+          "*": {
+            "*": [
+              "UNLIMITED"
+            ]
+          }
+        },
+        tenants: tenants
+      }
+    });
+  } catch (err) {
+    logger.error(`SearchGuard Error while creating lagoonadmin role: ${err}`)
+    throw new Error(`SearchGuard Error while creating lagoonadmin role: ${err}`)
+  }
+  return;
+}
+
+const addCustomer = ({ sqlClient, searchguardClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -90,6 +134,8 @@ const addCustomer = ({ sqlClient }) => async (cred, input) => {
   );
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);
+
+  await updateSearchGuardWithCustomers({ sqlClient, searchguardClient });
 
   return customer;
 };
@@ -117,13 +163,15 @@ const getCustomerByProjectId = ({ sqlClient }) => async (cred, pid) => {
   return rows ? rows[0] : null;
 };
 
-const deleteCustomer = ({ sqlClient }) => async (cred, input) => {
+const deleteCustomer = ({ sqlClient, searchguardClient }) => async (cred, input) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
   const prep = prepare(sqlClient, 'CALL deleteCustomer(:name)');
 
   await query(sqlClient, prep(input));
+
+  await updateSearchGuardWithCustomers({ sqlClient, searchguardClient });
 
   // TODO: maybe check rows for changed values
   return 'success';

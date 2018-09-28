@@ -5,6 +5,10 @@ sg_all_access:
   backendroles:
     - admin
 
+lagoonadmin:
+  backendroles:
+    - admin
+
 sg_kibana_server:
   readonly: true
   users:

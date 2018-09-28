@@ -42,6 +42,8 @@ async function waitAndInitKeycloak(
     throw new Error('Keycloak client not initialized!');
   }
 
+  logger.debug('Connected to Keycloak');
+
   return keycloakClient;
 }
 
