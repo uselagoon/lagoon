@@ -3,12 +3,12 @@
 const elasticsearch = require('elasticsearch');
 const MariaSQL = require('mariasql');
 
-const waitForKeycloak = require('./util/waitForKeycloak');
+const waitAndInitKeycloak = require('./util/waitAndInitKeycloak');
 const logger = require('./logger');
 const createServer = require('./server');
 
 (async () => {
-  const keycloakClient = await waitForKeycloak(
+  const keycloakClient = await waitAndInitKeycloak(
     {
       baseUrl: 'http://keycloak:8080/auth',
       realmName: 'master',

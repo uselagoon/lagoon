@@ -20,7 +20,7 @@ type UserSettings = {
 
 */
 
-async function waitForKeycloak(
+async function waitAndInitKeycloak(
   connectionSettings /* : ConnectionSettings */,
   userSettings /* : UserSettings */,
 ) {
@@ -45,4 +45,4 @@ async function waitForKeycloak(
   return keycloakClient;
 }
 
-module.exports = waitForKeycloak;
+module.exports = waitAndInitKeycloak;
