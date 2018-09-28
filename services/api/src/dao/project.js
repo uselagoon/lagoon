@@ -1,4 +1,5 @@
 const R = require('ramda');
+const logger = require('../logger');
 const {
   ifNotAdmin,
   inClauseOr,
@@ -192,8 +193,26 @@ const addProject = ({ sqlClient, keycloakClient }) => async (cred, input) => {
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
-  // Create a group in Keycloak named the same as the project
-  await keycloakClient.groups.create(R.pick(['name'], project));
+  try {
+    // Create a group in Keycloak named the same as the project
+    await keycloakClient.groups.create({
+      // Create the group in the `lagoon` realm.
+      // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
+      realm: 'lagoon',
+      name: R.prop('name', project),
+    });
+  } catch (err) {
+    if (err.response.status === 409) {
+      logger.warn(
+        `Failed to create already existing Keycloak group "${R.prop(
+          'name',
+          project,
+        )}"`,
+      );
+    } else {
+      throw err;
+    }
+  }
 
   return project;
 };
