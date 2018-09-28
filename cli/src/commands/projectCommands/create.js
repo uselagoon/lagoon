@@ -384,7 +384,7 @@ export async function handler({ clog, cerr, options }: Args): Promise<number> {
 
   const addProjectResult = await queryGraphQL({
     query: gql`
-      mutation AddProject($input: ProjectInput!) {
+      mutation AddProject($input: AddProjectInput!) {
         addProject(input: $input) {
           id
           name

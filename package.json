@@ -1,5 +1,11 @@
 {
   "name": "lagoon",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Patrick Stapfer <patrick@amazee.io>",
+    "Karl Horky <karl.horky@gmail.com>",
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)"
+  ],
   "private": true,
   "workspaces": [
     "node-packages/*",

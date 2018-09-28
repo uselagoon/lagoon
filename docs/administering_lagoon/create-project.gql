@@ -1,25 +1,64 @@
+# See the docs for a detailed explanation about this file:
+# https://lagoon.readthedocs.io/en/latest/administering_lagoon/graphql_api/#create-first-project
+
+# 1. Create a customer
 mutation {
-  # The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup),
-  # or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone
-  # the Git repository of the project (the private key needs to be in a single string, where new lines are replaced by `\n`
-  # see an example in /local-dev/api-data/api-data.sql)
-  addCustomer(input: {name: "customer-name", privateKey: "[fill me]"}) {
+  addCustomer(
+    input: {
+      # TODO: Fill in the name field
+      # This is the unique identifier of the customer
+      name: ""
+      # TODO: Fill in privateKey field
+      # The private key is a string, with new lines represented by `\n`
+      # See example here: https://github.com/amazeeio/lagoon/blob/66a080fa5cd0da5a0dca05f2532055f055842cba/local-dev/api-data/api-data.gql#L163
+      privateKey: ""
+    }
+  ) {
     name
+    # TODO: Make a note of the customer ID that comes back in the response
     id
   }
+}
 
-  # The OpenShift Cluster that Lagoon should use to deploy to. Yes Lagoon is not only capable to deploy into the OpenShift that
-  # it is running itself, but actually to any OpenShift anywhere in the world. We need to know the following infos for this to work:
-  #   `name` - Unique identifier of the OpenShift
-  #   `consoleUrl` - URL of the OpenShift console (without any `/console` suffix)
-  #   `token` - the token of the `lagoon` Service Account creted in this OpenShift (this is the same token that we also used during installation of Lagoon)
-  addOpenshift(input: {name: "my-openshift", consoleUrl:"[fill me]", token: "[fill me]"}) {
+# 2. Create an OpenShift
+mutation {
+  addOpenshift(
+    input: {
+      # TODO: Fill in the name field
+      # This is the unique identifier of the OpenShift
+      name: ""
+      # TODO: Fill in consoleUrl field
+      # This is the URL of the OpenShift console (without any `/console` suffix)
+      consoleUrl: ""
+      # TODO: Fill in the token field
+      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
+      token: ""
+    }
+  ) {
     name
+    # TODO: Make a note of the openshift ID that comes back in the response
     id
   }
+}
 
-  # This is your git repository that should be deployed, it needs to contain a `.lagoon.yml` file so Lagoon knows what it should do.
-  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], gitUrl: "[fill me]"}) {
+# 3. Create a project and assign it the customer and OpenShift
+mutation {
+  addProject(
+    input: {
+      # TODO: Fill in the name field
+      # This is the unique identifier of the project
+      name: ""
+      # TODO: Fill in the customer field
+      # This is the customer ID from the response of the first query
+      customer: 0
+      # TODO: Fill in the openshift field
+      # This is the OpenShift ID from the response of the first query
+      openshift: 0
+      # TODO: Fill in the gitUrl field
+      # This is the URL to the git repository where a `.lagoon.yml` file should be committed in the root.
+      gitUrl: ""
+    }
+  ) {
     name
     customer {
       name
@@ -27,11 +66,11 @@ mutation {
     openshift {
       name
     }
-    gitUrl,
-    activeSystemsDeploy,
-    activeSystemsPromote,
-    activeSystemsRemove,
-    branches,
+    gitUrl
+    activeSystemsDeploy
+    activeSystemsPromote
+    activeSystemsRemove
+    branches
     pullrequests
   }
 }

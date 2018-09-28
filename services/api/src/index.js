@@ -2,10 +2,25 @@
 
 const elasticsearch = require('elasticsearch');
 const MariaSQL = require('mariasql');
+
+const waitForKeycloak = require('./util/waitForKeycloak');
 const logger = require('./logger');
 const createServer = require('./server');
 
 (async () => {
+  const keycloakClient = await waitForKeycloak(
+    {
+      baseUrl: 'http://keycloak:8080/auth',
+      realmName: 'master',
+    },
+    {
+      username: 'admin',
+      password: 'admin',
+      grantType: 'password',
+      clientId: 'admin-cli',
+    },
+  );
+
   logger.debug('Starting to boot the application.');
 
   try {
@@ -46,6 +61,7 @@ const createServer = require('./server');
       jwtAudience: JWTAUDIENCE,
       sqlClient,
       esClient,
+      keycloakClient,
     });
 
     logger.debug('Finished booting the application.');

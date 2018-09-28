@@ -25,6 +25,7 @@ type CreateServerArgs = {
   jwtAudience: string,
   sqlClient: MariaSQL,
   esClient: elasticsearch.Client,
+  keycloakClient: Object
 };
 */
 
@@ -34,12 +35,11 @@ const createServer = async (args /* : CreateServerArgs */) => {
   const port = normalizePort(process.env.PORT || '3000');
   const server = http.createServer(createApp(args));
 
-  // $FlowFixMe https://github.com/facebook/flow/pull/4176
   const listen = util.promisify(server.listen).bind(server);
   await listen(port);
 
   logger.debug(
-    `Finished booting the server. The server is reachable at Port ${port.toString()}.`,
+    `Finished booting the server. The server is reachable at port ${port.toString()}.`,
   );
 
   return server;

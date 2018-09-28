@@ -121,15 +121,13 @@ const updateOpenshift = ({ sqlClient }) => async (cred, input) => {
   return R.prop(0, rows);
 };
 
-const Queries = {
-  addOpenshift,
-  deleteOpenshift,
-  getAllOpenshifts,
-  getOpenshiftByProjectId,
-  updateOpenshift,
-};
-
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    addOpenshift,
+    deleteOpenshift,
+    getAllOpenshifts,
+    getOpenshiftByProjectId,
+    updateOpenshift,
+  },
 };

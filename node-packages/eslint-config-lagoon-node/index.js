@@ -30,6 +30,8 @@ module.exports = {
     'import/prefer-default-export': 'off',
     // Prettier works better with its default 80 character max-length
     'max-len': 'off',
+    // Disable Airbnb stylistic rule
+    'no-await-in-loop': 'off',
     // Conflicts with Prettier's stripping of unnecessary parentheses
     'no-confusing-arrow': 'off',
     // Disable Airbnb rule

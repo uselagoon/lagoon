@@ -1,11 +1,15 @@
 {
   "name": "eslint-config-lagoon-node",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lagoon's ESLint configuration for Node",
   "main": "index.js",
   "repository": "https://github.com/amazeeio/lagoon",
   "license": "MIT",
   "private": true,
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Karl Horky <karl.horky@gmail.com>"
+  ],
   "dependencies": {
     "babel-eslint": "^8.2.1",
     "eslint": "4.9.0",

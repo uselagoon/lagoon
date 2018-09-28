@@ -1,8 +1,12 @@
 {
   "name": "webhooks2tasks",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "lagoon handler for webhooks",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "build/index.js",
+  "engines": {
+    "node": ">=8.12.0"
+  },
   "scripts": {
     "start": "flow-node build/index.js",
     "build": "flow-remove-types --out-dir build/ src/",
@@ -10,7 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "4.0.0",
     "amqp-connection-manager": "^1.3.5",
     "amqplib": "^0.5.1",
     "flow-remove-types": "^1.2.1"

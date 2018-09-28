@@ -11,17 +11,12 @@ const {
 
 // This contains the sql query generation logic
 const Sql = {
-  updateProject: (cred, input) => {
-    const { id, patch } = input;
-    const { projects } = cred.permissions;
-
-    const ret = knex('project')
+  updateProject: ({ permissions: { projects } }, { id, patch }) =>
+    knex('project')
       .where('id', '=', id)
       .whereIn('id', projects)
-      .update(patch);
-
-    return ret.toString();
-  },
+      .update(patch)
+      .toString(),
   selectProject: id =>
     knex('project')
       .where('id', id)
@@ -31,9 +26,18 @@ const Sql = {
       .where('name', name)
       .select('id')
       .toString(),
+  selectProjectIdsByCustomerIds: customerIds =>
+    knex('project')
+      .select('id')
+      .whereIn('customer', customerIds)
+      .toString(),
 };
 
 const Helpers = {
+  getProjectById: async (sqlClient, id) => {
+    const rows = await query(sqlClient, Sql.selectProject(id));
+    return R.prop(0, rows);
+  },
   getProjectIdByName: async (sqlClient, name) => {
     const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
 
@@ -52,6 +56,8 @@ const Helpers = {
 
     return pid;
   },
+  getProjectIdsByCustomerIds: async (sqlClient, customerIds) =>
+    query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
 };
 
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
@@ -83,10 +89,7 @@ const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
       WHERE e.id = :eid
       ${ifNotAdmin(
     cred.role,
-    `AND (${inClauseOr([
-      ['p.customer', customers],
-      ['p.id', projects],
-    ])})`,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
   )}
       LIMIT 1
     `,
@@ -142,7 +145,7 @@ const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   return rows[0];
 };
 
-const addProject = ({ sqlClient }) => async (cred, input) => {
+const addProject = ({ sqlClient, keycloakClient }) => async (cred, input) => {
   const { customers } = cred.permissions;
   const cid = input.customer.toString();
 
@@ -160,9 +163,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
-  input.openshiftProjectPattern
-    ? ':openshift_project_pattern'
-    : 'NULL'
+  input.openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'
 },
         ${
   input.activeSystemsDeploy
@@ -190,6 +191,9 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
 
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
+
+  // Create a group in Keycloak named the same as the project
+  await keycloakClient.groups.create(R.pick(['name'], project));
 
   return project;
 };
@@ -226,24 +230,19 @@ const updateProject = ({ sqlClient }) => async (cred, input) => {
   }
 
   await query(sqlClient, Sql.updateProject(cred, input));
-  const rows = await query(sqlClient, Sql.selectProject(pid));
-  const project = R.path([0], rows);
-
-  return project;
-};
-
-const Queries = {
-  deleteProject,
-  addProject,
-  getProjectByName,
-  getProjectByGitUrl,
-  getProjectByEnvironmentId,
-  getAllProjects,
-  updateProject,
+  return Helpers.getProjectById(pid);
 };
 
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    deleteProject,
+    addProject,
+    getProjectByName,
+    getProjectByGitUrl,
+    getProjectByEnvironmentId,
+    getAllProjects,
+    updateProject,
+  },
   Helpers,
 };

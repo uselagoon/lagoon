@@ -67,7 +67,11 @@ async function processWebhook (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: C
 				timestamp: rabbitMsg.properties.timestamp,
 				contentType: rabbitMsg.properties.contentType,
 				deliveryMode: rabbitMsg.properties.deliveryMode,
-				headers: Object.assign({}, rabbitMsg.properties.headers, { 'x-delay': retryDelayMilisecs, 'x-retry' : retryCount}),
+				headers: {
+                                  ...rabbitMsg.properties.headers,
+                                  'x-delay': retryDelayMilisecs,
+                                  'x-retry': retryCount,
+                                },
 				persistent: true,
 			};
 			// publishing a new message with the same content as the original message but into the `lagoon-tasks-delay` exchange,

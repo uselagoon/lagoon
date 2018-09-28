@@ -51,7 +51,7 @@ SHELL := /bin/bash
 ####### Default Variables
 #######
 
-# Parameter for all `docker build` commands, can be overwritten with `DOCKER_BUILD_PARAMS=` in cli
+# Parameter for all `docker build` commands, can be overwritten by passing `DOCKER_BUILD_PARAMS=` via the `-e` option
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
@@ -119,6 +119,7 @@ images :=     oc \
 							elasticsearch \
 							kibana \
 							logstash \
+							athenapdf-service \
 							curator \
 							docker-host
 
@@ -162,6 +163,7 @@ build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
+build/athenapdf-service: images/athenapdf-service/Dockerfiles
 
 #######
 ####### PHP Images
@@ -319,6 +321,8 @@ services :=       api \
 									storage-calculator \
 									api-db \
 									drush-alias \
+									keycloak \
+									keycloak-db \
 									ui
 
 service-images += $(services)
@@ -340,6 +344,7 @@ build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db: build/mariadb
+build/keycloak-db: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
