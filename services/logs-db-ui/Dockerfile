@@ -47,7 +47,6 @@ RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=co
 COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/90-keycloak-client-secret.bash /lagoon/entrypoints/
-COPY entrypoints/91-kibanayaml-envplate.bash /lagoon/entrypoints/
 
 RUN fix-permissions config/kibana.yml \
     && fix-permissions /lagoon/kibana-init
