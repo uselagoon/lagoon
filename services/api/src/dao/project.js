@@ -10,8 +10,6 @@ const {
   isPatchEmpty,
 } = require('./utils');
 
-const logger = require('../logger');
-
 // This contains the sql query generation logic
 const Sql = {
   updateProject: ({ permissions: { projects } }, { id, patch }) =>
@@ -220,7 +218,8 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
         )}"`,
       );
     } else {
-      throw err;
+      logger.error(`SearchGuard create role error: ${err}`)
+      throw new Error(`SearchGuard create role error: ${err}`)
     }
   }
 
@@ -262,7 +261,7 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
         // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
         if (err.statusCode != 409) {
           logger.error(`Kibana Error during setup of index pattern ${log}-${project.name}-*: ${err}`)
-          throw new Error(`Kibana Error during setup of index pattern ${log}-${project.name}-*: ${err}`)
+          // Don't fail if we have Kibana Errors, as they are "non-critical"
         }
       }
     }
@@ -291,7 +290,7 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
     }
   } catch (err) {
     logger.error(`Kibana Error during config of default Index: ${err}`)
-    throw new Error(`Kibana Error during config of default Index: ${err}`)
+    // Don't fail if we have Kibana Errors, as they are "non-critical"
   }
 
   return project;
