@@ -4,6 +4,7 @@
 sg_all_access:
   backendroles:
     - admin
+    - lagoonadmin
 
 lagoonadmin:
   backendroles:
