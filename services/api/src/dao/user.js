@@ -1,4 +1,5 @@
 const R = require('ramda');
+const { pickNonNil } = require('../util/pickNonNil');
 const { query, isPatchEmpty, knex } = require('./utils');
 
 const {
@@ -203,7 +204,14 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
   );
   const rows = await query(sqlClient, Sql.selectUser(insertId));
   const user = R.prop(0, rows);
-  keycloakClient.users.create(R.pick(['email', 'firstName', 'lastName'], user));
+
+  await keycloakClient.users.create({
+    // Create the group in the `lagoon` realm.
+    // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
+    realm: 'lagoon',
+    ...pickNonNil(['email', 'firstName', 'lastName'], user),
+  });
+
   return user;
 };
 
