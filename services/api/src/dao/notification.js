@@ -419,21 +419,19 @@ const getUnassignedNotifications = ({ sqlClient }) => async (cred, args) => {
   return concatNonNull(results);
 };
 
-const Queries = {
-  addNotificationRocketChat,
-  addNotificationSlack,
-  addNotificationToProject,
-  deleteNotificationRocketChat,
-  deleteNotificationSlack,
-  getNotificationsByProjectId,
-  removeNotificationFromProject,
-  updateNotificationRocketChat,
-  updateNotificationSlack,
-  getUnassignedNotifications,
-};
-
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    addNotificationRocketChat,
+    addNotificationSlack,
+    addNotificationToProject,
+    deleteNotificationRocketChat,
+    deleteNotificationSlack,
+    getNotificationsByProjectId,
+    removeNotificationFromProject,
+    updateNotificationRocketChat,
+    updateNotificationSlack,
+    getUnassignedNotifications,
+  },
   Helpers,
 };

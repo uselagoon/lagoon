@@ -25,9 +25,9 @@ const Sql = {
   },
   selectCustomer: id =>
     knex('customer')
-      .where('id', '=', id)
+      .where('id', id)
       .toString(),
-  getCustomerByName: (cred, name) => {
+  selectCustomerByName: (cred, name) => {
     const {
       customers,
       // role
@@ -49,6 +49,10 @@ const Sql = {
 };
 
 const Helpers = {
+  getCustomerById: async (sqlClient, id) => {
+    const rows = await query(sqlClient, Sql.selectCustomer(id));
+    return R.prop(0, rows);
+  },
   getCustomerIdByName: async (sqlClient, name) => {
     const cidResult = await query(sqlClient, Sql.selectCustomerIdByName(name));
 
@@ -153,21 +157,22 @@ const updateCustomer = ({ sqlClient }) => async (cred, input) => {
 };
 
 const getCustomerByName = ({ sqlClient }) => async (cred, args) => {
-  const rows = await query(sqlClient, Sql.getCustomerByName(cred, args.name));
+  const rows = await query(
+    sqlClient,
+    Sql.selectCustomerByName(cred, args.name),
+  );
   return rows ? rows[0] : null;
-};
-
-const Queries = {
-  addCustomer,
-  deleteCustomer,
-  getAllCustomers,
-  getCustomerByProjectId,
-  updateCustomer,
-  getCustomerByName,
 };
 
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    addCustomer,
+    deleteCustomer,
+    getAllCustomers,
+    getCustomerByProjectId,
+    updateCustomer,
+    getCustomerByName,
+  },
   Helpers,
 };

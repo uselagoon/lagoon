@@ -1,6 +1,6 @@
 {
   "name": "@lagoon/lagu",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Lagoon Command Line Interface",
   "main": "./bin/lagu.js",
   "bin": {
@@ -11,14 +11,13 @@
     "build"
   ],
   "engines": {
-    "node": ">=8"
+    "node": ">=8.12.0"
   },
   "scripts": {
     "prepublish": "in-publish && yarn run build || not-in-publish",
     "preversion": "yarn test",
     "version": "yarn run build",
     "postversion": "git push && git push --tags",
-    "update-schema": "node scripts/updateSchema.js",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "yarn run lint && jest",
@@ -41,24 +40,24 @@
   },
   "homepage": "https://github.com/amazeeio/lagoon#readme",
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.55",
-    "@babel/core": "^7.0.0-beta.55",
-    "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.55",
-    "@babel/plugin-transform-runtime": "^7.0.0-beta.55",
-    "@babel/preset-env": "^7.0.0-beta.55",
-    "@babel/register": "^7.0.0-beta.55",
-    "@lagoon/commons": "3.0.2",
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.1",
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "@lagoon/commons": "4.0.0",
     "babel-core": "^7.0.0-0",
-    "babel-jest": "^23.4.2",
+    "babel-jest": "^23.6.0",
     "dotenv-extended": "^2.0.2",
-    "jest": "^23.4.2",
+    "jest": "^23.6.0",
     "node-fetch": "^2.2.0",
-    "prettier": "^1.14.0",
+    "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.55",
+    "@babel/runtime": "^7.0.0",
     "camelcase-keys": "^4.2.0",
     "chalk": "^2.4.1",
     "csv-stringify": "^3.1.1",
