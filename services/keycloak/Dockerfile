@@ -46,7 +46,7 @@ ENV TMPDIR=/tmp \
     DB_DATABASE=keycloak \
     KEYCLOAK_LAGOON_ADMIN_USERNAME=lagoonadmin \
     KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin \
-    KEYCLOAK_CLIENT_IDS=searchguard \
+    KEYCLOAK_CLIENT_IDS='searchguard lagoon-ui' \
     KEYCLOAK_CLIENT_WEB_ORIGINS='*' \
     KEYCLOAK_CLIENT_REDIRECT_URIS='*'
 
