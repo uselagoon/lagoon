@@ -7,20 +7,15 @@ import { ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
 import Typekit from 'react-typekit';
 import withKeycloak from '../lib/withKeycloak';
+import withApollo from '../lib/withApollo';
+import Unauthorized from '../components/Unauthorized';
 import { bp, color, fontSize } from '../variables';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-const client = new ApolloClient({
-  uri: publicRuntimeConfig.GRAPHQL_API,
-  headers: {
-    authorization: `Bearer ${publicRuntimeConfig.GRAPHQL_API_TOKEN}`
-  }
-});
-
 class MyApp extends App {
   render() {
-    const { Component, pageProps } = this.props;
+    const { Component, pageProps, apolloClient } = this.props;
     return (
       <Container>
         <Head>
@@ -31,9 +26,11 @@ class MyApp extends App {
             src={`${publicRuntimeConfig.KEYCLOAK_API}/js/keycloak.js`}
           />
         </Head>
-        <ApolloProvider client={client}>
-          <Component {...pageProps} />
-        </ApolloProvider>
+        {(apolloClient && (
+          <ApolloProvider client={apolloClient}>
+            <Component {...pageProps} />
+          </ApolloProvider>
+        )) || <Unauthorized />}
         <style jsx global>{`
           * {
             box-sizing: border-box;
@@ -218,4 +215,4 @@ class MyApp extends App {
   }
 }
 
-export default withKeycloak(MyApp);
+export default withKeycloak(withApollo(MyApp));
