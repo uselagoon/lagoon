@@ -362,7 +362,7 @@ const typeDefs = gql`
 
   input AddUserInput {
     id: Int
-    email: String
+    email: String!
     firstName: String
     lastName: String
     comment: String

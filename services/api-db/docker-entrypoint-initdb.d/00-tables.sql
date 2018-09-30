@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS ssh_key (
 
 CREATE TABLE IF NOT EXISTS user (
   id            int NOT NULL auto_increment PRIMARY KEY,
-  email         varchar(100),
+  email         varchar(100) UNIQUE,
   first_name    varchar(50),
   last_name     varchar(50),
   comment       text

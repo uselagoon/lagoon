@@ -1,3 +1,5 @@
+// @flow
+
 // This is needed to avoid stripping important identifiers like `*` from knex queries
 // Ref: https://github.com/Vincit/objection.js/blob/89481597099e33d913bd7a7e437ff7a487c62fbd/lib/utils/identifierMapping.js#L17-L59
 

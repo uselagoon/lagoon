@@ -22,6 +22,8 @@ type CreateAppArgs = {
   sqlClient: MariaSQL,
   esClient: elasticsearch.Client,
   keycloakClient: Object,
+  searchguardClient: Object,
+  kibanaClient: Object
 };
 */
 
@@ -33,10 +35,12 @@ const createApp = (args /* : CreateAppArgs */) => {
     sqlClient,
     esClient,
     keycloakClient,
+    searchguardClient,
+    kibanaClient
   } = args;
   const app = express();
 
-  const dao = Dao.make(sqlClient, esClient, keycloakClient);
+  const dao = Dao.make(sqlClient, esClient, keycloakClient, searchguardClient, kibanaClient);
 
   app.set('context', {
     sqlClient,

@@ -23,7 +23,8 @@ RUN yarn check --verify-tree
 
 # Making sure we run in production
 ENV NODE_ENV=production \
-    LOGSDB_ADMIN_PASSWORD=admin
+    LOGSDB_ADMIN_PASSWORD=admin \
+    KEYCLOAK_ADMIN_PASSWORD=admin
 
 RUN yarn run build
 

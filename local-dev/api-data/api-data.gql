@@ -75,7 +75,11 @@ mutation FillAPI {
   ### SSH Keys:
   ## credentialtestbothcustomeraccess_user: Access to customer1 and customer2
   CredentialtestCustomerAccessUser: addUser(
-    input: { id: 1, comment: "credentialtestbothcustomeraccess_user" }
+    input: {
+      id: 1
+      email: "credentialtestbothcustomeraccess_user@example.com"
+      comment: "credentialtestbothcustomeraccess_user"
+    }
   ) {
     id
   }
@@ -103,7 +107,11 @@ mutation FillAPI {
 
   ## credentialtestbothprojectaccess_user: Access to project1 and project2
   CredentialtestProjectAccessUser: addUser(
-    input: { id: 2, comment: "credentialtestbothprojectaccess_user" }
+    input: {
+      id: 2
+      email: "credentialtestbothprojectaccess_user@example.com"
+      comment: "credentialtestbothprojectaccess_user"
+    }
   ) {
     id
   }
@@ -131,7 +139,11 @@ mutation FillAPI {
 
   ## credentialtestcrossaccess_user: Access to customer1 and project2
   CredentialtestCrossAccessUser: addUser(
-    input: { id: 3, comment: "credentialtestcrossaccess_user" }
+    input: {
+      id: 3
+      email: "credentialtestcrossaccess_user@example.com"
+      comment: "credentialtestcrossaccess_user"
+    }
   ) {
     id
   }
@@ -169,7 +181,11 @@ mutation FillAPI {
     id
   }
   CiCustomerUserRsa: addUser(
-    input: { id: 4, comment: "ci-customer-user-rsa" }
+    input: {
+      id: 4
+      email: "ci-customer-user-rsa@example.com"
+      comment: "ci-customer-user-rsa"
+    }
   ) {
     id
   }
@@ -190,7 +206,11 @@ mutation FillAPI {
     name
   }
   CiCustomerUserEd25519: addUser(
-    input: { id: 5, comment: "ci-customer-user-ed25519" }
+    input: {
+      id: 5
+      email: "ci-customer-user-ed25519@example.com"
+      comment: "ci-customer-user-ed25519"
+    }
   ) {
     id
   }
