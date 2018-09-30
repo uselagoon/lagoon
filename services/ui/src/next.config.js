@@ -1,13 +1,21 @@
 require('dotenv-extended').load();
 
-const lagoonApiRoute = process.env.LAGOON_ROUTES &&
-  process.env.LAGOON_ROUTES.split(',').find(route => route.includes('api-'));
-const envApiRoute = process.env.API;
+const lagoonRoutes =
+  (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];
+
+const lagoonApiRoute = lagoonRoutes.find(route => route.includes('api-'));
+const envApiRoute = process.env.GRAPHQL_API;
+
+const lagoonKeycloakRoute = lagoonRoutes.find(routes =>
+  routes.includes('keycloak-')
+);
+const envKeycloakRoute = process.env.KEYCLOAK_API;
 
 module.exports = {
   publicRuntimeConfig: {
-    API: envApiRoute || lagoonApiRoute,
-    API_TOKEN: process.env.API_TOKEN,
+    GRAPHQL_API: envApiRoute || lagoonApiRoute,
+    GRAPHQL_API_TOKEN: process.env.GRAPHQL_API_TOKEN,
+    KEYCLOAK_API: envKeycloakRoute || lagoonKeycloakRoute
   },
   distDir: '../build'
-}
+};

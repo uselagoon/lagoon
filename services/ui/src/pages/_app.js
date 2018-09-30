@@ -11,9 +11,9 @@ import { bp, color, fontSize } from '../variables';
 const {serverRuntimeConfig, publicRuntimeConfig} = getConfig()
 
 const client = new ApolloClient({
-  uri: publicRuntimeConfig.API,
+  uri: publicRuntimeConfig.GRAPHQL_API,
   headers: {
-    authorization: `Bearer ${publicRuntimeConfig.API_TOKEN}`,
+    authorization: `Bearer ${publicRuntimeConfig.GRAPHQL_API_TOKEN}`,
   },
 });
 
@@ -24,6 +24,7 @@ class MyApp extends App {
       <Head>
         <link rel="stylesheet" href="/static/normalize.css" />
         <Typekit kitId="ggo2pml" />
+        <script type="text/javascript" src={`${publicRuntimeConfig.KEYCLOAK_API}/js/keycloak.js`} />
       </Head>
       <ApolloProvider client={client}>
         <Component {...pageProps} />
