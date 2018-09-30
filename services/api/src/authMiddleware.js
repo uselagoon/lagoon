@@ -27,7 +27,7 @@ const parseBearerToken = R.compose(
 const decodeToken = (
   token,
   secret,
-) /* : ?{aud: string, role: string, sshKey: string} */ => {
+) /* : ?{aud: string, role: string, userId: number} */ => {
   try {
     const decoded = jwt.verify(token, secret);
     return decoded;
@@ -36,36 +36,28 @@ const decodeToken = (
   }
 };
 
-const notEmpty = R.compose(
-  R.not,
-  R.isEmpty,
-);
-const notNaN = R.compose(
-  R.not,
-  R.equals(NaN),
-);
+const notEmptyOrNaN /* : Function */ = R.allPass([
+  R.compose(
+    R.not,
+    R.isEmpty,
+  ),
+  R.compose(
+    R.not,
+    R.equals(NaN),
+  ),
+]);
 
-const notEmptyOrNaN /* : Function */ = R.allPass([notEmpty, notNaN]);
-
-// input: comma separated string with ids (defaults to '' if null)
-// output: array of ids (as strings again..)
-const parseCommaSeparatedInts /* :  (?string) => Array<string> */ = R.compose(
-  // mariadb returns number ids as strings,...
-  // it's hard to compare ints with strings later on,
-  // so to stay compatible we keep the numbers as strings
+// Input: Comma-separated string with ids (defaults to '' if null)
+// Output: Array of ids as strings
+const splitCommaSeparatedPermissions /* :  (?string) => Array<string> */ = R.compose(
+  // MariaDB returns number ids as strings. In order to avoid
+  // having to compare numbers with strings later on, this
+  // function casts them back to string.
   R.map(R.toString),
   R.filter(notEmptyOrNaN),
   R.map(strId => parseInt(strId)),
   R.split(','),
   R.defaultTo(''),
-);
-
-// rows: Result array of permissions table query
-// currently only parses the projects attribute
-const parsePermissions = R.compose(
-  R.over(R.lensProp('customers'), parseCommaSeparatedInts),
-  R.over(R.lensProp('projects'), parseCommaSeparatedInts),
-  R.defaultTo({}),
 );
 
 /* ::
@@ -93,20 +85,14 @@ type CreateAuthMiddlewareFn =
 
 */
 
-const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
-  req,
-  res,
-  next,
-) => {
-  const {
-    // baseUri,
-    jwtSecret,
-    jwtAudience,
-  } = args;
+const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
+  jwtSecret,
+  jwtAudience,
+}) => async (req, res, next) => {
   const ctx = req.app.get('context');
   const dao = ctx.dao;
 
-  // allow access to status withouth auth
+  // Allow access to status without auth
   if (req.url === '/status') {
     next();
     return;
@@ -126,11 +112,12 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
   try {
     decoded = decodeToken(token, jwtSecret);
   } catch (e) {
-    logger.debug(`Error while decoding auth token: ${e.message}`);
+    const errorMessage = `Error while decoding auth token: ${e.message}`;
+    logger.debug(errorMessage);
     res.status(500).send({
       errors: [
         {
-          message: `Error while decoding auth token: ${e.message}`,
+          message: errorMessage,
         },
       ],
     });
@@ -139,10 +126,10 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
 
   try {
     if (decoded == null) {
-      throw new Error("Decoding token resulted in 'null' or 'undefined'");
+      throw new Error('Decoding token resulted in "null" or "undefined"');
     }
 
-    const { sshKey, role = 'none', aud } = decoded;
+    const { userId, role = 'none', aud } = decoded;
 
     if (jwtAudience && aud !== jwtAudience) {
       logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
@@ -152,24 +139,34 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
       return;
     }
 
-    // We need this, since non-admin credentials are required to have an ssh-key
+    // We need this, since non-admin credentials are required to have an user id
     let nonAdminCreds = {};
 
     if (role !== 'admin') {
-      const rawPermissions = await dao.getPermissions({ sshKey });
+      const rawPermissions = await dao.getPermissions({ userId });
 
       if (rawPermissions == null) {
-        res
-          .status(401)
-          .send({ errors: [{ message: 'Unauthorized - Unknown SSH key' }] });
+        res.status(401).send({
+          errors: [
+            {
+              message: `Unauthorized - No permissions for user id ${userId}`,
+            },
+          ],
+        });
         return;
       }
 
-      const permissions = parsePermissions(rawPermissions);
+      // Split comma-separated permissions values to arrays
+      const permissions = R.compose(
+        R.over(R.lensProp('customers'), splitCommaSeparatedPermissions),
+        R.over(R.lensProp('projects'), splitCommaSeparatedPermissions),
+        R.defaultTo({}),
+      )(rawPermissions);
 
       nonAdminCreds = {
-        sshKey,
-        permissions, // for read & write
+        userId,
+        // Read and write permissions
+        permissions,
       };
     }
 
@@ -189,5 +186,5 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = args => async (
 
 module.exports = {
   createAuthMiddleware,
-  parseCommaSeparatedInts,
+  splitCommaSeparatedPermissions,
 };

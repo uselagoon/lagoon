@@ -27,19 +27,18 @@ const Sql = {
 const getEnvironmentByName = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   const str = `
-      SELECT
-        *
-      FROM environment
-      WHERE name = :name AND
-      project = :project
-      ${ifNotAdmin(
+    SELECT *
+    FROM environment
+    WHERE name = :name AND
+    project = :project
+    ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([
       ['customer', customers],
       ['project.id', projects],
     ])})`,
   )}
-    `;
+  `;
 
   const prep = prepare(sqlClient, str);
 
@@ -61,13 +60,12 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (
 
   const prep = prepare(
     sqlClient,
-    `SELECT
-        *
+    `
+      SELECT *
       FROM environment e
       WHERE e.project = :pid
       ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
       ${args.type ? 'AND e.environment_type = :type' : ''}
-
     `,
   );
 
@@ -86,8 +84,8 @@ const getEnvironmentStorageByEnvironmentId = ({ sqlClient }) => async (
 
   const prep = prepare(
     sqlClient,
-    `SELECT
-        *
+    `
+      SELECT *
       FROM environment_storage es
       WHERE es.environment = :eid
     `,
@@ -104,15 +102,15 @@ const getEnvironmentStorageMonthByEnvironmentId = ({ sqlClient }) => async (
   args,
 ) => {
   const str = `
-      SELECT
-        SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
-      FROM
-        environment_storage
-      WHERE
-        environment = :eid
-        AND YEAR(updated) = YEAR(STR_TO_DATE(:month, '%Y-%m'))
-        AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
-    `;
+    SELECT
+      SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
+    FROM
+      environment_storage
+    WHERE
+      environment = :eid
+      AND YEAR(updated) = YEAR(STR_TO_DATE(:month, '%Y-%m'))
+      AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
+  `;
 
   const prep = prepare(sqlClient, str);
 
@@ -127,12 +125,12 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
   args,
 ) => {
   const str = `
-  SELECT
-    e.created, e.deleted
-  FROM
-    environment e
-  WHERE
-    e.id = :eid
+    SELECT
+      e.created, e.deleted
+    FROM
+      environment e
+    WHERE
+      e.id = :eid
   `;
 
   const prep = prepare(sqlClient, str);
@@ -224,38 +222,40 @@ const getEnvironmentHitsMonthByEnvironmentId = ({ esClient }) => async (
 ) => {
   const interested_month = args.month ? new Date(args.month) : new Date();
   const now = new Date();
-  const interested_month_relative = interested_month.getMonth() - now.getMonth();
+  const interested_month_relative =
+    interested_month.getMonth() - now.getMonth();
   // Elasticsearch needs relative numbers with + or - in front. The - already exists, so we add the + if it's a positive number.
-  const interested_month_relative_plus_sign = (interested_month_relative < 0 ? "":"+") + interested_month_relative;
+  const interested_month_relative_plus_sign =
+    (interested_month_relative < 0 ? '' : '+') + interested_month_relative;
 
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
       body: {
-        "query": {
-          "bool": {
-            "must": [
+        query: {
+          bool: {
+            must: [
               {
-                "range": {
-                  "@timestamp": {
-                    "gte": `now${interested_month_relative_plus_sign}M/M`,
-                    "lte": `now${interested_month_relative_plus_sign}M/M`
-                  }
-                }
-              }
+                range: {
+                  '@timestamp': {
+                    gte: `now${interested_month_relative_plus_sign}M/M`,
+                    lte: `now${interested_month_relative_plus_sign}M/M`,
+                  },
+                },
+              },
             ],
-            "must_not": [
+            must_not: [
               {
-                "match_phrase": {
-                  "request_header_useragent": {
-                    "query": "StatusCake"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
+                match_phrase: {
+                  request_header_useragent: {
+                    query: 'StatusCake',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
     });
 
     const response = {
@@ -279,17 +279,18 @@ const getEnvironmentByOpenshiftProjectName = ({ sqlClient }) => async (
 ) => {
   const { customers, projects } = cred.permissions;
   const str = `
-      SELECT
-        e.*
-      FROM environment e
-        JOIN project p ON e.project = p.id
-        JOIN customer c ON p.customer = c.id
-      WHERE e.openshift_project_name = :openshift_project_name
-      ${ifNotAdmin(
+    SELECT
+      e.*
+    FROM
+      environment e
+      JOIN project p ON e.project = p.id
+      JOIN customer c ON p.customer = c.id
+    WHERE e.openshift_project_name = :openshift_project_name
+    ${ifNotAdmin(
     cred.role,
     `AND (${inClauseOr([['c.id', customers], ['p.id', projects]])})`,
   )}
-    `;
+  `;
 
   const prep = prepare(sqlClient, str);
 
@@ -307,7 +308,8 @@ const addOrUpdateEnvironment = ({ sqlClient }) => async (cred, input) => {
   }
   const prep = prepare(
     sqlClient,
-    `CALL CreateOrUpdateEnvironment(
+    `
+      CALL CreateOrUpdateEnvironment(
         :name,
         :project,
         :deploy_type,
@@ -332,7 +334,8 @@ const addOrUpdateEnvironmentStorage = ({ sqlClient }) => async (
   }
   const prep = prepare(
     sqlClient,
-    `CALL CreateOrUpdateEnvironmentStorage(
+    `
+      CALL CreateOrUpdateEnvironmentStorage(
         :environment,
         :persistent_storage_claim,
         :bytes_used
@@ -355,8 +358,8 @@ const getEnvironmentByEnvironmentStorageId = ({ sqlClient }) => async (
   }
   const prep = prepare(
     sqlClient,
-    `SELECT
-        e.*
+    `
+      SELECT e.*
       FROM environment_storage es
       JOIN environment e ON es.environment = e.id
       WHERE es.id = :esid
@@ -412,23 +415,21 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
   return rows;
 };
 
-const Queries = {
-  addOrUpdateEnvironment,
-  addOrUpdateEnvironmentStorage,
-  getEnvironmentByName,
-  getEnvironmentByOpenshiftProjectName,
-  getEnvironmentHoursMonthByEnvironmentId,
-  getEnvironmentStorageByEnvironmentId,
-  getEnvironmentStorageMonthByEnvironmentId,
-  getEnvironmentHitsMonthByEnvironmentId,
-  getEnvironmentByEnvironmentStorageId,
-  deleteEnvironment,
-  getEnvironmentsByProjectId,
-  updateEnvironment,
-  getAllEnvironments,
-};
-
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    addOrUpdateEnvironment,
+    addOrUpdateEnvironmentStorage,
+    getEnvironmentByName,
+    getEnvironmentByOpenshiftProjectName,
+    getEnvironmentHoursMonthByEnvironmentId,
+    getEnvironmentStorageByEnvironmentId,
+    getEnvironmentStorageMonthByEnvironmentId,
+    getEnvironmentHitsMonthByEnvironmentId,
+    getEnvironmentByEnvironmentStorageId,
+    deleteEnvironment,
+    getEnvironmentsByProjectId,
+    updateEnvironment,
+    getAllEnvironments,
+  },
 };

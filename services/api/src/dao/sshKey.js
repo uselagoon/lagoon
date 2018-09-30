@@ -1,51 +1,24 @@
 const R = require('ramda');
+const sshpk = require('sshpk');
 const {
-  ifNotAdmin,
-  inClause,
-  inClauseOr,
-  isPatchEmpty,
-  knex,
-  prepare,
-  query,
-  hasSshKeyPatch,
+  isPatchEmpty, knex, prepare, query,
 } = require('./utils');
-const { validateSshKey } = require('@lagoon/commons/src/jwt');
 
-const { getProjectIdByName } = require('./project').Helpers;
-const { getCustomerIdByName } = require('./customer').Helpers;
+const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
-const fullSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
+const validateSshKey = (key /* : string */) /* : boolean */ => {
+  // Validate the format of the ssh key. This fails with an exception
+  // if the key is invalid. We are not actually interested in the
+  // result of the parsing and just use this for validation.
+  try {
+    sshpk.parseKey(key, 'ssh');
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 const Sql = {
-  allowedToModify: (cred, id) => {
-    const allowedQuery = knex('ssh_key AS sk')
-      .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
-      .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
-
-    if (cred.role !== 'admin') {
-      const { customers, projects } = cred.permissions;
-      allowedQuery.where('sk.id', '=', id).andWhere(function allowedWhere() {
-        this.where(function allowedWhereIn() {
-          this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
-        });
-        this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
-      });
-    }
-
-    return allowedQuery
-      .select('sk.id', 'ps.pid', 'cs.cid')
-      .select(knex.raw('IF(COUNT(sk.id) > 0, 1, 0) as allowed'))
-      .limit(1)
-      .toString();
-  },
-  updateSshKey: (cred, input) => {
-    const { id, patch } = input;
-
-    return knex('ssh_key')
-      .where('id', '=', id)
-      .update(patch)
-      .toString();
-  },
   selectSshKey: id =>
     knex('ssh_key')
       .where('id', '=', id)
@@ -55,143 +28,137 @@ const Sql = {
       .where('name', '=', name)
       .select('id')
       .toString(),
-  selectUnassignedSshKeys: () =>
-    knex('ssh_key AS sk')
-      .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
-      .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid')
-      .select('sk.*')
-      .whereRaw('ps.pid IS NULL and cs.cid IS NULL')
-      .toString(),
-  selectAllSshKeys: (cred) => {
-    const { customers, projects } = cred.permissions;
-
-    const sshKeysQuery = knex('ssh_key AS sk')
-      .leftJoin('project_ssh_key AS ps', 'sk.id', '=', 'ps.skid')
-      .leftJoin('customer_ssh_key AS cs', 'sk.id', '=', 'cs.skid');
-
+  selectSshKeyIdsByUserId: userId =>
+    knex('user_ssh_key')
+      .select('skid')
+      .where('usid', userId),
+  selectAllCustomerSshKeys: (cred) => {
     if (cred.role !== 'admin') {
-      sshKeysQuery.where(function sshKeysWhere() {
-        this.where(function sshKeysWhereIn() {
-          this.whereIn('cs.cid', customers).orWhereIn('ps.pid', projects);
-        });
-        this.orWhereRaw('(cs.cid IS NULL and ps.pid IS NULL)');
-      });
+      throw new Error('Unauthorized');
     }
-
-    return sshKeysQuery.select('sk.*').toString();
+    return knex('ssh_key AS sk')
+      .join('user_ssh_key AS usk', 'sk.id', '=', 'usk.skid')
+      .join('customer_user AS cu', 'usk.usid', '=', 'cu.usid')
+      .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
+      .toString();
   },
-};
-
-// Helper function to map from sshKey name to id
-// Will throw on several error cases, which is nasty, but
-// there is no idiomatic way to handle this better in JS
-const getSshKeyIdByName = async (sqlClient, name) => {
-  const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(name));
-
-  const amount = R.length(skidResult);
-  if (amount > 1) {
-    throw new Error(
-      `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`,
-    );
-  }
-
-  if (amount === 0) {
-    throw new Error(`Not found: '${name}'`);
-  }
-
-  const skid = R.path(['0', 'id'], skidResult);
-
-  return skid;
-};
-
-// Helper function to map the Sql.allowedToModify result to a boolean
-const isModificationAllowed = async (sqlClient, cred, skid) => {
-  const result = await query(sqlClient, Sql.allowedToModify(cred, skid));
-
-  const allowed = R.pathOr('0', ['0', 'allowed'], result);
-  return allowed === '1';
-};
-
-const getSshKeysByProjectId = ({ sqlClient }) => async (cred, pid) => {
-  const { customers, projects } = cred.permissions;
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-      sk.id,
-      sk.name,
-      sk.key_value,
-      sk.key_type,
-      sk.created
-    FROM project_ssh_key ps
-    JOIN ssh_key sk ON ps.skid = sk.id
-    JOIN project p ON ps.pid = p.id
-    WHERE ps.pid = :pid
-      ${ifNotAdmin(
-    cred.role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
-    `,
-  );
-
-  const rows = await query(sqlClient, prep({ pid }));
-
-  return rows || null;
+  insertSshKey: ({
+    id, name, keyValue, keyType,
+  }) =>
+    knex('ssh_key')
+      .insert({
+        id,
+        name,
+        key_value: keyValue,
+        key_type: keyType,
+      })
+      .toString(),
+  addSshKeyToUser: ({ sshKeyId, userId }) =>
+    knex('user_ssh_key')
+      .insert({
+        usid: userId,
+        skid: sshKeyId,
+      })
+      .toString(),
+  updateSshKey: ({ id, patch }) =>
+    knex('ssh_key')
+      .where('id', '=', id)
+      .update(patch)
+      .toString(),
 };
 
 const getCustomerSshKeys = ({ sqlClient }) => async (cred) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
-
-  const rows = await query(
-    sqlClient,
-    `SELECT CONCAT(sk.key_type, ' ', sk.key_value) as sshKey
-       FROM ssh_key sk, customer c, customer_ssh_key csk
-       WHERE csk.cid = c.id AND csk.skid = sk.id`,
-  );
-
+  const rows = await query(sqlClient, Sql.selectAllCustomerSshKeys(cred));
   return R.map(R.prop('sshKey'), rows);
 };
 
-const getSshKeysByCustomerId = ({ sqlClient }) => async (cred, cid) => {
-  const { customers } = cred.permissions;
+const addSshKey = ({ sqlClient }) => async (
+  { role, userId: credentialsUserId },
+  {
+    id, name, keyValue, keyType, userId,
+  },
+) => {
+  if (!validateSshKey(formatSshKey({ keyType, keyValue }))) {
+    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
+  }
 
-  const prep = sqlClient.prepare(`
-      SELECT
-        id,
-        name,
-        key_value,
-        key_type,
-        created
-      FROM customer_ssh_key cs
-      JOIN ssh_key sk ON cs.skid = sk.id
-      WHERE cs.cid = :cid
-      ${ifNotAdmin(cred.role, `AND ${inClause('cs.cid', customers)}`)}
-    `);
+  if (role !== 'admin' && !R.equals(credentialsUserId, userId)) {
+    throw new Error('Unauthorized.');
+  }
 
-  const rows = await query(sqlClient, prep({ cid }));
+  await query(
+    sqlClient,
+    Sql.insertSshKey({
+      id,
+      name,
+      keyValue,
+      keyType,
+    }),
+  );
+  await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: id, userId }));
+  const rows = await query(sqlClient, Sql.selectSshKey(id));
 
-  return rows;
+  return R.prop(0, rows);
 };
 
-const getAllSshKeys = ({ sqlClient }) => async (cred) => {
-  const rows = await query(sqlClient, Sql.selectAllSshKeys(cred));
-  return rows;
+const updateSshKey = ({ sqlClient }) => async (
+  { role, userId },
+  { id, patch, patch: { name, keyType, keyValue } },
+) => {
+  if (role !== 'admin') {
+    const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
+    const sshKeyIds = R.map(R.prop('id'), rows);
+    if (!R.contains(id, sshKeyIds)) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  if (isPatchEmpty({ patch })) {
+    throw new Error('Input patch requires at least 1 attribute');
+  }
+
+  if (
+    (keyType || keyValue) &&
+    !validateSshKey(formatSshKey({ keyType, keyValue }))
+  ) {
+    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
+  }
+
+  await query(
+    sqlClient,
+    Sql.updateSshKey({ id, patch: { name, keyType, keyValue } }),
+  );
+  const rows = await query(sqlClient, Sql.selectSshKey(id));
+
+  return R.prop(0, rows);
 };
 
-const getUnassignedSshKeys = ({ sqlClient }) => async () => {
-  const rows = await query(sqlClient, Sql.selectUnassignedSshKeys());
+const deleteSshKey = ({ sqlClient }) => async ({ role, userId }, input) => {
+  if (role !== 'admin') {
+    const { name } = input;
 
-  return rows;
-};
+    // Map from sshKey name to id and throw on several error cases
+    const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(name));
 
-const deleteSshKey = ({ sqlClient }) => async (cred, input) => {
-  if (cred.role !== 'admin') {
-    // Will throw on invalid conditions
-    const skid = await getSshKeyIdByName(sqlClient, input.name);
+    const amount = R.length(skidResult);
+    if (amount > 1) {
+      throw new Error(
+        `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`,
+      );
+    }
 
-    const allowed = await isModificationAllowed(sqlClient, cred, skid);
-    if (!allowed) {
+    if (amount === 0) {
+      throw new Error(`Not found: '${name}'`);
+    }
+
+    const skid = R.path(['0', 'id'], skidResult);
+
+    const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
+    const sshKeyIds = R.map(R.prop('id'), rows);
+    if (!R.contains(skid, sshKeyIds)) {
       throw new Error('Unauthorized.');
     }
   }
@@ -202,181 +169,13 @@ const deleteSshKey = ({ sqlClient }) => async (cred, input) => {
   return 'success';
 };
 
-const addSshKey = ({ sqlClient }) => async (cred, input) => {
-  if (!validateSshKey(fullSshKey(input))) {
-    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
-  }
-
-  const prep = prepare(
-    sqlClient,
-    `CALL CreateSshKey(
-        :id,
-        :name,
-        :key_value,
-        :key_type
-     );
-    `,
-  );
-
-  const rows = await query(sqlClient, prep(input));
-
-  const sshKey = R.path([0, 0], rows);
-  return sshKey;
-};
-
-const addSshKeyToProject = ({ sqlClient }) => async (cred, input) => {
-  const { projects } = cred.permissions;
-
-  if (cred.role !== 'admin') {
-    // Will throw on invalid conditions
-    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
-    const pid = await getProjectIdByName(sqlClient, input.project);
-
-    if (!R.contains(pid, projects)) {
-      throw new Error('Unauthorized.');
-    }
-
-    const allowed = await isModificationAllowed(sqlClient, cred, skid);
-    if (!allowed) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
-  const prep = prepare(
-    sqlClient,
-    'CALL CreateProjectSshKey(:project, :sshKey)',
-  );
-  const rows = await query(sqlClient, prep(input));
-  const project = R.path([0, 0], rows);
-
-  return project;
-};
-
-const removeSshKeyFromProject = ({ sqlClient }) => async (cred, input) => {
-  const { projects } = cred.permissions;
-  if (cred.role !== 'admin') {
-    // Will throw on invalid conditions
-    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
-    const pid = await getProjectIdByName(sqlClient, input.project);
-
-    if (!R.contains(pid, projects)) {
-      throw new Error('Unauthorized.');
-    }
-
-    const allowed = await isModificationAllowed(sqlClient, cred, skid);
-    if (!allowed) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
-  const prep = prepare(
-    sqlClient,
-    'CALL DeleteProjectSshKey(:project, :sshKey)',
-  );
-  const rows = await query(sqlClient, prep(input));
-  const project = R.path([0, 0], rows);
-
-  return project;
-};
-
-const addSshKeyToCustomer = ({ sqlClient }) => async (cred, input) => {
-  const { customers } = cred.permissions;
-
-  if (cred.role !== 'admin') {
-    // Will throw on invalid conditions
-    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
-    const cid = await getCustomerIdByName(sqlClient, input.customer);
-
-    if (!R.contains(cid, customers)) {
-      throw new Error('Unauthorized.');
-    }
-
-    const allowed = await isModificationAllowed(sqlClient, cred, skid);
-
-    if (!allowed) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
-  const prep = prepare(
-    sqlClient,
-    'CALL CreateCustomerSshKey(:customer, :ssh_key)',
-  );
-  const rows = await query(sqlClient, prep(input));
-  const customer = R.path([0, 0], rows);
-
-  return customer;
-};
-
-const removeSshKeyFromCustomer = ({ sqlClient }) => async (cred, input) => {
-  const { customers } = cred.permissions;
-  if (cred.role !== 'admin') {
-    // Will throw on invalid conditions
-    const skid = await getSshKeyIdByName(sqlClient, input.sshKey);
-    const cid = await getCustomerIdByName(sqlClient, input.customer);
-
-    if (!R.contains(cid, customers)) {
-      throw new Error('Unauthorized.');
-    }
-
-    const allowed = await isModificationAllowed(sqlClient, cred, skid);
-
-    if (!allowed) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
-  const prep = prepare(
-    sqlClient,
-    'CALL DeleteCustomerSshKey(:customer, :sshKey)',
-  );
-  const rows = await query(sqlClient, prep(input));
-  const customer = R.path([0, 0], rows);
-
-  return customer;
-};
-
-const updateSshKey = ({ sqlClient }) => async (cred, input) => {
-  const sshKeyId = R.path(['permissions', 'sshKeyId'], cred);
-  const skid = input.id.toString();
-
-  if (cred.role !== 'admin' && !R.equals(sshKeyId, skid)) {
-    const allowed = await isModificationAllowed(sqlClient, cred, skid);
-    if (!allowed) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
-  if (isPatchEmpty(input)) {
-    throw new Error('input.patch requires at least 1 attribute');
-  }
-
-  if (hasSshKeyPatch(input) && !validateSshKey(fullSshKey(input.patch))) {
-    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
-  }
-
-  await query(sqlClient, Sql.updateSshKey(cred, input));
-  const rows = await query(sqlClient, Sql.selectSshKey(skid));
-
-  return R.prop(0, rows);
-};
-
-const Queries = {
-  addSshKey,
-  addSshKeyToCustomer,
-  addSshKeyToProject,
-  deleteSshKey,
-  getAllSshKeys,
-  getSshKeysByCustomerId,
-  getSshKeysByProjectId,
-  getUnassignedSshKeys,
-  getCustomerSshKeys,
-  removeSshKeyFromCustomer,
-  removeSshKeyFromProject,
-  updateSshKey,
-};
-
 module.exports = {
   Sql,
-  Queries,
+  Queries: {
+    getCustomerSshKeys,
+    addSshKey,
+    updateSshKey,
+    deleteSshKey,
+  },
+  validateSshKey,
 };

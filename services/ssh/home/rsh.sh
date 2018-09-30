@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Open a remote shell session to a container
+
 # takes arguments:
 # $1: API JWT Admin Token
 # $2: ssh public key of the connecting user
@@ -28,19 +30,20 @@ else
 fi
 
 ##
-## check if this user has access to this openshift project with using an API token of that User
+## Check if this user has access to this OpenShift project by using an API token of that user
 ##
-TOKEN=$(./token.sh "$USER_SSH_KEY")
+TOKEN=$(./token.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY")
 BEARER="Authorization: bearer $TOKEN"
 GRAPHQL="query getEnvironmentByOpenshiftProjectName {
   environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
     openshiftProjectName
   }
 }"
-QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}') # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+# GraphQL query on single line with \\n for newlines and escaped quotes
+QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$QUERY\"}")
 
-# checking if the returned openshift projectname is the same as we are requesting. This will only be true if the user actually has access to this environment
+# Check if the returned OpenShift projectname is the same as the one being requested. This will only be true if the user actually has access to this environment
 if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshiftProjectName')" == "$PROJECT" ]]; then
   echo "no access to $PROJECT"
   exit
@@ -61,7 +64,8 @@ ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
     }
   }
 }"
-ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}') # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+# GraphQL query on single line with \\n for newlines and escaped quotes
+ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}")
 
 OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.consoleUrl')
@@ -95,14 +99,15 @@ fi
 
 OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${OPENSHIFT_TOKEN} --server=${OPENSHIFT_CONSOLE} "
 
-# if there is a deploymentconfig for the given service
+# If there is a deploymentconfig for the given service
 if [[ "$OC get deploymentconfigs -l service=${SERVICE}" ]]; then
   DEPLOYMENTCONFIG=$($OC get deploymentconfigs -l service=${SERVICE} -o name)
   # If the deploymentconfig is scaled to 0, scale to 1
   if [[ $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
 
     $OC scale --replicas=1 ${DEPLOYMENTCONFIG} >/dev/null 2>&1
-    # wait until the scaling is done
+
+    # Wait until the scaling is done
     while [[ ! $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
     do
       sleep 1
