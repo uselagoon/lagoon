@@ -32,9 +32,8 @@ async function waitAndInitKeycloak(
   do {
     try {
       await keycloakClient.auth(userSettings);
-      const realm = await keycloakClient.realms.findOne({realm: 'lagoon'});
-      if (!realm) {
-        throw new Error('lagoon realm not existing')
+      if (!(await keycloakClient.realms.findOne({ realm: 'lagoon' }))) {
+        throw new Error('The "lagoon" realm has not been created yet.')
       }
       keycloakReady = true;
     } catch (err) {
