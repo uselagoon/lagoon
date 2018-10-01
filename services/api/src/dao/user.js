@@ -213,8 +213,8 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
       username: R.prop('email', user),
       realm: 'lagoon',
       enabled: true,
-      "attributes": {
-        "lagoon-uid": [ R.prop('id', user) ]
+      attributes: {
+        'lagoon-uid': [R.prop('id', user)],
       },
       ...pickNonNil(['email', 'firstName', 'lastName'], user),
     });
@@ -227,8 +227,8 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
         )}"`,
       );
     } else {
-      logger.error(`SearchGuard create user error: ${err}`)
-      throw new Error(`SearchGuard create user error: ${err}`)
+      logger.error(`SearchGuard create user error: ${err}`);
+      throw new Error(`SearchGuard create user error: ${err}`);
     }
   }
 
@@ -268,7 +268,10 @@ const updateUser = ({ sqlClient }) => async (
   return R.prop(0, rows);
 };
 
-const deleteUser = ({ sqlClient, keycloakClient }) => async ({ role, userId }, { id }) => {
+const deleteUser = ({ sqlClient, keycloakClient }) => async (
+  { role, userId },
+  { id },
+) => {
   if (role !== 'admin' && !R.equals(userId, id)) {
     throw new Error('Unauthorized.');
   }
@@ -300,8 +303,8 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async ({ role, userId }, {
       realm: 'lagoon',
     });
   } catch (err) {
-    logger.error(`SearchGuard delete user error: ${err}`)
-    throw new Error(`SearchGuard delete user error: ${err}`)
+    logger.error(`SearchGuard delete user error: ${err}`);
+    throw new Error(`SearchGuard delete user error: ${err}`);
   }
 
   return 'success';
