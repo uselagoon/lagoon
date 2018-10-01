@@ -9,13 +9,21 @@ export default App => {
       super(props);
       this.state = { keycloak: undefined };
     }
+
     async componentDidMount() {
       const keycloak = Keycloak({
         url: publicRuntimeConfig.KEYCLOAK_API,
         realm: 'lagoon',
         clientId: 'lagoon-ui'
       });
+
+      keycloak.onTokenExpired = async () => {
+        await keycloak.updateToken();
+        this.setState({ keycloak });
+      };
+
       await keycloak.init({ onLoad: 'login-required' });
+
       this.setState({ keycloak });
     }
 
