@@ -2,25 +2,24 @@ const Keycloak = require('keycloak-connect');
 const Setup = require('keycloak-connect/middleware/setup');
 const GrantAttacher = require('keycloak-connect/middleware/grant-attacher');
 const R = require('ramda');
-const { getPermissionsForUser } = require('./util/auth');
+const {
+  getPermissionsForUser,
+} = require('./util/auth');
 
 const lagoonRoutes =
   (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];
 
 const lagoonKeycloakRoute = lagoonRoutes.find(routes =>
-  routes.includes('keycloak-')
+  routes.includes('keycloak-'),
 );
 
-const keycloak = new Keycloak(
-  {},
-  {
-    realm: 'lagoon',
-    serverUrl: lagoonKeycloakRoute || 'http://keycloak:8080/auth',
-    clientId: 'lagoon-ui',
-    publicClient: true,
-    bearerOnly: true,
-  },
-);
+const keycloak = new Keycloak({}, {
+  realm: 'lagoon',
+  serverUrl: lagoonKeycloakRoute || 'http://docker.for.mac.localhost:8088/auth',
+  clientId: 'lagoon-ui',
+  publicClient: true,
+  bearerOnly: true,
+});
 
 // Override default of returning a 403
 keycloak.accessDenied = (req, res, next) => {
@@ -39,19 +38,20 @@ const authWithKeycloak = async (req, res, next) => {
   try {
     const {
       content: {
-        lagoon: { user_id: userId },
+        lagoon: {
+          user_id: userId,
+        },
       },
     } = req.kauth.grant.access_token;
+    console.log(userId);
 
     const permissions = await getPermissionsForUser(dao, userId);
 
     if (R.isEmpty(permissions)) {
       res.status(401).send({
-        errors: [
-          {
-            message: `Unauthorized - No permissions for user id ${userId}`,
-          },
-        ],
+        errors: [{
+          message: `Unauthorized - No permissions for user id ${userId}`,
+        }],
       });
       return;
     }
@@ -66,7 +66,9 @@ const authWithKeycloak = async (req, res, next) => {
     next();
   } catch (e) {
     res.status(403).send({
-      errors: [{ message: `!Forbidden - Invalid Auth Token: ${e.message}` }],
+      errors: [{
+        message: `!Forbidden - Invalid Auth Token: ${e.message}`,
+      }],
     });
   }
 };
