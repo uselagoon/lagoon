@@ -227,8 +227,8 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
         )}"`,
       );
     } else {
-      logger.error(`SearchGuard create user error: ${err}`);
-      throw new Error(`SearchGuard create user error: ${err}`);
+      logger.error(`Error on Keycloak user creation: ${err}`);
+      throw new Error(`Error on Keycloak user creation: ${err}`);
     }
   }
 
@@ -303,8 +303,8 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
       realm: 'lagoon',
     });
   } catch (err) {
-    logger.error(`SearchGuard delete user error: ${err}`);
-    throw new Error(`SearchGuard delete user error: ${err}`);
+    logger.error(`Error on Keycloak user creation: ${err}`);
+    throw new Error(`Error on Keycloak user creation: ${err}`);
   }
 
   return 'success';
