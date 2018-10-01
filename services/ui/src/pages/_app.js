@@ -8,7 +8,7 @@ import ApolloClient from 'apollo-boost';
 import Typekit from 'react-typekit';
 import withKeycloak from '../lib/withKeycloak';
 import withApollo from '../lib/withApollo';
-import Unauthorized from '../components/Unauthorized';
+import NotAuthenticated from '../components/NotAuthenticated';
 import { bp, color, fontSize } from '../variables';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
@@ -30,7 +30,7 @@ class MyApp extends App {
           <ApolloProvider client={apolloClient}>
             <Component {...pageProps} />
           </ApolloProvider>
-        )) || <Unauthorized />}
+        )) || <NotAuthenticated />}
         <style jsx global>{`
           * {
             box-sizing: border-box;
