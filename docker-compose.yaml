@@ -137,6 +137,8 @@ services:
     depends_on:
       - api-db
       - local-api-data-watcher-pusher
+      - logs-db
+      - logs-db-ui
       - keycloak
     ports:
       - '3000:3000'
