@@ -210,13 +210,13 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
     await keycloakClient.users.create({
       // Create the group in the `lagoon` realm.
       // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
-      username: R.prop('email', user),
       realm: 'lagoon',
+      ...pickNonNil(['email', 'firstName', 'lastName'], user),
+      username: R.prop('email', user),
       enabled: true,
       attributes: {
         'lagoon-uid': [R.prop('id', user)],
       },
-      ...pickNonNil(['email', 'firstName', 'lastName'], user),
     });
   } catch (err) {
     if (err.response.status === 409) {
