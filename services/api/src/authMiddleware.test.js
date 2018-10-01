@@ -1,6 +1,6 @@
 // @flow
 
-const { splitCommaSeparatedPermissions } = require('./authMiddleware');
+const { splitCommaSeparatedPermissions } = require('./util/auth');
 
 describe('splitCommaSeparatedPermissions', () => {
   it('should parse a valid comma separated string w/ ints', () => {

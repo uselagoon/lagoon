@@ -7,6 +7,7 @@ const cors = require('cors');
 const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
+const { authKeycloakMiddleware } = require('./authKeycloakMiddleware');
 const { createAuthMiddleware } = require('./authMiddleware');
 
 const Dao = require('./dao');
@@ -65,6 +66,8 @@ const createApp = (args /* : CreateAppArgs */) => {
 
   // TODO: Restrict requests to lagoon domains?
   app.use(cors());
+
+  app.use(authKeycloakMiddleware());
 
   app.use(
     createAuthMiddleware({
