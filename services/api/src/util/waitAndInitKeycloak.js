@@ -24,10 +24,9 @@ async function waitAndInitKeycloak(
   connectionSettings /* : ConnectionSettings */,
   userSettings /* : UserSettings */,
 ) {
-  let keycloakClient;
   let keycloakReady = false;
 
-  keycloakClient = new KeycloakAdminClient(connectionSettings);
+  const keycloakClient = new KeycloakAdminClient(connectionSettings);
 
   do {
     try {
@@ -45,7 +44,7 @@ async function waitAndInitKeycloak(
     }
   } while (!keycloakReady);
 
-  setInterval(async () => await keycloakClient.auth(userSettings), 55*1000);
+  setInterval(async () => keycloakClient.auth(userSettings), 55 * 1000);
 
   if (!keycloakClient) {
     throw new Error('Keycloak client not initialized!');
