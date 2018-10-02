@@ -121,6 +121,7 @@ images :=     oc \
 							elasticsearch \
 							kibana \
 							logstash \
+							curator \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -163,6 +164,7 @@ build/logstash: build/commons images/logstash/Dockerfile
 build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
+build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 
 #######
@@ -311,11 +313,11 @@ services :=       api \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
-									hacky-rest2tasks-ui \
 									rabbitmq \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
+									logs-db-curator \
 									logs2logs-db \
 									auto-idler \
 									storage-calculator \
@@ -335,10 +337,10 @@ $(build-services):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/hacky-rest2tasks-ui: build/node__8
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
+build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db: build/mariadb
@@ -490,7 +492,7 @@ push-docker-host-image: build/docker-host minishift/login-docker-registry
 	docker push $$(cat minishift):30000/lagoon/docker-host | cat
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) CI_USE_OPENSHIFT_REGISTRY=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
