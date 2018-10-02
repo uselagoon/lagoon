@@ -106,6 +106,8 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 images :=     oc \
 							mariadb \
 							mariadb-drupal \
+							mariadb-galera \
+							mariadb-galera-drupal \
 							postgres \
 							postgres-drupal \
 							oc-build-deploy-dind \
@@ -146,6 +148,8 @@ $(build-images):
 #    changed on the Dockerfiles
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
+build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
+build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
