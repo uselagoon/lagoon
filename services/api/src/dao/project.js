@@ -64,9 +64,9 @@ const Helpers = {
   getProjectIdsByCustomerIds: async (sqlClient, customerIds) =>
     query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
   getCustomerByCustomerId: async (sqlClient, id) => {
-      const rows = await query(sqlClient, Sql.selectCustomer(id));
-      return R.prop(0, rows);
-    },
+    const rows = await query(sqlClient, Sql.selectCustomer(id));
+    return R.prop(0, rows);
+  },
 };
 
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
@@ -154,7 +154,12 @@ const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   return rows[0];
 };
 
-const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient }) => async (cred, input) => {
+const addProject = ({
+  sqlClient,
+  keycloakClient,
+  searchguardClient,
+  kibanaClient,
+}) => async (cred, input) => {
   const { customers } = cred.permissions;
   const cid = input.customer.toString();
 
@@ -204,9 +209,6 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
   try {
     // Create a group in Keycloak named the same as the project
     await keycloakClient.groups.create({
-      // Create the group in the `lagoon` realm.
-      // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
-      realm: 'lagoon',
       name: R.prop('name', project),
     });
   } catch (err) {
@@ -218,12 +220,15 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
         )}"`,
       );
     } else {
-      logger.error(`SearchGuard create role error: ${err}`)
-      throw new Error(`SearchGuard create role error: ${err}`)
+      logger.error(`SearchGuard create role error: ${err}`);
+      throw new Error(`SearchGuard create role error: ${err}`);
     }
   }
 
-  const customer = await Helpers.getCustomerByCustomerId(sqlClient, project.customer);
+  const customer = await Helpers.getCustomerByCustomerId(
+    sqlClient,
+    project.customer,
+  );
 
   try {
     // Create a new SearchGuard Role for this project with the same name as the Project
@@ -231,72 +236,86 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
       body: {
         indices: {
           [`*-${project.name}-*`]: {
-            '*':['READ']}
+            '*': ['READ'],
+          },
         },
         tenants: {
-          [customer.name]:'RW'
-        }
-      }
+          [customer.name]: 'RW',
+        },
+      },
     });
   } catch (err) {
-    logger.error(`SearchGuard create role error: ${err}`)
-    throw new Error(`SearchGuard create role error: ${err}`)
+    logger.error(`SearchGuard create role error: ${err}`);
+    throw new Error(`SearchGuard create role error: ${err}`);
   }
 
-    // Create index-patterns for this project
-    for (var log of ["application-logs", "router-logs", "container-logs", "lagoon-logs"]) {
-      try {
-        await kibanaClient.post(`saved_objects/index-pattern/${log}-${project.name}-*`, {
+  // Create index-patterns for this project
+  for (const log of [
+    'application-logs',
+    'router-logs',
+    'container-logs',
+    'lagoon-logs',
+  ]) {
+    try {
+      await kibanaClient.post(
+        `saved_objects/index-pattern/${log}-${project.name}-*`,
+        {
           body: {
-            "attributes": {
-              "title": `${log}-${project.name}-*`
-            }
+            attributes: {
+              title: `${log}-${project.name}-*`,
+            },
           },
           headers: {
-            sgtenant: customer.name
-          }
-        });
-
-      } catch (err) {
-        // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
-        if (err.statusCode != 409) {
-          logger.error(`Kibana Error during setup of index pattern ${log}-${project.name}-*: ${err}`)
-          // Don't fail if we have Kibana Errors, as they are "non-critical"
-        }
+            sgtenant: customer.name,
+          },
+        },
+      );
+    } catch (err) {
+      // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
+      if (err.statusCode != 409) {
+        logger.error(
+          `Kibana Error during setup of index pattern ${log}-${
+            project.name
+          }-*: ${err}`,
+        );
+        // Don't fail if we have Kibana Errors, as they are "non-critical"
       }
     }
-
+  }
 
   try {
     const currentSettings = await kibanaClient.get('kibana/settings', {
       headers: {
-        sgtenant: customer.name
-      }
+        sgtenant: customer.name,
+      },
     });
 
     // Define a default Index if there is none yet
-    if (! currentSettings.body.settings.defaultIndex) {
+    if (!currentSettings.body.settings.defaultIndex) {
       await kibanaClient.post('kibana/settings', {
         body: {
-          "changes": {
-            "defaultIndex":`container-logs-${project.name}-*`,
-            "telemetry:optIn": false // also opt out of telemetry from xpack
-          }
+          changes: {
+            defaultIndex: `container-logs-${project.name}-*`,
+            'telemetry:optIn': false, // also opt out of telemetry from xpack
+          },
         },
         headers: {
-          sgtenant: customer.name
-        }
+          sgtenant: customer.name,
+        },
       });
     }
   } catch (err) {
-    logger.error(`Kibana Error during config of default Index: ${err}`)
+    logger.error(`Kibana Error during config of default Index: ${err}`);
     // Don't fail if we have Kibana Errors, as they are "non-critical"
   }
 
   return project;
 };
 
-const deleteProject = ({ sqlClient, searchguardClient }) => async (cred, input) => {
+const deleteProject = ({ sqlClient, searchguardClient }) => async (
+  cred,
+  input,
+) => {
   const { projects } = cred.permissions;
 
   // Will throw on invalid conditions
@@ -315,8 +334,8 @@ const deleteProject = ({ sqlClient, searchguardClient }) => async (cred, input) 
     // Delete SearchGuard Role for this project with the same name as the Project
     await searchguardClient.delete(`roles/${input.project}`);
   } catch (err) {
-    logger.error(`SearchGuard delete role error: ${err}`)
-    throw new Error(`SearchGuard delete role error: ${err}`)
+    logger.error(`SearchGuard delete role error: ${err}`);
+    throw new Error(`SearchGuard delete role error: ${err}`);
   }
   // TODO: maybe check rows for changed result
   return 'success';

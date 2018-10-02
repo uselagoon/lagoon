@@ -75,8 +75,24 @@ const daoFns = {
 // sqlClient: the mariadb client instance provided by the node-mariadb module
 // esClient: the elasticsearch client instance provided by the elasticsearch module
 // keycloakClient: the Keycloak client instance provided by the keycloak-admin-client module
-const make = (sqlClient, esClient, keycloakClient, searchguardClient, kibanaClient) =>
-  R.map(fn => fn({ sqlClient, esClient, keycloakClient, searchguardClient, kibanaClient }), daoFns);
+const make = (
+  sqlClient,
+  esClient,
+  keycloakClient,
+  searchguardClient,
+  kibanaClient,
+) =>
+  R.map(
+    fn =>
+      fn({
+        sqlClient,
+        esClient,
+        keycloakClient,
+        searchguardClient,
+        kibanaClient,
+      }),
+    daoFns,
+  );
 
 module.exports = {
   ...daoFns,

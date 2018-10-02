@@ -208,15 +208,12 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
 
   try {
     await keycloakClient.users.create({
-      // Create the group in the `lagoon` realm.
-      // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
-      username: R.prop('email', user),
-      realm: 'lagoon',
-      enabled: true,
-      "attributes": {
-        "lagoon-uid": [ R.prop('id', user) ]
-      },
       ...pickNonNil(['email', 'firstName', 'lastName'], user),
+      username: R.prop('email', user),
+      enabled: true,
+      attributes: {
+        'lagoon-uid': [R.prop('id', user)],
+      },
     });
   } catch (err) {
     if (err.response.status === 409) {
@@ -227,8 +224,8 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
         )}"`,
       );
     } else {
-      logger.error(`SearchGuard create user error: ${err}`)
-      throw new Error(`SearchGuard create user error: ${err}`)
+      logger.error(`Error on Keycloak user creation: ${err}`);
+      throw new Error(`Error on Keycloak user creation: ${err}`);
     }
   }
 
@@ -268,7 +265,10 @@ const updateUser = ({ sqlClient }) => async (
   return R.prop(0, rows);
 };
 
-const deleteUser = ({ sqlClient, keycloakClient }) => async ({ role, userId }, { id }) => {
+const deleteUser = ({ sqlClient, keycloakClient }) => async (
+  { role, userId },
+  { id },
+) => {
   if (role !== 'admin' && !R.equals(userId, id)) {
     throw new Error('Unauthorized.');
   }
@@ -291,17 +291,15 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async ({ role, userId }, {
     // Load the Keycloak User ID based on the username (which is the email)
     const keycloakUserList = await keycloakClient.users.find({
       username: R.prop('email', user),
-      realm: 'lagoon',
     });
 
     const keycloakUser = R.prop(0, keycloakUserList);
     await keycloakClient.users.del({
       id: R.prop('id', keycloakUser),
-      realm: 'lagoon',
     });
   } catch (err) {
-    logger.error(`SearchGuard delete user error: ${err}`)
-    throw new Error(`SearchGuard delete user error: ${err}`)
+    logger.error(`Error on Keycloak user creation: ${err}`);
+    throw new Error(`Error on Keycloak user creation: ${err}`);
   }
 
   return 'success';

@@ -34,7 +34,7 @@
     "graphql-iso-date": "^3.5.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
-    "keycloak-admin": "^1.6.1",
+    "keycloak-admin": "^1.7.0",
     "keycloak-connect": "^4.5.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",

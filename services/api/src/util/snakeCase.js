@@ -5,7 +5,7 @@
 
 // camelCase to snake_case converter that also works with
 // non-ascii characters.
-function snakeCase(str, upperCase = false) {
+function snakeCase(str /* : string */, upperCase /* : boolean */ = false) {
   if (str.length === 0) {
     return str;
   }
