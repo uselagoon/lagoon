@@ -5,4 +5,4 @@
     follow_redirects: yes
     body_format: json
     body: '{"branchName": "{{ branch }}","projectName": "{{ project }}"}'
-
+    status_code: "{{ expected_status | default('200') }}"

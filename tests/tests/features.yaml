@@ -125,3 +125,10 @@
     project: ci-features-subfolder
     branch: subfolder
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: features/limits.yaml
+  vars:
+    testname: "limits"
+    git_repo_name: node.git
+    project: ci-env-limit
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
