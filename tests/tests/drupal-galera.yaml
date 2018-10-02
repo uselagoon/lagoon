@@ -3,7 +3,8 @@
   vars:
     testname: "Drupal 8 composer PHP 7.1 - GALERA"
     drupal_version: 8
-    db: mariadb-galera
+    db: mariadb
+    php_version: 7.2-galera
     git_repo_name: drupal-galera.git
     project: ci-drupal-galera
     branch: drupal8-composer-71-galera
