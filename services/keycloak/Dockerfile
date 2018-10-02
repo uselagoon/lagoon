@@ -40,15 +40,13 @@ ENV TMPDIR=/tmp \
     KEYCLOAK_ADMIN_USER=admin \
     KEYCLOAK_ADMIN_PASSWORD=admin \
     KEYCLOAK_REALM=lagoon \
+    KEYCLOAK_REALM_ROLES=admin \
     DB_ADDR=keycloak-db \
     DB_USER=keycloak \
     DB_PASSWORD=keycloak \
     DB_DATABASE=keycloak \
     KEYCLOAK_LAGOON_ADMIN_USERNAME=lagoonadmin \
-    KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin \
-    KEYCLOAK_CLIENT_IDS='searchguard lagoon-ui' \
-    KEYCLOAK_CLIENT_WEB_ORIGINS='*' \
-    KEYCLOAK_CLIENT_REDIRECT_URIS='*'
+    KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin
 
 VOLUME /opt/jboss/keycloak/standalone/data
 
