@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const sshpk = require('sshpk');
 const {

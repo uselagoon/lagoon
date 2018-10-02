@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const logger = require('../logger');
 const {

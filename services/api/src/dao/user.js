@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const pickNonNil = require('../util/pickNonNil');
 const { query, isPatchEmpty, knex } = require('./utils');

@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const {
   knex, query, prepare, isPatchEmpty,
