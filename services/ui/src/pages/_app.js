@@ -103,7 +103,7 @@ class MyApp extends App {
             margin: 0 0 36px;
           }
           h4 {
-            ${fontSize(25, 38)};
+            ${fontSize(25, 36)};
             font-weight: normal;
             margin: 4px 0 0;
           }
@@ -148,6 +148,7 @@ class MyApp extends App {
             }
             &:hover {
               border: 1px solid ${color.brightBlue};
+              z-index: 100;
               &::after {
                 box-shadow: 0px 12px 40px 0px rgba(73,127,250,0.5);
               }
