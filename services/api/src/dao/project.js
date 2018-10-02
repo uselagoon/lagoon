@@ -11,13 +11,11 @@ const {
 
 // This contains the sql query generation logic
 const Sql = {
-  updateProject: (cred, input) => {
+  updateProject: (input) => {
     const { id, patch } = input;
-    const { projects } = cred.permissions;
 
     const ret = knex('project')
       .where('id', '=', id)
-      .whereIn('id', projects)
       .update(patch);
 
     return ret.toString();
@@ -83,10 +81,7 @@ const getProjectByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
       WHERE e.id = :eid
       ${ifNotAdmin(
     cred.role,
-    `AND (${inClauseOr([
-      ['p.customer', customers],
-      ['p.id', projects],
-    ])})`,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
   )}
       LIMIT 1
     `,
@@ -160,9 +155,7 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
-  input.openshiftProjectPattern
-    ? ':openshift_project_pattern'
-    : 'NULL'
+  input.openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'
 },
         ${
   input.activeSystemsDeploy
@@ -227,7 +220,7 @@ const updateProject = ({ sqlClient }) => async (cred, input) => {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await query(sqlClient, Sql.updateProject(cred, input));
+  await query(sqlClient, Sql.updateProject(input));
   const rows = await query(sqlClient, Sql.selectProject(pid));
   const project = R.path([0], rows);
 
