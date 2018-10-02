@@ -278,7 +278,7 @@ const addProject = ({
       );
     } catch (err) {
       // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
-      if (err.statusCode != 409) {
+      if (err.statusCode !== 409) {
         logger.error(
           `Kibana Error during setup of index pattern ${log}-${
             project.name
