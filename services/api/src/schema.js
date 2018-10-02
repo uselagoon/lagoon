@@ -595,8 +595,7 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const getCtx = req => req.app.get('context');
-const getDao = req => getCtx(req).dao;
+const getDao = req => req.app.get('context').dao;
 
 const resolvers = {
   Project: {
