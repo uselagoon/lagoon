@@ -554,12 +554,12 @@ const typeDefs = gql`
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    addUserToProject(input: AddUserToProjectInput!): Project
-    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
-    removeAllUsersFromAllProjects: String
     addUserToCustomer(input: AddUserToCustomerInput!): Customer
     removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
     removeAllUsersFromAllCustomers: String
+    addUserToProject(input: AddUserToProjectInput!): Project
+    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
+    removeAllUsersFromAllProjects: String
   }
 `;
 
