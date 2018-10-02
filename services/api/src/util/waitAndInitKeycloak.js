@@ -32,8 +32,9 @@ async function waitAndInitKeycloak(
   do {
     try {
       await keycloakClient.auth(userSettings);
+
       if (!(await keycloakClient.realms.findOne({ realm: 'lagoon' }))) {
-        throw new Error('The "lagoon" realm has not been created yet.')
+        throw new Error('The "lagoon" realm has not been created yet.');
       }
 
       keycloakClient.setConfig({ realmName: 'lagoon' });
@@ -42,7 +43,6 @@ async function waitAndInitKeycloak(
       logger.debug(`Waiting for Keycloak to start... (error was ${err})`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
-
   } while (!keycloakReady);
 
   setInterval(async () => await keycloakClient.auth(userSettings), 55*1000);
