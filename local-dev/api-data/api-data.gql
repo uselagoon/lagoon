@@ -1,19 +1,19 @@
 mutation FillAPI {
-  #### First making sure we clean the API
-  truncateUsers: truncateTable(tableName: "user")
-  truncateUserSshKeys: truncateTable(tableName: "user_ssh_key")
-  truncateCustomers: truncateTable(tableName: "customer")
-  truncateCustomerUsers: truncateTable(tableName: "customer_user")
-  truncateOpenshifts: truncateTable(tableName: "openshift")
-  truncateProjects: truncateTable(tableName: "project")
-  truncateProjectUsers: truncateTable(tableName: "project_user")
-  truncateNotificationSlack: truncateTable(tableName: "notification_slack")
-  truncateNotificationRocketChats: truncateTable(
-    tableName: "notification_rocketchat"
-  )
-  truncateProjectNotification: truncateTable(tableName: "project_notification")
-  truncateSshKeys: truncateTable(tableName: "ssh_key")
-  truncateEnvironments: truncateTable(tableName: "environment")
+  # Remove everything from API: First, remove all relations between entities...
+  RemoveAllNotificationsFromAllProjects: removeAllNotificationsFromAllProjects()
+  RemoveAllSshKeysFromAllUsers: removeAllSshKeysFromAllUsers()
+  RemoveAllUsersFromAllCustomers: removeAllUsersFromAllCustomers()
+  RemoveAllUsersFromAllProjects: removeAllUsersFromAllProjects()
+
+  # Remove everything from API: ...then delete the entities themselves
+  DeleteAllCustomers: deleteAllCustomers()
+  DeleteAllEnvironments: deleteAllEnvironments()
+  DeleteAllNotificationSlacks: deleteAllNotificationSlacks()
+  DeleteAllNotificationRocketChats: deleteAllNotificationRocketChats()
+  DeleteAllOpenshifts: deleteAllOpenshifts()
+  DeleteAllProjects: deleteAllProjects()
+  DeleteAllSshKeys: deleteAllSshKeys()
+  DeleteAllUsers: deleteAllUsers()
 
   #### Filling API with needed Objects to run the Credentialstests
 

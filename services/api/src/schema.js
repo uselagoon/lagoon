@@ -508,9 +508,11 @@ const typeDefs = gql`
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
     deleteCustomer(input: DeleteCustomerInput!): String
+    deleteAllCustomers: String
     addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
     updateEnvironment(input: UpdateEnvironmentInput!): Environment
     deleteEnvironment(input: DeleteEnvironmentInput!): String
+    deleteAllEnvironments: String
     addOrUpdateEnvironmentStorage(
       input: AddOrUpdateEnvironmentStorageInput!
     ): EnvironmentStorage
@@ -519,6 +521,7 @@ const typeDefs = gql`
       input: UpdateNotificationSlackInput!
     ): NotificationSlack
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
+    deleteAllNotificationSlacks: String
     addNotificationRocketChat(
       input: AddNotificationRocketChatInput!
     ): NotificationRocketChat
@@ -528,27 +531,35 @@ const typeDefs = gql`
     deleteNotificationRocketChat(
       input: DeleteNotificationRocketChatInput!
     ): String
+    deleteAllNotificationRocketChats: String
     addNotificationToProject(input: AddNotificationToProjectInput!): Project
     removeNotificationFromProject(
       input: RemoveNotificationFromProjectInput!
     ): Project
+    removeAllNotificationsFromAllProjects: String
     addOpenshift(input: AddOpenshiftInput!): Openshift
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
+    deleteAllOpenshifts: String
     addProject(input: AddProjectInput!): Project
     updateProject(input: UpdateProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
+    deleteAllProjects: String
     addSshKey(input: AddSshKeyInput!): SshKey
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
+    deleteAllSshKeys: String
+    removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
+    deleteAllUsers: String
     addUserToProject(input: AddUserToProjectInput!): Project
     removeUserFromProject(input: RemoveUserFromProjectInput!): Project
+    removeAllUsersFromAllProjects: String
     addUserToCustomer(input: AddUserToCustomerInput!): Customer
     removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
-    truncateTable(tableName: String!): String
+    removeAllUsersFromAllCustomers: String
   }
 `;
 
@@ -754,6 +765,11 @@ const resolvers = {
       const ret = await dao.deleteCustomer(req.credentials, args.input);
       return ret;
     },
+    deleteAllCustomers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllCustomers(req.credentials, args);
+      return ret;
+    },
     addOrUpdateEnvironment: async (root, args, req) => {
       const dao = getDao(req);
 
@@ -780,6 +796,11 @@ const resolvers = {
     deleteEnvironment: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.deleteEnvironment(req.credentials, args.input);
+      return ret;
+    },
+    deleteAllEnvironments: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllEnvironments(req.credentials, args);
       return ret;
     },
     addOrUpdateEnvironmentStorage: async (root, args, req) => {
@@ -813,6 +834,11 @@ const resolvers = {
       );
       return ret;
     },
+    deleteAllNotificationSlacks: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllNotificationSlacks(req.credentials, args);
+      return ret;
+    },
     addNotificationRocketChat: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addNotificationRocketChat(
@@ -834,6 +860,14 @@ const resolvers = {
       const ret = await dao.deleteNotificationRocketChat(
         req.credentials,
         args.input,
+      );
+      return ret;
+    },
+    deleteAllNotificationRocketChats: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllNotificationRocketChats(
+        req.credentials,
+        args,
       );
       return ret;
     },
@@ -859,6 +893,14 @@ const resolvers = {
       );
       return ret;
     },
+    removeAllNotificationsFromAllProjects: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllNotificationsFromAllProjects(
+        req.credentials,
+        args,
+      );
+      return ret;
+    },
     addOpenshift: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addOpenshift(req.credentials, args.input);
@@ -874,6 +916,11 @@ const resolvers = {
       const ret = await dao.deleteOpenshift(req.credentials, args.input);
       return ret;
     },
+    deleteAllOpenshifts: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllOpenshifts(req.credentials, args);
+      return ret;
+    },
     addProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addProject(req.credentials, args.input);
@@ -887,6 +934,11 @@ const resolvers = {
     deleteProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.deleteProject(req.credentials, args.input);
+      return ret;
+    },
+    deleteAllProjects: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllProjects(req.credentials, args);
       return ret;
     },
     addSshKey: async (root, args, req) => {
@@ -918,6 +970,16 @@ const resolvers = {
       const ret = await dao.deleteSshKey(req.credentials, args.input);
       return ret;
     },
+    deleteAllSshKeys: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllSshKeys(req.credentials, args);
+      return ret;
+    },
+    removeAllSshKeysFromAllUsers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllSshKeysFromAllUsers(req.credentials, args);
+      return ret;
+    },
     addUser: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addUser(req.credentials, args.input);
@@ -933,14 +995,9 @@ const resolvers = {
       const ret = await dao.deleteUser(req.credentials, args.input);
       return ret;
     },
-    addUserToProject: async (root, args, req) => {
+    deleteAllUsers: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addUserToProject(req.credentials, args.input);
-      return ret;
-    },
-    removeUserFromProject: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.removeUserFromProject(req.credentials, args.input);
+      const ret = await dao.deleteAllUsers(req.credentials, args);
       return ret;
     },
     addUserToCustomer: async (root, args, req) => {
@@ -953,9 +1010,22 @@ const resolvers = {
       const ret = await dao.removeUserFromCustomer(req.credentials, args.input);
       return ret;
     },
-    truncateTable: async (root, args, req) => {
+    addUserToProject: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.truncateTable(req.credentials, args);
+      const ret = await dao.addUserToProject(req.credentials, args.input);
+      return ret;
+    },
+    removeUserFromProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeUserFromProject(req.credentials, args.input);
+      return ret;
+    },
+    removeAllUsersFromAllProjects: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllUsersFromAllProjects(
+        req.credentials,
+        args,
+      );
       return ret;
     },
   },

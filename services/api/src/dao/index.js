@@ -43,24 +43,10 @@ const getPermissions = ({ sqlClient }) => async (args) => {
   return R.propOr(null, 0, rows);
 };
 
-const truncateTable = ({ sqlClient }) => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
-  const { tableName } = args;
-
-  const prep = prepare(sqlClient, `TRUNCATE table \`${tableName}\``);
-
-  await query(sqlClient, prep(args));
-
-  // TODO: Check rows for success
-  return 'success';
-};
-
+// TODO: Make this simpler.
+// For example: Consider removing the "DAO" concept completely and migrating to traditional resolver files which are imported in services/api/src/schema.js
 const daoFns = {
   getPermissions,
-  truncateTable,
   ...require('./customer').Queries,
   ...require('./environment').Queries,
   ...require('./notification').Queries,
@@ -82,17 +68,15 @@ const make = (
   searchguardClient,
   kibanaClient,
 ) =>
-  R.map(
-    fn =>
-      fn({
-        sqlClient,
-        esClient,
-        keycloakClient,
-        searchguardClient,
-        kibanaClient,
-      }),
-    daoFns,
-  );
+  R.map(fn =>
+    fn({
+      sqlClient,
+      esClient,
+      keycloakClient,
+      searchguardClient,
+      kibanaClient,
+    }),
+  )(daoFns);
 
 module.exports = {
   ...daoFns,

@@ -54,6 +54,10 @@ const Sql = {
     knex('customer')
       .select('name')
       .toString(),
+  truncateCustomer: () =>
+    knex('customer')
+      .truncate()
+      .toString(),
 };
 
 const Helpers = {
@@ -217,6 +221,17 @@ const getCustomerByName = ({ sqlClient }) => async (cred, args) => {
   return rows ? rows[0] : null;
 };
 
+const deleteAllCustomers = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateCustomer());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -226,6 +241,7 @@ module.exports = {
     getCustomerByProjectId,
     updateCustomer,
     getCustomerByName,
+    deleteAllCustomers,
   },
   Helpers,
 };

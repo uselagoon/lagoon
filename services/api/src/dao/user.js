@@ -13,18 +13,23 @@ const {
 const { getCustomerIdByName, getCustomerById } = require('./customer').Helpers;
 
 const Sql = {
-  selectUser: id =>
+  selectUser: (id /* : number */) =>
     knex('user')
       .where('id', '=', id)
       .toString(),
-  selectUserBySshKey: ({ keyValue, keyType }) =>
+  selectUserBySshKey: (
+    { keyValue, keyType } /* : {
+    keyValue: string,
+    keyType: string,
+  } */,
+  ) =>
     knex('user')
       .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
       .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
       .where('sk.key_value', keyValue)
       .andWhere('sk.key_type', keyType)
       .toString(),
-  selectUsersByProjectId: ({ projectId }) =>
+  selectUsersByProjectId: ({ projectId } /* : { projectId: number } */) =>
     knex('user')
       .join('project_user as pu', 'pu.usid', '=', 'user.id')
       .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
@@ -43,7 +48,7 @@ const Sql = {
       )
       .where('pu.pid', projectId)
       .toString(),
-  selectUsersByCustomerId: ({ customerId }) =>
+  selectUsersByCustomerId: ({ customerId } /* : { customerId: number } */) =>
     knex('user')
       .join('customer_user as cu', 'cu.usid', '=', 'user.id')
       .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
@@ -62,9 +67,15 @@ const Sql = {
       )
       .where('cu.cid', customerId)
       .toString(),
-  insertUser: ({
-    id, email, firstName, lastName, comment,
-  }) =>
+  insertUser: (
+    {
+      id,
+      email,
+      firstName,
+      lastName,
+      comment,
+    } /* : {id: number, email: string, firstName: string, lastName: string, comment: string} */,
+  ) =>
     knex('user')
       .insert({
         id,
@@ -74,51 +85,71 @@ const Sql = {
         comment,
       })
       .toString(),
-  updateUser: ({ id, patch }) =>
+  updateUser: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
     knex('user')
       .where('id', id)
       .update(patch)
       .toString(),
-  deleteUser: ({ id }) =>
+  deleteUser: ({ id } /* : {id: number} */) =>
     knex('user')
       .where('id', id)
       .del()
       .toString(),
-  addUserToProject: ({ projectId, userId }) =>
+  addUserToProject: (
+    { projectId, userId } /* : {projectId: number, userId: number} */,
+  ) =>
     knex('project_user')
       .insert({
         usid: userId,
         pid: projectId,
       })
       .toString(),
-  removeUserFromProject: ({ projectId, userId }) =>
+  removeUserFromProject: (
+    { projectId, userId } /* : {projectId: number, userId: number} */,
+  ) =>
     knex('project_user')
       .where('pid', projectId)
       .andWhere('usid', userId)
       .del()
       .toString(),
-  removeUserFromAllProjects: ({ id }) =>
+  removeUserFromAllProjects: ({ id } /* : {id: number} */) =>
     knex('project_user')
       .where('usid', id)
       .del()
       .toString(),
-  addUserToCustomer: ({ customerId, userId }) =>
+  addUserToCustomer: (
+    { customerId, userId } /* : {customerId: number, userId: number} */,
+  ) =>
     knex('customer_user')
       .insert({
         usid: userId,
         cid: customerId,
       })
       .toString(),
-  removeUserFromCustomer: ({ customerId, userId }) =>
+  removeUserFromCustomer: (
+    { customerId, userId } /* : {customerId: number, userId: number} */,
+  ) =>
     knex('customer_user')
       .where('cid', customerId)
       .andWhere('usid', userId)
       .del()
       .toString(),
-  removeUserFromAllCustomers: ({ id }) =>
+  removeUserFromAllCustomers: ({ id } /* : {id: number} */) =>
     knex('customer_user')
       .where('usid', id)
       .del()
+      .toString(),
+  truncateUser: () =>
+    knex('user')
+      .truncate()
+      .toString(),
+  truncateCustomerUser: () =>
+    knex('customer_user')
+      .truncate()
+      .toString(),
+  truncateProjectUser: () =>
+    knex('project_user')
+      .truncate()
       .toString(),
 };
 
@@ -382,6 +413,39 @@ const removeUserFromCustomer = ({ sqlClient }) => async (
   return getCustomerById(sqlClient, customerId);
 };
 
+const deleteAllUsers = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateUser());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const removeAllUsersFromAllCustomers = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateCustomerUser());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const removeAllUsersFromAllProjects = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateProjectUser());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -395,5 +459,8 @@ module.exports = {
     getUsersByProjectId,
     addUserToProject,
     removeUserFromProject,
+    deleteAllUsers,
+    removeAllUsersFromAllCustomers,
+    removeAllUsersFromAllProjects,
   },
 };

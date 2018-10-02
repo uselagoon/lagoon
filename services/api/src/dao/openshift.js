@@ -12,17 +12,20 @@ const {
 } = require('./utils');
 
 const Sql = {
-  updateOpenshift: (input) => {
-    const { id, patch } = input;
-
-    return knex('openshift')
-      .where('id', '=', id)
-      .update(patch)
-      .toString();
-  },
-  selectOpenshift: id =>
+  updateOpenshift: (
+    { id, patch } /* : {id: number, patch: {[string]: any}} */,
+  ) =>
     knex('openshift')
       .where('id', '=', id)
+      .update(patch)
+      .toString(),
+  selectOpenshift: (id /* : number */) =>
+    knex('openshift')
+      .where('id', '=', id)
+      .toString(),
+  truncateOpenshift: () =>
+    knex('openshift')
+      .truncate()
       .toString(),
 };
 
@@ -123,6 +126,17 @@ const updateOpenshift = ({ sqlClient }) => async (cred, input) => {
   return R.prop(0, rows);
 };
 
+const deleteAllOpenshifts = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateOpenshift());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -131,5 +145,6 @@ module.exports = {
     getAllOpenshifts,
     getOpenshiftByProjectId,
     updateOpenshift,
+    deleteAllOpenshifts,
   },
 };

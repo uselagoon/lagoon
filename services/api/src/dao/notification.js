@@ -137,15 +137,28 @@ const Sql = {
       .whereRaw('pn.nid IS NULL and pn.pid IS NULL')
       .select('nt.*', knex.raw('? as type', [notificationType]))
       .toString(),
-  selectProjectNotificationsWithoutAccess: (cred, { nids }) => {
-    const { projects } = cred.permissions;
-    return knex('project_notification AS pn')
+  selectProjectNotificationsWithoutAccess: (
+    { permissions: { projects } },
+    { nids },
+  ) =>
+    knex('project_notification AS pn')
       .join('project AS p', 'pn.pid', '=', 'p.id')
       .whereIn('pn.nid', nids)
       .whereNotIn('pn.pid', projects)
       .select('pn.*')
-      .toString();
-  },
+      .toString(),
+  truncateNotificationSlack: () =>
+    knex('notification_slack')
+      .truncate()
+      .toString(),
+  truncateNotificationRocketchat: () =>
+    knex('notification_rocketchat')
+      .truncate()
+      .toString(),
+  truncateProjectNotification: () =>
+    knex('project_notification')
+      .truncate()
+      .toString(),
 };
 
 const Helpers = {
@@ -421,6 +434,41 @@ const getUnassignedNotifications = ({ sqlClient }) => async (cred, args) => {
   return concatNonNull(results);
 };
 
+const deleteAllNotificationSlacks = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateNotificationSlack());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const deleteAllNotificationRocketchats = ({ sqlClient }) => async ({
+  role,
+}) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateNotificationRocketchat());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const removeAllUsersFromAllCustomers = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateProjectNotification());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -434,6 +482,9 @@ module.exports = {
     updateNotificationRocketChat,
     updateNotificationSlack,
     getUnassignedNotifications,
+    deleteAllNotificationSlacks,
+    deleteAllNotificationRocketchats,
+    removeAllUsersFromAllCustomers,
   },
   Helpers,
 };

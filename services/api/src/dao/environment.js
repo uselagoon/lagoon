@@ -24,6 +24,10 @@ const Sql = {
     knex('environment')
       .where('id', '=', id)
       .toString(),
+  truncateEnvironment: () =>
+    knex('environment')
+      .truncate()
+      .toString(),
 };
 
 const getEnvironmentByName = ({ sqlClient }) => async (cred, args) => {
@@ -417,6 +421,17 @@ const getAllEnvironments = ({ sqlClient }) => async (cred, args) => {
   return rows;
 };
 
+const deleteAllEnvironments = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateEnvironment());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -433,5 +448,6 @@ module.exports = {
     getEnvironmentsByProjectId,
     updateEnvironment,
     getAllEnvironments,
+    deleteAllEnvironments,
   },
 };

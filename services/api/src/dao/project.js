@@ -20,7 +20,7 @@ const Sql = {
       .whereIn('id', projects)
       .update(patch)
       .toString(),
-  selectProject: id =>
+  selectProject: (id /* : number */) =>
     knex('project')
       .where('id', id)
       .toString(),
@@ -37,6 +37,10 @@ const Sql = {
   selectCustomer: id =>
     knex('customer')
       .where('id', id)
+      .toString(),
+  truncateProject: () =>
+    knex('project')
+      .truncate()
       .toString(),
 };
 
@@ -359,6 +363,17 @@ const updateProject = ({ sqlClient }) => async (cred, input) => {
   return Helpers.getProjectById(pid);
 };
 
+const deleteAllProjects = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateProject());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -369,6 +384,7 @@ module.exports = {
     getProjectByEnvironmentId,
     getAllProjects,
     updateProject,
+    deleteAllProjects,
   },
   Helpers,
 };

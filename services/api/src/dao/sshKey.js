@@ -67,6 +67,14 @@ const Sql = {
       .where('id', '=', id)
       .update(patch)
       .toString(),
+  truncateSshKey: () =>
+    knex('ssh_key')
+      .truncate()
+      .toString(),
+  truncateUserSshKey: () =>
+    knex('user_ssh_key')
+      .truncate()
+      .toString(),
 };
 
 const getCustomerSshKeys = ({ sqlClient }) => async cred => {
@@ -171,6 +179,28 @@ const deleteSshKey = ({ sqlClient }) => async ({ role, userId }, input) => {
   return 'success';
 };
 
+const deleteAllSshKeys = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateSshKey());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const removeAllSshKeysFromAllUsers = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateUserSshKey());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 module.exports = {
   Sql,
   Queries: {
@@ -178,6 +208,8 @@ module.exports = {
     addSshKey,
     updateSshKey,
     deleteSshKey,
+    deleteAllSshKeys,
+    removeAllSshKeysFromAllUsers,
   },
   validateSshKey,
 };
