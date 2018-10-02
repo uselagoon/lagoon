@@ -44,6 +44,8 @@ RUN \
     rm -rf /var/lib/mysql/* /etc/mysql/; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
 
+
+COPY logging.bash           /lagoon/entrypoints/10-mariadb-logging
 COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
@@ -56,6 +58,8 @@ RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint
 
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
+RUN touch /var/log/mariadb-slow.log && /bin/fix-permissions /var/log/mariadb-slow.log
+RUN touch /var/log/mariadb-queries.log && /bin/fix-permissions /var/log/mariadb-queries.log
 
 # We cannot start mysql as root, we add the user mysql to the group root and
 # change the user of the Docker Image to this user.
