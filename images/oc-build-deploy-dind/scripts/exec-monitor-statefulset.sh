@@ -7,7 +7,7 @@ END=$((SECONDS+$MAX_WAIT_SECONDS))
 while true; do
     if [[ $SECONDS -gt $END ]]; then
       echo "Statefulset '${STATEFULSET}' was not fully scaled within $MAX_WAIT_SECONDS seconds"
-      exit
+      exit 1
     fi
 
     READY_REPLICAS=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get statefulset "${STATEFULSET}" -o=go-template --template='{{.status.readyReplicas}}')

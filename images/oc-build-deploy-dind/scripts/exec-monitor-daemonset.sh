@@ -7,7 +7,7 @@ END=$((SECONDS+$MAX_WAIT_SECONDS))
 while true; do
     if [[ $SECONDS -gt $END ]]; then
       echo "Daemonset '${DAEMONSET}' was not fully scaled within $MAX_WAIT_SECONDS seconds"
-      exit
+      exit 1
     fi
 
     NUMBER_READY=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get daemonset "${DAEMONSET}" -o=go-template --template='{{.status.numberReady}}')
