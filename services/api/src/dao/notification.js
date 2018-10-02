@@ -445,7 +445,7 @@ const deleteAllNotificationSlacks = ({ sqlClient }) => async ({ role }) => {
   return 'success';
 };
 
-const deleteAllNotificationRocketchats = ({ sqlClient }) => async ({
+const deleteAllNotificationRocketChats = ({ sqlClient }) => async ({
   role,
 }) => {
   if (role !== 'admin') {
@@ -485,8 +485,8 @@ module.exports = {
     updateNotificationSlack,
     getUnassignedNotifications,
     deleteAllNotificationSlacks,
-    deleteAllNotificationRocketchats,
-    removeAllUsersFromAllCustomers,
+    deleteAllNotificationRocketChats,
+    removeAllNotificationsFromAllProjects,
   },
   Helpers,
 };

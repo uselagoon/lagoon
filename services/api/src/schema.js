@@ -1010,6 +1010,14 @@ const resolvers = {
       const ret = await dao.removeUserFromCustomer(req.credentials, args.input);
       return ret;
     },
+    removeAllUsersFromAllCustomers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllUsersFromAllCustomers(
+        req.credentials,
+        args,
+      );
+      return ret;
+    },
     addUserToProject: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.addUserToProject(req.credentials, args.input);
