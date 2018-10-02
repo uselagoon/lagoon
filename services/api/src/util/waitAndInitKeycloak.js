@@ -35,6 +35,8 @@ async function waitAndInitKeycloak(
       if (!(await keycloakClient.realms.findOne({ realm: 'lagoon' }))) {
         throw new Error('The "lagoon" realm has not been created yet.')
       }
+
+      keycloakClient.setConfig({ realmName: 'lagoon' });
       keycloakReady = true;
     } catch (err) {
       logger.debug(`Waiting for Keycloak to start... (error was ${err})`);

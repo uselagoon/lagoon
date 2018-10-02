@@ -208,9 +208,6 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
 
   try {
     await keycloakClient.users.create({
-      // Create the group in the `lagoon` realm.
-      // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
-      realm: 'lagoon',
       ...pickNonNil(['email', 'firstName', 'lastName'], user),
       username: R.prop('email', user),
       enabled: true,
@@ -294,13 +291,11 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
     // Load the Keycloak User ID based on the username (which is the email)
     const keycloakUserList = await keycloakClient.users.find({
       username: R.prop('email', user),
-      realm: 'lagoon',
     });
 
     const keycloakUser = R.prop(0, keycloakUserList);
     await keycloakClient.users.del({
       id: R.prop('id', keycloakUser),
-      realm: 'lagoon',
     });
   } catch (err) {
     logger.error(`Error on Keycloak user creation: ${err}`);

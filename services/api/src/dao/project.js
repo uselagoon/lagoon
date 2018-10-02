@@ -204,9 +204,6 @@ const addProject = ({ sqlClient, keycloakClient, searchguardClient, kibanaClient
   try {
     // Create a group in Keycloak named the same as the project
     await keycloakClient.groups.create({
-      // Create the group in the `lagoon` realm.
-      // TODO: Switch out if the `keycloak-admin` PR to override config gets merged https://github.com/Canner/keycloak-admin/pull/4
-      realm: 'lagoon',
       name: R.prop('name', project),
     });
   } catch (err) {

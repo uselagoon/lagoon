@@ -6636,10 +6636,10 @@ jws@^3.1.4:
     jwa "^1.1.4"
     safe-buffer "^5.0.1"
 
-keycloak-admin@^1.6.1:
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/keycloak-admin/-/keycloak-admin-1.6.1.tgz#a7b7078830368e6189c7d107205af7c1c50e8dbc"
-  integrity sha512-b4O0doKO0V966oI1iNNbPP4ZjYF6XuvnRKMsIUUS2Nnj9iNcpV/gclHbSYniCVsOkIqiyeMZMpJVnNr1tTThuQ==
+keycloak-admin@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/keycloak-admin/-/keycloak-admin-1.7.0.tgz#46d7528d311ed87d6d7c615f08d7bc6bad71c7a4"
+  integrity sha512-PQtIxBkSCBTiz8EWmvVLw4en8AssyKDYTivL7kzrYeibQOYXb+jhcCvl/AbVykqiZtrQoEEGcsg8un1AFRbiNA==
   dependencies:
     "@types/debug" "^0.0.30"
     axios "^0.18.0"
@@ -6647,6 +6647,7 @@ keycloak-admin@^1.6.1:
     camelize "^1.0.0"
     debug "^3.1.0"
     lodash "^4.17.10"
+    url-join "^4.0.0"
     url-template "^2.0.8"
 
 keyv@^3.0.0:
@@ -10796,6 +10797,11 @@ url-join@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/url-join/-/url-join-0.0.1.tgz#1db48ad422d3402469a87f7d97bdebfe4fb1e3c8"
   integrity sha1-HbSK1CLTQCRpqH99l73r/k+x48g=
+
+url-join@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/url-join/-/url-join-4.0.0.tgz#4d3340e807d3773bda9991f8305acdcc2a665d2a"
+  integrity sha1-TTNA6AfTdzvamZH4MFrNzCpmXSo=
 
 url-parse-lax@^1.0.0:
   version "1.0.0"
