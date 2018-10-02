@@ -22,7 +22,10 @@ export default App => {
         this.setState({ keycloak });
       };
 
-      await keycloak.init({ onLoad: 'login-required' });
+      await keycloak.init({
+        onLoad: 'login-required',
+        checkLoginIframe: false
+      });
 
       this.setState({ keycloak });
     }
