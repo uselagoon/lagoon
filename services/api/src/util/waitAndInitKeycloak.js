@@ -44,7 +44,14 @@ async function waitAndInitKeycloak(
     }
   } while (!keycloakReady);
 
-  setInterval(async () => keycloakClient.auth(userSettings), 55 * 1000);
+  // Re-authenticate with Keycloak every 55 seconds because tokens time out after 60 seconds
+  // TODO: Come up with a better solution for this (refresh token?)
+  setInterval(async () => {
+    keycloakClient.setConfig({ realmName: 'master' });
+    await keycloakClient.auth(userSettings);
+    keycloakClient.setConfig({ realmName: 'lagoon' });
+    logger.debug('Re-authenticated with Keycloak after 55 seconds');
+  }, 55 * 1000);
 
   if (!keycloakClient) {
     throw new Error('Keycloak client not initialized!');
