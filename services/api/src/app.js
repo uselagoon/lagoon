@@ -36,11 +36,17 @@ const createApp = (args /* : CreateAppArgs */) => {
     esClient,
     keycloakClient,
     searchguardClient,
-    kibanaClient
+    kibanaClient,
   } = args;
   const app = express();
 
-  const dao = Dao.make(sqlClient, esClient, keycloakClient, searchguardClient, kibanaClient);
+  const dao = Dao.make(
+    sqlClient,
+    esClient,
+    keycloakClient,
+    searchguardClient,
+    kibanaClient,
+  );
 
   app.set('context', {
     sqlClient,

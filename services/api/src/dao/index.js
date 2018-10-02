@@ -33,7 +33,7 @@ const R = require('ramda');
 
 const { ifNotAdmin, query, prepare } = require('./utils');
 
-const getPermissions = ({ sqlClient }) => async (args) => {
+const getPermissions = ({ sqlClient }) => async args => {
   const prep = prepare(
     sqlClient,
     'SELECT user_id, projects, customers FROM permission WHERE user_id = :user_id',

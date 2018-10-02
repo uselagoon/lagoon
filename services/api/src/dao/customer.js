@@ -83,11 +83,14 @@ const Helpers = {
 
     return cid;
   },
-  getAllCustomerNames: async (sqlClient) =>
+  getAllCustomerNames: async sqlClient =>
     await query(sqlClient, Sql.selectCustomerNames()),
 };
 
-const updateSearchGuardWithCustomers = async ({ sqlClient, searchguardClient }) => {
+const updateSearchGuardWithCustomers = async ({
+  sqlClient,
+  searchguardClient,
+}) => {
   const customerNames = await Helpers.getAllCustomerNames(sqlClient);
 
   const tenants = R.reduce(

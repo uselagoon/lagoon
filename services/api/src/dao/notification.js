@@ -458,7 +458,9 @@ const deleteAllNotificationRocketchats = ({ sqlClient }) => async ({
   return 'success';
 };
 
-const removeAllUsersFromAllCustomers = ({ sqlClient }) => async ({ role }) => {
+const removeAllNotificationsFromAllProjects = ({ sqlClient }) => async ({
+  role,
+}) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
