@@ -82,39 +82,39 @@ export default ({ environment }) => (
           }
           &.environmentType {
             &::before {
-              background-image: url('/static/images/env-type.png');
+              background-image: url('/static/images/environments.svg');
               background-size: 20px 20px;
             }
           }
           &.deployType {
             &::before {
-              background-image: url('/static/images/branches.png');
+              background-image: url('/static/images/branches.svg');
               background-size: 15px 20px;
             }
           }
           &.updated {
             &::before {
-              background-image: url('/static/images/last-deploy.png');
+              background-image: url('/static/images/last-deploy.svg');
               background-size: 20px 15px;
             }
           }
           &.routes {
             width: 100%;
             &::before {
-              background-image: url('/static/images/link.png');
+              background-image: url('/static/images/url.svg');
               background-size: 19px 19px;
             }
           }
           &.created {
             &::before {
-              background-image: url('/static/images/calendar.png');
+              background-image: url('/static/images/created.svg');
               background-size: 17px 16px;
             }
           }
           &.source {
             width: 100%;
             &::before {
-              background-image: url('/static/images/origin.png');
+              background-image: url('/static/images/git-lab.svg');
               background-size: 19px 17px;
             }
             .field {
