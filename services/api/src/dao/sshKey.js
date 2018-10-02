@@ -34,7 +34,7 @@ const Sql = {
     knex('user_ssh_key')
       .select('skid')
       .where('usid', userId),
-  selectAllCustomerSshKeys: (cred) => {
+  selectAllCustomerSshKeys: cred => {
     if (cred.role !== 'admin') {
       throw new Error('Unauthorized');
     }
@@ -69,7 +69,7 @@ const Sql = {
       .toString(),
 };
 
-const getCustomerSshKeys = ({ sqlClient }) => async (cred) => {
+const getCustomerSshKeys = ({ sqlClient }) => async cred => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }

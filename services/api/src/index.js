@@ -9,8 +9,12 @@ const logger = require('./logger');
 const createServer = require('./server');
 
 (async () => {
-
-  const { JWTSECRET, JWTAUDIENCE, LOGSDB_ADMIN_PASSWORD, KEYCLOAK_ADMIN_PASSWORD } = process.env;
+  const {
+    JWTSECRET,
+    JWTAUDIENCE,
+    LOGSDB_ADMIN_PASSWORD,
+    KEYCLOAK_ADMIN_PASSWORD,
+  } = process.env;
 
   const keycloakClient = await waitAndInitKeycloak(
     {
@@ -28,7 +32,7 @@ const createServer = require('./server');
   const searchguardClient = got.extend({
     baseUrl: 'http://logs-db:9200/_searchguard/api/',
     json: true,
-    auth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`
+    auth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`,
   });
 
   const kibanaClient = got.extend({
@@ -36,14 +40,13 @@ const createServer = require('./server');
     auth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`,
     json: true,
     headers: {
-      'kbn-xsrf': 'true'
-    }
+      'kbn-xsrf': 'true',
+    },
   });
 
   logger.debug('Starting to boot the application.');
 
   try {
-
     if (JWTSECRET == null) {
       throw new Error(
         'Required environment variable JWTSECRET is undefined or null!',
@@ -70,7 +73,7 @@ const createServer = require('./server');
       httpAuth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`,
     });
 
-    sqlClient.on('error', (error) => {
+    sqlClient.on('error', error => {
       logger.error(error);
     });
 
@@ -81,7 +84,7 @@ const createServer = require('./server');
       esClient,
       keycloakClient,
       searchguardClient,
-      kibanaClient
+      kibanaClient,
     });
 
     logger.debug('Finished booting the application.');

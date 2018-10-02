@@ -91,35 +91,35 @@ const updateSearchGuardWithCustomers = async ({ sqlClient, searchguardClient }) 
       acc[R.prop('name', elem)] = 'RW';
       return acc;
     },
-    {"admin_tenant": "RW"},
+    { admin_tenant: 'RW' },
     customerNames,
   );
 
   try {
     // Create or Update the lagoonadmin role which has access to all tenants (all customers)
-    await searchguardClient.put(`roles/lagoonadmin`, {
+    await searchguardClient.put('roles/lagoonadmin', {
       body: {
-        "cluster": [
-          "UNLIMITED"
-        ],
-        "indices": {
-          "*": {
-            "*": [
-              "UNLIMITED"
-            ]
-          }
+        cluster: ['UNLIMITED'],
+        indices: {
+          '*': {
+            '*': ['UNLIMITED'],
+          },
         },
-        tenants: tenants
-      }
+        tenants,
+      },
     });
   } catch (err) {
-    logger.error(`SearchGuard Error while creating lagoonadmin role: ${err}`)
-    throw new Error(`SearchGuard Error while creating lagoonadmin role: ${err}`)
+    logger.error(`SearchGuard Error while creating lagoonadmin role: ${err}`);
+    throw new Error(
+      `SearchGuard Error while creating lagoonadmin role: ${err}`,
+    );
   }
-  return;
-}
+};
 
-const addCustomer = ({ sqlClient, searchguardClient }) => async (cred, input) => {
+const addCustomer = ({ sqlClient, searchguardClient }) => async (
+  cred,
+  input,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -165,7 +165,10 @@ const getCustomerByProjectId = ({ sqlClient }) => async (cred, pid) => {
   return rows ? rows[0] : null;
 };
 
-const deleteCustomer = ({ sqlClient, searchguardClient }) => async (cred, input) => {
+const deleteCustomer = ({ sqlClient, searchguardClient }) => async (
+  cred,
+  input,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }

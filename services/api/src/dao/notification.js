@@ -67,7 +67,7 @@ const Sql = {
         'project.id': input,
       })
       .toString(),
-  selectProjectByName: (input) => {
+  selectProjectByName: input => {
     const { project } = input;
 
     return knex('project')
@@ -77,7 +77,7 @@ const Sql = {
       })
       .toString();
   },
-  selectProjectNotification: (input) => {
+  selectProjectNotification: input => {
     const { project, notificationType, notificationName } = input;
     return knex({ p: 'project', nt: `notification_${notificationType}` })
       .where({ 'p.name': project })
