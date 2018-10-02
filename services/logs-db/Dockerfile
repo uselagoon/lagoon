@@ -27,5 +27,6 @@ COPY sgconfig/sg_internal_users.yml plugins/search-guard-6/sgconfig/sg_internal_
 RUN fix-permissions plugins/search-guard-6/sgconfig
 
 COPY start.sh /start.sh
+COPY es-curl /usr/share/elasticsearch/bin/es-curl
 
 CMD ["/start.sh"]
