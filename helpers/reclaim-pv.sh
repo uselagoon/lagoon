@@ -82,7 +82,8 @@ EOF
     echo "copy ${PVC} to storage"
     ${OC} exec $MIGRATOR -- cp -Rpav /storage/${PVC} /migrator/
 
-    TMP=$(mktemp temp.${PVC}.json)
+    TMP=$(mktemp temp.${PVC}.json.XXXX)
+    
     echo "dumping pvc ${PVC} to ${TMP}."
     ${OC} get -o json pvc/${PVC} --export=true | jq 'del(.metadata.annotations, .metadata.selfLink, .spec.volumeName, .status)' > $TMP
 
