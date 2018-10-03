@@ -322,15 +322,23 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
   );
 
   try {
-    // Load the Keycloak User ID based on the username (which is the email)
-    const keycloakUserList = await keycloakClient.users.find({
-      username: R.prop('email', user),
-    });
+    // Find the Keycloak user with a username matching the email
+    const keycloakUser = R.prop(
+      0,
+      await keycloakClient.users.findOne({
+        username: R.prop('email', user),
+      }),
+    );
 
-    const keycloakUser = R.prop(0, keycloakUserList);
-    await keycloakClient.users.del({
-      id: R.prop('id', keycloakUser),
-    });
+    // Delete the user
+    await keycloakClient.users.del(R.pick(['id'], keycloakUser));
+
+    logger.debug(
+      `Deleted Keycloak user with id ${R.prop(
+        'id',
+        keycloakUser,
+      )} (Lagoon id: ${R.prop('id', user)})`,
+    );
   } catch (err) {
     logger.error(`Error deleting Keycloak user: ${err}`);
     throw new Error(`Error deleting Keycloak user: ${err}`);
