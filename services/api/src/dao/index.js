@@ -44,16 +44,16 @@ const getPermissions = ({ sqlClient }) => async args => {
 };
 
 // TODO: Make this simpler.
-// For example: Consider removing the "DAO" concept completely and migrating to traditional resolver files which are imported in services/api/src/schema.js
+// For example: Consider removing the "DAO" concept completely (including this file) and migrating to traditional resolver files which are imported directly in services/api/src/schema.js
 const daoFns = {
   getPermissions,
-  ...require('./customer').Queries,
-  ...require('./environment').Queries,
-  ...require('./notification').Queries,
-  ...require('./openshift').Queries,
-  ...require('./project').Queries,
-  ...require('./sshKey').Queries,
-  ...require('./user').Queries,
+  ...require('./customer').Resolvers,
+  ...require('./environment').Resolvers,
+  ...require('./notification').Resolvers,
+  ...require('./openshift').Resolvers,
+  ...require('./project').Resolvers,
+  ...require('./sshKey').Resolvers,
+  ...require('./user').Resolvers,
 };
 
 // Maps all dao functions to given sqlClient

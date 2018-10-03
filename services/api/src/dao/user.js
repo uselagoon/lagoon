@@ -448,7 +448,7 @@ const removeAllUsersFromAllProjects = ({ sqlClient }) => async ({ role }) => {
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     getUserBySshKey,
     getUsersByCustomerId,
     addUser,

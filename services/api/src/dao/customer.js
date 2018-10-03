@@ -237,7 +237,7 @@ const deleteAllCustomers = ({ sqlClient }) => async ({ role }) => {
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     addCustomer,
     deleteCustomer,
     getAllCustomers,

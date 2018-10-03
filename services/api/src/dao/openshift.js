@@ -139,7 +139,7 @@ const deleteAllOpenshifts = ({ sqlClient }) => async ({ role }) => {
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     addOpenshift,
     deleteOpenshift,
     getAllOpenshifts,

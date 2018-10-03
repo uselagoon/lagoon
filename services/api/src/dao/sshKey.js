@@ -203,7 +203,7 @@ const removeAllSshKeysFromAllUsers = ({ sqlClient }) => async ({ role }) => {
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     getCustomerSshKeys,
     addSshKey,
     updateSshKey,

@@ -435,7 +435,7 @@ const deleteAllEnvironments = ({ sqlClient }) => async ({ role }) => {
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     addOrUpdateEnvironment,
     addOrUpdateEnvironmentStorage,
     getEnvironmentByName,

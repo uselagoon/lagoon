@@ -473,7 +473,7 @@ const removeAllNotificationsFromAllProjects = ({ sqlClient }) => async ({
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     addNotificationRocketChat,
     addNotificationSlack,
     addNotificationToProject,

@@ -1,6 +1,6 @@
 const { Sql } = require('./project');
 
-describe('Queries', () => {
+describe('Resolvers', () => {
   describe('updateProject', () => {
     it('should return proper update statement', () => {
       const input = {

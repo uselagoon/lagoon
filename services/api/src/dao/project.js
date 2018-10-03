@@ -381,7 +381,7 @@ const deleteAllProjects = ({ sqlClient }) => async ({ role }) => {
 
 module.exports = {
   Sql,
-  Queries: {
+  Resolvers: {
     deleteProject,
     addProject,
     getProjectByName,
