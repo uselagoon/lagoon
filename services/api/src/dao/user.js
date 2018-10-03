@@ -154,6 +154,36 @@ const Sql = {
       .toString(),
 };
 
+const KeycloakOperations = {
+  deleteUser: async (
+    user /* : {id: number, email: string} */,
+    keycloakClient /* : Object */,
+  ) => {
+    try {
+      // Find the Keycloak user with a username matching the email
+      const keycloakUser = R.prop(
+        0,
+        await keycloakClient.users.findOne({
+          username: R.prop('email', user),
+        }),
+      );
+
+      // Delete the user
+      await keycloakClient.users.del(R.pick(['id'], keycloakUser));
+
+      logger.debug(
+        `Deleted Keycloak user with id ${R.prop(
+          'id',
+          keycloakUser,
+        )} (Lagoon id: ${R.prop('id', user)})`,
+      );
+    } catch (err) {
+      logger.error(`Error deleting Keycloak user: ${err}`);
+      throw new Error(`Error deleting Keycloak user: ${err}`);
+    }
+  },
+};
+
 const moveUserSshKeyToObject = ({
   id,
   email,
@@ -321,28 +351,7 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
     }),
   );
 
-  try {
-    // Find the Keycloak user with a username matching the email
-    const keycloakUser = R.prop(
-      0,
-      await keycloakClient.users.findOne({
-        username: R.prop('email', user),
-      }),
-    );
-
-    // Delete the user
-    await keycloakClient.users.del(R.pick(['id'], keycloakUser));
-
-    logger.debug(
-      `Deleted Keycloak user with id ${R.prop(
-        'id',
-        keycloakUser,
-      )} (Lagoon id: ${R.prop('id', user)})`,
-    );
-  } catch (err) {
-    logger.error(`Error deleting Keycloak user: ${err}`);
-    throw new Error(`Error deleting Keycloak user: ${err}`);
-  }
+  await KeycloakOperations.deleteUser(user, keycloakClient);
 
   return 'success';
 };
@@ -430,28 +439,8 @@ const deleteAllUsers = ({ sqlClient, keycloakClient }) => async ({ role }) => {
   const allUsers = await query(sqlClient, Sql.selectUsers());
   await query(sqlClient, Sql.truncateUser());
 
-  try {
-    for (const user of allUsers) {
-      // Find the Keycloak user with a username matching the email
-      const keycloakUser = R.prop(
-        0,
-        await keycloakClient.users.findOne({
-          username: R.prop('email', user),
-        }),
-      );
-
-      // Delete the user
-      await keycloakClient.users.del(R.pick(['id'], keycloakUser));
-      logger.debug(
-        `Deleted Keycloak user with id ${R.prop(
-          'id',
-          keycloakUser,
-        )} (Lagoon id: ${R.prop('id', user)})`,
-      );
-    }
-  } catch (err) {
-    logger.error(`Error deleting Keycloak users: ${err}`);
-    throw new Error(`Error deleting Keycloak users: ${err}`);
+  for (const user of allUsers) {
+    await KeycloakOperations.deleteUser(user, keycloakClient);
   }
 
   // TODO: Check rows for success
