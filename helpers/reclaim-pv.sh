@@ -19,7 +19,7 @@ PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
 
 if [[ $# -gt 0 ]]; then
   unset PVCS
-  PVCS=$@
+  PVCS=("${BASH_ARGV[@]}")
 fi
 
 if [[ ! ${#PVCS[@]} -gt 0 ]]; then
