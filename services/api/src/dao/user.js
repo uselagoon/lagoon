@@ -155,27 +155,68 @@ const Sql = {
 };
 
 const KeycloakOperations = {
+  createUser: async (
+    payload /* :{
+    username: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    enabled: boolean,
+    attributes: {
+      [string]: any
+    },
+  } */,
+    keycloakClient /* : Object */,
+  ) => {
+    try {
+      await keycloakClient.users.create(payload);
+
+      logger.debug(
+        `Created Keycloak user with username ${R.prop('username', payload)}`,
+      );
+    } catch (err) {
+      if (err.response.status === 409) {
+        logger.warn(
+          `Failed to create already existing Keycloak user "${R.prop(
+            'email',
+            payload,
+          )}"`,
+        );
+      } else {
+        logger.error(`Error creating Keycloak user: ${err}`);
+        throw new Error(`Error creating Keycloak user: ${err}`);
+      }
+    }
+  },
+  findUserIdByUsername: async (
+    username /* : string */,
+    keycloakClient /* : Object */,
+  ) =>
+    R.path(
+      [0, 'id'],
+      await keycloakClient.users.findOne({
+        username,
+      }),
+    ),
   deleteUser: async (
     user /* : {id: number, email: string} */,
     keycloakClient /* : Object */,
   ) => {
     try {
-      // Find the Keycloak user with a username matching the email
-      const keycloakUser = R.prop(
-        0,
-        await keycloakClient.users.findOne({
-          username: R.prop('email', user),
-        }),
+      // Find the Keycloak user id with a username matching the email
+      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
+        R.prop('email', user),
+        keycloakClient,
       );
 
       // Delete the user
-      await keycloakClient.users.del(R.pick(['id'], keycloakUser));
+      await keycloakClient.users.del({ id: keycloakUserId });
 
       logger.debug(
-        `Deleted Keycloak user with id ${R.prop(
+        `Deleted Keycloak user with id ${keycloakUserId} (Lagoon id: ${R.prop(
           'id',
-          keycloakUser,
-        )} (Lagoon id: ${R.prop('id', user)})`,
+          user,
+        )})`,
       );
     } catch (err) {
       logger.error(`Error deleting Keycloak user: ${err}`);
@@ -270,33 +311,22 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
   const rows = await query(sqlClient, Sql.selectUser(insertId));
   const user = R.prop(0, rows);
 
-  try {
-    await keycloakClient.users.create({
+  await KeycloakOperations.createUser(
+    {
       ...pickNonNil(['email', 'firstName', 'lastName'], user),
       username: R.prop('email', user),
       enabled: true,
       attributes: {
         'lagoon-uid': [R.prop('id', user)],
       },
-    });
-  } catch (err) {
-    if (err.response.status === 409) {
-      logger.warn(
-        `Failed to create already existing Keycloak user "${R.prop(
-          'email',
-          user,
-        )}"`,
-      );
-    } else {
-      logger.error(`Error creating Keycloak user: ${err}`);
-      throw new Error(`Error creating Keycloak user: ${err}`);
-    }
-  }
+    },
+    keycloakClient,
+  );
 
   return user;
 };
 
-const updateUser = ({ sqlClient }) => async (
+const updateUser = ({ sqlClient, keycloakClient }) => async (
   { role, userId },
   {
     id, patch, patch: {
@@ -312,6 +342,8 @@ const updateUser = ({ sqlClient }) => async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
+  const originalUser = R.prop(0, await query(sqlClient, Sql.selectUser(id)));
+
   await query(
     sqlClient,
     Sql.updateUser({
@@ -324,7 +356,34 @@ const updateUser = ({ sqlClient }) => async (
       },
     }),
   );
+
   const rows = await query(sqlClient, Sql.selectUser(id));
+
+  if (typeof email === 'string') {
+    // Because Keycloak cannot update usernames, we must
+    // delete the original user...
+    await KeycloakOperations.deleteUser(
+      { id, email: R.prop('email', originalUser) },
+      keycloakClient,
+    );
+
+    // ...and then create a new one.
+    await KeycloakOperations.createUser(
+      {
+        username: email,
+        email,
+        // Use the updated firstName and lastName if truthy,
+        // falling back to the values from the originalUser
+        firstName: firstName || R.prop('firstName', originalUser),
+        lastName: lastName || R.prop('lastName', originalUser),
+        enabled: true,
+        attributes: {
+          'lagoon-uid': [id],
+        },
+      },
+      keycloakClient,
+    );
+  }
 
   return R.prop(0, rows);
 };
