@@ -78,7 +78,7 @@ const query = (sqlClient, sql) =>
     });
     setTimeout(() => {
       reject('Timeout while talking to the Database');
-    }, 2000);
+    }, 30000);
   });
 
 // Snakecase any input

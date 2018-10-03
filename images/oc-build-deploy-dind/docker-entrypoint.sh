@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xe
+set -e
 
 if docker -H docker-host.lagoon.svc info &> /dev/null; then
     export DOCKER_HOST=docker-host.lagoon.svc
@@ -19,9 +19,7 @@ cp /var/run/secrets/lagoon/ssh/ssh-privatekey ~/.ssh/key
 # Add a new line to the key, as some ssh key formats need a new line
 echo "" >> ~/.ssh/key
 
-set +x
 export SSH_PRIVATE_KEY=$(cat ~/.ssh/key | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-set -x
 
 echo -e "Host * \n    StrictHostKeyChecking no" > ~/.ssh/config
 chmod 400 ~/.ssh/*

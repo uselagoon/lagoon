@@ -1,4 +1,13 @@
 ---
+- include: gitlab/skip-deployment.yaml
+  vars:
+    testname: "GITLAB - skip deployment"
+    node_version: 8
+    git_repo_name: gitlab.git
+    project: ci-gitlab
+    branch: skip
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
 - include: gitlab/branch.yaml
   vars:
     testname: "GITLAB - slash branch"

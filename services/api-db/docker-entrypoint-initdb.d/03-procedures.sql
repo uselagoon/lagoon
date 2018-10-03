@@ -12,21 +12,22 @@ DELIMITER $$
 CREATE OR REPLACE PROCEDURE
   CreateProject
   (
-    IN id                        int,
-    IN name                      varchar(100),
-    IN customer                  int,
-    IN git_url                   varchar(300),
-    IN subfolder                 varchar(300),
-    IN openshift                 int,
-    IN openshift_project_pattern varchar(300),
-    IN active_systems_deploy     varchar(300),
-    IN active_systems_promote    varchar(300),
-    IN active_systems_remove     varchar(300),
-    IN branches                  varchar(300),
-    IN pullrequests              varchar(300),
-    IN production_environment    varchar(100),
-    IN auto_idle                 int(1),
-    IN storage_calc              int(1)
+    IN id                              int,
+    IN name                            varchar(100),
+    IN customer                        int,
+    IN git_url                         varchar(300),
+    IN subfolder                       varchar(300),
+    IN openshift                       int,
+    IN openshift_project_pattern       varchar(300),
+    IN active_systems_deploy           varchar(300),
+    IN active_systems_promote          varchar(300),
+    IN active_systems_remove           varchar(300),
+    IN branches                        varchar(300),
+    IN pullrequests                    varchar(300),
+    IN production_environment          varchar(100),
+    IN auto_idle                       int(1),
+    IN storage_calc                    int(1),
+    IN development_environments_limit  int
   )
   BEGIN
     DECLARE new_pid int;
@@ -59,7 +60,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         pullrequests,
         openshift,
-        openshift_project_pattern
+        openshift_project_pattern,
+        development_environments_limit
     )
     SELECT
         id,
@@ -76,7 +78,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         pullrequests,
         os.id,
-        openshift_project_pattern
+        openshift_project_pattern,
+        development_environments_limit
     FROM
         openshift AS os,
         customer AS c

@@ -179,6 +179,10 @@ const typeDefs = gql`
     """
     users: [User]
     """
+    How many environments can be deployed at one timeout
+    """
+    developmentEnvironmentsLimit: Int
+    """
     Deployed Environments for this Project
     """
     environments(
@@ -255,7 +259,7 @@ const typeDefs = gql`
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
-    allEnvironments(createdAfter: String): [Environment]
+    allEnvironments(createdAfter: String, type: EnvType): [Environment]
   }
 
   input AddSshKeyInput {
@@ -286,6 +290,8 @@ const typeDefs = gql`
     productionEnvironment: String
     autoIdle: Int
     storageCalc: Int
+    developmentEnvironmentsLimit: Int
+
   }
 
   input AddEnvironmentInput {
@@ -422,6 +428,8 @@ const typeDefs = gql`
     pullrequests: String
     openshift: Int
     openshiftProjectPattern: String
+    developmentEnvironmentsLimit: Int
+
   }
 
   input UpdateProjectInput {

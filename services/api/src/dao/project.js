@@ -14,10 +14,9 @@ const {
 
 // This contains the sql query generation logic
 const Sql = {
-  updateProject: ({ permissions: { projects } }, { id, patch }) =>
+  updateProject: ({ id, patch }) =>
     knex('project')
       .where('id', '=', id)
-      .whereIn('id', projects)
       .update(patch)
       .toString(),
   selectProject: (id /* : number */) =>
@@ -204,7 +203,13 @@ const addProject = ({
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
         ${input.autoIdle ? ':auto_idle' : '1'},
-        ${input.storageCalc ? ':storage_calc' : '1'}
+        ${input.storageCalc ? ':storage_calc' : '1'},
+        ${
+  input.developmentEnvironmentsLimit
+    ? ':development_environments_limit'
+    : '5'
+}
+
       );
     `,
   );
@@ -359,7 +364,7 @@ const updateProject = ({ sqlClient }) => async (cred, input) => {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await query(sqlClient, Sql.updateProject(cred, input));
+  await query(sqlClient, Sql.updateProject(input));
   return Helpers.getProjectById(pid);
 };
 

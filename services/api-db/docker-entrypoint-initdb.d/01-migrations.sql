@@ -317,15 +317,51 @@ CREATE OR REPLACE PROCEDURE
 
   BEGIN
     IF NOT EXISTS(
-    SELECT NULL
-    FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE
-      table_name = 'environment'
-      AND table_schema = 'infrastructure'
-      AND column_name = 'openshift_project_name'
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift_project_name'
     ) THEN
       ALTER TABLE `environment`
       CHANGE `openshift_projectname` `openshift_project_name` varchar(100);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_routes_monitoring_urls_to_environments()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'route'
+    ) THEN
+      ALTER TABLE `environment` ADD `route` varchar(300);
+      ALTER TABLE `environment` ADD `routes` text;
+      ALTER TABLE `environment` ADD `monitoring_urls` text;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_environment_limit_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'development_environments_limit'
+    ) THEN
+      ALTER TABLE `project` ADD `development_environments_limit` int;
     END IF;
   END;
 $$
@@ -463,6 +499,8 @@ CALL add_openshift_project_pattern_to_project();
 CALL rename_keyValue_to_key_value_in_ssh_key();
 CALL rename_keyType_to_key_type_in_ssh_key();
 CALL rename_openshift_projectname_in_environment();
+CALL add_routes_monitoring_urls_to_environments();
+CALL add_environment_limit_to_project();
 CALL drop_legacy_pid_skid_view();
 CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();

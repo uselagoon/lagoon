@@ -54,22 +54,23 @@ CREATE TABLE IF NOT EXISTS notification_slack (
 
 
 CREATE TABLE IF NOT EXISTS project (
-  id                        int NOT NULL auto_increment PRIMARY KEY,
-  name                      varchar(100) UNIQUE,
-  customer                  int REFERENCES customer (id),
-  git_url                   varchar(300),
-  subfolder                 varchar(300),
-  active_systems_deploy     varchar(300),
-  active_systems_promote    varchar(300),
-  active_systems_remove     varchar(300),
-  branches                  varchar(300),
-  pullrequests              varchar(300),
-  production_environment    varchar(100),
-  auto_idle                 int(1) NOT NULL default 1,
-  storage_calc              int(1) NOT NULL default 1,
-  openshift                 int REFERENCES openshift (id),
-  openshift_project_pattern varchar(300),
-  created                   timestamp DEFAULT CURRENT_TIMESTAMP
+  id                               int NOT NULL auto_increment PRIMARY KEY,
+  name                             varchar(100) UNIQUE,
+  customer                         int REFERENCES customer (id),
+  git_url                          varchar(300),
+  subfolder                        varchar(300),
+  active_systems_deploy            varchar(300),
+  active_systems_promote           varchar(300),
+  active_systems_remove            varchar(300),
+  branches                         varchar(300),
+  pullrequests                     varchar(300),
+  production_environment           varchar(100),
+  auto_idle                        int(1) NOT NULL default 1,
+  storage_calc                     int(1) NOT NULL default 1,
+  openshift                        int REFERENCES openshift (id),
+  openshift_project_pattern        varchar(300),
+  development_environments_limit   int DEFAULT NULL,
+  created                          timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS environment (
