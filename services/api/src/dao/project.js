@@ -14,7 +14,7 @@ const {
 
 // This contains the sql query generation logic
 const Sql = {
-  updateProject: ({ id, patch }) =>
+  updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
     knex('project')
       .where('id', '=', id)
       .update(patch)
@@ -23,12 +23,12 @@ const Sql = {
     knex('project')
       .where('id', id)
       .toString(),
-  selectProjectIdByName: name =>
+  selectProjectIdByName: (name /* : string */) =>
     knex('project')
       .where('name', name)
       .select('id')
       .toString(),
-  selectProjectIdsByCustomerIds: customerIds =>
+  selectProjectIdsByCustomerIds: (customerIds /* : Array<number> */) =>
     knex('project')
       .select('id')
       .whereIn('customer', customerIds)
