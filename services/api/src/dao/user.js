@@ -155,6 +155,16 @@ const Sql = {
 };
 
 const KeycloakOperations = {
+  findUserIdByUsername: async (
+    username /* : string */,
+    keycloakClient /* : Object */,
+  ) =>
+    R.path(
+      [0, 'id'],
+      await keycloakClient.users.findOne({
+        username,
+      }),
+    ),
   createUser: async (
     payload /* :{
     username: string,
@@ -188,16 +198,6 @@ const KeycloakOperations = {
       }
     }
   },
-  findUserIdByUsername: async (
-    username /* : string */,
-    keycloakClient /* : Object */,
-  ) =>
-    R.path(
-      [0, 'id'],
-      await keycloakClient.users.findOne({
-        username,
-      }),
-    ),
   deleteUser: async (
     user /* : {id: number, email: string} */,
     keycloakClient /* : Object */,
@@ -221,6 +221,72 @@ const KeycloakOperations = {
     } catch (err) {
       logger.error(`Error deleting Keycloak user: ${err}`);
       throw new Error(`Error deleting Keycloak user: ${err}`);
+    }
+  },
+  addUserToGroup: async (
+    { username, groupName } /* : {username: string, groupName: string} */,
+    keycloakClient /* : Object */,
+  ) => {
+    try {
+      // Find the Keycloak user id by username
+      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
+        username,
+        keycloakClient,
+      );
+
+      // Find the Keycloak group id by name
+      const keycloakGroupId = R.path(
+        [0, 'id'],
+        await keycloakClient.groups.find({
+          search: groupName,
+        }),
+      );
+
+      // Add the user to the group
+      await keycloakClient.users.addToGroup({
+        id: keycloakUserId,
+        groupId: keycloakGroupId,
+      });
+
+      logger.debug(
+        `Added Keycloak user with username ${username} to group "${groupName}"`,
+      );
+    } catch (err) {
+      logger.error(`Error adding Keycloak user to group: ${err}`);
+      throw new Error(`Error adding Keycloak user to group: ${err}`);
+    }
+  },
+  deleteUserFromGroup: async (
+    { username, groupName } /* : {username: string, groupName: string} */,
+    keycloakClient /* : Object */,
+  ) => {
+    try {
+      // Find the Keycloak user id by username
+      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
+        username,
+        keycloakClient,
+      );
+
+      // Find the Keycloak group id by name
+      const keycloakGroupId = R.path(
+        [0, 'id'],
+        await keycloakClient.groups.find({
+          search: groupName,
+        }),
+      );
+
+      // Delete the user from the group
+      await keycloakClient.users.delFromGroup({
+        id: keycloakUserId,
+        groupId: keycloakGroupId,
+      });
+
+      logger.debug(
+        `Deleted Keycloak user with username ${username} from group "${groupName}"`,
+      );
+    } catch (err) {
+      logger.error(`Error deleting Keycloak user from group: ${err}`);
+      throw new Error(`Error deleting Keycloak user from group: ${err}`);
     }
   },
 };
@@ -360,8 +426,7 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
   const rows = await query(sqlClient, Sql.selectUser(id));
 
   if (typeof email === 'string') {
-    // Because Keycloak cannot update usernames, we must
-    // delete the original user...
+    // Because Keycloak cannot update usernames, we must delete the original user...
     await KeycloakOperations.deleteUser(
       { id, email: R.prop('email', originalUser) },
       keycloakClient,
@@ -415,7 +480,7 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
   return 'success';
 };
 
-const addUserToProject = ({ sqlClient }) => async (
+const addUserToProject = ({ sqlClient, keycloakClient }) => async (
   { role, permissions: { projects } },
   { project, userId },
 ) => {
@@ -427,10 +492,21 @@ const addUserToProject = ({ sqlClient }) => async (
   }
 
   await query(sqlClient, Sql.addUserToProject({ projectId, userId }));
+
+  const username = R.path(
+    [0, 'email'],
+    await query(sqlClient, Sql.selectUser(userId)),
+  );
+
+  await KeycloakOperations.addUserToGroup(
+    { username, groupName: project },
+    keycloakClient,
+  );
+
   return getProjectById(sqlClient, projectId);
 };
 
-const removeUserFromProject = ({ sqlClient }) => async (
+const removeUserFromProject = ({ sqlClient, keycloakClient }) => async (
   { role, permissions: { projects } },
   { project, userId },
 ) => {
@@ -442,6 +518,17 @@ const removeUserFromProject = ({ sqlClient }) => async (
   }
 
   await query(sqlClient, Sql.removeUserFromProject({ projectId, userId }));
+
+  const username = R.path(
+    [0, 'email'],
+    await query(sqlClient, Sql.selectUser(userId)),
+  );
+
+  await KeycloakOperations.deleteUserFromGroup(
+    { username, groupName: project },
+    keycloakClient,
+  );
+
   return getProjectById(sqlClient, projectId);
 };
 
