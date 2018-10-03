@@ -17,6 +17,7 @@ const Sql = {
     knex('user')
       .where('id', '=', id)
       .toString(),
+  selectUsers: () => knex('user').toString(),
   selectUserBySshKey: (
     { keyValue, keyType } /* : {
     keyValue: string,
@@ -413,12 +414,37 @@ const removeUserFromCustomer = ({ sqlClient }) => async (
   return getCustomerById(sqlClient, customerId);
 };
 
-const deleteAllUsers = ({ sqlClient }) => async ({ role }) => {
+const deleteAllUsers = ({ sqlClient, keycloakClient }) => async ({ role }) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
 
+  const allUsers = await query(sqlClient, Sql.selectUsers());
   await query(sqlClient, Sql.truncateUser());
+
+  try {
+    for (const user of allUsers) {
+      // Find the Keycloak user with a username matching the email
+      const keycloakUser = R.prop(
+        0,
+        await keycloakClient.users.findOne({
+          username: R.prop('email', user),
+        }),
+      );
+
+      // Delete the user
+      await keycloakClient.users.del(R.pick(['id'], keycloakUser));
+      logger.debug(
+        `Deleted Keycloak user with id ${R.prop(
+          'id',
+          keycloakUser,
+        )} (Lagoon id: ${R.prop('id', user)})`,
+      );
+    }
+  } catch (err) {
+    logger.error(`Error deleting Keycloak users: ${err}`);
+    throw new Error(`Error deleting Keycloak users: ${err}`);
+  }
 
   // TODO: Check rows for success
   return 'success';
