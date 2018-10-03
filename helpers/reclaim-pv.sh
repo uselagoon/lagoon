@@ -17,6 +17,11 @@
 OC=oc
 PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
 
+if [[ $# -gt 0 ]]; then
+  unset PVCS
+  PVCS=$@
+fi
+
 if [[ ! ${#PVCS[@]} -gt 0 ]]; then
   echo "no PVCs found."
 
