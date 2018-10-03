@@ -258,8 +258,8 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
         )}"`,
       );
     } else {
-      logger.error(`Error on Keycloak user creation: ${err}`);
-      throw new Error(`Error on Keycloak user creation: ${err}`);
+      logger.error(`Error creating Keycloak user: ${err}`);
+      throw new Error(`Error creating Keycloak user: ${err}`);
     }
   }
 
@@ -307,7 +307,7 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
     throw new Error('Unauthorized.');
   }
 
-  // Load the full user as we need it to remove it later from keyCloak
+  // Load the full user as we need it to remove it later from Keycloak
   const rows = await query(sqlClient, Sql.selectUser(id));
   const user = R.prop(0, rows);
 
@@ -332,8 +332,8 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
       id: R.prop('id', keycloakUser),
     });
   } catch (err) {
-    logger.error(`Error on Keycloak user creation: ${err}`);
-    throw new Error(`Error on Keycloak user creation: ${err}`);
+    logger.error(`Error deleting Keycloak user: ${err}`);
+    throw new Error(`Error deleting Keycloak user: ${err}`);
   }
 
   return 'success';
