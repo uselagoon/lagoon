@@ -45,6 +45,7 @@ const getPermissions = ({ sqlClient }) => async args => {
 
 // TODO: Make this simpler.
 // For example: Consider removing the "DAO" concept completely (including this file) and migrating to traditional resolver files which are imported directly in services/api/src/schema.js
+// Example structure including SQL, schema, resolvers: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
 const daoFns = {
   getPermissions,
   ...require('./customer').Resolvers,
