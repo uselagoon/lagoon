@@ -39,7 +39,7 @@ Hint: If you don't like any of these configs, you have three possibilities:
 This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](./php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000. This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :) Here a short description of what this file does:
 
 - listens on port 9000 via ipv4 and ipv6
-- uses the pm `dynamic` and creates between 2-20 children
+- uses the pm `dynamic` and creates between 2-50 children
 - respawns fpm pool children after 500 requests to prevent memory leaks
 - replies with `pong` when making an fastcgi request to `/ping` (good for automated testing if the pool started)
 - `catch_workers_output = yes` to see php errors
