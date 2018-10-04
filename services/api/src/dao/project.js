@@ -28,6 +28,29 @@ const Sql = {
       .where('name', name)
       .select('id')
       .toString(),
+  // Select customer projects where given user ids do not have other access via `project_user`. Put another way, projects where the user loses access if they lose customer access.
+  selectCustomerProjectsWithoutDirectUserAccess: (
+    customerIds /* : Array<number> */,
+    userIds /* : Array<number> */,
+  ) =>
+    knex('project as p')
+      .select('p.id', 'p.name', 'cu.usid', 'cu.cid')
+      // Join the rows of customer_user which match the project customer id
+      .leftJoin('customer_user as cu', 'cu.cid', '=', 'p.customer')
+      // Join the rows of project_user which...
+      .leftJoin('project_user as pu', function onClause() {
+        // ...match the project id...
+        this.on('pu.pid', '=', 'p.id');
+        // ...and match the user id.
+        this.andOn('pu.usid', '=', 'cu.usid');
+      })
+      // Only return projects with a customer matching one of the customer ids
+      .whereIn('p.customer', customerIds)
+      // Only return projects with a customer that one or more of the user ids has access to
+      .whereIn('cu.usid', userIds)
+      // Filter out projects which have a matching project_user entry (where one or more of the user ids already has direct access to the project)
+      .whereNull('pu.pid')
+      .toString(),
   selectProjectIdsByCustomerIds: (customerIds /* : Array<number> */) =>
     knex('project')
       .select('id')
@@ -66,6 +89,15 @@ const Helpers = {
 
     return pid;
   },
+  getCustomerProjectsWithoutDirectUserAccess: async (
+    sqlClient,
+    customerIds,
+    userIds,
+  ) =>
+    query(
+      sqlClient,
+      Sql.selectCustomerProjectsWithoutDirectUserAccess(customerIds, userIds),
+    ),
   getProjectIdsByCustomerIds: async (sqlClient, customerIds) =>
     query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
   getCustomerByCustomerId: async (sqlClient, id) => {

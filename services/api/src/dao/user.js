@@ -9,6 +9,7 @@ const {
   getProjectIdByName,
   getProjectById,
   getProjectIdsByCustomerIds,
+  getCustomerProjectsWithoutDirectUserAccess,
 } = require('./project').Helpers;
 const { getCustomerIdByName, getCustomerById } = require('./customer').Helpers;
 
@@ -541,7 +542,7 @@ const getUsersByCustomerId = ({ sqlClient }) => async (
   return R.map(moveUserSshKeyToObject, rows);
 };
 
-const addUserToCustomer = ({ sqlClient }) => async (
+const addUserToCustomer = ({ sqlClient, keycloakClient }) => async (
   { role, permissions: { customers } },
   { customer, userId },
 ) => {
@@ -553,10 +554,31 @@ const addUserToCustomer = ({ sqlClient }) => async (
   }
 
   await query(sqlClient, Sql.addUserToCustomer({ customerId, userId }));
+
+  // Get customer projects where given user ids do not have other access via `project_user`. Put another way, projects where the user loses access if they lose customer access.
+  const projects = await getCustomerProjectsWithoutDirectUserAccess(
+    sqlClient,
+    [customerId],
+    [userId],
+  );
+  console.log('prr', projects);
+
+  const username = R.path(
+    [0, 'email'],
+    await query(sqlClient, Sql.selectUser(userId)),
+  );
+
+  for (const project of projects) {
+    await KeycloakOperations.addUserToGroup(keycloakClient, {
+      username,
+      groupName: R.prop('name', project),
+    });
+  }
+
   return getCustomerById(sqlClient, customerId);
 };
 
-const removeUserFromCustomer = ({ sqlClient }) => async (
+const removeUserFromCustomer = ({ sqlClient, keycloakClient }) => async (
   { role, permissions: { customers } },
   { customer, userId },
 ) => {
@@ -567,6 +589,26 @@ const removeUserFromCustomer = ({ sqlClient }) => async (
     throw new Error('Unauthorized.');
   }
 
+  // Get customer projects where given user ids do not have other access via `project_user`. Put another way, projects where the user loses access if they lose customer access.
+  const projects = await getCustomerProjectsWithoutDirectUserAccess(
+    sqlClient,
+    [customerId],
+    [userId],
+  );
+
+  const username = R.path(
+    [0, 'email'],
+    await query(sqlClient, Sql.selectUser(userId)),
+  );
+
+  for (const project of projects) {
+    await KeycloakOperations.deleteUserFromGroup(keycloakClient, {
+      username,
+      groupName: R.prop('name', project),
+    });
+  }
+
+  // The removal query needs to be performed further down in the function because the query in  `getCustomerProjectsWithoutDirectUserAccess` needs the connection between user and customer to still exist.
   await query(sqlClient, Sql.removeUserFromCustomer({ customerId, userId }));
   return getCustomerById(sqlClient, customerId);
 };
