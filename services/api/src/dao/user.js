@@ -156,8 +156,8 @@ const Sql = {
 
 const KeycloakOperations = {
   findUserIdByUsername: async (
-    username /* : string */,
     keycloakClient /* : Object */,
+    username /* : string */,
   ) =>
     R.path(
       [0, 'id'],
@@ -166,6 +166,7 @@ const KeycloakOperations = {
       }),
     ),
   createUser: async (
+    keycloakClient /* : Object */,
     payload /* :{
     username: string,
     email: string,
@@ -176,7 +177,6 @@ const KeycloakOperations = {
       [string]: any
     },
   } */,
-    keycloakClient /* : Object */,
   ) => {
     try {
       await keycloakClient.users.create(payload);
@@ -199,14 +199,14 @@ const KeycloakOperations = {
     }
   },
   deleteUser: async (
-    user /* : {id: number, email: string} */,
     keycloakClient /* : Object */,
+    user /* : {id: number, email: string} */,
   ) => {
     try {
       // Find the Keycloak user id with a username matching the email
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
-        R.prop('email', user),
         keycloakClient,
+        R.prop('email', user),
       );
 
       // Delete the user
@@ -224,14 +224,14 @@ const KeycloakOperations = {
     }
   },
   addUserToGroup: async (
-    { username, groupName } /* : {username: string, groupName: string} */,
     keycloakClient /* : Object */,
+    { username, groupName } /* : {username: string, groupName: string} */,
   ) => {
     try {
       // Find the Keycloak user id by username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
-        username,
         keycloakClient,
+        username,
       );
 
       // Find the Keycloak group id by name
@@ -257,14 +257,14 @@ const KeycloakOperations = {
     }
   },
   deleteUserFromGroup: async (
-    { username, groupName } /* : {username: string, groupName: string} */,
     keycloakClient /* : Object */,
+    { username, groupName } /* : {username: string, groupName: string} */,
   ) => {
     try {
       // Find the Keycloak user id by username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
-        username,
         keycloakClient,
+        username,
       );
 
       // Find the Keycloak group id by name
@@ -377,17 +377,14 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
   const rows = await query(sqlClient, Sql.selectUser(insertId));
   const user = R.prop(0, rows);
 
-  await KeycloakOperations.createUser(
-    {
-      ...pickNonNil(['email', 'firstName', 'lastName'], user),
-      username: R.prop('email', user),
-      enabled: true,
-      attributes: {
-        'lagoon-uid': [R.prop('id', user)],
-      },
+  await KeycloakOperations.createUser(keycloakClient, {
+    ...pickNonNil(['email', 'firstName', 'lastName'], user),
+    username: R.prop('email', user),
+    enabled: true,
+    attributes: {
+      'lagoon-uid': [R.prop('id', user)],
     },
-    keycloakClient,
-  );
+  });
 
   return user;
 };
@@ -427,27 +424,24 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
 
   if (typeof email === 'string') {
     // Because Keycloak cannot update usernames, we must delete the original user...
-    await KeycloakOperations.deleteUser(
-      { id, email: R.prop('email', originalUser) },
-      keycloakClient,
-    );
+    await KeycloakOperations.deleteUser(keycloakClient, {
+      id,
+      email: R.prop('email', originalUser),
+    });
 
     // ...and then create a new one.
-    await KeycloakOperations.createUser(
-      {
-        username: email,
-        email,
-        // Use the updated firstName and lastName if truthy,
-        // falling back to the values from the originalUser
-        firstName: firstName || R.prop('firstName', originalUser),
-        lastName: lastName || R.prop('lastName', originalUser),
-        enabled: true,
-        attributes: {
-          'lagoon-uid': [id],
-        },
+    await KeycloakOperations.createUser(keycloakClient, {
+      username: email,
+      email,
+      // Use the updated firstName and lastName if truthy,
+      // falling back to the values from the originalUser
+      firstName: firstName || R.prop('firstName', originalUser),
+      lastName: lastName || R.prop('lastName', originalUser),
+      enabled: true,
+      attributes: {
+        'lagoon-uid': [id],
       },
-      keycloakClient,
-    );
+    });
   }
 
   return R.prop(0, rows);
@@ -475,7 +469,7 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
     }),
   );
 
-  await KeycloakOperations.deleteUser(user, keycloakClient);
+  await KeycloakOperations.deleteUser(keycloakClient, user);
 
   return 'success';
 };
@@ -498,10 +492,10 @@ const addUserToProject = ({ sqlClient, keycloakClient }) => async (
     await query(sqlClient, Sql.selectUser(userId)),
   );
 
-  await KeycloakOperations.addUserToGroup(
-    { username, groupName: project },
-    keycloakClient,
-  );
+  await KeycloakOperations.addUserToGroup(keycloakClient, {
+    username,
+    groupName: project,
+  });
 
   return getProjectById(sqlClient, projectId);
 };
@@ -524,10 +518,10 @@ const removeUserFromProject = ({ sqlClient, keycloakClient }) => async (
     await query(sqlClient, Sql.selectUser(userId)),
   );
 
-  await KeycloakOperations.deleteUserFromGroup(
-    { username, groupName: project },
-    keycloakClient,
-  );
+  await KeycloakOperations.deleteUserFromGroup(keycloakClient, {
+    username,
+    groupName: project,
+  });
 
   return getProjectById(sqlClient, projectId);
 };
@@ -586,7 +580,7 @@ const deleteAllUsers = ({ sqlClient, keycloakClient }) => async ({ role }) => {
   await query(sqlClient, Sql.truncateUser());
 
   for (const user of allUsers) {
-    await KeycloakOperations.deleteUser(user, keycloakClient);
+    await KeycloakOperations.deleteUser(keycloakClient, user);
   }
 
   // TODO: Check rows for success
