@@ -423,12 +423,23 @@ const updateProject = ({ sqlClient, keycloakClient }) => async (
   return Helpers.getProjectById(sqlClient, id);
 };
 
-const deleteAllProjects = ({ sqlClient }) => async ({ role }) => {
+const deleteAllProjects = ({ sqlClient, keycloakClient }) => async ({
+  role,
+}) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
 
+  const projectNames = R.map(
+    R.prop('name'),
+    await query(sqlClient, Sql.selectAllProjectNames()),
+  );
+
   await query(sqlClient, Sql.truncateProject());
+
+  for (const name of projectNames) {
+    await KeycloakOperations.deleteGroup(keycloakClient, name);
+  }
 
   // TODO: Check rows for success
   return 'success';

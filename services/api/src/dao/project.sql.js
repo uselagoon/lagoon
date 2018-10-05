@@ -3,14 +3,13 @@
 const { knex } = require('./utils');
 
 const Sql = {
-  updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
-    knex('project')
-      .where('id', '=', id)
-      .update(patch)
-      .toString(),
   selectProject: (id /* : number */) =>
     knex('project')
       .where('id', id)
+      .toString(),
+  selectAllProjectNames: () =>
+    knex('project')
+      .select('name')
       .toString(),
   selectProjectIdByName: (name /* : string */) =>
     knex('project')
@@ -67,6 +66,11 @@ const Sql = {
     knex('project')
       .select('id')
       .whereIn('customer', customerIds)
+      .toString(),
+  updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
+    knex('project')
+      .where('id', '=', id)
+      .update(patch)
       .toString(),
   truncateProject: () =>
     knex('project')
