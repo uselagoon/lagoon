@@ -11,6 +11,8 @@ const {
   isPatchEmpty,
 } = require('./utils');
 
+const { getCustomerById } = require('./customer').Helpers;
+
 // TEMPORARY: Don't copy this `project.helpers`, etc file naming structure.
 // This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
 //
@@ -183,10 +185,7 @@ const addProject = ({
     }
   }
 
-  const customer = await Helpers.getCustomerByCustomerId(
-    sqlClient,
-    project.customer,
-  );
+  const customer = await getCustomerById(sqlClient, project.customer);
 
   try {
     // Create a new SearchGuard Role for this project with the same name as the Project

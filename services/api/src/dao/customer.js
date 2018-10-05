@@ -61,7 +61,7 @@ const Sql = {
 };
 
 const Helpers = {
-  getCustomerById: async (sqlClient, id) => {
+  getCustomerById: async (sqlClient /* : Object */, id /* : number */) => {
     const rows = await query(sqlClient, Sql.selectCustomer(id));
     return R.prop(0, rows);
   },

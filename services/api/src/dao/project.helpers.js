@@ -62,13 +62,6 @@ const Helpers = {
     sqlClient /* : Object */,
     customerIds /* : Array<number> */,
   ) => query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
-  getCustomerByCustomerId: async (
-    sqlClient /* : Object */,
-    id /* : number */,
-  ) => {
-    const rows = await query(sqlClient, Sql.selectCustomer(id));
-    return R.prop(0, rows);
-  },
   mapIfNoDirectProjectAccess: async (
     sqlClient /* : Object */,
     keycloakClient /* : Object */,

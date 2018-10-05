@@ -68,10 +68,6 @@ const Sql = {
       .select('id')
       .whereIn('customer', customerIds)
       .toString(),
-  selectCustomer: (id /* : number */) =>
-    knex('customer')
-      .where('id', id)
-      .toString(),
   truncateProject: () =>
     knex('project')
       .truncate()
