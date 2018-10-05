@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS deployment (
        created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
        started      datetime NULL,
        completed    datetime NULL,
-       environment  int NOT NULL REFERENCES environment (id)
+       environment  int NOT NULL REFERENCES environment (id),
+       remote_id    varchar(50) NULL
 );
 
 -- Junction Tables

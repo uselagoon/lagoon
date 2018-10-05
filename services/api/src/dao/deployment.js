@@ -23,6 +23,7 @@ const Sql = {
     started,
     completed,
     environment,
+    remoteId,
   }) =>
     knex('deployment')
       .insert({
@@ -33,6 +34,7 @@ const Sql = {
         started,
         completed,
         environment,
+        remoteId,
       })
       .toString(),
   deleteDeployment: id =>
@@ -84,10 +86,42 @@ const getDeploymentsByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
   return rows;
 };
 
+const getDeploymentByRemoteId = ({ sqlClient }) => async (
+  { role, customers, projects },
+  { id },
+) => {
+  const queryString = knex('deployment')
+    .where('remote_id', '=', id)
+    .toString();
+
+  const rows = await query(sqlClient, queryString);
+  const deployment = R.prop(0, rows);
+
+  if (!deployment) {
+    return null;
+  }
+
+  if (role !== 'admin') {
+    const rowsPerms = await query(
+      sqlClient,
+      Sql.selectPermsForDeployment(deployment.id),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
+      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  return deployment;
+};
+
 const addDeployment = ({ sqlClient }) => async (
   { role, customers, projects },
   {
-    id, name, status, created, started, completed, environment,
+    id, name, status, created, started, completed, environment, remoteId,
   },
 ) => {
   if (role !== 'admin') {
@@ -116,6 +150,7 @@ const addDeployment = ({ sqlClient }) => async (
       started,
       completed,
       environment,
+      remoteId,
     }),
   );
 
@@ -150,7 +185,7 @@ const updateDeployment = ({ sqlClient }) => async (
     id,
     patch,
     patch: {
-      name, status, created, started, completed, environment,
+      name, status, created, started, completed, environment, remoteId,
     },
   },
 ) => {
@@ -197,6 +232,7 @@ const updateDeployment = ({ sqlClient }) => async (
         started,
         completed,
         environment,
+        remoteId,
       },
     }),
   );
@@ -208,6 +244,7 @@ const updateDeployment = ({ sqlClient }) => async (
 
 const Queries = {
   getDeploymentsByEnvironmentId,
+  getDeploymentByRemoteId,
   addDeployment,
   deleteDeployment,
   updateDeployment,

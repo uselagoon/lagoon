@@ -252,6 +252,7 @@ const typeDefs = gql`
     started: String
     completed: String
     environment: Environment
+    remoteId: String
   }
 
   input DeleteEnvironmentInput {
@@ -267,6 +268,7 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    deploymentByRemoteId(id: String): Deployment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
@@ -326,6 +328,7 @@ const typeDefs = gql`
     started: String
     completed: String
     environment: Int!
+    remoteId: String
   }
 
   input DeleteDeploymentInput {
@@ -339,6 +342,7 @@ const typeDefs = gql`
     started: String
     completed: String
     environment: Int
+    remoteId: String
   }
 
   input UpdateDeploymentInput {
@@ -740,6 +744,10 @@ const resolvers = {
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+    },
+    deploymentByRemoteId: async (root, args, req) => {
+      const dao = getDao(req);
+      return dao.getDeploymentByRemoteId(req.credentials, args);
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
