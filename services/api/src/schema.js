@@ -621,6 +621,17 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
+const deploymentStatusTypeToString = R.cond([
+  [R.equals('NEW'), R.toLower],
+  [R.equals('PENDING'), R.toLower],
+  [R.equals('RUNNING'), R.toLower],
+  [R.equals('CANCELLED'), R.toLower],
+  [R.equals('ERROR'), R.toLower],
+  [R.equals('FAILED'), R.toLower],
+  [R.equals('COMPLETE'), R.toLower],
+  [R.T, R.identity],
+]);
+
 const getCtx = req => req.app.get('context');
 const getDao = req => getCtx(req).dao;
 
@@ -993,7 +1004,10 @@ const resolvers = {
     },
     addDeployment: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addDeployment(req.credentials, args.input);
+      const input = R.over(R.lensProp('status'), deploymentStatusTypeToString)(
+        args.input,
+      );
+      const ret = await dao.addDeployment(req.credentials, input);
       return ret;
     },
     deleteDeployment: async (root, args, req) => {
@@ -1003,7 +1017,10 @@ const resolvers = {
     },
     updateDeployment: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.updateDeployment(req.credentials, args.input);
+      const input = R.over(R.lensPath(['patch', 'status']), deploymentStatusTypeToString)(
+        args.input
+      );
+      const ret = await dao.updateDeployment(req.credentials, input);
       return ret;
     },
     truncateTable: async (root, args, req) => {
