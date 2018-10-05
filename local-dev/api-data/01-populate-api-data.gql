@@ -731,7 +731,9 @@ mutation PopulateApi {
       developmentEnvironmentsLimit: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
     }
-  ) { id }
+  ) {
+    id
+  }
 
   CILimitEnv1: addOrUpdateEnvironment(
     input: {
@@ -741,7 +743,9 @@ mutation PopulateApi {
       environmentType: PRODUCTION
       openshiftProjectName: "ci-env-limit"
     }
-  ){  id }
+  ) {
+    id
+  }
 
   CILimitEnv2: addOrUpdateEnvironment(
     input: {
@@ -751,7 +755,9 @@ mutation PopulateApi {
       environmentType: DEVELOPMENT
       openshiftProjectName: "ci-env-limit"
     }
-  ) { id }
+  ) {
+    id
+  }
 
   CILimitEn3: addOrUpdateEnvironment(
     input: {
@@ -761,6 +767,7 @@ mutation PopulateApi {
       environmentType: DEVELOPMENT
       openshiftProjectName: "ci-env-limit"
     }
-  ) { id }
-
+  ) {
+    id
+  }
 }
