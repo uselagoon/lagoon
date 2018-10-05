@@ -1,13 +1,12 @@
 {
   "name": "api",
   "version": "3.0.0",
-  "description": "",
+  "description": "Lagoon GraphQL API",
   "main": "index.js",
   "engines": {
     "node": ">=8.12.0"
   },
   "scripts": {
-    "build": "echo 'hi'",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
