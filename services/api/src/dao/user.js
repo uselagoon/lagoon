@@ -2,295 +2,22 @@
 
 const R = require('ramda');
 const pickNonNil = require('../util/pickNonNil');
-const { query, isPatchEmpty, knex } = require('./utils');
-const logger = require('../logger');
+const { query, isPatchEmpty } = require('./utils');
 
-const {
-  getProjectIdByName,
-  getProjectById,
-  getProjectIdsByCustomerIds,
-  getCustomerProjectsWithoutDirectUserAccess,
-} = require('./project').Helpers;
 const { getCustomerIdByName, getCustomerById } = require('./customer').Helpers;
 
-const Sql = {
-  selectUser: (id /* : number */) =>
-    knex('user')
-      .where('id', '=', id)
-      .toString(),
-  selectUsers: () => knex('user').toString(),
-  selectUserBySshKey: (
-    { keyValue, keyType } /* : {
-    keyValue: string,
-    keyType: string,
-  } */,
-  ) =>
-    knex('user')
-      .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
-      .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
-      .where('sk.key_value', keyValue)
-      .andWhere('sk.key_type', keyType)
-      .toString(),
-  selectUsersByProjectId: ({ projectId } /* : { projectId: number } */) =>
-    knex('user')
-      .join('project_user as pu', 'pu.usid', '=', 'user.id')
-      .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
-      .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
-      .select(
-        'user.id',
-        'user.email',
-        'user.first_name',
-        'user.last_name',
-        'user.comment',
-        'sk.id as ssh_key_id',
-        'sk.name as ssh_key_name',
-        'sk.key_value as ssh_key_value',
-        'sk.key_type as ssh_key_type',
-        'sk.created as ssh_key_created',
-      )
-      .where('pu.pid', projectId)
-      .toString(),
-  selectUsersByCustomerId: ({ customerId } /* : { customerId: number } */) =>
-    knex('user')
-      .join('customer_user as cu', 'cu.usid', '=', 'user.id')
-      .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
-      .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
-      .select(
-        'user.id',
-        'user.email',
-        'user.first_name',
-        'user.last_name',
-        'user.comment',
-        'sk.id as ssh_key_id',
-        'sk.name as ssh_key_name',
-        'sk.key_value as ssh_key_value',
-        'sk.key_type as ssh_key_type',
-        'sk.created as ssh_key_created',
-      )
-      .where('cu.cid', customerId)
-      .toString(),
-  insertUser: (
-    {
-      id,
-      email,
-      firstName,
-      lastName,
-      comment,
-    } /* : {id: number, email: string, firstName: string, lastName: string, comment: string} */,
-  ) =>
-    knex('user')
-      .insert({
-        id,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        comment,
-      })
-      .toString(),
-  updateUser: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
-    knex('user')
-      .where('id', id)
-      .update(patch)
-      .toString(),
-  deleteUser: ({ id } /* : {id: number} */) =>
-    knex('user')
-      .where('id', id)
-      .del()
-      .toString(),
-  addUserToProject: (
-    { projectId, userId } /* : {projectId: number, userId: number} */,
-  ) =>
-    knex('project_user')
-      .insert({
-        usid: userId,
-        pid: projectId,
-      })
-      .toString(),
-  removeUserFromProject: (
-    { projectId, userId } /* : {projectId: number, userId: number} */,
-  ) =>
-    knex('project_user')
-      .where('pid', projectId)
-      .andWhere('usid', userId)
-      .del()
-      .toString(),
-  removeUserFromAllProjects: ({ id } /* : {id: number} */) =>
-    knex('project_user')
-      .where('usid', id)
-      .del()
-      .toString(),
-  addUserToCustomer: (
-    { customerId, userId } /* : {customerId: number, userId: number} */,
-  ) =>
-    knex('customer_user')
-      .insert({
-        usid: userId,
-        cid: customerId,
-      })
-      .toString(),
-  removeUserFromCustomer: (
-    { customerId, userId } /* : {customerId: number, userId: number} */,
-  ) =>
-    knex('customer_user')
-      .where('cid', customerId)
-      .andWhere('usid', userId)
-      .del()
-      .toString(),
-  removeUserFromAllCustomers: ({ id } /* : {id: number} */) =>
-    knex('customer_user')
-      .where('usid', id)
-      .del()
-      .toString(),
-  truncateUser: () =>
-    knex('user')
-      .truncate()
-      .toString(),
-  truncateCustomerUser: () =>
-    knex('customer_user')
-      .truncate()
-      .toString(),
-  truncateProjectUser: () =>
-    knex('project_user')
-      .truncate()
-      .toString(),
-};
-
-const KeycloakOperations = {
-  findUserIdByUsername: async (
-    keycloakClient /* : Object */,
-    username /* : string */,
-  ) =>
-    R.path(
-      [0, 'id'],
-      await keycloakClient.users.findOne({
-        username,
-      }),
-    ),
-  createUser: async (
-    keycloakClient /* : Object */,
-    payload /* :{
-    username: string,
-    email: string,
-    firstName: string,
-    lastName: string,
-    enabled: boolean,
-    attributes: {
-      [string]: any
-    },
-  } */,
-  ) => {
-    try {
-      await keycloakClient.users.create(payload);
-
-      logger.debug(
-        `Created Keycloak user with username ${R.prop('username', payload)}`,
-      );
-    } catch (err) {
-      if (err.response.status === 409) {
-        logger.warn(
-          `Failed to create already existing Keycloak user "${R.prop(
-            'email',
-            payload,
-          )}"`,
-        );
-      } else {
-        logger.error(`Error creating Keycloak user: ${err}`);
-        throw new Error(`Error creating Keycloak user: ${err}`);
-      }
-    }
-  },
-  deleteUser: async (
-    keycloakClient /* : Object */,
-    user /* : {id: number, email: string} */,
-  ) => {
-    try {
-      // Find the Keycloak user id with a username matching the email
-      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
-        keycloakClient,
-        R.prop('email', user),
-      );
-
-      // Delete the user
-      await keycloakClient.users.del({ id: keycloakUserId });
-
-      logger.debug(
-        `Deleted Keycloak user with id ${keycloakUserId} (Lagoon id: ${R.prop(
-          'id',
-          user,
-        )})`,
-      );
-    } catch (err) {
-      logger.error(`Error deleting Keycloak user: ${err}`);
-      throw new Error(`Error deleting Keycloak user: ${err}`);
-    }
-  },
-  addUserToGroup: async (
-    keycloakClient /* : Object */,
-    { username, groupName } /* : {username: string, groupName: string} */,
-  ) => {
-    try {
-      // Find the Keycloak user id by username
-      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
-        keycloakClient,
-        username,
-      );
-
-      // Find the Keycloak group id by name
-      const keycloakGroupId = R.path(
-        [0, 'id'],
-        await keycloakClient.groups.find({
-          search: groupName,
-        }),
-      );
-
-      // Add the user to the group
-      await keycloakClient.users.addToGroup({
-        id: keycloakUserId,
-        groupId: keycloakGroupId,
-      });
-
-      logger.debug(
-        `Added Keycloak user with username ${username} to group "${groupName}"`,
-      );
-    } catch (err) {
-      logger.error(`Error adding Keycloak user to group: ${err}`);
-      throw new Error(`Error adding Keycloak user to group: ${err}`);
-    }
-  },
-  deleteUserFromGroup: async (
-    keycloakClient /* : Object */,
-    { username, groupName } /* : {username: string, groupName: string} */,
-  ) => {
-    try {
-      // Find the Keycloak user id by username
-      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
-        keycloakClient,
-        username,
-      );
-
-      // Find the Keycloak group id by name
-      const keycloakGroupId = R.path(
-        [0, 'id'],
-        await keycloakClient.groups.find({
-          search: groupName,
-        }),
-      );
-
-      // Delete the user from the group
-      await keycloakClient.users.delFromGroup({
-        id: keycloakUserId,
-        groupId: keycloakGroupId,
-      });
-
-      logger.debug(
-        `Deleted Keycloak user with username ${username} from group "${groupName}"`,
-      );
-    } catch (err) {
-      logger.error(`Error deleting Keycloak user from group: ${err}`);
-      throw new Error(`Error deleting Keycloak user from group: ${err}`);
-    }
-  },
-};
+// TEMPORARY: Don't copy this file naming structure.
+// This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
+//
+// Eventually we should move to a better folder structure and away from the DAO structure. Example folder structure: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
+const {
+  getProjectById,
+  getProjectIdByName,
+  getProjectIdsByCustomerIds,
+  getCustomerProjectsWithoutDirectUserAccess,
+} = require('./project.helpers');
+const KeycloakOperations = require('./user.keycloak');
+const Sql = require('./user.sql');
 
 const moveUserSshKeyToObject = ({
   id,
@@ -340,12 +67,12 @@ const getUsersByProjectId = ({ sqlClient }) => async (
   projectId,
 ) => {
   if (role !== 'admin') {
-    const projectsFromCustomers = await getProjectIdsByCustomerIds(
+    const customerProjectIds = await getProjectIdsByCustomerIds(
       sqlClient,
       customers,
     );
 
-    if (!R.contains(projectId, R.concat(projects, projectsFromCustomers))) {
+    if (!R.contains(projectId, R.concat(projects, customerProjectIds))) {
       throw new Error('Unauthorized.');
     }
   }
@@ -561,7 +288,6 @@ const addUserToCustomer = ({ sqlClient, keycloakClient }) => async (
     [customerId],
     [userId],
   );
-  console.log('prr', projects);
 
   const username = R.path(
     [0, 'email'],
@@ -652,7 +378,6 @@ const removeAllUsersFromAllProjects = ({ sqlClient }) => async ({ role }) => {
 };
 
 module.exports = {
-  Sql,
   Resolvers: {
     getUserBySshKey,
     getUsersByCustomerId,

@@ -429,7 +429,6 @@ const typeDefs = gql`
     openshift: Int
     openshiftProjectPattern: String
     developmentEnvironmentsLimit: Int
-
   }
 
   input UpdateProjectInput {

@@ -5,7 +5,11 @@ const {
   knex, query, prepare, isPatchEmpty,
 } = require('./utils');
 
-const { getProjectIdByName } = require('./project').Helpers;
+// TEMPORARY: Don't copy this `project.helpers`, etc file naming structure.
+// This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
+//
+// Eventually we should move to a better folder structure and away from the DAO structure. Example folder structure: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
+const { getProjectIdByName } = require('./project.helpers');
 
 const concatNonNull = R.reduce((acc, rows) => {
   if (rows == null) {

@@ -5,106 +5,19 @@ const logger = require('../logger');
 const {
   ifNotAdmin,
   inClauseOr,
-  knex,
   prepare,
   query,
   whereAnd,
   isPatchEmpty,
 } = require('./utils');
 
-// This contains the sql query generation logic
-const Sql = {
-  updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
-    knex('project')
-      .where('id', '=', id)
-      .update(patch)
-      .toString(),
-  selectProject: (id /* : number */) =>
-    knex('project')
-      .where('id', id)
-      .toString(),
-  selectProjectIdByName: (name /* : string */) =>
-    knex('project')
-      .where('name', name)
-      .select('id')
-      .toString(),
-  // Select customer projects where given user ids do not have other access via `project_user`. Put another way, projects where the user loses access if they lose customer access.
-  selectCustomerProjectsWithoutDirectUserAccess: (
-    customerIds /* : Array<number> */,
-    userIds /* : Array<number> */,
-  ) =>
-    knex('project as p')
-      .select('p.id', 'p.name', 'cu.usid', 'cu.cid')
-      // Join the rows of customer_user which match the project customer id
-      .leftJoin('customer_user as cu', 'cu.cid', '=', 'p.customer')
-      // Join the rows of project_user which...
-      .leftJoin('project_user as pu', function onClause() {
-        // ...match the project id...
-        this.on('pu.pid', '=', 'p.id');
-        // ...and match the user id.
-        this.andOn('pu.usid', '=', 'cu.usid');
-      })
-      // Only return projects with a customer matching one of the customer ids
-      .whereIn('p.customer', customerIds)
-      // Only return projects with a customer that one or more of the user ids has access to
-      .whereIn('cu.usid', userIds)
-      // Filter out projects which have a matching project_user entry (where one or more of the user ids already has direct access to the project)
-      .whereNull('pu.pid')
-      .toString(),
-  selectProjectIdsByCustomerIds: (customerIds /* : Array<number> */) =>
-    knex('project')
-      .select('id')
-      .whereIn('customer', customerIds)
-      .toString(),
-  selectCustomer: id =>
-    knex('customer')
-      .where('id', id)
-      .toString(),
-  truncateProject: () =>
-    knex('project')
-      .truncate()
-      .toString(),
-};
-
-const Helpers = {
-  getProjectById: async (sqlClient, id) => {
-    const rows = await query(sqlClient, Sql.selectProject(id));
-    return R.prop(0, rows);
-  },
-  getProjectIdByName: async (sqlClient, name) => {
-    const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
-
-    const amount = R.length(pidResult);
-    if (amount > 1) {
-      throw new Error(
-        `Multiple project candidates for '${name}' (${amount} found). Do nothing.`,
-      );
-    }
-
-    if (amount === 0) {
-      throw new Error(`Not found: '${name}'`);
-    }
-
-    const pid = R.path(['0', 'id'], pidResult);
-
-    return pid;
-  },
-  getCustomerProjectsWithoutDirectUserAccess: async (
-    sqlClient,
-    customerIds,
-    userIds,
-  ) =>
-    query(
-      sqlClient,
-      Sql.selectCustomerProjectsWithoutDirectUserAccess(customerIds, userIds),
-    ),
-  getProjectIdsByCustomerIds: async (sqlClient, customerIds) =>
-    query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
-  getCustomerByCustomerId: async (sqlClient, id) => {
-    const rows = await query(sqlClient, Sql.selectCustomer(id));
-    return R.prop(0, rows);
-  },
-};
+// TEMPORARY: Don't copy this `project.helpers`, etc file naming structure.
+// This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
+//
+// Eventually we should move to a better folder structure and away from the DAO structure. Example folder structure: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
+const Helpers = require('./project.helpers');
+const KeycloakOperations = require('./project.keycloak');
+const Sql = require('./project.sql');
 
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
@@ -384,20 +297,126 @@ const deleteProject = ({ sqlClient, searchguardClient }) => async (
   return 'success';
 };
 
-const updateProject = ({ sqlClient }) => async (cred, input) => {
-  const { projects } = cred.permissions;
-  const pid = input.id.toString();
-
-  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
+const updateProject = ({ sqlClient, keycloakClient }) => async (
+  { role, permissions: { projects } },
+  {
+    id,
+    patch,
+    patch: {
+      name,
+      customer,
+      gitUrl,
+      subfolder,
+      activeSystemsDeploy,
+      activeSystemsRemove,
+      branches,
+      productionEnvironment,
+      autoIdle,
+      storageCalc,
+      pullrequests,
+      openshift,
+      openshiftProjectPattern,
+      developmentEnvironmentsLimit,
+    },
+  },
+) => {
+  if (role !== 'admin' && !R.contains(id.toString(), projects)) {
     throw new Error('Unauthorized');
   }
 
-  if (isPatchEmpty(input)) {
+  if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await query(sqlClient, Sql.updateProject(input));
-  return Helpers.getProjectById(pid);
+  const originalProject = await Helpers.getProjectById(sqlClient, id);
+  const originalName = R.prop('name', originalProject);
+  const originalCustomer = parseInt(R.prop('customer', originalProject));
+
+  // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
+  if (typeof customer === 'number' && customer !== originalCustomer) {
+    // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+    await Helpers.mapIfNoDirectProjectAccess(
+      sqlClient,
+      keycloakClient,
+      id,
+      originalCustomer,
+      async ({
+        keycloakUserId,
+        keycloakUsername,
+        keycloakGroupId,
+        keycloakGroupName,
+      }) => {
+        await keycloakClient.users.delFromGroup({
+          id: keycloakUserId,
+          groupId: keycloakGroupId,
+        });
+        logger.debug(
+          `Removed Keycloak user ${keycloakUsername} from group "${keycloakGroupName}"`,
+        );
+      },
+    );
+  }
+
+  await query(
+    sqlClient,
+    Sql.updateProject({
+      id,
+      patch: {
+        name,
+        customer,
+        gitUrl,
+        subfolder,
+        activeSystemsDeploy,
+        activeSystemsRemove,
+        branches,
+        productionEnvironment,
+        autoIdle,
+        storageCalc,
+        pullrequests,
+        openshift,
+        openshiftProjectPattern,
+        developmentEnvironmentsLimit,
+      },
+    }),
+  );
+
+  if (typeof name === 'string' && name !== originalName) {
+    const groupId = await KeycloakOperations.findGroupIdByName(
+      keycloakClient,
+      originalName,
+    );
+
+    await keycloakClient.groups.update({ id: groupId }, { name });
+    logger.debug(
+      `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
+    );
+  }
+
+  if (typeof customer === 'number' && customer !== originalCustomer) {
+    // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+    await Helpers.mapIfNoDirectProjectAccess(
+      sqlClient,
+      keycloakClient,
+      id,
+      customer,
+      async ({
+        keycloakUserId,
+        keycloakUsername,
+        keycloakGroupId,
+        keycloakGroupName,
+      }) => {
+        await keycloakClient.users.addToGroup({
+          id: keycloakUserId,
+          groupId: keycloakGroupId,
+        });
+        logger.debug(
+          `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
+        );
+      },
+    );
+  }
+
+  return Helpers.getProjectById(sqlClient, id);
 };
 
 const deleteAllProjects = ({ sqlClient }) => async ({ role }) => {
@@ -412,7 +431,6 @@ const deleteAllProjects = ({ sqlClient }) => async ({ role }) => {
 };
 
 module.exports = {
-  Sql,
   Resolvers: {
     deleteProject,
     addProject,
@@ -423,5 +441,4 @@ module.exports = {
     updateProject,
     deleteAllProjects,
   },
-  Helpers,
 };
