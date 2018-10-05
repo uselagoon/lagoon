@@ -5,10 +5,15 @@ const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
-const { updateEnvironment } = require('@lagoon/commons/src/api');
-const { getEnvironmentByName } = require('@lagoon/commons/src/api');
+const {
+  getOpenShiftInfoForProject,
+  getEnvironmentByName,
+  updateEnvironment,
+  getDeploymentByRemoteId,
+  updateDeployment,
+} = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
@@ -122,6 +127,25 @@ const messageConsumer = async msg => {
   const buildPhase = buildstatus.status.phase.toLowerCase();
   const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
   const routesGet = Promise.promisify(openshift.ns(openshiftProject).routes.get, { context: openshift.ns(openshiftProject).routes })
+
+  try {
+    const deployment = await getDeploymentByRemoteId(buildstatus.metadata.uid);
+    if (!deployment.deploymentByRemoteId) {
+      throw new Error(`No deployment found with remote id ${buildstatus.metadata.uid}`);
+    }
+
+    const convertDateFormat = R.init;
+    const dateOrNull = R.unless(R.isNil, convertDateFormat);
+
+    await updateDeployment(deployment.deploymentByRemoteId.id, {
+      status: buildstatus.status.phase.toUpperCase(),
+      created: convertDateFormat(buildstatus.metadata.creationTimestamp),
+      started: dateOrNull(buildstatus.status.startTimestamp),
+      completed: dateOrNull(buildstatus.status.completionTimestamp),
+    });
+  } catch (error) {
+    logger.error(`Could not update deployment ${projectName} ${buildName}. Message: ${error}`);
+  }
 
   let logLink = ""
   const meta = JSON.parse(msg.content.toString())

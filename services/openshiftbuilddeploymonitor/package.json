@@ -20,6 +20,7 @@
     "es7-sleep": "^1.0.0",
     "flow-remove-types": "^1.2.1",
     "openshift-client": "^3.10.8",
+    "rambda": "^1.2.2",
     "uuid": "^3.2.1"
   },
   "devDependencies": {

@@ -20,3 +20,13 @@ export type Project = {
   name: string,
   openshift: Object,
 };
+
+export type DeploymentPatch {
+  name: number,
+  status: string
+  created: string,
+  started: string,
+  completed: string,
+  environment: number,
+  remoteId: string,
+}
