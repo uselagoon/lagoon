@@ -94,9 +94,9 @@ CREATE TABLE IF NOT EXISTS deployment (
        id           int NOT NULL auto_increment PRIMARY KEY,
        name         varchar(100) NOT NULL,
        status       ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete') NOT NULL,
-       created      timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-       started      timestamp NULL,
-       completed    timestamp NULL,
+       created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       started      datetime NULL,
+       completed    datetime NULL,
        environment  int NOT NULL REFERENCES environment (id)
 );
 

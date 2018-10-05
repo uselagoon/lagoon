@@ -33,6 +33,16 @@ const typeDefs = gql`
     ROCKETCHAT
   }
 
+  enum DeploymentStatusType {
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    FAILED
+    COMPLETE
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -308,6 +318,34 @@ const typeDefs = gql`
     bytesUsed: Int!
   }
 
+  input DeploymentInput {
+    id: Int
+    name: String!
+    status: DeploymentStatusType!
+    created: String!
+    started: String
+    completed: String
+    environment: Int!
+  }
+
+  input DeleteDeploymentInput {
+    id: Int!
+  }
+
+  input UpdateDeploymentPatchInput {
+    name: String
+    status: DeploymentStatusType
+    created: String
+    started: String
+    completed: String
+    environment: Int
+  }
+
+  input UpdateDeploymentInput {
+    id: Int!
+    patch: UpdateDeploymentPatchInput!
+  }
+
   input CustomerInput {
     id: Int
     name: String!
@@ -529,6 +567,9 @@ const typeDefs = gql`
     removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
     addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
     removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
+    addDeployment(input: DeploymentInput!): Deployment
+    deleteDeployment(input: DeleteDeploymentInput!): String
+    updateDeployment(input: UpdateDeploymentInput): Deployment
     truncateTable(tableName: String!): String
   }
 `;
@@ -940,6 +981,21 @@ const resolvers = {
     deleteEnvironment: async (root, args, req) => {
       const dao = getDao(req);
       const ret = await dao.deleteEnvironment(req.credentials, args.input);
+      return ret;
+    },
+    addDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addDeployment(req.credentials, args.input);
+      return ret;
+    },
+    deleteDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteDeployment(req.credentials, args.input);
+      return ret;
+    },
+    updateDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateDeployment(req.credentials, args.input);
       return ret;
     },
     truncateTable: async (root, args, req) => {
