@@ -164,9 +164,11 @@ const addProject = ({
 
   try {
     // Create a group in Keycloak named the same as the project
+    const name = R.prop('name', project);
     await keycloakClient.groups.create({
-      name: R.prop('name', project),
+      name,
     });
+    logger.debug(`Created Keycloak group with name "${name}"`);
   } catch (err) {
     if (err.response.status === 409) {
       logger.warn(
@@ -268,14 +270,15 @@ const addProject = ({
   return project;
 };
 
-const deleteProject = ({ sqlClient, searchguardClient }) => async (
-  cred,
-  input,
-) => {
+const deleteProject = ({
+  sqlClient,
+  keycloakClient,
+  searchguardClient,
+}) => async (cred, { project }) => {
   const { projects } = cred.permissions;
 
   // Will throw on invalid conditions
-  const pid = await Helpers.getProjectIdByName(sqlClient, input.project);
+  const pid = await Helpers.getProjectIdByName(sqlClient, project);
 
   if (cred.role !== 'admin') {
     if (!R.contains(pid, projects)) {
@@ -284,11 +287,13 @@ const deleteProject = ({ sqlClient, searchguardClient }) => async (
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
-  await query(sqlClient, prep(input));
+  await query(sqlClient, prep({ project }));
+
+  await KeycloakOperations.deleteGroup(keycloakClient, project);
 
   try {
     // Delete SearchGuard Role for this project with the same name as the Project
-    await searchguardClient.delete(`roles/${input.project}`);
+    await searchguardClient.delete(`roles/${project}`);
   } catch (err) {
     logger.error(`SearchGuard delete role error: ${err}`);
     throw new Error(`SearchGuard delete role error: ${err}`);
