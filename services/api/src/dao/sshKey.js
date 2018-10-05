@@ -33,7 +33,13 @@ const Sql = {
   selectSshKeyIdsByUserId: userId =>
     knex('user_ssh_key')
       .select('skid')
-      .where('usid', userId),
+      .where('usid', '=', userId)
+      .toString(),
+  selectSshKeysByUserId: userId =>
+    knex('ssh_key as sk')
+      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
+      .where('usk.usid', '=', userId)
+      .toString(),
   selectAllCustomerSshKeys: cred => {
     if (cred.role !== 'admin') {
       throw new Error('Unauthorized');
@@ -85,6 +91,19 @@ const getCustomerSshKeys = ({ sqlClient }) => async cred => {
   return R.map(R.prop('sshKey'), rows);
 };
 
+const getUserSshKeys = ({ sqlClient }) => async (
+  { role, credentialsUserId },
+  userId,
+) => {
+  if (role !== 'admin' && !R.equals(credentialsUserId, userId)) {
+    throw new Error('Unauthorized.');
+  }
+
+  const queryString = Sql.selectSshKeysByUserId(userId);
+  const rows = await query(sqlClient, queryString);
+  return rows;
+};
+
 const addSshKey = ({ sqlClient }) => async (
   { role, userId: credentialsUserId },
   {
@@ -120,7 +139,13 @@ const updateSshKey = ({ sqlClient }) => async (
 ) => {
   if (role !== 'admin') {
     const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(R.prop('id'), rows);
+    const sshKeyIds = R.map(
+      R.pipe(
+        R.prop('skid'),
+        parseInt,
+      ),
+      rows,
+    );
     if (!R.contains(id, sshKeyIds)) {
       throw new Error('Unauthorized.');
     }
@@ -167,7 +192,7 @@ const deleteSshKey = ({ sqlClient }) => async ({ role, userId }, input) => {
     const skid = R.path(['0', 'id'], skidResult);
 
     const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(R.prop('id'), rows);
+    const sshKeyIds = R.map(R.prop('skid'), rows);
     if (!R.contains(skid, sshKeyIds)) {
       throw new Error('Unauthorized.');
     }
@@ -205,6 +230,7 @@ module.exports = {
   Sql,
   Resolvers: {
     getCustomerSshKeys,
+    getUserSshKeys,
     addSshKey,
     updateSshKey,
     deleteSshKey,

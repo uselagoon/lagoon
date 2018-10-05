@@ -30,6 +30,7 @@ const moveUserSshKeyToObject = ({
   firstName,
   lastName,
   comment,
+  gitlabId,
   sshKeyId,
   sshKeyName,
   sshKeyValue,
@@ -41,6 +42,7 @@ const moveUserSshKeyToObject = ({
   firstName,
   lastName,
   comment,
+  gitlabId,
   sshKey: {
     id: sshKeyId,
     name: sshKeyName,
@@ -92,7 +94,7 @@ const getUsersByProjectId = ({ sqlClient }) => async (
 const addUser = ({ sqlClient, keycloakClient }) => async (
   cred,
   {
-    id, email, firstName, lastName, comment,
+    id, email, firstName, lastName, comment, gitlabId,
   },
 ) => {
   const {
@@ -105,6 +107,7 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
       firstName,
       lastName,
       comment,
+      gitlabId,
     }),
   );
   const rows = await query(sqlClient, Sql.selectUser(insertId));
@@ -126,7 +129,7 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
   { role, userId },
   {
     id, patch, patch: {
-      email, firstName, lastName, comment,
+      email, firstName, lastName, comment, gitlabId,
     },
   },
 ) => {
@@ -149,6 +152,7 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
         firstName,
         lastName,
         comment,
+        gitlabId,
       },
     }),
   );
