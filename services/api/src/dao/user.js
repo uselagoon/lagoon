@@ -4,7 +4,11 @@ const R = require('ramda');
 const pickNonNil = require('../util/pickNonNil');
 const { query, isPatchEmpty } = require('./utils');
 
-const { getCustomerIdByName, getCustomerById } = require('./customer').Helpers;
+const {
+  getCustomerIdByName,
+  getCustomerById,
+  getAllCustomerIds,
+} = require('./customer').Helpers;
 
 // TEMPORARY: Don't copy this file naming structure.
 // This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
@@ -15,6 +19,7 @@ const {
   getProjectIdByName,
   getProjectIdsByCustomerIds,
   getCustomerProjectsWithoutDirectUserAccess,
+  getAllProjectNames,
 } = require('./project.helpers');
 const KeycloakOperations = require('./user.keycloak');
 const Sql = require('./user.sql');
@@ -282,7 +287,7 @@ const addUserToCustomer = ({ sqlClient, keycloakClient }) => async (
 
   await query(sqlClient, Sql.addUserToCustomer({ customerId, userId }));
 
-  // Get customer projects where given user ids do not have other access via `project_user`. Put another way, projects where the user loses access if they lose customer access.
+  // Get customer projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
   const projects = await getCustomerProjectsWithoutDirectUserAccess(
     sqlClient,
     [customerId],
@@ -315,7 +320,7 @@ const removeUserFromCustomer = ({ sqlClient, keycloakClient }) => async (
     throw new Error('Unauthorized.');
   }
 
-  // Get customer projects where given user ids do not have other access via `project_user`. Put another way, projects where the user loses access if they lose customer access.
+  // Get customer projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
   const projects = await getCustomerProjectsWithoutDirectUserAccess(
     sqlClient,
     [customerId],
@@ -344,34 +349,85 @@ const deleteAllUsers = ({ sqlClient, keycloakClient }) => async ({ role }) => {
     throw new Error('Unauthorized.');
   }
 
-  const allUsers = await query(sqlClient, Sql.selectUsers());
+  const emails /* : Array<string> */ = R.map(
+    R.prop('email'),
+    await query(sqlClient, Sql.selectAllUserEmails()),
+  );
   await query(sqlClient, Sql.truncateUser());
 
-  for (const user of allUsers) {
-    await KeycloakOperations.deleteUser(keycloakClient, user);
+  for (const email of emails) {
+    await KeycloakOperations.deleteUser(keycloakClient, email);
   }
 
   // TODO: Check rows for success
   return 'success';
 };
 
-const removeAllUsersFromAllCustomers = ({ sqlClient }) => async ({ role }) => {
+const removeAllUsersFromAllCustomers = ({
+  sqlClient,
+  keycloakClient,
+}) => async ({ role }) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
+
+  const customerIds = await getAllCustomerIds(sqlClient);
+
+  const users /* : Array<{id: number, email: string}> */ = await query(
+    sqlClient,
+    Sql.selectAllUsers(),
+  );
 
   await query(sqlClient, Sql.truncateCustomerUser());
 
+  for (const user of users) {
+    for (const customerId of customerIds) {
+      // Get customer projects where given user ids do not have other access via `project_user` (put another way, projects where the user loses access if they lose customer access).
+      const projects = await getCustomerProjectsWithoutDirectUserAccess(
+        sqlClient,
+        [customerId],
+        [R.prop('id', user)],
+      );
+
+      // Remove all users from all Keycloak groups that correspond to all customer projects
+      for (const project of projects) {
+        await KeycloakOperations.deleteUserFromGroup(keycloakClient, {
+          username: R.prop('email', user),
+          groupName: R.prop('name', project),
+        });
+      }
+    }
+  }
+
   // TODO: Check rows for success
   return 'success';
 };
 
-const removeAllUsersFromAllProjects = ({ sqlClient }) => async ({ role }) => {
+const removeAllUsersFromAllProjects = ({
+  sqlClient,
+  keycloakClient,
+}) => async ({ role }) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
 
+  const emails /* : Array<string> */ = R.map(
+    R.prop('email'),
+    await query(sqlClient, Sql.selectAllUserEmails()),
+  );
+  const projectNames = await getAllProjectNames(sqlClient);
+
   await query(sqlClient, Sql.truncateProjectUser());
+
+  // Remove all users from all Keycloak groups that correspond to all projects
+  for (const email of emails) {
+    for (const name of projectNames) {
+      await KeycloakOperations.deleteUserFromGroup(keycloakClient, {
+        username: email,
+        groupName: name,
+      });
+    }
+  }
 
   // TODO: Check rows for success
   return 'success';

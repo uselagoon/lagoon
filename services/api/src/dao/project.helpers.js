@@ -49,6 +49,10 @@ const Helpers = {
       sqlClient,
       Sql.selectProjectsWithoutDirectUserAccess(projectIds, userIds),
     ),
+  getProjectIdsByCustomerIds: async (
+    sqlClient /* : Object */,
+    customerIds /* : Array<number> */,
+  ) => query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
   getCustomerProjectsWithoutDirectUserAccess: async (
     sqlClient /* : Object */,
     customerIds /* : Array<number> */,
@@ -58,10 +62,8 @@ const Helpers = {
       sqlClient,
       Sql.selectCustomerProjectsWithoutDirectUserAccess(customerIds, userIds),
     ),
-  getProjectIdsByCustomerIds: async (
-    sqlClient /* : Object */,
-    customerIds /* : Array<number> */,
-  ) => query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
+  getAllProjectNames: async (sqlClient /* : Object */) =>
+    R.map(R.prop('name'), await query(sqlClient, Sql.selectAllProjectNames())),
   mapIfNoDirectProjectAccess: async (
     sqlClient /* : Object */,
     keycloakClient /* : Object */,

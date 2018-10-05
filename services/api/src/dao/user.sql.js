@@ -12,7 +12,11 @@ const Sql = {
     knex('user')
       .where('id', '=', id)
       .toString(),
-  selectUsers: () => knex('user').toString(),
+  selectAllUsers: () => knex('user').toString(),
+  selectAllUserEmails: () =>
+    knex('user')
+      .select('email')
+      .toString(),
   selectUserBySshKey: (
     { keyValue, keyType } /* : {
     keyValue: string,

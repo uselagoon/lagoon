@@ -54,24 +54,19 @@ const KeycloakOperations = {
   },
   deleteUser: async (
     keycloakClient /* : Object */,
-    user /* : {id: number, email: string} */,
+    username /* : string */,
   ) => {
     try {
-      // Find the Keycloak user id with a username matching the email
+      // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
         keycloakClient,
-        R.prop('email', user),
+        username,
       );
 
       // Delete the user
       await keycloakClient.users.del({ id: keycloakUserId });
 
-      logger.debug(
-        `Deleted Keycloak user with id ${keycloakUserId} (Lagoon id: ${R.prop(
-          'id',
-          user,
-        )})`,
-      );
+      logger.debug(`Deleted Keycloak user with username "${username}"`);
     } catch (err) {
       logger.error(`Error deleting Keycloak user: ${err}`);
       throw new Error(`Error deleting Keycloak user: ${err}`);

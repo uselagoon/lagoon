@@ -430,10 +430,7 @@ const deleteAllProjects = ({ sqlClient, keycloakClient }) => async ({
     throw new Error('Unauthorized.');
   }
 
-  const projectNames = R.map(
-    R.prop('name'),
-    await query(sqlClient, Sql.selectAllProjectNames()),
-  );
+  const projectNames = await Helpers.getAllProjectNames(sqlClient);
 
   await query(sqlClient, Sql.truncateProject());
 

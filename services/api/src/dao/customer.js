@@ -45,12 +45,16 @@ const Sql = {
 
     return getCustomerQuery.toString();
   },
-  selectCustomerIdByName: name =>
+  selectCustomerIdByName: (name /* : string */) =>
     knex('customer')
       .where('name', '=', name)
       .select('id')
       .toString(),
-  selectCustomerNames: () =>
+  selectAllCustomerIds: () =>
+    knex('customer')
+      .select('id')
+      .toString(),
+  selectAllCustomerNames: () =>
     knex('customer')
       .select('name')
       .toString(),
@@ -83,8 +87,10 @@ const Helpers = {
 
     return cid;
   },
-  getAllCustomerNames: async sqlClient =>
-    await query(sqlClient, Sql.selectCustomerNames()),
+  getAllCustomerIds: async (sqlClient /* : Object */) =>
+    R.map(R.prop('id'), await query(sqlClient, Sql.selectAllCustomerIds())),
+  getAllCustomerNames: async (sqlClient /* : Object */) =>
+    R.map(R.prop('name'), await query(sqlClient, Sql.selectAllCustomerNames())),
 };
 
 const updateSearchGuardWithCustomers = async ({
@@ -95,7 +101,7 @@ const updateSearchGuardWithCustomers = async ({
 
   const tenants = R.reduce(
     (acc, elem) => {
-      acc[R.prop('name', elem)] = 'RW';
+      acc[elem] = 'RW';
       return acc;
     },
     { admin_tenant: 'RW' },
