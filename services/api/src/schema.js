@@ -209,6 +209,7 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
+    deployments: [Deployment]
   }
 
   type EnviornmentHitsMonth {
@@ -231,6 +232,16 @@ const typeDefs = gql`
   type EnvironmentHoursMonth {
     month: String
     hours: Int
+  }
+
+  type Deployment {
+    id: Int
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
   }
 
   input DeleteEnvironmentInput {
@@ -608,6 +619,10 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getProjectByEnvironmentId(req.credentials, environment.id);
     },
+    deployments: async (environment, args, req) => {
+      const dao = getDao(req);
+      return dao.getDeploymentsByEnvironmentId(req.credentials, environment.id);
+    },
     hoursMonth: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentHoursMonthByEnvironmentId(
@@ -639,6 +654,12 @@ const resolvers = {
         args,
       );
     },
+  },
+  Deployment: {
+    environment: async (deployment, args, req) => {
+      const dao = getDao(req);
+      return dao.getEnvironmentByDeploymentId(req.credentials, deployment.id);
+    }
   },
   Notification: {
     __resolveType(obj) {
