@@ -169,7 +169,7 @@ const messageConsumer = async msg => {
     case "error":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await uploadLogToS3(buildName, projectName, branchName, buildLog)
+        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
@@ -182,7 +182,7 @@ const messageConsumer = async msg => {
     case "failed":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await uploadLogToS3(buildName, projectName, branchName, buildLog)
+        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
@@ -196,7 +196,7 @@ const messageConsumer = async msg => {
     case "complete":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await uploadLogToS3(buildName, projectName, branchName, buildLog)
+        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
@@ -241,6 +241,20 @@ const messageConsumer = async msg => {
       break;
   }
 
+}
+
+const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildStatus) => {
+  const meta = {
+    buildName,
+    branchName,
+    buildPhase: buildStatus.status.phase.toLowerCase(),
+    remoteId: buildStatus.metadata.uid
+  };
+
+  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-openshift:${buildName}`, meta,
+    buildLog
+  );
+  return await uploadLogToS3(buildName, projectName, branchName, buildLog);
 }
 
 const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {

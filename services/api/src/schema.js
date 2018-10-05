@@ -253,6 +253,7 @@ const typeDefs = gql`
     completed: String
     environment: Environment
     remoteId: String
+    buildLog: String
   }
 
   input DeleteEnvironmentInput {

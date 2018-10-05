@@ -64,7 +64,46 @@ const Sql = {
 
 const Helpers = {};
 
-const getDeploymentsByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
+const injectBuildLog = async (deployment, esClient) => {
+  if (!deployment.remoteId) {
+    return {
+      ...deployment,
+      buildLog: null,
+    };
+  }
+
+  const result = await esClient.search({
+    index: 'lagoon-logs-*',
+    sort: '@timestamp:desc',
+    body: {
+      query: {
+        bool: {
+          must: [
+            { match_phrase: { 'meta.remoteId': deployment.remoteId } },
+            { match_phrase: { 'meta.buildPhase': deployment.status } },
+          ],
+        },
+      },
+    },
+  });
+
+  if (!result.hits.total) {
+    return {
+      ...deployment,
+      buildLog: null,
+    };
+  }
+
+  return {
+    ...deployment,
+    buildLog: R.path(['hits', 'hits', 0, '_source', 'message'], result),
+  };
+};
+
+const getDeploymentsByEnvironmentId = ({ sqlClient, esClient }) => async (
+  cred,
+  eid,
+) => {
   const { customers, projects } = cred.permissions;
   const prep = prepare(
     sqlClient,
@@ -83,10 +122,10 @@ const getDeploymentsByEnvironmentId = ({ sqlClient }) => async (cred, eid) => {
 
   const rows = await query(sqlClient, prep({ eid }));
 
-  return rows;
+  return rows.map(row => injectBuildLog(row, esClient));
 };
 
-const getDeploymentByRemoteId = ({ sqlClient }) => async (
+const getDeploymentByRemoteId = ({ sqlClient, esClient }) => async (
   { role, customers, projects },
   { id },
 ) => {
@@ -115,10 +154,10 @@ const getDeploymentByRemoteId = ({ sqlClient }) => async (
     }
   }
 
-  return deployment;
+  return injectBuildLog(deployment, esClient);
 };
 
-const addDeployment = ({ sqlClient }) => async (
+const addDeployment = ({ sqlClient, esClient }) => async (
   { role, customers, projects },
   {
     id, name, status, created, started, completed, environment, remoteId,
@@ -156,7 +195,7 @@ const addDeployment = ({ sqlClient }) => async (
 
   const rows = await query(sqlClient, Sql.selectDeployment(insertId));
 
-  return R.prop(0, rows);
+  return injectBuildLog(R.prop(0, rows), esClient);
 };
 
 const deleteDeployment = ({ sqlClient }) => async (
@@ -179,7 +218,7 @@ const deleteDeployment = ({ sqlClient }) => async (
   return 'success';
 };
 
-const updateDeployment = ({ sqlClient }) => async (
+const updateDeployment = ({ sqlClient, esClient }) => async (
   { role, customers, projects },
   {
     id,
@@ -239,7 +278,7 @@ const updateDeployment = ({ sqlClient }) => async (
 
   const rows = await query(sqlClient, Sql.selectDeployment(id));
 
-  return R.prop(0, rows);
+  return injectBuildLog(R.prop(0, rows), esClient);
 };
 
 const Queries = {
