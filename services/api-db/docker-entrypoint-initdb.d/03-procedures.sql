@@ -106,12 +106,12 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteProject
   (
-    IN p_project varchar(50)
+    IN name varchar(50)
   )
   BEGIN
     DECLARE v_pid int;
 
-    SELECT id INTO v_pid FROM project WHERE project.name = p_project;
+    SELECT id INTO v_pid FROM project WHERE project.name = name;
 
     DELETE FROM project_user WHERE pid = v_pid;
     DELETE FROM project_notification WHERE pid = v_pid;
@@ -218,12 +218,12 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteSshKey
   (
-    IN p_name varchar(100)
+    IN s_name varchar(100)
   )
   BEGIN
     DECLARE v_skid int;
 
-    SELECT id INTO v_skid FROM ssh_key WHERE ssh_key.name = p_name;
+    SELECT id INTO v_skid FROM ssh_key WHERE ssh_key.name = s_name;
 
     DELETE FROM user_ssh_key WHERE skid = v_skid;
     DELETE FROM ssh_key WHERE id = v_skid;
@@ -277,7 +277,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteCustomer
   (
-    IN p_name varchar(100)
+    IN c_name varchar(100)
   )
   BEGIN
     DECLARE v_cid int;
@@ -286,17 +286,17 @@ CREATE OR REPLACE PROCEDURE
     SELECT count(*) INTO count
     FROM project
     LEFT JOIN customer ON project.customer = customer.id
-    WHERE customer.name = p_name;
+    WHERE customer.name = c_name;
 
     IF count > 0 THEN
-      SET @message_text = concat('Customer: "', p_name, '" still in use, can not delete');
+      SET @message_text = concat('Customer: "', c_name, '" still in use, can not delete');
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
 
     SELECT id INTO v_cid
     FROM customer c
-    WHERE c.name = p_name;
+    WHERE c.name = c_name;
 
     DELETE FROM customer_user WHERE v_cid = cid;
     DELETE FROM customer WHERE id = v_cid;
@@ -306,20 +306,20 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateOpenshift
   (
-    IN p_id              int,
-    IN p_name            varchar(50),
-    IN p_console_url     varchar(300),
-    IN p_token           varchar(1000),
-    IN p_router_pattern  varchar(300),
-    IN p_project_user    varchar(100),
-    IN p_ssh_host        varchar(300),
-    IN p_ssh_port        varchar(50)
+    IN id              int,
+    IN name            varchar(50),
+    IN console_url     varchar(300),
+    IN token           varchar(1000),
+    IN router_pattern  varchar(300),
+    IN project_user    varchar(100),
+    IN ssh_host        varchar(300),
+    IN ssh_port        varchar(50)
   )
   BEGIN
     DECLARE new_oid int;
 
-    IF (p_id IS NULL) THEN
-      SET p_id = 0;
+    IF (id IS NULL) THEN
+      SET id = 0;
     END IF;
 
     INSERT INTO openshift (
@@ -332,20 +332,20 @@ CREATE OR REPLACE PROCEDURE
       ssh_host,
       ssh_port
     ) VALUES (
-      p_id,
-      p_name,
-      p_console_url,
-      p_token,
-      p_router_pattern,
-      p_project_user,
-      p_ssh_host,
-      p_ssh_port
+      id,
+      name,
+      console_url,
+      token,
+      router_pattern,
+      project_user,
+      ssh_host,
+      ssh_port
     );
 
-    IF (p_id = 0) THEN
+    IF (id = 0) THEN
       SET new_oid = LAST_INSERT_ID();
     ELSE
-      SET new_oid = p_id;
+      SET new_oid = id;
     END IF;
 
     SELECT
@@ -358,7 +358,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteOpenshift
   (
-    IN p_name varchar(100)
+    IN o_name varchar(100)
   )
   BEGIN
     DECLARE count int;
@@ -366,7 +366,7 @@ CREATE OR REPLACE PROCEDURE
     SELECT count(*) INTO count
       FROM project p
       LEFT JOIN openshift o ON p.openshift = o.id
-      WHERE o.name = p_name;
+      WHERE o.name = o_name;
 
     IF count > 0 THEN
       SET @message_text = concat('Openshift: "', name, '" still in use, can not delete');
@@ -374,7 +374,7 @@ CREATE OR REPLACE PROCEDURE
       SET MESSAGE_TEXT = @message_text;
     END IF;
 
-    DELETE FROM openshift WHERE name = p_name;
+    DELETE FROM openshift WHERE name = o_name;
   END;
 $$
 
