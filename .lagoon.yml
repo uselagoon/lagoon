@@ -11,6 +11,10 @@ additional-yaml:
     command: create
     ignore_error: true
 
+  keycloak-secrets:
+    path: .lagoon.keycloak-secrets.yaml
+    command: create
+    ignore_error: true
 
 tasks:
   post-rollout:
@@ -39,14 +43,14 @@ environments:
       logs-forwarder: statefulset
     cronjobs:
       - name: idle-clis
-        schedule: "*/15 * * * *"
+        schedule: '*/15 * * * *'
         command: /idle-clis.sh
         service: auto-idler
       - name: idle-services
-        schedule: "*/30 * * * *"
+        schedule: '*/30 * * * *'
         command: /idle-services.sh
         service: auto-idler
       - name: curator
-        schedule: "01 0 * * * "
+        schedule: '01 0 * * * '
         command: /usr/bin/curator --config curator.yml actions.yml
         service: logs-db-curator
