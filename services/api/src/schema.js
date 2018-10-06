@@ -710,7 +710,10 @@ const resolvers = {
     // },
     allEnvironments: async (root, args, req) => {
       const dao = getDao(req);
-      return dao.getAllEnvironments(req.credentials, args);
+      const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
+        args,
+      );
+      return dao.getAllEnvironments(req.credentials, input);
     },
   },
   Mutation: {
