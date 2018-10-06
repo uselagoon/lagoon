@@ -6,6 +6,10 @@
 // The logic is split by domain model, that means that each
 // domain model has its own module / file.
 
+// We now use knex as our SQL query builder.
+//
+// Obsolete former notice:
+//
 // A WORD ABOUT DB SECURITY:
 // ---
 // We are heavily relying on building manual SQL strings,
@@ -29,47 +33,51 @@ const R = require('ramda');
 
 const { ifNotAdmin, query, prepare } = require('./utils');
 
-const getPermissions = ({ sqlClient }) => async (args) => {
+const getPermissions = ({ sqlClient }) => async args => {
   const prep = prepare(
     sqlClient,
-    'SELECT key_id as sshKeyId, projects, customers FROM permission WHERE ssh_key = :ssh_key',
+    'SELECT user_id, projects, customers FROM permission WHERE user_id = :user_id',
   );
   const rows = await query(sqlClient, prep(args));
 
   return R.propOr(null, 0, rows);
 };
 
-const truncateTable = ({ sqlClient }) => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
-  const { tableName } = args;
-
-  const prep = prepare(sqlClient, `TRUNCATE table \`${tableName}\``);
-
-  await query(sqlClient, prep(args));
-
-  // TODO: eventually check rows for success
-  return 'success';
-};
-
+// TODO: Make this simpler.
+// For example: Consider removing the "DAO" concept completely (including this file) and migrating to traditional resolver files which are imported directly in services/api/src/schema.js
+// Example structure including SQL, schema, resolvers: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
 const daoFns = {
   getPermissions,
-  truncateTable,
-  ...require('./environment').Queries,
-  ...require('./notification').Queries,
-  ...require('./openshift').Queries,
-  ...require('./customer').Queries,
-  ...require('./project').Queries,
-  ...require('./sshKey').Queries,
+  ...require('./customer').Resolvers,
+  ...require('./environment').Resolvers,
+  ...require('./notification').Resolvers,
+  ...require('./openshift').Resolvers,
+  ...require('./project').Resolvers,
+  ...require('./sshKey').Resolvers,
+  ...require('./user').Resolvers,
 };
 
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
-const make = (sqlClient, esClient) =>
-  R.map(fn => fn({ sqlClient, esClient }), daoFns);
+// esClient: the elasticsearch client instance provided by the elasticsearch module
+// keycloakClient: the Keycloak client instance provided by the keycloak-admin-client module
+const make = (
+  sqlClient,
+  esClient,
+  keycloakClient,
+  searchguardClient,
+  kibanaClient,
+) =>
+  R.map(fn =>
+    fn({
+      sqlClient,
+      esClient,
+      keycloakClient,
+      searchguardClient,
+      kibanaClient,
+    }),
+  )(daoFns);
 
 module.exports = {
   ...daoFns,

@@ -42,7 +42,7 @@ describe('Sql', () => {
       expect(ret).toMatchSnapshot();
     });
   });
-  describe('getCustomerByName', () => {
+  describe('selectCustomerByName', () => {
     it('if not admin, should create statement with IN clause', () => {
       const cred = {
         role: 'user',
@@ -51,7 +51,7 @@ describe('Sql', () => {
         },
       };
 
-      const ret = Sql.getCustomerByName(cred, 'c1');
+      const ret = Sql.selectCustomerByName(cred, 'c1');
       expect(ret).toMatchSnapshot();
     });
 
@@ -61,7 +61,7 @@ describe('Sql', () => {
         permissions: {},
       };
 
-      const ret = Sql.getCustomerByName(cred, 'c1');
+      const ret = Sql.selectCustomerByName(cred, 'c1');
       expect(ret).toMatchSnapshot();
     });
   });

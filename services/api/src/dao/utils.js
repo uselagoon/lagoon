@@ -92,13 +92,6 @@ const isPatchEmpty = R.compose(
   R.propOr({}, 'patch'),
 );
 
-// Tells if a user tries to modify an sshKey in the given patch
-// payload
-const hasSshKeyPatch = R.compose(
-  R.anyPass([R.has('keyValue'), R.has('keyType')]),
-  R.propOr({}, 'patch'),
-);
-
 module.exports = {
   ifNotAdmin,
   inClause,
@@ -108,5 +101,4 @@ module.exports = {
   query,
   whereAnd,
   isPatchEmpty,
-  hasSshKeyPatch,
 };

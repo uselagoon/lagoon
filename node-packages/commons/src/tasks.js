@@ -34,20 +34,6 @@ const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
-const _extends =
-  Object.assign ||
-  function _extends(...args) {
-    for (let i = 1; i < args.length; i++) {
-      const source = args[i];
-      for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          args[0][key] = source[key];
-        }
-      }
-    }
-    return args[0];
-  };
-
 class UnknownActiveSystem extends Error {
   constructor(message: string) {
     super(message);
@@ -446,10 +432,11 @@ async function consumeTasks(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 
@@ -516,10 +503,11 @@ async function consumeTaskMonitor(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 

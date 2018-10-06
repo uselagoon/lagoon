@@ -1,9 +1,15 @@
+// @flow
+
 const R = require('ramda');
 const {
   knex, query, prepare, isPatchEmpty,
 } = require('./utils');
 
-const { getProjectIdByName } = require('./project').Helpers;
+// TEMPORARY: Don't copy this `project.helpers`, etc file naming structure.
+// This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
+//
+// Eventually we should move to a better folder structure and away from the DAO structure. Example folder structure: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
+const { getProjectIdByName } = require('./project.helpers');
 
 const concatNonNull = R.reduce((acc, rows) => {
   if (rows == null) {
@@ -65,7 +71,7 @@ const Sql = {
         'project.id': input,
       })
       .toString(),
-  selectProjectByName: (input) => {
+  selectProjectByName: input => {
     const { project } = input;
 
     return knex('project')
@@ -75,7 +81,7 @@ const Sql = {
       })
       .toString();
   },
-  selectProjectNotification: (input) => {
+  selectProjectNotification: input => {
     const { project, notificationType, notificationName } = input;
     return knex({ p: 'project', nt: `notification_${notificationType}` })
       .where({ 'p.name': project })
@@ -135,15 +141,28 @@ const Sql = {
       .whereRaw('pn.nid IS NULL and pn.pid IS NULL')
       .select('nt.*', knex.raw('? as type', [notificationType]))
       .toString(),
-  selectProjectNotificationsWithoutAccess: (cred, { nids }) => {
-    const { projects } = cred.permissions;
-    return knex('project_notification AS pn')
+  selectProjectNotificationsWithoutAccess: (
+    { permissions: { projects } },
+    { nids },
+  ) =>
+    knex('project_notification AS pn')
       .join('project AS p', 'pn.pid', '=', 'p.id')
       .whereIn('pn.nid', nids)
       .whereNotIn('pn.pid', projects)
       .select('pn.*')
-      .toString();
-  },
+      .toString(),
+  truncateNotificationSlack: () =>
+    knex('notification_slack')
+      .truncate()
+      .toString(),
+  truncateNotificationRocketchat: () =>
+    knex('notification_rocketchat')
+      .truncate()
+      .toString(),
+  truncateProjectNotification: () =>
+    knex('project_notification')
+      .truncate()
+      .toString(),
 };
 
 const Helpers = {
@@ -419,21 +438,59 @@ const getUnassignedNotifications = ({ sqlClient }) => async (cred, args) => {
   return concatNonNull(results);
 };
 
-const Queries = {
-  addNotificationRocketChat,
-  addNotificationSlack,
-  addNotificationToProject,
-  deleteNotificationRocketChat,
-  deleteNotificationSlack,
-  getNotificationsByProjectId,
-  removeNotificationFromProject,
-  updateNotificationRocketChat,
-  updateNotificationSlack,
-  getUnassignedNotifications,
+const deleteAllNotificationSlacks = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateNotificationSlack());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const deleteAllNotificationRocketChats = ({ sqlClient }) => async ({
+  role,
+}) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateNotificationRocketchat());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const removeAllNotificationsFromAllProjects = ({ sqlClient }) => async ({
+  role,
+}) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateProjectNotification());
+
+  // TODO: Check rows for success
+  return 'success';
 };
 
 module.exports = {
   Sql,
-  Queries,
+  Resolvers: {
+    addNotificationRocketChat,
+    addNotificationSlack,
+    addNotificationToProject,
+    deleteNotificationRocketChat,
+    deleteNotificationSlack,
+    getNotificationsByProjectId,
+    removeNotificationFromProject,
+    updateNotificationRocketChat,
+    updateNotificationSlack,
+    getUnassignedNotifications,
+    deleteAllNotificationSlacks,
+    deleteAllNotificationRocketChats,
+    removeAllNotificationsFromAllProjects,
+  },
   Helpers,
 };

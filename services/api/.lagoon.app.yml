@@ -104,6 +104,11 @@ objects:
                 secretKeyRef:
                   key: LOGSDB_ADMIN_PASSWORD
                   name: logs-db-admin-password
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-password
+                  key: KEYCLOAK_ADMIN_PASSWORD
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
             - name: CRONJOBS

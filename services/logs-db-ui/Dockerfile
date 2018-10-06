@@ -4,9 +4,12 @@ FROM ${IMAGE_REPO:-lagoon}/kibana
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
     LOGSDB_ADMIN_PASSWORD=admin \
-    ELASTICSEARCH_URL=http://logs-db:9200
+    ELASTICSEARCH_URL=http://logs-db:9200 \
+    KEYCLOAK_URL=http://docker.for.mac.localhost:8088 \
+    SEARCHGUARD_OPENID_CLIENT_SECRET=xxxx
 
 RUN echo $'xpack.security.enabled: false\n\
+xpack.monitoring.enabled: false\n\
 \n\
 # Configure the Kibana internal server user\n\
 elasticsearch.username: "kibanaserver"\n\
@@ -21,12 +24,29 @@ elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]\n\
 # Enable multitenancy\n\
 searchguard.multitenancy.enabled: true\n\
 # Disable searchguard global tenant\n\
-searchguard.multitenancy.tenants.enable_global: false' >> config/kibana.yml
+searchguard.multitenancy.tenants.enable_global: false\n\
+searchguard.multitenancy.tenants.enable_private: false\n\
+# v14 and above: Enable OpenID authentication\n\
+searchguard.auth.type: "openid"\n\
+\n\
+# the IdP metadata endpoint\n\
+searchguard.openid.connect_url: "${KEYCLOAK_URL}/auth/realms/lagoon/.well-known/openid-configuration"\n\
+\n\
+# the ID of the OpenID Connect client in your IdP\n\
+searchguard.openid.client_id: "searchguard"\n\
+\n\
+# the client secret of the OpenID Connect client\n\
+searchguard.openid.client_secret: "${SEARCHGUARD_OPENID_CLIENT_SECRET}"\n\
+\n\
+# optional: the scope of the identity token\n\
+searchguard.openid.scope: "profile email"\n\
+' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.2.4-13/search-guard-kibana-plugin-6.2.4-13.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.0-15/search-guard-kibana-plugin-6.4.0-15.zip
 
 COPY ./init/ /lagoon/kibana-init
-COPY entrypoints/90-kibanayaml-envplate.sh /lagoon/entrypoints/
+COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
+COPY entrypoints/90-keycloak-client-secret.bash /lagoon/entrypoints/
 
 RUN fix-permissions config/kibana.yml \
     && fix-permissions /lagoon/kibana-init

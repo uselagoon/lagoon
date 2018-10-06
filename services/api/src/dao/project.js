@@ -1,56 +1,25 @@
+// @flow
+
 const R = require('ramda');
+const logger = require('../logger');
 const {
   ifNotAdmin,
   inClauseOr,
-  knex,
   prepare,
   query,
   whereAnd,
   isPatchEmpty,
 } = require('./utils');
 
-// This contains the sql query generation logic
-const Sql = {
-  updateProject: (input) => {
-    const { id, patch } = input;
+const { getCustomerById } = require('./customer').Helpers;
 
-    const ret = knex('project')
-      .where('id', '=', id)
-      .update(patch);
-
-    return ret.toString();
-  },
-  selectProject: id =>
-    knex('project')
-      .where('id', id)
-      .toString(),
-  selectProjectIdByName: name =>
-    knex('project')
-      .where('name', name)
-      .select('id')
-      .toString(),
-};
-
-const Helpers = {
-  getProjectIdByName: async (sqlClient, name) => {
-    const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
-
-    const amount = R.length(pidResult);
-    if (amount > 1) {
-      throw new Error(
-        `Multiple project candidates for '${name}' (${amount} found). Do nothing.`,
-      );
-    }
-
-    if (amount === 0) {
-      throw new Error(`Not found: '${name}'`);
-    }
-
-    const pid = R.path(['0', 'id'], pidResult);
-
-    return pid;
-  },
-};
+// TEMPORARY: Don't copy this `project.helpers`, etc file naming structure.
+// This is just temporarily here to avoid the problems from the circular dependency between the `project` and `user` helpers.
+//
+// Eventually we should move to a better folder structure and away from the DAO structure. Example folder structure: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
+const Helpers = require('./project.helpers');
+const KeycloakOperations = require('./project.keycloak');
+const Sql = require('./project.sql');
 
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
@@ -137,7 +106,12 @@ const getProjectByName = ({ sqlClient }) => async (cred, args) => {
   return rows[0];
 };
 
-const addProject = ({ sqlClient }) => async (cred, input) => {
+const addProject = ({
+  sqlClient,
+  keycloakClient,
+  searchguardClient,
+  kibanaClient,
+}) => async (cred, input) => {
   const { customers } = cred.permissions;
   const cid = input.customer.toString();
 
@@ -177,7 +151,11 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
-        ${input.developmentEnvironmentsLimit ? ':development_environments_limit' : '5'}
+        ${
+  input.developmentEnvironmentsLimit
+    ? ':development_environments_limit'
+    : '5'
+}
 
       );
     `,
@@ -186,14 +164,120 @@ const addProject = ({ sqlClient }) => async (cred, input) => {
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
+  try {
+    // Create a group in Keycloak named the same as the project
+    const name = R.prop('name', project);
+    await keycloakClient.groups.create({
+      name,
+    });
+    logger.debug(`Created Keycloak group with name "${name}"`);
+  } catch (err) {
+    if (err.response.status === 409) {
+      logger.warn(
+        `Failed to create already existing Keycloak group "${R.prop(
+          'name',
+          project,
+        )}"`,
+      );
+    } else {
+      logger.error(`SearchGuard create role error: ${err}`);
+      throw new Error(`SearchGuard create role error: ${err}`);
+    }
+  }
+
+  const customer = await getCustomerById(sqlClient, project.customer);
+
+  try {
+    // Create a new SearchGuard Role for this project with the same name as the Project
+    await searchguardClient.put(`roles/${project.name}`, {
+      body: {
+        indices: {
+          [`*-${project.name}-*`]: {
+            '*': ['READ'],
+          },
+        },
+        tenants: {
+          [customer.name]: 'RW',
+        },
+      },
+    });
+  } catch (err) {
+    logger.error(`SearchGuard create role error: ${err}`);
+    throw new Error(`SearchGuard create role error: ${err}`);
+  }
+
+  // Create index-patterns for this project
+  for (const log of [
+    'application-logs',
+    'router-logs',
+    'container-logs',
+    'lagoon-logs',
+  ]) {
+    try {
+      await kibanaClient.post(
+        `saved_objects/index-pattern/${log}-${project.name}-*`,
+        {
+          body: {
+            attributes: {
+              title: `${log}-${project.name}-*`,
+            },
+          },
+          headers: {
+            sgtenant: customer.name,
+          },
+        },
+      );
+    } catch (err) {
+      // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
+      if (err.statusCode !== 409) {
+        logger.error(
+          `Kibana Error during setup of index pattern ${log}-${
+            project.name
+          }-*: ${err}`,
+        );
+        // Don't fail if we have Kibana Errors, as they are "non-critical"
+      }
+    }
+  }
+
+  try {
+    const currentSettings = await kibanaClient.get('kibana/settings', {
+      headers: {
+        sgtenant: customer.name,
+      },
+    });
+
+    // Define a default Index if there is none yet
+    if (!currentSettings.body.settings.defaultIndex) {
+      await kibanaClient.post('kibana/settings', {
+        body: {
+          changes: {
+            defaultIndex: `container-logs-${project.name}-*`,
+            'telemetry:optIn': false, // also opt out of telemetry from xpack
+          },
+        },
+        headers: {
+          sgtenant: customer.name,
+        },
+      });
+    }
+  } catch (err) {
+    logger.error(`Kibana Error during config of default Index: ${err}`);
+    // Don't fail if we have Kibana Errors, as they are "non-critical"
+  }
+
   return project;
 };
 
-const deleteProject = ({ sqlClient }) => async (cred, input) => {
+const deleteProject = ({
+  sqlClient,
+  keycloakClient,
+  searchguardClient,
+}) => async (cred, { project }) => {
   const { projects } = cred.permissions;
 
   // Will throw on invalid conditions
-  const pid = await Helpers.getProjectIdByName(sqlClient, input.project);
+  const pid = await Helpers.getProjectIdByName(sqlClient, project);
 
   if (cred.role !== 'admin') {
     if (!R.contains(pid, projects)) {
@@ -202,43 +286,171 @@ const deleteProject = ({ sqlClient }) => async (cred, input) => {
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
-  await query(sqlClient, prep(input));
+  await query(sqlClient, prep({ project }));
 
+  await KeycloakOperations.deleteGroup(keycloakClient, project);
+
+  try {
+    // Delete SearchGuard Role for this project with the same name as the Project
+    await searchguardClient.delete(`roles/${project}`);
+  } catch (err) {
+    logger.error(`SearchGuard delete role error: ${err}`);
+    throw new Error(`SearchGuard delete role error: ${err}`);
+  }
   // TODO: maybe check rows for changed result
   return 'success';
 };
 
-const updateProject = ({ sqlClient }) => async (cred, input) => {
-  const { projects } = cred.permissions;
-  const pid = input.id.toString();
-
-  if (cred.role !== 'admin' && !R.contains(pid, projects)) {
+const updateProject = ({ sqlClient, keycloakClient }) => async (
+  { role, permissions: { projects } },
+  {
+    id,
+    patch,
+    patch: {
+      name,
+      customer,
+      gitUrl,
+      subfolder,
+      activeSystemsDeploy,
+      activeSystemsRemove,
+      branches,
+      productionEnvironment,
+      autoIdle,
+      storageCalc,
+      pullrequests,
+      openshift,
+      openshiftProjectPattern,
+      developmentEnvironmentsLimit,
+    },
+  },
+) => {
+  if (role !== 'admin' && !R.contains(id.toString(), projects)) {
     throw new Error('Unauthorized');
   }
 
-  if (isPatchEmpty(input)) {
+  if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await query(sqlClient, Sql.updateProject(input));
-  const rows = await query(sqlClient, Sql.selectProject(pid));
-  const project = R.path([0], rows);
+  const originalProject = await Helpers.getProjectById(sqlClient, id);
+  const originalName = R.prop('name', originalProject);
+  const originalCustomer = parseInt(R.prop('customer', originalProject));
 
-  return project;
+  // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
+  if (typeof customer === 'number' && customer !== originalCustomer) {
+    // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+    await Helpers.mapIfNoDirectProjectAccess(
+      sqlClient,
+      keycloakClient,
+      id,
+      originalCustomer,
+      async ({
+        keycloakUserId,
+        keycloakUsername,
+        keycloakGroupId,
+        keycloakGroupName,
+      }) => {
+        await keycloakClient.users.delFromGroup({
+          id: keycloakUserId,
+          groupId: keycloakGroupId,
+        });
+        logger.debug(
+          `Removed Keycloak user ${keycloakUsername} from group "${keycloakGroupName}"`,
+        );
+      },
+    );
+  }
+
+  await query(
+    sqlClient,
+    Sql.updateProject({
+      id,
+      patch: {
+        name,
+        customer,
+        gitUrl,
+        subfolder,
+        activeSystemsDeploy,
+        activeSystemsRemove,
+        branches,
+        productionEnvironment,
+        autoIdle,
+        storageCalc,
+        pullrequests,
+        openshift,
+        openshiftProjectPattern,
+        developmentEnvironmentsLimit,
+      },
+    }),
+  );
+
+  if (typeof name === 'string' && name !== originalName) {
+    const groupId = await KeycloakOperations.findGroupIdByName(
+      keycloakClient,
+      originalName,
+    );
+
+    await keycloakClient.groups.update({ id: groupId }, { name });
+    logger.debug(
+      `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
+    );
+  }
+
+  if (typeof customer === 'number' && customer !== originalCustomer) {
+    // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+    await Helpers.mapIfNoDirectProjectAccess(
+      sqlClient,
+      keycloakClient,
+      id,
+      customer,
+      async ({
+        keycloakUserId,
+        keycloakUsername,
+        keycloakGroupId,
+        keycloakGroupName,
+      }) => {
+        await keycloakClient.users.addToGroup({
+          id: keycloakUserId,
+          groupId: keycloakGroupId,
+        });
+        logger.debug(
+          `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
+        );
+      },
+    );
+  }
+
+  return Helpers.getProjectById(sqlClient, id);
 };
 
-const Queries = {
-  deleteProject,
-  addProject,
-  getProjectByName,
-  getProjectByGitUrl,
-  getProjectByEnvironmentId,
-  getAllProjects,
-  updateProject,
+const deleteAllProjects = ({ sqlClient, keycloakClient }) => async ({
+  role,
+}) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  const projectNames = await Helpers.getAllProjectNames(sqlClient);
+
+  await query(sqlClient, Sql.truncateProject());
+
+  for (const name of projectNames) {
+    await KeycloakOperations.deleteGroup(keycloakClient, name);
+  }
+
+  // TODO: Check rows for success
+  return 'success';
 };
 
 module.exports = {
-  Sql,
-  Queries,
-  Helpers,
+  Resolvers: {
+    deleteProject,
+    addProject,
+    getProjectByName,
+    getProjectByGitUrl,
+    getProjectByEnvironmentId,
+    getAllProjects,
+    updateProject,
+    deleteAllProjects,
+  },
 };

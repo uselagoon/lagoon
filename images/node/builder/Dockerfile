@@ -2,7 +2,7 @@ ARG NODE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/node:${NODE_VERSION}
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=node
 
 RUN apk update \

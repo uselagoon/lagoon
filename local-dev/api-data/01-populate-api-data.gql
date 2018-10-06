@@ -1,19 +1,5 @@
-mutation FillAPI {
-  #### First making sure we clean the API
-  truncateCustomers: truncateTable(tableName: "customer")
-  truncateCustomerSshKeys: truncateTable(tableName: "customer_ssh_key")
-  truncateOpenshifts: truncateTable(tableName: "openshift")
-  truncateProjects: truncateTable(tableName: "project")
-  truncateProjectSshKeys: truncateTable(tableName: "project_ssh_key")
-  truncateNotificationSlack: truncateTable(tableName: "notification_slack")
-  truncateNotificationRocketChats: truncateTable(
-    tableName: "notification_rocketchat"
-  )
-  truncateProjectNotification: truncateTable(tableName: "project_notification")
-  truncateSshKeys: truncateTable(tableName: "ssh_key")
-  truncateEnvironments: truncateTable(tableName: "environment")
-
-  #### Filling API with needed Objects to run the Credentialstests
+mutation PopulateApi {
+  #### Populate API with needed Objects to run the Credentialstests
 
   ### Openshift
   CredentialtestOpenshift: addOpenshift(
@@ -71,86 +57,98 @@ mutation FillAPI {
   }
 
   ### SSH Keys:
-  ## credentialtestbothcustomeraccess: Access to customer1 and customer2
+  ## credentialtestbothcustomeraccess_user: Access to customer1 and customer2
+  CredentialtestCustomerAccessUser: addUser(
+    input: {
+      id: 1
+      email: "credentialtestbothcustomeraccess_user@example.com"
+      comment: "credentialtestbothcustomeraccess_user"
+    }
+  ) {
+    id
+  }
   CredentialtestCustomerAccessSshKey: addSshKey(
     input: {
       id: 1
       name: "credentialtestbothcustomeraccess"
       keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDHDRxmCLzLCLdo8M8hK+v5Zr5p4q0XQYwCm9xxWWU8ItkyP4LB90fyh8qWFJRQTYrGNe4usDL5kPyHXhUevdZt75jcjWqlWypbtNY4nFfi+HQ9dnR/f7RRkoBWbha3j8mqZdRHXo9xrXMc82wXaN9a9dMbvEmZPkTpi75g+C0KXBrfjJjDR6Lvr7zWoB2nPMmgy1UGLl5dKxJOg7vHYCpAI582knd0nep3t3bRdlxe7l/CxMthZmoJxz6dfoFotDyBjivVYqEiybtjkNBQnRf2xYQ7m6837hu3EkSVKdgbonWASFMenpuFacDE2S2dVftwW3QjzIOtdQERGZuMsi0p"
       keyType: SSH_RSA
+      userId: 1
     }
   ) {
     id
   }
-  CredentialtestCustomerAccessSshKeyAdd1: addSshKeyToCustomer(
-    input: {
-      customer: "credentialtest-customer1"
-      sshKey: "credentialtestbothcustomeraccess"
-    }
+  CredentialtestCustomerAccessUserAdd1: addUserToCustomer(
+    input: { customer: "credentialtest-customer1", userId: 1 }
   ) {
     name
   }
-  CredentialtestCustomerAccessSshKeyAdd2: addSshKeyToCustomer(
-    input: {
-      customer: "credentialtest-customer2"
-      sshKey: "credentialtestbothcustomeraccess"
-    }
+  CredentialtestCustomerAccessUserAdd2: addUserToCustomer(
+    input: { customer: "credentialtest-customer2", userId: 1 }
   ) {
     name
   }
 
-  ## credentialtestbothprojectaccess: Access to project1 and project2
+  ## credentialtestbothprojectaccess_user: Access to project1 and project2
+  CredentialtestProjectAccessUser: addUser(
+    input: {
+      id: 2
+      email: "credentialtestbothprojectaccess_user@example.com"
+      comment: "credentialtestbothprojectaccess_user"
+    }
+  ) {
+    id
+  }
   CredentialtestProjectAccessSshKey: addSshKey(
     input: {
       id: 2
       name: "credentialtestbothprojectaccess"
       keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDSeDyxIwMWOjeAq7hF2qirbtoD33JZA2RxodsnnesrmWvrRlANn/fYZSR9zc8SMUMA6s6gR6eOLP+Nrz6bz9xIPFDhHpU7yJqWvb8EM2EPpgSppGmBIBDIPN+5YSxiX5fTuLn2dGHyIdgRvl1yXC09Pa16i/gweMIskP7nanFUfVcgUlTNm0nS6F+MzqklRRO7Tw1zOuleEnXohpzGpUJV5xgQmX4CoqiKYuyXssgBdwsrB9oYdGl8i7xi1w7Xlop6FhbaY/vQdy5f9xfoY2jiO7Big6FDeUGccpjL+xZ0MlKfiTl/OIHcsbshQZ1+D9eSmeaaQ8r9cujgTX2Y7umt"
       keyType: SSH_RSA
+      userId: 2
     }
   ) {
     id
   }
-  CredentialtestProjectAccessSshKeyAdd1: addSshKeyToProject(
-    input: {
-      project: "credentialstest-project1"
-      sshKey: "credentialtestbothprojectaccess"
-    }
+  CredentialtestProjectAccessUserAdd1: addUserToProject(
+    input: { project: "credentialstest-project1", userId: 2 }
   ) {
     name
   }
-  CredentialtestProjectAccessSshKeyAdd2: addSshKeyToProject(
-    input: {
-      project: "credentialstest-project2"
-      sshKey: "credentialtestbothprojectaccess"
-    }
+  CredentialtestProjectAccessUserAdd2: addUserToProject(
+    input: { project: "credentialstest-project2", userId: 2 }
   ) {
     name
   }
 
-  ## credentialtestcrossaccess: Access to customer1 and project2
+  ## credentialtestcrossaccess_user: Access to customer1 and project2
+  CredentialtestCrossAccessUser: addUser(
+    input: {
+      id: 3
+      email: "credentialtestcrossaccess_user@example.com"
+      comment: "credentialtestcrossaccess_user"
+    }
+  ) {
+    id
+  }
   CredentialtestCrossAccessSshKey: addSshKey(
     input: {
       id: 3
       name: "credentialtestcrossaccess"
       keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDC2DltlqLnD7a0Zbra637oj6sLBmKvxHtbWkAEnUJvJVsCLIRdLhqRRBrC4lOJuMqZSqW/fzIETpX3DiohlTKHDYecNFYgiXyryqCehcKli3MDDyTgfDmAIPLxHimvjWgPEghDNAdOzdS3ka3LqEdhr2k6ddex+fyO/I7VMMbjxQUHAQNIpChVIqKnWCJRo6gyZgYwfLR634D+PJon87LWbLdpx5+whyc/rJGWfpSL5C1V/NvvN0xfa1zKNXmJH+cr++fmU5z/ky6mcDkO0Uy+k5cpUQKkOVW7j6bCpsofbnALldATq+oPadHg6HI796kSrsKU44WMmZCUBBHdeYJd"
       keyType: SSH_RSA
+      userId: 3
     }
   ) {
     id
   }
-  CredentialtestCrossAccessSshKeyAdd1: addSshKeyToCustomer(
-    input: {
-      customer: "credentialtest-customer1"
-      sshKey: "credentialtestcrossaccess"
-    }
+  CredentialtestCrossAccessUserAdd1: addUserToCustomer(
+    input: { customer: "credentialtest-customer1", userId: 3 }
   ) {
     name
   }
-  CredentialtestCrossAccessSshKeyAdd2: addSshKeyToProject(
-    input: {
-      project: "credentialstest-project2"
-      sshKey: "credentialtestcrossaccess"
-    }
+  CredentialtestCrossAccessUserAdd2: addUserToProject(
+    input: { project: "credentialstest-project2", userId: 3 }
   ) {
     name
   }
@@ -166,20 +164,39 @@ mutation FillAPI {
   ) {
     id
   }
+  CiCustomerUserRsa: addUser(
+    input: {
+      id: 4
+      email: "ci-customer-user-rsa@example.com"
+      comment: "ci-customer-user-rsa"
+    }
+  ) {
+    id
+  }
   CiCustomerSshKeyRsa: addSshKey(
     input: {
       id: 4
       name: "ci-customer-sshkey-rsa"
       keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw=="
       keyType: SSH_RSA
+      userId: 4
     }
   ) {
     id
   }
-  CiCustomerSshKeyAddRsa: addSshKeyToCustomer(
-    input: { customer: "ci-customer", sshKey: "ci-customer-sshkey-rsa" }
+  CiCustomerUserAddRsa: addUserToCustomer(
+    input: { customer: "ci-customer", userId: 4 }
   ) {
     name
+  }
+  CiCustomerUserEd25519: addUser(
+    input: {
+      id: 5
+      email: "ci-customer-user-ed25519@example.com"
+      comment: "ci-customer-user-ed25519"
+    }
+  ) {
+    id
   }
   CiCustomerSshKeyEd25519: addSshKey(
     input: {
@@ -187,12 +204,13 @@ mutation FillAPI {
       name: "ci-customer-sshkey-ed25519"
       keyValue: "AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
       keyType: SSH_ED25519
+      userId: 5
     }
   ) {
     id
   }
-  CiCustomerSshKeyAddEd25519: addSshKeyToCustomer(
-    input: { customer: "ci-customer", sshKey: "ci-customer-sshkey-ed25519" }
+  CiCustomerUserAddEd25519: addUserToCustomer(
+    input: { customer: "ci-customer", userId: 5 }
   ) {
     name
   }
@@ -598,11 +616,7 @@ mutation FillAPI {
     id
   }
   UICustomer1: addCustomer(
-    input: {
-      id: 5
-      name: "ui-customer"
-      comment: "used to test the ui"
-    }
+    input: { id: 5, name: "ui-customer", comment: "used to test the ui" }
   ) {
     id
   }
@@ -717,7 +731,9 @@ mutation FillAPI {
       developmentEnvironmentsLimit: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
     }
-  ) { id }
+  ) {
+    id
+  }
 
   CILimitEnv1: addOrUpdateEnvironment(
     input: {
@@ -727,7 +743,9 @@ mutation FillAPI {
       environmentType: PRODUCTION
       openshiftProjectName: "ci-env-limit"
     }
-  ){  id }
+  ) {
+    id
+  }
 
   CILimitEnv2: addOrUpdateEnvironment(
     input: {
@@ -737,7 +755,9 @@ mutation FillAPI {
       environmentType: DEVELOPMENT
       openshiftProjectName: "ci-env-limit"
     }
-  ) { id }
+  ) {
+    id
+  }
 
   CILimitEn3: addOrUpdateEnvironment(
     input: {
@@ -747,6 +767,7 @@ mutation FillAPI {
       environmentType: DEVELOPMENT
       openshiftProjectName: "ci-env-limit"
     }
-  ) { id }
-
+  ) {
+    id
+  }
 }

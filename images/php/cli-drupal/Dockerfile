@@ -2,7 +2,7 @@ ARG PHP_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-cli
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=cli-drupal
 
 RUN curl -L -o /usr/local/bin/drupal https://github.com/hechoendrupal/drupal-console-launcher/releases/download/1.4.0/drupal.phar \

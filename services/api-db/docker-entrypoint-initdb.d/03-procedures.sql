@@ -1,6 +1,7 @@
 USE infrastructure;
 
 -- Stored procedures for the API DB
+-- DEPRECATED:
 -- Since these proved to be awkward to work with and
 -- prone to errors, we will write any further queries
 -- in the API service using knex.
@@ -11,21 +12,21 @@ DELIMITER $$
 CREATE OR REPLACE PROCEDURE
   CreateProject
   (
-    IN id                        int,
-    IN name                      varchar(100),
-    IN customer                  int,
-    IN git_url                   varchar(300),
-    IN subfolder                 varchar(300),
-    IN openshift                 int,
-    IN openshift_project_pattern varchar(300),
-    IN active_systems_deploy     varchar(300),
-    IN active_systems_promote    varchar(300),
-    IN active_systems_remove     varchar(300),
-    IN branches                  varchar(300),
-    IN pullrequests              varchar(300),
-    IN production_environment    varchar(100),
-    IN auto_idle                 int(1),
-    IN storage_calc              int(1),
+    IN id                              int,
+    IN name                            varchar(100),
+    IN customer                        int,
+    IN git_url                         varchar(300),
+    IN subfolder                       varchar(300),
+    IN openshift                       int,
+    IN openshift_project_pattern       varchar(300),
+    IN active_systems_deploy           varchar(300),
+    IN active_systems_promote          varchar(300),
+    IN active_systems_remove           varchar(300),
+    IN branches                        varchar(300),
+    IN pullrequests                    varchar(300),
+    IN production_environment          varchar(100),
+    IN auto_idle                       int(1),
+    IN storage_calc                    int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -105,14 +106,14 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteProject
   (
-    IN p_project varchar(50)
+    IN name varchar(50)
   )
   BEGIN
     DECLARE v_pid int;
 
-    SELECT id INTO v_pid FROM project WHERE project.name = p_project;
+    SELECT id INTO v_pid FROM project WHERE project.name = name;
 
-    DELETE FROM project_ssh_key WHERE pid = v_pid;
+    DELETE FROM project_user WHERE pid = v_pid;
     DELETE FROM project_notification WHERE pid = v_pid;
     DELETE FROM project WHERE id = v_pid;
   END;
@@ -215,61 +216,16 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  CreateSshKey
-  (
-    IN id                     int,
-    IN name                   varchar(100),
-    IN key_value              varchar(5000),
-    IN key_type               varchar(300)
-  )
-  BEGIN
-    DECLARE new_sid int;
-
-    IF (id IS NULL) THEN
-      SET id = 0;
-    END IF;
-
-    INSERT INTO ssh_key (
-      id,
-      name,
-      key_value,
-      key_type
-    ) VALUES (
-      id,
-      name,
-      key_value,
-      key_type
-    );
-
-    IF (id = 0) THEN
-      SET new_sid = LAST_INSERT_ID();
-    ELSE
-      SET new_sid = id;
-    END IF;
-
-    SELECT
-      sk.id,
-      sk.name,
-      sk.key_value,
-      sk.key_type,
-      sk.created
-    FROM ssh_key sk
-    WHERE sk.id = new_sid;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   DeleteSshKey
   (
-    IN p_name varchar(100)
+    IN s_name varchar(100)
   )
   BEGIN
     DECLARE v_skid int;
 
-    SELECT id INTO v_skid FROM ssh_key WHERE ssh_key.name = p_name;
+    SELECT id INTO v_skid FROM ssh_key WHERE ssh_key.name = s_name;
 
-    DELETE FROM customer_ssh_key WHERE skid = v_skid;
-    DELETE FROM project_ssh_key WHERE skid = v_skid;
+    DELETE FROM user_ssh_key WHERE skid = v_skid;
     DELETE FROM ssh_key WHERE id = v_skid;
   END;
 $$
@@ -321,7 +277,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteCustomer
   (
-    IN p_name varchar(100)
+    IN c_name varchar(100)
   )
   BEGIN
     DECLARE v_cid int;
@@ -330,19 +286,19 @@ CREATE OR REPLACE PROCEDURE
     SELECT count(*) INTO count
     FROM project
     LEFT JOIN customer ON project.customer = customer.id
-    WHERE customer.name = p_name;
+    WHERE customer.name = c_name;
 
     IF count > 0 THEN
-      SET @message_text = concat('Customer: "', p_name, '" still in use, can not delete');
+      SET @message_text = concat('Customer: "', c_name, '" still in use, can not delete');
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
 
     SELECT id INTO v_cid
-      FROM customer c
-      WHERE c.name = p_name;
+    FROM customer c
+    WHERE c.name = c_name;
 
-    DELETE FROM customer_ssh_key WHERE v_cid = cid;
+    DELETE FROM customer_user WHERE v_cid = cid;
     DELETE FROM customer WHERE id = v_cid;
   END;
 $$
@@ -350,20 +306,20 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateOpenshift
   (
-    IN p_id              int,
-    IN p_name            varchar(50),
-    IN p_console_url     varchar(300),
-    IN p_token           varchar(1000),
-    IN p_router_pattern  varchar(300),
-    IN p_project_user    varchar(100),
-    IN p_ssh_host        varchar(300),
-    IN p_ssh_port        varchar(50)
+    IN id              int,
+    IN name            varchar(50),
+    IN console_url     varchar(300),
+    IN token           varchar(1000),
+    IN router_pattern  varchar(300),
+    IN project_user    varchar(100),
+    IN ssh_host        varchar(300),
+    IN ssh_port        varchar(50)
   )
   BEGIN
     DECLARE new_oid int;
 
-    IF (p_id IS NULL) THEN
-      SET p_id = 0;
+    IF (id IS NULL) THEN
+      SET id = 0;
     END IF;
 
     INSERT INTO openshift (
@@ -376,20 +332,20 @@ CREATE OR REPLACE PROCEDURE
       ssh_host,
       ssh_port
     ) VALUES (
-      p_id,
-      p_name,
-      p_console_url,
-      p_token,
-      p_router_pattern,
-      p_project_user,
-      p_ssh_host,
-      p_ssh_port
+      id,
+      name,
+      console_url,
+      token,
+      router_pattern,
+      project_user,
+      ssh_host,
+      ssh_port
     );
 
-    IF (p_id = 0) THEN
+    IF (id = 0) THEN
       SET new_oid = LAST_INSERT_ID();
     ELSE
-      SET new_oid = p_id;
+      SET new_oid = id;
     END IF;
 
     SELECT
@@ -402,7 +358,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   DeleteOpenshift
   (
-    IN p_name varchar(100)
+    IN o_name varchar(100)
   )
   BEGIN
     DECLARE count int;
@@ -410,7 +366,7 @@ CREATE OR REPLACE PROCEDURE
     SELECT count(*) INTO count
       FROM project p
       LEFT JOIN openshift o ON p.openshift = o.id
-      WHERE o.name = p_name;
+      WHERE o.name = o_name;
 
     IF count > 0 THEN
       SET @message_text = concat('Openshift: "', name, '" still in use, can not delete');
@@ -418,7 +374,7 @@ CREATE OR REPLACE PROCEDURE
       SET MESSAGE_TEXT = @message_text;
     END IF;
 
-    DELETE FROM openshift WHERE name = p_name;
+    DELETE FROM openshift WHERE name = o_name;
   END;
 $$
 
@@ -436,7 +392,8 @@ CREATE OR REPLACE PROCEDURE
       name,
       webhook,
       channel
-    ) VALUES (
+    )
+    VALUES (
       name,
       webhook,
       channel
@@ -483,7 +440,8 @@ CREATE OR REPLACE PROCEDURE
       name,
       webhook,
       channel
-    ) VALUES (
+    )
+    VALUES (
       name,
       webhook,
       channel
@@ -513,126 +471,6 @@ CREATE OR REPLACE PROCEDURE
 
     DELETE FROM notification_slack WHERE id = nsid;
     DELETE FROM project_notification WHERE nid = nsid AND type = 'slack';
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  CreateProjectSshKey
-  (
-    IN project            varchar(50),
-    IN ssh_key            varchar(100)
-  )
-  BEGIN
-
-    INSERT INTO project_ssh_key (
-      pid,
-      skid
-    ) SELECT
-      p.id,
-      sk.id
-    FROM
-      project AS p,
-      ssh_key AS sk
-    WHERE
-      p.name = project AND
-      sk.name = ssh_key;
-
-    SELECT
-      *
-    FROM project as p
-    WHERE p.name = project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  DeleteProjectSshKey
-  (
-    IN p_project            varchar(50),
-    IN p_ssh_key            varchar(100)
-  )
-  BEGIN
-
-    DELETE
-      project_ssh_key
-    FROM
-      project_ssh_key
-    LEFT JOIN project ON project_ssh_key.pid = project.id
-    LEFT JOIN ssh_key ON project_ssh_key.skid = ssh_key.id
-    WHERE
-      project.name = p_project AND
-      ssh_key.name = p_ssh_key;
-
-    SELECT
-      *
-    FROM project as p
-    WHERE p.name = p_project;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  CreateCustomerSshKey
-  (
-    IN p_customer            varchar(50),
-    IN p_ssh_key            varchar(100)
-  )
-  BEGIN
-    DECLARE count int;
-
-    SELECT count(*) INTO count
-      FROM ssh_key sk
-      WHERE sk.name = p_ssh_key;
-
-    IF count = 0 THEN
-      SET @message_text = concat('SSH-Key: "', p_ssh_key, '" does not exist');
-      SIGNAL SQLSTATE '02000'
-      SET MESSAGE_TEXT = @message_text;
-    END IF;
-
-    INSERT INTO customer_ssh_key (
-      cid,
-      skid
-    ) SELECT
-      c.id,
-      sk.id
-    FROM
-      customer AS c,
-      ssh_key AS sk
-    WHERE
-      c.name = p_customer AND
-      sk.name = p_ssh_key;
-
-    SELECT
-      *
-    FROM customer as c
-    WHERE c.name = p_customer;
-
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  DeleteCustomerSshKey
-  (
-    IN p_customer            varchar(50),
-    IN p_ssh_key            varchar(100)
-  )
-  BEGIN
-
-    DELETE
-      customer_ssh_key
-    FROM
-      customer_ssh_key
-    LEFT JOIN customer ON customer_ssh_key.cid = customer.id
-    LEFT JOIN ssh_key ON customer_ssh_key.skid = ssh_key.id
-    WHERE
-      customer.name = p_customer AND
-      ssh_key.name = p_ssh_key;
-
-    SELECT
-      *
-    FROM customer as c
-    WHERE c.name = p_customer;
   END;
 $$
 

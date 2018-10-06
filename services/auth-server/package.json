@@ -1,12 +1,15 @@
 {
   "name": "auth-server",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
     "Patrick Stapfer <patrick@amazee.io>",
     "Karl Horky <karl.horky@gmail.com>",
     "Michael Schmid <michael@amazee.io> (https://amazee.io)"
   ],
+  "engines": {
+    "node": ">=8.12.0"
+  },
   "scripts": {
     "clean": "rimraf dist && rimraf logs",
     "build": "flow-remove-types --out-dir dist/ src/",
@@ -18,7 +21,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "4.0.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "flow-remove-types": "^1.2.3",
@@ -30,7 +33,7 @@
   },
   "devDependencies": {
     "nodemon": "^1.12.1",
-    "prettier": "^1.13.7",
+    "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1"
   }
 }
