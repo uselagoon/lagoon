@@ -38,6 +38,9 @@ searchguard.openid.client_id: "searchguard"\n\
 # the client secret of the OpenID Connect client\n\
 searchguard.openid.client_secret: "${SEARCHGUARD_OPENID_CLIENT_SECRET}"\n\
 \n\
+# the URL of kibana which us used as the redirect URL for openid
+searchguard.openid.base_redirect_url: "${LOGSDB_UI_URL:-http://0.0.0.0:5601}"\n\
+\n\
 # optional: the scope of the identity token\n\
 searchguard.openid.scope: "profile email"\n\
 ' >> config/kibana.yml
@@ -46,6 +49,7 @@ RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=co
 
 COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
+COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/
 COPY entrypoints/90-keycloak-client-secret.bash /lagoon/entrypoints/
 
 RUN fix-permissions config/kibana.yml \
