@@ -25,7 +25,9 @@ function configure_keycloak {
 
     /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
-    if /opt/jboss/keycloak/bin/kcadm.sh get --config $CONFIG_PATH realms/$KEYCLOAK_REALM > /dev/null; then
+    sleep 1
+
+    if /opt/jboss/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
         echo "Realm $KEYCLOAK_REALM is already created, assuming whole keycloak is setup, stopping configuration"
         return 0
     fi
