@@ -16,7 +16,7 @@ const keycloak = new Keycloak(
   {
     realm: 'lagoon',
     serverUrl:
-      lagoonKeycloakRoute || 'http://docker.for.mac.localhost:8088/auth',
+      lagoonKeycloakRoute ? `${lagoonKeycloakRoute}/auth` : 'http://docker.for.mac.localhost:8088/auth',
     clientId: 'lagoon-ui',
     publicClient: true,
     bearerOnly: true,
@@ -25,6 +25,7 @@ const keycloak = new Keycloak(
 
 // Override default of returning a 403
 keycloak.accessDenied = (req, res, next) => {
+  console.log('keycloak.accessDenied');
   next();
 };
 
