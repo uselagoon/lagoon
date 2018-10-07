@@ -46,7 +46,8 @@ ENV TMPDIR=/tmp \
     DB_PASSWORD=keycloak \
     DB_DATABASE=keycloak \
     KEYCLOAK_LAGOON_ADMIN_USERNAME=lagoonadmin \
-    KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin
+    KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin \
+    PROXY_ADDRESS_FORWARDING=true
 
 VOLUME /opt/jboss/keycloak/standalone/data
 
