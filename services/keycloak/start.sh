@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 # 1. The first part of this entrypoint script deals with adding realms and users. Code is a modified version of this entrypoint script:
 # https://github.com/stefanjacobs/keycloak_min/blob/f26927426e60c1ec29fc0c0980e5a694a45dcc05/run.sh
 
