@@ -42,16 +42,6 @@ parameters:
     value: ''
 objects:
   - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: ${SERVICE_NAME}
-    spec:
-      accessModes:
-        - ReadWriteMany
-      resources:
-        requests:
-          storage: 1Gi
-  - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       creationTimestamp: null
@@ -102,11 +92,11 @@ objects:
                 - configMapRef:
                     name: lagoon-env
               env:
-                - name: KEYCLOAK_SUPERADMIN_PASSWORD
+                - name: KEYCLOAK_LAGOON_ADMIN_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: keycloak-super-admin-password
-                      key: KEYCLOAK_SUPERADMIN_PASSWORD
+                      name: keycloak-lagoon-admin-password
+                      key: KEYCLOAK_LAGOON_ADMIN_PASSWORD
                 - name: KEYCLOAK_ADMIN_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -120,13 +110,6 @@ objects:
                 requests:
                   cpu: 10m
                   memory: 10Mi
-              volumeMounts:
-                - mountPath: /opt/jboss/keycloak/standalone/data
-                  name: ${SERVICE_NAME}
-          volumes:
-            - name: ${SERVICE_NAME}
-              persistentVolumeClaim:
-                claimName: ${SERVICE_NAME}
       test: false
       triggers:
         - type: ConfigChange

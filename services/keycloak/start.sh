@@ -25,6 +25,11 @@ function configure_keycloak {
 
     /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
+    if /opt/jboss/keycloak/bin/kcadm.sh get --config $CONFIG_PATH realms/$KEYCLOAK_REALM > /dev/null; then
+        echo "Realm $KEYCLOAK_REALM is already created, assuming whole keycloak is setup, stopping configuration"
+        return 0
+    fi
+
     if [ $KEYCLOAK_REALM ]; then
         echo Creating realm $KEYCLOAK_REALM
         /opt/jboss/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -s realm=$KEYCLOAK_REALM -s enabled=true
@@ -74,11 +79,8 @@ function configure_keycloak {
     echo "Initial config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }
 
-if [ ! -f /opt/jboss/keycloak/standalone/data/docker-container-configuration-done ]; then
-    touch /opt/jboss/keycloak/standalone/data/docker-container-configuration-done
-    /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
-    configure_keycloak &
-fi
+/opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
+configure_keycloak &
 
 /bin/sh /opt/jboss/keycloak/bin/change-database.sh mariadb
 
