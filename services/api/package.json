@@ -18,6 +18,7 @@
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "license": "MIT",
   "dependencies": {
+    "@amazeeio/keycloak-admin": "^1.7.1",
     "@lagoon/commons": "4.0.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
@@ -33,7 +34,6 @@
     "graphql-iso-date": "^3.5.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
-    "keycloak-admin": "^1.7.0",
     "keycloak-connect": "^4.5.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",

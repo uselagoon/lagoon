@@ -72,6 +72,57 @@ const KeycloakOperations = {
       throw new Error(`Error deleting Keycloak user: ${err}`);
     }
   },
+  linkUserToGitlab: async (
+    keycloakClient /* : Object */,
+    { username, gitlabUserId } /* : {username: string, gitlabUserId: number} */,
+  ) => {
+    try {
+      // Find the Keycloak user id with a username matching the username
+      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
+        keycloakClient,
+        username,
+      );
+
+      // Add Gitlab Federated Identity to User
+      await keycloakClient.users.addToFederatedIdentity({
+        id: keycloakUserId,
+        federatedIdentityId: 'gitlab',
+        federatedIdentity: {
+          identityProvider: 'gitlab',
+          userId: gitlabUserId,
+          userName: gitlabUserId, // we don't map the username, instead just use the UID again
+        },
+      });
+
+      logger.debug(`Added User "${username}" to Gitlab Federated Identity ID ${gitlabUserId}`);
+    } catch (err) {
+      logger.error(`Error adding User "${username}" to Gitlab Federated Identity: ${err}`);
+      throw new Error(`Error adding User "${username}" to Gitlab Federated Identity: ${err}`);
+    }
+  },
+  removeGitlabLink: async (
+    keycloakClient /* : Object */,
+    username /* : username: string */,
+  ) => {
+    try {
+      // Find the Keycloak user id with a username matching the username
+      const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
+        keycloakClient,
+        username,
+      );
+
+      // Add Gitlab Federated Identity to User
+      await keycloakClient.users.delFromFederatedIdentity({
+        id: keycloakUserId,
+        federatedIdentityId: 'gitlab',
+      });
+
+      logger.debug(`Removed User "${username}" from Gitlab Federated Identity`);
+    } catch (err) {
+      logger.error(`Error removing User "${username}" from Gitlab Federated Identity: ${err}`);
+      throw new Error(`Error removing User "${username}" from Gitlab Federated Identity: ${err}`);
+    }
+  },
   addUserToGroup: async (
     keycloakClient /* : Object */,
     { username, groupName } /* : {username: string, groupName: string} */,

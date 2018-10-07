@@ -122,6 +122,15 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
     },
   });
 
+  // If user has been created with a gitlabid, we map that ID to the user in Keycloak
+  if (gitlabId) {
+    await KeycloakOperations.linkUserToGitlab(
+      keycloakClient, {
+        username: R.prop('email', user),
+        gitlabUserId: gitlabId,
+      },
+    );
+  }
   return user;
 };
 
@@ -179,6 +188,30 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
         'lagoon-uid': [id],
       },
     });
+
+    // If user had a gitlabid before, we map that ID to the new ser in Keycloak
+    if (originalUser.gitlabId) {
+      await KeycloakOperations.linkUserToGitlab(
+        keycloakClient, {
+          username: email,
+          gitlabUserId: originalUser.gitlabId,
+        },
+      );
+    }
+  }
+
+  // Update of gitlabid: Remove the link and add it
+  if (typeof gitlabId === 'number') {
+    await KeycloakOperations.removeGitlabLink(
+      keycloakClient,
+      originalUser.email,
+    );
+    await KeycloakOperations.linkUserToGitlab(
+      keycloakClient, {
+        username: originalUser.email,
+        gitlabUserId: gitlabId,
+      },
+    );
   }
 
   return R.prop(0, rows);
