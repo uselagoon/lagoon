@@ -195,11 +195,11 @@ class MyApp extends App {
                   display: block;
                   height: 60px;
                   left: 0;
+                  margin-left: calc(((100vw / 16) * 1.5) - 25px);
                   margin-right: 14px;
-                  min-width: calc((100vw / 16) * 1.5);
                   padding-right: 14px;
                   position: absolute;
-                  width: calc((100vw / 16) * 1.5);
+                  width: 25px;
                 }
               }
               & > div {
