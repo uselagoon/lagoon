@@ -24,7 +24,7 @@ elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]\n\
 # Enable multitenancy\n\
 searchguard.multitenancy.enabled: true\n\
 # Disable searchguard global tenant\n\
-searchguard.multitenancy.tenants.enable_global: true\n\
+searchguard.multitenancy.tenants.enable_global: false\n\
 searchguard.multitenancy.tenants.enable_private: false\n\
 # v14 and above: Enable OpenID authentication\n\
 searchguard.auth.type: "openid"\n\
