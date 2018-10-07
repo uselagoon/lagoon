@@ -220,6 +220,7 @@ const addProject = ({
           body: {
             attributes: {
               title: `${log}-${project.name}-*`,
+              timeFieldName: '@timestamp',
             },
           },
           headers: {
