@@ -22,7 +22,7 @@ class Project extends React.Component {
           <div className='field-wrapper created'>
             <div>
               <label>Created</label>
-              <div className='field'>{moment(this.props.project.created).format('MMMM d, Y')}
+              <div className='field'>{moment.utc(this.props.project.created).local().format('DD MMM YYYY, HH:mm:ss')}
               </div>
             </div>
           </div>
