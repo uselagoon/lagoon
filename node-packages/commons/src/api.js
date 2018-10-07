@@ -188,7 +188,7 @@ const addUser = (
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: Int, $email: String, $firstName: String, $lastName: String, $comment: String, $gitlabId: Int) {
+  ($id: Int, $email: String!, $firstName: String, $lastName: String, $comment: String, $gitlabId: Int) {
     addUser(input: {
       id: $id
       email: $email
@@ -636,7 +636,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
 `);
 
 const getEnvironmentsForProject = (project: string): Promise<Object> =>
-graphqlapi.query(`
+  graphqlapi.query(`
   {
     project:projectByName(name: "${project}"){
       developmentEnvironmentsLimit
