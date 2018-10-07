@@ -38,7 +38,9 @@ const channelWrapperWebhooks: ChannelWrapper = connection.createChannel({
 			channel.assertExchange('lagoon-webhooks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
 			channel.bindExchange('lagoon-webhooks', 'lagoon-webhooks-delay', ''),
 
-			channel.prefetch(1),
+			// handle up to four messages at the same time
+			channel.prefetch(4),
+
 			channel.consume('lagoon-webhooks:queue', msg => {processQueue(msg, channelWrapperWebhooks)}, {noAck: false}),
 
 		]);
