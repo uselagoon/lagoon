@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/elasticsearch/elasticsearch:6.4.1
+FROM docker.elastic.co/elasticsearch/elasticsearch:6.4.2
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=elasticsearch

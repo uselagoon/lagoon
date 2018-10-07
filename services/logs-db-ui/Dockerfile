@@ -45,7 +45,7 @@ searchguard.openid.base_redirect_url: "${LOGSDB_UI_URL:-http://0.0.0.0:5601}"\n\
 searchguard.openid.scope: "profile email"\n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.0-15/search-guard-kibana-plugin-6.4.0-15.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.2-15/search-guard-kibana-plugin-6.4.2-15.zip
 
 COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
