@@ -15,7 +15,7 @@ const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
 class MyApp extends App {
   render() {
-    const { Component, pageProps, apolloClient } = this.props;
+    const { Component, pageProps, apolloClient, keycloak } = this.props;
     return (
       <Container>
         <Head>
@@ -28,7 +28,7 @@ class MyApp extends App {
         </Head>
         {(apolloClient && (
           <ApolloProvider client={apolloClient}>
-            <Component {...pageProps} />
+            <Component {...pageProps} keycloak={keycloak}/>
           </ApolloProvider>
         )) || <NotAuthenticated />}
         <style jsx global>{`
