@@ -29,7 +29,7 @@ searchguard.multitenancy.tenants.enable_private: false\n\
 searchguard.auth.type: "openid"\n\
 \n\
 # the IdP metadata endpoint\n\
-searchguard.openid.connect_url: "${KEYCLOAK_URL}/auth/realms/lagoon/.well-known/openid-configuration"\n\
+searchguard.openid.connect_url: "${KEYCLOAK_URL:-}/auth/realms/lagoon/.well-known/openid-configuration"\n\
 \n\
 # the ID of the OpenID Connect client in your IdP\n\
 searchguard.openid.client_id: "searchguard"\n\
