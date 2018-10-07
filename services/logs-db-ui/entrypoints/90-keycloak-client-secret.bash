@@ -19,7 +19,7 @@ done
 load_client_secret() (
     # Load Client Secret for our client from Keycloak
     echo "  1. Loading token"
-    TOKEN=$(set -eo pipefail; curl -f -s -k "$KEYCLOAK_URL/auth/realms/master/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "username=admin" -d 'password=admin' -d 'grant_type=password' -d 'client_id=admin-cli'|python -c 'import sys, json; print json.load(sys.stdin)["access_token"]')
+    TOKEN=$(set -eo pipefail; curl -f -s -k "$KEYCLOAK_URL/auth/realms/master/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "username=$KEYCLOAK_ADMIN_USER" -d "password=$KEYCLOAK_ADMIN_PASSWORD" -d 'grant_type=password' -d 'client_id=admin-cli'|python -c 'import sys, json; print json.load(sys.stdin)["access_token"]')
     [ $? -ne 0 ] && exit 1
     echo "  2. Loading clientid"
     CLIENT_ID=$(set -eo pipefail; curl -f -s -k "$KEYCLOAK_URL/auth/admin/realms/lagoon/clients?clientId=searchguard&viewableOnly=true" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" |python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')

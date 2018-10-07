@@ -5,7 +5,8 @@ ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
     LOGSDB_ADMIN_PASSWORD=admin \
     ELASTICSEARCH_URL=http://logs-db:9200 \
-    SEARCHGUARD_OPENID_CLIENT_SECRET=xxxx
+    SEARCHGUARD_OPENID_CLIENT_SECRET=xxxx \
+    KEYCLOAK_ADMIN_USER=admin
 
 RUN echo $'xpack.security.enabled: false\n\
 xpack.monitoring.enabled: false\n\
