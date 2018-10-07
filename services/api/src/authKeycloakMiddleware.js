@@ -39,33 +39,39 @@ const authWithKeycloak = async (req, res, next) => {
   const dao = ctx.dao;
 
   try {
-    const {
-      content: {
-        lagoon: { user_id: userId },
-        realm_access: { roles },
-      },
-    } = req.kauth.grant.access_token;
+    // Admins have full access and don't need a list of permissions
+    if (R.contains('admin', req.kauth.grant.access_token.content.realm_access.roles)) {
+      req.credentials = {
+        role: 'admin',
+        permissions: {},
+      };
+    } else {
+      const {
+        content: {
+          lagoon: { user_id: userId },
+        },
+      } = req.kauth.grant.access_token;
 
-    const permissions = await getPermissionsForUser(dao, userId);
+      const permissions = await getPermissionsForUser(dao, userId);
 
-    if (R.isEmpty(permissions)) {
-      res.status(401).send({
-        errors: [
-          {
-            message: `Unauthorized - No permissions for user id ${userId}`,
-          },
-        ],
-      });
-      return;
+      if (R.isEmpty(permissions)) {
+        res.status(401).send({
+          errors: [
+            {
+              message: `Unauthorized - No permissions for user id ${userId}`,
+            },
+          ],
+        });
+        return;
+      }
+
+      req.credentials = {
+        role: 'none',
+        userId,
+        // Read and write permissions
+        permissions,
+      };
     }
-
-    req.credentials = {
-      role: R.contains('admin', roles) ? 'admin' : 'none',
-      userId,
-      // Read and write permissions
-      permissions,
-    };
-
     next();
   } catch (e) {
     res.status(403).send({
