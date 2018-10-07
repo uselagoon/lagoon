@@ -1,4 +1,6 @@
 // @flow
+const retry = require('async-retry')
+
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { addUserToCustomer } = require('@lagoon/commons/src/api');
 
@@ -16,7 +18,12 @@ async function gitlabUserCustomerAdd(webhook: WebhookRequestData) {
       customer,
     };
 
-    await addUserToCustomer(user, customer);
+    // Retry adding the User to the Customer 5 times as during the creation of a new Group the customer is immediatelly added and the webhook sent at the same time
+    await retry(async () => {
+      await addUserToCustomer(user, customer);
+    }, {
+      retries: 5,
+    })
 
     sendToLagoonLogs(
       'info',
