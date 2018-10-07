@@ -25,6 +25,8 @@ function configure_keycloak {
 
     /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
+    /opt/jboss/keycloak/bin/kcadm.sh get realms --config $CONFIG_PATH
+
     sleep 30
 
     if /opt/jboss/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
