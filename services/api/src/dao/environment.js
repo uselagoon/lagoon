@@ -80,6 +80,35 @@ const getEnvironmentsByProjectId = ({ sqlClient }) => async (
   return rows;
 };
 
+const getEnvironmentByDeploymentId = ({ sqlClient }) => async (
+  cred,
+  deployment_id,
+) => {
+  const { customers, projects } = cred.permissions;
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        e.*
+      FROM deployment d
+      JOIN environment e on d.environment = e.id
+      JOIN project p ON e.project = p.id
+      WHERE d.id = :deployment_id
+      ${ifNotAdmin(
+    cred.role,
+    `AND (${inClauseOr([
+      ['p.customer', customers],
+      ['p.id', projects],
+    ])})`,
+  )}
+      LIMIT 1
+    `,
+  );
+
+  const rows = await query(sqlClient, prep({ deployment_id }));
+
+  return rows ? rows[0] : null;
+};
+
 const getEnvironmentStorageByEnvironmentId = ({ sqlClient }) => async (
   cred,
   eid,
@@ -449,6 +478,7 @@ module.exports = {
     getEnvironmentsByProjectId,
     updateEnvironment,
     getAllEnvironments,
+    getEnvironmentByDeploymentId,
     deleteAllEnvironments,
   },
 };

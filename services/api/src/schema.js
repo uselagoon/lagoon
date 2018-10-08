@@ -33,6 +33,16 @@ const typeDefs = gql`
     ROCKETCHAT
   }
 
+  enum DeploymentStatusType {
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    FAILED
+    COMPLETE
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -219,6 +229,7 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
+    deployments: [Deployment]
   }
 
   type EnviornmentHitsMonth {
@@ -243,6 +254,18 @@ const typeDefs = gql`
     hours: Int
   }
 
+  type Deployment {
+    id: Int
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    remoteId: String
+    buildLog: String
+  }
+
   input DeleteEnvironmentInput {
     name: String!
     project: Int!
@@ -257,6 +280,7 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    deploymentByRemoteId(id: String): Deployment
     allProjects(createdAfter: String, gitUrl: String): [Project]
     allCustomers(createdAfter: String): [Customer]
     allOpenshifts: [Openshift]
@@ -314,6 +338,36 @@ const typeDefs = gql`
     name: String!
     comment: String
     privateKey: String
+  }
+
+  input DeploymentInput {
+    id: Int
+    name: String!
+    status: DeploymentStatusType!
+    created: String!
+    started: String
+    completed: String
+    environment: Int!
+    remoteId: String
+  }
+
+  input DeleteDeploymentInput {
+    id: Int!
+  }
+
+  input UpdateDeploymentPatchInput {
+    name: String
+    status: DeploymentStatusType
+    created: String
+    started: String
+    completed: String
+    environment: Int
+    remoteId: String
+  }
+
+  input UpdateDeploymentInput {
+    id: Int!
+    patch: UpdateDeploymentPatchInput!
   }
 
   input AddOpenshiftInput {
@@ -570,6 +624,9 @@ const typeDefs = gql`
     addUserToProject(input: AddUserToProjectInput!): Project
     removeUserFromProject(input: RemoveUserFromProjectInput!): Project
     removeAllUsersFromAllProjects: String
+    addDeployment(input: DeploymentInput!): Deployment
+    deleteDeployment(input: DeleteDeploymentInput!): String
+    updateDeployment(input: UpdateDeploymentInput): Deployment
   }
 `;
 
@@ -617,6 +674,16 @@ const notificationTypeToString = R.cond([
 ]);
 
 const getDao = req => req.app.get('context').dao;
+const deploymentStatusTypeToString = R.cond([
+  [R.equals('NEW'), R.toLower],
+  [R.equals('PENDING'), R.toLower],
+  [R.equals('RUNNING'), R.toLower],
+  [R.equals('CANCELLED'), R.toLower],
+  [R.equals('ERROR'), R.toLower],
+  [R.equals('FAILED'), R.toLower],
+  [R.equals('COMPLETE'), R.toLower],
+  [R.T, R.identity],
+]);
 
 const resolvers = {
   Project: {
@@ -658,6 +725,10 @@ const resolvers = {
       const dao = getDao(req);
       return dao.getProjectByEnvironmentId(req.credentials, environment.id);
     },
+    deployments: async (environment, args, req) => {
+      const dao = getDao(req);
+      return dao.getDeploymentsByEnvironmentId(req.credentials, environment.id);
+    },
     hoursMonth: async (environment, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentHoursMonthByEnvironmentId(
@@ -690,6 +761,12 @@ const resolvers = {
       );
     },
   },
+  Deployment: {
+    environment: async (deployment, args, req) => {
+      const dao = getDao(req);
+      return dao.getEnvironmentByDeploymentId(req.credentials, deployment.id);
+    },
+  },
   Notification: {
     __resolveType(obj) {
       switch (obj.type) {
@@ -709,10 +786,10 @@ const resolvers = {
     },
   },
   User: {
-    sshKeys: async({ id }, args, req) => {
+    sshKeys: async ({ id }, args, req) => {
       const dao = getDao(req);
       return dao.getUserSshKeys(req.credentials, id);
-    }
+    },
   },
   Query: {
     userBySshKey: async (root, args, req) => {
@@ -738,6 +815,10 @@ const resolvers = {
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
       return dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+    },
+    deploymentByRemoteId: async (root, args, req) => {
+      const dao = getDao(req);
+      return dao.getDeploymentByRemoteId(req.credentials, args);
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
@@ -1053,6 +1134,27 @@ const resolvers = {
         req.credentials,
         args,
       );
+      return ret;
+    },
+    addDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const input = R.over(R.lensProp('status'), deploymentStatusTypeToString)(
+        args.input,
+      );
+      const ret = await dao.addDeployment(req.credentials, input);
+      return ret;
+    },
+    deleteDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteDeployment(req.credentials, args.input);
+      return ret;
+    },
+    updateDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const input = R.over(R.lensPath(['patch', 'status']), deploymentStatusTypeToString)(
+        args.input,
+      );
+      const ret = await dao.updateDeployment(req.credentials, input);
       return ret;
     },
   },

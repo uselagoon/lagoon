@@ -50,3 +50,12 @@ export type ProjectPatch = {
   openshift: ?number,
   openshiftprojectpattern: ?string,
 };
+export type DeploymentPatch {
+  name: number,
+  status: string
+  created: string,
+  started: string,
+  completed: string,
+  environment: number,
+  remoteId: string,
+}

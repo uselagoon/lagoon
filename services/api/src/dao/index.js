@@ -55,6 +55,7 @@ const daoFns = {
   ...require('./project').Resolvers,
   ...require('./sshKey').Resolvers,
   ...require('./user').Resolvers,
+  ...require('./deployment').Resolvers,
 };
 
 // Maps all dao functions to given sqlClient

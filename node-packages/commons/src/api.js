@@ -1,6 +1,6 @@
 // @flow
 
-import type { Project, CustomerPatch, UserPatch, ProjectPatch } from './types';
+import type { Project, CustomerPatch, UserPatch, ProjectPatch, DeploymentPatch } from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -655,6 +655,90 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
     }
 `);
 
+const deploymentFragment = graphqlapi.createFragment(`
+fragment on Deployment {
+  id
+  name
+  status
+  created
+  started
+  completed
+  remoteId
+  environment {
+    name
+  }
+}
+`);
+
+const getDeploymentByRemoteId = (id: string): Promise<Object> =>
+  graphqlapi.query(
+    `
+  query deploymentByRemoteId($id: String!) {
+    deploymentByRemoteId(id: $id) {
+      ...${deploymentFragment}
+    }
+  }
+`,
+    { id },
+  );
+
+const addDeployment = (
+  name: string,
+  status: string,
+  created: string,
+  environment: number,
+  remoteId: string = null,
+  id: number = null,
+  started: string = null,
+  completed: string = null,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String) {
+    addDeployment(input: {
+        name: $name
+        status: $status
+        created: $created
+        environment: $environment
+        id: $id
+        remoteId: $remoteId
+        started: $started
+        completed: $completed
+    }) {
+      ...${deploymentFragment}
+    }
+  }
+`,
+    {
+      name,
+      status,
+      created,
+      environment,
+      id,
+      remoteId,
+      started,
+      completed,
+    },
+  );
+
+const updateDeployment = (
+  id: number,
+  patch: DeploymentPatch,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateDeploymentPatchInput!) {
+    updateDeployment(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${deploymentFragment}
+    }
+  }
+`,
+    { id, patch },
+  );
+
 module.exports = {
   addCustomer,
   updateCustomer,
@@ -683,4 +767,7 @@ module.exports = {
   addOrUpdateEnvironment,
   updateEnvironment,
   deleteEnvironment,
+  getDeploymentByRemoteId,
+  addDeployment,
+  updateDeployment,
 };
