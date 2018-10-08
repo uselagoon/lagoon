@@ -37,7 +37,7 @@ class StartPage extends React.Component {
   }
   render() {
     return (
-      <Page>
+      <Page keycloak={this.props.keycloak}>
         <div className='content-wrapper'>
           <h2>Projects</h2>
           <Query query={query}>

@@ -21,13 +21,13 @@ export default ({ environment }) => (
       <div className='field-wrapper created'>
         <div>
           <label>Created</label>
-          <div className='field'>{moment(environment.created).format('MMMM d, Y')}</div>
+          <div className='field'>{moment.utc(environment.created).local().format('DD MMM YYYY, HH:mm:ss')}</div>
         </div>
       </div>
       <div className='field-wrapper updated'>
         <div>
           <label>Last Deploy</label>
-          <div className='field'>{moment(environment.updated).format('MMMM d, Y')}</div>
+          <div className='field'>{moment.utc(environment.updated).local().format('DD MMM YYYY, HH:mm:ss')}</div>
         </div>
       </div>
       <div className='field-wrapper source'>

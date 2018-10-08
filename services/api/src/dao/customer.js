@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const {
   ifNotAdmin,
@@ -10,8 +12,19 @@ const {
   whereAnd,
 } = require('./utils');
 
+const logger = require('../logger');
+
+/* ::
+
+import type {Cred, ResolversObj} from './';
+
+*/
+
 const Sql = {
-  updateCustomer: (cred, input) => {
+  updateCustomer: (
+    cred /* : Cred */,
+    input /* : {id : number, patch: Object} */,
+  ) => {
     const { id, patch } = input;
     const { customers } = cred.permissions;
 
@@ -23,11 +36,11 @@ const Sql = {
 
     return updateCustomerQuery.update(patch).toString();
   },
-  selectCustomer: id =>
+  selectCustomer: (id /* : number */) =>
     knex('customer')
-      .where('id', '=', id)
+      .where('id', id)
       .toString(),
-  getCustomerByName: (cred, name) => {
+  selectCustomerByName: (cred /* : Cred */, name /* : string */) => {
     const {
       customers,
       // role
@@ -41,15 +54,31 @@ const Sql = {
 
     return getCustomerQuery.toString();
   },
-  selectCustomerIdByName: name =>
+  selectCustomerIdByName: (name /* : string */) =>
     knex('customer')
       .where('name', '=', name)
       .select('id')
       .toString(),
+  selectAllCustomerIds: () =>
+    knex('customer')
+      .select('id')
+      .toString(),
+  selectAllCustomerNames: () =>
+    knex('customer')
+      .select('name')
+      .toString(),
+  truncateCustomer: () =>
+    knex('customer')
+      .truncate()
+      .toString(),
 };
 
 const Helpers = {
-  getCustomerIdByName: async (sqlClient, name) => {
+  getCustomerById: async (sqlClient /* : Object */, id /* : number */) => {
+    const rows = await query(sqlClient, Sql.selectCustomer(id));
+    return R.prop(0, rows);
+  },
+  getCustomerIdByName: async (sqlClient /* : Object */, name /* : string */) => {
     const cidResult = await query(sqlClient, Sql.selectCustomerIdByName(name));
 
     const amount = R.length(cidResult);
@@ -67,9 +96,52 @@ const Helpers = {
 
     return cid;
   },
+  getAllCustomerIds: async (sqlClient /* : Object */) =>
+    R.map(R.prop('id'), await query(sqlClient, Sql.selectAllCustomerIds())),
+  getAllCustomerNames: async (sqlClient /* : Object */) =>
+    R.map(R.prop('name'), await query(sqlClient, Sql.selectAllCustomerNames())),
 };
 
-const addCustomer = ({ sqlClient }) => async (cred, input) => {
+const updateSearchGuardWithCustomers = async ({
+  sqlClient,
+  searchguardClient,
+}) => {
+  const customerNames = await Helpers.getAllCustomerNames(sqlClient);
+
+  const tenants = R.reduce(
+    (acc, elem) => {
+      acc[elem] = 'RW';
+      return acc;
+    },
+    { admin_tenant: 'RW' },
+    customerNames,
+  );
+
+  try {
+    // Create or Update the lagoonadmin role which has access to all tenants (all customers)
+    await searchguardClient.put('roles/lagoonadmin', {
+      body: {
+        cluster: ['UNLIMITED'],
+        indices: {
+          '*': {
+            '*': ['UNLIMITED'],
+          },
+        },
+        tenants,
+      },
+    });
+  } catch (err) {
+    logger.error(`SearchGuard Error while creating lagoonadmin role: ${err}`);
+    throw new Error(
+      `SearchGuard Error while creating lagoonadmin role: ${err}`,
+    );
+  }
+};
+
+const addCustomer = ({ sqlClient, searchguardClient }) => async (
+  cred,
+  input,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -86,6 +158,8 @@ const addCustomer = ({ sqlClient }) => async (cred, input) => {
   );
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);
+
+  await updateSearchGuardWithCustomers({ sqlClient, searchguardClient });
 
   return customer;
 };
@@ -113,13 +187,18 @@ const getCustomerByProjectId = ({ sqlClient }) => async (cred, pid) => {
   return rows ? rows[0] : null;
 };
 
-const deleteCustomer = ({ sqlClient }) => async (cred, input) => {
+const deleteCustomer = ({ sqlClient, searchguardClient }) => async (
+  cred,
+  input,
+) => {
   if (cred.role !== 'admin') {
     throw new Error('Unauthorized');
   }
   const prep = prepare(sqlClient, 'CALL deleteCustomer(:name)');
 
   await query(sqlClient, prep(input));
+
+  await updateSearchGuardWithCustomers({ sqlClient, searchguardClient });
 
   // TODO: maybe check rows for changed values
   return 'success';
@@ -153,21 +232,36 @@ const updateCustomer = ({ sqlClient }) => async (cred, input) => {
 };
 
 const getCustomerByName = ({ sqlClient }) => async (cred, args) => {
-  const rows = await query(sqlClient, Sql.getCustomerByName(cred, args.name));
+  const rows = await query(
+    sqlClient,
+    Sql.selectCustomerByName(cred, args.name),
+  );
   return rows ? rows[0] : null;
 };
 
-const Queries = {
+const deleteAllCustomers = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateCustomer());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+const Resolvers /* : ResolversObj */ = {
   addCustomer,
   deleteCustomer,
   getAllCustomers,
   getCustomerByProjectId,
   updateCustomer,
   getCustomerByName,
+  deleteAllCustomers,
 };
 
 module.exports = {
   Sql,
-  Queries,
+  Resolvers,
   Helpers,
 };

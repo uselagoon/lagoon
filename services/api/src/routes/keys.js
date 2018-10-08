@@ -12,7 +12,7 @@ const toFingerprint = (sshKey) => {
       .fingerprint()
       .toString();
   } catch (e) {
-    logger.error(`Invalid ssh key detected: ${sshKey}`);
+    logger.error(`Invalid ssh key: ${sshKey}`);
   }
 };
 
@@ -34,9 +34,14 @@ const keysRoute = async (req /* : Object */, res /* : Object */) => {
 
   const sshKeys = await dao.getCustomerSshKeys(cred);
 
+  // Object of fingerprints mapping to SSH keys
+  // Ex. { <fingerprint>: <key> }
   const fingerprintKeyMap = R.compose(
+    // Transform back to object from pairs
     R.fromPairs,
+    // Remove undefined fingerprints
     R.reject(([sshKeyFingerprint]) => sshKeyFingerprint === undefined),
+    // Transform from single-level array to array of pairs, with the SSH key fingerprint as the first value
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
   )(sshKeys);
 

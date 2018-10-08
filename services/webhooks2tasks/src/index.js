@@ -5,7 +5,7 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { sendToLagoonTasks, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 
-const processWebhook = require('./processWebhook');
+const processQueue = require('./processQueue');
 
 import type { ChannelWrapper } from './types';
 
@@ -38,8 +38,10 @@ const channelWrapperWebhooks: ChannelWrapper = connection.createChannel({
 			channel.assertExchange('lagoon-webhooks-delay', 'x-delayed-message', { durable: true, arguments: { 'x-delayed-type': 'fanout' }}),
 			channel.bindExchange('lagoon-webhooks', 'lagoon-webhooks-delay', ''),
 
-			channel.prefetch(1),
-			channel.consume('lagoon-webhooks:queue', msg => {processWebhook(msg, channelWrapperWebhooks)}, {noAck: false}),
+			// handle up to four messages at the same time
+			channel.prefetch(4),
+
+			channel.consume('lagoon-webhooks:queue', msg => {processQueue(msg, channelWrapperWebhooks)}, {noAck: false}),
 
 		]);
 	}

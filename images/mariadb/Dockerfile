@@ -2,9 +2,9 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM alpine:latest
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 
-# Copying commons files
+# Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /sbin/tini /sbin/
@@ -13,10 +13,13 @@ COPY --from=commons /home /home
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
 
-# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources
-# a file that is given in `ENV`. When Bash is invoked as non-interactive (like
-# `bash -c command`) it sources a file that is given in `BASH_ENV`.
-ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
+ENV TMPDIR=/tmp \
+    TMP=/tmp \
+    HOME=/home \
+    # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
+    ENV=/home/.bashrc \
+    # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
+    BASH_ENV=/home/.bashrc
 
 ENV BACKUPS_DIR="/var/lib/mysql/backup"
 
@@ -51,7 +54,7 @@ COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
 RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
-        do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
+    do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
     done && \
     ln -s /var/lib/mysql/.my.cnf /home/.my.cnf && \
     sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync

@@ -1,6 +1,6 @@
 {
   "name": "eslint-config-lagoon-node",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Lagoon's ESLint configuration for Node",
   "main": "index.js",
   "repository": "https://github.com/amazeeio/lagoon",
