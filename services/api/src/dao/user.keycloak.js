@@ -52,7 +52,21 @@ const KeycloakOperations = {
       }
     }
   },
-  deleteUser: async (
+  deleteUserById: async (
+    keycloakClient /* : Object */,
+    keycloakUserId /* : string */,
+  ) => {
+    try {
+      // Delete the user
+      await keycloakClient.users.del({ id: keycloakUserId });
+
+      logger.debug(`Deleted Keycloak user with id "${keycloakUserId}"`);
+    } catch (err) {
+      logger.error(`Error deleting Keycloak user: ${err}`);
+      throw new Error(`Error deleting Keycloak user: ${err}`);
+    }
+  },
+  deleteUserByUsername: async (
     keycloakClient /* : Object */,
     username /* : string */,
   ) => {

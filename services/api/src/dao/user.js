@@ -169,11 +169,17 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
   const rows = await query(sqlClient, Sql.selectUser(id));
 
   if (typeof email === 'string') {
-    // Because Keycloak cannot update usernames, we must delete the original user...
-    await KeycloakOperations.deleteUser(
+    const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
       keycloakClient,
       R.prop('email', originalUser),
     );
+
+    const groups = await keycloakClient.users.listGroups({
+      id: keycloakUserId,
+    });
+
+    // Because Keycloak cannot update usernames, we must delete the original user...
+    await KeycloakOperations.deleteUserById(keycloakClient, keycloakUserId);
 
     // ...and then create a new one.
     await KeycloakOperations.createUser(keycloakClient, {
@@ -189,7 +195,14 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
       },
     });
 
-    // If user had a gitlabid before, we map that ID to the new ser in Keycloak
+    for (const group of groups) {
+      await KeycloakOperations.addUserToGroup(keycloakClient, {
+        username: email,
+        groupName: R.prop('name', group),
+      });
+    }
+
+    // If user had a gitlabid before, map that ID to the new user in Keycloak
     if (originalUser.gitlabId) {
       await KeycloakOperations.linkUserToGitlab(
         keycloakClient, {
@@ -239,7 +252,10 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
     }),
   );
 
-  await KeycloakOperations.deleteUser(keycloakClient, R.prop('email', user));
+  await KeycloakOperations.deleteUserByUsername(
+    keycloakClient,
+    R.prop('email', user),
+  );
 
   return 'success';
 };
@@ -393,7 +409,7 @@ const deleteAllUsers = ({ sqlClient, keycloakClient }) => async ({ role }) => {
   await query(sqlClient, Sql.truncateUser());
 
   for (const email of emails) {
-    await KeycloakOperations.deleteUser(keycloakClient, email);
+    await KeycloakOperations.deleteUserByUsername(keycloakClient, email);
   }
 
   // TODO: Check rows for success
