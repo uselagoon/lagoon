@@ -10,18 +10,8 @@ export default ({activeTab, environment}) => (
       </Link>
     </li>
     <li className={`deployments ${activeTab == 'deployments' ? 'active' : ''}`}>
-      <Link href="/">
+      <Link href={{ pathname: '/deployments', query: { name: environment } }}>
         <a>Deployments</a>
-      </Link>
-    </li>
-    <li className={`events ${activeTab == 'events' ? 'active' : ''}`}>
-      <Link href="/">
-        <a>Events</a>
-      </Link>
-    </li>
-    <li className={`containers ${activeTab == 'containers' ? 'active' : ''}`}>
-      <Link href="/">
-        <a>Containers</a>
       </Link>
     </li>
   <style jsx>{`
@@ -93,24 +83,6 @@ export default ({activeTab, environment}) => (
           }
           &.active::before {
             background-image: url('/static/images/deployments-active.svg');
-          }
-        }
-        &.events {
-          &::before {
-            background-image: url('/static/images/events.svg');
-            background-size: 15px 18px;
-          }
-          &.active::before{
-            background-image: url('/static/images/events-active.svg');
-          }
-        }
-        &.containers {
-          &::before {
-            background-image: url('/static/images/containers.svg');
-            background-size: 20px 19px;
-          }
-          &.active::before {
-            background-image: url('/static/images/containers-active.svg');
           }
         }
       }
