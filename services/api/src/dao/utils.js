@@ -1,3 +1,5 @@
+// @flow
+
 const camelcaseKeys = require('camelcase-keys');
 const R = require('ramda');
 const snakecase = require('../util/snakeCase');
@@ -8,7 +10,7 @@ const knex = require('knex')({
   // output to camel case from Objection.js
   // Ref: https://github.com/Vincit/objection.js/blob/89481597099e33d913bd7a7e437ff7a487c62fbd/lib/utils/identifierMapping.js
   wrapIdentifier: (identifier, origWrap) => origWrap(snakecase(identifier)),
-  parseJsonResponse: (response) => {
+  parseJsonResponse: response => {
     if (!response || typeof response !== 'object') {
       return response;
     } else if (Array.isArray(response)) {
@@ -18,8 +20,14 @@ const knex = require('knex')({
   },
 });
 
+/* ::
+
+import type MariaSQL from 'mariasql';
+
+*/
+
 // Useful for creating extra if-conditions for non-admins
-const ifNotAdmin = (role, str) =>
+const ifNotAdmin = (role /* : string */, str /* : string */) =>
   R.ifElse(R.equals('admin'), R.always(''), R.always(str))(role);
 
 /**
@@ -30,7 +38,7 @@ const ifNotAdmin = (role, str) =>
 * */
 
 // Creates a WHERE statement with AND inbetween non-empty conditions
-const whereAnd = whereConds =>
+const whereAnd = (whereConds /* : Array<string> */) =>
   R.compose(
     R.reduce((acc, curr) => {
       if (acc === '') {
@@ -48,7 +56,7 @@ const whereAnd = whereConds =>
 
 // Creates an IN clause like this: $field IN (val1,val2,val3)
 // or on empty values: $field IN (NULL)
-const inClause = (field, values) =>
+const inClause = (field /* : string */, values /* : Array<string> */) =>
   R.compose(
     str => `${field} IN (${str})`,
     R.ifElse(R.isEmpty, R.always('NULL'), R.identity),
@@ -56,7 +64,7 @@ const inClause = (field, values) =>
     R.defaultTo([]),
   )(values);
 
-const inClauseOr = conds =>
+const inClauseOr = (conds /* : Array<any> */) =>
   R.compose(
     R.reduce((ret, str) => {
       if (ret === '') {
@@ -64,11 +72,17 @@ const inClauseOr = conds =>
       }
       return `${ret} OR ${str}`;
     }, ''),
-    R.map(([field, values]) => inClause(field, values)),
+    // prettier-ignore
+    R.map(([
+      field /* : string */,
+      values /* : Array<string> */,
+    ]) =>
+      inClause(field, values),
+    ),
   )(conds);
 
 // Promise wrapper for doing SQL queries, also camelcases any responses
-const query = (sqlClient, sql) =>
+const query = (sqlClient /* : MariaSQL */, sql /* : string */) =>
   new Promise((resolve, reject) => {
     sqlClient.query(sql, (err, rows) => {
       if (err) {
@@ -82,9 +96,9 @@ const query = (sqlClient, sql) =>
   });
 
 // Snakecase any input
-const prepare = (sqlClient, sql) => {
+const prepare = (sqlClient /* : MariaSQL */, sql /* : string */) => {
   const prep = sqlClient.prepare(sql);
-  return input => prep(snakecaseKeys(input));
+  return (input /* : Object */) => prep(snakecaseKeys(input));
 };
 
 const isPatchEmpty = R.compose(

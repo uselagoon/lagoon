@@ -11,6 +11,13 @@ const {
 // Eventually we should move to a better folder structure and away from the DAO structure. Example folder structure: https://github.com/sysgears/apollo-universal-starter-kit/tree/e2c43fcfdad8b2a4a3ca0b491bbd1493fcaee255/packages/server/src/modules/post
 const { getProjectIdByName } = require('./project.helpers');
 
+/* ::
+
+import type MariaSQL from 'mariasql';
+import type {Cred, ResolversObj} from './';
+
+*/
+
 const concatNonNull = R.reduce((acc, rows) => {
   if (rows == null) {
     return acc;
@@ -19,7 +26,7 @@ const concatNonNull = R.reduce((acc, rows) => {
 }, []);
 
 const Sql = {
-  createProjectNotification: (cred, input) => {
+  createProjectNotification: (cred /* : Cred */, input /* : Object */) => {
     const { pid, notificationType, nid } = input;
 
     return knex('project_notification')
@@ -30,7 +37,10 @@ const Sql = {
       })
       .toString();
   },
-  selectProjectNotificationByNotificationName: (cred, input) => {
+  selectProjectNotificationByNotificationName: (
+    cred /* : Cred */,
+    input /* : Object */,
+  ) => {
     const { name, type } = input;
 
     return knex('project_notification AS pn')
@@ -42,7 +52,7 @@ const Sql = {
       .select('nt.*', 'pn.*', knex.raw('? as type', [type]))
       .toString();
   },
-  deleteProjectNotification: (cred, input) => {
+  deleteProjectNotification: (cred /* : Cred */, input /* : Object */) => {
     const { project, notificationType, notificationName } = input;
 
     const deleteQuery = knex('project_notification AS pn')
@@ -64,14 +74,14 @@ const Sql = {
       .del()
       .toString();
   },
-  selectProjectById: input =>
+  selectProjectById: (input /* : Object */) =>
     knex('project')
       .select('*')
       .where({
         'project.id': input,
       })
       .toString(),
-  selectProjectByName: input => {
+  selectProjectByName: (input /* : Object */) => {
     const { project } = input;
 
     return knex('project')
@@ -81,7 +91,7 @@ const Sql = {
       })
       .toString();
   },
-  selectProjectNotification: input => {
+  selectProjectNotification: (input /* : Object */) => {
     const { project, notificationType, notificationName } = input;
     return knex({ p: 'project', nt: `notification_${notificationType}` })
       .where({ 'p.name': project })
@@ -89,7 +99,7 @@ const Sql = {
       .select({ pid: 'p.id', nid: 'nt.id' })
       .toString();
   },
-  updateNotificationRocketChat: (cred, input) => {
+  updateNotificationRocketChat: (cred /* : Cred */, input /* : Object */) => {
     const { name, patch } = input;
 
     return knex('notification_rocketchat')
@@ -97,7 +107,10 @@ const Sql = {
       .update(patch)
       .toString();
   },
-  selectNotificationsByTypeByProjectId: (cred, input) => {
+  selectNotificationsByTypeByProjectId: (
+    cred /* : Cred */,
+    input /* : Object */,
+  ) => {
     const { type, pid } = input;
     const selectQuery = knex('project_notification AS pn').joinRaw(
       `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
@@ -114,11 +127,11 @@ const Sql = {
       .select('nt.*', 'pn.type')
       .toString();
   },
-  selectNotificationRocketChatByName: name =>
+  selectNotificationRocketChatByName: (name /* : string */) =>
     knex('notification_rocketchat')
       .where('name', '=', name)
       .toString(),
-  updateNotificationSlack: (cred, input) => {
+  updateNotificationSlack: (cred /* : Cred */, input /* : Object */) => {
     const { name, patch } = input;
 
     return knex('notification_slack')
@@ -126,11 +139,14 @@ const Sql = {
       .update(patch)
       .toString();
   },
-  selectNotificationSlackByName: name =>
+  selectNotificationSlackByName: (name /* : string */) =>
     knex('notification_slack')
       .where('name', '=', name)
       .toString(),
-  selectUnassignedNotificationsByType: (cred, notificationType) =>
+  selectUnassignedNotificationsByType: (
+    cred /* : Cred */,
+    notificationType /* : string */,
+  ) =>
     knex(`notification_${notificationType} AS nt`)
       .leftJoin(
         knex.raw(
@@ -142,8 +158,8 @@ const Sql = {
       .select('nt.*', knex.raw('? as type', [notificationType]))
       .toString(),
   selectProjectNotificationsWithoutAccess: (
-    { permissions: { projects } },
-    { nids },
+    { permissions: { projects } } /* : Cred */,
+    { nids } /* : { nids: Array<number> } */,
   ) =>
     knex('project_notification AS pn')
       .join('project AS p', 'pn.pid', '=', 'p.id')
@@ -166,9 +182,11 @@ const Sql = {
 };
 
 const Helpers = {
-  getAssignedNotificationIds: async (sqlClient, cred, args) => {
-    const { name, type } = args;
-
+  getAssignedNotificationIds: async (
+    sqlClient /* : MariaSQL */,
+    cred /* : Cred */,
+    { name, type } /* : { name: string, type: string } */,
+  ) => {
     const result = await query(
       sqlClient,
       Sql.selectProjectNotificationByNotificationName(cred, { name, type }),
@@ -176,9 +194,11 @@ const Helpers = {
 
     return R.map(R.prop('nid'), result);
   },
-  getAssignedNotificationPids: async (sqlClient, cred, args) => {
-    const { name, type } = args;
-
+  getAssignedNotificationPids: async (
+    sqlClient /* : MariaSQL */,
+    cred /* : Cred */,
+    { name, type } /* : { name: string, type: string } */,
+  ) => {
     const result = await query(
       sqlClient,
       Sql.selectProjectNotificationByNotificationName(cred, { name, type }),
@@ -186,12 +206,15 @@ const Helpers = {
 
     return R.map(R.prop('pid'), result);
   },
-  isAllowedToModify: async (sqlClient, cred, args) => {
+  isAllowedToModify: async (
+    sqlClient /* : MariaSQL */,
+    cred /* : Cred */,
+    { name } /* : { name: string } */,
+  ) => {
     if (cred.role === 'admin') {
       return true;
     }
 
-    const { name } = args;
     const { projects } = cred.permissions;
     const pids = await Helpers.getAssignedNotificationPids(sqlClient, cred, {
       name,
@@ -292,7 +315,7 @@ const deleteNotificationRocketChat = ({ sqlClient }) => async (cred, input) => {
       const ids = R.compose(
         R.join(','),
         R.map(R.prop('nid')),
-      );
+      )(nonAllowed);
       throw new Error(`Unauthorized for following projects: ${ids}`);
     }
   }
@@ -327,7 +350,7 @@ const deleteNotificationSlack = ({ sqlClient }) => async (cred, input) => {
       const ids = R.compose(
         R.join(','),
         R.map(R.prop('nid')),
-      );
+      )(nonAllowed);
       throw new Error(`Unauthorized for following projects: ${ids}`);
     }
   }
@@ -475,22 +498,24 @@ const removeAllNotificationsFromAllProjects = ({ sqlClient }) => async ({
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  addNotificationRocketChat,
+  addNotificationSlack,
+  addNotificationToProject,
+  deleteNotificationRocketChat,
+  deleteNotificationSlack,
+  getNotificationsByProjectId,
+  removeNotificationFromProject,
+  updateNotificationRocketChat,
+  updateNotificationSlack,
+  getUnassignedNotifications,
+  deleteAllNotificationSlacks,
+  deleteAllNotificationRocketChats,
+  removeAllNotificationsFromAllProjects,
+};
+
 module.exports = {
   Sql,
-  Resolvers: {
-    addNotificationRocketChat,
-    addNotificationSlack,
-    addNotificationToProject,
-    deleteNotificationRocketChat,
-    deleteNotificationSlack,
-    getNotificationsByProjectId,
-    removeNotificationFromProject,
-    updateNotificationRocketChat,
-    updateNotificationSlack,
-    getUnassignedNotifications,
-    deleteAllNotificationSlacks,
-    deleteAllNotificationRocketChats,
-    removeAllNotificationsFromAllProjects,
-  },
+  Resolvers,
   Helpers,
 };

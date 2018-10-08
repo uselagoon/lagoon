@@ -73,6 +73,7 @@ const createApp = (args /* : CreateAppArgs */) => {
   // TODO: Restrict requests to lagoon domains?
   app.use(cors());
 
+  // $FlowFixMe
   app.use(authKeycloakMiddleware());
 
   app.use(

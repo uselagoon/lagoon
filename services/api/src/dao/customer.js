@@ -14,8 +14,17 @@ const {
 
 const logger = require('../logger');
 
+/* ::
+
+import type {Cred, ResolversObj} from './';
+
+*/
+
 const Sql = {
-  updateCustomer: (cred, input) => {
+  updateCustomer: (
+    cred /* : Cred */,
+    input /* : {id : number, patch: Object} */,
+  ) => {
     const { id, patch } = input;
     const { customers } = cred.permissions;
 
@@ -27,11 +36,11 @@ const Sql = {
 
     return updateCustomerQuery.update(patch).toString();
   },
-  selectCustomer: id =>
+  selectCustomer: (id /* : number */) =>
     knex('customer')
       .where('id', id)
       .toString(),
-  selectCustomerByName: (cred, name) => {
+  selectCustomerByName: (cred /* : Cred */, name /* : string */) => {
     const {
       customers,
       // role
@@ -69,7 +78,7 @@ const Helpers = {
     const rows = await query(sqlClient, Sql.selectCustomer(id));
     return R.prop(0, rows);
   },
-  getCustomerIdByName: async (sqlClient, name) => {
+  getCustomerIdByName: async (sqlClient /* : Object */, name /* : string */) => {
     const cidResult = await query(sqlClient, Sql.selectCustomerIdByName(name));
 
     const amount = R.length(cidResult);
@@ -241,16 +250,18 @@ const deleteAllCustomers = ({ sqlClient }) => async ({ role }) => {
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  addCustomer,
+  deleteCustomer,
+  getAllCustomers,
+  getCustomerByProjectId,
+  updateCustomer,
+  getCustomerByName,
+  deleteAllCustomers,
+};
+
 module.exports = {
   Sql,
-  Resolvers: {
-    addCustomer,
-    deleteCustomer,
-    getAllCustomers,
-    getCustomerByProjectId,
-    updateCustomer,
-    getCustomerByName,
-    deleteAllCustomers,
-  },
+  Resolvers,
   Helpers,
 };

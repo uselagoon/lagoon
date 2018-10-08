@@ -21,6 +21,12 @@ const Helpers = require('./project.helpers');
 const KeycloakOperations = require('./project.keycloak');
 const Sql = require('./project.sql');
 
+/* ::
+
+import type {ResolversObj} from './';
+
+*/
+
 const getAllProjects = ({ sqlClient }) => async (cred, args) => {
   const { customers, projects } = cred.permissions;
   // We need one "WHERE" keyword, but we have multiple optional conditions
@@ -443,15 +449,17 @@ const deleteAllProjects = ({ sqlClient, keycloakClient }) => async ({
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  deleteProject,
+  addProject,
+  getProjectByName,
+  getProjectByGitUrl,
+  getProjectByEnvironmentId,
+  getAllProjects,
+  updateProject,
+  deleteAllProjects,
+};
+
 module.exports = {
-  Resolvers: {
-    deleteProject,
-    addProject,
-    getProjectByName,
-    getProjectByGitUrl,
-    getProjectByEnvironmentId,
-    getAllProjects,
-    updateProject,
-    deleteAllProjects,
-  },
+  Resolvers,
 };
