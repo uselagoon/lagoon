@@ -3,12 +3,12 @@
 # written for openshift 3.7; small changes may be required for other versions.
 #
 # usage ./reclaim-pv.sh
-# 
+#
 # using the current openshift server and namepsace this script will:
 # 1. scale all deployments to zero pods
 # 2. create a pod and attach all temporary pvc.
 # 3. attach all other pvcs in the namepace current claims to this pod.
-# 4. for each pvc, 
+# 4. for each pvc,
 #      copy the contents to temporary pvc, recreate the claim.
 #      this allows for the prefered pv to be used
 #      attach the newly created pvc, copy contents back to it
