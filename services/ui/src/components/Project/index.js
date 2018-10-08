@@ -3,15 +3,21 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import Environment from '../EnvironmentTeaser';
 import { bp, color, fontSize } from '../../variables';
+import giturlparse from 'git-url-parse';
 
 class Project extends React.Component {
   constructor(props) {
     super(props);
 
+    const gitUrlParsed = giturlparse(this.props.project.gitUrl);
+    const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`
+
     this.state = {
       project: [],
       gitUrl: this.props.project.gitUrl,
       copied: false,
+      gitLinkWithScheme: `https://${gitLink}`,
+      gitLink: gitLink,
     };
   }
 
@@ -29,7 +35,7 @@ class Project extends React.Component {
           <div className='field-wrapper origin'>
             <div>
               <label>Origin</label>
-              <div className='field'><a className='hover-state' href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
+              <div className='field'><a className='hover-state' target="_blank" href={this.state.gitLinkWithScheme}>{this.state.gitLink}</a></div>
             </div>
           </div>
           <div className='field-wrapper giturl'>

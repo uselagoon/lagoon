@@ -22,6 +22,7 @@ const query = gql`
       openshiftProjectName
       project {
         name
+        gitUrl
       }
     }
   }
