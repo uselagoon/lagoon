@@ -1,6 +1,6 @@
 // @flow
 
-const KeycloakAdminClient = require('@amazeeio/keycloak-admin').default;
+const KeycloakAdminClient = require('keycloak-admin').default;
 const logger = require('../logger');
 
 /* ::
