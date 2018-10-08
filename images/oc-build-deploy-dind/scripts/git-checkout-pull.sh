@@ -15,4 +15,4 @@ git fetch --depth=10 --tags --progress $REMOTE +refs/heads/*:refs/remotes/origin
 
 git checkout --force "${REF}"
 
-git submodule update --init --recursive
+git submodule update --init --recursive --jobs=6
