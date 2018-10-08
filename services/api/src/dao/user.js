@@ -151,6 +151,7 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
   }
 
   const originalUser = R.prop(0, await query(sqlClient, Sql.selectUser(id)));
+  const originalEmail = R.prop('email', originalUser)
 
   await query(
     sqlClient,
@@ -168,10 +169,10 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
 
   const rows = await query(sqlClient, Sql.selectUser(id));
 
-  if (typeof email === 'string') {
+  if (typeof email === 'string' && email !== originalEmail) {
     const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
       keycloakClient,
-      R.prop('email', originalUser),
+      originalEmail,
     );
 
     const groups = await keycloakClient.users.listGroups({
@@ -179,7 +180,7 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
     });
 
     // Because Keycloak cannot update usernames, we must delete the original user...
-    await KeycloakOperations.deleteUserById(keycloakClient, keycloakUserId);
+    await KeycloakOperations.deleteUserById(keycloakClient, keycloakUserId, originalEmail);
 
     // ...and then create a new one.
     await KeycloakOperations.createUser(keycloakClient, {

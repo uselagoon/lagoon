@@ -55,12 +55,13 @@ const KeycloakOperations = {
   deleteUserById: async (
     keycloakClient /* : Object */,
     keycloakUserId /* : string */,
-  ) => {
+    username /* : string */,
+    ) => {
     try {
       // Delete the user
       await keycloakClient.users.del({ id: keycloakUserId });
 
-      logger.debug(`Deleted Keycloak user with id "${keycloakUserId}"`);
+      logger.debug(`Deleted Keycloak user with username "${username}"`);
     } catch (err) {
       logger.error(`Error deleting Keycloak user: ${err}`);
       throw new Error(`Error deleting Keycloak user: ${err}`);
