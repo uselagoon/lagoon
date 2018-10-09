@@ -6,7 +6,7 @@ import getConfig from 'next/config';
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
 import Typekit from 'react-typekit';
-import withKeycloak from '../lib/withKeycloak';
+import withAuth from '../lib/withAuth';
 import withApollo from '../lib/withApollo';
 import NotAuthenticated from '../components/NotAuthenticated';
 import { bp, color, fontSize } from '../variables';
@@ -15,7 +15,7 @@ const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
 class MyApp extends App {
   render() {
-    const { Component, pageProps, apolloClient, keycloak } = this.props;
+    const { Component, pageProps, apolloClient, auth } = this.props;
     return (
       <Container>
         <Head>
@@ -28,9 +28,9 @@ class MyApp extends App {
         </Head>
         {(apolloClient && (
           <ApolloProvider client={apolloClient}>
-            <Component {...pageProps} keycloak={keycloak}/>
+            <Component {...pageProps} auth={auth}/>
           </ApolloProvider>
-        )) || <NotAuthenticated />}
+        )) || <NotAuthenticated auth={auth} />}
         <style jsx global>{`
           * {
             box-sizing: border-box;
@@ -215,4 +215,4 @@ class MyApp extends App {
   }
 }
 
-export default withKeycloak(withApollo(MyApp));
+export default withAuth(withApollo(MyApp));
