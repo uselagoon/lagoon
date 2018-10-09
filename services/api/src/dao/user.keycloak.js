@@ -52,7 +52,22 @@ const KeycloakOperations = {
       }
     }
   },
-  deleteUser: async (
+  deleteUserById: async (
+    keycloakClient /* : Object */,
+    keycloakUserId /* : string */,
+    username /* : string */,
+  ) => {
+    try {
+      // Delete the user
+      await keycloakClient.users.del({ id: keycloakUserId });
+
+      logger.debug(`Deleted Keycloak user with username "${username}"`);
+    } catch (err) {
+      logger.error(`Error deleting Keycloak user: ${err}`);
+      throw new Error(`Error deleting Keycloak user: ${err}`);
+    }
+  },
+  deleteUserByUsername: async (
     keycloakClient /* : Object */,
     username /* : string */,
   ) => {
@@ -94,15 +109,21 @@ const KeycloakOperations = {
         },
       });
 
-      logger.debug(`Added User "${username}" to Gitlab Federated Identity ID ${gitlabUserId}`);
+      logger.debug(
+        `Added User "${username}" to Gitlab Federated Identity ID ${gitlabUserId}`,
+      );
     } catch (err) {
-      logger.error(`Error adding User "${username}" to Gitlab Federated Identity: ${err}`);
-      throw new Error(`Error adding User "${username}" to Gitlab Federated Identity: ${err}`);
+      logger.error(
+        `Error adding User "${username}" to Gitlab Federated Identity: ${err}`,
+      );
+      throw new Error(
+        `Error adding User "${username}" to Gitlab Federated Identity: ${err}`,
+      );
     }
   },
   removeGitlabLink: async (
     keycloakClient /* : Object */,
-    username /* : username: string */,
+    username /* : string */,
   ) => {
     try {
       // Find the Keycloak user id with a username matching the username
@@ -119,8 +140,12 @@ const KeycloakOperations = {
 
       logger.debug(`Removed User "${username}" from Gitlab Federated Identity`);
     } catch (err) {
-      logger.error(`Error removing User "${username}" from Gitlab Federated Identity: ${err}`);
-      throw new Error(`Error removing User "${username}" from Gitlab Federated Identity: ${err}`);
+      logger.error(
+        `Error removing User "${username}" from Gitlab Federated Identity: ${err}`,
+      );
+      throw new Error(
+        `Error removing User "${username}" from Gitlab Federated Identity: ${err}`,
+      );
     }
   },
   addUserToGroup: async (

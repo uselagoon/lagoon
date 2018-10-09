@@ -11,6 +11,12 @@ const {
   isPatchEmpty,
 } = require('./utils');
 
+/* ::
+
+import type {ResolversObj} from './';
+
+*/
+
 const Sql = {
   updateOpenshift: (
     { id, patch } /* : {id: number, patch: {[string]: any}} */,
@@ -137,14 +143,16 @@ const deleteAllOpenshifts = ({ sqlClient }) => async ({ role }) => {
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  addOpenshift,
+  deleteOpenshift,
+  getAllOpenshifts,
+  getOpenshiftByProjectId,
+  updateOpenshift,
+  deleteAllOpenshifts,
+};
+
 module.exports = {
   Sql,
-  Resolvers: {
-    addOpenshift,
-    deleteOpenshift,
-    getAllOpenshifts,
-    getOpenshiftByProjectId,
-    updateOpenshift,
-    deleteAllOpenshifts,
-  },
+  Resolvers,
 };

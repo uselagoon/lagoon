@@ -24,6 +24,12 @@ const {
 const KeycloakOperations = require('./user.keycloak');
 const Sql = require('./user.sql');
 
+/* ::
+
+import type {ResolversObj} from './';
+
+*/
+
 const moveUserSshKeyToObject = ({
   id,
   email,
@@ -124,12 +130,10 @@ const addUser = ({ sqlClient, keycloakClient }) => async (
 
   // If user has been created with a gitlabid, we map that ID to the user in Keycloak
   if (gitlabId) {
-    await KeycloakOperations.linkUserToGitlab(
-      keycloakClient, {
-        username: R.prop('email', user),
-        gitlabUserId: gitlabId,
-      },
-    );
+    await KeycloakOperations.linkUserToGitlab(keycloakClient, {
+      username: R.prop('email', user),
+      gitlabUserId: gitlabId,
+    });
   }
   return user;
 };
@@ -151,6 +155,7 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
   }
 
   const originalUser = R.prop(0, await query(sqlClient, Sql.selectUser(id)));
+  const originalEmail = R.prop('email', originalUser);
 
   await query(
     sqlClient,
@@ -168,11 +173,21 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
 
   const rows = await query(sqlClient, Sql.selectUser(id));
 
-  if (typeof email === 'string') {
-    // Because Keycloak cannot update usernames, we must delete the original user...
-    await KeycloakOperations.deleteUser(
+  if (typeof email === 'string' && email !== originalEmail) {
+    const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
       keycloakClient,
-      R.prop('email', originalUser),
+      originalEmail,
+    );
+
+    const groups = await keycloakClient.users.listGroups({
+      id: keycloakUserId,
+    });
+
+    // Because Keycloak cannot update usernames, we must delete the original user...
+    await KeycloakOperations.deleteUserById(
+      keycloakClient,
+      keycloakUserId,
+      originalEmail,
     );
 
     // ...and then create a new one.
@@ -189,14 +204,19 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
       },
     });
 
-    // If user had a gitlabid before, we map that ID to the new ser in Keycloak
+    for (const group of groups) {
+      await KeycloakOperations.addUserToGroup(keycloakClient, {
+        username: email,
+        groupName: R.prop('name', group),
+      });
+    }
+
+    // If user had a gitlabid before, map that ID to the new user in Keycloak
     if (originalUser.gitlabId) {
-      await KeycloakOperations.linkUserToGitlab(
-        keycloakClient, {
-          username: email,
-          gitlabUserId: originalUser.gitlabId,
-        },
-      );
+      await KeycloakOperations.linkUserToGitlab(keycloakClient, {
+        username: email,
+        gitlabUserId: originalUser.gitlabId,
+      });
     }
   }
 
@@ -206,12 +226,10 @@ const updateUser = ({ sqlClient, keycloakClient }) => async (
       keycloakClient,
       originalUser.email,
     );
-    await KeycloakOperations.linkUserToGitlab(
-      keycloakClient, {
-        username: originalUser.email,
-        gitlabUserId: gitlabId,
-      },
-    );
+    await KeycloakOperations.linkUserToGitlab(keycloakClient, {
+      username: originalUser.email,
+      gitlabUserId: gitlabId,
+    });
   }
 
   return R.prop(0, rows);
@@ -239,7 +257,10 @@ const deleteUser = ({ sqlClient, keycloakClient }) => async (
     }),
   );
 
-  await KeycloakOperations.deleteUser(keycloakClient, R.prop('email', user));
+  await KeycloakOperations.deleteUserByUsername(
+    keycloakClient,
+    R.prop('email', user),
+  );
 
   return 'success';
 };
@@ -393,7 +414,7 @@ const deleteAllUsers = ({ sqlClient, keycloakClient }) => async ({ role }) => {
   await query(sqlClient, Sql.truncateUser());
 
   for (const email of emails) {
-    await KeycloakOperations.deleteUser(keycloakClient, email);
+    await KeycloakOperations.deleteUserByUsername(keycloakClient, email);
   }
 
   // TODO: Check rows for success
@@ -470,20 +491,22 @@ const removeAllUsersFromAllProjects = ({
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  getUserBySshKey,
+  getUsersByCustomerId,
+  addUser,
+  updateUser,
+  deleteUser,
+  addUserToCustomer,
+  removeUserFromCustomer,
+  getUsersByProjectId,
+  addUserToProject,
+  removeUserFromProject,
+  deleteAllUsers,
+  removeAllUsersFromAllCustomers,
+  removeAllUsersFromAllProjects,
+};
+
 module.exports = {
-  Resolvers: {
-    getUserBySshKey,
-    getUsersByCustomerId,
-    addUser,
-    updateUser,
-    deleteUser,
-    addUserToCustomer,
-    removeUserFromCustomer,
-    getUsersByProjectId,
-    addUserToProject,
-    removeUserFromProject,
-    deleteAllUsers,
-    removeAllUsersFromAllCustomers,
-    removeAllUsersFromAllProjects,
-  },
+  Resolvers,
 };

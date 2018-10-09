@@ -6,6 +6,12 @@ const {
   isPatchEmpty, knex, prepare, query,
 } = require('./utils');
 
+/* ::
+
+import type {Cred, ResolversObj} from './';
+
+*/
+
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const validateSshKey = (key /* : string */) /* : boolean */ => {
@@ -21,26 +27,26 @@ const validateSshKey = (key /* : string */) /* : boolean */ => {
 };
 
 const Sql = {
-  selectSshKey: id =>
+  selectSshKey: (id /* : number */) =>
     knex('ssh_key')
       .where('id', '=', id)
       .toString(),
-  selectSshKeyIdByName: name =>
+  selectSshKeyIdByName: (name /* : string */) =>
     knex('ssh_key')
       .where('name', '=', name)
       .select('id')
       .toString(),
-  selectSshKeyIdsByUserId: userId =>
+  selectSshKeyIdsByUserId: (userId /* : number */) =>
     knex('user_ssh_key')
       .select('skid')
       .where('usid', '=', userId)
       .toString(),
-  selectSshKeysByUserId: userId =>
+  selectSshKeysByUserId: (userId /* : number */) =>
     knex('ssh_key as sk')
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
       .where('usk.usid', '=', userId)
       .toString(),
-  selectAllCustomerSshKeys: cred => {
+  selectAllCustomerSshKeys: (cred /* : Cred */) => {
     if (cred.role !== 'admin') {
       throw new Error('Unauthorized');
     }
@@ -50,9 +56,19 @@ const Sql = {
       .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
       .toString();
   },
-  insertSshKey: ({
-    id, name, keyValue, keyType,
-  }) =>
+  insertSshKey: (
+    {
+      id,
+      name,
+      keyValue,
+      keyType,
+    } /* : {
+    id: number,
+    name: string,
+    keyValue: string,
+    keyType: string,
+  } */,
+  ) =>
     knex('ssh_key')
       .insert({
         id,
@@ -61,14 +77,25 @@ const Sql = {
         key_type: keyType,
       })
       .toString(),
-  addSshKeyToUser: ({ sshKeyId, userId }) =>
+  addSshKeyToUser: (
+    { sshKeyId, userId } /* : {
+    sshKeyId: number,
+    userId: number,
+  } */,
+  ) =>
     knex('user_ssh_key')
       .insert({
         usid: userId,
         skid: sshKeyId,
       })
       .toString(),
-  updateSshKey: ({ id, patch }) =>
+  updateSshKey: (
+    // Comment for formatting to format properly
+    { id, patch } /* : {
+    id: number,
+    patch: Object,
+  } */,
+  ) =>
     knex('ssh_key')
       .where('id', '=', id)
       .update(patch)
@@ -226,16 +253,18 @@ const removeAllSshKeysFromAllUsers = ({ sqlClient }) => async ({ role }) => {
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  getCustomerSshKeys,
+  getUserSshKeys,
+  addSshKey,
+  updateSshKey,
+  deleteSshKey,
+  deleteAllSshKeys,
+  removeAllSshKeysFromAllUsers,
+};
+
 module.exports = {
   Sql,
-  Resolvers: {
-    getCustomerSshKeys,
-    getUserSshKeys,
-    addSshKey,
-    updateSshKey,
-    deleteSshKey,
-    deleteAllSshKeys,
-    removeAllSshKeysFromAllUsers,
-  },
+  Resolvers,
   validateSshKey,
 };

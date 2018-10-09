@@ -1,3 +1,5 @@
+// @flow
+
 // ATTENTION:
 // The `sqlClient` part is usually curried in our application
 // This file exposes a make function to easily interact with
@@ -58,17 +60,42 @@ const daoFns = {
   ...require('./deployment').Resolvers,
 };
 
+/* ::
+import type MariaSQL from 'mariasql';
+import type elasticsearch from 'elasticsearch';
+
+export type Cred = {
+  role: string,
+  permissions: {
+    customers: Array<string>,
+    projects: Array<string>
+  }
+};
+
+type CurriedResolverFn = ({
+  sqlClient: MariaSQL,
+  esClient: elasticsearch.Client,
+  keycloakClient: Object,
+  searchguardClient: Object,
+  kibanaClient: Object
+}) => (Cred, Object) => any
+
+export type ResolversObj = {
+  [string]: CurriedResolverFn
+}
+*/
+
 // Maps all dao functions to given sqlClient
 // "make" is the FP equivalent of `new Dao()` in OOP
 // sqlClient: the mariadb client instance provided by the node-mariadb module
 // esClient: the elasticsearch client instance provided by the elasticsearch module
 // keycloakClient: the Keycloak client instance provided by the keycloak-admin-client module
 const make = (
-  sqlClient,
-  esClient,
-  keycloakClient,
-  searchguardClient,
-  kibanaClient,
+  sqlClient /* : MariaSQL */,
+  esClient /* : elasticsearch.Client */,
+  keycloakClient /* : Object */,
+  searchguardClient /* : Object */,
+  kibanaClient /* : Object */,
 ) =>
   R.map(fn =>
     fn({

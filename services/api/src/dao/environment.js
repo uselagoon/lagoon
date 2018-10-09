@@ -11,8 +11,17 @@ const {
   whereAnd,
 } = require('./utils');
 
+/* ::
+
+import type {Cred, ResolversObj} from './';
+
+*/
+
 const Sql = {
-  updateEnvironment: (cred, input) => {
+  updateEnvironment: (
+    cred /* : Cred */,
+    input /* : {id: number, patch: Object} */,
+  ) => {
     const { id, patch } = input;
 
     return knex('environment')
@@ -20,7 +29,7 @@ const Sql = {
       .update(patch)
       .toString();
   },
-  selectEnvironmentById: id =>
+  selectEnvironmentById: (id /* : number */) =>
     knex('environment')
       .where('id', '=', id)
       .toString(),
@@ -95,10 +104,7 @@ const getEnvironmentByDeploymentId = ({ sqlClient }) => async (
       WHERE d.id = :deployment_id
       ${ifNotAdmin(
     cred.role,
-    `AND (${inClauseOr([
-      ['p.customer', customers],
-      ['p.id', projects],
-    ])})`,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
   )}
       LIMIT 1
     `,
@@ -223,29 +229,25 @@ const getEnvironmentHoursMonthByEnvironmentId = ({ sqlClient }) => async (
   let date_from;
   let date_to;
 
-  // Environment was created within the interested month
   if (created_date >= interested_month_start) {
+    // Environment was created within the interested month
     date_from = created_date;
-  }
-
-  // Environment was created before the interested month
-  if (created_date < interested_month_start) {
+  } else {
+    // Environment was created before the interested month
     date_from = interested_month_start;
   }
 
-  // Environment is not deleted yet or was deleted after the interested month
   if (
     deleted === '0000-00-00 00:00:00' ||
     deleted_date > interested_month_end
   ) {
+    // Environment is not deleted yet or was deleted after the interested month
     date_to = interested_month_end;
-  }
-
-  // Environment was deleted in the interested month
-  if (deleted_date < interested_month_end) {
+  } else {
+    // Environment was deleted in the interested month
     date_to = deleted_date;
   }
-  console.log({ date_from, date_to });
+
   const hours = Math.ceil(Math.abs(date_to - date_from) / 36e5);
   return { month, hours };
 };
@@ -462,23 +464,25 @@ const deleteAllEnvironments = ({ sqlClient }) => async ({ role }) => {
   return 'success';
 };
 
+const Resolvers /* : ResolversObj */ = {
+  addOrUpdateEnvironment,
+  addOrUpdateEnvironmentStorage,
+  getEnvironmentByName,
+  getEnvironmentByOpenshiftProjectName,
+  getEnvironmentHoursMonthByEnvironmentId,
+  getEnvironmentStorageByEnvironmentId,
+  getEnvironmentStorageMonthByEnvironmentId,
+  getEnvironmentHitsMonthByEnvironmentId,
+  getEnvironmentByEnvironmentStorageId,
+  getEnvironmentByDeploymentId,
+  deleteEnvironment,
+  getEnvironmentsByProjectId,
+  updateEnvironment,
+  getAllEnvironments,
+  deleteAllEnvironments,
+};
+
 module.exports = {
   Sql,
-  Resolvers: {
-    addOrUpdateEnvironment,
-    addOrUpdateEnvironmentStorage,
-    getEnvironmentByName,
-    getEnvironmentByOpenshiftProjectName,
-    getEnvironmentHoursMonthByEnvironmentId,
-    getEnvironmentStorageByEnvironmentId,
-    getEnvironmentStorageMonthByEnvironmentId,
-    getEnvironmentHitsMonthByEnvironmentId,
-    getEnvironmentByEnvironmentStorageId,
-    deleteEnvironment,
-    getEnvironmentsByProjectId,
-    updateEnvironment,
-    getAllEnvironments,
-    getEnvironmentByDeploymentId,
-    deleteAllEnvironments,
-  },
+  Resolvers,
 };
