@@ -61,10 +61,30 @@ const typeDefs = gql`
     sshKeys: [SshKey]
   }
 
+  """
+  Lagoon Customer (used for grouping multiple Projects)
+  """
   type Customer {
+    """
+    Internal ID of this customer
+    """
     id: Int
+    """
+    Name of customer
+    """
     name: String
+    """
+    Arbitrary String for some comment
+    """
     comment: String
+    """
+    SSH Private Key of Customer
+    Will be used to authenticate against the Git Repos of the Project that are assigned to this project
+    Needs to be in single string separated by \`\n\`, example:
+    \`\`\`
+    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
+    \`\`\`
+    """
     privateKey: String
     users: [User]
     created: String
@@ -212,19 +232,61 @@ const typeDefs = gql`
     created: String
   }
 
+  """
+  Lagoon Environment (for each branch, pullrequest there is an individual environment)
+  """
   type Environment {
+    """
+    Internal ID of this Environment
+    """
     id: Int
+    """
+    Name of this Environment
+    """
     name: String
+    """
+    Reference to the Project Object
+    """
     project: Project
+    """
+    Which Deployment Type this environment is, can be \`branch\`, \`pullrequest\`, \`promote\`
+    """
     deployType: String
+    """
+    Which Environment Type this environment is, can be \`production\`, \`development\`
+    """
     environmentType: String
+    """
+    Name of the OpenShift Project/Namespace this environemnt is deployed into
+    """
     openshiftProjectName: String
+    """
+    Unix Timestamp of the last time this environment has been updated
+    """
     updated: String
+    """
+    Unix Timestamp if the creation time
+    """
     created: String
+    """
+    Unix Timestamp of when this project has been deleted
+    """
     deleted: String
+    """
+    Reference to EnvironmentHoursMonth API Object, which returns how many hours this environment ran in a specific month
+    """
     hoursMonth(month: Date): EnvironmentHoursMonth
+    """
+    Reference to EnvironmentStorage API Object, which shows the Storage consumption of this environment per day
+    """
     storages: [EnvironmentStorage]
+    """
+    Reference to EnvironmentStorageMonth API Object, which returns how many storage per day this environment used in a specific month
+    """
     storageMonth(month: Date): EnvironmentStorageMonth
+    """
+    Reference to EnviornmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
+    """
     hitsMonth(month: Date): EnviornmentHitsMonth
     route: String
     routes: String
@@ -272,18 +334,45 @@ const typeDefs = gql`
   }
 
   type Query {
+    """
+    Returns User Object by a given sshKey
+    """
     userBySshKey(sshKey: String!): User
+    """
+    Returns Customer Object by a given name
+    """
     customerByName(name: String!): Customer
+    """
+    Returns Project Object by a given name
+    """
     projectByName(name: String!): Project
+    """
+    Returns Project Object by a given gitUrl (only the first one if there are multiple)
+    """
     projectByGitUrl(gitUrl: String!): Project
     environmentByName(name: String!, project: Int!): Environment
+    """
+    Returns Environment Object by a given openshiftProjectName
+    """
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    """
+    Returns all Project Objects matching given filters (all if no filter defined)
+    """
     allProjects(createdAfter: String, gitUrl: String): [Project]
+    """
+    Returns all Customer Objects matching given filter (all if no filter defined)
+    """
     allCustomers(createdAfter: String): [Customer]
+    """
+    Returns all OpenShift Objects
+    """
     allOpenshifts: [Openshift]
+    """
+    Returns all Environments matching given filter (all if no filter defined)
+    """
     allEnvironments(createdAfter: String, type: EnvType): [Environment]
   }
 
@@ -573,10 +662,16 @@ const typeDefs = gql`
     updateCustomer(input: UpdateCustomerInput!): Customer
     deleteCustomer(input: DeleteCustomerInput!): String
     deleteAllCustomers: String
+    """
+    Add Environment or update if it is already existing
+    """
     addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
     updateEnvironment(input: UpdateEnvironmentInput!): Environment
     deleteEnvironment(input: DeleteEnvironmentInput!): String
     deleteAllEnvironments: String
+    """
+    Add or update Storage Information for Environment
+    """
     addOrUpdateEnvironmentStorage(
       input: AddOrUpdateEnvironmentStorageInput!
     ): EnvironmentStorage
@@ -596,6 +691,9 @@ const typeDefs = gql`
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteAllNotificationRocketChats: String
+    """
+    Connect previous created Notification to a Project
+    """
     addNotificationToProject(input: AddNotificationToProjectInput!): Project
     removeNotificationFromProject(
       input: RemoveNotificationFromProjectInput!
