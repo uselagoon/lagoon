@@ -20,3 +20,42 @@ export type Project = {
   name: string,
   openshift: Object,
 };
+
+export type CustomerPatch = {
+  name: ?string,
+  comment: ?string,
+  privateKey: ?string,
+  created: ?string,
+};
+
+export type UserPatch = {
+  email: ?string,
+  firstName: ?string,
+  lastName: ?string,
+  comment: ?string,
+};
+
+export type ProjectPatch = {
+  name: ?string,
+  customer: ?number,
+  giturl: ?string,
+  subfolder: ?string,
+  activesystemsdeploy: ?string,
+  activesystemsremove: ?string,
+  branches: ?string,
+  productionenvironment: ?string,
+  autoidle: ?number,
+  storagecalc: ?number,
+  pullrequests: ?string,
+  openshift: ?number,
+  openshiftprojectpattern: ?string,
+};
+export type DeploymentPatch {
+  name: number,
+  status: string
+  created: string,
+  started: string,
+  completed: string,
+  environment: number,
+  remoteId: string,
+}

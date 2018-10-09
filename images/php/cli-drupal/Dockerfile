@@ -2,7 +2,7 @@ ARG PHP_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-cli
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=cli-drupal
 
 RUN curl -L -o /usr/local/bin/drupal https://github.com/hechoendrupal/drupal-console-launcher/releases/download/1.4.0/drupal.phar \
@@ -11,6 +11,6 @@ RUN curl -L -o /usr/local/bin/drupal https://github.com/hechoendrupal/drupal-con
     && php -d memory_limit=-1 /usr/local/bin/composer global require drush/drush:8.1.15 \
     && mkdir -p /home/.drush
 
-COPY drushrc.php /home/.drush/drushrc.php
+COPY drushrc.php drush.yml /home/.drush/
 
 RUN fix-permissions /home/.drush

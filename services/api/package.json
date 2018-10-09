@@ -1,10 +1,12 @@
 {
   "name": "api",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.0",
+  "description": "Lagoon GraphQL API",
   "main": "index.js",
+  "engines": {
+    "node": ">=8.12.0"
+  },
   "scripts": {
-    "build": "echo 'hi'",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
@@ -13,34 +15,38 @@
     "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "license": "MIT",
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@amazeeio/keycloak-admin": "^1.7.1",
+    "@lagoon/commons": "4.0.0",
     "body-parser": "^1.18.2",
+    "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",
+    "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
     "elasticsearch": "^15.0.0",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
+    "got": "^9.2.2",
     "graphql": "^0.13.2",
     "graphql-iso-date": "^3.5.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
+    "keycloak-connect": "^4.5.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",
-    "nodemon": "^1.12.1",
-    "ramda": "^0.24.1",
-    "request": "^2.83.0",
-    "request-promise-native": "^1.0.5",
-    "sshpk": "^1.14.1",
+    "ramda": "^0.25.0",
+    "snakecase-keys": "^1.2.0",
+    "sshpk": "^1.14.2",
     "winston": "^2.4.0"
   },
   "devDependencies": {
-    "jest": "^22.0.0",
-    "prettier": "^1.11.1",
+    "jest": "^23.6.0",
+    "nodemon": "^1.12.1",
+    "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1"
   }
 }

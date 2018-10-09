@@ -7,12 +7,12 @@ RUN go get github.com/a8m/envsubst/cmd/envsubst
 
 FROM docker:stable
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=oc
 
 COPY --from=golang /go/bin/envsubst /bin/envsubst
 
-# Copying commons files
+# Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /sbin/tini /sbin/
@@ -21,19 +21,23 @@ COPY --from=commons /home /home
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
 
-# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
-# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
-ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
+ENV TMPDIR=/tmp \
+	TMP=/tmp \
+	HOME=/home \
+	# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
+	ENV=/home/.bashrc \
+	# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
+	BASH_ENV=/home/.bashrc
 
-ENV OC_VERSION=v3.6.0 \
-    OC_HASH=c4dd4cf \
-		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389 \
-		GLIBC_VERSION=2.25-r0
+ENV OC_VERSION=v3.7.2 \
+    OC_HASH=282e43f \
+		OC_SHA256=abc89f025524eb205e433622e59843b09d2304cc913534c4ed8af627da238624 \
+		GLIBC_VERSION=2.28-r0
 
 # To run the openshift client library `oc` we need glibc, install that first. Copied from https://github.com/jeanblanchard/docker-alpine-glibc/blob/master/Dockerfile
 RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util && \
 		apk add --update curl jq parallel && \
-		curl -Lo /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub && \
+		curl -Lo /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
 		curl -Lo glibc.apk "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk" && \
 		curl -Lo glibc-bin.apk "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-bin-${GLIBC_VERSION}.apk" && \
 		apk add glibc-bin.apk glibc.apk && \

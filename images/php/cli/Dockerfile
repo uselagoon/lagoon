@@ -2,7 +2,7 @@ ARG PHP_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 RUN apk update \
@@ -10,6 +10,7 @@ RUN apk update \
     && apk add git \
         mysql-client \
         unzip \
+        gzip  \
         bash \
         tini \
         openssh-client \
@@ -17,7 +18,7 @@ RUN apk update \
         patch \
         procps \
         coreutils \
-    && apk add --no-cache postgresql-dev postgresql-client --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+        postgresql-client \
     && apk add nodejs-current nodejs-npm yarn --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
     && rm -rf /var/cache/apk/* \
     && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.6.5/composer.phar \
@@ -47,7 +48,12 @@ RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
 COPY 61-php-xdebug-cli-env.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 
+# helper functions
+COPY 55-cli-helpers.sh /lagoon/entrypoints/
+RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
+
 # SSH Key and Agent Setup
+COPY 05-ssh-key.sh /lagoon/entrypoints/
 COPY 10-ssh-agent.sh /lagoon/entrypoints/
 COPY ssh_config /etc/ssh/ssh_config
 COPY id_ed25519_lagoon_cli.key /home/.ssh/lagoon_cli.key

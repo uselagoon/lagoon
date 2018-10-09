@@ -1,0 +1,31 @@
+version: '2.3'
+
+x-lagoon-project:
+  &lagoon-project lagoon-remote
+
+services:
+  logs-forwarder-logstash:
+    build:
+      context: logs-forwarder-logstash
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: custom
+      lagoon.template: logs-forwarder-logstash/.lagoon.yml
+  logs-forwarder:
+    build:
+      context: logs-forwarder
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: custom
+      lagoon.template: logs-forwarder.remote.yml # logs-forwarder in a remote openshift needs a special config
+  logs-collector:
+    image: openshift/origin-logging-fluentd:v3.6.1
+    labels:
+      lagoon.type: custom
+      lagoon.rollout: daemonset
+      lagoon.template: logs-collector/.lagoon.yml
+  docker-host:
+    image: amazeeiolagoon/master-docker-host
+    labels:
+      lagoon.type: custom
+      lagoon.template: docker-host/docker-host.yaml

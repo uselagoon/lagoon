@@ -1,21 +1,17 @@
-const { Sql } = require('./project');
+// @flow
 
-describe('Queries', () => {
+const Sql = require('./project.sql');
+
+describe('Resolvers', () => {
   describe('updateProject', () => {
     it('should return proper update statement', () => {
-      const cred = {
-        role: 'user',
-        permissions: {
-          projects: [1, 2, 3],
-        },
-      };
       const input = {
-        id: '1',
+        id: 1,
         patch: {
           name: 'test',
         },
       };
-      const ret = Sql.updateProject(cred, input);
+      const ret = Sql.updateProject(input);
 
       expect(ret).toMatchSnapshot();
     });
@@ -23,7 +19,7 @@ describe('Queries', () => {
 
   describe('selectProject', () => {
     it('should create query', () => {
-      const ret = Sql.selectProject('1');
+      const ret = Sql.selectProject(1);
       expect(ret).toMatchSnapshot();
     });
   });

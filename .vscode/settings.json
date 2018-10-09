@@ -1,5 +1,13 @@
 // Place your settings in this file to overwrite default and user settings.
 {
+  "eslint.workingDirectories": [
+    "./cli",
+    "./node-packages/commons",
+    "./services/auth-server"
+  ],
+  "git.ignoreLimitWarning": true,
   "javascript.validate.enable": false,
-  "git.ignoreLimitWarning": true
+  "files.trimTrailingWhitespace": true,
+  "prettier.eslintIntegration": true,
+  "flow.useNPMPackagedFlow": true
 }

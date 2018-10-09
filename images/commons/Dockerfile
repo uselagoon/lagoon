@@ -1,6 +1,6 @@
 FROM alpine
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 
 ENV LAGOON=commons
 
@@ -24,9 +24,16 @@ RUN apk update \
 
 RUN chmod g+w /etc/passwd
 
-# When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
-# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
-ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
+ARG LAGOON_VERSION
+RUN echo $LAGOON_VERSION > /lagoon/version
+
+ENV TMPDIR=/tmp \
+    TMP=/tmp \
+    HOME=/home \
+    # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
+    ENV=/home/.bashrc \
+    # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
+    BASH_ENV=/home/.bashrc
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]

@@ -1,9 +1,15 @@
+// @flow
+
 const R = require('ramda');
 const { makeExecutableSchema } = require('graphql-tools');
 const GraphQLDate = require('graphql-iso-date');
+const gql = require('./util/gql');
 
-const typeDefs = `
-
+// TODO: Re-enable Prettier after the problem with escaping interpolation in
+// embedded GraphQL in JS is fixed and new version released.
+// Ref: https://github.com/prettier/prettier/issues/4974
+// prettier-ignore
+const typeDefs = gql`
   scalar Date
 
   enum SshKeyType {
@@ -27,6 +33,16 @@ const typeDefs = `
     ROCKETCHAT
   }
 
+  enum DeploymentStatusType {
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    FAILED
+    COMPLETE
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -34,6 +50,17 @@ const typeDefs = `
     keyType: String
     created: String
   }
+
+  type User {
+    id: Int
+    email: String
+    firstName: String
+    lastName: String
+    comment: String
+    gitlabId: Int
+    sshKeys: [SshKey]
+  }
+
   """
   Lagoon Customer (used for grouping multiple Projects)
   """
@@ -58,26 +85,20 @@ const typeDefs = `
     -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
     \`\`\`
     """
-    private_key: String
-    """
-    Reference to SshKey API Objects which will have access to all Projects that are assigned to this Customer
-    """
-    sshKeys: [SshKey]
-    """
-    Unix Timestamp of when this customer has been created.
-    """
+    privateKey: String
+    users: [User]
     created: String
   }
 
   type Openshift {
     id: Int
     name: String
-    console_url: String
+    consoleUrl: String
     token: String
-    router_pattern: String
-    project_user: String
-    ssh_host: String
-    ssh_port: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
     created: String
   }
 
@@ -124,7 +145,7 @@ const typeDefs = `
     - git@192.168.99.1/project1.git
     - ssh://git@192.168.99.1:2222/project1.git
     """
-    git_url: String
+    gitUrl: String
     """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
@@ -138,17 +159,17 @@ const typeDefs = `
     Which internal Lagoon System is responsible for deploying
     Currently only 'lagoon_openshiftBuildDeploy' exists
     """
-    active_systems_deploy: String
+    activeSystemsDeploy: String
     """
     Which internal Lagoon System is responsible for promoting
     Currently only 'lagoon_openshiftBuildDeploy' exists
     """
-    active_systems_promote: String
+    activeSystemsPromote: String
     """
     Which internal Lagoon System is responsible for promoting
     Currently only 'lagoon_openshiftRemove' exists
     """
-    active_systems_remove: String
+    activeSystemsRemove: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -167,27 +188,31 @@ const typeDefs = `
     Which environment(the name) should be marked as the production environment.
     *Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly
     """
-    production_environment: String
+    productionEnvironment: String
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
-    auto_idle: Int
+    autoIdle: Int
     """
     Should storage for this environment be calculated (\`1\` or \`0\`)
     """
-    storage_calc: Int
+    storageCalc: Int
     """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
     """
-    Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project\}-$\{environmentname\}\`
+    Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    openshift_project_pattern: String
+    openshiftProjectPattern: String
     """
     Which Developer SSH keys should have access to this project
     """
-    sshKeys: [SshKey]
+    users: [User]
+    """
+    How many environments can be deployed at one timeout
+    """
+    developmentEnvironmentsLimit: Int
     """
     Deployed Environments for this Project
     """
@@ -195,11 +220,11 @@ const typeDefs = `
       """
       Filter by Environment Type
       """
-      type: EnvType,
+      type: EnvType
       """
       Include deleted Environments (by default deleted environment are hidden)
       """
-      include_deleted: Boolean
+      includeDeleted: Boolean
     ): [Environment]
     """
     Creation Timestamp of Project
@@ -226,15 +251,15 @@ const typeDefs = `
     """
     Which Deployment Type this environment is, can be \`branch\`, \`pullrequest\`, \`promote\`
     """
-    deploy_type: String
+    deployType: String
     """
     Which Environment Type this environment is, can be \`production\`, \`development\`
     """
-    environment_type: String
+    environmentType: String
     """
     Name of the OpenShift Project/Namespace this environemnt is deployed into
     """
-    openshift_projectname: String
+    openshiftProjectName: String
     """
     Unix Timestamp of the last time this environment has been updated
     """
@@ -250,7 +275,7 @@ const typeDefs = `
     """
     Reference to EnvironmentHoursMonth API Object, which returns how many hours this environment ran in a specific month
     """
-    hours_month(month: Date): EnvironmentHoursMonth
+    hoursMonth(month: Date): EnvironmentHoursMonth
     """
     Reference to EnvironmentStorage API Object, which shows the Storage consumption of this environment per day
     """
@@ -258,34 +283,49 @@ const typeDefs = `
     """
     Reference to EnvironmentStorageMonth API Object, which returns how many storage per day this environment used in a specific month
     """
-    storage_month(month: Date): EnvironmentStorageMonth
+    storageMonth(month: Date): EnvironmentStorageMonth
     """
     Reference to EnviornmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
     """
-    hits_month(month: Date): EnviornmentHitsMonth
+    hitsMonth(month: Date): EnviornmentHitsMonth
+    route: String
+    routes: String
+    monitoringUrls: String
+    deployments: [Deployment]
   }
 
   type EnviornmentHitsMonth {
     total: Int
   }
 
-
   type EnvironmentStorage {
     id: Int
     environment: Environment
-    persistent_storage_claim: String
-    bytes_used: Float
+    persistentStorageClaim: String
+    bytesUsed: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    bytes_used: Float
+    bytesUsed: Float
   }
 
   type EnvironmentHoursMonth {
     month: String
     hours: Int
+  }
+
+  type Deployment {
+    id: Int
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    remoteId: String
+    buildLog: String
   }
 
   input DeleteEnvironmentInput {
@@ -294,6 +334,10 @@ const typeDefs = `
   }
 
   type Query {
+    """
+    Returns User Object by a given sshKey
+    """
+    userBySshKey(sshKey: String!): User
     """
     Returns Customer Object by a given name
     """
@@ -306,10 +350,14 @@ const typeDefs = `
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
+    environmentByName(name: String!, project: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
     """
-    environmentByOpenshiftProjectName(openshiftProjectName: String!): Environment
+    environmentByOpenshiftProjectName(
+      openshiftProjectName: String!
+    ): Environment
+    deploymentByRemoteId(id: String): Deployment
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
@@ -325,68 +373,101 @@ const typeDefs = `
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
-    allEnvironments(createdAfter: String): [Environment]
+    allEnvironments(createdAfter: String, type: EnvType): [Environment]
   }
 
-  input SshKeyInput {
-    id: Int
+  input AddSshKeyInput {
+    id: Int!
     name: String!
     keyValue: String!
-    keyType: SshKeyType
+    keyType: SshKeyType!
+    userId: Int!
   }
 
   input DeleteSshKeyInput {
     name: String!
   }
 
-  input ProjectInput {
+  input AddProjectInput {
     id: Int
     name: String!
     customer: Int!
-    git_url: String!
+    gitUrl: String!
     subfolder: String
     openshift: Int!
-    openshift_project_pattern: String
-    active_systems_deploy: String
-    active_systems_promote: String
-    active_systems_remove: String
+    openshiftProjectPattern: String
+    activeSystemsDeploy: String
+    activeSystemsPromote: String
+    activeSystemsRemove: String
     branches: String
     pullrequests: String
-    production_environment: String
-    auto_idle: Int
-    storage_calc: Int
+    productionEnvironment: String
+    autoIdle: Int
+    storageCalc: Int
+    developmentEnvironmentsLimit: Int
+
   }
 
-  input EnvironmentInput {
+  input AddEnvironmentInput {
     name: String!
     project: Int!
-    deploy_type: DeployType!
-    environment_type: EnvType!
-    openshift_projectname: String!
+    deployType: DeployType!
+    environmentType: EnvType!
+    openshiftProjectName: String!
   }
 
-  input EnvironmentStorageInput {
+  input AddOrUpdateEnvironmentStorageInput {
     environment: Int!
-    persistent_storage_claim: String!
-    bytes_used: Int!
+    persistentStorageClaim: String!
+    bytesUsed: Int!
   }
 
-  input CustomerInput {
+  input AddCustomerInput {
     id: Int
     name: String!
     comment: String
-    private_key: String
+    privateKey: String
   }
 
-  input OpenshiftInput {
+  input DeploymentInput {
     id: Int
     name: String!
-    console_url: String!
+    status: DeploymentStatusType!
+    created: String!
+    started: String
+    completed: String
+    environment: Int!
+    remoteId: String
+  }
+
+  input DeleteDeploymentInput {
+    id: Int!
+  }
+
+  input UpdateDeploymentPatchInput {
+    name: String
+    status: DeploymentStatusType
+    created: String
+    started: String
+    completed: String
+    environment: Int
+    remoteId: String
+  }
+
+  input UpdateDeploymentInput {
+    id: Int!
+    patch: UpdateDeploymentPatchInput!
+  }
+
+  input AddOpenshiftInput {
+    id: Int
+    name: String!
+    consoleUrl: String!
     token: String
-    router_pattern: String
-    project_user: String
-    ssh_host: String
-    ssh_port: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
   }
 
   input DeleteOpenshiftInput {
@@ -397,13 +478,13 @@ const typeDefs = `
     name: String!
   }
 
-  input NotificationRocketChatInput {
+  input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
     channel: String!
   }
 
-  input NotificationSlackInput {
+  input AddNotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
@@ -417,7 +498,7 @@ const typeDefs = `
     name: String!
   }
 
-  input NotificationToProjectInput {
+  input AddNotificationToProjectInput {
     project: String!
     notificationType: NotificationType!
     notificationName: String!
@@ -429,44 +510,71 @@ const typeDefs = `
     notificationName: String!
   }
 
-  input SshKeyToProjectInput {
+  input AddUserInput {
+    id: Int
+    email: String!
+    firstName: String
+    lastName: String
+    comment: String
+    gitlabId: Int
+  }
+
+  input UpdateUserPatchInput {
+    email: String
+    firstName: String
+    lastName: String
+    comment: String
+    gitlabId: Int
+  }
+
+  input UpdateUserInput {
+    id: Int!
+    patch: UpdateUserPatchInput!
+  }
+
+  input DeleteUserInput {
+    id: Int!
+  }
+
+  input AddUserToProjectInput {
     project: String!
-    sshKey: String!
+    userId: Int!
   }
 
-  input RemoveSshKeyFromProjectInput {
+  input RemoveUserFromProjectInput {
     project: String!
-    sshKey: String!
+    userId: Int!
   }
 
-  input SshKeyToCustomerInput {
+  input AddUserToCustomerInput {
     customer: String!
-    sshKey: String!
+    userId: Int!
   }
 
-  input RemoveSshKeyFromCustomerInput {
+  input RemoveUserFromCustomerInput {
     customer: String!
-    sshKey: String!
+    userId: Int!
   }
 
   input DeleteProjectInput {
-    id: Int!
+    project: String!
   }
 
   input UpdateProjectPatchInput {
     name: String
     customer: Int
-    git_url: String
+    gitUrl: String
     subfolder: String
-    active_systems_deploy: String
-    active_systems_remove: String
+    activeSystemsDeploy: String
+    activeSystemsRemove: String
     branches: String
-    production_environment: String
-    auto_idle: Int
-    storage_calc: Int
+    productionEnvironment: String
+    autoIdle: Int
+    storageCalc: Int
     pullrequests: String
     openshift: Int
-    openshift_project_pattern: String
+    openshiftProjectPattern: String
+    developmentEnvironmentsLimit: Int
   }
 
   input UpdateProjectInput {
@@ -477,7 +585,7 @@ const typeDefs = `
   input UpdateCustomerPatchInput {
     name: String
     comment: String
-    private_key: String
+    privateKey: String
     created: String
   }
 
@@ -488,12 +596,12 @@ const typeDefs = `
 
   input UpdateOpenshiftPatchInput {
     name: String
-    console_url: String
+    consoleUrl: String
     token: String
-    router_pattern: String
-    project_user: String
-    ssh_host: String
-    ssh_port: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
   }
 
   input UpdateOpenshiftInput {
@@ -536,58 +644,87 @@ const typeDefs = `
 
   input UpdateEnvironmentPatchInput {
     project: Int
-    deploy_type: DeployType
-    environment_type: EnvType
-    openshift_projectname: String
+    deployType: DeployType
+    environmentType: EnvType
+    openshiftProjectName: String
+    route: String
+    routes: String
+    monitoringUrls: String
   }
 
   input UpdateEnvironmentInput {
-    name: String!
+    id: Int!
     patch: UpdateEnvironmentPatchInput
   }
 
   type Mutation {
-    updateEnvironment(input: UpdateEnvironmentInput!): Environment
-    updateSshKey(input: UpdateSshKeyInput!): SshKey
-    updateNotificationRocketChat(input: UpdateNotificationRocketChatInput!): NotificationRocketChat
-    updateNotificationSlack(input: UpdateNotificationSlackInput!): NotificationSlack
-    updateOpenshift(input: UpdateOpenshiftInput!): Openshift
+    addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
-    updateProject(input: UpdateProjectInput!): Project
-    addProject(input: ProjectInput!): Project
-    deleteProject(input: DeleteProjectInput!): String
+    deleteCustomer(input: DeleteCustomerInput!): String
+    deleteAllCustomers: String
     """
     Add Environment or update if it is already existing
     """
-    addOrUpdateEnvironment(input: EnvironmentInput!): Environment
+    addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
+    updateEnvironment(input: UpdateEnvironmentInput!): Environment
+    deleteEnvironment(input: DeleteEnvironmentInput!): String
+    deleteAllEnvironments: String
     """
     Add or update Storage Information for Environment
     """
-    addOrUpdateEnvironmentStorage(input: EnvironmentStorageInput!): EnvironmentStorage
-    deleteEnvironment(input: DeleteEnvironmentInput!): String
-    addSshKey(input: SshKeyInput!): SshKey
-    deleteSshKey(input: DeleteSshKeyInput!): String
-    addCustomer(input: CustomerInput!): Customer
-    deleteCustomer(input: DeleteCustomerInput!): String
-    addOpenshift(input: OpenshiftInput!): Openshift
-    deleteOpenshift(input: DeleteOpenshiftInput!): String
-    addNotificationRocketChat(input: NotificationRocketChatInput!): NotificationRocketChat
-    addNotificationSlack(input: NotificationSlackInput!): NotificationSlack
-    deleteNotificationRocketChat(input: DeleteNotificationRocketChatInput!): String
+    addOrUpdateEnvironmentStorage(
+      input: AddOrUpdateEnvironmentStorageInput!
+    ): EnvironmentStorage
+    addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
+    updateNotificationSlack(
+      input: UpdateNotificationSlackInput!
+    ): NotificationSlack
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
+    deleteAllNotificationSlacks: String
+    addNotificationRocketChat(
+      input: AddNotificationRocketChatInput!
+    ): NotificationRocketChat
+    updateNotificationRocketChat(
+      input: UpdateNotificationRocketChatInput!
+    ): NotificationRocketChat
+    deleteNotificationRocketChat(
+      input: DeleteNotificationRocketChatInput!
+    ): String
+    deleteAllNotificationRocketChats: String
     """
     Connect previous created Notification to a Project
     """
-    addNotificationToProject(input: NotificationToProjectInput!): Project
-    removeNotificationFromProject(input: RemoveNotificationFromProjectInput!): Project
-    addSshKeyToProject(input: SshKeyToProjectInput!): Project
-    removeSshKeyFromProject(input: RemoveSshKeyFromProjectInput!): Project
-    addSshKeyToCustomer(input: SshKeyToCustomerInput!): Customer
-    removeSshKeyFromCustomer(input: RemoveSshKeyFromCustomerInput!): Customer
-    """
-    Truncates a whole API Table. ** This is destructive, USE WITH CAUTION **
-    """
-    truncateTable(tableName: String!): String
+    addNotificationToProject(input: AddNotificationToProjectInput!): Project
+    removeNotificationFromProject(
+      input: RemoveNotificationFromProjectInput!
+    ): Project
+    removeAllNotificationsFromAllProjects: String
+    addOpenshift(input: AddOpenshiftInput!): Openshift
+    updateOpenshift(input: UpdateOpenshiftInput!): Openshift
+    deleteOpenshift(input: DeleteOpenshiftInput!): String
+    deleteAllOpenshifts: String
+    addProject(input: AddProjectInput!): Project
+    updateProject(input: UpdateProjectInput!): Project
+    deleteProject(input: DeleteProjectInput!): String
+    deleteAllProjects: String
+    addSshKey(input: AddSshKeyInput!): SshKey
+    updateSshKey(input: UpdateSshKeyInput!): SshKey
+    deleteSshKey(input: DeleteSshKeyInput!): String
+    deleteAllSshKeys: String
+    removeAllSshKeysFromAllUsers: String
+    addUser(input: AddUserInput!): User
+    updateUser(input: UpdateUserInput!): User
+    deleteUser(input: DeleteUserInput!): String
+    deleteAllUsers: String
+    addUserToCustomer(input: AddUserToCustomerInput!): Customer
+    removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
+    removeAllUsersFromAllCustomers: String
+    addUserToProject(input: AddUserToProjectInput!): Project
+    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
+    removeAllUsersFromAllProjects: String
+    addDeployment(input: DeploymentInput!): Deployment
+    deleteDeployment(input: DeleteDeploymentInput!): String
+    updateDeployment(input: UpdateDeploymentInput): Deployment
   }
 `;
 
@@ -596,12 +733,18 @@ const typeDefs = `
 // then the input.patch[key] will be ommitted for the result
 const omitPatchKeyIfUndefined = key =>
   R.ifElse(
-    R.compose(notUndefined, R.path(['patch', key])),
+    R.compose(
+      notUndefined,
+      R.path(['patch', key]),
+    ),
     R.identity,
     R.over(R.lensPath(['patch']), R.omit([key])),
   );
 
-const notUndefined = R.compose(R.not, R.equals(undefined));
+const notUndefined = R.compose(
+  R.not,
+  R.equals(undefined),
+);
 
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
@@ -628,18 +771,27 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const getCtx = req => req.app.get('context');
-const getDao = req => getCtx(req).dao;
+const getDao = req => req.app.get('context').dao;
+const deploymentStatusTypeToString = R.cond([
+  [R.equals('NEW'), R.toLower],
+  [R.equals('PENDING'), R.toLower],
+  [R.equals('RUNNING'), R.toLower],
+  [R.equals('CANCELLED'), R.toLower],
+  [R.equals('ERROR'), R.toLower],
+  [R.equals('FAILED'), R.toLower],
+  [R.equals('COMPLETE'), R.toLower],
+  [R.T, R.identity],
+]);
 
 const resolvers = {
   Project: {
     customer: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByProjectId(req.credentials, project.id);
+      return dao.getCustomerByProjectId(req.credentials, project.id);
     },
-    sshKeys: async (project, args, req) => {
+    users: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByProjectId(req.credentials, project.id);
+      return dao.getUsersByProjectId(req.credentials, project.id);
     },
     notifications: async (project, args, req) => {
       const dao = getDao(req);
@@ -648,7 +800,7 @@ const resolvers = {
         R.over(R.lensProp('type'), notificationTypeToString),
       )(args);
 
-      return await dao.getNotificationsByProjectId(
+      return dao.getNotificationsByProjectId(
         req.credentials,
         project.id,
         args_,
@@ -656,31 +808,28 @@ const resolvers = {
     },
     openshift: async (project, args, req) => {
       const dao = getDao(req);
-      return await dao.getOpenshiftByProjectId(req.credentials, project.id);
+      return dao.getOpenshiftByProjectId(req.credentials, project.id);
     },
     environments: async (project, args, req) => {
       const dao = getDao(req);
       const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
         args,
       );
-      return await dao.getEnvironmentsByProjectId(
-        req.credentials,
-        project.id,
-        input,
-      );
+      return dao.getEnvironmentsByProjectId(req.credentials, project.id, input);
     },
   },
   Environment: {
     project: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByEnvironmentId(
-        req.credentials,
-        environment.id,
-      );
+      return dao.getProjectByEnvironmentId(req.credentials, environment.id);
     },
-    hours_month: async (environment, args, req) => {
+    deployments: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentHoursMonthByEnvironmentId(
+      return dao.getDeploymentsByEnvironmentId(req.credentials, environment.id);
+    },
+    hoursMonth: async (environment, args, req) => {
+      const dao = getDao(req);
+      return dao.getEnvironmentHoursMonthByEnvironmentId(
         req.credentials,
         environment.id,
         args,
@@ -688,23 +837,32 @@ const resolvers = {
     },
     storages: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentStorageByEnvironmentId(req.credentials, environment.id);
+      return dao.getEnvironmentStorageByEnvironmentId(
+        req.credentials,
+        environment.id,
+      );
     },
-    storage_month: async (environment, args, req) => {
+    storageMonth: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentStorageMonthByEnvironmentId(
+      return dao.getEnvironmentStorageMonthByEnvironmentId(
         req.credentials,
         environment.id,
         args,
       );
     },
-    hits_month: async (environment, args, req) => {
+    hitsMonth: async (environment, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentHitsMonthByEnvironmentId(
+      return dao.getEnvironmentHitsMonthByEnvironmentId(
         req.credentials,
-        environment.openshift_projectname,
+        environment.openshiftProjectName,
         args,
       );
+    },
+  },
+  Deployment: {
+    environment: async (deployment, args, req) => {
+      const dao = getDao(req);
+      return dao.getEnvironmentByDeploymentId(req.credentials, deployment.id);
     },
   },
   Notification: {
@@ -720,98 +878,141 @@ const resolvers = {
     },
   },
   Customer: {
-    sshKeys: async (customer, args, req) => {
+    users: async ({ id }, args, req) => {
       const dao = getDao(req);
-      return await dao.getSshKeysByCustomerId(req.credentials, customer.id);
+      return dao.getUsersByCustomerId(req.credentials, id);
+    },
+  },
+  User: {
+    sshKeys: async ({ id }, args, req) => {
+      const dao = getDao(req);
+      return dao.getUserSshKeys(req.credentials, id);
     },
   },
   Query: {
+    userBySshKey: async (root, args, req) => {
+      const dao = getDao(req);
+      return dao.getUserBySshKey(req.credentials, args);
+    },
     customerByName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getCustomerByName(req.credentials, args);
+      return dao.getCustomerByName(req.credentials, args);
     },
     projectByGitUrl: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByGitUrl(req.credentials, args);
+      return dao.getProjectByGitUrl(req.credentials, args);
     },
     projectByName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getProjectByName(req.credentials, args);
+      return dao.getProjectByName(req.credentials, args);
+    },
+    environmentByName: async (root, args, req) => {
+      const dao = getDao(req);
+      return dao.getEnvironmentByName(req.credentials, args);
     },
     environmentByOpenshiftProjectName: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+      return dao.getEnvironmentByOpenshiftProjectName(req.credentials, args);
+    },
+    deploymentByRemoteId: async (root, args, req) => {
+      const dao = getDao(req);
+      return dao.getDeploymentByRemoteId(req.credentials, args);
     },
     allProjects: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllProjects(req.credentials, args);
+      return dao.getAllProjects(req.credentials, args);
     },
     allCustomers: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllCustomers(req.credentials, args);
+      return dao.getAllCustomers(req.credentials, args);
     },
     allOpenshifts: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllOpenshifts(req.credentials, args);
+      return dao.getAllOpenshifts(req.credentials, args);
     },
     // @TODO: check if we need these
-    // allUnassignedSshKeys: async (root, args, req) => {
-    //   const dao = getDao(req);
-    //   return await dao.getUnassignedSshKeys(req.credentials);
-    // },
-    // allSshKeys: async (root, args, req) => {
-    //   const dao = getDao(req);
-    //   return await dao.getAllSshKeys(req.credentials);
-    // },
     // allUnassignedNotifications: async (root, args, req) => {
     //   const dao = getDao(req);
     //   const args_ = R.compose(
     //     R.over(R.lensProp('type'), notificationTypeToString),
     //   )(args);
 
-    //   return await dao.getUnassignedNotifications(req.credentials, args_);
+    //   return dao.getUnassignedNotifications(req.credentials, args_);
     // },
     allEnvironments: async (root, args, req) => {
       const dao = getDao(req);
-      return await dao.getAllEnvironments(req.credentials, args);
+      const input = R.compose(R.over(R.lensProp('type'), envTypeToString))(
+        args,
+      );
+      return dao.getAllEnvironments(req.credentials, input);
     },
   },
   Mutation: {
+    addCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addCustomer(req.credentials, args.input);
+      return ret;
+    },
+    updateCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateCustomer(req.credentials, args.input);
+      return ret;
+    },
+    deleteCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteCustomer(req.credentials, args.input);
+      return ret;
+    },
+    deleteAllCustomers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllCustomers(req.credentials, args);
+      return ret;
+    },
+    addOrUpdateEnvironment: async (root, args, req) => {
+      const dao = getDao(req);
+
+      const input = R.compose(
+        R.over(R.lensProp('environmentType'), envTypeToString),
+        R.over(R.lensProp('deployType'), deployTypeToString),
+      )(args.input);
+
+      const ret = await dao.addOrUpdateEnvironment(req.credentials, input);
+      return ret;
+    },
     updateEnvironment: async (root, args, req) => {
       const input = R.compose(
-        omitPatchKeyIfUndefined('deploy_type'),
-        omitPatchKeyIfUndefined('environment_type'),
-        R.over(R.lensPath(['patch', 'environment_type']), envTypeToString),
-        R.over(R.lensPath(['patch', 'deploy_type']), deployTypeToString),
+        omitPatchKeyIfUndefined('deployType'),
+        omitPatchKeyIfUndefined('environmentType'),
+        R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
+        R.over(R.lensPath(['patch', 'deployType']), deployTypeToString),
       )(args.input);
 
       const dao = getDao(req);
       const ret = await dao.updateEnvironment(req.credentials, input);
       return ret;
     },
-
-    updateSshKey: async (root, args, req) => {
-      // There is a possibility the sshKeyTypeToString transformation
-      // sets patch.keyType = undefined. This is not acceptable, therefore
-      // we need to omit the key from the patch object completely
-      // (null will still be accepted, since it should signal erasal of a field)
-      const input = R.compose(
-        omitPatchKeyIfUndefined('keyType'),
-        R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
-      )(args.input);
-
-      // TODO: should we validate the ssh-key / value format?
-
+    deleteEnvironment: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.updateSshKey(req.credentials, input);
+      const ret = await dao.deleteEnvironment(req.credentials, args.input);
       return ret;
     },
-    updateNotificationRocketChat: async (root, args, req) => {
+    deleteAllEnvironments: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.updateNotificationRocketChat(
+      const ret = await dao.deleteAllEnvironments(req.credentials, args);
+      return ret;
+    },
+    addOrUpdateEnvironmentStorage: async (root, args, req) => {
+      const dao = getDao(req);
+
+      const ret = await dao.addOrUpdateEnvironmentStorage(
         req.credentials,
         args.input,
       );
+      return ret;
+    },
+    addNotificationSlack: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addNotificationSlack(req.credentials, args.input);
       return ret;
     },
     updateNotificationSlack: async (root, args, req) => {
@@ -823,63 +1024,17 @@ const resolvers = {
       );
       return ret;
     },
-    updateOpenshift: async (root, args, req) => {
+    deleteNotificationSlack: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.updateOpenshift(req.credentials, args.input);
-      return ret;
-    },
-
-    updateCustomer: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.updateCustomer(req.credentials, args.input);
-      return ret;
-    },
-    updateProject: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.updateProject(req.credentials, args.input);
-      return ret;
-    },
-    addProject: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.addProject(req.credentials, args.input);
-      return ret;
-    },
-    deleteProject: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.deleteProject(req.credentials, args.input);
-      return ret;
-    },
-    addSshKey: async (root, args, req) => {
-      const dao = getDao(req);
-      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(
+      const ret = await dao.deleteNotificationSlack(
+        req.credentials,
         args.input,
       );
-      const ret = await dao.addSshKey(req.credentials, input);
       return ret;
     },
-    deleteSshKey: async (root, args, req) => {
+    deleteAllNotificationSlacks: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteSshKey(req.credentials, args.input);
-      return ret;
-    },
-    addCustomer: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.addCustomer(req.credentials, args.input);
-      return ret;
-    },
-    deleteCustomer: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.deleteCustomer(req.credentials, args.input);
-      return ret;
-    },
-    addOpenshift: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.addOpenshift(req.credentials, args.input);
-      return ret;
-    },
-    deleteOpenshift: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.deleteOpenshift(req.credentials, args.input);
+      const ret = await dao.deleteAllNotificationSlacks(req.credentials, args);
       return ret;
     },
     addNotificationRocketChat: async (root, args, req) => {
@@ -890,9 +1045,12 @@ const resolvers = {
       );
       return ret;
     },
-    addNotificationSlack: async (root, args, req) => {
+    updateNotificationRocketChat: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addNotificationSlack(req.credentials, args.input);
+      const ret = await dao.updateNotificationRocketChat(
+        req.credentials,
+        args.input,
+      );
       return ret;
     },
     deleteNotificationRocketChat: async (root, args, req) => {
@@ -903,11 +1061,11 @@ const resolvers = {
       );
       return ret;
     },
-    deleteNotificationSlack: async (root, args, req) => {
+    deleteAllNotificationRocketChats: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteNotificationSlack(
+      const ret = await dao.deleteAllNotificationRocketChats(
         req.credentials,
-        args.input,
+        args,
       );
       return ret;
     },
@@ -933,57 +1091,168 @@ const resolvers = {
       );
       return ret;
     },
-    addSshKeyToProject: async (root, args, req) => {
+    removeAllNotificationsFromAllProjects: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSshKeyToProject(req.credentials, args.input);
-      return ret;
-    },
-    removeSshKeyFromProject: async (root, args, req) => {
-      const dao = getDao(req);
-      const ret = await dao.removeSshKeyFromProject(
+      const ret = await dao.removeAllNotificationsFromAllProjects(
         req.credentials,
-        args.input,
+        args,
       );
       return ret;
     },
-    addSshKeyToCustomer: async (root, args, req) => {
+    addOpenshift: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.addSshKeyToCustomer(req.credentials, args.input);
+      const ret = await dao.addOpenshift(req.credentials, args.input);
       return ret;
     },
-    removeSshKeyFromCustomer: async (root, args, req) => {
+    updateOpenshift: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.removeSshKeyFromCustomer(
-        req.credentials,
+      const ret = await dao.updateOpenshift(req.credentials, args.input);
+      return ret;
+    },
+    deleteOpenshift: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteOpenshift(req.credentials, args.input);
+      return ret;
+    },
+    deleteAllOpenshifts: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllOpenshifts(req.credentials, args);
+      return ret;
+    },
+    addProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addProject(req.credentials, args.input);
+      return ret;
+    },
+    updateProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateProject(req.credentials, args.input);
+      return ret;
+    },
+    deleteProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteProject(req.credentials, args.input);
+      return ret;
+    },
+    deleteAllProjects: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllProjects(req.credentials, args);
+      return ret;
+    },
+    addSshKey: async (root, args, req) => {
+      const dao = getDao(req);
+      const input = R.over(R.lensProp('keyType'), sshKeyTypeToString)(
         args.input,
       );
+      const ret = await dao.addSshKey(req.credentials, input);
       return ret;
     },
-    addOrUpdateEnvironment: async (root, args, req) => {
-      const dao = getDao(req);
-
+    updateSshKey: async (root, args, req) => {
+      // There is a possibility the sshKeyTypeToString transformation
+      // sets patch.keyType = undefined. This is not acceptable, therefore
+      // we need to omit the key from the patch object completely
+      // (null will still be accepted, since it should signal erasure of a field)
       const input = R.compose(
-        R.over(R.lensProp('environment_type'), envTypeToString),
-        R.over(R.lensProp('deploy_type'), deployTypeToString),
+        omitPatchKeyIfUndefined('keyType'),
+        R.over(R.lensPath(['patch', 'keyType']), sshKeyTypeToString),
       )(args.input);
 
-      const ret = await dao.addOrUpdateEnvironment(req.credentials, input);
-      return ret;
-    },
-    addOrUpdateEnvironmentStorage: async (root, args, req) => {
-      const dao = getDao(req);
+      // TODO: should we validate the ssh-key / value format?
 
-      const ret = await dao.addOrUpdateEnvironmentStorage(req.credentials, args.input);
+      const dao = getDao(req);
+      const ret = await dao.updateSshKey(req.credentials, input);
       return ret;
     },
-    deleteEnvironment: async (root, args, req) => {
+    deleteSshKey: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.deleteEnvironment(req.credentials, args.input);
+      const ret = await dao.deleteSshKey(req.credentials, args.input);
       return ret;
     },
-    truncateTable: async (root, args, req) => {
+    deleteAllSshKeys: async (root, args, req) => {
       const dao = getDao(req);
-      const ret = await dao.truncateTable(req.credentials, args);
+      const ret = await dao.deleteAllSshKeys(req.credentials, args);
+      return ret;
+    },
+    removeAllSshKeysFromAllUsers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllSshKeysFromAllUsers(req.credentials, args);
+      return ret;
+    },
+    addUser: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addUser(req.credentials, args.input);
+      return ret;
+    },
+    updateUser: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.updateUser(req.credentials, args.input);
+      return ret;
+    },
+    deleteUser: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteUser(req.credentials, args.input);
+      return ret;
+    },
+    deleteAllUsers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteAllUsers(req.credentials, args);
+      return ret;
+    },
+    addUserToCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addUserToCustomer(req.credentials, args.input);
+      return ret;
+    },
+    removeUserFromCustomer: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeUserFromCustomer(req.credentials, args.input);
+      return ret;
+    },
+    removeAllUsersFromAllCustomers: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllUsersFromAllCustomers(
+        req.credentials,
+        args,
+      );
+      return ret;
+    },
+    addUserToProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.addUserToProject(req.credentials, args.input);
+      return ret;
+    },
+    removeUserFromProject: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeUserFromProject(req.credentials, args.input);
+      return ret;
+    },
+    removeAllUsersFromAllProjects: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.removeAllUsersFromAllProjects(
+        req.credentials,
+        args,
+      );
+      return ret;
+    },
+    addDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const input = R.over(R.lensProp('status'), deploymentStatusTypeToString)(
+        args.input,
+      );
+      const ret = await dao.addDeployment(req.credentials, input);
+      return ret;
+    },
+    deleteDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const ret = await dao.deleteDeployment(req.credentials, args.input);
+      return ret;
+    },
+    updateDeployment: async (root, args, req) => {
+      const dao = getDao(req);
+      const input = R.over(R.lensPath(['patch', 'status']), deploymentStatusTypeToString)(
+        args.input,
+      );
+      const ret = await dao.updateDeployment(req.credentials, input);
       return ret;
     },
   },

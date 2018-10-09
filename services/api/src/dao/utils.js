@@ -1,5 +1,22 @@
+const camelcaseKeys = require('camelcase-keys');
 const R = require('ramda');
-const knex = require('knex')({ client: 'mysql' });
+const snakecase = require('../util/snakeCase');
+const snakecaseKeys = require('snakecase-keys');
+const knex = require('knex')({
+  client: 'mysql',
+  // Simplified version of converting input to snake case and
+  // output to camel case from Objection.js
+  // Ref: https://github.com/Vincit/objection.js/blob/89481597099e33d913bd7a7e437ff7a487c62fbd/lib/utils/identifierMapping.js
+  wrapIdentifier: (identifier, origWrap) => origWrap(snakecase(identifier)),
+  parseJsonResponse: (response) => {
+    if (!response || typeof response !== 'object') {
+      return response;
+    } else if (Array.isArray(response)) {
+      return R.map(camelcaseKeys, response);
+    }
+    return camelcaseKeys(response);
+  },
+});
 
 // Useful for creating extra if-conditions for non-admins
 const ifNotAdmin = (role, str) =>
@@ -7,21 +24,26 @@ const ifNotAdmin = (role, str) =>
 
 /**
   ATTENTION:
-  all those SQL-esque helpers like whereAnd, inClause, etc.
-  are subject to be obsolete. We are planning to migrate to
-  a dedicated SQL-builder lib (knex)
+  All of the SQL helpers below such as whereAnd,
+  inClause, etc. are obsolete. They should be migrated to our
+  dedicated SQL-builder lib (knex).
 * */
 
 // Creates a WHERE statement with AND inbetween non-empty conditions
 const whereAnd = whereConds =>
   R.compose(
-    R.reduce((ret, str) => {
-      if (ret === '') {
-        return `WHERE ${str}`;
+    R.reduce((acc, curr) => {
+      if (acc === '') {
+        return `WHERE ${curr}`;
       }
-      return `${ret} AND ${str}`;
+      return `${acc} AND ${curr}`;
     }, ''),
-    R.filter(R.compose(R.not, R.isEmpty)),
+    R.filter(
+      R.compose(
+        R.not,
+        R.isEmpty,
+      ),
+    ),
   )(whereConds);
 
 // Creates an IN clause like this: $field IN (val1,val2,val3)
@@ -45,29 +67,28 @@ const inClauseOr = conds =>
     R.map(([field, values]) => inClause(field, values)),
   )(conds);
 
-// Promise wrapper for doing sql queries
+// Promise wrapper for doing SQL queries, also camelcases any responses
 const query = (sqlClient, sql) =>
-  new Promise((res, rej) => {
+  new Promise((resolve, reject) => {
     sqlClient.query(sql, (err, rows) => {
       if (err) {
-        rej(err);
+        reject(err);
       }
-      res(rows);
+      resolve(R.length(rows) > 0 ? R.map(camelcaseKeys, rows) : rows);
     });
     setTimeout(() => {
-      rej('Timeout while talking to the Database');
-    }, 2000);
+      reject('Timeout while talking to the Database');
+    }, 30000);
   });
 
-// We use this just for consistency of the api calls
-const prepare = (sqlClient, sql) => sqlClient.prepare(sql);
+// Snakecase any input
+const prepare = (sqlClient, sql) => {
+  const prep = sqlClient.prepare(sql);
+  return input => prep(snakecaseKeys(input));
+};
 
-const isPatchEmpty = R.compose(R.isEmpty, R.propOr({}, 'patch'));
-
-// Tells if a user tries to modify an sshKey in the given patch
-// payload
-const hasSshKeyPatch = R.compose(
-  R.anyPass([R.has('keyValue'), R.has('keyType')]),
+const isPatchEmpty = R.compose(
+  R.isEmpty,
   R.propOr({}, 'patch'),
 );
 
@@ -80,5 +101,4 @@ module.exports = {
   query,
   whereAnd,
   isPatchEmpty,
-  hasSshKeyPatch,
 };

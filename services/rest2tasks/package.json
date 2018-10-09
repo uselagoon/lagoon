@@ -2,6 +2,7 @@
   "name": "rest2tasks",
   "version": "1.0.0",
   "description": "Demo app for react-isomorphic-form",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "build/index.js",
   "license": "MIT",
   "scripts": {
@@ -10,7 +11,7 @@
     "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
   },
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "4.0.0",
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
     "express": "^4.16.2",

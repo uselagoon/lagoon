@@ -6,6 +6,9 @@ source /lagoon/entrypoints/00-umask.sh
 # Loading environment variables from .env and friends
 source /lagoon/entrypoints/50-dotenv.sh
 
+# Generate some additional enviornment variables
+source /lagoon/entrypoints/55-generate-env.sh
+
 # a nicer prompt
 if [ "$PS1" ]; then
   NORMAL="\[\e[0m\]"
@@ -30,3 +33,6 @@ if [ "$PS1" ]; then
     PS1="[${WHITE}$LAGOON_PROJECT${NORMAL}]$PS1"
   fi
 fi
+
+# Helpers
+alias ll="ls -l"

@@ -1,10 +1,21 @@
 {
   "name": "lagoon",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Patrick Stapfer <patrick@amazee.io>",
+    "Karl Horky <karl.horky@gmail.com>",
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)"
+  ],
   "private": true,
-  "workspaces": ["node-packages/*", "services/*", "cli"],
+  "workspaces": [
+    "node-packages/*",
+    "services/*",
+    "cli"
+  ],
   "devDependencies": {
-    "flow-bin": "^0.69.0",
-    "glow": "^1.2.2"
+    "flow-bin": "^0.78.0",
+    "glow": "^1.2.2",
+    "prettier": "^1.14.2"
   },
   "scripts": {
     "glow": "glow check"

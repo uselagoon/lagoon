@@ -1,0 +1,12 @@
+---
+client:
+  hosts:
+    - logs-db
+  port: 9200
+  http_auth: ${LOGSDB_ADMIN_PASSWORD}
+
+logging:
+  loglevel: INFO
+  logfile:
+  logformat: default
+  blacklist: ['elasticsearch', 'urllib3']

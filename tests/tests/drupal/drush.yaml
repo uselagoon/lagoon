@@ -147,6 +147,45 @@
   tasks:
   - include: ../../tasks/ssh/ssh-command.yaml
 
+- name: "{{ testname }} third - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "drupal{{ drupal_version }}-{{ db }}/"
+    docker_files: "drupal{{ drupal_version }}-dockerfiles/php{{ php_version }}/"
+    branch: "foo/bar"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+  - set_fact:
+      current_head_third: "{{ current_head }}"
+
+- name: "{{ testname }} third - rest2tasks /deploy POST for just git branch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "foo/bar"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/rest/deploy-no-sha.yaml
+
+- include: check-deployed.yaml
+  vars:
+    expected_head: "{{ current_head_third }}"
+    expected_branch: "foo/bar"
+    branch: "foo/bar"
+    project: "{{ project }}"
+
+- name: "{{ testname }} - does ssh work"
+  hosts: localhost
+  serial: 1
+  vars:
+    username: ci-drupal-foo-bar
+    command: drush @foo-bar ssh echo zzyzx
+    expected_content: "zzyzx"
+  tasks:
+  - include: ../../tasks/ssh/ssh-command.yaml
+
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, nginx route"
   hosts: localhost
   serial: 1

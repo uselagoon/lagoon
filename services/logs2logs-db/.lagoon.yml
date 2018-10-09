@@ -50,7 +50,7 @@ objects:
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
-    replicas: 1
+    replicas: 3
     selector:
       service: ${SERVICE_NAME}
     strategy:
@@ -63,6 +63,16 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: service
+                      operator: In
+                      values:
+                        - ${SERVICE_NAME}
+                topologyKey: kubernetes.io/hostname
         containers:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
@@ -127,14 +137,6 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${SERVICE_NAME}
-        from:
-          kind: ImageStreamTag
-          name: ${SERVICE_NAME}:latest
-      type: ImageChange
   status: {}
 - apiVersion: v1
   kind: Service
@@ -159,27 +161,38 @@ objects:
       port: 28777
       protocol: TCP
       targetPort: 28777
-    - name: beats-input-module
-      port: 5044
-      protocol: TCP
-      targetPort: 5044
-      type: NodePort
     selector:
       service: ${SERVICE_NAME}
 - apiVersion: v1
   kind: Service
   metadata:
-    creationTimestamp: null
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: router-logs
+    name: ${SERVICE_NAME}-lumberjack
   spec:
     ports:
-    - name: udp-input-module
-      port: 5140
-      protocol: UDP
-      targetPort: 5140
+      - name: lumberjack-input-module
+        port: 5044
+        protocol: TCP
+        targetPort: 5044
     selector:
       service: ${SERVICE_NAME}
+    type: NodePort
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: router-logs
+  spec:
+    externalName: ${SERVICE_NAME}.${OPENSHIFT_PROJECT}.svc.cluster.local
+    sessionAffinity: None
+    type: ExternalName
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: application-logs
+  spec:
+    externalName: ${SERVICE_NAME}.${OPENSHIFT_PROJECT}.svc.cluster.local
+    sessionAffinity: None
+    type: ExternalName

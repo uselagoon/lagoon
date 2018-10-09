@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Queries selectProject should create query 1`] = `"select * from \`project\` where \`id\` = '1'"`;
+exports[`Resolvers selectProject should create query 1`] = `"select * from \`project\` where \`id\` = '1'"`;
 
-exports[`Queries updateProject should return proper update statement 1`] = `"update \`project\` set \`name\` = 'test' where \`id\` = '1' and \`id\` in (1, 2, 3)"`;
+exports[`Resolvers updateProject should return proper update statement 1`] = `"update \`project\` set \`name\` = 'test' where \`id\` = '1'"`;

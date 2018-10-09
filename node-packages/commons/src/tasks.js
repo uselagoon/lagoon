@@ -16,6 +16,7 @@ import type { ChannelWrapper } from './types';
 const {
   getActiveSystemForProject,
   getProductionEnvironmentForProject,
+  getEnvironmentsForProject,
 } = require('./api');
 
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
@@ -32,20 +33,6 @@ let connection = (exports.connection = function connection() {});
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
-
-const _extends =
-  Object.assign ||
-  function _extends(...args) {
-    for (let i = 1; i < args.length; i++) {
-      const source = args[i];
-      for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          args[0][key] = source[key];
-        }
-      }
-    }
-    return args[0];
-  };
 
 class UnknownActiveSystem extends Error {
   constructor(message: string) {
@@ -65,6 +52,13 @@ class CannotDeleteProductionEnvironment extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'CannotDeleteProductionEnvironment';
+  }
+}
+
+class EnvironmentLimit extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'EnvironmentLimit';
   }
 }
 
@@ -186,15 +180,49 @@ async function createDeployTask(deployData: Object) {
   } = deployData;
 
   const project = await getActiveSystemForProject(projectName, 'deploy');
+  const environments = await getEnvironmentsForProject(projectName);
 
-  if (typeof project.active_systems_deploy === 'undefined') {
+  // environments =
+  //  { project:
+  //     { environment_deployments_limit: 1,
+  //       production_environment: 'master',
+  //       environments: [ { name: 'develop', environment_type: 'development' }, [Object] ] } }
+
+  if (typeof project.activeSystemsDeploy === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for tasks 'deploy' in for project ${projectName}`,
     );
   }
 
-  switch (project.active_systems_deploy) {
+
+
+  switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
+
+    if (environments.project.productionEnvironment == branchName) {
+      logger.debug(
+        `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+      )
+    } else {
+      // get a list of non-production environments
+      console.log(environments.project);
+      dev_environments = environments.project.environments.filter (e => e.environmentType=='development').map(e => e.name)
+      logger.debug( `projectName: ${projectName}, branchName: ${branchName}, existing environments are `, dev_environments)
+
+      if (environments.project.developmentEnvironmentsLimit !== null && dev_environments.length >= environments.project.developmentEnvironmentsLimit ) {
+
+        if ( dev_environments.find(  function(i){ return i == branchName })) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+          )
+        } else {
+          throw new EnvironmentLimit(
+            `'${branchName}' would exceed the configured limit of ${environments.project.developmentEnvironmentsLimit} development environments for project ${projectName}`,
+          );
+        }
+      }
+    }
+
       if (type === 'branch') {
         switch (project.branches) {
           case undefined:
@@ -291,7 +319,7 @@ async function createDeployTask(deployData: Object) {
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
-          project.active_systems_deploy
+          project.activeSystemsDeploy
         }' for task 'deploy' in for project ${projectName}`,
       );
   }
@@ -307,20 +335,20 @@ async function createPromoteTask(promoteData: Object) {
 
   const project = await getActiveSystemForProject(projectName, 'promote');
 
-  if (typeof project.active_systems_promote === 'undefined') {
+  if (typeof project.activeSystemsPromote === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for tasks 'deploy' in for project ${projectName}`,
     );
   }
 
-  switch (project.active_systems_promote) {
+  switch (project.activeSystemsPromote) {
     case 'lagoon_openshiftBuildDeploy':
       return sendToLagoonTasks('builddeploy-openshift', promoteData);
 
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
-          project.active_systems_promote
+          project.activeSystemsPromote
         }' for task 'deploy' in for project ${projectName}`,
       );
   }
@@ -329,11 +357,11 @@ async function createPromoteTask(promoteData: Object) {
 async function createRemoveTask(removeData: Object) {
   const { projectName, branch, forceDeleteProductionEnvironment } = removeData;
 
-  const production_environment = await getProductionEnvironmentForProject(
+  const productionEnvironment = await getProductionEnvironmentForProject(
     projectName,
   );
 
-  if (branch === production_environment.project.production_environment) {
+  if (branch === productionEnvironment.project.productionEnvironment) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
@@ -343,20 +371,20 @@ async function createRemoveTask(removeData: Object) {
 
   const project = await getActiveSystemForProject(projectName, 'remove');
 
-  if (typeof project.active_systems_remove === 'undefined') {
+  if (typeof project.activeSystemsRemove === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for tasks 'remove' in for project ${projectName}`,
     );
   }
 
-  switch (project.active_systems_remove) {
+  switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
       return sendToLagoonTasks('remove-openshift', removeData);
 
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
-          project.active_systems_remove
+          project.activeSystemsRemove
         }' for task 'remove' in for project ${projectName}`,
       );
   }
@@ -404,10 +432,11 @@ async function consumeTasks(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 
@@ -474,10 +503,11 @@ async function consumeTaskMonitor(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 

@@ -1,3 +1,5 @@
+// @flow
+
 const R = require('ramda');
 const attrFilter = require('./attrFilter');
 const {
@@ -10,17 +12,20 @@ const {
 } = require('./utils');
 
 const Sql = {
-  updateOpenshift: (input) => {
-    const { id, patch } = input;
-
-    return knex('openshift')
-      .where('id', '=', id)
-      .update(patch)
-      .toString();
-  },
-  selectOpenshift: id =>
+  updateOpenshift: (
+    { id, patch } /* : {id: number, patch: {[string]: any}} */,
+  ) =>
     knex('openshift')
       .where('id', '=', id)
+      .update(patch)
+      .toString(),
+  selectOpenshift: (id /* : number */) =>
+    knex('openshift')
+      .where('id', '=', id)
+      .toString(),
+  truncateOpenshift: () =>
+    knex('openshift')
+      .truncate()
       .toString(),
 };
 
@@ -35,10 +40,10 @@ const addOpenshift = ({ sqlClient }) => async (cred, input) => {
         :name,
         :console_url,
         ${input.token ? ':token' : 'NULL'},
-        ${input.router_pattern ? ':router_pattern' : 'NULL'},
-        ${input.project_user ? ':project_user' : 'NULL'},
-        ${input.ssh_host ? ':ssh_host' : 'NULL'},
-        ${input.ssh_port ? ':ssh_port' : 'NULL'}
+        ${input.routerPattern ? ':router_pattern' : 'NULL'},
+        ${input.projectUser ? ':project_user' : 'NULL'},
+        ${input.sshHost ? ':ssh_host' : 'NULL'},
+        ${input.sshPort ? ':ssh_port' : 'NULL'}
       );
     `,
   );
@@ -55,22 +60,31 @@ const deleteOpenshift = ({ sqlClient }) => async (cred, input) => {
   }
 
   const prep = prepare(sqlClient, 'CALL deleteOpenshift(:name)');
-  const rows = await query(sqlClient, prep(input));
+  await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
   return 'success';
 };
 
 const getAllOpenshifts = ({ sqlClient }) => async (cred, args) => {
-  if (cred.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  const { customers, projects } = cred.permissions;
 
-  // const { createdAfter } = args;
-  const prep = prepare(sqlClient, 'SELECT * FROM openshift');
+  const prep = prepare(
+    sqlClient,
+    `SELECT DISTINCT
+        o.*
+      FROM project p
+      JOIN openshift o ON o.id = p.openshift
+      ${ifNotAdmin(
+    cred.role,
+    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
+  )}
+    `,
+  );
+
   const rows = await query(sqlClient, prep(args));
 
-  return rows.map(attrFilter.openshift(cred));
+  return R.map(attrFilter.openshift(cred), rows);
 };
 
 const getOpenshiftByProjectId = ({ sqlClient }) => async (cred, pid) => {
@@ -112,15 +126,25 @@ const updateOpenshift = ({ sqlClient }) => async (cred, input) => {
   return R.prop(0, rows);
 };
 
-const Queries = {
-  addOpenshift,
-  deleteOpenshift,
-  getAllOpenshifts,
-  getOpenshiftByProjectId,
-  updateOpenshift,
+const deleteAllOpenshifts = ({ sqlClient }) => async ({ role }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await query(sqlClient, Sql.truncateOpenshift());
+
+  // TODO: Check rows for success
+  return 'success';
 };
 
 module.exports = {
   Sql,
-  Queries,
+  Resolvers: {
+    addOpenshift,
+    deleteOpenshift,
+    getAllOpenshifts,
+    getOpenshiftByProjectId,
+    updateOpenshift,
+    deleteAllOpenshifts,
+  },
 };

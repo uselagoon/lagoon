@@ -1,76 +1,85 @@
 {
   "name": "@lagoon/lagu",
-  "version": "1.0.1",
+  "version": "4.0.0",
   "description": "Lagoon Command Line Interface",
-  "main": "./dist/cli.js",
+  "main": "./bin/lagu.js",
   "bin": {
-    "lagu": "./dist/cli.js"
+    "lagu": "./bin/lagu.js"
   },
   "files": [
-    "dist"
+    "bin",
+    "build"
   ],
   "engines": {
-    "node": ">=8"
+    "node": ">=8.12.0"
   },
   "scripts": {
-    "prepublish": "in-publish && yarn run dist || not-in-publish",
+    "prepublish": "in-publish && yarn run build || not-in-publish",
     "preversion": "yarn test",
-    "version": "yarn run dist",
+    "version": "yarn run build",
     "postversion": "git push && git push --tags",
-    "update-schema": "node scripts/updateSchema.js",
-    "clean": "rimraf dist",
-    "dist": "yarn run clean && yarn run build",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "yarn run lint && jest",
     "test:watch": "jest --watch",
-    "build": "babel src -d dist",
-    "watch": "babel --watch=src -d dist",
-    "execute": "bash -c 'node -r @babel/register src/cli.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
+    "build": "rimraf build && babel src -d build",
+    "watch": "babel --watch=src -d build",
+    "execute": "bash -c 'node -r @babel/register ./scripts/execute.js $* $([[ $1 = login && ! $* =~ '--identity' ]] && echo \"--identity ../local-dev/cli_id_rsa\" || echo \"\")' -- "
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/amazeeio/lagoon.git"
   },
-  "author": "Patrick Stapfer <patrick@amazee.io>",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Patrick Stapfer <patrick@amazee.io>",
+    "Karl Horky <karl.horky@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/amazeeio/lagoon/issues"
   },
   "homepage": "https://github.com/amazeeio/lagoon#readme",
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.42",
-    "@babel/core": "^7.0.0-beta.42",
-    "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.42",
-    "@babel/plugin-transform-runtime": "^7.0.0-beta.42",
-    "@babel/preset-env": "^7.0.0-beta.42",
-    "@babel/register": "^7.0.0-beta.42",
-    "@lagoon/commons": "3.0.2",
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.1",
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "@lagoon/commons": "4.0.0",
     "babel-core": "^7.0.0-0",
-    "babel-jest": "^22.1.0",
-    "dotenv-extended": "^2.0.1",
-    "jest": "^22.1.1",
-    "node-fetch": "^1.7.2",
-    "prettier": "^1.11.1",
+    "babel-jest": "^23.6.0",
+    "dotenv-extended": "^2.0.2",
+    "jest": "^23.6.0",
+    "node-fetch": "^2.2.0",
+    "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.42",
-    "chalk": "^2.1.0",
+    "@babel/runtime": "^7.0.0",
+    "camelcase-keys": "^4.2.0",
+    "chalk": "^2.4.1",
+    "csv-stringify": "^3.1.1",
+    "execa": "^0.10.0",
+    "exit": "^0.1.2",
     "findup-sync": "^2.0.0",
+    "fuzzysearch": "^1.0.3",
     "graphql": "^0.13.2",
-    "hosted-git-info": "^2.6.0",
+    "hosted-git-info": "^2.7.1",
+    "import-local": "^1.0.0",
     "in-publish": "^2.0.0",
-    "inquirer": "^5.0.0",
-    "js-yaml": "^3.9.1",
+    "inquirer": "^6.0.0",
+    "inquirer-autocomplete-prompt": "^1.0.1",
+    "js-yaml": "^3.12.0",
     "ramda": "^0.25.0",
-    "ssh2": "^0.5.5",
-    "ssh2-streams": "^0.1.19",
-    "table": "^4.0.1",
-    "untildify": "^3.0.2",
+    "strip-ansi": "^4.0.0",
+    "text-table": "^0.2.0",
+    "tildify": "^1.2.0",
+    "to-snake-case": "^1.0.0",
+    "untildify": "^3.0.3",
     "url-regex": "^4.1.1",
-    "util.promisify": "^1.0.0",
-    "yargs": "^10.1.1"
+    "yargs": "^12.0.1"
   }
 }

@@ -7,7 +7,10 @@ const bodyParser = require('body-parser');
 import type { $Request, $Response } from 'express';
 
 function validateKey(req: $Request, res: $Response, next: Function): void {
-  const key = (req.body && req.body.key) || '';
+  const key =
+    req.body && req.body.key && typeof req.body.key === 'string'
+      ? req.body.key
+      : '';
 
   if (!key) {
     return next(new Error('Missing key parameter in request body.'));
@@ -26,7 +29,11 @@ function validateKey(req: $Request, res: $Response, next: Function): void {
 
     //    0       1        2
     // ssh-rsa base-64 [comment]
-    const parsedKey = R.compose(R.prop(1), R.split(' '), R.defaultTo(''))(key);
+    const parsedKey = R.compose(
+      R.nth(1),
+      R.split(' '),
+      R.defaultTo(''),
+    )(key);
 
     if (parsedKey == null) {
       next(new Error('Could not derive base64 key from ssh key...'));

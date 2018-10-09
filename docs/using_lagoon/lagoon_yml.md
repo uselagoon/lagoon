@@ -14,6 +14,11 @@ The `.lagoon.yml` file must be placed at the root of your repo.
 docker-compose-yaml: docker-compose.yml
 
 tasks:
+  pre-rollout:
+    - run:
+        name: drush sql-dump
+        command: mkdir -p /app/web/sites/default/files/private/ && drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz
+        service: cli
   post-rollout:
     - run:
         name: env variables
@@ -22,7 +27,7 @@ tasks:
     - run:
         name: IF no Drupal installed drush si with no email sending
         command: |
-            if [[ $(drush core-status bootstrap --pipe) == "" ]]; then
+            if ! drush status --fields=bootstrap | grep -q "Successful"; then
                 # no drupal installed, we install drupal from scratch
                 drush -y si
             else
@@ -69,7 +74,10 @@ environments:
 ##### `docker-compose-yaml`
 Tells the build script which docker-compose yaml file should be used in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml` but could be used for a specific lagoon docker-compose yaml file if you need something like that.
 
-#### `routes.insecure`
+#### `routes.autogenerate.generate`
+This allows you to disable the automatic created routes (NOT the custom routes per environment, see below for them) all together.
+
+#### `routes.autogenerate.insecure`
 This allows you to define the behaviour of the automatic creates routes (NOT the custom routes per environment, see below for them). You can define:
 
 * `Allow` simply sets up both routes for http and https (this is the default).
@@ -79,6 +87,10 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 ## Tasks
 
 There are different type of tasks you can define, they differ when exactly they are executed in a build flow:
+
+### `pre_rollout.[i].run`
+The taks defined as `pre_rollout` tasks will run against your project _after_ the new images have been built sucessfully and _before_ the project gets altered in any way.
+This feature enables you for example to create a database dump before the rollout is running. This will make it easier to roll-back in case of an issue with the rollout.
 
 #### `post_rollout.[i].run`
 Here you can specify tasks which need to run against your project, _after_:
@@ -147,6 +159,44 @@ environments:
   master:
     types:
       mariadb: mariadb-galera
+```
+
+#### `environments.[name].templates`
+The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-templates))
+
+Sometimes though you would like to override the template just for a single environment and not for all of them:
+
+`service-name: template-file`
+
+* `service-name` - is the name of the service from `docker-compose.yml` you would like to override
+* `template-file` - the path and name of the template to use for this service in this environment
+
+Example:
+
+```
+environments:
+  master:
+    templates:
+      mariadb: mariadb.master.deployment.yaml
+```
+
+#### `environments.[name].rollouts`
+The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
+
+Sometimes though you would like to override the rollout type just for a single environment, especially if you also overwrote the template type for the enviornment
+
+`service-name: rollout-type`
+
+* `service-name` - is the name of the service from `docker-compose.yml` you would like to override
+* `rollout-type` - the type of rollout, see [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-rollout-monitor-types)) for possible values
+
+Example:
+
+```
+environments:
+  master:
+    rollouts:
+      mariadb: statefulset
 ```
 
 ## Specials

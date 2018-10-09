@@ -1,0 +1,810 @@
+mutation PopulateApi {
+  #### Populate API with needed Objects to run the Credentialstests
+
+  ### Openshift
+  CredentialtestOpenshift: addOpenshift(
+    input: {
+      id: 1
+      name: "credentialtest-openshift"
+      consoleUrl: "https://localhost:8443/"
+    }
+  ) {
+    id
+  }
+
+  ### Customers
+  CredentialtestCustomer1: addCustomer(
+    input: {
+      id: 1
+      name: "credentialtest-customer1"
+      comment: "used to test the cli"
+    }
+  ) {
+    id
+  }
+  CredentialtestCustomer2: addCustomer(
+    input: {
+      id: 2
+      name: "credentialtest-customer2"
+      comment: "used to test the cli"
+    }
+  ) {
+    id
+  }
+
+  ### Projects
+  CredentialstestProject1: addProject(
+    input: {
+      id: 1
+      name: "credentialstest-project1"
+      customer: 1
+      openshift: 1
+      gitUrl: "ssh://git@192.168.99.1:2222/git/project1.git"
+    }
+  ) {
+    id
+  }
+  CredentialstestProject2: addProject(
+    input: {
+      id: 2
+      name: "credentialstest-project2"
+      customer: 2
+      openshift: 1
+      gitUrl: "ssh://git@192.168.99.1:2222/git/project2.git"
+    }
+  ) {
+    id
+  }
+
+  ### SSH Keys:
+  ## credentialtestbothcustomeraccess_user: Access to customer1 and customer2
+  CredentialtestCustomerAccessUser: addUser(
+    input: {
+      id: 1
+      email: "credentialtestbothcustomeraccess_user@example.com"
+      comment: "credentialtestbothcustomeraccess_user"
+    }
+  ) {
+    id
+  }
+  CredentialtestCustomerAccessSshKey: addSshKey(
+    input: {
+      id: 1
+      name: "credentialtestbothcustomeraccess"
+      keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDHDRxmCLzLCLdo8M8hK+v5Zr5p4q0XQYwCm9xxWWU8ItkyP4LB90fyh8qWFJRQTYrGNe4usDL5kPyHXhUevdZt75jcjWqlWypbtNY4nFfi+HQ9dnR/f7RRkoBWbha3j8mqZdRHXo9xrXMc82wXaN9a9dMbvEmZPkTpi75g+C0KXBrfjJjDR6Lvr7zWoB2nPMmgy1UGLl5dKxJOg7vHYCpAI582knd0nep3t3bRdlxe7l/CxMthZmoJxz6dfoFotDyBjivVYqEiybtjkNBQnRf2xYQ7m6837hu3EkSVKdgbonWASFMenpuFacDE2S2dVftwW3QjzIOtdQERGZuMsi0p"
+      keyType: SSH_RSA
+      userId: 1
+    }
+  ) {
+    id
+  }
+  CredentialtestCustomerAccessUserAdd1: addUserToCustomer(
+    input: { customer: "credentialtest-customer1", userId: 1 }
+  ) {
+    name
+  }
+  CredentialtestCustomerAccessUserAdd2: addUserToCustomer(
+    input: { customer: "credentialtest-customer2", userId: 1 }
+  ) {
+    name
+  }
+
+  ## credentialtestbothprojectaccess_user: Access to project1 and project2
+  CredentialtestProjectAccessUser: addUser(
+    input: {
+      id: 2
+      email: "credentialtestbothprojectaccess_user@example.com"
+      comment: "credentialtestbothprojectaccess_user"
+    }
+  ) {
+    id
+  }
+  CredentialtestProjectAccessSshKey: addSshKey(
+    input: {
+      id: 2
+      name: "credentialtestbothprojectaccess"
+      keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDSeDyxIwMWOjeAq7hF2qirbtoD33JZA2RxodsnnesrmWvrRlANn/fYZSR9zc8SMUMA6s6gR6eOLP+Nrz6bz9xIPFDhHpU7yJqWvb8EM2EPpgSppGmBIBDIPN+5YSxiX5fTuLn2dGHyIdgRvl1yXC09Pa16i/gweMIskP7nanFUfVcgUlTNm0nS6F+MzqklRRO7Tw1zOuleEnXohpzGpUJV5xgQmX4CoqiKYuyXssgBdwsrB9oYdGl8i7xi1w7Xlop6FhbaY/vQdy5f9xfoY2jiO7Big6FDeUGccpjL+xZ0MlKfiTl/OIHcsbshQZ1+D9eSmeaaQ8r9cujgTX2Y7umt"
+      keyType: SSH_RSA
+      userId: 2
+    }
+  ) {
+    id
+  }
+  CredentialtestProjectAccessUserAdd1: addUserToProject(
+    input: { project: "credentialstest-project1", userId: 2 }
+  ) {
+    name
+  }
+  CredentialtestProjectAccessUserAdd2: addUserToProject(
+    input: { project: "credentialstest-project2", userId: 2 }
+  ) {
+    name
+  }
+
+  ## credentialtestcrossaccess_user: Access to customer1 and project2
+  CredentialtestCrossAccessUser: addUser(
+    input: {
+      id: 3
+      email: "credentialtestcrossaccess_user@example.com"
+      comment: "credentialtestcrossaccess_user"
+    }
+  ) {
+    id
+  }
+  CredentialtestCrossAccessSshKey: addSshKey(
+    input: {
+      id: 3
+      name: "credentialtestcrossaccess"
+      keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDC2DltlqLnD7a0Zbra637oj6sLBmKvxHtbWkAEnUJvJVsCLIRdLhqRRBrC4lOJuMqZSqW/fzIETpX3DiohlTKHDYecNFYgiXyryqCehcKli3MDDyTgfDmAIPLxHimvjWgPEghDNAdOzdS3ka3LqEdhr2k6ddex+fyO/I7VMMbjxQUHAQNIpChVIqKnWCJRo6gyZgYwfLR634D+PJon87LWbLdpx5+whyc/rJGWfpSL5C1V/NvvN0xfa1zKNXmJH+cr++fmU5z/ky6mcDkO0Uy+k5cpUQKkOVW7j6bCpsofbnALldATq+oPadHg6HI796kSrsKU44WMmZCUBBHdeYJd"
+      keyType: SSH_RSA
+      userId: 3
+    }
+  ) {
+    id
+  }
+  CredentialtestCrossAccessUserAdd1: addUserToCustomer(
+    input: { customer: "credentialtest-customer1", userId: 3 }
+  ) {
+    name
+  }
+  CredentialtestCrossAccessUserAdd2: addUserToProject(
+    input: { project: "credentialstest-project2", userId: 3 }
+  ) {
+    name
+  }
+
+  #### Filling API with needed Objects for CI
+  # Customer with a private key that has access to the local-git server
+  CiCustomer: addCustomer(
+    input: {
+      id: 3
+      name: "ci-customer"
+      privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
+    }
+  ) {
+    id
+  }
+  CiCustomerUserRsa: addUser(
+    input: {
+      id: 4
+      email: "ci-customer-user-rsa@example.com"
+      comment: "ci-customer-user-rsa"
+    }
+  ) {
+    id
+  }
+  CiCustomerSshKeyRsa: addSshKey(
+    input: {
+      id: 4
+      name: "ci-customer-sshkey-rsa"
+      keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw=="
+      keyType: SSH_RSA
+      userId: 4
+    }
+  ) {
+    id
+  }
+  CiCustomerUserAddRsa: addUserToCustomer(
+    input: { customer: "ci-customer", userId: 4 }
+  ) {
+    name
+  }
+  CiCustomerUserEd25519: addUser(
+    input: {
+      id: 5
+      email: "ci-customer-user-ed25519@example.com"
+      comment: "ci-customer-user-ed25519"
+    }
+  ) {
+    id
+  }
+  CiCustomerSshKeyEd25519: addSshKey(
+    input: {
+      id: 5
+      name: "ci-customer-sshkey-ed25519"
+      keyValue: "AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
+      keyType: SSH_ED25519
+      userId: 5
+    }
+  ) {
+    id
+  }
+  CiCustomerUserAddEd25519: addUserToCustomer(
+    input: { customer: "ci-customer", userId: 5 }
+  ) {
+    name
+  }
+
+  # Local OpenShift started via Make, see that there is no token given, as we modify the local openshift during setup that anonymous has access to create objects
+  CiLocalOpenshift: addOpenshift(
+    input: {
+      id: 2
+      name: "ci-local"
+      consoleUrl: "https://192.168.99.100:8443/"
+      routerPattern: "${project}.${branch}.192.168.99.100.xip.io"
+      projectUser: "developer"
+      sshHost: "192.168.99.1"
+      sshPort: "2020"
+    }
+  ) {
+    id
+  }
+
+  # Real RocketChat Hook on the amazeeio RocketChat for testing
+  CiRocketChat: addNotificationRocketChat(
+    input: {
+      name: "amazeeio--lagoon-local-ci"
+      webhook: "https://amazeeio.rocket.chat/hooks/WkLMnprX6HWp5Eyom/3RLRRtHWYYvXfhCsbEtmZpYvH9FgjoiLhzvvfPpXSbwaBhe7"
+      channel: "lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  # Projects for CI
+  CiGithub: addProject(
+    input: {
+      id: 3
+      name: "ci-github"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/github.git"
+    }
+  ) {
+    id
+  }
+  CiGithubRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-github"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiGithubEnvironment: addOrUpdateEnvironment(
+    input: {
+      name: "master"
+      project: 3
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ci-local"
+    }
+  ) {
+    id
+  }
+
+  CiGitlab: addProject(
+    input: {
+      id: 4
+      name: "ci-gitlab"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/gitlab.git"
+    }
+  ) {
+    id
+  }
+  CiGitlabRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-gitlab"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiBitbucket: addProject(
+    input: {
+      id: 5
+      name: "ci-bitbucket"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/bitbucket.git"
+    }
+  ) {
+    id
+  }
+  CiBitbucketRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-bitbucket"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiRest: addProject(
+    input: {
+      id: 6
+      name: "ci-rest"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/rest.git"
+    }
+  ) {
+    id
+  }
+  CiRestRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-rest"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiNode: addProject(
+    input: {
+      id: 7
+      name: "ci-node"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
+    }
+  ) {
+    id
+  }
+  CiNodeRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-node"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiMultiproject1: addProject(
+    input: {
+      id: 8
+      name: "ci-multiproject1"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+    }
+  ) {
+    id
+  }
+  CiMultiproject1RocketChat: addNotificationToProject(
+    input: {
+      project: "ci-multiproject1"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiMultiproject2: addProject(
+    input: {
+      id: 9
+      name: "ci-multiproject2"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+    }
+  ) {
+    id
+  }
+  CiMultiproject2RocketChat: addNotificationToProject(
+    input: {
+      project: "ci-multiproject2"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiDrupal: addProject(
+    input: {
+      id: 10
+      name: "ci-drupal"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal.git"
+    }
+  ) {
+    id
+  }
+  CiDrupalRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-drupal"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiNginx: addProject(
+    input: {
+      id: 11
+      name: "ci-nginx"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/nginx.git"
+    }
+  ) {
+    id
+  }
+  CiNginxRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-nginx"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiFeatures: addProject(
+    input: {
+      id: 12
+      name: "ci-features"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/features.git"
+      productionEnvironment: "master"
+    }
+  ) {
+    id
+  }
+
+  CiFeaturesRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-features"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiFeaturesSubfolder: addProject(
+    input: {
+      id: 17
+      name: "ci-features-subfolder"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/features-subfolder.git"
+      productionEnvironment: "master"
+      subfolder: "subfolder1/subfolder2"
+    }
+  ) {
+    id
+  }
+
+  CiFeaturesSubfolderRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-features-subfolder"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiElasticsearch: addProject(
+    input: {
+      id: 14
+      name: "ci-elasticsearch"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/elasticsearch.git"
+      productionEnvironment: "master"
+    }
+  ) {
+    id
+  }
+  CiElasticsearchRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-elasticsearch"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiDrupalGalera: addProject(
+    input: {
+      id: 15
+      name: "ci-drupal-galera"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"
+    }
+  ) {
+    id
+  }
+  CiDrupalGaleraRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-drupal-galera"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiDrupalPostgres: addProject(
+    input: {
+      id: 16
+      name: "ci-drupal-postgres"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"
+    }
+  ) {
+    id
+  }
+  CiDrupalPostgresRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-drupal-postgres"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  #### Lagoon Kickstart Objects
+  # Customer with a private key that has access to the local-git server.
+  KickstartCustomer: addCustomer(
+    input: {
+      id: 4
+      name: "kickstart-customer"
+      privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
+    }
+  ) {
+    id
+  }
+  KickstartRocketChat: addNotificationRocketChat(
+    input: {
+      name: "amazeeio--lagoon-kickstart"
+      webhook: "https://amazeeio.rocket.chat/hooks/WkLMnprX6HWp5Eyom/3RLRRtHWYYvXfhCsbEtmZpYvH9FgjoiLhzvvfPpXSbwaBhe7"
+      channel: "lagoon-kickstart"
+    }
+  ) {
+    id
+  }
+  KickstartOpenshift: addOpenshift(
+    input: {
+      id: 3
+      name: "kickstart-openshift"
+      consoleUrl: "[REPLACE ME WITH OPENSHIFT URL]"
+      token: "[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUTN TOKEN]"
+    }
+  ) {
+    id
+  }
+  KickstartProject: addProject(
+    input: {
+      id: 13
+      name: "lagoon"
+      customer: 4
+      openshift: 3
+      gitUrl: "git@github.com:amazeeio/lagoon.git"
+      openshiftProjectPattern: "lagoon"
+    }
+  ) {
+    id
+  }
+  KickstartRocketChatNotification: addNotificationToProject(
+    input: {
+      project: "lagoon"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-kickstart"
+    }
+  ) {
+    id
+  }
+
+  #### Filling API with needed objects for UI
+  UIOpenshift: addOpenshift(
+    input: {
+      id: 4
+      name: "ui-openshift"
+      consoleUrl: "https://localhost:8443/"
+    }
+  ) {
+    id
+  }
+  UICustomer1: addCustomer(
+    input: { id: 5, name: "ui-customer", comment: "used to test the ui" }
+  ) {
+    id
+  }
+  UIProject1: addProject(
+    input: {
+      id: 18
+      name: "high-cotton"
+      customer: 5
+      openshift: 4
+      gitUrl: "test"
+      productionEnvironment: "Master"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1: addOrUpdateEnvironment(
+    input: {
+      name: "Master"
+      project: 18
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ui-openshift-master"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1Update: updateEnvironment(
+    input: {
+      id: 2
+      patch: {
+        route: "http://highcotton.org"
+        routes: "http://highcotton.org,https://varnish-highcotton-org-prod.us.amazee.io,https://nginx-highcotton-org-prod.us.amazee.io"
+      }
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1addDeployment1: addDeployment(
+    input: {
+      name: "build-1"
+      status: COMPLETE
+      environment: 2
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      completed: "2018-10-07 23:20:41"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1addDeployment2: addDeployment(
+    input: {
+      name: "build-2"
+      status: FAILED
+      environment: 2
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      completed: "2018-10-07 23:20:41"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1addDeployment3: addDeployment(
+    input: {
+      name: "build-3"
+      status: RUNNING
+      environment: 2
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment2: addOrUpdateEnvironment(
+    input: {
+      name: "Staging"
+      project: 18
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift-staging"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment2Update: updateEnvironment(
+    input: {
+      id: 3
+      patch: {
+        route: "https://varnish-highcotton-org-staging.us.amazee.io"
+        routes: "https://varnish-highcotton-org-staging.us.amazee.io,https://nginx-highcotton-org-staging.us.amazee.io"
+      }
+    }
+  ) {
+    id
+  }
+  UIProject1Environment3: addOrUpdateEnvironment(
+    input: {
+      name: "Development"
+      project: 18
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift-development"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment3Update: updateEnvironment(
+    input: {
+      id: 4
+      patch: {
+        route: "https://varnish-highcotton-org-development.us.amazee.io"
+        routes: "https://varnish-highcotton-org-development.us.amazee.io,https://nginx-highcotton-org-development.us.amazee.io"
+      }
+    }
+  ) {
+    id
+  }
+  UIProject1Environment4: addOrUpdateEnvironment(
+    input: {
+      name: "PR-175"
+      project: 18
+      deployType: PULLREQUEST
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ui-openshift-pr-175"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment4Update: updateEnvironment(
+    input: {
+      id: 5
+      patch: {
+        route: "" # intentionally empty, for testing
+        routes: "" # intentionally empty, for testing
+      }
+    }
+  ) {
+    id
+  }
+
+  CILimit: addProject(
+    input: {
+      id: 19
+      name: "ci-env-limit"
+      productionEnvironment: "master"
+      customer: 3
+      openshift: 2
+      developmentEnvironmentsLimit: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
+    }
+  ) {
+    id
+  }
+
+  CILimitEnv1: addOrUpdateEnvironment(
+    input: {
+      name: "master"
+      project: 19
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ci-env-limit"
+    }
+  ) {
+    id
+  }
+
+  CILimitEnv2: addOrUpdateEnvironment(
+    input: {
+      name: "develop"
+      project: 19
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ci-env-limit"
+    }
+  ) {
+    id
+  }
+
+  CILimitEn3: addOrUpdateEnvironment(
+    input: {
+      name: "stage"
+      project: 19
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ci-env-limit"
+    }
+  ) {
+    id
+  }
+}

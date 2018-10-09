@@ -3,21 +3,28 @@
 const express = require('express');
 const morgan = require('morgan');
 const compression = require('compression');
+const cors = require('cors');
 const { json } = require('body-parser');
 const logger = require('./logger');
 const createRouter = require('./routes');
-const { createAuthMiddleware } = require('./auth');
+const { authKeycloakMiddleware } = require('./authKeycloakMiddleware');
+const { createAuthMiddleware } = require('./authMiddleware');
 
 const Dao = require('./dao');
 
 /* ::
 import type MariaSQL from 'mariasql';
+import type elasticsearch from 'elasticsearch';
 
 type CreateAppArgs = {
   store?: Object,
   jwtSecret: string,
   jwtAudience: string,
   sqlClient: MariaSQL,
+  esClient: elasticsearch.Client,
+  keycloakClient: Object,
+  searchguardClient: Object,
+  kibanaClient: Object
 };
 */
 
@@ -28,10 +35,19 @@ const createApp = (args /* : CreateAppArgs */) => {
     jwtAudience,
     sqlClient,
     esClient,
+    keycloakClient,
+    searchguardClient,
+    kibanaClient,
   } = args;
   const app = express();
 
-  const dao = Dao.make(sqlClient, esClient);
+  const dao = Dao.make(
+    sqlClient,
+    esClient,
+    keycloakClient,
+    searchguardClient,
+    kibanaClient,
+  );
 
   app.set('context', {
     sqlClient,
@@ -53,6 +69,11 @@ const createApp = (args /* : CreateAppArgs */) => {
       },
     }),
   );
+
+  // TODO: Restrict requests to lagoon domains?
+  app.use(cors());
+
+  app.use(authKeycloakMiddleware());
 
   app.use(
     createAuthMiddleware({

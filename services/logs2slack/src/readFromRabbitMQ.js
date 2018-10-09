@@ -51,12 +51,19 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "github:delete:handled":
     case "github:push:handled":
     case "bitbucket:repo:push:handled":
+    case "bitbucket:pullrequest:created:handled":
+    case "bitbucket:pullrequest:updated:handled":
+    case "bitbucket:pullrequest:fulfilled:handled":
+    case "bitbucket:pullrequest:rejected:handled":
     case "gitlab:push:handled":
     case "gitlab:merge_request:opened:handled":
     case "gitlab:merge_request:updated:handled":
     case "gitlab:merge_request:closed:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
+    case "github:push:skipped":
+    case "gitlab:push:skipped":
+    case "bitbucket:push:skipped":
       sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 

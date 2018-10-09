@@ -1,27 +1,31 @@
 # GraphQL API
 
-#### Connect to GraphQL API
+## Running GraphQL queries
 
-Direct API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate such token, open the terminal of the `auth-ssh` pod (you can either do that via the OpenShift UI or via `oc rsh`) and run:
+Direct API interactions in Lagoon are done via GraphQL.
 
-        ./create_jwt.sh
-
-This will return you with a long string, which is the jwt token.
-
-We also need the URL of the API Endpoint, you can find that on the "Routes" of the OpenShift UI or via `oc xxxx`
-
-Now we need a GraphQL client, technically this is just HTTP, but there is a nice UI that allows you to write GraphQL requests with autocomplete. Download, install and start it.
-
-Enter the API Endpoint URL that we learned from before in `GraphQL Endpoint` and suffix it with `/graphql` (important!). Then click on "Edit HTTP Headers" and add a new Header:
-
-* "Header name": `Authorization`
-* "Header value": `Bearer [jwt token]` (make sure that the jwt token has no spaces, as this would not work)
-
-Close the HTTP Header overlay (press ESC) and now we are ready to make the first GraphQL Request!
-
-Enter this on the left window:
+In order to authenticate with the API, we need a JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI or `oc rsh` on the command line and run the following command:
 
 ```
+./create_jwt.sh
+```
+
+This will return a long string which is the JWT token. Make a note of this as we will need it to send queries.
+
+We also need the URL of the API endpoint, which can be found under "Routes" in the OpenShift UI or `oc get route api` on the command line. Make a note of this endpoint URL, which we will also need.
+
+To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.com/skevy/graphiql-app), a desktop GraphQL client with features such as autocomplete. To continue with the next steps, install and start the app.
+
+Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end. Then click on "Edit HTTP Headers" and add a new header:
+
+- "Header name": `Authorization`
+- "Header value": `Bearer [JWT token]` (make sure that the JWT token has no spaces, as this would not work)
+
+Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
+
+Enter this in the left panel
+
+```graphql
 {
   allProjects {
     name
@@ -29,151 +33,237 @@ Enter this on the left window:
 }
 ```
 
-And press the Play button (or press CTRL+ENTER). If all went well, you should see your first GraphQL response.
+And press the ▶️ button (or press CTRL+ENTER). If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
 
-#### Create first Project
+## Creating the first project
 
-In order for Lagoon to deploy a project there is an example graphql in `create-project.gql`, which will create three API Objects:
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/blob/master/docs/administering_lagoon/create-project.gql).
 
-1.  `customer` The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone the Git repository of the project (the private key needs to be in a single string, where new lines are replaced by `\n` - see an example in /local-dev/api-data/api-data.sql)
-2.  `openshift` The OpenShift Cluster that Lagoon should use to deploy to. Yes Lagoon is not only capable to deploy into the OpenShift that it is running itself, but actually to any OpenShift anywhere in the world. We need to know the following infos for this to work:
-    1.  `name` - Unique identifier of the OpenShift
-    2.  `console_url` - URL of the OpenShift console (without any `/console` suffix)
-    3.  `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
-3.  `project` This is your git repository that should be deployed, it needs to contain a `.lagoon.yml` file so Lagoon knows what it should do.
+For each of the queries (the blocks starting with `mutation {`), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following three objects:
 
-Just fill all the `[fill me]` you can find in the examples below, copy it into the GraphiQL Client, press play and if everything went well, you should get a response which shows you the name of the customer & openshift object and the full project object that just has been created.
+1. `customer` The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. `customer` will hold the SSH private key that Lagoon will use to clone the Git repository of the project.
+2. `openshift` The OpenShift cluster that Lagoon should deploy to. Lagoon is not only capable of deploying to its own OpenShift but also to any OpenShift anywhere in the world.
+3. `project` The project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
-Congrats again 🎉!
+## Allowing access to the project
 
-#### Give Access to the Project
+In Lagoon each developer authenticates via their SSH key(s). This determines their access to:
 
-In Lagoon the individual developers are authenticating themselves via their SSH Keys. Via their SSH Keys they have access to multiple things:
+1. The Lagoon API, where they can see and edit projects they have access to
+2. Remote Shell Access to containers that are running in projects they have access to
+3. The Lagoon logging system, where a developer can find request logs, container logs, Lagoon logs and more.
 
-1. The Lagoon API itself, where they can only see and edit projects they actually have access too
-2. Remote Shell Access to containers that are running in projects they have access too
-3. The Lagoon logging system, where a developer can find Request Logs, Container Logs, Lagoon Logs and many more.
+To allow access to the project, we first need to add a new user to the API:
 
-First we need to add a new SSH Public key to the API:
-
-```
-mutation addSSHKey {
-  addSshKey(input:{name:"[name]", keyValue:"[keyValue]", keyType:SSH_RSA}) {
+```graphql
+mutation {
+  addUser(
+    input: {
+      email: "michael.schmid@example.com"
+      firstName: "Michael"
+      lastName: "Schmid"
+      comment: "CTO"
+    }
+  ) {
+    # TODO: Make a note of the user ID that is returned
     id
   }
 }
 ```
 
-- `name` - Your identificator for this SSH Key, can by any string
-- `keyValue` - The actual SSH Public Key Value (withouth the type on front and no name at the end, so just something like `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`)
-- `keyType` - The type of the key, there are currently two types supported by Lagoon: `SSH_RSA` and `SSH_ED25519`
+Then we can add an SSH public key for the user to the API:
 
-After we added the key we can give this key access to either a single project or a whole customer, while access to a whole customer means that this SSH key has automatically access to all projects that are assigned to this customer.
-
-```
-mutation addSshKeyToCustomer {
-  addSshKeyToCustomer(input:{customer:"[customer-name]", sshKey:"[sshKey-name]"}) {
+```graphql
+mutation {
+  addSshKey(
+    input: {
+      # TODO: Fill in the name field
+      # This is a non-unique identifier for the SSH key
+      name: ""
+      # TODO: Fill in the keyValue field
+      # This is the actual SSH public key (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`)
+      keyValue: ""
+      # TODO: Fill in the keyType field
+      # Valid values are either SSH_RSA or SSH_ED25519.
+      keyType: SSH_RSA
+      # TODO: Fill in the userId field
+      # This is the user ID that we noted from the addUser query
+      userId: 0
+    }
+  ) {
     id
   }
 }
 ```
 
-or
+After we added the key we can grant the user access to either:
 
-```
-mutation addSshKeyToProject {
-  addSshKeyToProject(input:{project:"[project-name]", sshKey:"[sshKey-name]"}) {
+**Grant a user access to a single project**
+
+```graphql
+mutation {
+  addUserToProject(
+    input: {
+      # TODO: Fill in the project field
+      # This is the project name
+      project: ""
+      # TODO: Fill in the userId field
+      # This is the user ID that we noted from the addUser query
+      userId: 0
+    }
+  ) {
     id
   }
 }
 ```
 
-That's it, now this SSH key can create Tokens via SSH, access containers and more.
+**Grant a user access to a customer (which will grant acccess to all projects of the customer)**
 
-Of corse it is possible to add an SSH Key to multiple customers and projects, whatever you need.
+```graphql
+mutation {
+  addUserToCustomer(
+    input: {
+      # TODO: Fill in the customer field
+      # This is the customer name
+      customer: ""
+      # TODO: Fill in the userId field
+      # This is the user ID that we noted from the addUser query
+      userId: 0
+    }
+  ) {
+    id
+  }
+}
+```
 
-#### Add Notifications to the Project
+After running one or more of these kinds of queries, the user will be granted access to create tokens via SSH, access containers and more.
 
-If you like to know what exactly is going on during a deployment, we suggest to configure notifications for your project, they will provide:
+## Adding notifications to the project
+
+If you want to know what is going on during a deployment, we suggest configuring notifications for your project, which provide:
 
 - Push messages
 - Build start information
 - Build success or failure messages
 - Many more
 
-Like with the SSH Keys, we first add the Notification and then we connect the Notification to the Projects. As the Notifications can be quite different of their information they need, the notification types are built a bit more sofisticated and each Notification Type has it's own mutation:
+As notifications can be quite different of their information they need, each notification type has its own mutation.
 
-```
-mutation addNotificationSlack {
-  addNotificationSlack(input:{name:"[name]]", channel:"[channel]", webhook:"[webhook]"}) {
+As with users, we first add the notification:
+
+```graphql
+mutation {
+  addNotificationSlack(
+    input: {
+      # TODO: Fill in the name field
+      # This is your own identifier for the notification
+      name: ""
+      # TODO: Fill in the channel field
+      # This is the channel for the message to be sent to
+      channel: ""
+      # TODO: Fill in the webhook field
+      # This is the URL of the webhook where messages should be sent, this is usually provided by the chat system to you
+      webhook: ""
+    }
+  ) {
     id
   }
 }
 ```
 
-```
-mutation addNotificationRocketChat {
-  addNotificationSlack(input:{name:"[name]]", channel:"[channel]", webhook:"[webhook]"}) {
+After the notification is created, we can now assign it to our project:
+
+```graphql
+mutation {
+  addNotificationToProject(
+    input: {
+      notificationType: SLACK
+      # TODO: Fill in the project field
+      # This is the project name
+      project: ""
+      # TODO: Fill in the notification field
+      # This is the notification name
+      notificationName: ""
+    }
+  ) {
     id
   }
 }
 ```
 
-- `name` - Is your own identificator for this Notification
-- `channel` - Which channel should the message be sent to
-- `webhook` - The URL of the webhook where messages should be sent, this is usally provided by the Chat System to you.
-
-After we create that we can now connect this notification to our project:
-
-```
-mutation addNotificationToProject {
-  addNotificationToProject(input:{notificationType: SLACK, project:"[project-name]", notificationName:"[notification-name]"}) {
-    id
-  }
-}
-```
-
-Now for every deployment you should see messages appear in your defined channel.
+Now for every deployment you will receive messages in your defined channel.
 
 ## Example GraphQL queries
 
-### Add New OpenShift Target
+### Adding a new OpenShift target
 
-The OpenShift Cluster that Lagoon should use to deploy to. Yes, Lagoon is not only capable to deploy into the OpenShift that it is running itself, but actually to any OpenShift anywhere in the world. We need to know the following infos for this to work:
+The OpenShift cluster that Lagoon should deploy to. Lagoon is not only capable of deploying to its own OpenShift but also to any OpenShift anywhere in the world.
 
-* `name` - Unique identifier of the OpenShift
-* `console_url` - URL of the OpenShift console (without any `/console` suffix)
-* `token` - the token of the `lagoon` Service Account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
-
-```
+```graphql
 mutation {
-  addOpenshift(input: {name: "my-openshift", console_url:"[fill me]", token: "[fill me]"}) {
+  addOpenshift(
+    input: {
+      # TODO: Fill in the name field
+      # This is the unique identifier of the OpenShift
+      name: ""
+      # TODO: Fill in consoleUrl field
+      # This is the URL of the OpenShift console (without any `/console` suffix)
+      consoleUrl: ""
+      # TODO: Fill in the token field
+      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
+      token: ""
+    }
+  ) {
     name
     id
   }
 }
 ```
 
-### Add New Customer
+### Adding a new customer
 
-The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. `customer` will hold the SSH Private Key that Lagoon will use to clone the Git repository of the project (the private key needs to be in a single string, where new lines are replaced by `\n` see an example in /local-dev/api-data/api-data.sql)
+This query adds a customer which can be assigned one or more projects. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. Each customer has an SSH private key that Lagoon will use to clone the Git repository of the project.
 
-```
+```graphql
 mutation {
-  addCustomer(input: {name: "[fill me]", private_key: "[fill me]"}) {
+  addCustomer(
+    input: {
+      # TODO: Fill in the name field
+      # This is the customer name
+      name: ""
+      # TODO: Fill in the privateKey field
+      # The private key is a string, with new lines represented by `\n`
+      privateKey: ""
+    }
+  ) {
     name
     id
   }
 }
 ```
 
-### Add New Project
+### Adding a new project
 
-This is your git repository that should be deployed, it needs to contain a `.lagoon.yml` file so Lagoon knows what it should do.
+This query adds a new project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
-```
+```graphql
 mutation {
-  addProject(input:{name: "first-project", customer:[customer-id], openshift:[openshift-id], git_url: "[fill me]"}) {
+  addProject(
+    input: {
+      # TODO: Fill in the name field
+      # This is the project name
+      name: ""
+      # TODO: Fill in the customer field
+      # This is the id of the customer to assign to the project
+      customer: 0
+      # TODO: Fill in the openshift field
+      # This is the id of the OpenShift to assign to the project
+      openshift: 0
+      # TODO: Fill in the name field
+      # This is the project name
+      gitUrl: ""
+    }
+  ) {
     name
     customer {
       name
@@ -183,24 +273,24 @@ mutation {
       name
       id
     }
-    git_url,
-    active_systems_deploy,
-    active_systems_remove,
-    branches,
+    gitUrl
+    activeSystemsDeploy
+    activeSystemsRemove
+    branches
     pullrequests
   }
 }
 ```
 
-### List Projects and Customers
+### List projects and customers
 
-This is a good comand to see an overview of all Projects, OpenShifts and Customers that exist within our Lagoon.
+This is a good query to see an overview of all projects, OpenShifts and customers that exist within our Lagoon.
 
-```
-query whatIsThereAlready{
+```graphql
+query {
   allProjects {
     name
-    git_url
+    gitUrl
   }
   allOpenshifts {
     name
@@ -213,18 +303,21 @@ query whatIsThereAlready{
 }
 ```
 
-### Single Project
+### Single project
 
-If you want to get an in depth look into a single project, this querry has been proven quite good:
+If you want a detailed look at a single project, this query has been proven quite good:
 
-```
-query singleProject {
-  projectByName(name: "[projectname]") {
+```graphql
+query {
+  projectByName(
+    # TODO: Fill in the project name
+    name: ""
+  ) {
     id
     branches
-    git_url
+    gitUrl
     pullrequests
-    production_environment
+    productionEnvironment
     notifications(type: SLACK) {
       ... on NotificationSlack {
         name
@@ -235,8 +328,8 @@ query singleProject {
     }
     environments {
       name
-      deploy_type
-      environment_type
+      deployType
+      environmentType
     }
     openshift {
       id
@@ -253,36 +346,41 @@ query singleProject {
 }
 ```
 
-### Project by Git URL
+### Querying a project by its Git URL
 
-Don't remember how a project was called, but now the Git URL? Search no longer, there is an GraphQL Query for that:
+Don't remember the name of a project, but know the Git URL? Search no longer, there is an GraphQL Query for that:
 
-```
-query projectByGitUrl{
+```graphql
+query {
   projectByGitUrl(gitUrl: "git@server.com:org/repo.git") {
     name
   }
 }
 ```
 
+### Updating objects
 
-### Update Objects
-
-The Lagoon GraphQL API cannot only display Objects and create Objects, it also has the capability to update exisitng Objects, all of this happens in full GraphQL best practices manner.
+The Lagoon GraphQL API cannot only display objects and create objects, it also has the capability to update existing objects, using [a patch object](https://blog.apollographql.com/designing-graphql-mutations-e09de826ed97).
 
 Update the branches to deploy within a project:
-```
-mutation editProjectBranches {
-  updateProject(input:{id:109, patch:{branches:"^(prod|stage|dev|update)$"}}) {
+
+```graphql
+mutation {
+  updateProject(
+    input: { id: 109, patch: { branches: "^(prod|stage|dev|update)$" } }
+  ) {
     id
   }
 }
 ```
 
-Update the production Environment within a project (Important: Needs a redeploy in order for all changes to be reflected in the containers):
-```
-mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{production_environment:"master"}}) {
+Update the production environment within a project (important: this needs a redeploy in order for the changes to be reflected in the containers):
+
+```graphql
+mutation {
+  updateProject(
+    input: { id: 109, patch: { productionEnvironment: "master" } }
+  ) {
     id
   }
 }
@@ -290,9 +388,17 @@ mutation editProjectProductionEnvironment {
 
 You can also combine multiple changes at once:
 
-```
-mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{production_environment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+```graphql
+mutation {
+  updateProject(
+    input: {
+      id: 109
+      patch: {
+        productionEnvironment: "master"
+        branches: "^(prod|stage|dev|update)$"
+      }
+    }
+  ) {
     id
   }
 }

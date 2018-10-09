@@ -58,6 +58,16 @@ objects:
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}-galera
       spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: service
+                      operator: In
+                      values:
+                        - ${SERVICE_NAME}-galera
+                topologyKey: kubernetes.io/hostname
         containers:
         - name: ${SERVICE_NAME}-galera
           image: ${SERVICE_IMAGE}
@@ -99,3 +109,5 @@ objects:
         resources:
           requests:
             storage: 5Gi
+    updateStrategy:
+      type: RollingUpdate

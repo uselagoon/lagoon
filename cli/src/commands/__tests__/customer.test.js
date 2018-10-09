@@ -1,11 +1,16 @@
 // @flow
 
-import { runGQLQuery } from '../../query';
-import { getCustomerDetails } from '../customer';
+import { queryGraphQL } from '../../util/queryGraphQL';
+import { handler } from '../customer';
 
-jest.mock('../../query');
+jest.mock('../../util/queryGraphQL');
+jest.mock('../../config', () => ({
+  getConfig: jest.fn(() => ({ format: 'table' })),
+}));
 
-const _mock = (mockFn: any): JestMockFn => mockFn;
+// Flow does not know which objects are actual mocks
+// this function casts given parameter to JestMockFn
+const _castMockForFlow = (mockFn: any): JestMockFn<any, any> => mockFn;
 
 const mockResponse = {
   data: {
@@ -13,10 +18,10 @@ const mockResponse = {
       customer: {
         name: 'customer1',
         comment: 'Comment about customer1',
-        private_key: 'PRIVATE_KEY',
-        sshKeys: [
+        privateKey: 'PRIVATE_KEY',
+        users: [
           {
-            name: 'a@example.com',
+            id: 0,
           },
         ],
         created: 'Wed May 18 2011 00:00:00 GMT+0000 (UTC)',
@@ -25,19 +30,24 @@ const mockResponse = {
   },
 };
 
-describe('getCustomerDetails', () => {
+describe('handler', () => {
   it('should show customer details', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve(mockResponse),
     );
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getCustomerDetails({
-      project: 'some_project',
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(0);
@@ -45,7 +55,7 @@ describe('getCustomerDetails', () => {
   });
 
   it('should show error message if GraphQL returns errors', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() =>
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
       Promise.resolve({
         errors: [{ message: 'Something, something missing parameter X' }],
       }),
@@ -54,10 +64,15 @@ describe('getCustomerDetails', () => {
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getCustomerDetails({
-      project: 'some_project',
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(1);
@@ -65,15 +80,22 @@ describe('getCustomerDetails', () => {
   });
 
   it('should show message for non-existing projects', async () => {
-    _mock(runGQLQuery).mockImplementationOnce(() => Promise.resolve({}));
+    _castMockForFlow(queryGraphQL).mockImplementationOnce(() =>
+      Promise.resolve({}),
+    );
 
     const clog = jest.fn();
     const cerr = jest.fn();
 
-    const code = await getCustomerDetails({
-      project: 'some_project',
+    const code = await handler({
       clog,
       cerr,
+      cwd: 'some/path',
+      options: {
+        format: 'table',
+        token: 'token/path',
+        project: 'some_project',
+      },
     });
 
     expect(code).toBe(0);

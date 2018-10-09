@@ -18,14 +18,16 @@ pages:
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
   - Logging: using_lagoon/logging.md
+  - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
     - Lagoonize: using_lagoon/drupal/lagoonize.md
     - First Deployment: using_lagoon/drupal/first_deployment.md
     - Drush 9: using_lagoon/drupal/drush9.md
     - Services:
-      - Varnish: using_lagoon/drupal/services/varnish.md
       - MariaDB: using_lagoon/drupal/services/mariadb.md
+      - Solr: using_lagoon/drupal/services/solr.md
+      - Varnish: using_lagoon/drupal/services/varnish.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
 - Administration:

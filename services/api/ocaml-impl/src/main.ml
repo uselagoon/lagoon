@@ -17,7 +17,7 @@ type customer = {
   id: int;
   name: string;
   comment: string;
-  private_key: string;
+  privateKey: string;
   created: string;
 }
 

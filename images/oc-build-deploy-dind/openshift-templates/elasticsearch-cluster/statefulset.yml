@@ -55,6 +55,16 @@ objects:
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}
       spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: service
+                      operator: In
+                      values:
+                        - ${SERVICE_NAME}
+                topologyKey: kubernetes.io/hostname
         containers:
         - name: ${SERVICE_NAME}
           image: ${SERVICE_IMAGE}
@@ -94,6 +104,10 @@ objects:
               value: ${SERVICE_NAME}
             - name: CRONJOBS
               value: ${CRONJOBS}
+            - name: DISCOVERY_ZEN_MINIMUM_MASTER_NODES
+              value: '2'
         volumes:
         - name: ${SERVICE_NAME}
           emptyDir: {}
+    updateStrategy:
+      type: RollingUpdate
