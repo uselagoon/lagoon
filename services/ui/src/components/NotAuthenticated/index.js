@@ -3,9 +3,9 @@ import Page from '../../layouts/main';
 import { bp } from '../../variables';
 
 const NotAuthenticated = props => (
-  <Page>
+  <Page auth={props.auth}>
     <div className="content-wrapper">
-      <h2>Not Authenticatd</h2>
+      <h2>Not Authenticated</h2>
       <div className="content">
         Please wait while we log you in...
       </div>

@@ -35,7 +35,7 @@ const query = gql`
 `;
 const Deployments = withRouter((props) => {
   return (
-    <Page keycloak={props.keycloak}>
+    <Page auth={props.auth}>
       <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
         {({ loading, error, data }) => {
           if (loading) return null;

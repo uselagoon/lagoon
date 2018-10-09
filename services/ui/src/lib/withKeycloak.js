@@ -7,7 +7,7 @@ export default App => {
   return class withKeycloak extends React.Component {
     constructor(props) {
       super(props);
-      this.state = { keycloak: undefined };
+      this.state = { auth: { authenticated: false } };
     }
 
     async componentDidMount() {
@@ -27,11 +27,22 @@ export default App => {
         checkLoginIframe: false
       });
 
-      this.setState({ keycloak });
+      this.setState({
+        auth: {
+          apiToken: keycloak.token,
+          authenticated: keycloak.authenticated,
+          logout: keycloak.logout,
+          provider: 'keycloak',
+          providerData: keycloak,
+          user: {
+            username: keycloak.tokenParsed ? keycloak.tokenParsed.preferred_username : 'unauthenticated',
+          },
+        }
+      });
     }
 
     render() {
-      return <App {...this.props} keycloak={this.state.keycloak} />;
+      return <App {...this.props} auth={this.state.auth} />;
     }
   };
 };

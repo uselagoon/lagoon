@@ -2,12 +2,12 @@ import React from 'react';
 import Link from 'next/link';
 import { color } from '../../variables';
 
-export default (keycloak) => (
+export default ({ auth }) => (
   <div className='header'>
     <Link href="/"><a>Home</a></Link>
     <div className="io"></div>
-    {keycloak.keycloak ? (
-      <a className="logout" onClick={keycloak.keycloak.logout}>{keycloak.keycloak.tokenParsed.preferred_username} - logout</a>
+    {auth.authenticated ? (
+      <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a>
       ) : '' }
     <style jsx>{`
       .header {

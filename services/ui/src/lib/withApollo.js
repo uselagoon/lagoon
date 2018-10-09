@@ -8,12 +8,13 @@ export default App => {
   return class withApollo extends React.Component {
     render() {
       let client;
+      const { auth } = this.props;
 
-      if (this.props.keycloak) {
+      if (auth.authenticated) {
         client = new ApolloClient({
           uri: publicRuntimeConfig.GRAPHQL_API,
           headers: {
-            authorization: `Bearer ${this.props.keycloak.token}`
+            authorization: `Bearer ${auth.apiToken}`
           }
         });
       }
