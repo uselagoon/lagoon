@@ -623,7 +623,7 @@ mutation PopulateApi {
   UIProject1: addProject(
     input: {
       id: 18
-      name: "High Cotton"
+      name: "high-cotton"
       customer: 5
       openshift: 4
       gitUrl: "test"
@@ -654,6 +654,43 @@ mutation PopulateApi {
   ) {
     id
   }
+
+  UIProject1Environment1addDeployment1: addDeployment(
+    input: {
+      name: "build-1"
+      status: COMPLETE
+      environment: 2
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      completed: "2018-10-07 23:20:41"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1addDeployment2: addDeployment(
+    input: {
+      name: "build-2"
+      status: FAILED
+      environment: 2
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      completed: "2018-10-07 23:20:41"
+    }
+  ) {
+    id
+  }
+  UIProject1Environment1addDeployment3: addDeployment(
+    input: {
+      name: "build-3"
+      status: RUNNING
+      environment: 2
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+    }
+  ) {
+    id
+  }
+
   UIProject1Environment2: addOrUpdateEnvironment(
     input: {
       name: "Staging"
