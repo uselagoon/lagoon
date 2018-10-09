@@ -1,8 +1,8 @@
 import Header from '../components/Header'
 
-export default ({ children, auth }) => (
+export default ({ children }) => (
   <React.Fragment>
-    <Header auth={auth}/>
+    <Header />
     { children }
   </React.Fragment>
 )

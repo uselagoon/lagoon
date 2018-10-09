@@ -3,7 +3,7 @@ import Page from '../../layouts/main';
 import { bp } from '../../variables';
 
 const NotAuthenticated = props => (
-  <Page auth={props.auth}>
+  <Page>
     <div className="content-wrapper">
       <h2>Not Authenticated</h2>
       <div className="content">

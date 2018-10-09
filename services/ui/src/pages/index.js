@@ -37,7 +37,7 @@ class StartPage extends React.Component {
   }
   render() {
     return (
-      <Page auth={this.props.auth}>
+      <Page>
         <div className='content-wrapper'>
           <h2>Projects</h2>
           <Query query={query}>

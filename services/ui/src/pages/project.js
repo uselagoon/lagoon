@@ -32,7 +32,7 @@ const query = gql`
 `;
 const Project = withRouter((props) => {
   return (
-    <Page auth={props.auth}>
+    <Page>
       <Query query={query} variables={{name: props.router.query.name}}>
         {({ loading, error, data }) => {
           if (loading) return null;

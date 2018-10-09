@@ -1,14 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
+import { AuthContext } from '../../lib/withAuth';
 import { color } from '../../variables';
 
-export default ({ auth }) => (
+export default () => (
   <div className='header'>
     <Link href="/"><a>Home</a></Link>
     <div className="io"></div>
-    {auth.authenticated ? (
-      <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a>
-      ) : '' }
+    <AuthContext.Consumer>
+      {auth => {
+        if (auth.authenticated) {
+          return <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a>;
+        }
+
+        return null;
+      }}
+    </AuthContext.Consumer>
     <style jsx>{`
       .header {
         background: ${color.blue};
