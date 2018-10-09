@@ -10,21 +10,38 @@ const {
   isPatchEmpty,
 } = require('./utils');
 
+/* ::
+
+import type {ResolversObj} from './';
+
+*/
+
 const Sql = {
-  selectDeployment: id =>
+  selectDeployment: (id /* : number */) =>
     knex('deployment')
       .where('id', '=', id)
       .toString(),
-  insertDeployment: ({
-    id,
-    name,
-    status,
-    created,
-    started,
-    completed,
-    environment,
-    remoteId,
-  }) =>
+  insertDeployment: (
+    {
+      id,
+      name,
+      status,
+      created,
+      started,
+      completed,
+      environment,
+      remoteId,
+    } /* : {
+    id: number,
+    name: string,
+    status: string,
+    created: number,
+    started: number,
+    completed: number,
+    environment: string,
+    remoteId: number,
+  } */,
+  ) =>
     knex('deployment')
       .insert({
         id,
@@ -37,24 +54,24 @@ const Sql = {
         remoteId,
       })
       .toString(),
-  deleteDeployment: id =>
+  deleteDeployment: (id /* : number */) =>
     knex('deployment')
       .where('id', id)
       .del()
       .toString(),
-  updateDeployment: ({ id, patch }) =>
+  updateDeployment: ({ id, patch } /* : {id: number, patch: Object} */) =>
     knex('deployment')
       .where('id', id)
       .update(patch)
       .toString(),
-  selectPermsForDeployment: id =>
+  selectPermsForDeployment: (id /* : number */) =>
     knex('devployment')
       .select({ pid: 'project.id', cid: 'project.customer' })
       .join('environment', 'deployment.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')
       .where('deployment.id', id)
       .toString(),
-  selectPermsForEnvironment: id =>
+  selectPermsForEnvironment: (id /* : number */) =>
     knex('environment')
       .select({ pid: 'project.id', cid: 'project.customer' })
       .join('project', 'environment.project', '=', 'project.id')
@@ -281,15 +298,16 @@ const updateDeployment = ({ sqlClient, esClient }) => async (
   return injectBuildLog(R.prop(0, rows), esClient);
 };
 
+const Resolvers /* : ResolversObj */ = {
+  getDeploymentsByEnvironmentId,
+  getDeploymentByRemoteId,
+  addDeployment,
+  deleteDeployment,
+  updateDeployment,
+};
 
 module.exports = {
   Sql,
-  Resolvers: {
-    getDeploymentsByEnvironmentId,
-    getDeploymentByRemoteId,
-    addDeployment,
-    deleteDeployment,
-    updateDeployment,
-  },
+  Resolvers,
   Helpers,
 };
