@@ -41,7 +41,7 @@
     git_pr_commit_hash: "{{ pr_commit_hash }}"
     git_pr_number: "1"
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
-    git_pr_title: "PR Title"
+    git_pr_title: "PR Title with asdfgh"
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-opened.yaml
 
