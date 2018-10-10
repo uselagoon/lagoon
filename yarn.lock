@@ -7492,10 +7492,6 @@ quick-lru@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-1.1.0.tgz#4360b17c61136ad38078397ff11416e186dcfbb8"
 
-rambda@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/rambda/-/rambda-1.2.2.tgz#92e22c70e3eac170b79defe75053a9806d88c6ca"
-
 ramda@^0.24.1:
   version "0.24.1"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.24.1.tgz#c3b7755197f35b8dc3502228262c4c91ddb6b857"
