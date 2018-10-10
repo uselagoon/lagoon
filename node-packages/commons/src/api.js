@@ -1,6 +1,12 @@
 // @flow
 
-import type { Project, CustomerPatch, UserPatch, ProjectPatch, DeploymentPatch } from './types';
+import type {
+  Project,
+  CustomerPatch,
+  UserPatch,
+  ProjectPatch,
+  DeploymentPatch,
+} from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -687,10 +693,10 @@ const addDeployment = (
   status: string,
   created: string,
   environment: number,
-  remoteId: string = null,
-  id: number = null,
-  started: string = null,
-  completed: string = null,
+  remoteId: ?string = null,
+  id: ?number = null,
+  started: ?string = null,
+  completed: ?string = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
