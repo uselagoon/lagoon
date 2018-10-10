@@ -63,9 +63,6 @@ const authWithKeycloak /* : AuthWithKeycloakFn */ = async (req, res, next) => {
     return;
   }
 
-  const ctx = req.app.get('context');
-  const dao = ctx.dao;
-
   try {
     // Admins have full access and don't need a list of permissions
     if (
@@ -85,7 +82,7 @@ const authWithKeycloak /* : AuthWithKeycloakFn */ = async (req, res, next) => {
         },
       } = req.kauth.grant.access_token;
 
-      const permissions = await getPermissionsForUser(dao, userId);
+      const permissions = await getPermissionsForUser(userId);
 
       if (R.isEmpty(permissions)) {
         res.status(401).send({

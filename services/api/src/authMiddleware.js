@@ -66,9 +66,6 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
   jwtSecret,
   jwtAudience,
 }) => async (req, res, next) => {
-  const ctx = req.app.get('context');
-  const dao = ctx.dao;
-
   // Allow access to status without auth
   if (req.url === '/status') {
     next();
@@ -126,7 +123,7 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
     let nonAdminCreds = {};
 
     if (role !== 'admin') {
-      const permissions = await getPermissionsForUser(dao, userId);
+      const permissions = await getPermissionsForUser(userId);
 
       if (R.isEmpty(permissions)) {
         res.status(401).send({

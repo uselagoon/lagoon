@@ -10,21 +10,11 @@ const createRouter = require('./routes');
 const { authKeycloakMiddleware } = require('./authKeycloakMiddleware');
 const { createAuthMiddleware } = require('./authMiddleware');
 
-const Dao = require('./dao');
-
 /* ::
-import type MariaSQL from 'mariasql';
-import type elasticsearch from 'elasticsearch';
-
 type CreateAppArgs = {
   store?: Object,
   jwtSecret: string,
   jwtAudience: string,
-  sqlClient: MariaSQL,
-  esClient: elasticsearch.Client,
-  keycloakClient: Object,
-  searchguardClient: Object,
-  kibanaClient: Object
 };
 */
 
@@ -33,27 +23,8 @@ const createApp = (args /* : CreateAppArgs */) => {
     // store,
     jwtSecret,
     jwtAudience,
-    sqlClient,
-    esClient,
-    keycloakClient,
-    searchguardClient,
-    kibanaClient,
   } = args;
   const app = express();
-
-  const dao = Dao.make(
-    sqlClient,
-    esClient,
-    keycloakClient,
-    searchguardClient,
-    kibanaClient,
-  );
-
-  app.set('context', {
-    sqlClient,
-    esClient,
-    dao,
-  });
 
   // Use compression (gzip) for responses.
   app.use(compression());

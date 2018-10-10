@@ -242,7 +242,7 @@ mutation PopulateApi {
   }
 
   # Projects for CI
-  CiGithub: addProject(
+  CiGithub1: addProject(
     input: {
       id: 3
       name: "ci-github"
