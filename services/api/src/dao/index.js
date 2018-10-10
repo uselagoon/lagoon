@@ -63,6 +63,7 @@ const daoFns = {
   ...require('./customer').Queries,
   ...require('./project').Queries,
   ...require('./sshKey').Queries,
+  ...require('./deployment').Queries,
 };
 
 // Maps all dao functions to given sqlClient

@@ -90,6 +90,17 @@ CREATE TABLE IF NOT EXISTS environment_storage (
        UNIQUE KEY `environment_persistent_storage_claim_updated` (`environment`,`persistent_storage_claim`, `updated`)
 );
 
+CREATE TABLE IF NOT EXISTS deployment (
+       id           int NOT NULL auto_increment PRIMARY KEY,
+       name         varchar(100) NOT NULL,
+       status       ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete') NOT NULL,
+       created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       started      datetime NULL,
+       completed    datetime NULL,
+       environment  int NOT NULL REFERENCES environment (id),
+       remote_id    varchar(50) NULL
+);
+
 -- Junction Tables
 
 CREATE TABLE IF NOT EXISTS project_notification (

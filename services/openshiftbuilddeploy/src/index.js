@@ -3,8 +3,9 @@
 const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject, addOrUpdateEnvironment } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
@@ -395,6 +396,14 @@ const messageConsumer = async msg => {
   const buildConfigsInstantiatePost = Promise.promisify(openshift.ns(openshiftProject).buildconfigs('lagoon/instantiate').post, { context: openshift.ns(openshiftProject).buildconfigs('lagoon/instantiate') })
   const build = await buildConfigsInstantiatePost({body: {"kind":"BuildRequest","apiVersion":"v1","metadata":{"name":"lagoon"}}})
   const buildName = build.metadata.name
+
+  try {
+    const convertDateFormat = R.init;
+    const apiEnvironment = await getEnvironmentByName(branchName, projectId);
+    await addDeployment(buildName, build.status.phase.toUpperCase(), convertDateFormat(build.metadata.creationTimestamp), apiEnvironment.environmentByName.id, build.metadata.uid);
+  } catch (error) {
+    logger.error(`Could not save deployment for project ${projectId}, build ${buildName}. Message: ${error}`);
+  }
 
   logger.verbose(`${openshiftProject}: Running build: ${buildName}`)
 
