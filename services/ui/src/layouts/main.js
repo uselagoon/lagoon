@@ -1,8 +1,8 @@
 import Header from '../components/Header'
 
-export default ({ children, keycloak }) => (
+export default ({ children }) => (
   <React.Fragment>
-    <Header keycloak={keycloak}/>
+    <Header />
     { children }
   </React.Fragment>
 )
