@@ -1,17 +1,12 @@
 // @flow
 
-
 const keycloakClient = require('./clients/keycloakClient');
 const waitAndInitKeycloak = require('./util/waitAndInitKeycloak');
 const logger = require('./logger');
 const createServer = require('./server');
 
 (async () => {
-  const {
-    JWTSECRET,
-    JWTAUDIENCE,
-    KEYCLOAK_ADMIN_PASSWORD,
-  } = process.env;
+  const { JWTSECRET, JWTAUDIENCE, KEYCLOAK_ADMIN_PASSWORD } = process.env;
 
   await waitAndInitKeycloak(keycloakClient, {
     username: 'admin',
