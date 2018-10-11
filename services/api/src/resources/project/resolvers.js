@@ -201,43 +201,6 @@ const addProject = async (
     `,
   );
 
-  console.log(`CALL CreateProject(
-    :id,
-    :name,
-    :customer,
-    :git_url,
-    ${input.subfolder ? ':subfolder' : 'NULL'},
-    :openshift,
-    ${input.openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'},
-    ${
-  input.activeSystemsDeploy
-    ? ':active_systems_deploy'
-    : '"lagoon_openshiftBuildDeploy"'
-},
-    ${
-  input.activeSystemsPromote
-    ? ':active_systems_promote'
-    : '"lagoon_openshiftBuildDeploy"'
-},
-    ${
-  input.activeSystemsRemove
-    ? ':active_systems_remove'
-    : '"lagoon_openshiftRemove"'
-},
-    ${input.branches ? ':branches' : '"true"'},
-    ${input.pullrequests ? ':pullrequests' : '"true"'},
-    ${input.productionEnvironment ? ':production_environment' : 'NULL'},
-    ${input.autoIdle ? ':auto_idle' : '1'},
-    ${input.storageCalc ? ':storage_calc' : '1'},
-    ${
-  input.developmentEnvironmentsLimit
-    ? ':development_environments_limit'
-    : '5'
-}
-
-  );
-`);
-
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
