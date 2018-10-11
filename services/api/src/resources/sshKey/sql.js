@@ -28,7 +28,9 @@ const Sql /* : SqlObj */ = {
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
       .where('usk.usid', '=', userId)
       .toString(),
-  selectAllCustomerSshKeys: ({ role } /* : Cred */) => {
+  selectAllCustomerSshKeys: (
+    { credentials: { role } } /* : {credentials: Cred} */,
+  ) => {
     if (role !== 'admin') {
       throw new Error('Unauthorized');
     }
