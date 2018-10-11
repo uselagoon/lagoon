@@ -19,7 +19,7 @@
     "es7-sleep": "^1.0.0",
     "flow-remove-types": "^1.2.1",
     "openshift-client": "^3.10.8",
-    "rambda": "^1.2.2"
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"
