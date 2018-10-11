@@ -22,12 +22,18 @@ const {
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let connection = (exports.connection = function connection() {});
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
