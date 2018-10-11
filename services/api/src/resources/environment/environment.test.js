@@ -11,8 +11,7 @@ describe('Sql', () => {
           project: 1,
         },
       };
-      // $FlowFixMe
-      const ret = Sql.updateEnvironment({}, input);
+      const ret = Sql.updateEnvironment(input);
       expect(ret).toMatchSnapshot();
     });
   });

@@ -15,7 +15,7 @@ export type Cred = {
 
 export type CredMaybe = {
   role?: string,
-  userId?: string,
+  userId?: number,
   permissions: {
     customers?: Array<string>,
     projects?: Array<string>

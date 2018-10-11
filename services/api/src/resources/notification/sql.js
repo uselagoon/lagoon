@@ -111,7 +111,7 @@ const Sql /* : SqlObj */ = {
     knex('notification_rocketchat')
       .where('name', '=', name)
       .toString(),
-  updateNotificationSlack: (cred /* : Cred */, input /* : Object */) => {
+  updateNotificationSlack: (input /* : Object */) => {
     const { name, patch } = input;
 
     return knex('notification_slack')

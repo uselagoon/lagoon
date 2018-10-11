@@ -7,6 +7,7 @@ const { getPermissionsForUser } = require('./util/auth');
 
 /* ::
 import type { $Application } from 'express';
+import type { CredMaybe } from './resources';
 */
 
 const parseBearerToken = R.compose(
@@ -143,11 +144,13 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
       };
     }
 
-    req.credentials = {
+    const credentials /* : CredMaybe */ = {
       role,
       permissions: {},
       ...nonAdminCreds,
     };
+
+    req.credentials = credentials;
 
     next();
   } catch (e) {

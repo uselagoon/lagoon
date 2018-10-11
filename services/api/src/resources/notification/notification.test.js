@@ -44,6 +44,7 @@ describe('Sql', () => {
     it('if admin, should create statement for notification_slack table without IN clause', () => {
       const cred = {
         role: 'admin',
+        permissions: {},
       };
 
       const input = {
@@ -58,21 +59,13 @@ describe('Sql', () => {
 
   describe('selectUnassignedNotificationsByType', () => {
     it('should create a proper query', () => {
-      const cred = {
-        role: 'user',
-        permissions: {
-          customers: ['1', '2'],
-          projects: [],
-        },
-      };
-      const ret = Sql.selectUnassignedNotificationsByType(cred, 'rocketchat');
+      const ret = Sql.selectUnassignedNotificationsByType('rocketchat');
       expect(ret).toMatchSnapshot();
     });
   });
 
   describe('updateNotificationSlack', () => {
     it('should create a proper query', () => {
-      const cred = {};
       const input = {
         name: 'n1',
         patch: {
@@ -81,7 +74,7 @@ describe('Sql', () => {
         },
       };
 
-      const ret = Sql.updateNotificationSlack(cred, input);
+      const ret = Sql.updateNotificationSlack(input);
       expect(ret).toMatchSnapshot();
     });
   });
