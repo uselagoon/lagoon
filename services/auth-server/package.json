@@ -16,9 +16,7 @@
     "dev": "nodemon --ignore dist --watch . --exec 'flow-node src/index.js'",
     "start": "node dist",
     "format": "prettier-eslint --write '**/*.js'",
-    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint ."
   },
   "dependencies": {
     "@lagoon/commons": "4.0.0",
