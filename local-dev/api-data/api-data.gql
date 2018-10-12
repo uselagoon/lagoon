@@ -706,4 +706,47 @@ mutation FillAPI {
   ) {
     id
   }
+
+  CILimit: addProject(
+    input: {
+      id: 19
+      name: "ci-env-limit"
+      productionEnvironment: "master"
+      customer: 3
+      openshift: 2
+      developmentEnvironmentsLimit: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
+    }
+  ) { id }
+
+  CILimitEnv1: addOrUpdateEnvironment(
+    input: {
+      name: "master"
+      project: 19
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ci-env-limit"
+    }
+  ){  id }
+
+  CILimitEnv2: addOrUpdateEnvironment(
+    input: {
+      name: "develop"
+      project: 19
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ci-env-limit"
+    }
+  ) { id }
+
+  CILimitEn3: addOrUpdateEnvironment(
+    input: {
+      name: "stage"
+      project: 19
+      deployType: BRANCH
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "ci-env-limit"
+    }
+  ) { id }
+
 }

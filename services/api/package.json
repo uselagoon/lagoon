@@ -13,8 +13,8 @@
     "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "3.0.2",
     "body-parser": "^1.18.2",

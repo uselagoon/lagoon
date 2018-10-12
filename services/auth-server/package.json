@@ -1,6 +1,12 @@
 {
   "name": "auth-server",
   "version": "0.9.0",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Patrick Stapfer <patrick@amazee.io>",
+    "Karl Horky <karl.horky@gmail.com>",
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)"
+  ],
   "scripts": {
     "clean": "rimraf dist && rimraf logs",
     "build": "flow-remove-types --out-dir dist/ src/",

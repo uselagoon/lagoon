@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS project (
        storage_calc           int(1) NOT NULL default 1,
        openshift              int REFERENCES openshift (id),
        openshift_project_pattern varchar(300),
+       development_environments_limit      int DEFAULT NULL,
        created                timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -384,6 +385,24 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_environment_limit_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+            SELECT NULL
+              FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE table_name = 'project'
+               AND table_schema = 'infrastructure'
+               AND column_name = 'development_environments_limit'
+           )  THEN
+ALTER TABLE `project` ADD `development_environments_limit` int;
+    END IF;
+
+  END;
+$$
+
 CREATE OR REPLACE PROCEDURE
   add_routes_monitoring_urls_to_environments()
 
@@ -407,11 +426,13 @@ $$
 CREATE OR REPLACE PROCEDURE
   rename_keyValue_to_key_value_in_ssh_key()
 
+
   BEGIN
 
     IF NOT EXISTS(
               SELECT NULL
                 FROM INFORMATION_SCHEMA.COLUMNS
+
                WHERE table_name = 'ssh_key'
                  AND table_schema = 'infrastructure'
                  AND column_name = 'key_value'
@@ -457,6 +478,7 @@ CREATE OR REPLACE PROCEDURE
              )  THEN
       ALTER TABLE `environment` CHANGE `openshift_projectname` `openshift_project_name` varchar(100);
 
+
     END IF;
 
   END;
@@ -482,7 +504,7 @@ CALL add_routes_monitoring_urls_to_environments();
 CALL rename_keyValue_to_key_value_in_ssh_key();
 CALL rename_keyType_to_key_type_in_ssh_key();
 CALL rename_openshift_projectname_in_environment();
-
+CALL add_environment_limit_to_project();
 
 -- Views
 
