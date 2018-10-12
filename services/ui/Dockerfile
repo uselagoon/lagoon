@@ -18,8 +18,8 @@ COPY --from=yarn-workspace-builder /app/.env.defaults .
 # Copying files from our service
 COPY . .
 
-# Running yarn install in case some dependencies are not here
-RUN yarn install --frozen-lockfile
+# Verify that all dependencies have been installed via the yarn-workspace-builder
+RUN yarn check --verify-tree
 
 # Making sure we run in production
 ENV NODE_ENV=production

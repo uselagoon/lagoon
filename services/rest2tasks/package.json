@@ -2,6 +2,7 @@
   "name": "rest2tasks",
   "version": "1.0.0",
   "description": "Demo app for react-isomorphic-form",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "build/index.js",
   "license": "MIT",
   "scripts": {

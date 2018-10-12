@@ -37,18 +37,17 @@ ENV TMPDIR=/tmp \
     ENV=/home/.bashrc \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc \
-    KEYCLOAK_SUPERADMIN_USER=superadmin \
-    KEYCLOAK_SUPERADMIN_PASSWORD=superadmin \
+    KEYCLOAK_ADMIN_USER=admin \
+    KEYCLOAK_ADMIN_PASSWORD=admin \
     KEYCLOAK_REALM=lagoon \
+    KEYCLOAK_REALM_ROLES=admin \
     DB_ADDR=keycloak-db \
     DB_USER=keycloak \
     DB_PASSWORD=keycloak \
     DB_DATABASE=keycloak \
-    KEYCLOAK_ADMIN_USERNAME=admin \
-    KEYCLOAK_ADMIN_PASSWORD=admin \
-    KEYCLOAK_CLIENT_IDS=searchguard \
-    KEYCLOAK_CLIENT_WEB_ORIGINS='*' \
-    KEYCLOAK_CLIENT_REDIRECT_URIS='*'
+    KEYCLOAK_LAGOON_ADMIN_USERNAME=lagoonadmin \
+    KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin \
+    PROXY_ADDRESS_FORWARDING=true
 
 VOLUME /opt/jboss/keycloak/standalone/data
 

@@ -34,3 +34,6 @@ PermitUserEnvironment no
 #UseDNS yes
 PermitTunnel no
 Banner none
+
+ClientAliveInterval 60
+ClientAliveCountMax 1440 # max keepalive of 24h

@@ -3,9 +3,11 @@
 const jwt = require('jsonwebtoken');
 const R = require('ramda');
 const logger = require('./logger');
+const { getPermissionsForUser } = require('./util/auth');
 
 /* ::
 import type { $Application } from 'express';
+import type { CredMaybe } from './resources';
 */
 
 const parseBearerToken = R.compose(
@@ -36,30 +38,6 @@ const decodeToken = (
   }
 };
 
-const notEmptyOrNaN /* : Function */ = R.allPass([
-  R.compose(
-    R.not,
-    R.isEmpty,
-  ),
-  R.compose(
-    R.not,
-    R.equals(NaN),
-  ),
-]);
-
-// Input: Comma-separated string with ids (defaults to '' if null)
-// Output: Array of ids as strings
-const splitCommaSeparatedPermissions /* :  (?string) => Array<string> */ = R.compose(
-  // MariaDB returns number ids as strings. In order to avoid
-  // having to compare numbers with strings later on, this
-  // function casts them back to string.
-  R.map(R.toString),
-  R.filter(notEmptyOrNaN),
-  R.map(strId => parseInt(strId)),
-  R.split(','),
-  R.defaultTo(''),
-);
-
 /* ::
 import type { $Request, $Response, NextFunction } from 'express';
 
@@ -89,11 +67,14 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
   jwtSecret,
   jwtAudience,
 }) => async (req, res, next) => {
-  const ctx = req.app.get('context');
-  const dao = ctx.dao;
-
   // Allow access to status without auth
   if (req.url === '/status') {
+    next();
+    return;
+  }
+
+  // Allow keycloak authenticated sessions
+  if (req.credentials) {
     next();
     return;
   }
@@ -143,9 +124,9 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
     let nonAdminCreds = {};
 
     if (role !== 'admin') {
-      const rawPermissions = await dao.getPermissions({ userId });
+      const permissions = await getPermissionsForUser(userId);
 
-      if (rawPermissions == null) {
+      if (R.isEmpty(permissions)) {
         res.status(401).send({
           errors: [
             {
@@ -156,13 +137,6 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
         return;
       }
 
-      // Split comma-separated permissions values to arrays
-      const permissions = R.compose(
-        R.over(R.lensProp('customers'), splitCommaSeparatedPermissions),
-        R.over(R.lensProp('projects'), splitCommaSeparatedPermissions),
-        R.defaultTo({}),
-      )(rawPermissions);
-
       nonAdminCreds = {
         userId,
         // Read and write permissions
@@ -170,11 +144,13 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
       };
     }
 
-    req.credentials = {
+    const credentials /* : CredMaybe */ = {
       role,
       permissions: {},
       ...nonAdminCreds,
     };
+
+    req.credentials = credentials;
 
     next();
   } catch (e) {
@@ -186,5 +162,4 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
 
 module.exports = {
   createAuthMiddleware,
-  splitCommaSeparatedPermissions,
 };

@@ -27,6 +27,7 @@ COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 SERVICE_TYPES=()
 IMAGES=()
 NATIVE_CRONJOB_CLEANUP_ARRAY=()
+SERVICEBROKERS=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
@@ -202,10 +203,8 @@ do
   let COUNTER=COUNTER+1
 done
 
-
-
 ##############################################
-### CREATE OPENSHIFT SERVICES AND ROUTES
+### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
 ##############################################
 
 YAML_CONFIG_FILE="services-routes"
@@ -262,6 +261,14 @@ do
     fi
 
   fi
+
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
+    SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+  fi
+
 done
 
 TEMPLATE_PARAMETERS=()
@@ -371,6 +378,48 @@ if [ "$TYPE" == "pullrequest" ]; then
     configmap lagoon-env \
     -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":\"${PR_TITLE}\"}}"
 fi
+
+# loop through created ServiceBroker
+for SERVICEBROKER_ENTRY in "${SERVICEBROKERS[@]}"
+do
+  IFS=':' read -ra SERVICEBROKER_ENTRY_SPLIT <<< "$SERVICEBROKER_ENTRY"
+
+  SERVICE_NAME=${SERVICEBROKER_ENTRY_SPLIT[0]}
+  SERVICE_TYPE=${SERVICEBROKER_ENTRY_SPLIT[1]}
+
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+
+  case "$SERVICE_TYPE" in
+
+    mariadb-shared)
+        # ServiceBrokers take a bit, wait until the credentials secret is available
+        until oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials
+        do
+          echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
+          sleep 5
+        done
+        # Load credentials out of secret
+        oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials -o yaml > /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml
+        set +x
+        DB_HOST=$(cat /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_HOST | base64 -d)
+        DB_USER=$(cat /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_USER | base64 -d)
+        DB_PASSWORD=$(cat /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_PASSWORD | base64 -d)
+        DB_NAME=$(cat /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_NAME | base64 -d)
+        DB_PORT=$(cat /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_PORT | base64 -d)
+
+        # Add credentials to our configmap, prefixed with the name of the servicename of this servicebroker
+        oc patch --insecure-skip-tls-verify \
+          -n ${OPENSHIFT_PROJECT} \
+          configmap lagoon-env \
+          -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
+        set -x
+        ;;
+
+    *)
+        echo "ServiceBroker Type ${SERVICE_TYPE} not implemented"; exit 1;
+
+  esac
+done
 
 ##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
@@ -626,6 +675,9 @@ do
     DAEMONSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-deamonset.sh
 
+  elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh

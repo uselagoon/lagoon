@@ -461,6 +461,7 @@ declare module ramda {
    */
 
   declare var compose: Compose;
+  declare var composeP: Function;
   declare var pipe: Pipe;
   // declare var pipeP: PipeP;
   declare var pipeP: Function;

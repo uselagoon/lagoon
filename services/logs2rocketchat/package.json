@@ -2,6 +2,7 @@
   "name": "logs2rocketchat",
   "version": "0.0.1",
   "description": "lagoon handler for webhooks",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "build/index.js",
   "scripts": {
     "start": "flow-node build/index.js",

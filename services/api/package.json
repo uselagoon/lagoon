@@ -1,13 +1,12 @@
 {
   "name": "api",
   "version": "3.0.0",
-  "description": "",
+  "description": "Lagoon GraphQL API",
   "main": "index.js",
   "engines": {
     "node": ">=8.12.0"
   },
   "scripts": {
-    "build": "echo 'hi'",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
@@ -16,8 +15,8 @@
     "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "body-parser": "^1.18.2",
@@ -29,10 +28,13 @@
     "elasticsearch": "^15.0.0",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
+    "got": "^9.2.2",
     "graphql": "^0.13.2",
     "graphql-iso-date": "^3.5.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
+    "keycloak-admin": "^1.8.0",
+    "keycloak-connect": "^4.5.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "morgan": "^1.9.0",

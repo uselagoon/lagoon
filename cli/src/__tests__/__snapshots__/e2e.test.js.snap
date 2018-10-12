@@ -55,6 +55,7 @@ ci-drupal              ssh://git@192.168.99.1:2222/git/drupal.git              t
 ci-drupal-galera       ssh://git@192.168.99.1:2222/git/drupal-galera.git       true      true                              
 ci-drupal-postgres     ssh://git@192.168.99.1:2222/git/drupal-postgres.git     true      true                              
 ci-elasticsearch       ssh://git@192.168.99.1:2222/git/elasticsearch.git       true      true                              
+ci-env-limit           ssh://git@192.168.99.1:2222/git/node.git                true      true                              
 ci-features            ssh://git@192.168.99.1:2222/git/features.git            true      true                              
 ci-features-subfolder  ssh://git@192.168.99.1:2222/git/features-subfolder.git  true      true                              
 ci-github              ssh://git@192.168.99.1:2222/git/github.git              true      true                              
@@ -75,6 +76,7 @@ ci-drupal              ssh://git@192.168.99.1:2222/git/drupal.git              t
 ci-drupal-galera       ssh://git@192.168.99.1:2222/git/drupal-galera.git       true      true                              
 ci-drupal-postgres     ssh://git@192.168.99.1:2222/git/drupal-postgres.git     true      true                              
 ci-elasticsearch       ssh://git@192.168.99.1:2222/git/elasticsearch.git       true      true                              
+ci-env-limit           ssh://git@192.168.99.1:2222/git/node.git                true      true                              
 ci-features            ssh://git@192.168.99.1:2222/git/features.git            true      true                              
 ci-features-subfolder  ssh://git@192.168.99.1:2222/git/features-subfolder.git  true      true                              
 ci-github              ssh://git@192.168.99.1:2222/git/github.git              true      true                              

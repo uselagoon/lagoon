@@ -8,14 +8,18 @@
     "build": "flow-remove-types --out-dir build/ src/",
     "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
   },
-  "author": "Michael Schmid <michael@amazee.io> (https://amazee.io)",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)"
+  ],
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "bluebird": "^3.5.1",
     "es7-sleep": "^1.0.0",
     "flow-remove-types": "^1.2.1",
-    "openshift-client": "^3.10.8"
+    "openshift-client": "^3.10.8",
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"

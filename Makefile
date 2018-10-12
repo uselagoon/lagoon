@@ -106,6 +106,8 @@ docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amaze
 images :=     oc \
 							mariadb \
 							mariadb-drupal \
+							mariadb-galera \
+							mariadb-galera-drupal \
 							postgres \
 							postgres-drupal \
 							oc-build-deploy-dind \
@@ -147,6 +149,8 @@ $(build-images):
 #    changed on the Dockerfiles
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
+build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
+build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
@@ -597,12 +601,12 @@ minishift: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="v3.7.2"
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
-	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
+	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
-	echo "replacing IP in local-dev/api-data/api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/api-data.gql docker-compose.yaml;
+	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
+	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 endif
 	./local-dev/minishift/minishift ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \

@@ -30,6 +30,7 @@
     "type": "git",
     "url": "git+https://github.com/amazeeio/lagoon.git"
   },
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
     "Patrick Stapfer <patrick@amazee.io>",
     "Karl Horky <karl.horky@gmail.com>"
