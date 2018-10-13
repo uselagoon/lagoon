@@ -318,7 +318,7 @@ const typeDefs = gql`
   type Backup {
     id: Int
     environment: Environment
-    backupSource: String
+    source: String
     backupId: String
     created: String
   }
@@ -432,7 +432,7 @@ const typeDefs = gql`
   input AddBackupInput {
     id: Int
     environment: Int!
-    backupSource: String!
+    source: String!
     backupId: String!
     created: String!
   }
@@ -741,6 +741,7 @@ const typeDefs = gql`
     addDeployment(input: DeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
+    addBackup(input: AddBackupInput!): Backup
   }
 `;
 
