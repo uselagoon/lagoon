@@ -315,6 +315,14 @@ const typeDefs = gql`
     hours: Int
   }
 
+  type Backup {
+    id: Int
+    environment: Environment
+    backupSource: String
+    backupId: String
+    created: String
+  }
+
   type Deployment {
     id: Int
     name: String
@@ -420,6 +428,15 @@ const typeDefs = gql`
     persistentStorageClaim: String!
     bytesUsed: Int!
   }
+
+  input AddBackupInput {
+    id: Int
+    environment: Int!
+    backupSource: String!
+    backupId: String!
+    created: String!
+  }
+
 
   input AddCustomerInput {
     id: Int

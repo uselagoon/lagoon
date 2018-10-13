@@ -97,6 +97,11 @@ const {
   removeAllUsersFromAllProjects,
 } = require('./resources/user/resolvers');
 
+const {
+  addBackup,
+  getBackupsByEnvironmentId,
+} = require('./resources/backup/resolvers');
+
 /* ::
 
 import type {ResolversObj} from './resources';
@@ -118,6 +123,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     storages: getEnvironmentStorageByEnvironmentId,
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
     hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
+    backups: getBackupsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -201,6 +207,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addDeployment,
     deleteDeployment,
     updateDeployment,
+    addBackup,
   },
   Date: GraphQLDate,
 };
