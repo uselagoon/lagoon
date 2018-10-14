@@ -291,6 +291,7 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     deployments: [Deployment]
+    backups: [Backup]
   }
 
   type EnviornmentHitsMonth {
@@ -742,6 +743,7 @@ const typeDefs = gql`
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     addBackup(input: AddBackupInput!): Backup
+    deleteAllBackups: String
   }
 `;
 

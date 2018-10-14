@@ -28,9 +28,8 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
     const currentSnapshot = R.compose(R.last, R.prop('snapshots'))(body)
     const hostname = R.prop('hostname', currentSnapshot);
     const backupId = R.prop('id', currentSnapshot);
-    // mariadb expects a specific timeformat of YYYY-MM-DD HH:mm:ss
+    // mariadb expects a specific timeformat of 'YYYY-MM-DD HH:mm:ss'
     const created = moment(R.prop('time', currentSnapshot)).format('YYYY-MM-DD HH:mm:ss');
-
     const environment = await getEnvironmentByOpenshiftProjectName(environmentName);
 
     // Hostname can be two different type of things:

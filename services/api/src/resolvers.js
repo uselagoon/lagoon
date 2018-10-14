@@ -100,6 +100,7 @@ const {
 const {
   addBackup,
   getBackupsByEnvironmentId,
+  deleteAllBackups,
 } = require('./resources/backup/resolvers');
 
 /* ::
@@ -208,6 +209,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deleteDeployment,
     updateDeployment,
     addBackup,
+    deleteAllBackups,
   },
   Date: GraphQLDate,
 };
