@@ -16,4 +16,5 @@ mutation ClearApiData {
   DeleteAllProjects: deleteAllProjects
   DeleteAllSshKeys: deleteAllSshKeys
   DeleteAllUsers: deleteAllUsers
+  DeleteAllBackups: deleteAllBackups
 }

@@ -1,4 +1,6 @@
 const R = require('ramda');
+const sqlClient = require('../clients/sqlClient');
+const { query, prepare } = require('../util/db');
 
 const notEmptyOrNaN /* : Function */ = R.allPass([
   R.compose(
@@ -24,8 +26,18 @@ const splitCommaSeparatedPermissions /* :  (?string) => Array<string> */ = R.com
   R.defaultTo(''),
 );
 
-const getPermissionsForUser = async (dao, userId) => {
-  const rawPermissions = await dao.getPermissions({ userId });
+const getPermissions = async args => {
+  const prep = prepare(
+    sqlClient,
+    'SELECT user_id, projects, customers FROM permission WHERE user_id = :user_id',
+  );
+  const rows = await query(sqlClient, prep(args));
+
+  return R.propOr(null, 0, rows);
+};
+
+const getPermissionsForUser = async userId => {
+  const rawPermissions = await getPermissions({ userId });
 
   if (rawPermissions == null) {
     return {};

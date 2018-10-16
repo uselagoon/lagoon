@@ -100,14 +100,23 @@ CREATE TABLE IF NOT EXISTS environment_storage (
 );
 
 CREATE TABLE IF NOT EXISTS deployment (
-       id           int NOT NULL auto_increment PRIMARY KEY,
-       name         varchar(100) NOT NULL,
-       status       ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete') NOT NULL,
-       created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-       started      datetime NULL,
-       completed    datetime NULL,
-       environment  int NOT NULL REFERENCES environment (id),
-       remote_id    varchar(50) NULL
+  id           int NOT NULL auto_increment PRIMARY KEY,
+  name         varchar(100) NOT NULL,
+  status       ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete') NOT NULL,
+  created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  started      datetime NULL,
+  completed    datetime NULL,
+  environment  int NOT NULL REFERENCES environment (id),
+  remote_id    varchar(50) NULL
+);
+
+CREATE TABLE IF NOT EXISTS environment_backup (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  environment              int REFERENCES environment (id),
+  source                   varchar(300),
+  backup_id                varchar(300),
+  created                  timestamp,
+  UNIQUE KEY `backup_id` (`backup_id`)
 );
 
 -- Junction Tables

@@ -242,7 +242,7 @@ mutation PopulateApi {
   }
 
   # Projects for CI
-  CiGithub: addProject(
+  CiGithub1: addProject(
     input: {
       id: 3
       name: "ci-github"
@@ -638,7 +638,7 @@ mutation PopulateApi {
       project: 18
       deployType: BRANCH
       environmentType: PRODUCTION
-      openshiftProjectName: "ui-openshift-master"
+      openshiftProjectName: "high-cotton-master"
     }
   ) {
     id
@@ -650,6 +650,50 @@ mutation PopulateApi {
         route: "http://highcotton.org"
         routes: "http://highcotton.org,https://varnish-highcotton-org-prod.us.amazee.io,https://nginx-highcotton-org-prod.us.amazee.io"
       }
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1Backup1: addBackup(
+    input: {
+      environment: 2
+      source: "files"
+      backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280d"
+      created: "2018-10-14 00:33:16"
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1Backup2: addBackup(
+    input: {
+      environment: 2
+      source: "mariadb"
+      backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f"
+      created: "2018-10-14 00:33:16"
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1Backup3: addBackup(
+    input: {
+      environment: 2
+      source: "files"
+      backupId: "e260f07c374e4a3319c5d46e688dab6f1eb23c3e61c166a37609d55762d2ee0b"
+      created: "2018-10-13 00:33:16"
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1Backup4: addBackup(
+    input: {
+      environment: 2
+      source: "mariadb"
+      backupId: "bf072a09e17726da54adc79936ec8745521993599d41211dfc9466dfd5bc32a5"
+      created: "2018-10-13 00:33:16"
     }
   ) {
     id
@@ -697,7 +741,7 @@ mutation PopulateApi {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift-staging"
+      openshiftProjectName: "high-cotton-staging"
     }
   ) {
     id
@@ -719,7 +763,7 @@ mutation PopulateApi {
       project: 18
       deployType: BRANCH
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift-development"
+      openshiftProjectName: "high-cotton-development"
     }
   ) {
     id
@@ -741,7 +785,7 @@ mutation PopulateApi {
       project: 18
       deployType: PULLREQUEST
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ui-openshift-pr-175"
+      openshiftProjectName: "high-cotton-pr-175"
     }
   ) {
     id

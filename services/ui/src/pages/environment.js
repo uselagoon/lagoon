@@ -29,7 +29,7 @@ const query = gql`
 `;
 const Environment = withRouter((props) => {
   return (
-    <Page auth={props.auth}>
+    <Page>
       <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
         {({ loading, error, data }) => {
           if (loading) return null;

@@ -1,6 +1,12 @@
 // @flow
 
-import type { Project, CustomerPatch, UserPatch, ProjectPatch, DeploymentPatch } from './types';
+import type {
+  Project,
+  CustomerPatch,
+  UserPatch,
+  ProjectPatch,
+  DeploymentPatch,
+} from './types';
 
 const { Lokka } = require('lokka');
 const { Transport } = require('lokka-transport-http');
@@ -112,6 +118,18 @@ fragment on Project {
 }
 `);
 
+const backupFragment = graphqlapi.createFragment(`
+fragment on Backup {
+  id
+  environment {
+    id
+  }
+  backupId
+  source
+  created
+}
+`);
+
 const addCustomer = (
   name: string,
   id: ?number = null,
@@ -136,6 +154,36 @@ const addCustomer = (
       id,
       comment,
       privateKey,
+    },
+  );
+
+const addBackup = (
+  id: ?number = null,
+  environment: number,
+  source: string,
+  backupId: string,
+  created: string,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+    ($id: Int, $environment: Int!, $source: String!, $backupId: String!, $created: String!) {
+      addBackup(input: {
+          id: $id
+          environment: $environment
+          source: $source
+          backupId: $backupId
+          created: $created
+      }) {
+        ...${backupFragment}
+      }
+    }
+  `,
+    {
+      id,
+      environment,
+      source,
+      backupId,
+      created,
     },
   );
 
@@ -546,6 +594,32 @@ async function getEnvironmentByName(
   return result;
 }
 
+async function getEnvironmentByOpenshiftProjectName(
+  openshiftProjectName: string,
+): Promise<Project[]> {
+  const result = await graphqlapi.query(`
+    {
+      environmentByOpenshiftProjectName(openshiftProjectName: "${openshiftProjectName}") {
+        id,
+        name,
+        project {
+          name
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.environmentByOpenshiftProjectName) {
+    throw new EnvironmentNotFound(
+      `Cannot find environment for OpenshiftProjectName ${openshiftProjectName}\n${
+        result.environmentByOpenshiftProjectName
+      }`,
+    );
+  }
+
+  return result;
+}
+
 const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
@@ -687,10 +761,10 @@ const addDeployment = (
   status: string,
   created: string,
   environment: number,
-  remoteId: string = null,
-  id: number = null,
-  started: string = null,
-  completed: string = null,
+  remoteId: ?string = null,
+  id: ?number = null,
+  started: ?string = null,
+  completed: ?string = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
@@ -745,6 +819,7 @@ module.exports = {
   deleteCustomer,
   getUserBySshKey,
   addUser,
+  addBackup,
   updateUser,
   deleteUser,
   addUserToCustomer,
@@ -770,4 +845,5 @@ module.exports = {
   getDeploymentByRemoteId,
   addDeployment,
   updateDeployment,
+  getEnvironmentByOpenshiftProjectName,
 };

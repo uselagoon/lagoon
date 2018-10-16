@@ -70,7 +70,10 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
         const port = regexmatch[2]
         giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
       }
-
+    } else if (bodyObj.backup_metrics) {
+      webhooktype = 'resticbackup';
+      event = 'snapshot:finished'
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }

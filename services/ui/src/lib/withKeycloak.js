@@ -3,11 +3,11 @@ import getConfig from 'next/config';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-export default App => {
+export default (App, initialAuth) => {
   return class withKeycloak extends React.Component {
     constructor(props) {
       super(props);
-      this.state = { auth: { authenticated: false } };
+      this.state = { auth: initialAuth };
     }
 
     async componentDidMount() {

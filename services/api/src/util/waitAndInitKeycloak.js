@@ -1,6 +1,5 @@
 // @flow
 
-const KeycloakAdminClient = require('@amazeeio/keycloak-admin').default;
 const logger = require('../logger');
 
 /* ::
@@ -21,12 +20,10 @@ type UserSettings = {
 */
 
 async function waitAndInitKeycloak(
-  connectionSettings /* : ConnectionSettings */,
+  keycloakClient /* : Object */,
   userSettings /* : UserSettings */,
 ) {
   let keycloakReady = false;
-
-  const keycloakClient = new KeycloakAdminClient(connectionSettings);
 
   do {
     try {

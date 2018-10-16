@@ -1,3 +1,5 @@
+// @flow
+
 const Keycloak = require('keycloak-connect');
 const Setup = require('keycloak-connect/middleware/setup');
 const GrantAttacher = require('keycloak-connect/middleware/grant-attacher');
@@ -15,8 +17,9 @@ const keycloak = new Keycloak(
   {},
   {
     realm: 'lagoon',
-    serverUrl:
-      lagoonKeycloakRoute ? `${lagoonKeycloakRoute}/auth` : 'http://docker.for.mac.localhost:8088/auth',
+    serverUrl: lagoonKeycloakRoute
+      ? `${lagoonKeycloakRoute}/auth`
+      : 'http://docker.for.mac.localhost:8088/auth',
     clientId: 'lagoon-ui',
     publicClient: true,
     bearerOnly: true,
@@ -29,18 +32,45 @@ keycloak.accessDenied = (req, res, next) => {
   next();
 };
 
-const authWithKeycloak = async (req, res, next) => {
+/* ::
+import type { $Request, $Response, Middleware, NextFunction } from 'express';
+
+type CreateAuthMiddlewareArgs = {
+  baseUri: string,
+  jwtSecret: string,
+  jwtAudience: string,
+};
+
+class Request extends express$Request {
+  credentials: any
+  kauth: any
+};
+
+type AuthWithKeycloakFn =
+    (
+      // To allow extending the request object with Flow
+      Request,
+      $Response,
+      NextFunction
+    ) =>
+      Promise<void>
+
+*/
+
+const authWithKeycloak /* : AuthWithKeycloakFn */ = async (req, res, next) => {
   if (!req.kauth.grant) {
     next();
     return;
   }
 
-  const ctx = req.app.get('context');
-  const dao = ctx.dao;
-
   try {
     // Admins have full access and don't need a list of permissions
-    if (R.contains('admin', req.kauth.grant.access_token.content.realm_access.roles)) {
+    if (
+      R.contains(
+        'admin',
+        req.kauth.grant.access_token.content.realm_access.roles,
+      )
+    ) {
       req.credentials = {
         role: 'admin',
         permissions: {},
@@ -52,7 +82,7 @@ const authWithKeycloak = async (req, res, next) => {
         },
       } = req.kauth.grant.access_token;
 
-      const permissions = await getPermissionsForUser(dao, userId);
+      const permissions = await getPermissionsForUser(userId);
 
       if (R.isEmpty(permissions)) {
         res.status(401).send({
@@ -84,7 +114,7 @@ const authWithKeycloak = async (req, res, next) => {
   }
 };
 
-const authKeycloakMiddleware = () => [
+const authKeycloakMiddleware = () /* : Array<Middleware> */ => [
   Setup,
   GrantAttacher(keycloak),
   authWithKeycloak,

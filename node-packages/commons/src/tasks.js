@@ -22,12 +22,18 @@ const {
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let connection = (exports.connection = function connection() {});
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
@@ -194,34 +200,41 @@ async function createDeployTask(deployData: Object) {
     );
   }
 
-
-
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
+      if (environments.project.productionEnvironment === branchName) {
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+        );
+      } else {
+        // get a list of non-production environments
+        console.log(environments.project);
+        const dev_environments = environments.project.environments
+          .filter(e => e.environmentType === 'development')
+          .map(e => e.name);
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          dev_environments,
+        );
 
-    if (environments.project.productionEnvironment == branchName) {
-      logger.debug(
-        `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
-      )
-    } else {
-      // get a list of non-production environments
-      console.log(environments.project);
-      dev_environments = environments.project.environments.filter (e => e.environmentType=='development').map(e => e.name)
-      logger.debug( `projectName: ${projectName}, branchName: ${branchName}, existing environments are `, dev_environments)
-
-      if (environments.project.developmentEnvironmentsLimit !== null && dev_environments.length >= environments.project.developmentEnvironmentsLimit ) {
-
-        if ( dev_environments.find(  function(i){ return i == branchName })) {
-          logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
-          )
-        } else {
-          throw new EnvironmentLimit(
-            `'${branchName}' would exceed the configured limit of ${environments.project.developmentEnvironmentsLimit} development environments for project ${projectName}`,
-          );
+        if (
+          environments.project.developmentEnvironmentsLimit !== null &&
+          dev_environments.length >=
+            environments.project.developmentEnvironmentsLimit
+        ) {
+          if (dev_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${
+                environments.project.developmentEnvironmentsLimit
+              } development environments for project ${projectName}`,
+            );
+          }
         }
       }
-    }
 
       if (type === 'branch') {
         switch (project.branches) {
@@ -396,7 +409,7 @@ async function consumeTasks(
   retryHandler: Function,
   deathHandler: Function,
 ) {
-  const onMessage = async (msg) => {
+  const onMessage = async msg => {
     try {
       await messageConsumer(msg);
       channelWrapperTasks.ack(msg);
@@ -477,7 +490,7 @@ async function consumeTaskMonitor(
   messageConsumer: Function,
   deathHandler: Function,
 ) {
-  const onMessage = async (msg) => {
+  const onMessage = async msg => {
     try {
       await messageConsumer(msg);
       channelWrapperTaskMonitor.ack(msg);
