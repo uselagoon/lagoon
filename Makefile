@@ -694,5 +694,5 @@ rebuild-push-oc-build-deploy-dind:
 
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db
