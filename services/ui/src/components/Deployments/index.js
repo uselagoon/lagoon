@@ -7,8 +7,9 @@ export default ({ projectName, deployments }) => (
   <div className="content">
     <div className="header">
       <label>Name</label>
-      <label>Status</label>
       <label>Created</label>
+      <label>Status</label>
+      <label>Duration</label>
     </div>
     <div className="data-table">
       {
@@ -25,11 +26,14 @@ export default ({ projectName, deployments }) => (
                 <div className="name">
                   {deployment.name}
                 </div>
+                <div className="started">
+                  {moment.utc(deployment.started).local().format('DD MMM YYYY, HH:mm:ss')}
+                </div>
                 <div className={`status ${deployment.status}`}>
                   {deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}
                 </div>
-                <div className="started">
-                  {moment.utc(deployment.started).local().format('DD MMM YYYY, HH:mm:ss')}
+                <div className="duration">
+                  {moment(moment(new Date()) - moment(deployment.started)).format('D[d] H[hr] m[m] s[sec]')}
                 </div>
               </a>
             </Link>
@@ -58,7 +62,7 @@ export default ({ projectName, deployments }) => (
           label {
             display: none;
             padding-left: 20px;
-            width: 33%;
+            width: 25%;
             @media ${bp.tinyUp} {
               display: block;
             }
@@ -92,15 +96,15 @@ export default ({ projectName, deployments }) => (
             }
             a {
               cursor: pointer;
-              padding-right: 40px;
               @media ${bp.tinyUp} {
                 display: flex;
                 justify-content: space-between;
+                padding-right: 40px;
               }
               & > div {
                 padding-left: 20px;
                 @media ${bp.tinyUp} {
-                  width: 33%;
+                  width: 25%;
                 }
               }
             }
