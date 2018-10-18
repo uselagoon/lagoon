@@ -372,6 +372,7 @@ oc process --local --insecure-skip-tls-verify \
   -p ROUTE="${ROUTE}" \
   -p ROUTES="${ROUTES}" \
   -p MONITORING_URLS="${MONITORING_URLS}" \
+  -p OPENSHIFT_NAME="${OPENSHIFT_NAME}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
 if [ "$TYPE" == "pullrequest" ]; then
