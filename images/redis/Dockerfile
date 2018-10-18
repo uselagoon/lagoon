@@ -5,7 +5,9 @@ FROM redis:alpine
 MAINTAINER amazee.io
 ENV LAGOON=redis
 
-# Copying commons files
+ENV FLAVOR=ephemeral
+
+# Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /sbin/tini /sbin/
@@ -18,7 +20,7 @@ RUN chmod g+w /etc/passwd \
 # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 
-COPY redis.conf /etc/redis/redis.conf
+COPY conf /etc/redis/
 COPY docker-entrypoint /lagoon/entrypoints/70-redis-entrypoint
 
 RUN fix-permissions /etc/redis/redis.conf \
