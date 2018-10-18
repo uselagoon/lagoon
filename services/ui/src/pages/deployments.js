@@ -31,6 +31,7 @@ const query = gql`
         status
         started
         remoteId
+        completed
       }
     }
   }

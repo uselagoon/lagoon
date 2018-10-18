@@ -5,11 +5,7 @@ import { LazyLog } from 'react-lazylog';
 import { bp, color } from '../../variables';
 import giturlparse from 'git-url-parse';
 
-export default ({ deployment }) => {
-  const now = moment(new Date());
-  const end = moment(deployment.started);
-
-  return (
+export default ({ deployment }) => (
   <div className="content">
     <div className='details'>
       <h3>{deployment.name}</h3>
@@ -25,12 +21,14 @@ export default ({ deployment }) => {
           <div className='field'>{deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}</div>
         </div>
       </div>
-      <div className='field-wrapper duration'>
-        <div>
-          <label>Duration</label>
-          <div className='field'>{moment(moment(new Date()) - moment(deployment.started)).format('D[d] H[hr] m[m] s[sec]')}</div>
+      {deployment.completed && deployment.started &&
+        <div className='field-wrapper duration'>
+          <div>
+            <label>Duration</label>
+            <div className='field'>{moment(moment(deployment.completed) - moment(deployment.started)).format('mm[m] ss[sec]')}</div>
+          </div>
         </div>
-      </div>
+      }
     </div>
     <div className='log-viewer'>
       <LazyLog url='https://gist.githubusercontent.com/Schnitzel/24e0a709c7a9a1bf6e8659e0dae0e769/raw/7ab1c0f9232c3450651c0217ad82a06de5bfda29/gistfile1.txt' />
@@ -143,4 +141,4 @@ export default ({ deployment }) => {
       }
   `}</style>
   </div>
-)};
+);

@@ -32,8 +32,11 @@ export default ({ projectName, deployments }) => (
                 <div className={`status ${deployment.status}`}>
                   {deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}
                 </div>
+
                 <div className="duration">
-                  {moment(moment(new Date()) - moment(deployment.started)).format('D[d] H[hr] m[m] s[sec]')}
+                  {deployment.completed && deployment.started &&
+                    moment(moment(deployment.completed) - moment(deployment.started)).format('mm[min] ss[sec]')
+                  }
                 </div>
               </a>
             </Link>
@@ -115,14 +118,26 @@ export default ({ projectName, deployments }) => (
               background-position: left 7px;
               background-repeat: no-repeat;
               background-size: 10px 10px;
-              &.complete {
-                background-image: url('/static/images/success.png');
+              &.new {
+                background-image: url('/static/images/pending.png');
+              }
+              &.pending {
+                background-image: url('/static/images/pending.png');
+              }
+              &.running {
+                background-image: url('/static/images/in-progress.png');
+              }
+              &.cancelled {
+                background-image: url('/static/images/failed.png');
+              }
+              &.error {
+                background-image: url('/static/images/failed.png');
               }
               &.failed {
                 background-image: url('/static/images/failed.png');
               }
-              &.running {
-                background-image: url('/static/images/in-progress.png');
+              &.complete {
+                background-image: url('/static/images/success.png');
               }
             }
           }
