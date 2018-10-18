@@ -112,9 +112,29 @@ export default ({ deployment }) => (
             &::before {
               background-size: 14px;
             }
-            &.complete {
+            &.new {
               &::before {
-                background-image: url('/static/images/success.png');
+                background-image: url('/static/images/pending.png');
+              }
+            }
+            &.pending {
+              &::before {
+                background-image: url('/static/images/pending.png');
+              }
+            }
+            &.running {
+              &::before {
+                background-image: url('/static/images/in-progress.png');
+              }
+            }
+            &.cancelled {
+              &::before {
+                background-image: url('/static/images/failed.png');
+              }
+            }
+            &.error {
+              &::before {
+                background-image: url('/static/images/failed.png');
               }
             }
             &.failed {
@@ -122,9 +142,9 @@ export default ({ deployment }) => (
                 background-image: url('/static/images/failed.png');
               }
             }
-            &.running {
+            &.complete {
               &::before {
-                background-image: url('/static/images/in-progress.png');
+                background-image: url('/static/images/success.png');
               }
             }
           }
