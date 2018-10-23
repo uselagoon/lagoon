@@ -385,7 +385,7 @@ const typeDefs = gql`
   }
 
   input AddSshKeyInput {
-    id: Int!
+    id: Int
     name: String!
     keyValue: String!
     keyType: SshKeyType!
