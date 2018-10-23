@@ -52,6 +52,5 @@ COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/
 COPY entrypoints/90-keycloak-client-secret.bash /lagoon/entrypoints/
 
-RUN fix-permissions config/kibana.yml \
-    && fix-permissions /lagoon/kibana-init
+RUN fix-permissions config/kibana.yml
 
