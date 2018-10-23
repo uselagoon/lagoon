@@ -3,10 +3,7 @@ services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
     volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d/00-tables.sql:/docker-entrypoint-initdb.d/00-tables.sql
-      - ./services/api-db/docker-entrypoint-initdb.d/01-migrations.sql:/docker-entrypoint-initdb.d/01-migrations.sql
-      - ./services/api-db/docker-entrypoint-initdb.d/02-views.sql:/docker-entrypoint-initdb.d/02-views.sql
-      - ./services/api-db/docker-entrypoint-initdb.d/03-procedures.sql:/docker-entrypoint-initdb.d/03-procedures.sql
+      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - '3306:3306'
@@ -137,8 +134,6 @@ services:
     depends_on:
       - api-db
       - local-api-data-watcher-pusher
-      - logs-db
-      - logs-db-ui
       - keycloak
     ports:
       - '3000:3000'
@@ -259,15 +254,6 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
-  local-es-kibana-watcher-pusher:
-    depends_on:
-      - logs-db
-      - logs-db-ui
-    image: ${IMAGE_REPO:-lagoon}/local-es-kibana-watcher-pusher
-    volumes:
-      - ./services/logs-db-ui/init/:/lagoon/kibana-init/
-    labels:
-      lagoon.type: none
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:
@@ -304,6 +290,7 @@ services:
       - '5601:5601'
     environment:
       KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+      LOGSDB_UI_URL: http://0.0.0.0:5601
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml

@@ -45,6 +45,8 @@ const Helpers = {
     ),
   getProjectIdsByCustomerIds: async (customerIds /* : Array<string> */) =>
     query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
+  getAllProjects: async () =>
+    query(sqlClient, Sql.selectAllProjects()),
   getCustomerProjectsWithoutDirectUserAccess: async (
     customerIds /* : Array<number> */,
     userIds /* : Array<number> */,

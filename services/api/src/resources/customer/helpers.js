@@ -32,6 +32,7 @@ const Helpers = {
     R.map(R.prop('id'), await query(sqlClient, Sql.selectAllCustomerIds())),
   getAllCustomerNames: async () =>
     R.map(R.prop('name'), await query(sqlClient, Sql.selectAllCustomerNames())),
+  getAllCustomers: async () => query(sqlClient, Sql.selectAllCustomers()),
 };
 
 module.exports = Helpers;

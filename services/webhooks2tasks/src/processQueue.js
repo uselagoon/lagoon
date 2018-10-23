@@ -2,6 +2,7 @@
 
 const processProjects = require('./webhooks/projects');
 const processDataSync = require('./webhooks/dataSync');
+const processBackup = require('./webhooks/backup');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -18,6 +19,8 @@ function processQueue (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWr
   // must be handled separately.
   if (webhooktype == 'gitlab' && !giturl) {
     processDataSync(rabbitMsg, channelWrapperWebhooks);
+  } else if (webhooktype == 'resticbackup') {
+    processBackup(rabbitMsg, channelWrapperWebhooks);
   }
   else {
     processProjects(rabbitMsg, channelWrapperWebhooks);

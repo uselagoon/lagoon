@@ -6,7 +6,8 @@ ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_ADMIN_PASSWORD=admin \
     ELASTICSEARCH_URL=http://logs-db:9200 \
     SEARCHGUARD_OPENID_CLIENT_SECRET=xxxx \
-    KEYCLOAK_ADMIN_USER=admin
+    KEYCLOAK_ADMIN_USER=admin \
+    KEYCLOAK_ADMIN_PASSWORD=admin
 
 RUN echo $'xpack.security.enabled: false\n\
 xpack.monitoring.enabled: false\n\
@@ -47,11 +48,9 @@ searchguard.openid.scope: "profile email"\n\
 
 RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.2-15/search-guard-kibana-plugin-6.4.2-15.zip
 
-COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/
 COPY entrypoints/90-keycloak-client-secret.bash /lagoon/entrypoints/
 
-RUN fix-permissions config/kibana.yml \
-    && fix-permissions /lagoon/kibana-init
+RUN fix-permissions config/kibana.yml
 

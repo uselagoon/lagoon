@@ -42,6 +42,11 @@ const typeDefs = gql`
     COMPLETE
   }
 
+  enum EnvVariableType {
+    PROJECT
+    ENVIRONMENT
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -229,6 +234,10 @@ const typeDefs = gql`
     Creation Timestamp of Project
     """
     created: String
+    """
+    Environment variables available during build-time and run-time
+    """
+    envVariables: [EnvKeyValue]
   }
 
   """
@@ -287,10 +296,15 @@ const typeDefs = gql`
     Reference to EnviornmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
     """
     hitsMonth(month: Date): EnviornmentHitsMonth
+    """
+    Environment variables available during build-time and run-time
+    """
+    envVariables: [EnvKeyValue]
     route: String
     routes: String
     monitoringUrls: String
     deployments: [Deployment]
+    backups: [Backup]
   }
 
   type EnviornmentHitsMonth {
@@ -315,6 +329,14 @@ const typeDefs = gql`
     hours: Int
   }
 
+  type Backup {
+    id: Int
+    environment: Environment
+    source: String
+    backupId: String
+    created: String
+  }
+
   type Deployment {
     id: Int
     name: String
@@ -325,6 +347,12 @@ const typeDefs = gql`
     environment: Environment
     remoteId: String
     buildLog: String
+  }
+
+  type EnvKeyValue {
+    id: Int
+    name: String
+    value: String
   }
 
   input DeleteEnvironmentInput {
@@ -376,7 +404,7 @@ const typeDefs = gql`
   }
 
   input AddSshKeyInput {
-    id: Int!
+    id: Int
     name: String!
     keyValue: String!
     keyType: SshKeyType!
@@ -408,6 +436,7 @@ const typeDefs = gql`
   }
 
   input AddEnvironmentInput {
+    id: Int
     name: String!
     project: Int!
     deployType: DeployType!
@@ -420,6 +449,15 @@ const typeDefs = gql`
     persistentStorageClaim: String!
     bytesUsed: Int!
   }
+
+  input AddBackupInput {
+    id: Int
+    environment: Int!
+    source: String!
+    backupId: String!
+    created: String!
+  }
+
 
   input AddCustomerInput {
     id: Int
@@ -656,6 +694,18 @@ const typeDefs = gql`
     patch: UpdateEnvironmentPatchInput
   }
 
+  input EnvVariableInput {
+    id: Int
+    type: EnvVariableType
+    typeId: Int!
+    name: String!
+    value: String!
+  }
+
+  input DeleteEnvVariableInput {
+    id: Int!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -724,6 +774,14 @@ const typeDefs = gql`
     addDeployment(input: DeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
+    addBackup(input: AddBackupInput!): Backup
+    deleteAllBackups: String
+    createAllProjectsInKeycloak: String
+    createAllProjectsInSearchguard: String
+    resyncCustomersWithSearchguard: String
+    createAllUsersInKeycloak: String
+    addEnvVariable(input: EnvVariableInput!): EnvKeyValue
+    deleteEnvVariable(input: DeleteEnvVariableInput!): String
   }
 `;
 
