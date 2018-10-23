@@ -48,7 +48,6 @@ searchguard.openid.scope: "profile email"\n\
 
 RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.2-15/search-guard-kibana-plugin-6.4.2-15.zip
 
-COPY ./init/ /lagoon/kibana-init
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/
 COPY entrypoints/90-keycloak-client-secret.bash /lagoon/entrypoints/
