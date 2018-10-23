@@ -103,6 +103,13 @@ const {
   deleteAllBackups,
 } = require('./resources/backup/resolvers');
 
+const {
+  getEnvVarsByProjectId,
+  getEnvVarsByEnvironmentId,
+  addEnvVariable,
+  deleteEnvVariable,
+} = require('./resources/env-variables/resolvers');
+
 /* ::
 
 import type {ResolversObj} from './resources';
@@ -116,6 +123,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
+    envVariables: getEnvVarsByProjectId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -125,6 +133,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
     hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
     backups: getBackupsByEnvironmentId,
+    envVariables: getEnvVarsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -210,6 +219,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateDeployment,
     addBackup,
     deleteAllBackups,
+    addEnvVariable,
+    deleteEnvVariable,
   },
   Date: GraphQLDate,
 };
