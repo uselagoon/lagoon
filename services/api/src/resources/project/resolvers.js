@@ -2,7 +2,6 @@
 
 const R = require('ramda');
 const keycloakClient = require('../../clients/keycloakClient');
-const kibanaClient = require('../../clients/kibanaClient');
 const searchguardClient = require('../../clients/searchguardClient');
 const sqlClient = require('../../clients/sqlClient');
 const logger = require('../../logger');

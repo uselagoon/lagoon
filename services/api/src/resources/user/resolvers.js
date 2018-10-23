@@ -7,9 +7,15 @@ const logger = require('../../logger');
 const sleep = require('es7-sleep');
 
 const {
+  query,
+  isPatchEmpty,
+} = require('../../util/db');
+
+const {
   getCustomerIdByName,
   getCustomerById,
   getAllCustomerIds,
+  getAllCustomers,
 } = require('../customer/helpers');
 const {
   getProjectById,
@@ -17,6 +23,7 @@ const {
   getProjectIdsByCustomerIds,
   getCustomerProjectsWithoutDirectUserAccess,
   getAllProjectNames,
+  getAllProjects,
 } = require('../project/helpers');
 const { moveUserSshKeyToObject } = require('./');
 const KeycloakOperations = require('./keycloak');
