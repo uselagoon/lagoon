@@ -264,6 +264,7 @@ mutation PopulateApi {
   }
   CiGithubEnvironment: addOrUpdateEnvironment(
     input: {
+      id: 1
       name: "master"
       project: 3
       deployType: BRANCH
@@ -457,6 +458,7 @@ mutation PopulateApi {
 
   CIFeaturesEnv1: addOrUpdateEnvironment(
     input: {
+      id: 2
       name: "lagoon-api-variables"
       project: 12
       deployType: BRANCH
@@ -691,6 +693,7 @@ mutation PopulateApi {
   }
   UIProject1Environment1: addOrUpdateEnvironment(
     input: {
+      id: 3
       name: "Master"
       project: 18
       deployType: BRANCH
@@ -702,7 +705,7 @@ mutation PopulateApi {
   }
   UIProject1Environment1Update: updateEnvironment(
     input: {
-      id: 2
+      id: 3
       patch: {
         route: "http://highcotton.org"
         routes: "http://highcotton.org,https://varnish-highcotton-org-prod.us.amazee.io,https://nginx-highcotton-org-prod.us.amazee.io"
@@ -714,7 +717,7 @@ mutation PopulateApi {
 
   UIProject1Environment1Backup1: addBackup(
     input: {
-      environment: 2
+      environment: 3
       source: "files"
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280d"
       created: "2018-10-14 00:33:16"
@@ -725,7 +728,7 @@ mutation PopulateApi {
 
   UIProject1Environment1Backup2: addBackup(
     input: {
-      environment: 2
+      environment: 3
       source: "mariadb"
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f"
       created: "2018-10-14 00:33:16"
@@ -736,7 +739,7 @@ mutation PopulateApi {
 
   UIProject1Environment1Backup3: addBackup(
     input: {
-      environment: 2
+      environment: 3
       source: "files"
       backupId: "e260f07c374e4a3319c5d46e688dab6f1eb23c3e61c166a37609d55762d2ee0b"
       created: "2018-10-13 00:33:16"
@@ -747,7 +750,7 @@ mutation PopulateApi {
 
   UIProject1Environment1Backup4: addBackup(
     input: {
-      environment: 2
+      environment: 3
       source: "mariadb"
       backupId: "bf072a09e17726da54adc79936ec8745521993599d41211dfc9466dfd5bc32a5"
       created: "2018-10-13 00:33:16"
@@ -760,7 +763,7 @@ mutation PopulateApi {
     input: {
       name: "build-1"
       status: COMPLETE
-      environment: 2
+      environment: 3
       created: "2018-10-07 23:02:41"
       started: "2018-10-07 23:03:41"
       completed: "2018-10-07 23:20:41"
@@ -772,7 +775,7 @@ mutation PopulateApi {
     input: {
       name: "build-2"
       status: FAILED
-      environment: 2
+      environment: 3
       created: "2018-10-07 23:02:41"
       started: "2018-10-07 23:03:41"
       completed: "2018-10-07 23:20:41"
@@ -794,6 +797,7 @@ mutation PopulateApi {
 
   UIProject1Environment2: addOrUpdateEnvironment(
     input: {
+      id: 4
       name: "Staging"
       project: 18
       deployType: BRANCH
@@ -805,7 +809,7 @@ mutation PopulateApi {
   }
   UIProject1Environment2Update: updateEnvironment(
     input: {
-      id: 3
+      id: 4
       patch: {
         route: "https://varnish-highcotton-org-staging.us.amazee.io"
         routes: "https://varnish-highcotton-org-staging.us.amazee.io,https://nginx-highcotton-org-staging.us.amazee.io"
@@ -816,6 +820,7 @@ mutation PopulateApi {
   }
   UIProject1Environment3: addOrUpdateEnvironment(
     input: {
+      id: 5
       name: "Development"
       project: 18
       deployType: BRANCH
@@ -827,7 +832,7 @@ mutation PopulateApi {
   }
   UIProject1Environment3Update: updateEnvironment(
     input: {
-      id: 4
+      id: 5
       patch: {
         route: "https://varnish-highcotton-org-development.us.amazee.io"
         routes: "https://varnish-highcotton-org-development.us.amazee.io,https://nginx-highcotton-org-development.us.amazee.io"
@@ -838,6 +843,7 @@ mutation PopulateApi {
   }
   UIProject1Environment4: addOrUpdateEnvironment(
     input: {
+      id: 6
       name: "PR-175"
       project: 18
       deployType: PULLREQUEST
@@ -849,7 +855,7 @@ mutation PopulateApi {
   }
   UIProject1Environment4Update: updateEnvironment(
     input: {
-      id: 5
+      id: 6
       patch: {
         route: "" # intentionally empty, for testing
         routes: "" # intentionally empty, for testing
@@ -875,6 +881,7 @@ mutation PopulateApi {
 
   CILimitEnv1: addOrUpdateEnvironment(
     input: {
+      id: 7
       name: "master"
       project: 19
       deployType: BRANCH
@@ -887,6 +894,7 @@ mutation PopulateApi {
 
   CILimitEnv2: addOrUpdateEnvironment(
     input: {
+      id: 8
       name: "develop"
       project: 19
       deployType: BRANCH
@@ -899,6 +907,7 @@ mutation PopulateApi {
 
   CILimitEn3: addOrUpdateEnvironment(
     input: {
+      id: 9
       name: "stage"
       project: 19
       deployType: BRANCH

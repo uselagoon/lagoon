@@ -436,6 +436,7 @@ const typeDefs = gql`
   }
 
   input AddEnvironmentInput {
+    id: Int
     name: String!
     project: Int!
     deployType: DeployType!
