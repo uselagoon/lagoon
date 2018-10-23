@@ -3,8 +3,8 @@
 const R = require('ramda');
 const keycloakClient = require('../../clients/keycloakClient');
 const sqlClient = require('../../clients/sqlClient');
-const pickNonNil = require('../../util/pickNonNil');
-const { query, isPatchEmpty } = require('../../util/db');
+const logger = require('../../logger');
+const sleep = require('es7-sleep');
 
 const {
   getCustomerIdByName,
