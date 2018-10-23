@@ -455,6 +455,63 @@ mutation PopulateApi {
     id
   }
 
+  CIFeaturesEnv1: addOrUpdateEnvironment(
+    input: {
+      name: "lagoon-api-variables"
+      project: 12
+      deployType: BRANCH
+      environmentType: PRODUCTION
+      openshiftProjectName: "ci-features-lagoon-api-variables"
+    }
+  ) {
+    id
+  }
+
+  CIFeaturesEnvVars1: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 12
+      name: "LAGOON_API_VARIABLE_PROJECT"
+      value: "4A65DC68F2"
+    }
+  ) {
+    id
+  }
+
+  CIFeaturesEnvVars2: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 12
+      name: "LAGOON_API_VARIABLE_OVERRIDE"
+      value: "74B3E42B54"
+    }
+  ) {
+    id
+  }
+
+  CIFeaturesEnvVars3: addEnvVariable(
+    input: {
+      type: ENVIRONMENT
+      typeId: 2
+      name:"LAGOON_API_VARIABLE_ENVIRONMENT"
+      value: "EA2AFAE09B"
+    }
+  ) {
+    id
+    value
+  }
+
+  CIFeaturesEnvVars4: addEnvVariable(
+    input: {
+      type: ENVIRONMENT
+      typeId: 2
+      name: "LAGOON_API_VARIABLE_OVERRIDE"
+      value: "D0CE76D4C9"
+    }
+  ) {
+    id
+  }
+
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
       project: "ci-features"
