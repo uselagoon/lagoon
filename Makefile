@@ -160,7 +160,7 @@ build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
-build/redis-persistent: build/commons images/redis-persistent/Dockerfile
+build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
