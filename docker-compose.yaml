@@ -299,6 +299,7 @@ services:
       - '5601:5601'
     environment:
       KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+      LOGSDB_UI_URL: http://0.0.0.0:5601
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
