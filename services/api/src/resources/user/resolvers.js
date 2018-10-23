@@ -95,22 +95,8 @@ const addUser = async (
   const rows = await query(sqlClient, Sql.selectUser(insertId));
   const user = R.prop(0, rows);
 
-  await KeycloakOperations.createUser({
-    ...pickNonNil(['email', 'firstName', 'lastName'], user),
-    username: R.prop('email', user),
-    enabled: true,
-    attributes: {
-      'lagoon-uid': [R.prop('id', user)],
-    },
-  });
+  await KeycloakOperations.createUser(user);
 
-  // If user has been created with a gitlabid, we map that ID to the user in Keycloak
-  if (gitlabId) {
-    await KeycloakOperations.linkUserToGitlab({
-      username: R.prop('email', user),
-      gitlabUserId: gitlabId,
-    });
-  }
   return user;
 };
 
@@ -420,6 +406,77 @@ const deleteAllUsers = async (root, args, { credentials: { role } }) => {
   return 'success';
 };
 
+const createAllUsersInKeycloak = async (root, args, {
+  credentials: {
+    role,
+  },
+}) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  const users = await query(sqlClient, Sql.selectAllUsers());
+
+  // FIRST: Create all Users in Keycloack
+  for (const user of users) {
+    logger.debug(`createAllUsersInKeycloak: Processing user: ${R.prop('email', user)}`);
+    await KeycloakOperations.createUser(user);
+  }
+
+  // SECOND: Give access to projects which users have direct access
+
+  // Load all projects
+  const projects = await getAllProjects();
+  for (const project of projects) {
+    logger.debug(`createAllUsersInKeycloak: Processing project: ${R.prop('name', project)}`);
+    // Load users that have access to this project
+    const project_users = await query(sqlClient, Sql.selectUsersByProjectId({ projectId: R.prop('id', project) }));
+    for (const project_user of project_users) {
+      await KeycloakOperations.addUserToGroup({
+        username: R.prop('email', project_user),
+        groupName: R.prop('name', project),
+      });
+    }
+  }
+
+  // THIRD: Give access to projects via customer assignement (but only the ones that the users maybe don't have direct acces via project assignement)
+
+  // Load all customers
+  const customers = await getAllCustomers();
+  for (const customer of customers) {
+    logger.debug(`createAllUsersInKeycloak: Processing customer: ${R.prop('name', customer)}`);
+    // Load users that have access to this customer
+    const customer_users = await query(sqlClient, Sql.selectUsersByCustomerId({ customerId: R.prop('id', customer) }));
+    for (const customer_user of customer_users) {
+      logger.debug(`createAllUsersInKeycloak: Processing user "${R.prop('email', customer_user)}" having access to customer: ${R.prop('name', customer)}`);
+      // Load all projects that are given access because the user has access to the project's customer
+      // But only if the access is not given also directly to the project itself.
+      const customer_user_projects = await getCustomerProjectsWithoutDirectUserAccess(
+        [R.prop('id', customer)],
+        [R.prop('id', customer_user)],
+      );
+
+      for (const customer_user_project of customer_user_projects) {
+        try {
+          await KeycloakOperations.addUserToGroup({
+            username: R.prop('email', customer_user),
+            groupName: R.prop('name', customer_user_project),
+          });
+        } catch (err) {
+          // the above request can take so long that the 55 secs keycloack timeout is hit, if this is the case, we just wait for 2 secs and try again
+          await sleep(3000);
+          await KeycloakOperations.addUserToGroup({
+            username: R.prop('email', customer_user),
+            groupName: R.prop('name', customer_user_project),
+          });
+        }
+      }
+    }
+  }
+
+  return 'success';
+};
+
 const removeAllUsersFromAllCustomers = async (
   root,
   args,
@@ -505,6 +562,7 @@ const Resolvers /* : ResolversObj */ = {
   deleteAllUsers,
   removeAllUsersFromAllCustomers,
   removeAllUsersFromAllProjects,
+  createAllUsersInKeycloak,
 };
 
 module.exports = Resolvers;

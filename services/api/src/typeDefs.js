@@ -744,6 +744,10 @@ const typeDefs = gql`
     updateDeployment(input: UpdateDeploymentInput): Deployment
     addBackup(input: AddBackupInput!): Backup
     deleteAllBackups: String
+    createAllProjectsInKeycloak: String
+    createAllProjectsInSearchguard: String
+    resyncCustomersWithSearchguard: String
+    createAllUsersInKeycloak: String
   }
 `;
 

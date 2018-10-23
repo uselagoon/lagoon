@@ -1,6 +1,7 @@
 // @flow
 
 const R = require('ramda');
+const pickNonNil = require('../../util/pickNonNil');
 const keycloakClient = require('../../clients/keycloakClient');
 const logger = require('../../logger');
 
@@ -12,36 +13,39 @@ const KeycloakOperations = {
         username,
       }),
     ),
-  createUser: async (
-    payload /* :{
-    username: string,
-    email: string,
-    firstName: string,
-    lastName: string,
-    enabled: boolean,
-    attributes: {
-      [string]: any
-    },
-  } */,
-  ) => {
+  createUser: async (user /* : any */) => {
     try {
-      await keycloakClient.users.create(payload);
+      await keycloakClient.users.create({
+        ...pickNonNil(['email', 'firstName', 'lastName'], user),
+        username: R.prop('email', user),
+        enabled: true,
+        attributes: {
+          'lagoon-uid': [R.prop('id', user)],
+        },
+      });
 
       logger.debug(
-        `Created Keycloak user with username ${R.prop('username', payload)}`,
+        `Created Keycloak user with username ${R.prop('email', user)}`,
       );
     } catch (err) {
-      if (err.response.status === 409) {
+      if (err.response.status && err.response.status === 409) {
         logger.warn(
           `Failed to create already existing Keycloak user "${R.prop(
             'email',
-            payload,
+            user,
           )}"`,
         );
       } else {
         logger.error(`Error creating Keycloak user: ${err}`);
         throw new Error(`Error creating Keycloak user: ${err}`);
       }
+    }
+    // If user has been created with a gitlabid, we map that ID to the user in Keycloak
+    if (R.prop('gitlabId', user)) {
+      await KeycloakOperations.linkUserToGitlab({
+        username: R.prop('email', user),
+        gitlabUserId: R.prop('gitlabId', user),
+      });
     }
   },
   deleteUserById: async (
@@ -153,11 +157,11 @@ const KeycloakOperations = {
       });
 
       logger.debug(
-        `Added Keycloak user with username ${username} to group "${groupName}"`,
+        `Added Keycloak user with username "${username}" to group "${groupName}"`,
       );
     } catch (err) {
-      logger.error(`Error adding Keycloak user to group: ${err}`);
-      throw new Error(`Error adding Keycloak user to group: ${err}`);
+      logger.error(`Error adding Keycloak  with username "${username}" to group "${groupName}": ${err}`);
+      throw new Error(`Error adding Keycloak  with username "${username}" to group "${groupName}": ${err}`);
     }
   },
   deleteUserFromGroup: async (
@@ -187,8 +191,8 @@ const KeycloakOperations = {
         `Deleted Keycloak user with username ${username} from group "${groupName}"`,
       );
     } catch (err) {
-      logger.error(`Error deleting Keycloak user from group: ${err}`);
-      throw new Error(`Error deleting Keycloak user from group: ${err}`);
+      logger.error(`Error deleting Keycloak user  with username "${username}" to group "${groupName}": ${err}`);
+      throw new Error(`Error deleting Keycloak user  with username "${username}" to group "${groupName}": ${err}`);
     }
   },
 };

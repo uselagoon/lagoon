@@ -10,6 +10,7 @@ const {
   updateCustomer,
   getCustomerByName,
   deleteAllCustomers,
+  resyncCustomersWithSearchguard,
 } = require('./resources/customer/resolvers');
 
 const {
@@ -70,6 +71,8 @@ const {
   getAllProjects,
   updateProject,
   deleteAllProjects,
+  createAllProjectsInKeycloak,
+  createAllProjectsInSearchguard,
 } = require('./resources/project/resolvers');
 
 const {
@@ -95,6 +98,7 @@ const {
   deleteAllUsers,
   removeAllUsersFromAllCustomers,
   removeAllUsersFromAllProjects,
+  createAllUsersInKeycloak,
 } = require('./resources/user/resolvers');
 
 const {
@@ -210,6 +214,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateDeployment,
     addBackup,
     deleteAllBackups,
+    createAllProjectsInKeycloak,
+    createAllProjectsInSearchguard,
+    resyncCustomersWithSearchguard,
+    createAllUsersInKeycloak,
   },
   Date: GraphQLDate,
 };
