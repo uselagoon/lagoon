@@ -34,12 +34,16 @@ parameters:
   - name: ROUTE_INSECURE
     description: Setting of insecureEdgeTerminationPolicy
     required: true
+  - name: ROUTE_HSTS
+    description: Setting of HTTP Strict Transport Security policy
+    required: true
 objects:
 - apiVersion: v1
   kind: Route
   metadata:
     annotations:
       haproxy.router.openshift.io/disable_cookies: 'true'
+      haproxy.router.openshift.io/hsts_header: '${ROUTE_HSTS}'
       kubernetes.io/tls-acme: '${ROUTE_TLS_ACME}'
     creationTimestamp: null
     labels:

@@ -10,6 +10,7 @@ const {
   updateCustomer,
   getCustomerByName,
   deleteAllCustomers,
+  resyncCustomersWithSearchguard,
 } = require('./resources/customer/resolvers');
 
 const {
@@ -70,6 +71,8 @@ const {
   getAllProjects,
   updateProject,
   deleteAllProjects,
+  createAllProjectsInKeycloak,
+  createAllProjectsInSearchguard,
 } = require('./resources/project/resolvers');
 
 const {
@@ -95,6 +98,7 @@ const {
   deleteAllUsers,
   removeAllUsersFromAllCustomers,
   removeAllUsersFromAllProjects,
+  createAllUsersInKeycloak,
 } = require('./resources/user/resolvers');
 
 const {
@@ -102,6 +106,13 @@ const {
   getBackupsByEnvironmentId,
   deleteAllBackups,
 } = require('./resources/backup/resolvers');
+
+const {
+  getEnvVarsByProjectId,
+  getEnvVarsByEnvironmentId,
+  addEnvVariable,
+  deleteEnvVariable,
+} = require('./resources/env-variables/resolvers');
 
 /* ::
 
@@ -116,6 +127,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
+    envVariables: getEnvVarsByProjectId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -125,6 +137,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
     hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
     backups: getBackupsByEnvironmentId,
+    envVariables: getEnvVarsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -210,6 +223,12 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateDeployment,
     addBackup,
     deleteAllBackups,
+    createAllProjectsInKeycloak,
+    createAllProjectsInSearchguard,
+    resyncCustomersWithSearchguard,
+    createAllUsersInKeycloak,
+    addEnvVariable,
+    deleteEnvVariable,
   },
   Date: GraphQLDate,
 };

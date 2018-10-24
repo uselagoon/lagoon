@@ -56,3 +56,26 @@
     expected_returncode: 401
   tasks:
   - include: ../../checks/check-url-returncode-host.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header-null.com' now has HSTS header set"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    host: "hsts-header-null.com"
+    expected_returncode: 200
+    expected_header: "strict_transport_security"
+    expected_header_value: "max-age=15768000"
+  tasks:
+  - include: ../../checks/check-url-header.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header.com' is created and does not have HSTS header set"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    host: "hsts-header.com"
+    expected_returncode: 200
+    expected_header: "strict_transport_security"
+  tasks:
+  - include: ../../checks/check-url-header-absent.yaml

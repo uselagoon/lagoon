@@ -26,6 +26,28 @@ const KeycloakOperations = {
       throw new Error(`Error deleting Keycloak group: ${err}`);
     }
   },
+  addGroup: async (project /* : any */) => {
+    try {
+      // Create a group in Keycloak named the same as the project
+      const name = R.prop('name', project);
+      await keycloakClient.groups.create({
+        name,
+      });
+      logger.debug(`Created Keycloak group with name "${name}"`);
+    } catch (err) {
+      if (err.response.status === 409) {
+        logger.warn(
+          `Failed to create already existing Keycloak group "${R.prop(
+            'name',
+            project,
+          )}"`,
+        );
+      } else {
+        logger.error(`SearchGuard create role error: ${err}`);
+        throw new Error(`SearchGuard create role error: ${err}`);
+      }
+    }
+  },
 };
 
 module.exports = KeycloakOperations;

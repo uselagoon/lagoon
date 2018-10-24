@@ -26,6 +26,7 @@
     "dotenv": "^4.0.0",
     "dotenv-extended": "^2.0.1",
     "elasticsearch": "^15.0.0",
+    "es7-sleep": "^1.0.0",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
     "got": "^9.2.2",

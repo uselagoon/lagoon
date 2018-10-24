@@ -51,6 +51,9 @@ const Sql /* : SqlObj */ = {
     knex('customer')
       .select('name')
       .toString(),
+  selectAllCustomers: () =>
+    knex('customer')
+      .toString(),
   truncateCustomer: () =>
     knex('customer')
       .truncate()
