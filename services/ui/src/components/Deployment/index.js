@@ -15,7 +15,7 @@ const Deployment = ({ deployment }) => (
           <label>Created</label>
           <div className="field">
             {moment
-              .utc(deployment.started)
+              .utc(deployment.created)
               .local()
               .format('DD MMM YYYY, HH:mm:ss')}
           </div>
@@ -30,21 +30,14 @@ const Deployment = ({ deployment }) => (
           </div>
         </div>
       </div>
-      {deployment.completed &&
-        deployment.started && (
-          <div className="field-wrapper duration">
-            <div>
-              <label>Duration</label>
-              <div className="field">
-                {moment
-                  .duration(
-                    moment(deployment.completed) - moment(deployment.started)
-                  )
-                  .format('HH[hr] mm[m] ss[sec]')}
-              </div>
-            </div>
+      <div className="field-wrapper duration">
+        <div>
+          <label>Duration</label>
+          <div className="field">
+            {deployment.duration}
           </div>
-        )}
+        </div>
+      </div>
     </div>
     <LogViewer logs="Placeholder logs data" />
     <style jsx>{`

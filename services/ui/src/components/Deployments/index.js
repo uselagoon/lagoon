@@ -32,7 +32,7 @@ const Deployments = ({ projectName, deployments }) => (
               <div className="name">{deployment.name}</div>
               <div className="started">
                 {moment
-                  .utc(deployment.started)
+                  .utc(deployment.created)
                   .local()
                   .format('DD MMM YYYY, HH:mm:ss')}
               </div>
@@ -40,16 +40,7 @@ const Deployments = ({ projectName, deployments }) => (
                 {deployment.status.charAt(0).toUpperCase() +
                   deployment.status.slice(1)}
               </div>
-
-              <div className="duration">
-                {deployment.completed &&
-                  deployment.started &&
-                  moment
-                    .duration(
-                      moment(deployment.completed) - moment(deployment.started)
-                    )
-                    .format('HH[hr] mm[m] ss[sec]')}
-              </div>
+              <div className="duration">{deployment.duration}</div>
             </a>
           </Link>
         </div>

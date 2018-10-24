@@ -31,6 +31,7 @@ const query = gql`
         id
         name
         status
+        created
         started
         remoteId
         completed
@@ -49,6 +50,7 @@ const PageDeployments = withRouter(props => {
         {({ loading, error, data }) => {
           if (loading) return null;
           if (error) return `Error!: ${error}`;
+
           const environment = data.environmentByOpenshiftProjectName;
           const breadcrumbs = [
             {
@@ -64,6 +66,24 @@ const PageDeployments = withRouter(props => {
               query: { name: environment.openshiftProjectName }
             }
           ];
+
+          const deployments = environment.deployments.map(deployment => {
+            const deploymentStart = deployment.started || deployment.created;
+            const durationStart =
+              (deploymentStart && moment.utc(deploymentStart)) || moment.utc();
+            const durationEnd =
+              (deployment.completed && moment.utc(deployment.completed)) ||
+              moment.utc();
+            const duration = moment
+              .duration(durationEnd - durationStart)
+              .format('HH[hr] mm[m] ss[sec]');
+
+            return {
+              ...deployment,
+              duration
+            };
+          });
+
           return (
             <React.Fragment>
               <Breadcrumbs breadcrumbs={breadcrumbs} />
@@ -75,11 +95,11 @@ const PageDeployments = withRouter(props => {
                 {!props.router.query.build && (
                   <DeploymentData
                     projectName={environment.openshiftProjectName}
-                    deployments={environment.deployments}
+                    deployments={deployments}
                   />
                 )}
                 {props.router.query.build &&
-                  environment.deployments
+                  deployments
                     .filter(
                       deployment => deployment.name === props.router.query.build
                     )
