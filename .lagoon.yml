@@ -17,13 +17,13 @@ additional-yaml:
     ignore_error: true
 
 tasks:
-  pre-rollout:
-    - run:
-        name: 'disable shard allocation on elasticsearch and run synced flush' # see https://www.elastic.co/guide/en/elasticsearch/reference/current/restart-upgrade.html
-        command: |
-          es-curl PUT _cluster/settings -d '{"persistent":{"cluster.routing.allocation.enable":"none"}}'
-          es-curl POST _flush/synced
-        service: logs-db
+#   pre-rollout:
+#     - run:
+#         name: 'disable shard allocation on elasticsearch and run synced flush' # see https://www.elastic.co/guide/en/elasticsearch/reference/current/restart-upgrade.html
+#         command: |
+#           es-curl PUT _cluster/settings -d '{"persistent":{"cluster.routing.allocation.enable":"none"}}'
+#           es-curl POST _flush/synced
+#         service: logs-db
 
   post-rollout:
     - run:
