@@ -77,7 +77,7 @@ const SearchguardOperations = {
         },
       });
       // Define a default Index if there is none yet
-      if (!currentSettings.body.settings.defaultIndex) {
+      if (!('defaultIndex' in currentSettings.body.settings)) {
         await kibanaClient.post('kibana/settings', {
           body: {
             changes: {
@@ -90,11 +90,12 @@ const SearchguardOperations = {
           },
         });
         logger.debug(`Configured default index for tenant "${customer.name}" to  "container-logs-${project.name}-*"`);
+      } else {
+        logger.debug(`Configured default index for tenant "${customer.name}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`);
       }
-      logger.debug(`Configured default index for tenant "${customer.name}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`);
     } catch (err) {
       logger.error(`Kibana Error during config of default Index: ${err}`);
-    // Don't fail if we have Kibana Errors, as they are "non-critical"
+      // Don't fail if we have Kibana Errors, as they are "non-critical"
     }
   },
 };
