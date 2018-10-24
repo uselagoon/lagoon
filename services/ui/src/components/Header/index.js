@@ -10,8 +10,7 @@ export default () => (
   <div className='header'>
     <Link href="/">
       <a className="home">
-        <img src={publicRuntimeConfig.LAGOON_UI_ICON} />
-        {console.log(publicRuntimeConfig)}
+        <img src={`data:image/svg+xml;utf8,${publicRuntimeConfig.LAGOON_UI_ICON}`} />
       </a>
     </Link>
     <AuthContext.Consumer>
