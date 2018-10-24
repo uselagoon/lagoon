@@ -2,7 +2,7 @@ ARG PHP_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
-MAINTAINER amazee.io
+LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 RUN apk update \

@@ -14,11 +14,12 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@lagoon/commons": "3.0.2",
+    "@lagoon/commons": "4.0.0",
     "bluebird": "^3.5.1",
     "es7-sleep": "^1.0.0",
     "flow-remove-types": "^1.2.1",
-    "openshift-client": "^3.10.8"
+    "openshift-client": "^3.10.8",
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"

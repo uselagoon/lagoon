@@ -11,21 +11,29 @@ additional-yaml:
     command: create
     ignore_error: true
 
+  keycloak-secrets:
+    path: .lagoon.keycloak-secrets.yaml
+    command: create
+    ignore_error: true
 
 tasks:
+  pre-rollout:
+    - run:
+        name: 'disable shard allocation on elasticsearch and run synced flush' # see https://www.elastic.co/guide/en/elasticsearch/reference/current/restart-upgrade.html
+        command: |
+          es-curl PUT _cluster/settings -d '{"persistent":{"cluster.routing.allocation.enable":"none"}}'
+          es-curl POST _flush/synced
+        service: logs-db
+
   post-rollout:
     - run:
         name: update database schema
         command: /rerun_initdb.sh
         service: api-db
     - run:
-        name: 'check\set kibana index patterns'
-        command: cd /lagoon/kibana-init/; sh index-patterns.sh
-        service: logs-db-ui
-    - run:
-        name: 'check\set elasticsearch watchers'
-        command: cd /lagoon/kibana-init/; sh watchers.sh
-        service: logs-db-ui
+        name: 'enable shard allocation on elasticsearch'
+        command: es-curl PUT _cluster/settings -d '{"persistent":{"cluster.routing.allocation.enable":null}}'
+        service: logs-db
 
 environments:
   master:
@@ -39,14 +47,14 @@ environments:
       logs-forwarder: statefulset
     cronjobs:
       - name: idle-clis
-        schedule: "*/15 * * * *"
+        schedule: '*/15 * * * *'
         command: /idle-clis.sh
         service: auto-idler
       - name: idle-services
-        schedule: "*/30 * * * *"
+        schedule: '*/30 * * * *'
         command: /idle-services.sh
         service: auto-idler
       - name: curator
-        schedule: "01 0 * * * "
+        schedule: '01 0 * * * '
         command: /usr/bin/curator --config curator.yml actions.yml
         service: logs-db-curator

@@ -17,63 +17,63 @@ node {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
-        lock('minishift') {
-          notifySlack()
 
-          try {
-            parallel (
-              'build & start services': {
-                stage ('build images') {
-                  sh "make build"
-                }
-                stage ('start services') {
-                  sh "make kill"
-                  sh "make up"
-                  sh "sleep 60"
-                }
-              },
-              'start minishift': {
-                stage ('start minishift') {
-                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
-                }
-              }
-            )
-          } catch (e) {
-            echo "Something went wrong, trying to cleanup"
-            cleanup()
-            throw e
-          }
-
-          parallel (
-            '_tests': {
-                stage ('run tests') {
-                  try {
-                    sh "make push-minishift"
-                    sh "make tests -j2"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup()
-                    throw e
-                  }
-                  cleanup()
-                }
-            },
-            'logs': {
-                stage ('all') {
-                  sh "make logs"
-                }
-            }
-          )
+        stage ('build images') {
+          sh "make build"
         }
 
-
-
-        stage ('publish-amazeeiolagoon') {
+        stage ('push images to amazeeiolagoon/*') {
           withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
             sh 'docker login -u amazeeiojenkins -p $PASSWORD'
             sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
           }
         }
+
+        // lock('minishift') {
+        //   notifySlack()
+
+        //   try {
+        //     parallel (
+        //       'start services': {
+        //         stage ('start services') {
+        //           sh "make kill"
+        //           sh "make up"
+        //           sh "sleep 60"
+        //         }
+        //       },
+        //       'start minishift': {
+        //         stage ('start minishift') {
+        //           sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
+        //         }
+        //       }
+        //     )
+        //   } catch (e) {
+        //     echo "Something went wrong, trying to cleanup"
+        //     cleanup()
+        //     throw e
+        //   }
+
+        //   parallel (
+        //     '_tests': {
+        //         stage ('run tests') {
+        //           try {
+        //             sh "make push-minishift"
+        //             sh "make tests -j2"
+        //           } catch (e) {
+        //             echo "Something went wrong, trying to cleanup"
+        //             cleanup()
+        //             throw e
+        //           }
+        //           cleanup()
+        //         }
+        //     },
+        //     'logs': {
+        //         stage ('all') {
+        //           sh "make logs"
+        //         }
+        //     },
+        //   )
+        // }
 
         if (env.BRANCH_NAME == 'master') {
           parallel (
@@ -91,12 +91,6 @@ node {
               }
             }
           )
-        }
-
-        if (env.BRANCH_NAME ==~ /develop|master/) {
-          stage ('start-lagoon-deploy') {
-            sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
-          }
         }
       } catch (e) {
         currentBuild.result = 'FAILURE'

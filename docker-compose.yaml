@@ -3,8 +3,7 @@ services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
     volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d/00-setup.sql:/docker-entrypoint-initdb.d/00-setup.sql
-      - ./services/api-db/docker-entrypoint-initdb.d/01-procedures.sql:/docker-entrypoint-initdb.d/01-procedures.sql
+      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - '3306:3306'
@@ -83,8 +82,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image:
-        amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:${SAFE_BRANCH:-master}
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -136,6 +134,7 @@ services:
     depends_on:
       - api-db
       - local-api-data-watcher-pusher
+      - keycloak
     ports:
       - '3000:3000'
     labels:
@@ -151,7 +150,7 @@ services:
       - ./services/ui/.env.schema:/app/services/ui/.env.schema
       - ./services/ui/package.json:/app/services/ui/package.json
     ports:
-      - "8888:3003"
+      - '8888:3003'
     labels:
       lagoon.type: custom
       lagoon.template: services/ui/.lagoon.app.yml
@@ -188,6 +187,24 @@ services:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/auth-server:${SAFE_BRANCH:-master}
+  keycloak:
+    image: ${IMAGE_REPO:-lagoon}/keycloak
+    user: '111111111'
+    depends_on:
+      - keycloak-db
+    ports:
+      - '8088:8080'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/keycloak/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/keycloak:${SAFE_BRANCH:-master}
+  keycloak-db:
+    image: ${IMAGE_REPO:-lagoon}/keycloak-db
+    ports:
+      - '3336:3306'
+    labels:
+      lagoon.type: mariadb
+      lagoon.image: amazeeiolagoon/keycloak-db:${SAFE_BRANCH:-master}
   tests:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -237,15 +254,6 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
-  local-es-kibana-watcher-pusher:
-    depends_on:
-      - logs-db
-      - logs-db-ui
-    image: ${IMAGE_REPO:-lagoon}/local-es-kibana-watcher-pusher
-    volumes:
-      - ./services/logs-db-ui/init/:/lagoon/kibana-init/
-    labels:
-      lagoon.type: none
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:
@@ -260,6 +268,10 @@ services:
   logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs-db
     user: '111111111'
+    environment:
+      KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+    ports:
+      - '9200:9200'
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml
@@ -276,6 +288,9 @@ services:
     user: '111111111'
     ports:
       - '5601:5601'
+    environment:
+      KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+      LOGSDB_UI_URL: http://0.0.0.0:5601
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
@@ -291,14 +306,14 @@ services:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
     command:
-      - "--config.reload.automatic"
-      - "--config.reload.interval"
-      - "1s"
+      - '--config.reload.automatic'
+      - '--config.reload.interval'
+      - '1s'
     ports:
-    - "5140:5140/udp"
-    - "5141:5141/udp"
+      - '5140:5140/udp'
+      - '5141:5141/udp'
     volumes:
-      - "./services/logs2logs-db/pipeline:/usr/share/logstash/pipeline"
+      - './services/logs2logs-db/pipeline:/usr/share/logstash/pipeline'
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
