@@ -381,6 +381,7 @@ CREATE OR REPLACE PROCEDURE
     DECLARE ssh_key_id INT;
     DECLARE ssh_key_name VARCHAR(100);
     DECLARE user_comment TEXT;
+    DECLARE user_email VARCHAR(500);
     DECLARE user_id INT;
     DECLARE loop_done INTEGER DEFAULT 0;
 
@@ -409,8 +410,16 @@ CREATE OR REPLACE PROCEDURE
 
       SET user_comment = CONCAT(
         'User automatically migrated from SSH key with name "',
+        ssh_key_id,
+        '-',
         ssh_key_name,
         '".'
+      );
+
+      SET user_email = CONCAT(
+        ssh_key_id,
+        '-',
+        ssh_key_name
       );
 
       -- Create a user
@@ -421,7 +430,7 @@ CREATE OR REPLACE PROCEDURE
         comment
       )
       VALUES (
-        'auto-migrated-user@example.com',
+        user_email,
         'auto-migrated-user',
         'auto-migrated-user',
         user_comment

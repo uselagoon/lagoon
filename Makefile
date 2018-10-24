@@ -117,6 +117,7 @@ images :=     oc \
 							varnish \
 							varnish-drupal \
 							redis \
+							redis-persistent \
 							mongo \
 							elasticsearch \
 							kibana \
@@ -159,6 +160,7 @@ build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
+build/redis-persistent: build/commons images/redis-persistent/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
@@ -359,8 +361,7 @@ service-images += ssh
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher \
-									local-es-kibana-watcher-pusher
+									local-api-data-watcher-pusher
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -430,7 +431,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher local-es-kibana-watcher-pusher tests
+deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch

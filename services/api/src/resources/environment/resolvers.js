@@ -370,6 +370,7 @@ const addOrUpdateEnvironment = async (
     sqlClient,
     `
       CALL CreateOrUpdateEnvironment(
+        :id,
         :name,
         :project,
         :deploy_type,

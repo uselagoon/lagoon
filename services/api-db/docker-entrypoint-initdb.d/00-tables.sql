@@ -119,6 +119,16 @@ CREATE TABLE IF NOT EXISTS environment_backup (
   UNIQUE KEY `backup_id` (`backup_id`)
 );
 
+CREATE TABLE IF NOT EXISTS env_vars (
+  id          int NOT NULL auto_increment PRIMARY KEY,
+  name        varchar(300) NOT NULL,
+  value       varchar(300) NOT NULL,
+  project     int NULL REFERENCES project (id),
+  environment int NULL REFERENCES environent (id),
+  UNIQUE KEY `name_project` (`name`,`project`),
+  UNIQUE KEY `name_environment` (`name`,`environment`)
+);
+
 -- Junction Tables
 
 CREATE TABLE IF NOT EXISTS project_notification (

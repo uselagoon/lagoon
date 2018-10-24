@@ -17,6 +17,9 @@ const Sql /* : SqlObj */ = {
     knex('project')
       .select('name')
       .toString(),
+  selectAllProjects: () =>
+    knex('project')
+      .toString(),
   selectProjectIdByName: (name /* : string */) =>
     knex('project')
       .where('name', name)

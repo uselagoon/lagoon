@@ -17,6 +17,9 @@ environments:
       - insecure-none.com:
           tls-acme: 'false'
           insecure: Allow
+      - hsts-header.com
+      - hsts-header-null.com:
+          hsts: max-age=15768000
     - nginx-basic-auth:
       - nginx-basic-auth.com
       - moving-route.com

@@ -644,6 +644,10 @@ const addOrUpdateEnvironment = (
       deployType
       environmentType
       openshiftProjectName
+      envVariables {
+        name
+        value
+      }
     }
   }
 `);
@@ -705,6 +709,10 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         subfolder
         openshiftProjectPattern
         productionEnvironment
+        envVariables {
+          name
+          value
+        }
       }
     }
 `);

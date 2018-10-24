@@ -57,6 +57,7 @@ environments:
         - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
+            hsts: max-age=31536000
     cronjobs:
      - name: drush cron
        schedule: "H * * * *" # this will run the cron once per Hour
@@ -123,10 +124,11 @@ The simplest route is the `example.com` example above. This will assume that you
 In the `"www.example.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
 
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route, this is the default. If you don't like a Let's Encrypt set this to `tls-acme: 'false'`
-* `Insecure` can be set to `None`, `Allow` or `Redirect`.
+* `insecure` can be set to `None`, `Allow` or `Redirect`.
     * `Allow` simply sets up both routes for http and https (this is the default).
     * `Redirect` will redirect any http requests to https
     * `None` will mean a route for http will _not_ be created, and no redirect will take place
+* `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 #### `environments.[name].cronjobs`
 As most of the time it is not desireable to run the same cronjobs across all environments, you must explicitely define which jobs you want to run for each environment.

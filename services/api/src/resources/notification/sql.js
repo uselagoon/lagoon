@@ -89,7 +89,7 @@ const Sql /* : SqlObj */ = {
       .toString();
   },
   selectNotificationsByTypeByProjectId: (
-    { role, permissions: { projects } } /* : Cred */,
+    { credentials: { role, permissions: { projects } } /* : Cred */ },
     input /* : Object */,
   ) => {
     const { type, pid } = input;

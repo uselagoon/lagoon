@@ -64,7 +64,11 @@ const addSshKey = async (
     throw new Error('Unauthorized.');
   }
 
-  await query(
+  const {
+    info: {
+      insertId,
+    },
+  } = await query(
     sqlClient,
     Sql.insertSshKey({
       id,
@@ -73,8 +77,8 @@ const addSshKey = async (
       keyType,
     }),
   );
-  await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: id, userId }));
-  const rows = await query(sqlClient, Sql.selectSshKey(id));
+  await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: insertId, userId }));
+  const rows = await query(sqlClient, Sql.selectSshKey(insertId));
 
   return R.prop(0, rows);
 };

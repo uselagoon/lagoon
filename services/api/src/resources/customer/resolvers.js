@@ -15,6 +15,7 @@ const {
 const logger = require('../../logger');
 const Helpers = require('./helpers');
 const Sql = require('./sql');
+const SearchguardOperations = require('./searchguard');
 
 /* ::
 
@@ -22,38 +23,6 @@ import type {ResolversObj} from '../';
 
 */
 
-const updateSearchGuardWithCustomers = async () => {
-  const customerNames = await Helpers.getAllCustomerNames();
-
-  const tenants = R.reduce(
-    (acc, elem) => {
-      acc[elem] = 'RW';
-      return acc;
-    },
-    { admin_tenant: 'RW' },
-    customerNames,
-  );
-
-  try {
-    // Create or Update the lagoonadmin role which has access to all tenants (all customers)
-    await searchguardClient.put('roles/lagoonadmin', {
-      body: {
-        cluster: ['UNLIMITED'],
-        indices: {
-          '*': {
-            '*': ['UNLIMITED'],
-          },
-        },
-        tenants,
-      },
-    });
-  } catch (err) {
-    logger.error(`SearchGuard Error while creating lagoonadmin role: ${err}`);
-    throw new Error(
-      `SearchGuard Error while creating lagoonadmin role: ${err}`,
-    );
-  }
-};
 
 const addCustomer = async (root, { input }, { credentials: { role } }) => {
   if (role !== 'admin') {
@@ -73,7 +42,7 @@ const addCustomer = async (root, { input }, { credentials: { role } }) => {
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);
 
-  await updateSearchGuardWithCustomers();
+  await SearchguardOperations.createOrUpdateLagoonadminRole();
 
   return customer;
 };
@@ -117,7 +86,7 @@ const deleteCustomer = async (root, { input }, { credentials: { role } }) => {
 
   await query(sqlClient, prep(input));
 
-  await updateSearchGuardWithCustomers();
+  await SearchguardOperations.createOrUpdateLagoonadminRole();
 
   // TODO: maybe check rows for changed values
   return 'success';
@@ -195,6 +164,16 @@ const getCustomerByName = async (
   return rows ? rows[0] : null;
 };
 
+const resyncCustomersWithSearchguard = async (root, args, { credentials: { role } }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized.');
+  }
+
+  await SearchguardOperations.createOrUpdateLagoonadminRole();
+
+  return 'success';
+};
+
 const deleteAllCustomers = async (root, args, { credentials: { role } }) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
@@ -214,6 +193,7 @@ const Resolvers /* : ResolversObj */ = {
   updateCustomer,
   getCustomerByName,
   deleteAllCustomers,
+  resyncCustomersWithSearchguard,
 };
 
 module.exports = Resolvers;
