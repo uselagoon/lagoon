@@ -1,19 +1,21 @@
 import React from 'react';
-import { withRouter } from 'next/router'
-import Link from 'next/link'
+import { withRouter } from 'next/router';
+import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
-import Page from '../layouts/main'
+import Page from '../layouts/main';
 import Breadcrumbs from '../components/Breadcrumbs';
 import NavTabs from '../components/NavTabs';
 import DeploymentData from '../components/Deployments';
-import Logs from '../components/Logs';
+import Deployment from '../components/Deployment';
 import moment from 'moment';
 import { bp, color, fontSize } from '../variables';
 
 const query = gql`
-  query getEnvironment($openshiftProjectName: String!){
-    environmentByOpenshiftProjectName(openshiftProjectName: $openshiftProjectName) {
+  query getEnvironment($openshiftProjectName: String!) {
+    environmentByOpenshiftProjectName(
+      openshiftProjectName: $openshiftProjectName
+    ) {
       id
       name
       created
@@ -36,10 +38,14 @@ const query = gql`
     }
   }
 `;
-const Deployments = withRouter((props) => {
+
+const PageDeployments = withRouter(props => {
   return (
     <Page>
-      <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
+      <Query
+        query={query}
+        variables={{ openshiftProjectName: props.router.query.name }}
+      >
         {({ loading, error, data }) => {
           if (loading) return null;
           if (error) return `Error!: ${error}`;
@@ -49,7 +55,7 @@ const Deployments = withRouter((props) => {
               header: 'Project',
               title: environment.project.name,
               pathname: '/project',
-              query: {name: environment.project.name}
+              query: { name: environment.project.name }
             },
             {
               header: 'Environment',
@@ -60,34 +66,44 @@ const Deployments = withRouter((props) => {
           ];
           return (
             <React.Fragment>
-              <Breadcrumbs breadcrumbs={breadcrumbs}/>
-              <div className='content-wrapper'>
-                <NavTabs activeTab='deployments' environment={environment.openshiftProjectName}/>
-                {!props.router.query.build &&
-                  <DeploymentData projectName={environment.openshiftProjectName} deployments={environment.deployments} />
-                }
+              <Breadcrumbs breadcrumbs={breadcrumbs} />
+              <div className="content-wrapper">
+                <NavTabs
+                  activeTab="deployments"
+                  environment={environment.openshiftProjectName}
+                />
+                {!props.router.query.build && (
+                  <DeploymentData
+                    projectName={environment.openshiftProjectName}
+                    deployments={environment.deployments}
+                  />
+                )}
                 {props.router.query.build &&
                   environment.deployments
-                  .filter(deployment => deployment.name === props.router.query.build)
-                  .map(deployment =>
-                    <Logs key={deployment.name} deployment={deployment} />
-                  )
-                }
+                    .filter(
+                      deployment => deployment.name === props.router.query.build
+                    )
+                    .map(deployment => (
+                      <Deployment
+                        key={deployment.name}
+                        deployment={deployment}
+                      />
+                    ))}
               </div>
               <style jsx>{`
-              .content-wrapper {
-                @media ${bp.tabletUp} {
-                  display: flex;
-                  padding: 0;
+                .content-wrapper {
+                  @media ${bp.tabletUp} {
+                    display: flex;
+                    padding: 0;
+                  }
                 }
-              }
-            `}</style>
+              `}</style>
             </React.Fragment>
           );
         }}
       </Query>
     </Page>
-  )
+  );
 });
 
-export default Deployments;
+export default PageDeployments;
