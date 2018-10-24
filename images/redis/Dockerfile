@@ -23,7 +23,7 @@ ENV TMPDIR=/tmp TMP=/tmp HOME=/home ENV=/home/.bashrc BASH_ENV=/home/.bashrc
 COPY conf /etc/redis/
 COPY docker-entrypoint /lagoon/entrypoints/70-redis-entrypoint
 
-RUN fix-permissions /etc/redis/redis.conf \
+RUN fix-permissions /etc/redis \
     fix-permissions /data
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
