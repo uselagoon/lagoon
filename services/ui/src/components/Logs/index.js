@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
-import { LazyLog } from 'react-lazylog';
+import momentDurationFormatSetup from 'moment-duration-format';
 import { bp, color } from '../../variables';
 import giturlparse from 'git-url-parse';
 
@@ -25,22 +25,36 @@ export default ({ deployment }) => (
         <div className='field-wrapper duration'>
           <div>
             <label>Duration</label>
-            <div className='field'>{moment(moment(deployment.completed) - moment(deployment.started)).format('mm[m] ss[sec]')}</div>
+            <div className='field'>{moment.duration(moment(deployment.completed) - moment(deployment.started)).format('HH[hr] mm[m] ss[sec]')}</div>
           </div>
         </div>
       }
     </div>
-    <div className='log-viewer'>
-      <LazyLog url='https://gist.githubusercontent.com/Schnitzel/24e0a709c7a9a1bf6e8659e0dae0e769/raw/7ab1c0f9232c3450651c0217ad82a06de5bfda29/gistfile1.txt' />
+    <div className='logs'>
+      <div className='log-viewer'>
+        Placeholder logs data
+      </div>
     </div>
     <style jsx>{`
       .content {
         width: 100%;
       }
-      .log-viewer {
-        height: 600px;
+      .logs {
         padding: 0 calc(100vw / 16) 48px;
         width: 100%;
+        .log-viewer {
+          background-color: #222222;
+          color: #d6d6d6;
+          font-family: "Monaco", monospace;
+          font-size: 12px;
+          font-weight: 400;
+          height: 600px;
+          margin: 0;
+          overflow-x: scroll;
+          padding: calc((100vw / 16) * 0.5) calc(100vw / 16);
+          white-space: pre;
+          will-change: initial;
+        }
       }
       .details {
         padding: 104px calc(100vw / 16) 20px;
@@ -104,7 +118,7 @@ export default ({ deployment }) => (
           }
           &.duration {
             &::before {
-              background-image: url('/static/images/duration.png');
+              background-image: url('/static/images/duration.svg');
               background-size: 17px;
             }
           }
@@ -114,37 +128,37 @@ export default ({ deployment }) => (
             }
             &.new {
               &::before {
-                background-image: url('/static/images/pending.png');
+                background-image: url('/static/images/pending.svg');
               }
             }
             &.pending {
               &::before {
-                background-image: url('/static/images/pending.png');
+                background-image: url('/static/images/pending.svg');
               }
             }
             &.running {
               &::before {
-                background-image: url('/static/images/in-progress.png');
+                background-image: url('/static/images/in-progress.svg');
               }
             }
             &.cancelled {
               &::before {
-                background-image: url('/static/images/failed.png');
+                background-image: url('/static/images/failed.svg');
               }
             }
             &.error {
               &::before {
-                background-image: url('/static/images/failed.png');
+                background-image: url('/static/images/failed.svg');
               }
             }
             &.failed {
               &::before {
-                background-image: url('/static/images/failed.png');
+                background-image: url('/static/images/failed.svg');
               }
             }
             &.complete {
               &::before {
-                background-image: url('/static/images/success.png');
+                background-image: url('/static/images/successful.svg');
               }
             }
           }
