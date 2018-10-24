@@ -29,51 +29,51 @@ node {
           }
         }
 
-        // lock('minishift') {
-        //   notifySlack()
+        lock('minishift') {
+          notifySlack()
 
-        //   try {
-        //     parallel (
-        //       'start services': {
-        //         stage ('start services') {
-        //           sh "make kill"
-        //           sh "make up"
-        //           sh "sleep 60"
-        //         }
-        //       },
-        //       'start minishift': {
-        //         stage ('start minishift') {
-        //           sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
-        //         }
-        //       }
-        //     )
-        //   } catch (e) {
-        //     echo "Something went wrong, trying to cleanup"
-        //     cleanup()
-        //     throw e
-        //   }
+          try {
+            parallel (
+              'start services': {
+                stage ('start services') {
+                  sh "make kill"
+                  sh "make up"
+                  sh "sleep 60"
+                }
+              },
+              'start minishift': {
+                stage ('start minishift') {
+                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
+                }
+              }
+            )
+          } catch (e) {
+            echo "Something went wrong, trying to cleanup"
+            cleanup()
+            throw e
+          }
 
-        //   parallel (
-        //     '_tests': {
-        //         stage ('run tests') {
-        //           try {
-        //             sh "make push-minishift"
-        //             sh "make tests -j2"
-        //           } catch (e) {
-        //             echo "Something went wrong, trying to cleanup"
-        //             cleanup()
-        //             throw e
-        //           }
-        //           cleanup()
-        //         }
-        //     },
-        //     'logs': {
-        //         stage ('all') {
-        //           sh "make logs"
-        //         }
-        //     },
-        //   )
-        // }
+          parallel (
+            '_tests': {
+                stage ('run tests') {
+                  try {
+                    sh "make push-minishift"
+                    sh "make tests -j2"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
+                  cleanup()
+                }
+            },
+            'logs': {
+                stage ('all') {
+                  sh "make logs"
+                }
+            },
+          )
+        }
 
         if (env.BRANCH_NAME == 'master') {
           parallel (
