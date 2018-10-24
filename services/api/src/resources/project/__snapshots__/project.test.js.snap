@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Resolvers selectProject should create query 1`] = `"select * from \`project\` where \`id\` = 1"`;
+
+exports[`Resolvers updateProject should return proper update statement 1`] = `"update \`project\` set \`name\` = 'test' where \`id\` = 1"`;

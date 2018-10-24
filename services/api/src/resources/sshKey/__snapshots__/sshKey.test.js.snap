@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sql selectSshKey should create a proper query 1`] = `"select * from \`ssh_key\` where \`id\` = 1"`;
+
+exports[`Sql updateSshKey should create a proper query 1`] = `"update \`ssh_key\` set \`key_type\` = 'ssh-rsa' where \`id\` = 1"`;

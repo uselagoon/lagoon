@@ -17,15 +17,24 @@ node {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
+
+        stage ('build images') {
+          sh "make build"
+        }
+
+        stage ('push images to amazeeiolagoon/*') {
+          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
+          }
+        }
+
         lock('minishift') {
           notifySlack()
 
           try {
             parallel (
-              'build & start services': {
-                stage ('build images') {
-                  sh "make build"
-                }
+              'start services': {
                 stage ('start services') {
                   sh "make kill"
                   sh "make up"
@@ -62,17 +71,8 @@ node {
                 stage ('all') {
                   sh "make logs"
                 }
-            }
+            },
           )
-        }
-
-
-
-        stage ('publish-amazeeiolagoon') {
-          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
-          }
         }
 
         if (env.BRANCH_NAME == 'master') {
@@ -91,12 +91,6 @@ node {
               }
             }
           )
-        }
-
-        if (env.BRANCH_NAME ==~ /develop|master/) {
-          stage ('start-lagoon-deploy') {
-            sh "curl -X POST http://rest2tasks.lagoon.master.appuio.amazee.io/deploy -H 'content-type: application/json' -d '{ \"projectName\": \"lagoon\", \"branchName\": \"${env.BRANCH_NAME}\",\"sha\": \"${env.GIT_COMMIT}\" }'"
-          }
         }
       } catch (e) {
         currentBuild.result = 'FAILURE'

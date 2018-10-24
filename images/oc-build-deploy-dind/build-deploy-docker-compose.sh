@@ -97,6 +97,15 @@ done
 if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG == "true" ]]; then
 
   BUILD_ARGS=()
+
+  # Add environment variables from lagoon API as build args
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | "--build-arg \(.name)=\(.value)"'))
+  fi
+  if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+    BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | "--build-arg \(.name)=\(.value)"'))
+  fi
+
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
@@ -373,6 +382,20 @@ oc process --local --insecure-skip-tls-verify \
   -p ROUTES="${ROUTES}" \
   -p MONITORING_URLS="${MONITORING_URLS}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
+
+# Add environment variables from lagoon API
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  oc patch --insecure-skip-tls-verify \
+    -n ${OPENSHIFT_PROJECT} \
+    configmap lagoon-env \
+    -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( { (.name) : .value } ) | add | tostring')}"
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  oc patch --insecure-skip-tls-verify \
+    -n ${OPENSHIFT_PROJECT} \
+    configmap lagoon-env \
+    -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( { (.name) : .value } ) | add | tostring')}"
+fi
 
 if [ "$TYPE" == "pullrequest" ]; then
   oc patch --insecure-skip-tls-verify \
