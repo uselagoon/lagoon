@@ -11,6 +11,7 @@ ENV NODE_OPTIONS="--max-old-space-size=2048" \
 
 RUN echo $'xpack.security.enabled: false\n\
 xpack.monitoring.enabled: false\n\
+xpack.reporting.encryptionKey: "${LOGSDB_UI_XPACK_REPORTING_ENCRYPTIONKEY:-lagoonrocksyou}"\n\
 \n\
 # Configure the Kibana internal server user\n\
 elasticsearch.username: "kibanaserver"\n\
@@ -44,6 +45,8 @@ searchguard.openid.base_redirect_url: "${LOGSDB_UI_URL:-http://0.0.0.0:5601}"\n\
 \n\
 # optional: the scope of the identity token\n\
 searchguard.openid.scope: "profile email"\n\
+\n\
+searchguard.cookie.password: "${SEARCHGUARD_COOKIE_PASSWORD:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"\n\
 ' >> config/kibana.yml
 
 RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.2-15/search-guard-kibana-plugin-6.4.2-15.zip
