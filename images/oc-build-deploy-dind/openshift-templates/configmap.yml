@@ -19,6 +19,9 @@ parameters:
   - name: PROJECT
     description: Which project this belongs to, original value
     required: true
+  - name: OPENSHIFT_NAME
+    description: The name of the openshift cluster this project is running on
+    required: true
   - name: ENVIRONMENT_TYPE
     description: Which environment type this project is
     value: development
@@ -45,3 +48,4 @@ objects:
     LAGOON_ROUTE: ${ROUTE}
     LAGOON_ROUTES: ${ROUTES}
     LAGOON_MONITORING_URLS: ${MONITORING_URLS}
+    LAGOON_OPENSHIFT_NAME: ${OPENSHIFT_NAME}
