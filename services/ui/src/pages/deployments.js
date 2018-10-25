@@ -35,6 +35,7 @@ const query = gql`
         started
         remoteId
         completed
+        buildLog
       }
     }
   }

@@ -39,7 +39,7 @@ const Deployment = ({ deployment }) => (
         </div>
       </div>
     </div>
-    <LogViewer logs="Placeholder logs data" />
+    <LogViewer logs={deployment.buildLog} />
     <style jsx>{`
       .content {
         width: 100%;

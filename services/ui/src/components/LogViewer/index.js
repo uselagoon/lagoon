@@ -1,9 +1,10 @@
 import React from 'react';
+import { bp } from '../../variables';
 
 const LogViewer = ({ logs }) => (
   <React.Fragment>
     <div className="logs">
-      <div className="log-viewer">{logs}</div>
+      <div className="log-viewer">{logs || 'Logs are not available.'}</div>
     </div>
     <style jsx>{`
       .logs {
@@ -17,10 +18,17 @@ const LogViewer = ({ logs }) => (
           font-weight: 400;
           height: 600px;
           margin: 0;
+          overflow-wrap: break-word;
           overflow-x: scroll;
           padding: calc((100vw / 16) * 0.5) calc(100vw / 16);
-          white-space: pre;
+          white-space: pre-wrap;
           will-change: initial;
+          word-break: break-all;
+          word-wrap: break-word;
+
+          @media ${bp.xs_smallUp} {
+            padding: 30px;
+          }
         }
       }
     `}</style>
