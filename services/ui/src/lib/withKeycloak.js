@@ -19,7 +19,7 @@ export default (App, initialAuth) => {
 
       keycloak.onTokenExpired = async () => {
         await keycloak.updateToken();
-        this.setState({ keycloak });
+        this.setAuth(keycloak);
       };
 
       await keycloak.init({
@@ -27,6 +27,10 @@ export default (App, initialAuth) => {
         checkLoginIframe: false
       });
 
+      this.setAuth(keycloak);
+    }
+
+    setAuth(keycloak) {
       this.setState({
         auth: {
           apiToken: keycloak.token,
