@@ -11,16 +11,9 @@ RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.4.2-23.1 
     && echo "node.attr.box_type: \${BOX_TYPE}" >> config/elasticsearch.yml \
     && chmod +x plugins/search-guard-6/tools/hash.sh
 
-ENV LOGSDB_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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 \
-    LOGSDB_SLACK_USERNAME=x-pack \
-    LOGSDB_SLACK_CHANNEL=#lagoon-dev-alerts \
-    LOGSDB_PAGERDUTY_KEY=XXXXU4yGzC2QassuXXXX  \
-    LOGSDB_ADMIN_PASSWORD=admin \
+ENV LOGSDB_ADMIN_PASSWORD=admin \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
     BOX_TYPE=live
-
-COPY elasticsearch.yml.append elasticsearch.yml.append
-RUN cat elasticsearch.yml.append >> config/elasticsearch.yml
 
 COPY sgconfig/sg_roles_mapping.yml plugins/search-guard-6/sgconfig/sg_roles_mapping.yml
 COPY sgconfig/sg_internal_users.yml plugins/search-guard-6/sgconfig/sg_internal_users.yml
