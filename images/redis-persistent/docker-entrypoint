@@ -1,5 +1,0 @@
-#!/bin/sh
-
-ep /etc/redis/*
-
-exec "$@"

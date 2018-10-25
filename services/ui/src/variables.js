@@ -48,20 +48,19 @@ export const bp = {
 
 export const pxToRem = pxValue => `${pxValue / 16}rem`;
 
-export const fontSize = (sizeInPx, lineHeight = false) => `
+export const fontSize = (sizeInPx, lineHeight) => `
   font-size: ${sizeInPx}px;
   font-size: ${pxToRem(sizeInPx)};
 
-  ${lineHeight === true &&
+  ${!lineHeight &&
     `
     line-height: ${sizeInPx * 1.66666667}px;
     line-height: ${pxToRem(sizeInPx * 1.66666667)};
   `}
 
-  ${lineHeight !== false &&
-    lineHeight !== true &&
+  ${lineHeight ?
     `
     line-height: ${lineHeight}px;
     line-height: ${pxToRem(lineHeight)};
-  `}
+  ` : ''}
 `;
