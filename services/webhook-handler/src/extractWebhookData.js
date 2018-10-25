@@ -47,7 +47,7 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       giturl = R.path(['repository', 'ssh_url'], bodyObj);
     } else if ('x-gitlab-event' in req.headers) {
       webhooktype = 'gitlab';
-      event = bodyObj.object_kind;
+      event = bodyObj.object_kind || bodyObj.event_name;
       uuid = uuid4();
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
     } else if ('x-event-key' in req.headers) {
@@ -70,7 +70,10 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
         const port = regexmatch[2]
         giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
       }
-
+    } else if (bodyObj.backup_metrics) {
+      webhooktype = 'resticbackup';
+      event = 'snapshot:finished'
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }

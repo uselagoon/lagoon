@@ -12,6 +12,7 @@ node_modules/
 build/*
 !build/.gitkeep
 openshift
+!services/api/src/resources/openshift
 .loopback
 secrets
 docs/_build

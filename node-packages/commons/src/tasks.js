@@ -22,31 +22,23 @@ const {
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let connection = (exports.connection = function connection() {});
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
-
-const _extends =
-  Object.assign ||
-  function _extends(...args) {
-    for (let i = 1; i < args.length; i++) {
-      const source = args[i];
-      for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          args[0][key] = source[key];
-        }
-      }
-    }
-    return args[0];
-  };
 
 class UnknownActiveSystem extends Error {
   constructor(message: string) {
@@ -208,34 +200,41 @@ async function createDeployTask(deployData: Object) {
     );
   }
 
-
-
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
+      if (environments.project.productionEnvironment === branchName) {
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+        );
+      } else {
+        // get a list of non-production environments
+        console.log(environments.project);
+        const dev_environments = environments.project.environments
+          .filter(e => e.environmentType === 'development')
+          .map(e => e.name);
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          dev_environments,
+        );
 
-    if (environments.project.productionEnvironment == branchName) {
-      logger.debug(
-        `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
-      )
-    } else {
-      // get a list of non-production environments
-      console.log(environments.project);
-      dev_environments = environments.project.environments.filter (e => e.environmentType=='development').map(e => e.name)
-      logger.debug( `projectName: ${projectName}, branchName: ${branchName}, existing environments are `, dev_environments)
-
-      if (environments.project.developmentEnvironmentsLimit !== null && dev_environments.length >= environments.project.developmentEnvironmentsLimit ) {
-
-        if ( dev_environments.find(  function(i){ return i == branchName })) {
-          logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
-          )
-        } else {
-          throw new EnvironmentLimit(
-            `'${branchName}' would exceed the configured limit of ${environments.project.developmentEnvironmentsLimit} development environments for project ${projectName}`,
-          );
+        if (
+          environments.project.developmentEnvironmentsLimit !== null &&
+          dev_environments.length >=
+            environments.project.developmentEnvironmentsLimit
+        ) {
+          if (dev_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${
+                environments.project.developmentEnvironmentsLimit
+              } development environments for project ${projectName}`,
+            );
+          }
         }
       }
-    }
 
       if (type === 'branch') {
         switch (project.branches) {
@@ -410,7 +409,7 @@ async function consumeTasks(
   retryHandler: Function,
   deathHandler: Function,
 ) {
-  const onMessage = async (msg) => {
+  const onMessage = async msg => {
     try {
       await messageConsumer(msg);
       channelWrapperTasks.ack(msg);
@@ -446,10 +445,11 @@ async function consumeTasks(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 
@@ -490,7 +490,7 @@ async function consumeTaskMonitor(
   messageConsumer: Function,
   deathHandler: Function,
 ) {
-  const onMessage = async (msg) => {
+  const onMessage = async msg => {
     try {
       await messageConsumer(msg);
       channelWrapperTaskMonitor.ack(msg);
@@ -516,10 +516,11 @@ async function consumeTaskMonitor(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 

@@ -82,8 +82,9 @@ class StartPage extends React.Component {
                               />
                             </h4>
                             <div className="route">
-                              {project.environments.map(environment => (
+                              {project.environments.map((environment, index) => (
                                 <Highlighter
+                                  key={index}
                                   searchWords={[this.state.searchInput]}
                                   autoEscape={true}
                                   textToHighlight={environment.route ? environment.route.replace(/^https?\:\/\//i, "") : ''}
