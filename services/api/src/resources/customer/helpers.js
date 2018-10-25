@@ -33,6 +33,19 @@ const Helpers = {
   getAllCustomerNames: async () =>
     R.map(R.prop('name'), await query(sqlClient, Sql.selectAllCustomerNames())),
   getAllCustomers: async () => query(sqlClient, Sql.selectAllCustomers()),
+  filterRestrictedData: (creds, rows) => rows.map(row => {
+    const { role } = creds;
+    let privateKey = row.privateKey;
+
+    if (role !== 'admin') {
+      privateKey = null;
+    }
+
+    return {
+      ...row,
+      privateKey,
+    };
+  }),
 };
 
 module.exports = Helpers;
