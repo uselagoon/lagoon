@@ -502,7 +502,7 @@ async function consumeTaskMonitor(
         ? msg.properties.headers['x-retry'] + 1
         : 1;
 
-      if (retryCount > 250) {
+      if (retryCount > 750) {
         channelWrapperTaskMonitor.ack(msg);
         deathHandler(msg, error);
         return;
