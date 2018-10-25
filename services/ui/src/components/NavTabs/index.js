@@ -90,6 +90,15 @@ export default ({activeTab, environment}) => (
             background-image: url('/static/images/deployments-active.svg');
           }
         }
+        &.backups {
+          &::before {
+            background-image: url('/static/images/backups.svg');
+            background-size: 19px;
+          }
+          &.active::before {
+            background-image: url('/static/images/backups-active.svg');
+          }
+        }
       }
     }
   `}</style>

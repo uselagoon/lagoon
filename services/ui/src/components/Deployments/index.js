@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
+import momentDurationFormatSetup from 'moment-duration-format';
 import { bp, color } from '../../variables';
 
 export default ({ projectName, deployments }) => (
@@ -35,7 +36,7 @@ export default ({ projectName, deployments }) => (
 
                 <div className="duration">
                   {deployment.completed && deployment.started &&
-                    moment(moment(deployment.completed) - moment(deployment.started)).format('mm[min] ss[sec]')
+                    moment.duration(moment(deployment.completed) - moment(deployment.started)).format('HH[hr] mm[m] ss[sec]')
                   }
                 </div>
               </a>
@@ -119,25 +120,25 @@ export default ({ projectName, deployments }) => (
               background-repeat: no-repeat;
               background-size: 10px 10px;
               &.new {
-                background-image: url('/static/images/pending.png');
+                background-image: url('/static/images/pending.svg');
               }
               &.pending {
-                background-image: url('/static/images/pending.png');
+                background-image: url('/static/images/pending.svg');
               }
               &.running {
-                background-image: url('/static/images/in-progress.png');
+                background-image: url('/static/images/in-progress.svg');
               }
               &.cancelled {
-                background-image: url('/static/images/failed.png');
+                background-image: url('/static/images/failed.svg');
               }
               &.error {
-                background-image: url('/static/images/failed.png');
+                background-image: url('/static/images/failed.svg');
               }
               &.failed {
-                background-image: url('/static/images/failed.png');
+                background-image: url('/static/images/failed.svg');
               }
               &.complete {
-                background-image: url('/static/images/success.png');
+                background-image: url('/static/images/successful.svg');
               }
             }
           }
