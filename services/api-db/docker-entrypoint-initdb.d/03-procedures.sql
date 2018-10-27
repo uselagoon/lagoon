@@ -122,6 +122,7 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateOrUpdateEnvironment
   (
+    IN id                     int,
     IN name                   varchar(100),
     IN pid                    int,
     IN deploy_type               ENUM('branch', 'pullrequest', 'promote'),
@@ -130,6 +131,7 @@ CREATE OR REPLACE PROCEDURE
   )
   BEGIN
     INSERT INTO environment (
+        id,
         name,
         project,
         deploy_type,
@@ -138,6 +140,7 @@ CREATE OR REPLACE PROCEDURE
         deleted
     )
     SELECT
+        id,
         name,
         p.id,
         deploy_type,

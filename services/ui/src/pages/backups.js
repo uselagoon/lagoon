@@ -180,6 +180,16 @@ const Backups = withRouter((props) => {
                           &.download {
                             align-self: center;
                             width: 15%;
+                            button {
+                              background-color: ${color.lightestGrey};
+                              border: none;
+                              border-radius: 20px;
+                              color: ${color.darkGrey};
+                              font-family: 'source-code-pro', sans-serif;
+                              ${fontSize(13)};
+                              padding: 3px 20px 2px;
+                              text-transform: uppercase;
+                            }
                           }
                         }
                         &.backupid {

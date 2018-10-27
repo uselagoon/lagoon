@@ -77,7 +77,7 @@ const SearchguardOperations = {
         },
       });
       // Define a default Index if there is none yet
-      if (!currentSettings.body.settings.defaultIndex.userValue) {
+      if (!currentSettings.body.settings.defaultIndex) {
         await kibanaClient.post('kibana/settings', {
           body: {
             changes: {

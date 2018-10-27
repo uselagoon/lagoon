@@ -4,6 +4,7 @@ FROM redis:alpine
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=redis
+ENV FLAVOR=ephemeral
 
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
@@ -22,10 +23,10 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-COPY redis.conf /etc/redis/redis.conf
+COPY conf /etc/redis/
 COPY docker-entrypoint /lagoon/entrypoints/70-redis-entrypoint
 
-RUN fix-permissions /etc/redis/redis.conf \
+RUN fix-permissions /etc/redis \
     fix-permissions /data
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]

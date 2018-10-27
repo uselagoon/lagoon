@@ -161,16 +161,12 @@ const updateUser = async (
 
     // ...and then create a new one.
     await KeycloakOperations.createUser({
-      username: email,
+      id,
       email,
       // Use the updated firstName and lastName if truthy,
       // falling back to the values from the originalUser
       firstName: firstName || R.prop('firstName', originalUser),
       lastName: lastName || R.prop('lastName', originalUser),
-      enabled: true,
-      attributes: {
-        'lagoon-uid': [id],
-      },
     });
 
     for (const group of groups) {
