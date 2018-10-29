@@ -61,6 +61,7 @@ RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint
 
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
+RUN /bin/ep /etc/mysql/my.cnf
 RUN touch /var/log/mariadb-slow.log && /bin/fix-permissions /var/log/mariadb-slow.log
 RUN touch /var/log/mariadb-queries.log && /bin/fix-permissions /var/log/mariadb-queries.log
 
