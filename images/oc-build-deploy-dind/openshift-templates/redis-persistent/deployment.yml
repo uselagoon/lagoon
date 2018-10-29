@@ -64,6 +64,10 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        volumes:
+        - name: ${SERVICE_NAME}
+          persistentVolumeClaim:
+            claimName: ${SERVICE_NAME}
         containers:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
