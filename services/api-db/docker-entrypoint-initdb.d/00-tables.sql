@@ -130,6 +130,12 @@ CREATE TABLE IF NOT EXISTS env_vars (
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
 
+CREATE TABLE IF NOT EXISTS environment_service (
+  id          int NOT NULL auto_increment PRIMARY KEY,
+  environment int NOT NULL REFERENCES environmnet (id),
+  name        varchar(100) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS task (
        id           int NOT NULL auto_increment PRIMARY KEY,
        name         varchar(100) NOT NULL,

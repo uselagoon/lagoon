@@ -317,6 +317,7 @@ const typeDefs = gql`
     deployments: [Deployment]
     backups: [Backup]
     tasks: [Task]
+    services: [EnvironmentService]
   }
 
   type EnviornmentHitsMonth {
@@ -339,6 +340,11 @@ const typeDefs = gql`
   type EnvironmentHoursMonth {
     month: String
     hours: Int
+  }
+
+  type EnvironmentService {
+    id: Int
+    name: String
   }
 
   type Backup {
@@ -769,6 +775,11 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input SetEnvironmentServicesInput {
+    environment: Int!
+    services: [String]!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -848,6 +859,7 @@ const typeDefs = gql`
     addTask(input: TaskInput!): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
+    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
   }
 `;
 

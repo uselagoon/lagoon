@@ -40,6 +40,8 @@ const {
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
   getEnvironmentByTaskId,
+  getEnvironmentServicesByEnvironmentId,
+  setEnvironmentServices,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
@@ -148,6 +150,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
     backups: getBackupsByEnvironmentId,
     envVariables: getEnvVarsByEnvironmentId,
+    services: getEnvironmentServicesByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -246,6 +249,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addTask,
     deleteTask,
     updateTask,
+    setEnvironmentServices,
   },
   Date: GraphQLDate,
 };

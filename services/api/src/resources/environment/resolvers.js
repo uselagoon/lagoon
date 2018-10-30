@@ -346,6 +346,16 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   }
 };
 
+const getEnvironmentServicesByEnvironmentId = async (
+  { id: eid },
+  args,
+  { credentials: { role } },
+) => {
+  const rows = await query(sqlClient, Sql.selectServicesByEnvironmentId(eid));
+
+  return rows;
+};
+
 const getEnvironmentByOpenshiftProjectName = async (
   root,
   args,
@@ -542,6 +552,34 @@ const deleteAllEnvironments = async (root, args, { credentials: { role } }) => {
   return 'success';
 };
 
+const setEnvironmentServices = async (
+  root,
+  { input: { environment, services } },
+  { credentials: { role, permissions: { customers, projects } } },
+) => {
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      Sql.selectPermsForEnvironment(environment),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  await query(sqlClient, Sql.deleteServices(environment));
+
+  for (const service of services) {
+    await query(sqlClient, Sql.insertService(environment, service));
+  }
+
+  return query(sqlClient, Sql.selectServicesByEnvironmentId(environment));
+};
+
 const Resolvers /* : ResolversObj */ = {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
@@ -553,6 +591,8 @@ const Resolvers /* : ResolversObj */ = {
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
   getEnvironmentByTaskId,
+  getEnvironmentServicesByEnvironmentId,
+  setEnvironmentServices,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
