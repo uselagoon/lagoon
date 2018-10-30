@@ -738,6 +738,25 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
     }
 `);
 
+const setEnvironmentServices = (
+  environment: number,
+  services: array,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($environment: Int!, $services: [String]!) {
+    setEnvironmentServices(input: {
+      environment: $environment
+      services: $services
+    }) {
+      id
+      name
+    }
+  }
+  `,
+    { environment, services },
+  );
+
 const deploymentFragment = graphqlapi.createFragment(`
 fragment on Deployment {
   id
@@ -837,10 +856,7 @@ fragment on Task {
 }
 `);
 
-const updateTask = (
-  id: number,
-  patch: TaskPatch,
-): Promise<Object> =>
+const updateTask = (id: number, patch: TaskPatch): Promise<Object> =>
   graphqlapi.mutate(
     `
   ($id: Int!, $patch: UpdateTaskPatchInput!) {
@@ -884,6 +900,7 @@ module.exports = {
   addOrUpdateEnvironment,
   updateEnvironment,
   deleteEnvironment,
+  setEnvironmentServices,
   getDeploymentByRemoteId,
   addDeployment,
   updateDeployment,
