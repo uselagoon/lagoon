@@ -64,14 +64,14 @@ const messageConsumer = async msg => {
       spec: {
         parallelism: 1,
         completions: 1,
-        activeDeadlineSeconds: 10,
+        backoffLimit: 0,
         template: {
           metadata: {
             name: 'pi'
           },
           spec: {
             ...spec,
-            restartPolicy: 'OnFailure'
+            restartPolicy: 'Never'
           }
         }
       }

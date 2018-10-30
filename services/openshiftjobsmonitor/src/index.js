@@ -175,12 +175,17 @@ ${podLog}`;
   try {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
+    let completedDate = dateOrNull(jobInfo.status.completionTime);
+
+    if (jobStatus === 'failed') {
+      completedDate = dateOrNull(jobInfo.status.conditions[0].lastTransitionTime);
+    }
 
     await updateTask(task.id, {
       status: jobStatus.toUpperCase(),
       created: convertDateFormat(jobInfo.metadata.creationTimestamp),
       started: dateOrNull(jobInfo.status.startTime),
-      completed: dateOrNull(jobInfo.status.completionTime)
+      completed: completedDate
     });
   } catch (error) {
     logger.error(
