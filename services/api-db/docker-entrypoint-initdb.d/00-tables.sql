@@ -129,6 +129,17 @@ CREATE TABLE IF NOT EXISTS env_vars (
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
 
+CREATE TABLE IF NOT EXISTS task (
+       id           int NOT NULL auto_increment PRIMARY KEY,
+       name         varchar(100) NOT NULL,
+       status       ENUM('active', 'succeeded', 'failed') NOT NULL,
+       created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       started      datetime NULL,
+       completed    datetime NULL,
+       environment  int NOT NULL REFERENCES environment (id),
+       remote_id    varchar(50) NULL
+);
+
 -- Junction Tables
 
 CREATE TABLE IF NOT EXISTS project_notification (

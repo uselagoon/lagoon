@@ -22,6 +22,14 @@ const {
 } = require('./resources/deployment/resolvers');
 
 const {
+  getTasksByEnvironmentId,
+  getTaskByRemoteId,
+  addTask,
+  deleteTask,
+  updateTask,
+} = require('./resources/task/resolvers');
+
+const {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
   getEnvironmentByName,
@@ -31,6 +39,7 @@ const {
   getEnvironmentStorageMonthByEnvironmentId,
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
+  getEnvironmentByTaskId,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
@@ -132,6 +141,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   Environment: {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
+    tasks: getTasksByEnvironmentId,
     hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
     storages: getEnvironmentStorageByEnvironmentId,
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
@@ -141,6 +151,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
+  },
+  Task: {
+    environment: getEnvironmentByTaskId,
   },
   Notification: {
     __resolveType(obj) {
@@ -169,6 +182,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     environmentByName: getEnvironmentByName,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     deploymentByRemoteId: getDeploymentByRemoteId,
+    taskByRemoteId: getTaskByRemoteId,
     allProjects: getAllProjects,
     allCustomers: getAllCustomers,
     allOpenshifts: getAllOpenshifts,
@@ -229,6 +243,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     createAllUsersInKeycloak,
     addEnvVariable,
     deleteEnvVariable,
+    addTask,
+    deleteTask,
+    updateTask,
   },
   Date: GraphQLDate,
 };

@@ -128,6 +128,37 @@ const getEnvironmentByDeploymentId = async (
   return rows ? rows[0] : null;
 };
 
+const getEnvironmentByTaskId = async (
+  { id: task_id },
+  args,
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        e.*
+      FROM task t
+      JOIN environment e on t.environment = e.id
+      JOIN project p ON e.project = p.id
+      WHERE t.id = :task_id
+      ${ifNotAdmin(
+    role,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+  )}
+      LIMIT 1
+    `,
+  );
+
+  const rows = await query(sqlClient, prep({ task_id }));
+
+  return rows ? rows[0] : null;
+};
+
 const getEnvironmentStorageByEnvironmentId = async (
   { id: eid },
   args,
@@ -521,6 +552,7 @@ const Resolvers /* : ResolversObj */ = {
   getEnvironmentStorageMonthByEnvironmentId,
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
+  getEnvironmentByTaskId,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
