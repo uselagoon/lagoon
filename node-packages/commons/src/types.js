@@ -60,3 +60,13 @@ export type DeploymentPatch = {
   environment: number,
   remoteId: string,
 };
+
+export type TaskPatch = {
+  name: ?number,
+  status: ?string,
+  created: ?string,
+  started: ?string,
+  completed: ?string,
+  environment: ?number,
+  remoteId: ?string,
+};

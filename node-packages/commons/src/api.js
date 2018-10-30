@@ -6,6 +6,7 @@ import type {
   UserPatch,
   ProjectPatch,
   DeploymentPatch,
+  TaskPatch,
 } from './types';
 
 const { Lokka } = require('lokka');
@@ -821,6 +822,39 @@ const updateDeployment = (
     { id, patch },
   );
 
+const taskFragment = graphqlapi.createFragment(`
+fragment on Task {
+  id
+  name
+  status
+  created
+  started
+  completed
+  remoteId
+  environment {
+    name
+  }
+}
+`);
+
+const updateTask = (
+  id: number,
+  patch: TaskPatch,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateTaskPatchInput!) {
+    updateTask(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${taskFragment}
+    }
+  }
+`,
+    { id, patch },
+  );
+
 module.exports = {
   addCustomer,
   updateCustomer,
@@ -854,4 +888,5 @@ module.exports = {
   addDeployment,
   updateDeployment,
   getEnvironmentByOpenshiftProjectName,
+  updateTask,
 };
