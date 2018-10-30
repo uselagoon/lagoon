@@ -375,6 +375,8 @@ const typeDefs = gql`
     started: String
     completed: String
     environment: Environment
+    service: String
+    command: String
     remoteId: String
     logs: String
   }
@@ -530,6 +532,8 @@ const typeDefs = gql`
     started: String
     completed: String
     environment: Int!
+    service: String
+    command: String
     remoteId: String
   }
 
@@ -544,6 +548,8 @@ const typeDefs = gql`
     started: String
     completed: String
     environment: Int
+    service: String
+    command: String
     remoteId: String
   }
 

@@ -22,6 +22,8 @@ const Sql /* : SqlObj */ = {
       started,
       completed,
       environment,
+      service,
+      command,
       remoteId,
     } /* : {
     id: number,
@@ -31,6 +33,8 @@ const Sql /* : SqlObj */ = {
     started: number,
     completed: number,
     environment: string,
+    service: string,
+    command: string,
     remoteId: number,
   } */,
   ) =>
@@ -43,6 +47,8 @@ const Sql /* : SqlObj */ = {
         started,
         completed,
         environment,
+        service,
+        command,
         remoteId,
       })
       .toString(),
