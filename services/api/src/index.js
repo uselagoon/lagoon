@@ -1,9 +1,14 @@
 // @flow
 
+const { initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 const keycloakClient = require('./clients/keycloakClient');
 const waitAndInitKeycloak = require('./util/waitAndInitKeycloak');
 const logger = require('./logger');
 const createServer = require('./server');
+
+initSendToLagoonLogs();
+initSendToLagoonTasks();
 
 (async () => {
   const { JWTSECRET, JWTAUDIENCE, KEYCLOAK_ADMIN_PASSWORD } = process.env;

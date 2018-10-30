@@ -1,6 +1,8 @@
 // @flow
 
 const R = require('ramda');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createTaskTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const {
@@ -12,6 +14,8 @@ const {
   isPatchEmpty,
 } = require('../../util/db');
 const Sql = require('./sql');
+const projectSql = require('../project/sql');
+const environmentSql = require('../environment/sql');
 
 /* ::
 
@@ -114,10 +118,7 @@ const getTaskByRemoteId = async (
   }
 
   if (role !== 'admin') {
-    const rowsPerms = await query(
-      sqlClient,
-      Sql.selectPermsForTask(task.id),
-    );
+    const rowsPerms = await query(sqlClient, Sql.selectPermsForTask(task.id));
 
     if (
       !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
@@ -183,9 +184,29 @@ const addTask = async (
     }),
   );
 
-  const rows = await query(sqlClient, Sql.selectTask(insertId));
+  let rows = await query(sqlClient, Sql.selectTask(insertId));
+  const taskData = R.prop(0, rows);
 
-  return injectLogs(R.prop(0, rows));
+  rows = await query(sqlClient, environmentSql.selectEnvironmentById(taskData.environment));
+  const environmentData = R.prop(0, rows);
+
+  rows = await query(sqlClient, projectSql.selectProject(environmentData.project));
+  const projectData = R.prop(0, rows);
+
+  try {
+    await createTaskTask({ task: taskData, project: projectData, environment: environmentData });
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      projectData.name,
+      '',
+      'api:addTask',
+      { taskId: taskData.id },
+      `*[${projectData.name}]* Task not initiated, reason: ${error}`,
+    );
+  }
+
+  return injectLogs(taskData);
 };
 
 const deleteTask = async (
@@ -242,10 +263,7 @@ const updateTask = async (
 
   if (role !== 'admin') {
     // Check access to modify task as it currently stands
-    const rowsCurrent = await query(
-      sqlClient,
-      Sql.selectPermsForTask(id),
-    );
+    const rowsCurrent = await query(sqlClient, Sql.selectPermsForTask(id));
 
     if (
       !R.contains(R.path(['0', 'pid'], rowsCurrent), projects) &&

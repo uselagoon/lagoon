@@ -11,7 +11,7 @@ import type {SqlObj} from '../';
 const Sql /* : SqlObj */ = {
   selectTask: (id /* : number */) =>
     knex('task')
-      .where('id', '=', id)
+      .where('task.id', '=', id)
       .toString(),
   insertTask: (
     {

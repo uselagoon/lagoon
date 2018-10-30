@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS project (
   active_systems_deploy            varchar(300),
   active_systems_promote           varchar(300),
   active_systems_remove            varchar(300),
+  active_systems_task              varchar(300),
   branches                         varchar(300),
   pullrequests                     varchar(300),
   production_environment           varchar(100),
