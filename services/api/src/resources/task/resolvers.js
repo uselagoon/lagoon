@@ -145,6 +145,7 @@ const addTask = async (
       service,
       command,
       remoteId,
+      execute,
     },
   },
   {
@@ -190,6 +191,11 @@ const addTask = async (
 
   let rows = await query(sqlClient, Sql.selectTask(insertId));
   const taskData = R.prop(0, rows);
+
+  // Allow creating task data w/o executing the task
+  if (role === 'admin' && execute === false) {
+    return injectLogs(taskData);
+  }
 
   rows = await query(sqlClient, environmentSql.selectEnvironmentById(taskData.environment));
   const environmentData = R.prop(0, rows);

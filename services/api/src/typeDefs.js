@@ -541,6 +541,7 @@ const typeDefs = gql`
     service: String
     command: String
     remoteId: String
+    execute: Boolean
   }
 
   input DeleteTaskInput {

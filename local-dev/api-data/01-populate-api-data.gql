@@ -795,6 +795,54 @@ mutation PopulateApi {
     id
   }
 
+  UIProject1Environment1addTask1: addTask(
+    input: {
+      name: "Site Status"
+      status: ACTIVE
+      environment: 3
+      service: "cli"
+      command: "drush status"
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      execute: false
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1addTask2: addTask(
+    input: {
+      name: "Drupal Archive"
+      status: SUCCEEDED
+      environment: 3
+      service: "cli"
+      command: "drush archive-dump"
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      completed: "2018-10-07 23:13:41"
+      execute: false
+    }
+  ) {
+    id
+  }
+
+
+  UIProject1Environment1addTask3: addTask(
+    input: {
+      name: "Drupal Archive"
+      status: FAILED
+      environment: 3
+      service: "cli"
+      command: "drush archive-dump"
+      created: "2018-10-07 23:02:41"
+      started: "2018-10-07 23:03:41"
+      completed: "2018-10-07 23:05:41"
+      execute: false
+    }
+  ) {
+    id
+  }
+
   UIProject1Environment2: addOrUpdateEnvironment(
     input: {
       id: 4
