@@ -46,7 +46,7 @@ const injectLogs = async task => {
         bool: {
           must: [
             { match_phrase: { 'meta.remoteId': task.remoteId } },
-            { match_phrase: { 'meta.buildPhase': task.status } },
+            { match_phrase: { 'meta.jobStatus': task.status } },
           ],
         },
       },

@@ -6,7 +6,7 @@ const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   getOpenShiftInfoForProject,
-  updateTask,
+  updateTask
 } = require('@lagoon/commons/src/api');
 const {
   sendToLagoonLogs,
@@ -22,11 +22,7 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const messageConsumer = async msg => {
-  const {
-    project,
-    task,
-    environment,
-  } = JSON.parse(msg.content.toString());
+  const { project, task, environment } = JSON.parse(msg.content.toString());
 
   logger.verbose(
     `Received JobOpenshift task for project: ${project.name}, task: ${task.id}`
@@ -58,7 +54,7 @@ const messageConsumer = async msg => {
     throw error;
   }
 
-  const jobConfig = (name) => {
+  const jobConfig = (name, spec) => {
     let config = {
       apiVersion: 'batch/v1',
       kind: 'Job',
@@ -74,13 +70,7 @@ const messageConsumer = async msg => {
             name: 'pi'
           },
           spec: {
-            containers: [
-              {
-                name: 'pi',
-                image: 'perl',
-                command: ['perl', '-Mbignum=bpi', '-wle', 'print bpi(2000)']
-              }
-            ],
+            ...spec,
             restartPolicy: 'OnFailure'
           }
         }
@@ -99,6 +89,16 @@ const messageConsumer = async msg => {
     }
   });
 
+  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
+  // the OpenShift API does not support them.
+  const kubernetes = new OpenShiftClient.Core({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
+    }
+  });
+
   const batchApi = new OpenShiftClient.Batch({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
@@ -107,18 +107,58 @@ const messageConsumer = async msg => {
     }
   });
 
-  let projectStatus = {}
+  let projectStatus = {};
   try {
     const projectsGet = promisify(openshift.projects(openshiftProject).get);
-    projectStatus = await projectsGet()
+    projectStatus = await projectsGet();
   } catch (err) {
     if (err.code == 404) {
-      logger.error(`Project ${openshiftProject} does not exist, bailing`)
-      return
+      logger.error(`Project ${openshiftProject} does not exist, bailing`);
+      return;
     } else {
-      logger.error(err)
-      throw new Error
+      logger.error(err);
+      throw new Error();
     }
+  }
+
+  // Get pod spec for desired service
+  let taskPodSpec;
+  try {
+    const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
+    const pods = await podsGet();
+
+    const oneContainerPerSpec = pods.items.reduce(
+      (specs, pod) => ({
+        ...specs,
+        ...pod.spec.containers.reduce(
+          (specs, container) => ({
+            ...specs,
+            [container.name]: {
+              ...pod.spec,
+              containers: [container]
+            }
+          }),
+          {}
+        )
+      }),
+      {}
+    );
+
+    if (!oneContainerPerSpec[task.service]) {
+      logger.error(`No spec for service ${task.service}, bailing`);
+      return;
+    }
+
+    taskPodSpec = oneContainerPerSpec[task.service];
+    taskPodSpec.containers[0].command = [
+      '/sbin/tini',
+      '--',
+      '/lagoon/entrypoints.sh',
+      ...task.command.split(' ')
+    ];
+  } catch (err) {
+    logger.error(err);
+    throw new Error(err);
   }
 
   // Create a new openshift job to run the lagoon task
@@ -128,7 +168,7 @@ const messageConsumer = async msg => {
       batchApi.namespaces(openshiftProject).jobs.post
     );
     openshiftJob = await jobConfigPost({
-      body: jobConfig(jobName)
+      body: jobConfig(jobName, taskPodSpec)
     });
   } catch (err) {
     logger.error(err);
@@ -136,7 +176,7 @@ const messageConsumer = async msg => {
   }
 
   // Update lagoon task
-  let updatedTask
+  let updatedTask;
   try {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
@@ -144,10 +184,12 @@ const messageConsumer = async msg => {
     updatedTask = await updateTask(task.id, {
       remoteId: openshiftJob.metadata.uid,
       created: convertDateFormat(openshiftJob.metadata.creationTimestamp),
-      started: dateOrNull(openshiftJob.status.startTime),
+      started: dateOrNull(openshiftJob.status.startTime)
     });
   } catch (error) {
-    logger.error(`Could not update task ${project.name} ${task.name}. Message: ${error}`);
+    logger.error(
+      `Could not update task ${project.name} ${task.name}. Message: ${error}`
+    );
   }
 
   logger.verbose(`${openshiftProject}: Running job: ${task.name}`);
@@ -155,7 +197,7 @@ const messageConsumer = async msg => {
   const monitorPayload = {
     task: updatedTask.updateTask,
     project,
-    environment,
+    environment
   };
 
   const taskMonitorLogs = await createTaskMonitor(
@@ -174,10 +216,7 @@ const messageConsumer = async msg => {
 };
 
 const deathHandler = async (msg, lastError) => {
-  const {
-    project,
-    task,
-  } = JSON.parse(msg.content.toString());
+  const { project, task } = JSON.parse(msg.content.toString());
 
   sendToLagoonLogs(
     'error',
@@ -193,10 +232,7 @@ ${lastError}
 };
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
-  const {
-    project,
-    task,
-  } = JSON.parse(msg.content.toString());
+  const { project, task } = JSON.parse(msg.content.toString());
 
   sendToLagoonLogs(
     'warn',
