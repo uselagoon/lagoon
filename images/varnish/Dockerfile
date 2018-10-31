@@ -19,7 +19,7 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-RUN apk --no-cache add varnish
+RUN apk --no-cache add varnish varnish-dev automake autoconf libtool python py-docutils make
 
 RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
 
