@@ -19,9 +19,20 @@ acl purge {
       "192.168.0.0"/16;
 }
 
+sub vcl_init {
+    new www_dir = dynamic.director(
+      port = "${VARNISH_BACKEND_PORT:-8080}",
+      probe = www_probe,
+      whitelist = purge,
+      ttl = 60s);
+   }
+
+
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
 sub vcl_recv {
+  set req.backend_hint = www_dir.backend("${VARNISH_BACKEND_HOST:-nginx}");
+
   if (req.url ~ "^/varnish_status$")  {
     return (synth(200,"OK"));
   }
