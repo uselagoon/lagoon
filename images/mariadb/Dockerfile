@@ -47,8 +47,8 @@ RUN \
     rm -rf /var/lib/mysql/* /etc/mysql/; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
 
-
 COPY logging.bash           /lagoon/entrypoints/10-mariadb-logging
+COPY envplate.bash          /lagoon/entrypoints/20-mariadb-envplate
 COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
@@ -60,8 +60,9 @@ RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint
     sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
-RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
-RUN /bin/ep /etc/mysql/my.cnf
+RUN /bin/fix-permissions /usr/share/container-scripts/mysql/ \
+    && /bin/fix-permissions /etc/mysql
+
 RUN touch /var/log/mariadb-slow.log && /bin/fix-permissions /var/log/mariadb-slow.log
 RUN touch /var/log/mariadb-queries.log && /bin/fix-permissions /var/log/mariadb-queries.log
 
