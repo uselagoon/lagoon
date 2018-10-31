@@ -32,6 +32,13 @@ RUN fix-permissions /etc/varnish/ \
 
 COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
 
+ENV VERSION=5.2
+
+RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${VERSION}.zip && \
+  unzip ${VERSION}.zip && cd libvmod-dynamic-${VERSION} && \
+  ./autogen.sh && ./configure && make && make install && \
+  cd / && rm -Rf libvmod-dynamic-${VERSION}
+
 EXPOSE 8080
 
 # tells the local development environment on which port we are running
