@@ -215,6 +215,25 @@ const addProject = async (
   await KeycloakOperations.addGroup(project);
   await SearchguardOperations.addProject(project);
 
+  await Helpers.mapIfNoDirectProjectAccess(
+    R.prop('id', project),
+    cid,
+    async ({
+      keycloakUserId,
+      keycloakUsername,
+      keycloakGroupId,
+      keycloakGroupName,
+    }) => {
+      await keycloakClient.users.addToGroup({
+        id: keycloakUserId,
+        groupId: keycloakGroupId,
+      });
+      logger.debug(
+        `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
+      );
+    },
+  );
+
   return project;
 };
 
