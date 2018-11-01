@@ -15,7 +15,7 @@ const SearchguardOperations = {
 
     try {
     // Create a new SearchGuard Role for this project with the same name as the Project
-      await searchguardClient.put(`roles/${openshiftProjectNameStyle}`, {
+      await searchguardClient.put(`roles/${project.name}`, {
         body: {
           indices: {
             [`*-${openshiftProjectNameStyle}-*`]: {
@@ -27,7 +27,7 @@ const SearchguardOperations = {
           },
         },
       });
-      logger.debug(`Created SearchGuard role "${openshiftProjectNameStyle}"`);
+      logger.debug(`Created SearchGuard role "${project.name}"`);
     } catch (err) {
       logger.error(`SearchGuard create role error: ${err}`);
       throw new Error(`SearchGuard create role error: ${err}`);
