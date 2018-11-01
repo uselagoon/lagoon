@@ -7,6 +7,7 @@ exports.initSendToLagoonTasks = initSendToLagoonTasks;
 exports.createDeployTask = createDeployTask;
 exports.createPromoteTask = createPromoteTask;
 exports.createRemoveTask = createRemoveTask;
+exports.createTaskTask = createTaskTask;
 exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
@@ -399,6 +400,32 @@ async function createRemoveTask(removeData: Object) {
         `Unknown active system '${
           project.activeSystemsRemove
         }' for task 'remove' in for project ${projectName}`,
+      );
+  }
+}
+
+async function createTaskTask(taskData: Object) {
+  const {
+    project,
+  } = taskData;
+
+  const projectSystem = await getActiveSystemForProject(project.name, 'task');
+
+  if (typeof projectSystem.activeSystemsTask === 'undefined') {
+    throw new UnknownActiveSystem(
+      `No active system for 'task' for project ${project.name}`,
+    );
+  }
+
+  switch (projectSystem.activeSystemsTask) {
+    case 'lagoon_openshiftJob':
+      return sendToLagoonTasks('job-openshift', taskData);
+
+    default:
+      throw new UnknownActiveSystem(
+        `Unknown active system '${
+          projectSystem.activeSystemsTask
+        }' for 'task' for project ${project.name}`,
       );
   }
 }

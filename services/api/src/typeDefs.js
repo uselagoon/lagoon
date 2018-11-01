@@ -47,6 +47,12 @@ const typeDefs = gql`
     ENVIRONMENT
   }
 
+  enum TaskStatusType {
+    ACTIVE
+    SUCCEEDED
+    FAILED
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -174,6 +180,11 @@ const typeDefs = gql`
     Currently only 'lagoon_openshiftRemove' exists
     """
     activeSystemsRemove: String
+    """
+    Which internal Lagoon System is responsible for tasks
+    Currently only 'lagoon_openshiftJob' exists
+    """
+    activeSystemsTask: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -305,6 +316,8 @@ const typeDefs = gql`
     monitoringUrls: String
     deployments: [Deployment]
     backups: [Backup]
+    tasks: [Task]
+    services: [EnvironmentService]
   }
 
   type EnviornmentHitsMonth {
@@ -327,6 +340,11 @@ const typeDefs = gql`
   type EnvironmentHoursMonth {
     month: String
     hours: Int
+  }
+
+  type EnvironmentService {
+    id: Int
+    name: String
   }
 
   type Backup {
@@ -353,6 +371,20 @@ const typeDefs = gql`
     id: Int
     name: String
     value: String
+  }
+
+  type Task {
+    id: Int
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    service: String
+    command: String
+    remoteId: String
+    logs: String
   }
 
   input DeleteEnvironmentInput {
@@ -385,6 +417,7 @@ const typeDefs = gql`
       openshiftProjectName: String!
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    taskByRemoteId(id: String): Task
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
@@ -426,6 +459,7 @@ const typeDefs = gql`
     activeSystemsDeploy: String
     activeSystemsPromote: String
     activeSystemsRemove: String
+    activeSystemsTask: String
     branches: String
     pullrequests: String
     productionEnvironment: String
@@ -494,6 +528,41 @@ const typeDefs = gql`
   input UpdateDeploymentInput {
     id: Int!
     patch: UpdateDeploymentPatchInput!
+  }
+
+  input TaskInput {
+    id: Int
+    name: String!
+    status: TaskStatusType!
+    created: String!
+    started: String
+    completed: String
+    environment: Int!
+    service: String
+    command: String
+    remoteId: String
+    execute: Boolean
+  }
+
+  input DeleteTaskInput {
+    id: Int!
+  }
+
+  input UpdateTaskPatchInput {
+    name: String
+    status: TaskStatusType
+    created: String
+    started: String
+    completed: String
+    environment: Int
+    service: String
+    command: String
+    remoteId: String
+  }
+
+  input UpdateTaskInput {
+    id: Int!
+    patch: UpdateTaskPatchInput!
   }
 
   input AddOpenshiftInput {
@@ -604,6 +673,7 @@ const typeDefs = gql`
     subfolder: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
+    activeSystemsTask: String
     branches: String
     productionEnvironment: String
     autoIdle: Int
@@ -706,6 +776,11 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input SetEnvironmentServicesInput {
+    environment: Int!
+    services: [String]!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -782,6 +857,10 @@ const typeDefs = gql`
     createAllUsersInKeycloak: String
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
+    addTask(input: TaskInput!): Task
+    deleteTask(input: DeleteTaskInput!): String
+    updateTask(input: UpdateTaskInput): Task
+    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
   }
 `;
 
