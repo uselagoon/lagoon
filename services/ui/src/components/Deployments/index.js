@@ -4,7 +4,7 @@ import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import { bp, color } from '../../variables';
 
-export default ({ projectName, deployments }) => (
+const Deployments = ({ projectName, deployments }) => (
   <div className="content">
     <div className="header">
       <label>Name</label>
@@ -13,37 +13,38 @@ export default ({ projectName, deployments }) => (
       <label>Duration</label>
     </div>
     <div className="data-table">
-      {
-        deployments.map(deployment =>
-          <div className="data-row" deployment={deployment.id} key={deployment.id}>
-            <Link href={{
+      {deployments.map(deployment => (
+        <div
+          className="data-row"
+          deployment={deployment.id}
+          key={deployment.id}
+        >
+          <Link
+            href={{
               pathname: '/deployments',
               query: {
                 name: projectName,
-                build: deployment.name,
+                build: deployment.name
               }
-            }}>
-              <a>
-                <div className="name">
-                  {deployment.name}
-                </div>
-                <div className="started">
-                  {moment.utc(deployment.started).local().format('DD MMM YYYY, HH:mm:ss')}
-                </div>
-                <div className={`status ${deployment.status}`}>
-                  {deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}
-                </div>
-
-                <div className="duration">
-                  {deployment.completed && deployment.started &&
-                    moment.duration(moment(deployment.completed) - moment(deployment.started)).format('HH[hr] mm[m] ss[sec]')
-                  }
-                </div>
-              </a>
-            </Link>
-          </div>
-        )
-      }
+            }}
+          >
+            <a>
+              <div className="name">{deployment.name}</div>
+              <div className="started">
+                {moment
+                  .utc(deployment.created)
+                  .local()
+                  .format('DD MMM YYYY, HH:mm:ss')}
+              </div>
+              <div className={`status ${deployment.status}`}>
+                {deployment.status.charAt(0).toUpperCase() +
+                  deployment.status.slice(1)}
+              </div>
+              <div className="duration">{deployment.duration}</div>
+            </a>
+          </Link>
+        </div>
+      ))}
     </div>
     <style jsx>{`
       .content {
@@ -144,6 +145,8 @@ export default ({ projectName, deployments }) => (
           }
         }
       }
-  `}</style>
+    `}</style>
   </div>
 );
+
+export default Deployments;

@@ -27,31 +27,6 @@ GRAPHQL='query developmentEnvironments {
 query=$(set -e -o pipefail; echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 DEVELOPMENT_ENVIRONMENTS=$(set -e -o pipefail; curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
 
-# Load all hits of all environments of the last hour
-ALL_ENVIRONMENT_HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-*/_search" -H 'Content-Type: application/json' -d'
-{
-  "size": 0,
-  "aggs": {
-    "group_by_openshift_project": {
-      "terms": {
-        "field": "openshift_project.keyword",
-        "size" : 1000000
-      }
-    }
-  },
-"query": {
-    "bool": {
-      "filter": {
-        "range": {
-          "@timestamp": {
-            "gte": "now-4h"
-          }
-        }
-      }
-    }
-  }
-}' | jq '.aggregations.group_by_openshift_project.buckets')
-
 # All data successfully loaded, now we don't want to fail anymore if a single idleing fails
 set +eo pipefail
 
@@ -77,13 +52,29 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
           echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
           # Check if this environment has hits
-          HAS_HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count | if . > 0 then true else false end")
+          HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d'
+          {
+            "size": 0,
+            "query": {
+              "bool": {
+                "filter": {
+                  "range": {
+                    "@timestamp": {
+                      "gte": "now-10s"
+                    }
+                  }
+                }
+              }
+            }
+          }'| jq ".hits.total")
 
           if [ ! $? -eq 0 ]; then
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
             continue
-          elif [ "$HAS_HITS" == "true" ]; then
-            HITS=$(echo $ALL_ENVIRONMENT_HITS | jq ".[] | select(.key==\"$ENVIRONMENT_OPENSHIFT_PROJECTNAME\") | .doc_count")
+          elif [ "$HITS" == "null"  ]; then
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME no data found, skipping"
+            continue
+          elif [ "$HITS" -gt 0 ]; then
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last four hours, no idleing"
           else
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last four hours, starting to idle"

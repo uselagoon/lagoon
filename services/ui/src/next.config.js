@@ -15,7 +15,8 @@ module.exports = {
   publicRuntimeConfig: {
     GRAPHQL_API: envApiRoute || lagoonApiRoute,
     GRAPHQL_API_TOKEN: process.env.GRAPHQL_API_TOKEN,
-    KEYCLOAK_API: envKeycloakRoute || lagoonKeycloakRoute
+    KEYCLOAK_API: envKeycloakRoute || lagoonKeycloakRoute,
+    LAGOON_UI_ICON: process.env.LAGOON_UI_ICON
   },
   distDir: '../build'
 };

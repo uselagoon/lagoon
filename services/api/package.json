@@ -11,8 +11,8 @@
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start": "node -r dotenv-extended/config src",
-    "dev": "NODE_ENV=development nodemon --watch src --exec 'node -r dotenv-extended/config' -- src"
+    "start": "flow-node -r dotenv-extended/config src",
+    "dev": "NODE_ENV=development nodemon --watch src --exec 'flow-node -r dotenv-extended/config' -- src"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -29,6 +29,7 @@
     "es7-sleep": "^1.0.0",
     "express": "^4.16.1",
     "express-graphql": "^0.6.11",
+    "flow-remove-types": "^1.2.3",
     "got": "^9.2.2",
     "graphql": "^0.13.2",
     "graphql-iso-date": "^3.5.0",
@@ -43,6 +44,7 @@
     "ramda": "^0.25.0",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
+    "validator": "^10.8.0",
     "winston": "^2.4.0"
   },
   "devDependencies": {

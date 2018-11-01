@@ -13,6 +13,7 @@ const {
   updateEnvironment,
   getDeploymentByRemoteId,
   updateDeployment,
+  setEnvironmentServices,
 } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
@@ -88,6 +89,7 @@ const messageConsumer = async msg => {
 
   // kubernetes-client does not know about the OpenShift Resources, let's teach it.
   openshift.ns.addResource('builds');
+  openshift.ns.addResource('deploymentconfigs');
 
   let projectStatus = {}
   try {
@@ -231,6 +233,33 @@ const messageConsumer = async msg => {
         } catch (err) {
           logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
         }
+
+      // Tell api what services are running in this environment
+      try {
+        // Get pod template from existing service
+        const deploymentConfigsGet = Promise.promisify(
+          openshift.ns(openshiftProject).deploymentconfigs.get, { context: openshift.ns(openshiftProject).deploymentconfigs }
+        );
+        const deploymentConfigs = await deploymentConfigsGet();
+
+        const serviceNames = deploymentConfigs.items.reduce(
+          (names, deploymentConfig) => [
+            ...names,
+            ...deploymentConfig.spec.template.spec.containers.reduce(
+              (names, container) => [
+                ...names,
+                container.name
+              ],
+              []
+            )
+          ],
+          []
+        );
+
+        await setEnvironmentServices(environment.id, serviceNames);
+      } catch (err) {
+        logger.error(`${openshiftProject} ${buildName}: Error while updating environment services in API, Error: ${err}`)
+      }
       break;
 
     default:

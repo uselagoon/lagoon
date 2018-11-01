@@ -6,6 +6,7 @@ import type {
   UserPatch,
   ProjectPatch,
   DeploymentPatch,
+  TaskPatch,
 } from './types';
 
 const { Lokka } = require('lokka');
@@ -738,6 +739,25 @@ const getProductionEnvironmentForProject = (project: string): Promise<Object> =>
     }
 `);
 
+const setEnvironmentServices = (
+  environment: number,
+  services: array,
+): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($environment: Int!, $services: [String]!) {
+    setEnvironmentServices(input: {
+      environment: $environment
+      services: $services
+    }) {
+      id
+      name
+    }
+  }
+  `,
+    { environment, services },
+  );
+
 const deploymentFragment = graphqlapi.createFragment(`
 fragment on Deployment {
   id
@@ -822,6 +842,36 @@ const updateDeployment = (
     { id, patch },
   );
 
+const taskFragment = graphqlapi.createFragment(`
+fragment on Task {
+  id
+  name
+  status
+  created
+  started
+  completed
+  remoteId
+  environment {
+    name
+  }
+}
+`);
+
+const updateTask = (id: number, patch: TaskPatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateTaskPatchInput!) {
+    updateTask(input: {
+      id: $id
+      patch: $patch
+    }) {
+      ...${taskFragment}
+    }
+  }
+`,
+    { id, patch },
+  );
+
 module.exports = {
   addCustomer,
   updateCustomer,
@@ -851,8 +901,10 @@ module.exports = {
   addOrUpdateEnvironment,
   updateEnvironment,
   deleteEnvironment,
+  setEnvironmentServices,
   getDeploymentByRemoteId,
   addDeployment,
   updateDeployment,
   getEnvironmentByOpenshiftProjectName,
+  updateTask,
 };
