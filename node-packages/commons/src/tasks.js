@@ -7,6 +7,7 @@ exports.initSendToLagoonTasks = initSendToLagoonTasks;
 exports.createDeployTask = createDeployTask;
 exports.createPromoteTask = createPromoteTask;
 exports.createRemoveTask = createRemoveTask;
+exports.createTaskTask = createTaskTask;
 exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
@@ -16,36 +17,29 @@ import type { ChannelWrapper } from './types';
 const {
   getActiveSystemForProject,
   getProductionEnvironmentForProject,
+  getEnvironmentsForProject,
 } = require('./api');
 
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
   task: string,
   payload?: Object,
-) {});
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+});
 
 let connection = (exports.connection = function connection() {});
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
-
-const _extends =
-  Object.assign ||
-  function _extends(...args) {
-    for (let i = 1; i < args.length; i++) {
-      const source = args[i];
-      for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          args[0][key] = source[key];
-        }
-      }
-    }
-    return args[0];
-  };
 
 class UnknownActiveSystem extends Error {
   constructor(message: string) {
@@ -65,6 +59,13 @@ class CannotDeleteProductionEnvironment extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'CannotDeleteProductionEnvironment';
+  }
+}
+
+class EnvironmentLimit extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'EnvironmentLimit';
   }
 }
 
@@ -186,6 +187,13 @@ async function createDeployTask(deployData: Object) {
   } = deployData;
 
   const project = await getActiveSystemForProject(projectName, 'deploy');
+  const environments = await getEnvironmentsForProject(projectName);
+
+  // environments =
+  //  { project:
+  //     { environment_deployments_limit: 1,
+  //       production_environment: 'master',
+  //       environments: [ { name: 'develop', environment_type: 'development' }, [Object] ] } }
 
   if (typeof project.activeSystemsDeploy === 'undefined') {
     throw new UnknownActiveSystem(
@@ -195,6 +203,40 @@ async function createDeployTask(deployData: Object) {
 
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
+      if (environments.project.productionEnvironment === branchName) {
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+        );
+      } else {
+        // get a list of non-production environments
+        console.log(environments.project);
+        const dev_environments = environments.project.environments
+          .filter(e => e.environmentType === 'development')
+          .map(e => e.name);
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          dev_environments,
+        );
+
+        if (
+          environments.project.developmentEnvironmentsLimit !== null &&
+          dev_environments.length >=
+            environments.project.developmentEnvironmentsLimit
+        ) {
+          if (dev_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${
+                environments.project.developmentEnvironmentsLimit
+              } development environments for project ${projectName}`,
+            );
+          }
+        }
+      }
+
       if (type === 'branch') {
         switch (project.branches) {
           case undefined:
@@ -362,13 +404,39 @@ async function createRemoveTask(removeData: Object) {
   }
 }
 
+async function createTaskTask(taskData: Object) {
+  const {
+    project,
+  } = taskData;
+
+  const projectSystem = await getActiveSystemForProject(project.name, 'task');
+
+  if (typeof projectSystem.activeSystemsTask === 'undefined') {
+    throw new UnknownActiveSystem(
+      `No active system for 'task' for project ${project.name}`,
+    );
+  }
+
+  switch (projectSystem.activeSystemsTask) {
+    case 'lagoon_openshiftJob':
+      return sendToLagoonTasks('job-openshift', taskData);
+
+    default:
+      throw new UnknownActiveSystem(
+        `Unknown active system '${
+          projectSystem.activeSystemsTask
+        }' for 'task' for project ${project.name}`,
+      );
+  }
+}
+
 async function consumeTasks(
   taskQueueName: string,
   messageConsumer: Function,
   retryHandler: Function,
   deathHandler: Function,
 ) {
-  const onMessage = async (msg) => {
+  const onMessage = async msg => {
     try {
       await messageConsumer(msg);
       channelWrapperTasks.ack(msg);
@@ -404,10 +472,11 @@ async function consumeTasks(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 
@@ -448,7 +517,7 @@ async function consumeTaskMonitor(
   messageConsumer: Function,
   deathHandler: Function,
 ) {
-  const onMessage = async (msg) => {
+  const onMessage = async msg => {
     try {
       await messageConsumer(msg);
       channelWrapperTaskMonitor.ack(msg);
@@ -460,7 +529,7 @@ async function consumeTaskMonitor(
         ? msg.properties.headers['x-retry'] + 1
         : 1;
 
-      if (retryCount > 250) {
+      if (retryCount > 750) {
         channelWrapperTaskMonitor.ack(msg);
         deathHandler(msg, error);
         return;
@@ -474,10 +543,11 @@ async function consumeTaskMonitor(
         timestamp: msg.properties.timestamp,
         contentType: msg.properties.contentType,
         deliveryMode: msg.properties.deliveryMode,
-        headers: _extends({}, msg.properties.headers, {
+        headers: {
+          ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
           'x-retry': retryCount,
-        }),
+        },
         persistent: true,
       };
 

@@ -4,26 +4,9 @@ set -eo pipefail
 
 # Locations
 CONTAINER_SCRIPTS_DIR="/usr/share/container-scripts/mysql"
-EXTRA_DEFAULTS_FILE="/etc/mysql/conf.d/galera.cnf"
 
 if [ "$(ls -A /etc/mysql/conf.d/)" ]; then
    ep /etc/mysql/conf.d/*
-fi
-ep ${CONTAINER_SCRIPTS_DIR}/galera.cnf
-
-# Check if the container runs in Kubernetes/OpenShift
-if [ -z "$POD_NAMESPACE" ]; then
-  # Single container runs in docker
-  echo "POD_NAMESPACE not set, spin up single node"
-else
-  # Is running in Kubernetes/OpenShift, so find all other pods
-  # belonging to the namespace
-  echo "Galera: Finding peers"
-  K8S_SVC_NAME=$(hostname -f | cut -d"." -f2)
-  echo "Using service name: ${K8S_SVC_NAME}"
-  # copy the pristine version to the one that can be edited
-  cp ${CONTAINER_SCRIPTS_DIR}/galera.cnf ${EXTRA_DEFAULTS_FILE}
-  /usr/bin/peer-finder -on-start="${CONTAINER_SCRIPTS_DIR}/configure-galera.sh" -service=${K8S_SVC_NAME}
 fi
 
 if [ "${1:0:1}" = '-' ]; then
@@ -92,7 +75,7 @@ EOF
 
     if [ "$MARIADB_DATABASE" != "" ]; then
       echo "[i] Creating database: $MARIADB_DATABASE"
-      echo "CREATE DATABASE IF NOT EXISTS \`$MARIADB_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
+      echo "CREATE DATABASE IF NOT EXISTS \`$MARIADB_DATABASE\` ;" >> $tfile
       if [ "$MARIADB_USER" != "" ]; then
         echo "[i] Creating user: $MARIADB_USER with password $MARIADB_PASSWORD"
         echo "GRANT ALL ON \`$MARIADB_DATABASE\`.* to '$MARIADB_USER'@'%' IDENTIFIED BY '$MARIADB_PASSWORD';" >> $tfile

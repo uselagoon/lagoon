@@ -2,6 +2,7 @@ node-helpers
 virtual-machine
 deploytest
 .DS_Store
+.idea
 *.retry
 startVagrant.sh
 local-dev/oc
@@ -11,6 +12,7 @@ node_modules/
 build/*
 !build/.gitkeep
 openshift
+!services/api/src/resources/openshift
 .loopback
 secrets
 docs/_build

@@ -18,6 +18,11 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
 
     const branchName = body.push.changes[0].new.name.toLowerCase()
     const sha = body.push.changes[0].commits[0].hash
+    var skip_deploy = false
+
+    if (body.push.commits) {
+      skip_deploy = body.push.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
+    }
 
     const meta = {
       branch: branchName,
@@ -37,6 +42,13 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
       logMessage = `${logMessage} (<${body.push.changes[0].new.target.links.html.href}|${shortSha}>)`
     }
 
+    if (skip_deploy) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:skipped`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
+      )
+      return;
+    }
+    
     try {
       const taskResult = await createDeployTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,

@@ -24,7 +24,7 @@ parameters:
     required: true
   - name: SERVICE_ROUTER_URL
     description: URL of the Router for this service
-    value: ""
+    value: ''
   - name: OPENSHIFT_PROJECT
     description: Name of the Project that this service is in
     required: true
@@ -33,7 +33,7 @@ parameters:
     required: true
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
-    value: "Rolling"
+    value: 'Rolling'
   - name: NGINX_SERVICE_IMAGE
     description: Pullable image of nginx service
     required: true
@@ -42,104 +42,109 @@ parameters:
     required: true
   - name: NGINX_SERVICE_NAME
     description: Name of nginx service
-    value: "nginx"
+    value: 'nginx'
   - name: PHP_SERVICE_NAME
     description: Name of php service
-    value: "php"
+    value: 'php'
   - name: CRONJOBS
     description: Oneliner of Cronjobs
-    value: ""
+    value: ''
 objects:
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    replicas: 1
-    selector:
-      service: ${SERVICE_NAME}
-    strategy:
-      type: ${DEPLOYMENT_STRATEGY}
-    template:
-      metadata:
-        creationTimestamp: null
-        labels:
-          service: ${SERVICE_NAME}
-          branch: ${SAFE_BRANCH}
-          project: ${SAFE_PROJECT}
-      spec:
-        containers:
-        - image: ${NGINX_SERVICE_IMAGE}
-          name: ${NGINX_SERVICE_NAME}
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-          readinessProbe:
-            httpGet:
-              path: /nginx_status
-              port: 50000
-            initialDelaySeconds: 5
-            timeoutSeconds: 3
-          livenessProbe:
-            httpGet:
-              path: /nginx_status
-              port: 50000
-            initialDelaySeconds: 90
-            timeoutSeconds: 3
-            failureThreshold: 5
-          envFrom:
-          - configMapRef:
-              name: lagoon-env
-          env:
-            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli to redeploy on every deployment, even the files have not changed
-            - name: LAGOON_GIT_SHA
-              value: ${LAGOON_GIT_SHA}
-            - name: NGINX_FASTCGI_PASS
-              value: '127.0.0.1'
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10Mi
-        - image: ${PHP_SERVICE_IMAGE}
-          name: ${PHP_SERVICE_NAME}
-          ports:
-          - containerPort: 9000
-            protocol: TCP
-          readinessProbe:
-            exec:
-              command:
-              - /usr/sbin/check_fcgi
-            initialDelaySeconds: 2
-            periodSeconds: 5
-          livenessProbe:
-            exec:
-              command:
-              - /usr/sbin/check_fcgi
-            initialDelaySeconds: 60
-            periodSeconds: 5
-          envFrom:
-          - configMapRef:
-              name: lagoon-env
-          env:
-            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli to redeploy on every deployment, even the files have not changed
-            - name: LAGOON_GIT_SHA
-              value: ${LAGOON_GIT_SHA}
-            - name: SERVICE_NAME
-              value: ${SERVICE_NAME}
-            - name: CRONJOBS
-              value: ${CRONJOBS}
-          resources:
-            requests:
-              cpu: 10m
-              memory: 10Mi
-    test: false
-    triggers:
-    - type: ConfigChange
-  status: {}
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ${SERVICE_NAME}
+        branch: ${SAFE_BRANCH}
+        project: ${SAFE_PROJECT}
+      name: ${SERVICE_NAME}
+    spec:
+      replicas: 1
+      selector:
+        service: ${SERVICE_NAME}
+      strategy:
+        type: ${DEPLOYMENT_STRATEGY}
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            service: ${SERVICE_NAME}
+            branch: ${SAFE_BRANCH}
+            project: ${SAFE_PROJECT}
+        spec:
+          tolerations:
+            - effect: NoSchedule
+              key: autoscaled
+              operator: Equal
+              value: 'true'
+          containers:
+            - image: ${NGINX_SERVICE_IMAGE}
+              name: ${NGINX_SERVICE_NAME}
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+              readinessProbe:
+                httpGet:
+                  path: /nginx_status
+                  port: 50000
+                initialDelaySeconds: 5
+                timeoutSeconds: 3
+              livenessProbe:
+                httpGet:
+                  path: /nginx_status
+                  port: 50000
+                initialDelaySeconds: 90
+                timeoutSeconds: 3
+                failureThreshold: 5
+              envFrom:
+                - configMapRef:
+                    name: lagoon-env
+              env:
+                ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+                ## This will cause the cli to redeploy on every deployment, even the files have not changed
+                - name: LAGOON_GIT_SHA
+                  value: ${LAGOON_GIT_SHA}
+                - name: NGINX_FASTCGI_PASS
+                  value: '127.0.0.1'
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 10Mi
+            - image: ${PHP_SERVICE_IMAGE}
+              name: ${PHP_SERVICE_NAME}
+              ports:
+                - containerPort: 9000
+                  protocol: TCP
+              readinessProbe:
+                exec:
+                  command:
+                    - /usr/sbin/check_fcgi
+                initialDelaySeconds: 2
+                periodSeconds: 5
+              livenessProbe:
+                exec:
+                  command:
+                    - /usr/sbin/check_fcgi
+                initialDelaySeconds: 60
+                periodSeconds: 5
+              envFrom:
+                - configMapRef:
+                    name: lagoon-env
+              env:
+                ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+                ## This will cause the cli to redeploy on every deployment, even the files have not changed
+                - name: LAGOON_GIT_SHA
+                  value: ${LAGOON_GIT_SHA}
+                - name: SERVICE_NAME
+                  value: ${SERVICE_NAME}
+                - name: CRONJOBS
+                  value: ${CRONJOBS}
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 10Mi
+      test: false
+      triggers:
+        - type: ConfigChange
+    status: {}

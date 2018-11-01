@@ -5,10 +5,16 @@ const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
-const { updateEnvironment } = require('@lagoon/commons/src/api');
-const { getEnvironmentByName } = require('@lagoon/commons/src/api');
+const {
+  getOpenShiftInfoForProject,
+  getEnvironmentByName,
+  updateEnvironment,
+  getDeploymentByRemoteId,
+  updateDeployment,
+  setEnvironmentServices,
+} = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
@@ -83,6 +89,7 @@ const messageConsumer = async msg => {
 
   // kubernetes-client does not know about the OpenShift Resources, let's teach it.
   openshift.ns.addResource('builds');
+  openshift.ns.addResource('deploymentconfigs');
 
   let projectStatus = {}
   try {
@@ -123,6 +130,25 @@ const messageConsumer = async msg => {
   const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
   const routesGet = Promise.promisify(openshift.ns(openshiftProject).routes.get, { context: openshift.ns(openshiftProject).routes })
 
+  try {
+    const deployment = await getDeploymentByRemoteId(buildstatus.metadata.uid);
+    if (!deployment.deploymentByRemoteId) {
+      throw new Error(`No deployment found with remote id ${buildstatus.metadata.uid}`);
+    }
+
+    const convertDateFormat = R.init;
+    const dateOrNull = R.unless(R.isNil, convertDateFormat);
+
+    await updateDeployment(deployment.deploymentByRemoteId.id, {
+      status: buildstatus.status.phase.toUpperCase(),
+      created: convertDateFormat(buildstatus.metadata.creationTimestamp),
+      started: dateOrNull(buildstatus.status.startTimestamp),
+      completed: dateOrNull(buildstatus.status.completionTimestamp),
+    });
+  } catch (error) {
+    logger.error(`Could not update deployment ${projectName} ${buildName}. Message: ${error}`);
+  }
+
   let logLink = ""
   const meta = JSON.parse(msg.content.toString())
   switch (buildPhase) {
@@ -145,7 +171,7 @@ const messageConsumer = async msg => {
     case "error":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await uploadLogToS3(buildName, projectName, branchName, buildLog)
+        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
@@ -158,7 +184,7 @@ const messageConsumer = async msg => {
     case "failed":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await uploadLogToS3(buildName, projectName, branchName, buildLog)
+        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
@@ -172,7 +198,7 @@ const messageConsumer = async msg => {
     case "complete":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await uploadLogToS3(buildName, projectName, branchName, buildLog)
+        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
@@ -207,6 +233,33 @@ const messageConsumer = async msg => {
         } catch (err) {
           logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
         }
+
+      // Tell api what services are running in this environment
+      try {
+        // Get pod template from existing service
+        const deploymentConfigsGet = Promise.promisify(
+          openshift.ns(openshiftProject).deploymentconfigs.get, { context: openshift.ns(openshiftProject).deploymentconfigs }
+        );
+        const deploymentConfigs = await deploymentConfigsGet();
+
+        const serviceNames = deploymentConfigs.items.reduce(
+          (names, deploymentConfig) => [
+            ...names,
+            ...deploymentConfig.spec.template.spec.containers.reduce(
+              (names, container) => [
+                ...names,
+                container.name
+              ],
+              []
+            )
+          ],
+          []
+        );
+
+        await setEnvironmentServices(environment.id, serviceNames);
+      } catch (err) {
+        logger.error(`${openshiftProject} ${buildName}: Error while updating environment services in API, Error: ${err}`)
+      }
       break;
 
     default:
@@ -217,6 +270,20 @@ const messageConsumer = async msg => {
       break;
   }
 
+}
+
+const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildStatus) => {
+  const meta = {
+    buildName,
+    branchName,
+    buildPhase: buildStatus.status.phase.toLowerCase(),
+    remoteId: buildStatus.metadata.uid
+  };
+
+  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-openshift:${buildName}`, meta,
+    buildLog
+  );
+  return await uploadLogToS3(buildName, projectName, branchName, buildLog);
 }
 
 const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {

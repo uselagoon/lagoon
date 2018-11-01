@@ -10,18 +10,13 @@ export default ({activeTab, environment}) => (
       </Link>
     </li>
     <li className={`deployments ${activeTab == 'deployments' ? 'active' : ''}`}>
-      <Link href="/">
+      <Link href={{ pathname: '/deployments', query: { name: environment } }}>
         <a>Deployments</a>
       </Link>
     </li>
-    <li className={`events ${activeTab == 'events' ? 'active' : ''}`}>
-      <Link href="/">
-        <a>Events</a>
-      </Link>
-    </li>
-    <li className={`containers ${activeTab == 'containers' ? 'active' : ''}`}>
-      <Link href="/">
-        <a>Containers</a>
+    <li className={`backups ${activeTab == 'backups' ? 'active' : ''}`}>
+      <Link href={{ pathname: '/backups', query: { name: environment } }}>
+        <a>Backups</a>
       </Link>
     </li>
   <style jsx>{`
@@ -79,38 +74,29 @@ export default ({activeTab, environment}) => (
         }
         &.overview {
           &::before {
-            background-image: url('/static/images/overview.png');
+            background-image: url('/static/images/overview.svg');
             background-size: 18px;
           }
           &.active::before {
-            background-image: url('/static/images/overview-active.png');
+            background-image: url('/static/images/overview-active.svg');
           }
         }
         &.deployments {
           &::before {
-            background-image: url('/static/images/deployments.png');
+            background-image: url('/static/images/deployments.svg');
             background-size: 21px 16px;
           }
           &.active::before {
-            background-image: url('/static/images/deployments-active.png');
+            background-image: url('/static/images/deployments-active.svg');
           }
         }
-        &.events {
+        &.backups {
           &::before {
-            background-image: url('/static/images/events.png');
-            background-size: 15px 18px;
-          }
-          &.active::before{
-            background-image: url('/static/images/events-active.png');
-          }
-        }
-        &.containers {
-          &::before {
-            background-image: url('/static/images/containers.png');
-            background-size: 20px 19px;
+            background-image: url('/static/images/backups.svg');
+            background-size: 19px;
           }
           &.active::before {
-            background-image: url('/static/images/containers-active.png');
+            background-image: url('/static/images/backups-active.svg');
           }
         }
       }

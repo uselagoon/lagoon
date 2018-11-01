@@ -4,11 +4,11 @@
 
 In order for Drupal to work with Lagoon we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens with copying specific YAML and PHP Files into your Git Repository.
 
-You find these Files [here](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal). Probably easiest is to download them as [ZIP File](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git Repository. For each Drupal Version and Database Type you will find an individual folder. A short overview of what they are:
+You find these Files [here](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal). The easiest way is to download them as [ZIP File](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git Repository. For each Drupal Version and Database Type you will find an individual folder. A short overview of what they are:
 
-- `.lagoon.yml` - They main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults, if you like to edit or modify, please check the specific [Documentation for .lagoon.yml](/using_lagoon/lagoon_yml.md)
-- `docker-compose.yml`, `.dockerignore`  and `Dockerfile.*` - These files are used to run your Local Drupal Development environment, it tells docker which services to start and how to build them. These contain sensible defaults and many commented lines, it should be pretty much self describing. If you like more, see [Documentation for docker-compose.yml]()
-- `sites/default/*` - These .php and .yml files teach Drupal how to communicate with Lagoon containers and this locally and in production. It also provides an easy system for specific overrides in development and production environments. Unlike other Drupal Hosting Systems, Lagoon never ever injects Drupal Settings files into your Drupal. Therefore you can edit them to your wish. Like all other files they contain sensible defaults and some commented parts.
+- `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults, if you would like to edit or modify, please check the specific [Documentation for .lagoon.yml](/using_lagoon/lagoon_yml.md)
+- `docker-compose.yml`, `.dockerignore`  and `Dockerfile.*` - These files are used to run your Local Drupal Development environment, they tell docker which services to start and how to build them. They contain sensible defaults and many commented lines, it should be pretty much self describing. If you would like to find out more, see [Documentation for docker-compose.yml]()
+- `sites/default/*` - These .php and .yml files teach Drupal how to communicate with Lagoon containers both locally and in production. It also provides an easy system for specific overrides in development and production environments. Unlike other Drupal hosting systems, Lagoon never ever injects Drupal Settings files into your Drupal. Therefore you can edit them to your wish. Like all other files they contain sensible defaults and some commented parts.
 - `drush/aliases.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all Site Aliases there are.
 - `drush/drushrc.php` - Some sensible defaults for Drush Commands.
 
@@ -20,7 +20,11 @@ Don't forget to make sure your `.gitignore` will allow you to commit the setting
 
 Unfortunately the Drupal Community couldn't decide yet on a standardized webroot folder name. Some projects put Drupal within `web` others within `docroot` or somewhere else. The Lagoon Drupal Setting Files assume that your Drupal is within `web`, if this is different for your Drupal, please adapt the files accordingly.
 
-## 2. Build Images
+## 2. Customise docker-compose.yml
+
+Don't forget to customise the values in lagoon-project & LAGOON_ROUTE with your site specific name & the URL you'd like to access the site with:
+
+## 3. Build Images
 
 As next we need to build the defined images:
 
@@ -31,7 +35,7 @@ This will tell docker-compose to build the Docker Images for all containers that
 Usually building is not needed every time you edit your Drupal Code (as the Code is mounted into the Containers from your Host), but rebuilding does not hurt.
 Plus Lagoon will build the exact same Docker Images also during a deploy, you can therefore check that your Build will also work during a deployment with just running `docker-compose build` again.
 
-## 3. Start Containers
+## 4. Start Containers
 
 Now as the Images are built, we can start the Containers:
 
@@ -41,7 +45,7 @@ This will bring up all containers. After the command is done, you can check with
 
 If everything went well, open the `LAGOON_ROUTE` defined in `docker-compose.yml` (for example http://drupal.docker.amazee.io) and you should be greeted by a nice Drupal Error. Don't worry that's ok right now, most important is that it tries to load a Drupal site.
 
-## 4. Rerun `composer install` (for Composer projects only)
+## 5. Rerun `composer install` (for Composer projects only)
 
 In a local development environment you most probably open the Drupal Code in your favorite IDE and you also want all dependencies downloaded and installed, so connect into the cli container and run `composer install`:
 
@@ -49,10 +53,10 @@ In a local development environment you most probably open the Drupal Code in you
     composer install
 
 This maybe sounds weird, as there was already a `composer install` executed during the Build step, let us explain:
-- In order to be able to edit files on the Host and have them immediatelly available in the container, the default docker-composer.yml mounts the whole folder into the the containers (this happens with `.:/app:delegated` in the volumes section). This also means that all dependencies installed during the Docker build are overwritten with the files on the Host.
+- In order to be able to edit files on the Host and have them immediately available in the container, the default docker-composer.yml mounts the whole folder into the the containers (this happens with `.:/app:delegated` in the volumes section). This also means that all dependencies installed during the Docker build are overwritten with the files on the Host.
 - Locally you probably want dependencies defined as `require-dev` in `composer.json` also existing, while on a production deployment they would just use unnecessary space. So we run `composer install --no-dev` in the Dockerfile and `composer install` manually.
 
-## 5. Check Status and Install Drupal
+## 6. Check Status and Install Drupal
 
 Finally it's time to install a Drupal, but just before that we want to make sure everything works alright. We suggest to use Drush for that:
 
@@ -62,42 +66,26 @@ Finally it's time to install a Drupal, but just before that we want to make sure
 This should return something like:
 
     [drupal-example]cli-drupal:/app$ drush status
-    Drupal version                  :  8.4.4
-    Site URI                        :  drupal.docker.amazee.io
-    Database driver                 :  mysql
-    Database hostname               :  mariadb
-    Database port                   :  3306
-    Database username               :  drupal
-    Database name                   :  drupal
-    Database                        :  Connected
-    Drupal bootstrap                :  Successful
-    Drupal user                     :
-    Default theme                   :  bartik
-    Administration theme            :  seven
-    PHP executable                  :  /usr/local/bin/php
-    PHP configuration               :  /usr/local/etc/php/php.ini
-    PHP OS                          :  Linux
-    Drush script                    :  /app/vendor/drush/drush/drush.php
-    Drush version                   :  8.1.15
-    Drush temp directory            :  /tmp
-    Drush configuration             :  /app/drush/drushrc.php /home/.drush/drushrc.php
-    Drush alias files               :  /app/web/../drush/aliases.drushrc.php
-    Install profile                 :  config_installer
-    Drupal root                     :  /app/web
-    Drupal Settings File            :  sites/default/settings.php
-    Site path                       :  sites/default
-    File directory path             :  sites/default/files
-    Temporary file directory path   :  /tmp
-    Sync config path                :  ../config/sync
+    [notice] Missing database table: key_value
+    Drupal version       :  8.6.1
+    Site URI             :  http://drupal.docker.amazee.io
+    Database driver      :  mysql
+    Database hostname    :  mariadb
+    Database port        :  3306
+    Database username    :  drupal
+    Database name        :  drupal
+    PHP binary           :  /usr/local/bin/php
+    PHP config           :  /usr/local/etc/php/php.ini
+    PHP OS               :  Linux
+    Drush script         :  /app/vendor/drush/drush/drush
+    Drush version        :  9.4.0
+    Drush temp           :  /tmp
+    Drush configs        :  /home/.drush/drush.yml
+                            /app/vendor/drush/drush/drush.yml
+    Drupal root          :  /app/web
+    Site path            :  sites/default
 
-The important parts is:
-
-    Database                        :  Connected
-    Drupal bootstrap                :  Successful
-
-Which tells us that Drupal can succesfully connect to the Database and bootstrap itself.
-
-Now it is time to install Drupal (if you like to import an existing SQL File, skip to step 6. But we suggest to install a clean Drupal in the beginning to be sure everything works)
+Now it is time to install Drupal (if instead you would like to import an existing SQL File, please skip to step 6, but we suggest you install a clean Drupal in the beginning to be sure everything works.)
 
     drush site-install
 
@@ -109,11 +97,11 @@ This should output something like:
     Installation complete.  User name: admin  User password: a7kZJekcqh
     Congratulations, you installed Drupal!
 
-Now you can visit the defined `LAGOON_ROUTE` again and should see a fresh and clean installed Drupal - Congrats!
+Now you can visit the URL defined in `LAGOON_ROUTE` and you should see a fresh and clean installed Drupal - Congrats!
 
 ![Congrats](https://media.giphy.com/media/XreQmk7ETCak0/giphy.gif)
 
-## 6. Import existing Database Dump
+## 7. Import existing Database Dump
 
 If you have an already existing Drupal Site you probably want to import a database dump in your local site.
 
@@ -139,11 +127,11 @@ Now you can import the Dump with before dropping the current database:
 
 Verify that everything works with visiting the URL of your Project.
 
-## 7. Drupal files directory
+## 8. Drupal files directory
 
-A Drupal Site also consists of the files directory. As the whole folder is mounted into the Docker Containers, just add the files into the correct folder (proably `web/sites/default/files`, `sites/default/files` or something similar).
+A Drupal Site also consists of the files directory. As the whole folder is mounted into the Docker Containers, just add the files into the correct folder (probably `web/sites/default/files`, `sites/default/files` or something similar).
 
-## 8. Done!
+## 9. Done!
 
 You are done. The Lagoon Team wishes Happy Drupaling!
 

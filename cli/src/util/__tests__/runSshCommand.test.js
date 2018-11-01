@@ -31,11 +31,11 @@ describe('runSshCommand', () => {
     expect(returned).toBe(stdout);
   });
 
-  it('should throw first line of stderr on error', async () => {
-    const stdErrFirstLine = 'mocked stderr content';
+  it('should throw stderr on error', async () => {
+    const stderrContent = 'mocked stderr content\nanother second line';
     mockedExeca.mockImplementationOnce(async () => {
       throw {
-        stderr: `${stdErrFirstLine}\nanother second line`,
+        stderr: stderrContent,
       };
     });
     try {
@@ -44,7 +44,7 @@ describe('runSshCommand', () => {
         identity: './identity/path',
       });
     } catch (err) {
-      expect(err).toBe(stdErrFirstLine);
+      expect(err).toBe(stderrContent);
     }
   });
 });

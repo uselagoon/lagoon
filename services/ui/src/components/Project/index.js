@@ -3,15 +3,21 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import Environment from '../EnvironmentTeaser';
 import { bp, color, fontSize } from '../../variables';
+import giturlparse from 'git-url-parse';
 
 class Project extends React.Component {
   constructor(props) {
     super(props);
 
+    const gitUrlParsed = giturlparse(this.props.project.gitUrl);
+    const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`
+
     this.state = {
       project: [],
       gitUrl: this.props.project.gitUrl,
       copied: false,
+      gitLinkWithScheme: `https://${gitLink}`,
+      gitLink: gitLink,
     };
   }
 
@@ -22,14 +28,14 @@ class Project extends React.Component {
           <div className='field-wrapper created'>
             <div>
               <label>Created</label>
-              <div className='field'>{moment(this.props.project.created).format('MMMM d, Y')}
+              <div className='field'>{moment.utc(this.props.project.created).local().format('DD MMM YYYY, HH:mm:ss')}
               </div>
             </div>
           </div>
           <div className='field-wrapper origin'>
             <div>
               <label>Origin</label>
-              <div className='field'><a className='hover-state' href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
+              <div className='field'><a className='hover-state' target="_blank" href={this.state.gitLinkWithScheme}>{this.state.gitLink}</a></div>
             </div>
           </div>
           <div className='field-wrapper giturl'>
@@ -43,7 +49,7 @@ class Project extends React.Component {
                   this.setState({copied: true});
                   setTimeout(function(){
                      this.setState({copied:false});
-                  }.bind(this),3000);
+                  }.bind(this),750);
                 }
               }>
                 <span className='copy'></span>
@@ -72,7 +78,20 @@ class Project extends React.Component {
                 key={environment.id}
                 environment={environment}
                 project={this.props.project.name}
-              />)}
+              />)
+              .sort((a, b) => {
+                const environmentTypes = {
+                  production: 1,
+                  development: 2,
+                };
+                const deployTypes = {
+                  branch: 1,
+                  pullrequest: 2,
+                };
+                return environmentTypes[a.props.environment.environmentType] - environmentTypes[b.props.environment.environmentType] ||
+                  deployTypes[a.props.environment.deployType] - deployTypes[b.props.environment.deployType];
+              })
+            }
           </div>
         </div>
         <style jsx>{`
@@ -110,24 +129,20 @@ class Project extends React.Component {
                 white-space: nowrap;
                 &::before {
                   @media ${bp.tabletUp} {
-                    min-width: calc((100vw / 16) * 1);
-                    width: calc((100vw / 16) * 1);
+                    margin-left: calc(((100vw / 16) * 1) - 25px);
                   }
                   @media ${bp.desktopUp} {
-                    min-width: calc(((100vw / 16) * 1) - 28px);
-                    width: calc(((100vw / 16) * 1) - 28px);
+                    margin-left: calc(((100vw / 16) * 1) - 53px);
                   }
                 }
                 &.created {
                   &::before {
-                    background-image: url('/static/images/calendar.png');
-                    background-size: 17px 16px;
+                    background-image: url('/static/images/created.svg');
                   }
                 }
                 &.origin {
                   &::before {
-                    background-image: url('/static/images/origin.png');
-                    background-size: 19px 17px;
+                    background-image: url('/static/images/git-lab.svg');
                   }
                   & > div {
                     max-width: 100%;
@@ -150,8 +165,7 @@ class Project extends React.Component {
                     position: relative;
                   }
                   &::before {
-                    background-image: url('/static/images/giturl.png');
-                    background-size: 20px 20px;
+                    background-image: url('/static/images/git.svg');
                     height: 84px;
                   }
                   .field {
@@ -171,7 +185,7 @@ class Project extends React.Component {
                     }
                   }
                   .copy {
-                    background: url('/static/images/copy.png') center center no-repeat ${color.white};
+                    background: url('/static/images/copy.svg') center center no-repeat ${color.white};
                     background-size: 16px;
                     border-left: 1px solid ${color.lightestGrey};
                     bottom: 0;
@@ -181,7 +195,8 @@ class Project extends React.Component {
                     width: 37px;
                     transform: all 0.5s;
                     &:hover {
-                      background-image: url('/static/images/copy-hover.png')
+                      background-color: ${color.midGrey};
+                      cursor: pointer;
                     }
                   }
                   .copied {
@@ -193,19 +208,17 @@ class Project extends React.Component {
                     right: 0;
                     text-transform: uppercase;
                     top: 30px;
-                    transition: top 1.25s, opacity 2.5s ease-in;
+                    transition: top 0.5s, opacity 0.75s ease-in;
                   }
                 }
                 &.branches {
                   &::before {
-                    background-image: url('/static/images/branches.png');
-                    background-size: 15px 20px;
+                    background-image: url('/static/images/branches.svg');
                   }
                 }
                 &.prs {
                   &::before {
-                    background-image: url('/static/images/prs.png');
-                    background-size: 15px 20px;
+                    background-image: url('/static/images/pull-request.svg');
                   }
                 }
               }

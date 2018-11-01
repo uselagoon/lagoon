@@ -5,6 +5,8 @@ module.exports = {
   plugins: ['flowtype'],
   env: { es6: true, jest: true, node: true },
   rules: {
+    // Disable 'arrow-parens': ['error', 'as-needed'] Airbnb stylistic rule for Flow types in comments in single-parameter functions (in the API). This does not cause a regression either, because Prettier will remove other parentheses when it can.
+    'arrow-parens': 'off',
     // Disable Airbnb stylistic rule because we communicate with services with snake case
     camelcase: 'off',
     // Rule to enforce function return types. We disable this Airbnb setting because Flow will check our function return types.
@@ -30,6 +32,8 @@ module.exports = {
     'import/prefer-default-export': 'off',
     // Prettier works better with its default 80 character max-length
     'max-len': 'off',
+    // Disable Airbnb stylistic rule
+    'no-await-in-loop': 'off',
     // Conflicts with Prettier's stripping of unnecessary parentheses
     'no-confusing-arrow': 'off',
     // Disable Airbnb rule

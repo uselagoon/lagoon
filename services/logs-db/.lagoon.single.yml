@@ -71,13 +71,11 @@ objects:
           - containerPort: 9200
             protocol: TCP
           readinessProbe:
-            httpGet:
-              path: /_cluster/health?local=true
+            tcpSocket:
               port: 9200
             initialDelaySeconds: 20
           livenessProbe:
-            httpGet:
-              path: /_cluster/health?local=true
+            tcpSocket:
               port: 9200
             initialDelaySeconds: 120
           envFrom:

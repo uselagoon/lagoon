@@ -36,12 +36,7 @@ export async function runSshCommand({
       command,
     ]);
   } catch (err) {
-    // Only throw first line of error
-    throw R.compose(
-      R.head,
-      R.split('\n'),
-      R.prop('stderr'),
-    )(err);
+    throw R.prop('stderr', err);
   }
 
   return R.propOr(null, 'stdout')(output);

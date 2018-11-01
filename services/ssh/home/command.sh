@@ -2,7 +2,7 @@
 
 # command.sh is called in two ways:
 # 1. with 2 arguments (the API_ADMIN_TOKEN and USER_SSH_KEY), the ACTION needs to be extracted from
-#    SSH_ORIGINAL_COMMAND (it is sent by the user as a ssh parameter)
+# SSH_ORIGINAL_COMMAND (it is sent by the user as a ssh parameter)
 # 2. with 4 arguments where the 3rd is the ACTION and the 4th the SSH_USERNAME.
 # To handle that we shift the first two arguments and append $SSH_ORIGINAL_COMMAND to the remaining argument list
 API_ADMIN_TOKEN=$1
@@ -16,7 +16,7 @@ shift 1
 
 case $ACTION in
   'token')
-    ./token.sh "$USER_SSH_KEY"
+    ./token.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
     ;;
 
   'rsh')
