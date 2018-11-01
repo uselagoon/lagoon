@@ -44,6 +44,7 @@
     "ramda": "^0.25.0",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
+    "validator": "^10.8.0",
     "winston": "^2.4.0"
   },
   "devDependencies": {
