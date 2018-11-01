@@ -92,7 +92,7 @@ EOF
 
     ${OC} volume deploymentconfig/pv-migrator --remove --name=${PVC}
     ${OC} delete pvc/${PVC}
-    ${OC} apply -f $TMP && rm $TMP
+    ${OC} create -f $TMP && rm $TMP
     ${OC} volume deploymentconfig/pv-migrator --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
 
     ${OC} rollout resume deploymentconfig/pv-migrator
