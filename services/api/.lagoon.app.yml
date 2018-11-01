@@ -94,6 +94,16 @@ objects:
             initialDelaySeconds: 30
             timeoutSeconds: 1
           env:
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-username
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-password
+                  key: RABBITMQ_PASSWORD
             - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
