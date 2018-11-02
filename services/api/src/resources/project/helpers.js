@@ -2,7 +2,9 @@
 
 const R = require('ramda');
 const sqlClient = require('../../clients/sqlClient');
+const keycloakClient = require('../../clients/keycloakClient');
 const { query } = require('../../util/db');
+const logger = require('../../logger');
 
 const {
   getKeycloakUserIdByUsername,
@@ -89,6 +91,30 @@ const Helpers = {
         keycloakGroupId,
         keycloakGroupName: projectName,
       });
+    }
+  },
+  // Given a lagoon project, add all users (direct and indirect) that have access to the projects
+  // corresponding keycloak group.
+  addProjectUsersToKeycloakGroup: async (
+    project /* : Object */,
+  ) => {
+    const users = await query(sqlClient, Sql.selectAllUsersForProjectId(project.id));
+
+    const keycloakGroupId = await KeycloakOperations.findGroupIdByName(
+      project.name,
+    );
+
+    for (const user of users) {
+      const email = R.prop('email', user);
+      const keycloakUserId = await getKeycloakUserIdByUsername(email);
+
+      await keycloakClient.users.addToGroup({
+        id: keycloakUserId,
+        groupId: keycloakGroupId,
+      });
+      logger.debug(
+        `Added Keycloak user ${email} to group "${project.name}"`,
+      );
     }
   },
 };
