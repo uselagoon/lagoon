@@ -1,4 +1,4 @@
-# .lagoon.yml file
+# .docker-compose.yml file
 The `docker-compose.yml` (or also `docker-compose.yaml`) is used by Lagon to:
 
 * learn which services/containers should be deployed
