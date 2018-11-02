@@ -12,6 +12,8 @@ RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${VERSIO
 
 FROM alpine:3.7
 
+COPY --from=vmod /usr/lib/varnish/vmods/libvmod_dynamic.* /usr/lib/varnish/vmods/
+
 LABEL maintainer="amazee.io"
 ENV LAGOON=varnish
 
@@ -41,8 +43,6 @@ RUN fix-permissions /etc/varnish/ \
     && fix-permissions /var/lib/varnish
 
 COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
-
-COPY --from=vmod /usr/lib/varnish/vmods/libvmod_dynamic.* /usr/lib/varnish/vmods/
 
 EXPOSE 8080
 
