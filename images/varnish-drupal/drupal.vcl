@@ -23,11 +23,9 @@ acl purge {
 sub vcl_init {
     new www_dir = dynamic.director(
       port = "${VARNISH_BACKEND_PORT:-8080}",
-      probe = www_probe,
       whitelist = purge,
       ttl = 60s);
    }
-
 
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
