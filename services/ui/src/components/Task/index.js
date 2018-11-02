@@ -139,29 +139,9 @@ const Task = ({ task }) => (
             &::before {
               background-size: 14px;
             }
-            &.new {
-              &::before {
-                background-image: url('/static/images/pending.svg');
-              }
-            }
-            &.pending {
-              &::before {
-                background-image: url('/static/images/pending.svg');
-              }
-            }
-            &.running {
+            &.active {
               &::before {
                 background-image: url('/static/images/in-progress.svg');
-              }
-            }
-            &.cancelled {
-              &::before {
-                background-image: url('/static/images/failed.svg');
-              }
-            }
-            &.error {
-              &::before {
-                background-image: url('/static/images/failed.svg');
               }
             }
             &.failed {
@@ -169,7 +149,7 @@ const Task = ({ task }) => (
                 background-image: url('/static/images/failed.svg');
               }
             }
-            &.complete {
+            &.succeeded {
               &::before {
                 background-image: url('/static/images/successful.svg');
               }
