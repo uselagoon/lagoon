@@ -85,7 +85,7 @@ EOF
     TMP=$(mktemp temp.${PVC}.json.XXXX)
     
     echo "dumping pvc ${PVC} to ${TMP}."
-    ${OC} get -o json pvc/${PVC} --export=true | jq 'del(.metadata.annotations, .metadata.selfLink, .spec.volumeName, .status)' > $TMP
+    ${OC} get -o json pvc/${PVC} --export=true | jq 'del(.metadata.annotations, .metadata.selfLink, .spec.volumeName, .spec.storageClassName, .status)' > $TMP
 
 
     ${OC} rollout pause deploymentconfig/pv-migrator
