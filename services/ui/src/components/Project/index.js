@@ -10,7 +10,7 @@ class Project extends React.Component {
     super(props);
 
     const gitUrlParsed = giturlparse(this.props.project.gitUrl);
-    const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`
+    const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
 
     this.state = {
       project: [],
@@ -22,6 +22,8 @@ class Project extends React.Component {
   }
 
   render() {
+    const usersList = this.props.project.users.concat(this.props.project.customer.users);
+
     return (
       <div className='content-wrapper'>
         <div className='details'>
@@ -66,6 +68,19 @@ class Project extends React.Component {
             <div>
               <label>Pull requests enabled</label>
               <div className='field'>{this.props.project.pullrequests}</div>
+            </div>
+          </div>
+          <div className='field-wrapper members'>
+            <div>
+              <label>Members</label>
+              <div className='field'>
+                {usersList.map(user =>
+                  <div className='member'>
+                    {user.firstName ? <div>{user.firstName} {user.lastName}</div> : ''}
+                    <div>{user.email}</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -219,6 +234,13 @@ class Project extends React.Component {
                 &.prs {
                   &::before {
                     background-image: url('/static/images/pull-request.svg');
+                  }
+                }
+                &.members {
+                  .field {
+                    .member {
+                      margin-botom: 5px;
+                    }
                   }
                 }
               }
