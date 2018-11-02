@@ -43,7 +43,11 @@ class StartPage extends React.Component {
           <Query query={query}>
             {({ loading, error, data }) => {
               if (loading) return <p>Loading...</p>;
-              if (error) return <p>Error :(</p>;
+              if (error) return (
+                <div className="content">
+                  <p>{error.toString()}</p>
+                </div>
+              )
               return (
                 <div className="content">
                   <div className="header">
