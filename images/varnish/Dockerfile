@@ -1,5 +1,15 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
+
+
+FROM alpine:3.7 as vmod
+
+ENV VERSION=5.2
+RUN apk --no-cache add varnish varnish-dev automake autoconf libtool python py-docutils make
+RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${VERSION}.zip && \
+  unzip ${VERSION}.zip && cd libvmod-dynamic-${VERSION} && \
+  ./autogen.sh && ./configure && make && make install
+
 FROM alpine:3.7
 
 LABEL maintainer="amazee.io"
@@ -19,7 +29,7 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-RUN apk --no-cache add varnish varnish-dev automake autoconf libtool python py-docutils make
+RUN apk --no-cache add varnish
 
 RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
 
@@ -32,12 +42,7 @@ RUN fix-permissions /etc/varnish/ \
 
 COPY docker-entrypoint /lagoon/entrypoints/70-varnish-entrypoint
 
-ENV VERSION=5.2
-
-RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${VERSION}.zip && \
-  unzip ${VERSION}.zip && cd libvmod-dynamic-${VERSION} && \
-  ./autogen.sh && ./configure && make && make install && \
-  cd / && rm -Rf libvmod-dynamic-${VERSION}
+COPY --from=vmod /usr/lib/varnish/vmods/libvmod_dynamic.* /usr/lib/varnish/vmods/
 
 EXPOSE 8080
 
