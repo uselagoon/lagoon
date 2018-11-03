@@ -215,6 +215,8 @@ const addProject = async (
   await KeycloakOperations.addGroup(project);
   await SearchguardOperations.addProject(project);
 
+  await Helpers.addProjectUsersToKeycloakGroup(project);
+
   return project;
 };
 
