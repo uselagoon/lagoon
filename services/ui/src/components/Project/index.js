@@ -237,6 +237,9 @@ class Project extends React.Component {
                   }
                 }
                 &.members {
+                  &::before {
+                    background-image: url('/static/images/members.svg');
+                  }
                   .field {
                     .member {
                       margin-botom: 5px;
