@@ -60,7 +60,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
                 "filter": {
                   "range": {
                     "@timestamp": {
-                      "gte": "now-10s"
+                      "gte": "now-4h"
                     }
                   }
                 }

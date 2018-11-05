@@ -338,7 +338,7 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   } catch (e) {
     if (
       e.body.error.type &&
-      e.body.error.type === 'index_not_found_exception'
+      (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')
     ) {
       return { total: 0 };
     }
