@@ -4,6 +4,7 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
 
+import R from 'ramda';
 import type { WebhookRequestData, deployData, ChannelWrapper, Project  } from '../types';
 
 async function gitlabPush(webhook: WebhookRequestData, project: Project) {
@@ -19,7 +20,7 @@ async function gitlabPush(webhook: WebhookRequestData, project: Project) {
     const branchName = body.ref.toLowerCase().replace('refs/heads/','')
     const sha = body.after
 
-    const skip_deploy = body.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
+    const skip_deploy = R.pathOr('',['commits',0,'message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
 
     const meta = {
       branch: branchName,
