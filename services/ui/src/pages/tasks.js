@@ -54,7 +54,6 @@ const PageTasks = withRouter(props => {
           if (loading) return null;
           if (error) return `Error!: ${error}`;
           const environment = data.environmentByOpenshiftProjectName;
-          console.log(environment);
           const breadcrumbs = [
             {
               header: 'Project',
@@ -97,6 +96,7 @@ const PageTasks = withRouter(props => {
                 />
                 {!props.router.query.task_id && (
                   <TaskData
+                    environmentId={environment.id}
                     projectName={environment.openshiftProjectName}
                     tasks={tasks}
                   />

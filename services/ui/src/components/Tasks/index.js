@@ -1,20 +1,58 @@
 import React from 'react';
 import Link from 'next/link';
+import compose from 'recompose/compose';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import ReactSelect from 'react-select';
+import withTaskMutation from './withTaskMutation';
+import withLogic from './logic';
 import { bp, color, fontSize } from '../../variables';
 
 const Tasks = ({
+  environmentId,
   projectName,
   tasks,
+  onSubmit,
+  formValues,
+  setFormValue,
 }) => (
   <div className="content">
-    <button>Add task</button>
+    <div className="taskFormWrapper">
+      <div className="taskForm">
+        <div className="selectTask">
+          <ReactSelect
+            aria-labelledby="task"
+            placeholder=""
+            name="selectTask"
+            value={formValues.command}
+            onChange={e => {
+              setFormValue({
+                formValues: {
+                  name: e.label,
+                  command: e.value,
+                  environment: environmentId,
+                  service: 'cli',
+                  created: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+                  status: 'ACTIVE',
+                }
+              });
+            }}
+            options={[
+              { value: 'drush status', label: 'Site Status' },
+              { value: 'drush archive-dump', label: 'Drupal Archive' }
+            ]}
+            required
+          />
+        </div>
+        <button onClick={(e) => onSubmit()}>Add task</button>
+      </div>
+    </div>
     <div className="header">
       <label>Name</label>
       <label>Created</label>
-      <label>Status</label>
-      <label>Duration</label>
+      <label>Command</label>
+      <label className="service">Service</label>
+      <label className="status">Status</label>
     </div>
     <div className="data-table">
       {tasks.map(task => (
@@ -40,11 +78,12 @@ const Tasks = ({
                   .local()
                   .format('DD MMM YYYY, HH:mm:ss')}
               </div>
+              <div className="command">{task.command}</div>
+              <div className="service">{task.service}</div>
               <div className={`status ${task.status}`}>
-                {task.status.charAt(0).toUpperCase() +
-                  task.status.slice(1)}
+                <span>{task.status.charAt(0).toUpperCase() +
+                  task.status.slice(1)}</span>
               </div>
-              <div className="duration">{task.duration}</div>
             </a>
           </Link>
         </div>
@@ -54,6 +93,60 @@ const Tasks = ({
       .content {
         padding: 32px calc((100vw / 16) * 1);
         width: 100%;
+        .taskFormWrapper {
+          @media ${bp.wideUp} {
+            display: flex;
+          }
+          &::before {
+            @media ${bp.wideUp} {
+              content: '';
+              display: block;
+              flex-grow: 1;
+            }
+          }
+        }
+        .taskForm {
+          background: ${color.white};
+          border: 1px solid ${color.lightestGrey};
+          border-radius: 3px;
+          box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
+          display: flex;
+          flex-flow: column;
+          margin-bottom: 32px;
+          padding: 32px 20px;
+          @media ${bp.tabletUp} {
+            margin-bottom: 0;
+          }
+          @media ${bp.tinyUp} {
+            flex-flow: row;
+            justify-content: flex-end;
+          }
+          @media ${bp.wideUp} {
+            min-width: 52%;
+          }
+          .selectTask {
+            flex-grow: 1;
+            margin: 0 0 20px;
+            min-width: 220px;
+            @media ${bp.tinyUp} {
+              margin: 0 20px 0 0;
+            }
+          }
+          button {
+            align-self: flex-end;
+            background-color: ${color.lightestGrey};
+            border: none;
+            border-radius: 20px;
+            color: ${color.darkGrey};
+            font-family: 'source-code-pro', sans-serif;
+            ${fontSize(13)};
+            padding: 3px 20px 2px;
+            text-transform: uppercase;
+            @media ${bp.tinyUp} {
+              align-self: auto;
+            }
+          }
+        }
         .header {
           @media ${bp.tinyUp} {
             align-items: center;
@@ -71,21 +164,18 @@ const Tasks = ({
           label {
             display: none;
             padding-left: 20px;
-            width: 25%;
             @media ${bp.tinyUp} {
               display: block;
+              width: 20%;
+            }
+            @media ${bp.xs_smallUp} {
+              width: 24%;
+              &.service,
+              &.status {
+                width: 14%;
+              }
             }
           }
-        }
-        button {
-          background-color: ${color.lightestGrey};
-          border: none;
-          border-radius: 20px;
-          color: ${color.darkGrey};
-          font-family: 'source-code-pro', sans-serif;
-          ${fontSize(13)};
-          padding: 3px 20px 2px;
-          text-transform: uppercase;
         }
         .data-table {
           background-color: ${color.white};
@@ -123,13 +213,23 @@ const Tasks = ({
               & > div {
                 padding-left: 20px;
                 @media ${bp.tinyUp} {
-                  width: 25%;
+                  width: 20%;
+                }
+                @media ${bp.xs_smallUp} {
+                  width: 24%;
+                  &.service,
+                  &.status {
+                    width: 14%;
+                  }
                 }
               }
             }
             .status {
-              @media ${bp.xs_smallOnly} {
+              @media ${bp.tinyOnly} {
                 margin-left: 20px;
+              }
+              @media ${bp.tiny_wide} {
+                background-position: center;
               }
               background-position: left 7px;
               background-repeat: no-repeat;
@@ -143,6 +243,11 @@ const Tasks = ({
               &.succeeded {
                 background-image: url('/static/images/successful.svg');
               }
+              span {
+                @media ${bp.tiny_wide} {
+                  display: none;
+                }
+              }
             }
           }
         }
@@ -151,4 +256,7 @@ const Tasks = ({
   </div>
 );
 
-export default Tasks;
+export default compose(
+  withTaskMutation,
+  withLogic,
+)(Tasks);

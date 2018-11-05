@@ -20,14 +20,19 @@ const Task = ({ task }) => (
           </div>
         </div>
       </div>
-      <div className="field-wrapper started">
+      <div className="field-wrapper command">
         <div>
-          <label>Started</label>
+          <label>Command</label>
           <div className="field">
-            {moment
-              .utc(task.started)
-              .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+            {task.command}
+          </div>
+        </div>
+      </div>
+      <div className="field-wrapper service">
+        <div>
+          <label>Service</label>
+          <div className="field">
+            {task.service}
           </div>
         </div>
       </div>
@@ -37,14 +42,6 @@ const Task = ({ task }) => (
           <div className="field">
             {task.status.charAt(0).toUpperCase() +
               task.status.slice(1)}
-          </div>
-        </div>
-      </div>
-      <div className="field-wrapper duration">
-        <div>
-          <label>Duration</label>
-          <div className="field">
-            {task.duration}
           </div>
         </div>
       </div>
@@ -86,7 +83,7 @@ const Task = ({ task }) => (
           padding: 120px calc(100vw / 16) 20px calc(((100vw / 16) * 1.5) + 28px);
         }
         @media ${bp.extraWideUp} {
-          padding: 48px calc((100vw / 16) * 1.5);
+          padding: 48px calc(100vw / 16) 20px calc((100vw / 16) * 1.5);
         }
         h3 {
           width: 100%;
