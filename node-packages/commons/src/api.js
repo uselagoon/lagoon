@@ -698,6 +698,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
       project:projectByName(name: "${project}"){
         id
         openshift  {
+          name
           consoleUrl
           token
           projectUser
