@@ -21,7 +21,7 @@ parameters:
     required: true
   - name: OPENSHIFT_NAME
     description: The name of the openshift cluster this project is running on
-    required: true
+    value: ""
   - name: ENVIRONMENT_TYPE
     description: Which environment type this project is
     value: development
