@@ -3,7 +3,7 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
-const { R } = require('ramda');
+const R = require('ramda');
 
 import type { WebhookRequestData, deployData, ChannelWrapper, Project  } from '../types';
 
