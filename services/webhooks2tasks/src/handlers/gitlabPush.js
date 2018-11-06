@@ -3,8 +3,8 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
+const { R } = require('ramda');
 
-import R from 'ramda';
 import type { WebhookRequestData, deployData, ChannelWrapper, Project  } from '../types';
 
 async function gitlabPush(webhook: WebhookRequestData, project: Project) {
