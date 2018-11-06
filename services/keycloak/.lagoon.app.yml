@@ -144,6 +144,9 @@ objects:
       name: ${SERVICE_NAME}
     spec:
       host: ${SERVICE_ROUTER_URL}
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
       port:
         targetPort: 8080-tcp
       to:
