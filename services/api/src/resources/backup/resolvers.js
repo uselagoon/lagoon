@@ -6,6 +6,8 @@ const { createMiscTask } = require('@lagoon/commons/src/tasks');
 const { query, isPatchEmpty } = require('../../util/db');
 const sqlClient = require('../../clients/sqlClient');
 const Sql = require('./sql');
+const projectSql = require('../project/sql');
+const environmentSql = require('../environment/sql');
 
 /* ::
 
@@ -109,9 +111,17 @@ const addRestore = async (
   rows = await query(sqlClient, Sql.selectBackup(backup));
   const backupData = R.prop(0, rows);
 
+  rows = await query(sqlClient, environmentSql.selectEnvironmentById(backupData.environment));
+  const environmentData = R.prop(0, rows);
+
+  rows = await query(sqlClient, projectSql.selectProject(environmentData.project));
+  const projectData = R.prop(0, rows);
+
   const data = {
     backup: backupData,
     restore: restoreData,
+    environment: environmentData,
+    project: projectData,
   };
 
   try {
