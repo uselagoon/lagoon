@@ -117,7 +117,7 @@ const {
   getBackupsByEnvironmentId,
   deleteAllBackups,
   addRestore,
-  getRestoresByBackupId,
+  getRestoreByBackupId,
   updateRestore,
 } = require('./resources/backup/resolvers');
 
@@ -181,7 +181,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     sshKeys: getUserSshKeys,
   },
   Backup: {
-    restores: getRestoresByBackupId,
+    restore: getRestoreByBackupId,
   },
   Query: {
     userBySshKey: getUserBySshKey,

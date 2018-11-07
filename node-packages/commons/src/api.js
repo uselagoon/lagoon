@@ -7,6 +7,7 @@ import type {
   ProjectPatch,
   DeploymentPatch,
   TaskPatch,
+  RestorePatch,
 } from './types';
 
 const { Lokka } = require('lokka');
@@ -186,6 +187,31 @@ const addBackup = (
       backupId,
       created,
     },
+  );
+
+const restoreFragment = graphqlapi.createFragment(`
+  fragment on Restore {
+    id
+    status
+    created
+    restoreLocation
+    backupId
+  }
+  `);
+
+const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($backupId: Int!, $patch: UpdateRestorePatchInput!) {
+    updateRestore(input: {
+      backupId: $backupId
+      patch: $patch
+    }) {
+      ...${restoreFragment}
+    }
+  }
+`,
+    { id, patch },
   );
 
 const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
@@ -879,6 +905,7 @@ module.exports = {
   getUserBySshKey,
   addUser,
   addBackup,
+  updateRestore,
   updateUser,
   deleteUser,
   addUserToCustomer,

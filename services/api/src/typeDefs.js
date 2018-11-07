@@ -359,12 +359,12 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
-    restores: [Restore]
+    restore: Restore
   }
 
   type Restore {
     id: Int
-    backup: Int
+    backupId: String
     status: String
     restoreLocation: String
     created: String
@@ -513,18 +513,17 @@ const typeDefs = gql`
     restoreLocation: String
     created: String
     execute: Boolean
-    backup: Int!
+    backupId: String!
   }
 
   input UpdateRestoreInput {
-    id: Int!
+    backupId: String!
     patch: UpdateRestorePatchInput!
   }
 
   input UpdateRestorePatchInput {
     status: RestoreStatusType
     created: String
-    backup: Int
     restoreLocation: String
   }
 

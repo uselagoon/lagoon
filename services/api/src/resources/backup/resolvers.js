@@ -78,7 +78,7 @@ const addRestore = async (
   root,
   {
     input: {
-      id, backup, status: unformattedStatus, restoreLocation, created, execute,
+      id, backupId, status: unformattedStatus, restoreLocation, created, execute,
     },
   },
   {
@@ -94,7 +94,7 @@ const addRestore = async (
     sqlClient,
     Sql.insertRestore({
       id,
-      backup,
+      backupId,
       status,
       restoreLocation,
       created,
@@ -108,7 +108,7 @@ const addRestore = async (
     return restoreData;
   }
 
-  rows = await query(sqlClient, Sql.selectBackup(backup));
+  rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
   rows = await query(sqlClient, environmentSql.selectEnvironmentById(backupData.environment));
@@ -132,7 +132,7 @@ const addRestore = async (
       '',
       '',
       'api:addRestore',
-      { restoreId: restoreData.id, backupId: backupData.id },
+      { restoreId: restoreData.id, backupId },
       `Restore not initiated, reason: ${error}`,
     );
   }
@@ -144,12 +144,11 @@ const updateRestore = async (
   root,
   {
     input: {
-      id,
+      backupId,
       patch,
       patch: {
         status: unformattedStatus,
         created,
-        backup,
         restoreLocation,
       },
     },
@@ -165,7 +164,7 @@ const updateRestore = async (
 
   if (role !== 'admin') {
     // Check access to modify restore as it currently stands
-    const rowsCurrent = await query(sqlClient, Sql.selectPermsForRestore(id));
+    const rowsCurrent = await query(sqlClient, Sql.selectPermsForRestore(backupId));
 
     if (
       !R.contains(R.path(['0', 'pid'], rowsCurrent), projects) &&
@@ -177,7 +176,7 @@ const updateRestore = async (
     // Check access to modify restor as it will be updated
     const rowsNew = await query(
       sqlClient,
-      Sql.selectPermsForBackup(backup),
+      Sql.selectPermsForBackup(backupId),
     );
 
     if (
@@ -195,30 +194,29 @@ const updateRestore = async (
   await query(
     sqlClient,
     Sql.updateRestore({
-      id,
+      backupId,
       patch: {
         status,
         created,
-        backup,
         restoreLocation,
       },
     }),
   );
 
-  const rows = await query(sqlClient, Sql.selectRestore(id));
+  const rows = await query(sqlClient, Sql.selectRestoreByBackupId(backupId));
 
   return R.prop(0, rows);
 };
 
 // Data protected by environment auth
-const getRestoresByBackupId = async (
-  { id: backupId },
+const getRestoreByBackupId = async (
+  { backupId },
 ) => {
   const rows = await query(
     sqlClient,
-    Sql.selectRestoresByBackupId(backupId),
+    Sql.selectRestoreByBackupId(backupId),
   );
-  return rows;
+  return R.prop(0, rows);
 };
 
 const Resolvers /* : ResolversObj */ = {
@@ -226,7 +224,7 @@ const Resolvers /* : ResolversObj */ = {
   getBackupsByEnvironmentId,
   deleteAllBackups,
   addRestore,
-  getRestoresByBackupId,
+  getRestoreByBackupId,
   updateRestore,
 };
 
