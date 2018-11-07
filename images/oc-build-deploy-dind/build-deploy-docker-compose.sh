@@ -288,41 +288,79 @@ TEMPLATE_PARAMETERS=()
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
-  ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER)
+if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
+  while [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+    ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER)
 
-  ROUTE_DOMAIN_COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
-    # Routes can either be a key (when the have additional settings) or just a value
-    if cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
-      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
-      # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
-      ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-      ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-      ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
-      ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
-    else
-      # Only a value given, assuming some defaults
-      ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
-      ROUTE_TLS_ACME=true
-      ROUTE_INSECURE=Redirect
-      ROUTE_HSTS=null
-    fi
+    ROUTE_DOMAIN_COUNTER=0
+    while [ -n "$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+      # Routes can either be a key (when the have additional settings) or just a value
+      if [ cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null ]; then
+        ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER $ROUTE_DOMAIN)
+        # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+        ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+        ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+        ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+      else
+        # Only a value given, assuming some defaults
+        ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+        ROUTE_TLS_ACME=true
+        ROUTE_INSECURE=Redirect
+        ROUTE_HSTS=null
+      fi
 
-    # The very first found route is set as MAIN_CUSTOM_ROUTE
-    if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-      MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
-    fi
+      # The very first found route is set as MAIN_CUSTOM_ROUTE
+      if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+        MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+      fi
 
-    ROUTE_SERVICE=$ROUTES_SERVICE
+      ROUTE_SERVICE=$ROUTES_SERVICE
 
-    .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+      .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
 
-    let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+      let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+    done
+
+    let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
   done
+else
+  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+    ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER)
 
-  let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
-done
+    ROUTE_DOMAIN_COUNTER=0
+    while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+      # Routes can either be a key (when the have additional settings) or just a value
+      if [ cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null ]; then
+        ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+        # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+        ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+        ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+        ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+      else
+        # Only a value given, assuming some defaults
+        ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+        ROUTE_TLS_ACME=true
+        ROUTE_INSECURE=Redirect
+        ROUTE_HSTS=null
+      fi
+
+      # The very first found route is set as MAIN_CUSTOM_ROUTE
+      if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+        MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+      fi
+
+      ROUTE_SERVICE=$ROUTES_SERVICE
+
+      .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+      let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+    done
+
+    let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
+  done
+fi
 
 if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
