@@ -32,5 +32,3 @@ if [ -n "$(ls /var/solr)" ]; then
 
   done
 fi
-
-exec solr-foreground
