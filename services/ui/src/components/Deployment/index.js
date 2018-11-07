@@ -2,39 +2,44 @@ import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import LogViewer from '../LogViewer';
 import { bp, color } from '../../variables';
 import giturlparse from 'git-url-parse';
 
-export default ({ deployment }) => (
+const Deployment = ({ deployment }) => (
   <div className="content">
-    <div className='details'>
+    <div className="details">
       <h3>{deployment.name}</h3>
-      <div className='field-wrapper created'>
+      <div className="field-wrapper created">
         <div>
           <label>Created</label>
-          <div className='field'>{moment.utc(deployment.started).local().format('DD MMM YYYY, HH:mm:ss')}</div>
+          <div className="field">
+            {moment
+              .utc(deployment.created)
+              .local()
+              .format('DD MMM YYYY, HH:mm:ss')}
+          </div>
         </div>
       </div>
       <div className={`field-wrapper status ${deployment.status}`}>
         <div>
           <label>Status</label>
-          <div className='field'>{deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}</div>
-        </div>
-      </div>
-      {deployment.completed && deployment.started &&
-        <div className='field-wrapper duration'>
-          <div>
-            <label>Duration</label>
-            <div className='field'>{moment.duration(moment(deployment.completed) - moment(deployment.started)).format('HH[hr] mm[m] ss[sec]')}</div>
+          <div className="field">
+            {deployment.status.charAt(0).toUpperCase() +
+              deployment.status.slice(1)}
           </div>
         </div>
-      }
-    </div>
-    <div className='logs'>
-      <div className='log-viewer'>
-        Placeholder logs data
+      </div>
+      <div className="field-wrapper duration">
+        <div>
+          <label>Duration</label>
+          <div className="field">
+            {deployment.duration}
+          </div>
+        </div>
       </div>
     </div>
+    <LogViewer logs={deployment.buildLog} />
     <style jsx>{`
       .content {
         width: 100%;
@@ -45,7 +50,7 @@ export default ({ deployment }) => (
         .log-viewer {
           background-color: #222222;
           color: #d6d6d6;
-          font-family: "Monaco", monospace;
+          font-family: 'Monaco', monospace;
           font-size: 12px;
           font-weight: 400;
           height: 600px;
@@ -62,7 +67,7 @@ export default ({ deployment }) => (
         @media ${bp.xs_smallUp} {
           display: flex;
           flex-wrap: wrap;
-          min-width:100%;
+          min-width: 100%;
           padding-left: calc(((100vw / 16) * 1.5) + 28px);
           position: relative;
           width: 100%;
@@ -173,6 +178,8 @@ export default ({ deployment }) => (
           }
         }
       }
-  `}</style>
+    `}</style>
   </div>
 );
+
+export default Deployment;

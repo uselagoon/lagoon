@@ -194,6 +194,8 @@ const Backups = withRouter((props) => {
                         }
                         &.backupid {
                           word-break: break-word;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
                           @media ${bp.wideUp} {
                             width: 45%;
                           }

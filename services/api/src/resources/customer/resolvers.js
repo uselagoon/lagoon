@@ -51,6 +51,7 @@ const getCustomerByProjectId = async (
   { id: pid },
   args,
   {
+    credentials,
     credentials: {
       role,
       permissions: { customers, projects },
@@ -75,7 +76,10 @@ const getCustomerByProjectId = async (
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep({ pid }));
-  return rows ? rows[0] : null;
+
+  const filtered = rows ? Helpers.filterRestrictedData(credentials, rows) : [null];
+
+  return filtered[0];
 };
 
 const deleteCustomer = async (root, { input }, { credentials: { role } }) => {
@@ -96,6 +100,7 @@ const getAllCustomers = async (
   root,
   args,
   {
+    credentials,
     credentials: {
       role,
       permissions: { customers },
@@ -108,7 +113,7 @@ const getAllCustomers = async (
   ]);
   const prep = prepare(sqlClient, `SELECT * FROM customer ${where}`);
   const rows = await query(sqlClient, prep(args));
-  return rows;
+  return Helpers.filterRestrictedData(credentials, rows);
 };
 
 const updateCustomer = async (
@@ -148,6 +153,7 @@ const getCustomerByName = async (
   root,
   args,
   {
+    credentials,
     credentials: {
       role,
       permissions: { customers },
@@ -161,7 +167,10 @@ const getCustomerByName = async (
       args.name,
     ),
   );
-  return rows ? rows[0] : null;
+
+  const filtered = rows ? Helpers.filterRestrictedData(credentials, rows) : [null];
+
+  return filtered[0];
 };
 
 const resyncCustomersWithSearchguard = async (root, args, { credentials: { role } }) => {

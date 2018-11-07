@@ -489,6 +489,26 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_active_systems_task_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'active_systems_task'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `active_systems_task` varchar(300);
+      UPDATE project
+      SET active_systems_task = 'lagoon_openshiftJob';
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -514,6 +534,7 @@ CALL drop_legacy_pid_skid_view();
 CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();
 CALL drop_legacy_project_ssh_key_junction_table();
+CALL add_active_systems_task_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

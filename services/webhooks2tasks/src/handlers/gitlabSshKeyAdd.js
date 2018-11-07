@@ -11,11 +11,12 @@ async function gitlabSshKeyAdd(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { id, key, username } = body;
+    const { id } = body;
     const sshKey = await getSshKey(id);
     const {
       title: name,
-      user: { id: userId }
+      key,
+      user: { id: userId, email: user_email },
     } = sshKey;
 
     const meta = {
@@ -52,7 +53,7 @@ async function gitlabSshKeyAdd(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Added key to user ${username}`
+      `Added key to user ${user_email}`
     );
 
     return;

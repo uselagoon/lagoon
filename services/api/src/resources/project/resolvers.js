@@ -1,6 +1,7 @@
 // @flow
 
 const R = require('ramda');
+const validator = require('validator');
 const keycloakClient = require('../../clients/keycloakClient');
 const searchguardClient = require('../../clients/searchguardClient');
 const sqlClient = require('../../clients/sqlClient');
@@ -158,6 +159,10 @@ const addProject = async (
     throw new Error('Project creation unauthorized.');
   }
 
+  if (validator.matches(input.name, /[^0-9a-z-]/)) {
+    throw new Error('Only lowercase characters, numbers and dashes allowed for name!');
+  }
+
   const prep = prepare(
     sqlClient,
     `CALL CreateProject(
@@ -185,6 +190,11 @@ const addProject = async (
     ? ':active_systems_remove'
     : '"lagoon_openshiftRemove"'
 },
+        ${
+  input.activeSystemsTask
+    ? ':active_systems_task'
+    : '"lagoon_openshiftJob"'
+},
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
@@ -204,6 +214,8 @@ const addProject = async (
 
   await KeycloakOperations.addGroup(project);
   await SearchguardOperations.addProject(project);
+
+  await Helpers.addProjectUsersToKeycloakGroup(project);
 
   return project;
 };
@@ -256,6 +268,7 @@ const updateProject = async (
         subfolder,
         activeSystemsDeploy,
         activeSystemsRemove,
+        activeSystemsTask,
         branches,
         productionEnvironment,
         autoIdle,
@@ -280,6 +293,12 @@ const updateProject = async (
 
   if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  if (typeof name === 'string') {
+    if (validator.matches(name, /[^0-9a-z-]/)) {
+      throw new Error('Only lowercase characters, numbers and dashes allowed for name!');
+    }
   }
 
   const originalProject = await Helpers.getProjectById(id);
@@ -320,6 +339,7 @@ const updateProject = async (
         subfolder,
         activeSystemsDeploy,
         activeSystemsRemove,
+        activeSystemsTask,
         branches,
         productionEnvironment,
         autoIdle,

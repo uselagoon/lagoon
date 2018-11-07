@@ -128,6 +128,37 @@ const getEnvironmentByDeploymentId = async (
   return rows ? rows[0] : null;
 };
 
+const getEnvironmentByTaskId = async (
+  { id: task_id },
+  args,
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        e.*
+      FROM task t
+      JOIN environment e on t.environment = e.id
+      JOIN project p ON e.project = p.id
+      WHERE t.id = :task_id
+      ${ifNotAdmin(
+    role,
+    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
+  )}
+      LIMIT 1
+    `,
+  );
+
+  const rows = await query(sqlClient, prep({ task_id }));
+
+  return rows ? rows[0] : null;
+};
+
 const getEnvironmentStorageByEnvironmentId = async (
   { id: eid },
   args,
@@ -307,12 +338,22 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   } catch (e) {
     if (
       e.body.error.type &&
-      e.body.error.type === 'index_not_found_exception'
+      (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')
     ) {
       return { total: 0 };
     }
     throw e;
   }
+};
+
+const getEnvironmentServicesByEnvironmentId = async (
+  { id: eid },
+  args,
+  { credentials: { role } },
+) => {
+  const rows = await query(sqlClient, Sql.selectServicesByEnvironmentId(eid));
+
+  return rows;
 };
 
 const getEnvironmentByOpenshiftProjectName = async (
@@ -511,6 +552,34 @@ const deleteAllEnvironments = async (root, args, { credentials: { role } }) => {
   return 'success';
 };
 
+const setEnvironmentServices = async (
+  root,
+  { input: { environment, services } },
+  { credentials: { role, permissions: { customers, projects } } },
+) => {
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      Sql.selectPermsForEnvironment(environment),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  await query(sqlClient, Sql.deleteServices(environment));
+
+  for (const service of services) {
+    await query(sqlClient, Sql.insertService(environment, service));
+  }
+
+  return query(sqlClient, Sql.selectServicesByEnvironmentId(environment));
+};
+
 const Resolvers /* : ResolversObj */ = {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
@@ -521,6 +590,9 @@ const Resolvers /* : ResolversObj */ = {
   getEnvironmentStorageMonthByEnvironmentId,
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
+  getEnvironmentByTaskId,
+  getEnvironmentServicesByEnvironmentId,
+  setEnvironmentServices,
   deleteEnvironment,
   getEnvironmentsByProjectId,
   updateEnvironment,
