@@ -6,7 +6,7 @@ set -ex
 # new volume looks like this
 # $corename/-files-
 
-for datadir in `ls -d /var/solr/*` ; do
+for datadir in $(ls -d /var/solr/*) ; do
   corename=$(basename $datadir)
   if [ -d ${datadir}/data ]; then
     echo "${datadir}/data is in old format, moving to ${datadir}."
