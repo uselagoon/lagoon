@@ -37,6 +37,46 @@ const Sql /* : SqlObj */ = {
     knex('environment_backup')
       .truncate()
       .toString(),
+  selectRestore: (id /* : number */) =>
+    knex('backup_restore')
+      .where('id', '=', id)
+      .toString(),
+  selectRestoresByBackupId: (id /* : number */) =>
+    knex('backup_restore')
+      .where('backup', id)
+      .toString(),
+  insertRestore: ({
+    id, backup, status, restoreLocation, created,
+  } /* : {id: number, backup: number, status: string, restoreLocation: string, created: string} */) =>
+    knex('backup_restore')
+      .insert({
+        id,
+        backup,
+        status,
+        restoreLocation,
+        created,
+      })
+      .toString(),
+  updateRestore: ({ id, patch } /* : {id: number, patch: Object} */) =>
+    knex('backup_restore')
+      .where('id', id)
+      .update(patch)
+      .toString(),
+  selectPermsForRestore: (id /* : number */) =>
+    knex('backup_restore')
+      .select({ pid: 'project.id', cid: 'project.customer' })
+      .join('environment_backup', 'backup_restore.backup', '=', 'environment_backup.id')
+      .join('environment', 'environment_backup.environment', '=', 'environment.id')
+      .join('project', 'environment.project', '=', 'project.id')
+      .where('backup_restore.id', id)
+      .toString(),
+  selectPermsForBackup: (id /* : number */) =>
+    knex('environment_backup')
+      .select({ pid: 'project.id', cid: 'project.customer' })
+      .join('environment', 'environment_backup.environment', '=', 'environment.id')
+      .join('project', 'environment.project', '=', 'project.id')
+      .where('environment_backup.id', id)
+      .toString(),
 };
 
 module.exports = Sql;

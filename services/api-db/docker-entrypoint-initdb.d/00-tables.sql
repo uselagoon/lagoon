@@ -120,6 +120,14 @@ CREATE TABLE IF NOT EXISTS environment_backup (
   UNIQUE KEY `backup_id` (`backup_id`)
 );
 
+CREATE TABLE IF NOT EXISTS backup_restore (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  backup                   int NOT NULL REFERENCES environment_backup (id),
+  status                   ENUM('pending', 'successful', 'failed') DEFAULT 'pending',
+  restore_location         varchar(300),
+  created                  timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS env_vars (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(300) NOT NULL,

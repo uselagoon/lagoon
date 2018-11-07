@@ -53,6 +53,12 @@ const typeDefs = gql`
     FAILED
   }
 
+  enum RestoreStatusType {
+    PENDING
+    SUCCESSFUL
+    FAILED
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -353,6 +359,15 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
+    restores: [Restore]
+  }
+
+  type Restore {
+    id: Int
+    backup: Int
+    status: String
+    restoreLocation: String
+    created: String
   }
 
   type Deployment {
@@ -492,6 +507,26 @@ const typeDefs = gql`
     created: String!
   }
 
+  input AddRestoreInput {
+    id: Int
+    status: RestoreStatusType
+    restoreLocation: String
+    created: String
+    execute: Boolean
+    backup: Int!
+  }
+
+  input UpdateRestoreInput {
+    id: Int!
+    patch: UpdateRestorePatchInput!
+  }
+
+  input UpdateRestorePatchInput {
+    status: RestoreStatusType
+    created: String
+    backup: Int
+    restoreLocation: String
+  }
 
   input AddCustomerInput {
     id: Int
@@ -851,6 +886,8 @@ const typeDefs = gql`
     updateDeployment(input: UpdateDeploymentInput): Deployment
     addBackup(input: AddBackupInput!): Backup
     deleteAllBackups: String
+    addRestore(input: AddRestoreInput!): Restore
+    updateRestore(input: UpdateRestoreInput!): Restore
     createAllProjectsInKeycloak: String
     createAllProjectsInSearchguard: String
     resyncCustomersWithSearchguard: String
