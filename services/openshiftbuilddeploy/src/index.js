@@ -3,8 +3,9 @@
 const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject, addOrUpdateEnvironment } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
@@ -45,6 +46,7 @@ const messageConsumer = async msg => {
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
     var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
+    var openshiftName = projectOpenShift.openshift.name
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.customer.privateKey
     var gitUrl = projectOpenShift.gitUrl
@@ -82,7 +84,7 @@ const messageConsumer = async msg => {
 
 
   // Generates a buildconfig object
-  const buildconfig = (resourceVersion, secret, type) => {
+  const buildconfig = (resourceVersion, secret, type, environment = {}) => {
 
     let buildFromImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
@@ -173,6 +175,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "ENVIRONMENT_TYPE",
                           "value": environmentType
+                      },
+                      {
+                          "name": "OPENSHIFT_NAME",
+                          "value": openshiftName
                       }
                   ],
                   "forcePull": true,
@@ -195,6 +201,12 @@ const messageConsumer = async msg => {
     if (type == "promote") {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PROMOTION_SOURCE_ENVIRONMENT","value": promoteSourceEnvironment})
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PROMOTION_SOURCE_OPENSHIFT_PROJECT","value": openshiftPromoteSourceProject})
+    }
+    if (!R.isEmpty(projectOpenShift.envVariables)) {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_PROJECT_VARIABLES", "value": JSON.stringify(projectOpenShift.envVariables)})
+    }
+    if (!R.isEmpty(environment.envVariables)) {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_ENVIRONMENT_VARIABLES", "value": JSON.stringify(environment.envVariables)})
     }
     return buildconfig
   }
@@ -256,8 +268,9 @@ const messageConsumer = async msg => {
   }
 
   // Update GraphQL API with information about this environment
+  let environment;
   try {
-    await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, graphqlEnvironmentType, openshiftProject)
+    environment = await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, graphqlEnvironmentType, openshiftProject)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(err)
@@ -377,14 +390,14 @@ const messageConsumer = async msg => {
     logger.info(`${openshiftProject}: Buildconfig lagoon already exists, updating`)
     const buildConfigsPut = Promise.promisify(openshift.ns(openshiftProject).buildconfigs('lagoon').put, { context: openshift.ns(openshiftProject).buildconfigs('lagoon') })
     // The OpenShift API needs the current resource Version so it knows that we're updating data of the last known version. This is filled within currentBuildConfig.metadata.resourceVersion
-    await buildConfigsPut({ body: buildconfig(currentBuildConfig.metadata.resourceVersion, serviceaccountTokenSecret, type) })
+    await buildConfigsPut({ body: buildconfig(currentBuildConfig.metadata.resourceVersion, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment) })
   } catch (err) {
     // Same as for projects, if BuildConfig does not exist, it throws an error and we check the error is an 404 and with that we know it does not exist.
     if (err.code == 404) {
       logger.info(`${openshiftProject}: Buildconfig lagoon does not exist, creating`)
       const buildConfigsPost = Promise.promisify(openshift.ns(openshiftProject).buildconfigs.post, { context: openshift.ns(openshiftProject).buildconfigs })
       // This is a complete new BuildConfig, so the resource version is "0" (it will be updated automatically by OpenShift)
-      await buildConfigsPost({ body: buildconfig("0", serviceaccountTokenSecret, type) })
+      await buildConfigsPost({ body: buildconfig("0", serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment) })
     } else {
       logger.error(err)
       throw new Error
@@ -395,6 +408,14 @@ const messageConsumer = async msg => {
   const buildConfigsInstantiatePost = Promise.promisify(openshift.ns(openshiftProject).buildconfigs('lagoon/instantiate').post, { context: openshift.ns(openshiftProject).buildconfigs('lagoon/instantiate') })
   const build = await buildConfigsInstantiatePost({body: {"kind":"BuildRequest","apiVersion":"v1","metadata":{"name":"lagoon"}}})
   const buildName = build.metadata.name
+
+  try {
+    const convertDateFormat = R.init;
+    const apiEnvironment = await getEnvironmentByName(branchName, projectId);
+    await addDeployment(buildName, build.status.phase.toUpperCase(), convertDateFormat(build.metadata.creationTimestamp), apiEnvironment.environmentByName.id, build.metadata.uid);
+  } catch (error) {
+    logger.error(`Could not save deployment for project ${projectId}, build ${buildName}. Message: ${error}`);
+  }
 
   logger.verbose(`${openshiftProject}: Running build: ${buildName}`)
 

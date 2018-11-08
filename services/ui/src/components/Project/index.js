@@ -3,33 +3,41 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import Environment from '../EnvironmentTeaser';
 import { bp, color, fontSize } from '../../variables';
+import giturlparse from 'git-url-parse';
 
 class Project extends React.Component {
   constructor(props) {
     super(props);
 
+    const gitUrlParsed = giturlparse(this.props.project.gitUrl);
+    const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
+
     this.state = {
       project: [],
       gitUrl: this.props.project.gitUrl,
       copied: false,
+      gitLinkWithScheme: `https://${gitLink}`,
+      gitLink: gitLink,
     };
   }
 
   render() {
+    const usersList = this.props.project.users.concat(this.props.project.customer.users);
+
     return (
       <div className='content-wrapper'>
         <div className='details'>
           <div className='field-wrapper created'>
             <div>
               <label>Created</label>
-              <div className='field'>{moment(this.props.project.created).format('MMMM d, Y')}
+              <div className='field'>{moment.utc(this.props.project.created).local().format('DD MMM YYYY, HH:mm:ss')}
               </div>
             </div>
           </div>
           <div className='field-wrapper origin'>
             <div>
               <label>Origin</label>
-              <div className='field'><a className='hover-state' href='#'>gitlab.com/amazeeio/lagoon/high-cottongitlab.com/amazeeio/lagoon/high-cotton</a></div>
+              <div className='field'><a className='hover-state' target="_blank" href={this.state.gitLinkWithScheme}>{this.state.gitLink}</a></div>
             </div>
           </div>
           <div className='field-wrapper giturl'>
@@ -60,6 +68,19 @@ class Project extends React.Component {
             <div>
               <label>Pull requests enabled</label>
               <div className='field'>{this.props.project.pullrequests}</div>
+            </div>
+          </div>
+          <div className='field-wrapper members'>
+            <div>
+              <label>Members</label>
+              <div className='field'>
+                {usersList.map(user =>
+                  <div className='member'>
+                    {user.firstName ? <div>{user.firstName} {user.lastName}</div> : ''}
+                    <div className="email">{user.email}</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -171,8 +192,9 @@ class Project extends React.Component {
                     margin-top: 6px;
                     max-width: 100%;
                     overflow: hidden;
-                    padding: 6px 48px 6px 15px;
+                    padding: 6px 0 6px 15px;
                     position: relative;
+                    text-overflow: ellipsis;
                     @media ${bp.xs_smallUp} {
                       margin-left: -13px;
                       max-width: calc(100% + 14px);
@@ -183,7 +205,7 @@ class Project extends React.Component {
                     background-size: 16px;
                     border-left: 1px solid ${color.lightestGrey};
                     bottom: 0;
-                    height: 37px;
+                    height: 33px;
                     position: absolute;
                     right: 0;
                     width: 37px;
@@ -213,6 +235,23 @@ class Project extends React.Component {
                 &.prs {
                   &::before {
                     background-image: url('/static/images/pull-request.svg');
+                  }
+                }
+                &.members {
+                  &::before {
+                    background-image: url('/static/images/members.svg');
+                  }
+                  & > div {
+                    width: 100%;
+                  }
+                  .field {
+                    .member {
+                      margin-bottom: 5px;
+                      .email {
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                      }
+                    }
                   }
                 }
               }

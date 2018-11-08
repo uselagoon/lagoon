@@ -75,7 +75,7 @@ EOF
 
     if [ "$MARIADB_DATABASE" != "" ]; then
       echo "[i] Creating database: $MARIADB_DATABASE"
-      echo "CREATE DATABASE IF NOT EXISTS \`$MARIADB_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
+      echo "CREATE DATABASE IF NOT EXISTS \`$MARIADB_DATABASE\` ;" >> $tfile
       if [ "$MARIADB_USER" != "" ]; then
         echo "[i] Creating user: $MARIADB_USER with password $MARIADB_PASSWORD"
         echo "GRANT ALL ON \`$MARIADB_DATABASE\`.* to '$MARIADB_USER'@'%' IDENTIFIED BY '$MARIADB_PASSWORD';" >> $tfile

@@ -94,6 +94,16 @@ objects:
             initialDelaySeconds: 30
             timeoutSeconds: 1
           env:
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-username
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-password
+                  key: RABBITMQ_PASSWORD
             - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
@@ -104,6 +114,11 @@ objects:
                 secretKeyRef:
                   key: LOGSDB_ADMIN_PASSWORD
                   name: logs-db-admin-password
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-password
+                  key: KEYCLOAK_ADMIN_PASSWORD
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
             - name: CRONJOBS

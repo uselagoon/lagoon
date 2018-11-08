@@ -13,9 +13,11 @@
   "dependencies": {
     "apollo-boost": "^0.1.14",
     "dotenv-extended": "^2.2.0",
+    "git-url-parse": "^10.0.1",
     "graphql": "^0.13.2",
     "isomorphic-unfetch": "^2.1.1",
     "moment": "^2.22.2",
+    "moment-duration-format": "^2.2.2",
     "next": "^6.1.1",
     "postcss-nested": "^3.0.0",
     "react": "^16.5.0",

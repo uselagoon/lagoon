@@ -42,8 +42,16 @@ class StartPage extends React.Component {
           <h2>Projects</h2>
           <Query query={query}>
             {({ loading, error, data }) => {
-              if (loading) return <p>Loading...</p>;
-              if (error) return <p>Error :(</p>;
+              if (loading) return (
+                <div className="content">
+                  <p>Loading...</p>
+                </div>
+              );
+              if (error) return (
+                <div className="content">
+                  <p>{error.toString()}</p>
+                </div>
+              );
               return (
                 <div className="content">
                   <div className="header">
@@ -82,8 +90,9 @@ class StartPage extends React.Component {
                               />
                             </h4>
                             <div className="route">
-                              {project.environments.map(environment => (
+                              {project.environments.map((environment, index) => (
                                 <Highlighter
+                                  key={index}
                                   searchWords={[this.state.searchInput]}
                                   autoEscape={true}
                                   textToHighlight={environment.route ? environment.route.replace(/^https?\:\/\//i, "") : ''}

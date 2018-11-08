@@ -18,6 +18,18 @@ const query = gql`
       created
       gitUrl
       productionEnvironment
+      users {
+        email
+        firstName
+        lastName
+      }
+      customer {
+        users {
+          email
+          firstName
+          lastName
+        }
+      }
       environments {
         id
         name
