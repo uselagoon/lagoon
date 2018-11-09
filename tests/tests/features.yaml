@@ -37,8 +37,8 @@
     project1: ci-multiproject1
     project2: ci-multiproject2
     branch: multiproject
-    check_url1: "http://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-    check_url2: "http://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url1: "https://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url2: "https://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     custom_domain1: "multiproject1.com"
     custom_domain2: "multiproject2.com"
 
