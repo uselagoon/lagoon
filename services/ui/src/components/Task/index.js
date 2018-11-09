@@ -119,17 +119,22 @@ const Task = ({ task }) => (
             min-width: 25%;
             width: 25%;
           }
-          &.created,
-          &.started {
+          &.created {
             &::before {
               background-image: url('/static/images/created.svg');
               background-size: 17px 16px;
             }
           }
-          &.duration {
+          &.command {
             &::before {
-              background-image: url('/static/images/duration.svg');
-              background-size: 17px;
+              background-image: url('/static/images/command.svg');
+              background-size: 16px;
+            }
+          }
+          &.service {
+            &::before {
+              background-image: url('/static/images/service.svg');
+              background-size: 16px;
             }
           }
           &.status {
