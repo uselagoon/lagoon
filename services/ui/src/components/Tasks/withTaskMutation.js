@@ -4,12 +4,16 @@ import { graphql } from 'react-apollo';
 const addTask = gql`
   mutation addTask($input: TaskInput!) {
     addTask(input: $input) {
-      name,
-      environment,
-      service,
-      command,
-      created,
-      status,
+      id
+      name
+      status
+      created
+      started
+      completed
+      remoteId
+      command
+      service
+      logs
     }
   }
 `;

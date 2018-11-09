@@ -46,7 +46,7 @@ const Task = ({ task }) => (
         </div>
       </div>
     </div>
-    <LogViewer logs={task.log} />
+    <LogViewer logs={task.logs} />
     <style jsx>{`
       .content {
         width: 100%;

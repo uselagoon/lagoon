@@ -14,7 +14,7 @@ const Tasks = ({
   tasks,
   onSubmit,
   formValues,
-  setFormValue,
+  setFormValues,
 }) => (
   <div className="content">
     <div className="taskFormWrapper">
@@ -24,22 +24,15 @@ const Tasks = ({
             aria-labelledby="task"
             placeholder=""
             name="selectTask"
-            value={formValues.command}
+            value={formValues}
             onChange={e => {
-              setFormValue({
-                formValues: {
-                  name: e.label,
-                  command: e.value,
-                  environment: environmentId,
-                  service: 'cli',
-                  created: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
-                  status: 'ACTIVE',
-                }
-              });
+              setFormValues(e);
             }}
+            getOptionLabel={option => option.name}
+            getOptionValue={option => option.command}
             options={[
-              { value: 'drush status', label: 'Site Status' },
-              { value: 'drush archive-dump', label: 'Drupal Archive' }
+              { name: 'Site Status', command: 'drush status', service: 'cli'  },
+              { name: 'Drupal Archive', command: 'drush archive-dump', service: 'cli' }
             ]}
             required
           />

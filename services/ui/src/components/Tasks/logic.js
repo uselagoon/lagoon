@@ -2,20 +2,22 @@ import React from 'react';
 import withHandlers from 'recompose/withHandlers';
 import withState from 'recompose/withState';
 import compose from 'recompose/compose';
+import moment from 'moment';
 
-const withFormState = withState('formValues', 'setFormValue', '');
+const withFormState = withState('formValues', 'setFormValues', {});
 const withSubmitForm = withHandlers({
   onSubmit: ({
+    environmentId,
     formValues,
     addTask,
   }) => e => {
     addTask(
       formValues.name,
-      formValues.environment,
+      environmentId,
       formValues.service,
       formValues.command,
-      formValues.created,
-      formValues.status,
+      moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+      'ACTIVE',
     );
   },
 });
