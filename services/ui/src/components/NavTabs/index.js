@@ -14,7 +14,7 @@ export default ({activeTab, environment}) => (
         <a>Deployments</a>
       </Link>
     </li>
-    <li className={`backups ${activeTab == 'backups' ? 'active' : ''}`}>
+    {/* <li className={`backups ${activeTab == 'backups' ? 'active' : ''}`}>
       <Link href={{ pathname: '/backups', query: { name: environment } }}>
         <a>Backups</a>
       </Link>
@@ -23,7 +23,7 @@ export default ({activeTab, environment}) => (
       <Link href={{ pathname: '/tasks', query: { name: environment } }}>
         <a>Tasks</a>
       </Link>
-    </li>
+    </li>*/}
   <style jsx>{`
     .navigation {
       background: ${color.lightestGrey};
