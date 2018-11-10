@@ -19,6 +19,11 @@ export default ({activeTab, environment}) => (
         <a>Backups</a>
       </Link>
     </li>
+    <li className={`tasks ${activeTab == 'tasks' ? 'active' : ''}`}>
+      <Link href={{ pathname: '/tasks', query: { name: environment } }}>
+        <a>Tasks</a>
+      </Link>
+    </li>
   <style jsx>{`
     .navigation {
       background: ${color.lightestGrey};
@@ -97,6 +102,15 @@ export default ({activeTab, environment}) => (
           }
           &.active::before {
             background-image: url('/static/images/backups-active.svg');
+          }
+        }
+        &.tasks {
+          &::before {
+            background-image: url('/static/images/tasks.svg');
+            background-size: 16px;
+          }
+          &.active::before {
+            background-image: url('/static/images/tasks-active.svg');
           }
         }
       }
