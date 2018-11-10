@@ -120,9 +120,9 @@ const updateCustomer = async (
   root,
   { input },
   {
+    credentials,
     credentials: {
       role,
-      permissions: { customers },
     },
   },
 ) => {
@@ -139,7 +139,7 @@ const updateCustomer = async (
   await query(
     sqlClient,
     Sql.updateCustomer(
-      { credentials: { role, permissions: { customers } } },
+      credentials,
       input,
     ),
   );
@@ -152,18 +152,12 @@ const updateCustomer = async (
 const getCustomerByName = async (
   root,
   args,
-  {
-    credentials,
-    credentials: {
-      role,
-      permissions: { customers },
-    },
-  },
+  { credentials },
 ) => {
   const rows = await query(
     sqlClient,
     Sql.selectCustomerByName(
-      { credentials: { role, permissions: { customers } } },
+      credentials,
       args.name,
     ),
   );
