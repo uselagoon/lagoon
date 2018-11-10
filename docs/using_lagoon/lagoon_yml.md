@@ -201,6 +201,21 @@ environments:
       mariadb: statefulset
 ```
 
+## Polysite
+
+In Lagoon, the same git repo can be added to multiple projects, creating what is called a Polysite. This allows us to run the same codebase but allow for different, isolated, databases. In `.lagoon.yml` we currently only specifying custom routes for a polysite project. The key difference from a standard project is that the `enviornments` becomes the second-level element, and the project name the top level.
+
+Example:
+
+```
+example-project-name:
+  environments:
+    master:
+      routes:
+        - nginx:
+          - example.com
+```
+
 ## Specials
 
 #### `api`
