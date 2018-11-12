@@ -567,8 +567,8 @@ const typeDefs = gql`
   input TaskInput {
     id: Int
     name: String!
-    status: TaskStatusType!
-    created: String!
+    status: TaskStatusType
+    created: String
     started: String
     completed: String
     environment: Int!
