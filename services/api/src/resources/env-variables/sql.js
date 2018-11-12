@@ -11,7 +11,7 @@ import type {SqlObj} from '../';
 const Sql /* : SqlObj */ = {
   selectEnvVariable: (id /* : number */) =>
     knex('env_vars')
-      .select('id', 'name', 'value')
+      .select('id', 'name', 'value', 'scope')
       .where('id', '=', id)
       .toString(),
   insertEnvVariable: (
@@ -19,12 +19,14 @@ const Sql /* : SqlObj */ = {
       id,
       name,
       value,
+      scope,
       project,
       environment,
     } /* : {
     id: number,
     name: string,
     value: string,
+    scope: string,
     project: ?number,
     environment: ?number,
   } */,
@@ -34,6 +36,7 @@ const Sql /* : SqlObj */ = {
         id,
         name,
         value,
+        scope,
         project,
         environment,
       })

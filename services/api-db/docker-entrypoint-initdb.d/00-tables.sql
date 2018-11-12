@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS env_vars (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(300) NOT NULL,
   value       varchar(300) NOT NULL,
+  scope       ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
   environment int NULL REFERENCES environent (id),
   UNIQUE KEY `name_project` (`name`,`project`),
