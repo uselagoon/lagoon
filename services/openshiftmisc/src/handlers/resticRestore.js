@@ -8,6 +8,7 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   getOpenShiftInfoForProject,
 } = require('@lagoon/commons/src/api');
+const { BaaS } = require('@lagoon/commons/src/openshiftApi');
 
 
 async function resticRestore (data: Object) {
@@ -41,7 +42,7 @@ async function resticRestore (data: Object) {
 
   const restoreConfig = (name, backupId) => {
     let config = {
-      apiVersion: 'appuio.ch/v1alpha1',
+      apiVersion: 'backup.appuio.ch/v1alpha1',
       kind: 'Restore',
       metadata: {
         name
@@ -62,7 +63,7 @@ async function resticRestore (data: Object) {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const kubernetes = new OpenShiftClient.Core({
+  const baas = new BaaS({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -72,7 +73,7 @@ async function resticRestore (data: Object) {
 
   try {
     const restoreConfigPost = promisify(
-      kubernetes.ns(openshiftProject).restore.post
+      baas.ns(openshiftProject).restores.post
     );
     await restoreConfigPost({
       body: restoreConfig(restoreName, backup.backupId)
