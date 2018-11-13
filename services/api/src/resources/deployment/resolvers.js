@@ -68,7 +68,7 @@ const injectBuildLog = async deployment => {
 
 const getDeploymentsByEnvironmentId = async (
   { id: eid },
-  args,
+  { name },
   {
     credentials: {
       role,
@@ -93,7 +93,13 @@ const getDeploymentsByEnvironmentId = async (
 
   const rows = await query(sqlClient, prep({ eid }));
 
-  return rows.map(row => injectBuildLog(row));
+  return rows.filter(row => {
+    if (R.isNil(name) || R.isEmpty(name)) {
+      return true;
+    }
+
+    return row.name === name;
+  }).map(row => injectBuildLog(row));
 };
 
 const getDeploymentByRemoteId = async (
