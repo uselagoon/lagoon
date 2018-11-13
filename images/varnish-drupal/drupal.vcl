@@ -25,7 +25,6 @@ sub vcl_init {
       port = "${VARNISH_BACKEND_PORT:-8080}",
       first_byte_timeout = 90s,
       between_bytes_timeout = 90s,
-      whitelist = purge,
       ttl = 60s);
    }
 
