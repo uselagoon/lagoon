@@ -65,17 +65,12 @@ const PageDeployments = withRouter(props => {
                     projectName={environment.openshiftProjectName}
                   />
                 )}
-                {/* {props.router.query.build &&
-                  deployments
-                    .filter(
-                      deployment => deployment.name === props.router.query.build
-                    )
-                    .map(deployment => (
-                      <Deployment
-                        key={deployment.name}
-                        deployment={deployment}
-                      />
-                    ))} */}
+                {props.router.query.build && (
+                  <Deployment
+                    projectName={environment.openshiftProjectName}
+                    deploymentName={props.router.query.build}
+                  />
+                )}
               </div>
               <style jsx>{`
                 .content-wrapper {
