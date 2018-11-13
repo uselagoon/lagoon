@@ -34,7 +34,7 @@ const query = gql`
     }
   }
 `;
-const Backups = withRouter((props) => {
+const PageBackups = withRouter((props) => {
   return (
     <Page>
       <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
@@ -227,4 +227,6 @@ const Backups = withRouter((props) => {
   )
 });
 
-export default Backups;
+PageBackups.displayName = 'withRouter(PageBackups)';
+
+export default PageBackups;

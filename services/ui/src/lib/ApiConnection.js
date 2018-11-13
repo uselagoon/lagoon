@@ -11,7 +11,7 @@ import NotAuthenticated from '../components/NotAuthenticated';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-export default ({ children }) =>
+const ApiConnection = ({ children }) =>
   <AuthContext.Consumer>
     {auth => {
       if (!auth.authenticated) {
@@ -46,3 +46,5 @@ export default ({ children }) =>
       );
     }}
   </AuthContext.Consumer>;
+
+export default ApiConnection;

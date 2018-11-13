@@ -127,4 +127,6 @@ const PageDeployments = withRouter(props => {
   );
 });
 
+PageDeployments.displayName = 'withRouter(PageDeployments)';
+
 export default PageDeployments;
