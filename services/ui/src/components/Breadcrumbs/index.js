@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { bp, color, fontSize } from '../../variables';
 
-export default ({ breadcrumbs}) => (
+const Breadcrumbs = ({ breadcrumbs}) => (
   <div className='breadcrumbs-wrapper'>
     <div className='breadcrumbs'>
       {breadcrumbs.map(breadcrumb =>
@@ -66,3 +66,5 @@ export default ({ breadcrumbs}) => (
   `}</style>
   </div>
 );
+
+export default Breadcrumbs;

@@ -1,45 +1,106 @@
 import React from 'react';
+import * as R from 'ramda';
 import Link from 'next/link';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import LogViewer from '../LogViewer';
 import { bp, color } from '../../variables';
 import giturlparse from 'git-url-parse';
 
-const Deployment = ({ deployment }) => (
+const query = gql`
+  query getEnvironment($project: String!, $deployment: String!) {
+    environmentByOpenshiftProjectName(openshiftProjectName: $project) {
+      id
+      deployments(name: $deployment) {
+        id
+        name
+        status
+        created
+        started
+        completed
+        buildLog
+      }
+    }
+  }
+`;
+
+const getDuration = deployment => {
+  const deploymentStart = deployment.started || deployment.created;
+  const durationStart =
+    (deploymentStart && moment.utc(deploymentStart)) || moment.utc();
+  const durationEnd =
+    (deployment.completed && moment.utc(deployment.completed)) || moment.utc();
+  const duration = moment
+    .duration(durationEnd - durationStart)
+    .format('HH[hr] mm[m] ss[sec]');
+
+  return duration;
+};
+
+const Deployment = ({ projectName, deploymentName }) => (
   <div className="content">
-    <div className="details">
-      <h3>{deployment.name}</h3>
-      <div className="field-wrapper created">
-        <div>
-          <label>Created</label>
-          <div className="field">
-            {moment
-              .utc(deployment.created)
-              .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
-          </div>
-        </div>
-      </div>
-      <div className={`field-wrapper status ${deployment.status}`}>
-        <div>
-          <label>Status</label>
-          <div className="field">
-            {deployment.status.charAt(0).toUpperCase() +
-              deployment.status.slice(1)}
-          </div>
-        </div>
-      </div>
-      <div className="field-wrapper duration">
-        <div>
-          <label>Duration</label>
-          <div className="field">
-            {deployment.duration}
-          </div>
-        </div>
-      </div>
-    </div>
-    <LogViewer logs={deployment.buildLog} />
+    <Query
+      query={query}
+      variables={{ project: projectName, deployment: deploymentName }}
+    >
+      {({ loading, error, data }) => {
+        if (loading) {
+          return <div className="data-none">Loading...</div>;
+        }
+
+        if (error) {
+          return <div className="data-none">Error: {error.toString()}</div>;
+        }
+
+        const deployments = R.path(
+          ['environmentByOpenshiftProjectName', 'deployments'],
+          data
+        );
+
+        if (R.isEmpty(deployments)) {
+          return <div className="data-none">No data for {deploymentName}</div>;
+        }
+
+        const deployment = R.prop(0, deployments);
+
+        return (
+          <React.Fragment>
+            <div className="details">
+              <h3>{deployment.name}</h3>
+              <div className="field-wrapper created">
+                <div>
+                  <label>Created</label>
+                  <div className="field">
+                    {moment
+                      .utc(deployment.created)
+                      .local()
+                      .format('DD MMM YYYY, HH:mm:ss')}
+                  </div>
+                </div>
+              </div>
+              <div className={`field-wrapper status ${deployment.status}`}>
+                <div>
+                  <label>Status</label>
+                  <div className="field">
+                    {deployment.status.charAt(0).toUpperCase() +
+                      deployment.status.slice(1)}
+                  </div>
+                </div>
+              </div>
+              <div className="field-wrapper duration">
+                <div>
+                  <label>Duration</label>
+                  <div className="field">{getDuration(deployment)}</div>
+                </div>
+              </div>
+            </div>
+            <LogViewer logs={deployment.buildLog} />
+          </React.Fragment>
+        );
+      }}
+    </Query>
     <style jsx>{`
       .content {
         width: 100%;
@@ -60,6 +121,10 @@ const Deployment = ({ deployment }) => (
           white-space: pre;
           will-change: initial;
         }
+      }
+      .data-none {
+        padding: 104px calc(100vw / 16) 20px;
+        width: 100%;
       }
       .details {
         padding: 104px calc(100vw / 16) 20px;

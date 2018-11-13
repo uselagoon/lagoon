@@ -314,7 +314,7 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
-    deployments: [Deployment]
+    deployments(name: String): [Deployment]
     backups: [Backup]
     tasks: [Task]
     services: [EnvironmentService]

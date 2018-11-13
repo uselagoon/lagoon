@@ -129,4 +129,6 @@ const PageTasks = withRouter(props => {
   );
 });
 
+PageTasks.displayName = 'withRouter(PageTasks)';
+
 export default PageTasks;

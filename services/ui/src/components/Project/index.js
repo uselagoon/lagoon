@@ -75,7 +75,7 @@ class Project extends React.Component {
               <label>Members</label>
               <div className='field'>
                 {usersList.map(user =>
-                  <div className='member'>
+                  <div key={user.email} className='member'>
                     {user.firstName ? <div>{user.firstName} {user.lastName} ({user.email})</div> : <div className="email">{user.email}</div>}
                   </div>
                 )}
