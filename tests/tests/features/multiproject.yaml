@@ -40,6 +40,26 @@
     project: "{{ project2 }}"
     url: "{{ check_url2 }}"
 
+- name: "{{ testname }} - check if {{ project1 }} is deployed with accessing the custom domain and searching for the environment variable LAGOON_ROUTE"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url1 }}"
+    host: "{{ custom_domain1 }}"
+    expected_content: "LAGOON_ROUTE=https://{{ custom_domain1 }}"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
+- name: "{{ testname }} - check if {{ project2 }} is deployed with accessing the custom domain and searching for the environment variable LAGOON_ROUTE"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url2 }}"
+    host: "{{ custom_domain2 }}"
+    expected_content: "LAGOON_ROUTE=https://{{ custom_domain2 }}"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
 - name: "{{ testname }} - rest2tasks /remove POST on {{ project1 }}, which should remove all resources"
   hosts: localhost
   serial: 1

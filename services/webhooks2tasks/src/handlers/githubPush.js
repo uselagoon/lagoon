@@ -3,6 +3,7 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
+const R = require('ramda');
 
 import type { WebhookRequestData, deployData, ChannelWrapper, Project  } from '../types';
 
@@ -19,7 +20,7 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
     const branchName = body.ref.toLowerCase().replace('refs/heads/','')
     const sha = body.after
 
-    const skip_deploy = body.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
+    const skip_deploy = R.pathOr('',['head_commit','message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
 
     const meta = {
       branch: branchName,
