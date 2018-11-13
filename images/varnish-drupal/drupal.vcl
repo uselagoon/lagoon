@@ -1,14 +1,7 @@
 vcl 4.0;
 
 import std;
-
-# set backend default
-backend default {
-  .host = "${VARNISH_BACKEND_HOST:-nginx}";
-  .port = "${VARNISH_BACKEND_PORT:-8080}";
-  .first_byte_timeout = 35m;
-  .between_bytes_timeout = 10m;
-}
+import dynamic;
 
 # Allow purging from localhost
 # @TODO allow from openshift network
@@ -19,14 +12,23 @@ acl purge {
       "192.168.0.0"/16;
 }
 
+sub vcl_init {
+    new www_dir = dynamic.director(
+      port = "${VARNISH_BACKEND_PORT:-8080}",
+      first_byte_timeout = 90s,
+      between_bytes_timeout = 90s,
+      ttl = 60s);
+   }
+
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
 sub vcl_recv {
+
   if (req.url ~ "^/varnish_status$")  {
     return (synth(200,"OK"));
   }
   # set the backend, which should be used:
-  set req.backend_hint = default;
+  set req.backend_hint = www_dir.backend("${VARNISH_BACKEND_HOST:-nginx}");
 
   # Always set the forward ip.
    if (req.restarts == 0) {
