@@ -40,6 +40,18 @@ const Sql /* : SqlObj */ = {
       .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
       .toString();
   },
+  selectAllProjectSshKeys: (
+    { credentials: { role } } /* : {credentials: Cred} */,
+  ) => {
+    if (role !== 'admin') {
+      throw new Error('Unauthorized');
+    }
+    return knex('ssh_key AS sk')
+      .join('user_ssh_key AS usk', 'sk.id', '=', 'usk.skid')
+      .join('project_user AS pu', 'usk.usid', '=', 'pu.usid')
+      .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
+      .toString();
+  },
   insertSshKey: (
     {
       id,
