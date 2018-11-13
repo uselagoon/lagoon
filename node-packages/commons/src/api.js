@@ -214,6 +214,25 @@ const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =
     { id, patch },
   );
 
+const getAllEnvironmentBackups = (): Promise<Project[]> =>
+  graphqlapi.query(
+    `
+  {
+    allEnvironments {
+      id
+      name
+      openshiftProjectName
+      project {
+        name
+      }
+      backups {
+        ...${backupFragment}
+      }
+    }
+  }
+`,
+  );
+
 const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
   graphqlapi.mutate(
     `
@@ -908,6 +927,7 @@ module.exports = {
   addUser,
   addBackup,
   updateRestore,
+  getAllEnvironmentBackups,
   updateUser,
   deleteUser,
   addUserToCustomer,
