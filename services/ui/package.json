@@ -11,10 +11,15 @@
     "start": "next start src"
   },
   "dependencies": {
-    "apollo-boost": "^0.1.14",
+    "apollo-cache-inmemory": "^1.3.9",
+    "apollo-client": "^2.4.5",
+    "apollo-link": "^1.2.3",
+    "apollo-link-error": "^1.1.1",
+    "apollo-link-http": "^1.5.5",
     "dotenv-extended": "^2.2.0",
     "git-url-parse": "^10.0.1",
     "graphql": "^0.13.2",
+    "graphql-tag": "^2.10.0",
     "isomorphic-unfetch": "^2.1.1",
     "moment": "^2.22.2",
     "moment-duration-format": "^2.2.2",
