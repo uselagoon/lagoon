@@ -16,6 +16,13 @@ import type {ResolversObj} from '../';
 
 */
 
+const envVarScopeToString = R.cond([
+  [R.equals('GLOBAL'), R.toLower],
+  [R.equals('BUILD'), R.toLower],
+  [R.equals('RUNTIME'), R.toLower],
+  [R.T, R.identity],
+]);
+
 const getEnvVarsByProjectId = async (
   { id: pid },
   args,
@@ -95,6 +102,7 @@ const addEnvVariableToProject = async (
       typeId,
       name,
       value,
+      scope: unformattedScope,
     },
   },
   {
@@ -118,6 +126,8 @@ const addEnvVariableToProject = async (
     }
   }
 
+  const scope = envVarScopeToString(unformattedScope);
+
   const {
     info: { insertId },
   } = await query(
@@ -126,6 +136,7 @@ const addEnvVariableToProject = async (
       id,
       name,
       value,
+      scope,
       project: typeId,
     }),
   );
@@ -144,6 +155,7 @@ const addEnvVariableToEnvironment = async (
       typeId,
       name,
       value,
+      scope: unformattedScope,
     },
   },
   {
@@ -167,6 +179,8 @@ const addEnvVariableToEnvironment = async (
     }
   }
 
+  const scope = envVarScopeToString(unformattedScope);
+
   const {
     info: { insertId },
   } = await query(
@@ -175,6 +189,7 @@ const addEnvVariableToEnvironment = async (
       id,
       name,
       value,
+      scope,
       environment: typeId,
     }),
   );

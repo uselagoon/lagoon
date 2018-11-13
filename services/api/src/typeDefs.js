@@ -47,6 +47,12 @@ const typeDefs = gql`
     ENVIRONMENT
   }
 
+  enum EnvVariableScope {
+    BUILD
+    RUNTIME
+    GLOBAL
+  }
+
   enum TaskStatusType {
     ACTIVE
     SUCCEEDED
@@ -369,6 +375,7 @@ const typeDefs = gql`
 
   type EnvKeyValue {
     id: Int
+    scope: String
     name: String
     value: String
   }
@@ -768,6 +775,7 @@ const typeDefs = gql`
     id: Int
     type: EnvVariableType
     typeId: Int!
+    scope: EnvVariableScope
     name: String!
     value: String!
   }

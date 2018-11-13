@@ -514,6 +514,30 @@ mutation PopulateApi {
     id
   }
 
+  CIFeaturesEnvVars5: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 12
+      name: "LAGOON_API_VARIABLE_BUILD"
+      value: "AEF177FCF4"
+      scope: BUILD
+    }
+  ) {
+    id
+  }
+
+  CIFeaturesEnvVars6: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 12
+      name: "LAGOON_API_VARIABLE_RUNTIME"
+      value: "90AEC657F8"
+      scope: RUNTIME
+    }
+  ) {
+    id
+  }
+
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
       project: "ci-features"

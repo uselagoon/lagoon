@@ -648,6 +648,7 @@ const addOrUpdateEnvironment = (
       envVariables {
         name
         value
+        scope
       }
     }
   }
@@ -714,6 +715,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         envVariables {
           name
           value
+          scope
         }
       }
     }
