@@ -111,6 +111,8 @@ objects:
             items:
             - key: FLUENT_CONF
               path: fluent.conf
+            - key: LOGS_COPY_FORWARDER_EXTERNAL_FLUENTD
+              path: logs-copy-forward-external-fluentd.conf.disabled
             - key: CONTAINER_LOGS_JSON
               path: container-logs.json
             name: ${SERVICE_NAME}-config
@@ -155,7 +157,7 @@ objects:
 
       <source>
         @type secure_forward
-        @label @ELASTICSEARCH
+        @label @LOGS
         self_hostname "#{ENV['HOSTNAME']}"
         secure true
         port 24284
@@ -165,66 +167,96 @@ objects:
         ca_private_key_passphrase "#{ENV['LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE']}"
       </source>
 
-      <label @ELASTICSEARCH>
-          <filter **>
-            @type record_modifier
-            <record>
-              namespace_name "${record['kubernetes']['namespace_name']}"
-            </record>
-          </filter>
-          <filter **>
-            @type record_modifier
-            <replace>
-              # We run automated testing which creates project names in the form of e2e-0000000000-AAAAAAAAAAAAAAAAAAAAAAAAAA
-              # we just save them as with the project name 'e2'
-              key namespace_name
-              expression /^e2e-\\d{10}-\\S{26}$/
-              replace e2e
-            </replace>
-          </filter>
-          <filter **>
-            @type record_modifier
-            <record>
-              index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
-            </record>
-          </filter>
+      <label @LOGS>
+        <filter **>
+          @type record_modifier
+          <record>
+            namespace_name "${record['kubernetes']['namespace_name']}"
+          </record>
+        </filter>
+        <filter **>
+          @type record_modifier
+          <replace>
+            # We run automated testing which creates project names in the form of e2e-0000000000-AAAAAAAAAAAAAAAAAAAAAAAAAA
+            # we just save them as with the project name 'e2'
+            key namespace_name
+            expression /^e2e-\\d{10}-\\S{26}$/
+            replace e2e
+          </replace>
+        </filter>
+        <filter **>
+          @type record_modifier
+          <record>
+            index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
+          </record>
+        </filter>
 
-          <filter **>
-            @type record_transformer
-            remove_keys viaq_index_name,namespace_name,hostname,$.kubernetes.master_url,$.docker.container_id,$.kubernetes.namespace_id,$.kubernetes.pod_id,$.pipeline_metadata.collector
-          </filter>
+        <filter **>
+          @type record_transformer
+          remove_keys viaq_index_name,namespace_name,hostname,$.kubernetes.master_url,$.docker.container_id,$.kubernetes.namespace_id,$.kubernetes.pod_id,$.pipeline_metadata.collector
+        </filter>
 
-          # <filter **>
-          #   @type stdout
-          # </filter>
+        <match **>
+          @type copy
+          <store>
+            @type relabel
+            @label @LAGOON_ELASTICSEARCH
+          </store>
 
-          <match **>
-            @type elasticsearch
-            host logs-db
-            port 9200
-            templates { "container-logs": "/fluentd/etc/container-logs.json"}
-            template_overwrite true
-            target_index_key index_name
-            index_name container-logs-noproject-%Y.%m
-            <buffer tag,time>
-              @type file
-              path /fluentd/buffer/elasticsarch
-              timekey 3600
-              timekey_wait 0s
-              flush_mode interval
-              flush_interval 1s
-              chunk_limit_size 256MB
-              total_limit_size 15GB
-              flush_thread_count 8
-              overflow_action block
-            </buffer>
-            id_key viaq_msg_id
-            remove_keys viaq_msg_id
-            type_name _doc
-            user admin
-            password "#{ENV['LOGSDB_ADMIN_PASSWORD']}"
-          </match>
+          @include /fluentd/conf.d/logs-copy-*.conf
+        </match>
       </label>
+
+      <label @LAGOON_ELASTICSEARCH>
+        <match **>
+          @type elasticsearch
+          host logs-db
+          port 9200
+          templates { "container-logs": "/fluentd/etc/container-logs.json"}
+          template_overwrite true
+          target_index_key index_name
+          index_name container-logs-noproject-%Y.%m
+          <buffer tag,time>
+            @type file
+            path /fluentd/buffer/elasticsarch
+            timekey 3600
+            timekey_wait 0s
+            flush_mode interval
+            flush_interval 1s
+            chunk_limit_size 256MB
+            total_limit_size 15GB
+            flush_thread_count 8
+            overflow_action block
+          </buffer>
+          id_key viaq_msg_id
+          remove_keys viaq_msg_id
+          type_name _doc
+          user admin
+          password "#{ENV['LOGSDB_ADMIN_PASSWORD']}"
+        </match>
+      </label>
+    LOGS_COPY_FORWARDER_EXTERNAL_FLUENTD: |-
+      <store>
+        @type secure_forward
+        self_hostname "#{ENV['HOSTNAME']}"
+        secure true
+        shared_key "#{ENV['LOGS_FORWARDER_EXTERNAL_FLUENTD_SHARED_KEY']}"
+        ca_cert_path "/fluentd/ssl/ca_cert.pem"
+        <server>
+          host "#{ENV['LOGS_FORWARDER_EXTERNAL_FLUENTD_HOST']}"
+          port "#{ENV['LOGS_FORWARDER_EXTERNAL_FLUENTD_PORT']}"
+        </server>
+
+        <buffer>
+          @type file
+          path /fluentd/buffer/external-fluentd
+          flush_mode interval
+          flush_interval 1s
+          chunk_limit_size 256MB
+          total_limit_size 15GB
+          flush_thread_count 8
+        </buffer>
+      </store>
     CONTAINER_LOGS_JSON: |-
       {
         "template" : "container-logs-*",
