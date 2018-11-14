@@ -21,12 +21,12 @@ acl purge {
 }
 
 sub vcl_init {
-    new www_dir = dynamic.director(
-      port = "${VARNISH_BACKEND_PORT:-8080}",
-      first_byte_timeout = 90s,
-      between_bytes_timeout = 90s,
-      ttl = 60s);
-   }
+  new www_dir = dynamic.director(
+    port = "${VARNISH_BACKEND_PORT:-8080}",
+    first_byte_timeout = 90s,
+    between_bytes_timeout = 90s,
+    ttl = 60s);
+}
 
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
