@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { bp, color } from '../../variables';
 
-export default ({activeTab, environment}) => (
+const NavTabs = ({activeTab, environment}) => (
   <ul className='navigation'>
     <li className={`overview ${activeTab == 'overview' ? 'active' : ''}`}>
       <Link href={{ pathname: '/environment', query: { name: environment } }}>
@@ -118,3 +118,5 @@ export default ({activeTab, environment}) => (
   `}</style>
   </ul>
 );
+
+export default NavTabs;

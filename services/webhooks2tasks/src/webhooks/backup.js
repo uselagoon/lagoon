@@ -7,6 +7,7 @@ const {
   sendToLagoonLogs
 } = require('@lagoon/commons/src/logs');
 const resticbackupSnapshotFinished = require('../handlers/resticbackupSnapshotFinished');
+const resticbackupRestoreFinished = require('../handlers/resticbackupRestoreFinished');
 
 import type {
   WebhookRequestData,
@@ -28,6 +29,10 @@ async function processBackup(
   switch (`${webhooktype}:${event}`) {
     case 'resticbackup:snapshot:finished':
       await handle(resticbackupSnapshotFinished, webhook, `${webhooktype}:${event}`);
+      break;
+
+    case 'resticbackup:restore:finished':
+      await handle(resticbackupRestoreFinished, webhook, `${webhooktype}:${event}`);
       break;
 
     default:

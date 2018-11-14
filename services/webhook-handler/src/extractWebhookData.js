@@ -74,6 +74,10 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       webhooktype = 'resticbackup';
       event = 'snapshot:finished'
       uuid = uuid4();
+    } else if (bodyObj.restore_location) {
+      webhooktype = 'resticbackup';
+      event = 'restore:finished';
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }

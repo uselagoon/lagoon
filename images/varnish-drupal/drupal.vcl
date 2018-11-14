@@ -1,7 +1,14 @@
 vcl 4.0;
 
 import std;
-import dynamic;
+
+# set backend default
+backend default {
+  .host = "${VARNISH_BACKEND_HOST:-nginx}";
+  .port = "${VARNISH_BACKEND_PORT:-8080}";
+  .first_byte_timeout = 35m;
+  .between_bytes_timeout = 10m;
+}
 
 # set backend default
 backend default {
@@ -31,12 +38,11 @@ sub vcl_init {
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
 sub vcl_recv {
-
   if (req.url ~ "^/varnish_status$")  {
     return (synth(200,"OK"));
   }
   # set the backend, which should be used:
-  set req.backend_hint = www_dir.backend("${VARNISH_BACKEND_HOST:-nginx}");
+  set req.backend_hint = default;
 
   # Always set the forward ip.
    if (req.restarts == 0) {

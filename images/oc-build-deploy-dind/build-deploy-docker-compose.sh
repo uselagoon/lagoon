@@ -100,10 +100,10 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
 
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | "--build-arg \(.name)=\(.value)"'))
+    BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
   fi
   if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-    BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | "--build-arg \(.name)=\(.value)"'))
+    BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
   fi
 
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
@@ -431,13 +431,13 @@ if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   oc patch --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
     configmap lagoon-env \
-    -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( { (.name) : .value } ) | add | tostring')}"
+    -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
 fi
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
   oc patch --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
     configmap lagoon-env \
-    -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( { (.name) : .value } ) | add | tostring')}"
+    -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
 fi
 
 if [ "$TYPE" == "pullrequest" ]; then

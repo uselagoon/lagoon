@@ -70,3 +70,9 @@ export type TaskPatch = {
   environment: ?number,
   remoteId: ?string,
 };
+
+export type RestorePatch = {
+  status: ?string,
+  created: ?string,
+  restoreLocation: ?string,
+};

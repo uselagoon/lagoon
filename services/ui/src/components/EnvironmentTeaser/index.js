@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { bp, color, fontSize } from '../../variables';
 
-export default ({ environment, project }) => {
+const EnvironmentTeaser = ({ environment, project }) => {
   const environmentLabel = environment.deployType === 'branch' ? environment.deployType : 'PR';
   return (
     <div className={`environment box ${environment.deployType}`} >
@@ -109,3 +109,5 @@ export default ({ environment, project }) => {
     </div>
   );
 };
+
+export default EnvironmentTeaser;

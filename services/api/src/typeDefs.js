@@ -47,9 +47,21 @@ const typeDefs = gql`
     ENVIRONMENT
   }
 
+  enum EnvVariableScope {
+    BUILD
+    RUNTIME
+    GLOBAL
+  }
+
   enum TaskStatusType {
     ACTIVE
     SUCCEEDED
+    FAILED
+  }
+
+  enum RestoreStatusType {
+    PENDING
+    SUCCESSFUL
     FAILED
   }
 
@@ -314,7 +326,7 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
-    deployments: [Deployment]
+    deployments(name: String): [Deployment]
     backups: [Backup]
     tasks: [Task]
     services: [EnvironmentService]
@@ -353,6 +365,15 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
+    restore: Restore
+  }
+
+  type Restore {
+    id: Int
+    backupId: String
+    status: String
+    restoreLocation: String
+    created: String
   }
 
   type Deployment {
@@ -369,6 +390,7 @@ const typeDefs = gql`
 
   type EnvKeyValue {
     id: Int
+    scope: String
     name: String
     value: String
   }
@@ -492,6 +514,25 @@ const typeDefs = gql`
     created: String!
   }
 
+  input AddRestoreInput {
+    id: Int
+    status: RestoreStatusType
+    restoreLocation: String
+    created: String
+    execute: Boolean
+    backupId: String!
+  }
+
+  input UpdateRestoreInput {
+    backupId: String!
+    patch: UpdateRestorePatchInput!
+  }
+
+  input UpdateRestorePatchInput {
+    status: RestoreStatusType
+    created: String
+    restoreLocation: String
+  }
 
   input AddCustomerInput {
     id: Int
@@ -768,6 +809,7 @@ const typeDefs = gql`
     id: Int
     type: EnvVariableType
     typeId: Int!
+    scope: EnvVariableScope
     name: String!
     value: String!
   }
@@ -851,6 +893,8 @@ const typeDefs = gql`
     updateDeployment(input: UpdateDeploymentInput): Deployment
     addBackup(input: AddBackupInput!): Backup
     deleteAllBackups: String
+    addRestore(input: AddRestoreInput!): Restore
+    updateRestore(input: UpdateRestoreInput!): Restore
     createAllProjectsInKeycloak: String
     createAllProjectsInSearchguard: String
     resyncCustomersWithSearchguard: String
