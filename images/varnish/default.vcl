@@ -36,7 +36,7 @@ sub vcl_recv {
   # rewriting the request, etc.
 
   # set the backend, which should be used:
-  set req.backend_hint = default;
+  set req.backend_hint = www_dir.backend("${VARNISH_BACKEND_HOST:-nginx}");
 
   # Needed for Readyness and Liveness checks - do not remove
   if (req.url ~ "^/varnish_status$")  {
