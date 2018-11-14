@@ -83,9 +83,9 @@ const Sql /* : SqlObj */ = {
       .leftJoin('customer_user as cu', 'cu.usid', 'user.id')
       .leftJoin('project as project_via_customer', 'cu.cid', 'project_via_customer.customer')
       .leftJoin('project as project_via_user', 'pu.pid', 'project_via_user.id')
-      .select('user.*')
-      .where('project_via_user', projectId)
-      .where('project_via_customer', projectId)
+      .distinct('user.*')
+      .where('project_via_user.id', projectId)
+      .orWhere('project_via_customer.id', projectId)
       .toString(),
   updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
     knex('project')

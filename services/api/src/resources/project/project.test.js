@@ -23,4 +23,12 @@ describe('Resolvers', () => {
       expect(ret).toMatchSnapshot();
     });
   });
+
+  describe('selectAllUsersForProjectId', () => {
+    it('should return proper select statement', () => {
+      const ret = Sql.selectAllUsersForProjectId(1);
+
+      expect(ret).toMatchSnapshot();
+    });
+  });
 });
