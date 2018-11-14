@@ -82,7 +82,7 @@ const Sql /* : SqlObj */ = {
       .leftJoin('project_user as pu', 'pu.usid', 'user.id')
       .leftJoin('customer_user as cu', 'cu.usid', 'user.id')
       .leftJoin('project as project_via_customer', 'cu.cid', 'project_via_customer.customer')
-      .leftJoin('projects as project_via_user', 'pu.pid', 'project_via_user.id')
+      .leftJoin('project as project_via_user', 'pu.pid', 'project_via_user.id')
       .select('user.*')
       .where('project_via_user', projectId)
       .where('project_via_customer', projectId)
