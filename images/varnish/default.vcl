@@ -11,6 +11,7 @@
 vcl 4.0;
 
 import std;
+import dynamic;
 
 # set backend default
 backend default {
@@ -19,6 +20,14 @@ backend default {
   .first_byte_timeout = 35m;
   .between_bytes_timeout = 10m;
 }
+
+sub vcl_init {
+  new www_dir = dynamic.director(
+    port = "${VARNISH_BACKEND_PORT:-8080}",
+    first_byte_timeout = 90s,
+    between_bytes_timeout = 90s,
+    ttl = 60s);
+ }
 
 sub vcl_recv {
   # Happens before we check if we have this in cache already.
