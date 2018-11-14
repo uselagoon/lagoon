@@ -223,7 +223,7 @@ const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =
     }
   }
 `,
-    { id, patch },
+    { backupId, patch },
   );
 
 const getAllEnvironmentBackups = (): Promise<Project[]> =>
