@@ -17,17 +17,29 @@ const Sql /* : SqlObj */ = {
     knex('environment_backup')
       .where('backup_id', '=', backupId)
       .toString(),
-  selectBackupsByEnvironmentId: ({ environmentId } /* : { environmentId: number} */) =>
-    knex('environment_backup')
+  selectBackupsByEnvironmentId: (
+    { environmentId, includeDeleted } /* : { environmentId: number, includeDeleted: boolean } */,
+  ) => {
+    const query = knex('environment_backup')
       .join('environment as e', 'e.id', '=', 'environment_backup.environment')
-      .select(
-        'environment_backup.*',
-      )
-      .where('e.id', environmentId)
-      .toString(),
-  insertBackup: ({
-    id, environment, source, backupId, created,
-  } /* : {id: number, environment: number, source: string, backupId: string, created: string} */) =>
+      .select('environment_backup.*')
+      .where('e.id', environmentId);
+
+    if (includeDeleted) {
+      return query.toString();
+    }
+
+    return query.where('environment_backup.deleted', '=', '0000-00-00 00:00:00').toString();
+  },
+  insertBackup: (
+    {
+      id,
+      environment,
+      source,
+      backupId,
+      created,
+    } /* : {id: number, environment: number, source: string, backupId: string, created: string} */,
+  ) =>
     knex('environment_backup')
       .insert({
         id,
@@ -82,7 +94,12 @@ const Sql /* : SqlObj */ = {
   selectPermsForBackup: (backupId /* : string */) =>
     knex('environment_backup')
       .select({ pid: 'project.id', cid: 'project.customer' })
-      .join('environment', 'environment_backup.environment', '=', 'environment.id')
+      .join(
+        'environment',
+        'environment_backup.environment',
+        '=',
+        'environment.id',
+      )
       .join('project', 'environment.project', '=', 'project.id')
       .where('environment_backup.backup_id', backupId)
       .toString(),

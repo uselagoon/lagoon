@@ -24,7 +24,7 @@ const restoreStatusTypeToString = R.cond([
 
 const getBackupsByEnvironmentId = async (
   { id: environmentId },
-  args,
+  { includeDeleted },
   {
     credentials: {
       role,
@@ -34,7 +34,7 @@ const getBackupsByEnvironmentId = async (
 ) => {
   const rows = await query(
     sqlClient,
-    Sql.selectBackupsByEnvironmentId({ environmentId }),
+    Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted }),
   );
   return rows;
 };

@@ -189,6 +189,18 @@ const addBackup = (
     },
   );
 
+const deleteBackup = (backupId: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($backupId: String!) {
+    deleteBackup(input: {
+      backupId: $backupId
+    })
+  }
+  `,
+    { backupId },
+  );
+
 const restoreFragment = graphqlapi.createFragment(`
   fragment on Restore {
     id
@@ -926,6 +938,7 @@ module.exports = {
   getUserBySshKey,
   addUser,
   addBackup,
+  deleteBackup,
   updateRestore,
   getAllEnvironmentBackups,
   updateUser,
