@@ -37,6 +37,11 @@ const Sql /* : SqlObj */ = {
         created,
       })
       .toString(),
+  deleteBackup: (backupId /* : string */) =>
+    knex('environment_backup')
+      .where('backup_id', backupId)
+      .update({ deleted: knex.fn.now() })
+      .toString(),
   truncateBackup: () =>
     knex('environment_backup')
       .truncate()

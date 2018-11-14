@@ -63,6 +63,32 @@ const addBackup = async (
   return R.prop(0, rows);
 };
 
+const deleteBackup = async (
+  root,
+  { input: { backupId } },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  if (role !== 'admin') {
+    const rows = await query(sqlClient, Sql.selectPermsForBackup(backupId));
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  await query(sqlClient, Sql.deleteBackup(backupId));
+
+  return 'success';
+};
+
 const deleteAllBackups = async (root, args, { credentials: { role } }) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
@@ -222,6 +248,7 @@ const getRestoreByBackupId = async (
 const Resolvers /* : ResolversObj */ = {
   addBackup,
   getBackupsByEnvironmentId,
+  deleteBackup,
   deleteAllBackups,
   addRestore,
   getRestoreByBackupId,
