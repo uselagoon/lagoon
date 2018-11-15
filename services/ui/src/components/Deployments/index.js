@@ -1,10 +1,41 @@
 import React from 'react';
+import * as R from 'ramda';
 import Link from 'next/link';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
 import moment from 'moment';
-import momentDurationFormatSetup from 'moment-duration-format';
 import { bp, color } from '../../variables';
 
-const Deployments = ({ projectName, deployments }) => (
+const query = gql`
+  query getEnvironment($name: String!) {
+    environmentByOpenshiftProjectName(openshiftProjectName: $name) {
+      id
+      deployments {
+        id
+        name
+        status
+        created
+        started
+        completed
+      }
+    }
+  }
+`;
+
+const getDuration = deployment => {
+  const deploymentStart = deployment.started || deployment.created;
+  const durationStart =
+    (deploymentStart && moment.utc(deploymentStart)) || moment.utc();
+  const durationEnd =
+    (deployment.completed && moment.utc(deployment.completed)) || moment.utc();
+  const duration = moment
+    .duration(durationEnd - durationStart)
+    .format('HH[hr] mm[m] ss[sec]');
+
+  return duration;
+};
+
+const Deployments = ({ projectName }) => (
   <div className="content">
     <div className="header">
       <label>Name</label>
@@ -13,38 +44,59 @@ const Deployments = ({ projectName, deployments }) => (
       <label>Duration</label>
     </div>
     <div className="data-table">
-      {deployments.map(deployment => (
-        <div
-          className="data-row"
-          deployment={deployment.id}
-          key={deployment.id}
-        >
-          <Link
-            href={{
-              pathname: '/deployments',
-              query: {
-                name: projectName,
-                build: deployment.name
-              }
-            }}
-          >
-            <a>
-              <div className="name">{deployment.name}</div>
-              <div className="started">
-                {moment
-                  .utc(deployment.created)
-                  .local()
-                  .format('DD MMM YYYY, HH:mm:ss')}
-              </div>
-              <div className={`status ${deployment.status}`}>
-                {deployment.status.charAt(0).toUpperCase() +
-                  deployment.status.slice(1)}
-              </div>
-              <div className="duration">{deployment.duration}</div>
-            </a>
-          </Link>
-        </div>
-      ))}
+      <Query query={query} variables={{ name: projectName }}>
+        {({ loading, error, data }) => {
+          if (loading) {
+            return <div className="data-none">Loading...</div>;
+          }
+
+          if (error) {
+            return <div className="data-none">Error: {error.toString()}</div>;
+          }
+
+          const deployments = R.path(
+            ['environmentByOpenshiftProjectName', 'deployments'],
+            data
+          );
+
+          if (R.isEmpty(deployments)) {
+            return <div className="data-none">No Deployments</div>;
+          }
+
+          return deployments.map(deployment => (
+            <div
+              className="data-row"
+              deployment={deployment.id}
+              key={deployment.id}
+            >
+              <Link
+                href={{
+                  pathname: '/deployments',
+                  query: {
+                    name: projectName,
+                    build: deployment.name
+                  }
+                }}
+              >
+                <a>
+                  <div className="name">{deployment.name}</div>
+                  <div className="started">
+                    {moment
+                      .utc(deployment.created)
+                      .local()
+                      .format('DD MMM YYYY, HH:mm:ss')}
+                  </div>
+                  <div className={`status ${deployment.status}`}>
+                    {deployment.status.charAt(0).toUpperCase() +
+                      deployment.status.slice(1)}
+                  </div>
+                  <div className="duration">{getDuration(deployment)}</div>
+                </a>
+              </Link>
+            </div>
+          ));
+        }}
+      </Query>
     </div>
     <style jsx>{`
       .content {
@@ -78,6 +130,14 @@ const Deployments = ({ projectName, deployments }) => (
           border: 1px solid ${color.lightestGrey};
           border-radius: 3px;
           box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
+          .data-none {
+            border: 1px solid ${color.white};
+            border-bottom: 1px solid ${color.lightestGrey};
+            border-radius: 3px;
+            line-height: 1.5rem;
+            padding: 8px 0 7px 0;
+            text-align: center;
+          }
           .data-row {
             background-image: url('/static/images/right-arrow.svg');
             background-position: right 20px center;

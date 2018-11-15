@@ -1,6 +1,6 @@
 # Development of Lagoon
 
-Development of Lagoon happens locally via Docker. We are using the new [Docker Multi Stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/) very heavily, so it requires at least Docker Version 17.05.
+Development of Lagoon happens locally via Docker. We are using the new [Docker Multi Stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/) very heavily, so it requires at least Docker Version 17.06.1.
 
 ## Install Docker
 
@@ -71,3 +71,15 @@ make build
 **I get errors about missing node_modules content when I try to build / run a NodeJS based image**
 
 Make sure to run `yarn` in lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
+
+**My builds can't resolve domains**
+
+Some ISPs set up a "search domain" to catch domain name errors. Virtualbox will copy this setting
+into minishift which can cause domain resolution errors in the openshift pods. To check for this
+problem, look at the `/etc/resolv.conf` in your failing pod and check for errant search domains.
+
+![OpenShift pod resolver settings](/images/pod_search_domains.jpg)
+
+To fix, you must remove the extra search domain. Login to the minishift vm (`minishift ssh`) and
+remove the setting from `/etc/resolv.conf`. Restart openshift docker, `sudo docker restart origin`.
+Redeploy `docker-host` in the `lagoon` project.

@@ -8,6 +8,7 @@ exports.createDeployTask = createDeployTask;
 exports.createPromoteTask = createPromoteTask;
 exports.createRemoveTask = createRemoveTask;
 exports.createTaskTask = createTaskTask;
+exports.createMiscTask = createMiscTask;
 exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
@@ -428,6 +429,10 @@ async function createTaskTask(taskData: Object) {
         }' for 'task' for project ${project.name}`,
       );
   }
+}
+
+async function createMiscTask(taskData: Object) {
+  return sendToLagoonTasks('misc-openshift', taskData);
 }
 
 async function consumeTasks(

@@ -23,6 +23,7 @@
     "axios": "^0.18.0",
     "flow-remove-types": "^1.2.3",
     "jsonwebtoken": "^8.0.1",
+    "kubernetes-client": "^6.3.2",
     "lokka": "^1.7.0",
     "lokka-transport-http": "^1.6.1",
     "ramda": "^0.25.0",

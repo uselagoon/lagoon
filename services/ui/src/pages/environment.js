@@ -27,7 +27,7 @@ const query = gql`
     }
   }
 `;
-const Environment = withRouter((props) => {
+const PageEnvironment = withRouter((props) => {
   return (
     <Page>
       <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
@@ -72,4 +72,6 @@ const Environment = withRouter((props) => {
   )
 });
 
-export default Environment;
+PageEnvironment.displayName = 'withRouter(PageEnvironment)';
+
+export default PageEnvironment;

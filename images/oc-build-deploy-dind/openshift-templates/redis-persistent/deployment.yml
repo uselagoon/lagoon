@@ -64,12 +64,19 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        volumes:
+        - name: ${SERVICE_NAME}
+          persistentVolumeClaim:
+            claimName: ${SERVICE_NAME}
         containers:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
           - containerPort: 6379
             protocol: TCP
+          volumeMounts:
+            - name: ${SERVICE_NAME}
+              mountPath: /data
           readinessProbe:
             tcpSocket:
               port: 6379

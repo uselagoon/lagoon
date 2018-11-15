@@ -18,6 +18,18 @@ const query = gql`
       created
       gitUrl
       productionEnvironment
+      users {
+        email
+        firstName
+        lastName
+      }
+      customer {
+        users {
+          email
+          firstName
+          lastName
+        }
+      }
       environments {
         id
         name
@@ -30,7 +42,7 @@ const query = gql`
     }
   }
 `;
-const Project = withRouter((props) => {
+const PageProject = withRouter((props) => {
   return (
     <Page>
       <Query query={query} variables={{name: props.router.query.name}}>
@@ -58,4 +70,6 @@ const Project = withRouter((props) => {
   )
 });
 
-export default Project;
+PageProject.displayName = 'withRouter(PageProject)';
+
+export default PageProject;

@@ -509,6 +509,45 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_default_value_to_task_status()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'status'
+    ) THEN
+      ALTER TABLE `task`
+      ALTER COLUMN `status`
+      SET DEFAULT 'active';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_scope_to_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'scope'
+    ) THEN
+      ALTER TABLE `env_vars`
+      ADD `scope` ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global';
+      UPDATE env_vars
+      SET scope = 'global';
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -535,6 +574,8 @@ CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();
 CALL drop_legacy_project_ssh_key_junction_table();
 CALL add_active_systems_task_to_project();
+CALL add_default_value_to_task_status();
+CALL add_scope_to_env_vars();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

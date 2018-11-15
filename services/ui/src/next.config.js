@@ -13,9 +13,9 @@ const envKeycloakRoute = process.env.KEYCLOAK_API;
 
 module.exports = {
   publicRuntimeConfig: {
-    GRAPHQL_API: envApiRoute || lagoonApiRoute,
+    GRAPHQL_API: lagoonApiRoute ? `${lagoonApiRoute}/graphql` : envApiRoute,
     GRAPHQL_API_TOKEN: process.env.GRAPHQL_API_TOKEN,
-    KEYCLOAK_API: envKeycloakRoute || lagoonKeycloakRoute,
+    KEYCLOAK_API: lagoonKeycloakRoute ? `${lagoonKeycloakRoute}/auth` : envKeycloakRoute,
     LAGOON_UI_ICON: process.env.LAGOON_UI_ICON
   },
   distDir: '../build'

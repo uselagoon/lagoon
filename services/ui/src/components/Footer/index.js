@@ -1,7 +1,7 @@
 import React from 'react';
 import { color } from '../../variables';
 
-export default () => (
+const Footer = () => (
   <footer>
     Placeholder footer
     <style jsx>{`
@@ -12,3 +12,5 @@ export default () => (
   `}</style>
   </footer>
 );
+
+export default Footer;

@@ -149,13 +149,23 @@ const messageConsumer = async msg => {
       return;
     }
 
-    taskPodSpec = oneContainerPerSpec[task.service];
-    taskPodSpec.containers[0].command = [
+    const cronjobEnvVars = env => env.name === 'CRONJOBS';
+    const containerEnvLens = R.lensPath(['containers', 0, 'env']);
+    const removeCronjobs = R.over(containerEnvLens, R.reject(cronjobEnvVars));
+
+    const containerCommandLens = R.lensPath(['containers', 0, 'command']);
+    const setContainerCommand = R.set(containerCommandLens, [
       '/sbin/tini',
       '--',
       '/lagoon/entrypoints.sh',
-      ...task.command.split(' ')
-    ];
+      ...task.command.split(' '),
+    ]);
+
+    taskPodSpec = R.pipe(
+      R.prop(task.service),
+      removeCronjobs,
+      setContainerCommand,
+    )(oneContainerPerSpec);
   } catch (err) {
     logger.error(err);
     throw new Error(err);

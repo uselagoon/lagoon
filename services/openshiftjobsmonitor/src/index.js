@@ -169,6 +169,23 @@ ${podLog}`;
     return finalLog;
   };
 
+  const deleteJob = async () => {
+    try {
+      const jobDelete = promisify(
+        batchApi.namespaces(openshiftProject).jobs(jobName).delete
+      );
+      await jobDelete({
+        body: {
+          kind: 'DeleteOptions',
+          apiVersion: 'v1',
+          propagationPolicy: 'Foreground',
+        },
+      });
+    } catch (err) {
+      logger.error(`Couldn't delete job ${jobName}. Error: ${error}`);
+    }
+  };
+
   const jobStatus = getJobStatus(jobInfo);
 
   // Update lagoon task
@@ -210,14 +227,7 @@ ${podLog}`;
 
     case 'failed':
       await saveTaskLog(jobName, project.name, jobInfo, await jobsLogGet());
-      try {
-        const jobDelete = promisify(
-          batchApi.namespaces(openshiftProject).jobs(jobName).delete
-        );
-        await jobDelete();
-      } catch(error) {
-        logger.error(`Couldn't delete job ${jobName}. Error: ${error}`);
-      }
+      await deleteJob();
       sendToLagoonLogs(
         'error',
         project.name,
@@ -230,14 +240,7 @@ ${podLog}`;
 
     case 'succeeded':
       await saveTaskLog(jobName, project.name, jobInfo, await jobsLogGet());
-      try {
-        const jobDelete = promisify(
-          batchApi.namespaces(openshiftProject).jobs(jobName).delete
-        );
-        await jobDelete();
-      } catch(error) {
-        logger.error(`Couldn't delete job ${jobName}. Error: ${error}`);
-      }
+      await deleteJob();
       sendToLagoonLogs(
         'info',
         project.name,

@@ -11,6 +11,8 @@ COPY templates/ templates/
 COPY certs/ certs/
 COPY pipelines.yml config/pipelines.yml
 
+RUN fix-permissions pipeline/
+
 # https://github.com/elastic/logstash-docker/issues/64
 ENV PATH_CONFIG=null
 
@@ -30,3 +32,5 @@ ENV RABBITMQ_HOST="rabbitmq" \
 
 
 EXPOSE 8080 9600
+
+COPY entrypoints/90-logstash-enable-forward-external-logstash.sh /lagoon/entrypoints/
