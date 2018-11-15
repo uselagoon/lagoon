@@ -59,6 +59,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "gitlab:push:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
+    case "rest:promote:receive":
       sendToRocketChat(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
