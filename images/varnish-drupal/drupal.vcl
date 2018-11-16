@@ -10,14 +10,6 @@ backend default {
   .between_bytes_timeout = 10m;
 }
 
-# set backend default
-backend default {
-  .host = "${VARNISH_BACKEND_HOST:-nginx}";
-  .port = "${VARNISH_BACKEND_PORT:-8080}";
-  .first_byte_timeout = 35m;
-  .between_bytes_timeout = 10m;
-}
-
 # Allow purging from localhost
 # @TODO allow from openshift network
 acl purge {
