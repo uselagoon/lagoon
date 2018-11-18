@@ -22,8 +22,6 @@ class Project extends React.Component {
   }
 
   render() {
-    const usersList = this.props.project.users.concat(this.props.project.customer.users);
-
     return (
       <div className='content-wrapper'>
         <div className='details'>
@@ -68,18 +66,6 @@ class Project extends React.Component {
             <div>
               <label>Pull requests enabled</label>
               <div className='field'>{this.props.project.pullrequests}</div>
-            </div>
-          </div>
-          <div className='field-wrapper members'>
-            <div>
-              <label>Members</label>
-              <div className='field'>
-                {usersList.map(user =>
-                  <div key={user.email} className='member'>
-                    {user.firstName ? <div><div className="name">{user.firstName} {user.lastName}&nbsp;</div><div className="email">({user.email})</div></div> : <div className="email">{user.email}</div>}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
