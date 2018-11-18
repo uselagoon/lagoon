@@ -85,6 +85,8 @@ objects:
             exec:
               command:
               - /usr/share/container-scripts/mysql/readiness-probe.sh
+            failureThreshold: 100
+            periodSeconds: 10
             initialDelaySeconds: 15
             timeoutSeconds: 5
           volumeMounts:
