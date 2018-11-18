@@ -548,6 +548,26 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_deleted_to_environment_backup()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_backup'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deleted'
+    ) THEN
+      ALTER TABLE `environment_backup`
+      ADD `deleted` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00';
+      UPDATE environment_backup
+      SET deleted = '0000-00-00 00:00:00';
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -576,6 +596,7 @@ CALL drop_legacy_project_ssh_key_junction_table();
 CALL add_active_systems_task_to_project();
 CALL add_default_value_to_task_status();
 CALL add_scope_to_env_vars();
+CALL add_deleted_to_environment_backup();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

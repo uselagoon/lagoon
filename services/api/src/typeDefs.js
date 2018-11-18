@@ -327,7 +327,7 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     deployments(name: String): [Deployment]
-    backups: [Backup]
+    backups(includeDeleted: Boolean): [Backup]
     tasks: [Task]
     services: [EnvironmentService]
   }
@@ -365,6 +365,7 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
+    deleted: String
     restore: Restore
   }
 
@@ -512,6 +513,10 @@ const typeDefs = gql`
     source: String!
     backupId: String!
     created: String!
+  }
+
+  input DeleteBackupInput {
+    backupId: String!
   }
 
   input AddRestoreInput {
@@ -892,6 +897,7 @@ const typeDefs = gql`
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     addBackup(input: AddBackupInput!): Backup
+    deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore

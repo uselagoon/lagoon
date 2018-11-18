@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS environment_backup (
   source                   varchar(300),
   backup_id                varchar(300),
   created                  timestamp,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   UNIQUE KEY `backup_id` (`backup_id`)
 );
 
