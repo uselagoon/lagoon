@@ -363,7 +363,7 @@ else
 fi
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc apply --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
+if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
   TEMPLATE_PARAMETERS=()
 
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 0 * * *")
