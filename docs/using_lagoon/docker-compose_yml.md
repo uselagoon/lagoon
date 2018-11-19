@@ -93,7 +93,7 @@ For these cases it is possible to tell Lagoon which services should stay togethe
 
 This will cause Lagoon to realise that the `nginx` and `php` containers are combined in a Pod that will be called `nginx`.
 
-Lagoon still needs to understand which of the two services are the actual individual service tyep (`nginx` and `php` in this case). It does this with searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects a service with the name `nginx` and one with `php` in the docker-compose.yml. If for any reason you want to use different names for the services or you maybe need two pods with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
+Lagoon still needs to understand which of the two services are the actual individual service type (`nginx` and `php` in this case). It does this with searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects a service with the name `nginx` and one with `php` in the docker-compose.yml. If for any reason you want to use different names for the services or you maybe need two pods with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
 
 An example:
 
