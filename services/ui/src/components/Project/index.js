@@ -22,8 +22,6 @@ class Project extends React.Component {
   }
 
   render() {
-    const usersList = this.props.project.users.concat(this.props.project.customer.users);
-
     return (
       <div className='content-wrapper'>
         <div className='details'>
@@ -70,18 +68,6 @@ class Project extends React.Component {
               <div className='field'>{this.props.project.pullrequests}</div>
             </div>
           </div>
-          <div className='field-wrapper members'>
-            <div>
-              <label>Members</label>
-              <div className='field'>
-                {usersList.map(user =>
-                  <div key={user.email} className='member'>
-                    {user.firstName ? <div>{user.firstName} {user.lastName} ({user.email})</div> : <div className="email">{user.email}</div>}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
         <div className="environments-wrapper">
           <h3>Environments</h3>
@@ -119,6 +105,7 @@ class Project extends React.Component {
               border-bottom: 1px solid ${color.midGrey};
               border-right: 1px solid ${color.midGrey};
               padding: 32px calc((100vw / 16) * 1);
+              display: inline-table;
               @media ${bp.xs_smallUp} {
                 padding: 24px calc((100vw / 16) * 1) 24px calc(((100vw / 16) * 1.5) + 28px);
               }
@@ -241,14 +228,22 @@ class Project extends React.Component {
                     background-image: url('/static/images/members.svg');
                   }
                   & > div {
+                    display: block;
                     width: 100%;
                   }
                   .field {
                     .member {
                       margin-bottom: 5px;
+                      .name {
+                        font-weight: 400;
+                        display: inline-block;
+                        float:left;
+                      }
                       .email {
                         overflow: hidden;
                         text-overflow: ellipsis;
+                        display: inline-block;
+                        float:left;
                       }
                     }
                   }

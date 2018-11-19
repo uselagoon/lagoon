@@ -25,7 +25,6 @@ const {
   getAllProjectNames,
   getAllProjects,
 } = require('../project/helpers');
-const { moveUserSshKeyToObject } = require('./');
 const KeycloakOperations = require('./keycloak');
 const Sql = require('./sql');
 
@@ -58,7 +57,7 @@ const getUsersByProjectId = async (
     Sql.selectUsersByProjectId({ projectId }),
   );
 
-  return R.map(moveUserSshKeyToObject, rows);
+  return rows;
 };
 
 const getUserBySshKey = async (root, { sshKey }, { credentials: { role } }) => {
@@ -307,7 +306,7 @@ const getUsersByCustomerId = async (
     sqlClient,
     Sql.selectUsersByCustomerId({ customerId }),
   );
-  return R.map(moveUserSshKeyToObject, rows);
+  return rows;
 };
 
 const addUserToCustomer = async (

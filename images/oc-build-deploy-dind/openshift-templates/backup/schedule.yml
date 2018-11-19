@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-solr
+  name: lagoon-openshift-template-schedule
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -31,22 +31,25 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
-  - name: DEPLOYMENT_STRATEGY
-    description: Strategy of Deploymentconfig
-    value: "Rolling"
-  - name: PERSISTENT_STORAGE_SIZE
-    description: Size of the Storage to request
-    value: "1Gi"
+  - name: BACKUP_SCHEDULE
+    description: Schedule of the Backup in Cron format
+    required: true
+  - name: PRUNE_SCHEDULE
+    description: Schedule of the Pruning in Cron format
+    required: true
 objects:
-- apiVersion: v1
-  kind: PersistentVolumeClaim
+- apiVersion: backup.appuio.ch/v1alpha1
+  kind: Schedule
   metadata:
-    annotations:
-      appuio.ch/backup: "true"
-    name: ${SERVICE_NAME}
+    name: backup-schedule
   spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${PERSISTENT_STORAGE_SIZE}
+    backup:
+      keepJobs: 2
+      schedule: '${BACKUP_SCHEDULE}'
+    check:
+      schedule: 0 0 * * 0
+    prune:
+      retention:
+        keepDaily: 7
+        keepWeekly: 4
+      schedule: '${PRUNE_SCHEDULE}'

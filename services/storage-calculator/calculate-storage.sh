@@ -102,7 +102,7 @@ do
 
       for PVC in "${PVCS[@]}"
       do
-        STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
+        STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -sb /storage/${PVC} | cut -f1")
         # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} bytes"
 

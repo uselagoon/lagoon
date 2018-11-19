@@ -24,7 +24,7 @@ const restoreStatusTypeToString = R.cond([
 
 const getBackupsByEnvironmentId = async (
   { id: environmentId },
-  args,
+  { includeDeleted },
   {
     credentials: {
       role,
@@ -34,7 +34,7 @@ const getBackupsByEnvironmentId = async (
 ) => {
   const rows = await query(
     sqlClient,
-    Sql.selectBackupsByEnvironmentId({ environmentId }),
+    Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted }),
   );
   return rows;
 };
@@ -61,6 +61,32 @@ const addBackup = async (
   );
   const rows = await query(sqlClient, Sql.selectBackup(insertId));
   return R.prop(0, rows);
+};
+
+const deleteBackup = async (
+  root,
+  { input: { backupId } },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  if (role !== 'admin') {
+    const rows = await query(sqlClient, Sql.selectPermsForBackup(backupId));
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  await query(sqlClient, Sql.deleteBackup(backupId));
+
+  return 'success';
 };
 
 const deleteAllBackups = async (root, args, { credentials: { role } }) => {
@@ -222,6 +248,7 @@ const getRestoreByBackupId = async (
 const Resolvers /* : ResolversObj */ = {
   addBackup,
   getBackupsByEnvironmentId,
+  deleteBackup,
   deleteAllBackups,
   addRestore,
   getRestoreByBackupId,

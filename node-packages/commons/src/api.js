@@ -189,6 +189,18 @@ const addBackup = (
     },
   );
 
+const deleteBackup = (backupId: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($backupId: String!) {
+    deleteBackup(input: {
+      backupId: $backupId
+    })
+  }
+  `,
+    { backupId },
+  );
+
 const restoreFragment = graphqlapi.createFragment(`
   fragment on Restore {
     id
@@ -211,7 +223,26 @@ const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =
     }
   }
 `,
-    { id, patch },
+    { backupId, patch },
+  );
+
+const getAllEnvironmentBackups = (): Promise<Project[]> =>
+  graphqlapi.query(
+    `
+  {
+    allEnvironments {
+      id
+      name
+      openshiftProjectName
+      project {
+        name
+      }
+      backups {
+        ...${backupFragment}
+      }
+    }
+  }
+`,
   );
 
 const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
@@ -907,7 +938,9 @@ module.exports = {
   getUserBySshKey,
   addUser,
   addBackup,
+  deleteBackup,
   updateRestore,
+  getAllEnvironmentBackups,
   updateUser,
   deleteUser,
   addUserToCustomer,
