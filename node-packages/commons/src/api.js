@@ -214,7 +214,7 @@ const restoreFragment = graphqlapi.createFragment(`
 const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($backupId: Int!, $patch: UpdateRestorePatchInput!) {
+  ($backupId: String!, $patch: UpdateRestorePatchInput!) {
     updateRestore(input: {
       backupId: $backupId
       patch: $patch
