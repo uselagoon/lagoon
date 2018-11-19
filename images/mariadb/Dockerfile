@@ -28,10 +28,6 @@ ENV MARIADB_DATABASE=lagoon \
     MARIADB_PASSWORD=lagoon \
     MARIADB_ROOT_PASSWORD=Lag00n
 
-# fix some environmental items
-RUN mkdir -p /usr/include/bits; mkdir -p /usr/
-COPY root/usr/include/bits/wordsize.h /usr/include/bits/wordsize.h
-
 RUN \
     apk add --no-cache --virtual .common-run-deps \
     bash \
