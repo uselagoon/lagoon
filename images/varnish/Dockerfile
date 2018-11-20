@@ -10,10 +10,6 @@ RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${VERSIO
   ./autogen.sh && ./configure && make && make install
 
 FROM alpine:3.7
-
-COPY --from=vmod /usr/lib/varnish/vmods/libvmod_dynamic.* /usr/lib/varnish/vmods/
-
-
 LABEL maintainer="amazee.io"
 ENV LAGOON=varnish
 
@@ -32,6 +28,9 @@ ENV TMPDIR=/tmp \
     BASH_ENV=/home/.bashrc
 
 RUN apk --no-cache add varnish
+
+# Add varnish mod after the varnish package creates the directory.
+COPY --from=vmod /usr/lib/varnish/vmods/libvmod_dynamic.* /usr/lib/varnish/vmods/
 
 RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
 
