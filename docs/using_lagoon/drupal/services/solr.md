@@ -14,7 +14,7 @@ To implement schema customizations for Solr in your project look to how Lagoon [
     dockerfile: Dockerfile.solr
 ```
 
-*  Place your schema files in your code repo, we typically like to us `.lagoon/solr`
+*  Place your schema files in your code repository, we typically like to us `.lagoon/solr`
 *  Create a Dockerfile.solr
 
 ```
