@@ -1,0 +1,30 @@
+docker-compose-yaml: str()
+
+tasks:
+  post-rollout: list(map(enum('run'),include('run')), required=False)
+  pre-rollout: list(map(str(),include('run')), required=False)
+
+environments: map(include('environment') )
+
+
+---
+run:
+  name: str(required=True)
+  command: str(required=True)
+  service: str(required=True)
+---
+environment:
+  cronjobs: list(include('cron'))
+  routes: list(map(list(str(),map(include('routeitem'))))) #include('routetype')
+---
+routeitem:
+  tls-acme: bool()
+  insecure: enum('Redirect','Allow','None')
+  hsts: str()
+
+---
+cron:
+  name: str(required=True)
+  schedule: str(required=True)
+  command: str(required=True)
+  service: str(required=True)
