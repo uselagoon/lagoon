@@ -50,6 +50,25 @@ do
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
   fi
 
+  # "mariadb" is not a meta service, which allows lagoon to decide itself which of the services to use:
+  # - mariadb-single (a single mariadb pod)
+  # - mariadb-shared (use a mariadb shared service broker)
+  if [ "$SERVICE_TYPE" == "mariadb" ]; then
+    # if there is already a service existing with the service_name we assume that for this project there has been a
+    # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
+    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mariadb-single"
+    else
+      # if this cluster supports shared mariadb service broker, we are using that as a default
+      # if no shared mariadb service broker is available we use the mariadb-single instead
+      if oc get dbaas existing &> /dev/null; then
+        SERVICE_TYPE="mariadb-shared"
+      else
+        SERVICE_TYPE="mariadb-single"
+      fi
+    fi
+  fi
+
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
@@ -609,7 +628,7 @@ do
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
     PVC_NAME=$SERVICE_NAME
-    if [ $SERVICE_TYPE == "mariadb" ]; then
+    if [ $SERVICE_TYPE == "mariadb-single" ]; then
       # mariadb creates PVCs with a `-data` suffix, adding that
       PVC_NAME=${SERVICE_NAME}-data
     fi
