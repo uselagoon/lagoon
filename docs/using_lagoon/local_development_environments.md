@@ -5,6 +5,7 @@ Even though Lagoon has only a hard dependency on Docker and Docker Compose (whic
 - a HTTP Reverse Proxy for nice URLs and HTTPs offloading
 - DNS System so we don't have to remember IP Addresses
 - SSH Agents to use SSH keys within Containers
+- a system that receives and displays mails locally
 
 Lagoon currently works best with `pygmy` which is the amazee.io flavored system of the above tools and works out of the box with Lagoon:
 
