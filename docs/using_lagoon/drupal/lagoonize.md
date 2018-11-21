@@ -1,4 +1,4 @@
-# Step by Step: Lagoonize Drupal
+# Step by Step: Getting Drupal ready to run on Lagoon
 
 ## 1. Lagoon Drupal Setting Files
 
