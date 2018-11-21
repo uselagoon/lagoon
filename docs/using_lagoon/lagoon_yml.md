@@ -204,7 +204,7 @@ environments:
 
 ## Polysite
 
-In Lagoon, the same git repository can be added to multiple projects, creating what is called a Polysite. This allows us to run the same codebase but allow for different, isolated, databases. In `.lagoon.yml` we currently only specifying custom routes for a polysite project. The key difference from a standard project is that the `enviornments` becomes the second-level element, and the project name the top level.
+In Lagoon, the same git repository can be added to multiple projects, creating what is called a Polysite. This allows you to run the same codebase but allow for different, isolated, databases. In `.lagoon.yml` we currently only specifying custom routes for a polysite project. The key difference from a standard project is that the `enviornments` becomes the second-level element, and the project name the top level.
 
 Example:
 
