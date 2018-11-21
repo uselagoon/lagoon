@@ -12,7 +12,7 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 
 Important: Lagoon consists of a lot of Services and Docker Images, building and running them locally might not even be necessary.
-We're using make (see the [Makefile](./Makefile)) in order to only build the needed Docker Images specifically for a part of Lagoon.
+We're using make (see the [Makefile](https://github.com/amazeeio/lagoon/blob/master/Makefile)) in order to only build the needed Docker Images specifically for a part of Lagoon.
 
 All of it is based around tests. So if you like to only build the part that is needed to work on the Node.js deployment, you can run the tests with `make tests/node`, this will then setup (openshift, building images, services) all the needed stuff for the Node.js deployment part.
 
