@@ -608,7 +608,12 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /oc-build-deploy/scripts/exec-openshift-resources.sh
+    PVC_NAME=$SERVICE_NAME
+    if [ $SERVICE_TYPE == "mariadb" ]; then
+      # mariadb creates PVCs with a `-data` suffix, adding that
+      PVC_NAME=${SERVICE_NAME}-data
+    fi
+    . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
   CRONJOB_COUNTER=0
