@@ -4,8 +4,10 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 
 ## Who are you?
 
-- If you want to use Lagoon, visit [Using Lagoon](using_lagoon/index.md)
-- If you want to develop Lagoon, [Developing Lagoon](developing_lagoon/index.md)
+In order to get you started at the right spot, follow one of the links below:
+
+- If you want to use Lagoon to host your Website or Application, visit [Using Lagoon](using_lagoon/index.md)
+- If you want to develop Lagoon (i.e. add features), [Developing Lagoon](developing_lagoon/index.md)
 
 ## TL;DR: How Lagoon Works
 1. Developers define and configure their needed services (like Nginx, PHP, MySQL) within YAML files (like docker-compose.yml) and then test them with docker-compose itself.
