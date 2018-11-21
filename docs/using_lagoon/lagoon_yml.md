@@ -220,11 +220,13 @@ example-project-name:
 ## Specials
 
 #### `api`
+**Note:** If you run directly on amazee.io you will not need this key set.
 
 With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL `api`. This needs to be a full URL with a scheme, like: `http://localhost:3000`
 This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
 
 #### `ssh`
+**Note:** If you run directly on amazee.io you will not need this key set.
 
 With the key `ssh` you can define another SSH endpoing that should be used by `lagu` and `drush` to connect to the Lagoon Remote Shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020`
 This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
