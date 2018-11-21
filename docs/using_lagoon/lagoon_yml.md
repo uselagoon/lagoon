@@ -1,9 +1,10 @@
 # .lagoon.yml file
-The `.lagoon.yml` is used to:
+The `.lagoon.yml` is the central file to setup your project:
 
-* define post rollout tasks
+* define pre-rollout tasks
+* define post-rollout tasks
 * set up SSL certificates
-* add cronjobs for Environments
+* add cronjobs for environments
 * define routes for accessing your sites
 
 The `.lagoon.yml` file must be placed at the root of your git repository.
