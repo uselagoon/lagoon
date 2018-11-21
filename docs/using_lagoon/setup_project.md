@@ -1,6 +1,7 @@
 # Step by Step: Setup a new Project in Lagoon
 
-**NOTE: We are working hard on having a CLI and GraphQL API ready for everybody to setup and configure their projects themselves. We just need a little longer to test it all before making it all live.**
+> **NOTE: We are working hard on getting a CLI and GraphQL API ready for everyone using Lagoon to setup and configure their projects themselves. We just need a little bit longer to test it before making the CLI and API publicly available.**
+
 Until then the setup of a new project involves talking to your Lagoon Administrator. Anyway, they are anyway much friendlier than APIs ;)
 
 Please have the following information ready for your Lagoon Administrator:
