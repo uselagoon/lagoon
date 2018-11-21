@@ -15,6 +15,7 @@ nav:
   - Environment Types: using_lagoon/environment_types.md
   - Docker Images:
     - PHP-FPM: using_lagoon/docker_images/php-fpm.md
+    - Nginx: using_lagoon/docker_images/nginx.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
   - Logging: using_lagoon/logging.md
