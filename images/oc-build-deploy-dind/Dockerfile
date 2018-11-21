@@ -8,6 +8,7 @@ ENV LAGOON=oc-build-deploy-dind
 RUN	mkdir -p /oc-build-deploy/git
 RUN	mkdir -p /oc-build-deploy/tug
 RUN	mkdir -p /oc-build-deploy/lagoon
+RUN	mkdir -p /oc-build-deploy/validator
 
 WORKDIR /oc-build-deploy/git
 
@@ -16,6 +17,7 @@ COPY build-deploy.sh /oc-build-deploy/build-deploy.sh
 COPY build-deploy-docker-compose.sh /oc-build-deploy/build-deploy-docker-compose.sh
 COPY tug.sh /oc-build-deploy/tug.sh
 
+COPY validator /oc-build-deploy/validator
 COPY tug /oc-build-deploy/tug
 COPY scripts /oc-build-deploy/scripts
 
