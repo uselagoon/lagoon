@@ -28,6 +28,7 @@ nav:
       - MariaDB: using_lagoon/drupal/services/mariadb.md
       - Solr: using_lagoon/drupal/services/solr.md
       - Varnish: using_lagoon/drupal/services/varnish.md
+      - Redis: using_lagoon/drupal/services/redis.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
 - Administration:
