@@ -14,7 +14,7 @@ You find these Files [here](https://github.com/amazeeio/lagoon/tree/master/docs/
 
 ### Remark to `.gitignore`
 
-Don't forget to make sure your `.gitignore` will allow you to commit the settings files (Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in .gitignore, remove that, as with Lagoon we don't ever have sensitive information in the Git Repo.)
+Don't forget to make sure your `.gitignore` will allow you to commit the settings files (Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in .gitignore, remove that, as with Lagoon we don't ever have sensitive information in the Git repository.)
 
 ### Remark to Webroot in Drupal 8
 

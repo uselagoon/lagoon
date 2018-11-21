@@ -14,7 +14,7 @@ We suggest that you deploy specific important Branches (like `develop` and `mast
 
 ## 1. Make sure your project is Lagoonized
 
-We assume that your project is already lagoonized, aka that the `.lagoon.yml` and `docker-compose.yml` files are available in your Git Repo and configured accordingly.
+We assume that your project is already lagoonized, this means that the `.lagoon.yml` and `docker-compose.yml` files are available in your Git repository and configured accordingly.
 
 If this is not the case, check out the list of [Step-by-Step Guides](./index.md) on how to do so.
 
