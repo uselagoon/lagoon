@@ -6,7 +6,7 @@ This Dockerfile is intended to be used as base for any webservers within amazee.
 ## amazee.io & OpenShift adaptions
 This image is prepared to be used on amazee.io which leverages OpenShift. There are therefore some things already done:
 
-- Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
+- Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
 - The files within `/etc/nginx/*` are parsed through [envplate](https://github.com/kreuzwerker/envplate) with an container-entrypoint.
 
 ## Included Nginx configuration (static-files.conf)
