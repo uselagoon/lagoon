@@ -1,6 +1,6 @@
 site_name: Lagoon
 
-pages:
+nav:
 - Home: index.md
 - Using Lagoon:
   - Overview: using_lagoon/index.md
