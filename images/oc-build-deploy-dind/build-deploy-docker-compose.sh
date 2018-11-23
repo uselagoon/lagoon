@@ -369,9 +369,6 @@ if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.a
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 0 * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
-  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 3 * * *")
-  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
-
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup/schedule.yml"
   .  /oc-build-deploy/scripts/exec-openshift-resources.sh
 fi
