@@ -13,6 +13,7 @@ nav:
   - Service Types: using_lagoon/service_types.md
   - Build & Deployment Process: using_lagoon/build_deploy_process.md
   - Environment Types: using_lagoon/environment_types.md
+  - Environment Files: using_lagoon/environment_files.md
   - Docker Images:
     - PHP-FPM: using_lagoon/docker_images/php-fpm.md
     - Nginx: using_lagoon/docker_images/nginx.md
