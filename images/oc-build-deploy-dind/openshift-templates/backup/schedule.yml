@@ -46,10 +46,3 @@ objects:
     backup:
       keepJobs: 2
       schedule: '${BACKUP_SCHEDULE}'
-    check:
-      schedule: 0 0 * * 0
-    prune:
-      retention:
-        keepDaily: 7
-        keepWeekly: 4
-      schedule: '${PRUNE_SCHEDULE}'
