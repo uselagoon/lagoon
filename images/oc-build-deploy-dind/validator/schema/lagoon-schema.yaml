@@ -15,12 +15,12 @@ run:
 ---
 environment:
   cronjobs: list(include('cron'))
-  routes: list(map(list(str(),map(include('routeitem'))))) #include('routetype')
+  routes: list(map(list(str(),map(include('routeitem')))), required=False) #include('routetype')
 ---
 routeitem:
-  tls-acme: bool()
+  tls-acme: enum('true','false',bool())
   insecure: enum('Redirect','Allow','None')
-  hsts: str()
+  hsts: str(required=False)
 
 ---
 cron:

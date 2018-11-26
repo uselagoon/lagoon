@@ -1,6 +1,8 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/oc
 
+RUN apk add py2-pip && pip install yamale
+
 # the oc image comes with an HOME=/home which is needed to run as unpriviledged, but oc-build-deploy-dind will run as root
 RUN rm -rf /root && ln -s /home /root
 ENV LAGOON=oc-build-deploy-dind
