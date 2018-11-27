@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { bp, color } from '../../variables';
 
-export default ({activeTab, environment}) => (
+const NavTabs = ({activeTab, environment}) => (
   <ul className='navigation'>
     <li className={`overview ${activeTab == 'overview' ? 'active' : ''}`}>
       <Link href={{ pathname: '/environment', query: { name: environment } }}>
@@ -19,6 +19,11 @@ export default ({activeTab, environment}) => (
         <a>Backups</a>
       </Link>
     </li>
+    {/* <li className={`tasks ${activeTab == 'tasks' ? 'active' : ''}`}>
+      <Link href={{ pathname: '/tasks', query: { name: environment } }}>
+        <a>Tasks</a>
+      </Link>
+    </li>*/}
   <style jsx>{`
     .navigation {
       background: ${color.lightestGrey};
@@ -99,8 +104,19 @@ export default ({activeTab, environment}) => (
             background-image: url('/static/images/backups-active.svg');
           }
         }
+        &.tasks {
+          &::before {
+            background-image: url('/static/images/tasks.svg');
+            background-size: 16px;
+          }
+          &.active::before {
+            background-image: url('/static/images/tasks-active.svg');
+          }
+        }
       }
     }
   `}</style>
   </ul>
 );
+
+export default NavTabs;

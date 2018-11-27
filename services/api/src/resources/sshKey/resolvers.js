@@ -31,6 +31,17 @@ const getCustomerSshKeys = async (root, args, { credentials: { role } }) => {
   return R.map(R.prop('sshKey'), rows);
 };
 
+const getProjectSshKeys = async (root, args, { credentials: { role } }) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+  const rows = await query(
+    sqlClient,
+    Sql.selectAllProjectSshKeys({ credentials: { role } }),
+  );
+  return R.map(R.prop('sshKey'), rows);
+};
+
 const getUserSshKeys = async (
   { id: userId },
   args,
@@ -193,6 +204,7 @@ const removeAllSshKeysFromAllUsers = async (
 
 const Resolvers /* : ResolversObj */ = {
   getCustomerSshKeys,
+  getProjectSshKeys,
   getUserSshKeys,
   addSshKey,
   updateSshKey,

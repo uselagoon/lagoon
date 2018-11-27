@@ -31,3 +31,16 @@ environments:
   branch/env-specific-template:
     templates:
       node: .lagoon.node-env-specific.yml
+
+ci-multiproject1:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject1.com
+ci-multiproject2:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject2.com

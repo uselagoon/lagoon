@@ -117,6 +117,16 @@ CREATE TABLE IF NOT EXISTS environment_backup (
   source                   varchar(300),
   backup_id                varchar(300),
   created                  timestamp,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  UNIQUE KEY `backup_id` (`backup_id`)
+);
+
+CREATE TABLE IF NOT EXISTS backup_restore (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  backup_id                varchar(300),
+  status                   ENUM('pending', 'successful', 'failed') DEFAULT 'pending',
+  restore_location         varchar(300),
+  created                  timestamp DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `backup_id` (`backup_id`)
 );
 
@@ -124,6 +134,7 @@ CREATE TABLE IF NOT EXISTS env_vars (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(300) NOT NULL,
   value       varchar(300) NOT NULL,
+  scope       ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
   environment int NULL REFERENCES environent (id),
   UNIQUE KEY `name_project` (`name`,`project`),

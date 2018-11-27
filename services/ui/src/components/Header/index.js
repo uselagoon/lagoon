@@ -6,7 +6,7 @@ import { color } from '../../variables';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-export default () => (
+const Header = () => (
   <div className='header'>
     <Link href="/">
       <a className="home">
@@ -66,3 +66,5 @@ export default () => (
   `}</style>
   </div>
 );
+
+export default Header;

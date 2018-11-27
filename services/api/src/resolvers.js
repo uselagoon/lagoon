@@ -115,7 +115,11 @@ const {
 const {
   addBackup,
   getBackupsByEnvironmentId,
+  deleteBackup,
   deleteAllBackups,
+  addRestore,
+  getRestoreByBackupId,
+  updateRestore,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -176,6 +180,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   User: {
     sshKeys: getUserSshKeys,
+  },
+  Backup: {
+    restore: getRestoreByBackupId,
   },
   Query: {
     userBySshKey: getUserBySshKey,
@@ -239,7 +246,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deleteDeployment,
     updateDeployment,
     addBackup,
+    deleteBackup,
     deleteAllBackups,
+    addRestore,
+    updateRestore,
     createAllProjectsInKeycloak,
     createAllProjectsInSearchguard,
     resyncCustomersWithSearchguard,

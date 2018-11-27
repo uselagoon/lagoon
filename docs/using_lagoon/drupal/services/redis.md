@@ -78,3 +78,16 @@ if (getenv('LAGOON')){
   }
 }
 ```
+
+### Persistent
+
+Redis can also be configured as a persistent backend.
+
+```
+redis:
+  image: amazeeio/redis-persistent
+  labels:
+    lagoon.type: redis-persistent
+  environment:
+    << : *default-environment
+```

@@ -77,15 +77,15 @@ const Sql /* : SqlObj */ = {
       .whereIn('customer', customerIds)
       .toString(),
   // Returns all users that have access to a project, either directly or indirectly (through customer).
-  selectAllUserForProjectId: (projectId /* : number */) =>
+  selectAllUsersForProjectId: (projectId /* : number */) =>
     knex('user')
       .leftJoin('project_user as pu', 'pu.usid', 'user.id')
       .leftJoin('customer_user as cu', 'cu.usid', 'user.id')
       .leftJoin('project as project_via_customer', 'cu.cid', 'project_via_customer.customer')
-      .leftJoin('projects as project_via_user', 'pu.pid', 'project_via_user.id')
-      .select('user.*')
-      .where('project_via_user', projectId)
-      .where('project_via_customer', projectId)
+      .leftJoin('project as project_via_user', 'pu.pid', 'project_via_user.id')
+      .distinct('user.*')
+      .where('project_via_user.id', projectId)
+      .orWhere('project_via_customer.id', projectId)
       .toString(),
   updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
     knex('project')

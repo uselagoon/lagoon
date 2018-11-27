@@ -47,9 +47,21 @@ const typeDefs = gql`
     ENVIRONMENT
   }
 
+  enum EnvVariableScope {
+    BUILD
+    RUNTIME
+    GLOBAL
+  }
+
   enum TaskStatusType {
     ACTIVE
     SUCCEEDED
+    FAILED
+  }
+
+  enum RestoreStatusType {
+    PENDING
+    SUCCESSFUL
     FAILED
   }
 
@@ -314,8 +326,8 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
-    deployments: [Deployment]
-    backups: [Backup]
+    deployments(name: String): [Deployment]
+    backups(includeDeleted: Boolean): [Backup]
     tasks: [Task]
     services: [EnvironmentService]
   }
@@ -353,6 +365,16 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
+    deleted: String
+    restore: Restore
+  }
+
+  type Restore {
+    id: Int
+    backupId: String
+    status: String
+    restoreLocation: String
+    created: String
   }
 
   type Deployment {
@@ -369,6 +391,7 @@ const typeDefs = gql`
 
   type EnvKeyValue {
     id: Int
+    scope: String
     name: String
     value: String
   }
@@ -492,6 +515,29 @@ const typeDefs = gql`
     created: String!
   }
 
+  input DeleteBackupInput {
+    backupId: String!
+  }
+
+  input AddRestoreInput {
+    id: Int
+    status: RestoreStatusType
+    restoreLocation: String
+    created: String
+    execute: Boolean
+    backupId: String!
+  }
+
+  input UpdateRestoreInput {
+    backupId: String!
+    patch: UpdateRestorePatchInput!
+  }
+
+  input UpdateRestorePatchInput {
+    status: RestoreStatusType
+    created: String
+    restoreLocation: String
+  }
 
   input AddCustomerInput {
     id: Int
@@ -533,8 +579,8 @@ const typeDefs = gql`
   input TaskInput {
     id: Int
     name: String!
-    status: TaskStatusType!
-    created: String!
+    status: TaskStatusType
+    created: String
     started: String
     completed: String
     environment: Int!
@@ -768,6 +814,7 @@ const typeDefs = gql`
     id: Int
     type: EnvVariableType
     typeId: Int!
+    scope: EnvVariableScope
     name: String!
     value: String!
   }
@@ -850,7 +897,10 @@ const typeDefs = gql`
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     addBackup(input: AddBackupInput!): Backup
+    deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
+    addRestore(input: AddRestoreInput!): Restore
+    updateRestore(input: UpdateRestoreInput!): Restore
     createAllProjectsInKeycloak: String
     createAllProjectsInSearchguard: String
     resyncCustomersWithSearchguard: String

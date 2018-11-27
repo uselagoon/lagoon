@@ -34,8 +34,6 @@ const Sql /* : SqlObj */ = {
   selectUsersByProjectId: ({ projectId } /* : { projectId: number } */) =>
     knex('user')
       .join('project_user as pu', 'pu.usid', '=', 'user.id')
-      .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
-      .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
       .select(
         'user.id',
         'user.email',
@@ -43,19 +41,12 @@ const Sql /* : SqlObj */ = {
         'user.last_name',
         'user.comment',
         'user.gitlab_id',
-        'sk.id as ssh_key_id',
-        'sk.name as ssh_key_name',
-        'sk.key_value as ssh_key_value',
-        'sk.key_type as ssh_key_type',
-        'sk.created as ssh_key_created',
       )
       .where('pu.pid', projectId)
       .toString(),
   selectUsersByCustomerId: ({ customerId } /* : { customerId: number } */) =>
     knex('user')
       .join('customer_user as cu', 'cu.usid', '=', 'user.id')
-      .join('user_ssh_key as usk', 'usk.usid', '=', 'user.id')
-      .join('ssh_key as sk', 'sk.id', '=', 'usk.skid')
       .select(
         'user.id',
         'user.email',
@@ -63,11 +54,6 @@ const Sql /* : SqlObj */ = {
         'user.last_name',
         'user.comment',
         'user.gitlab_id',
-        'sk.id as ssh_key_id',
-        'sk.name as ssh_key_name',
-        'sk.key_value as ssh_key_value',
-        'sk.key_type as ssh_key_type',
-        'sk.created as ssh_key_created',
       )
       .where('cu.cid', customerId)
       .toString(),

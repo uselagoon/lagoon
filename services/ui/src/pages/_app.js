@@ -212,4 +212,6 @@ class MyApp extends App {
   }
 }
 
+MyApp.displayName = 'withAuth(MyApp)';
+
 export default withAuth(MyApp);

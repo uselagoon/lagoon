@@ -1,8 +1,10 @@
 import Header from '../components/Header'
 
-export default ({ children }) => (
+const Page = ({ children }) => (
   <React.Fragment>
     <Header />
     { children }
   </React.Fragment>
 )
+
+export default Page;

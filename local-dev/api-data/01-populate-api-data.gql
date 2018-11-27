@@ -514,6 +514,30 @@ mutation PopulateApi {
     id
   }
 
+  CIFeaturesEnvVars5: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 12
+      name: "LAGOON_API_VARIABLE_BUILD"
+      value: "AEF177FCF4"
+      scope: BUILD
+    }
+  ) {
+    id
+  }
+
+  CIFeaturesEnvVars6: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 12
+      name: "LAGOON_API_VARIABLE_RUNTIME"
+      value: "90AEC657F8"
+      scope: RUNTIME
+    }
+  ) {
+    id
+  }
+
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
       project: "ci-features"
@@ -726,6 +750,14 @@ mutation PopulateApi {
     id
   }
 
+  UIProject1Environment1Backup1Restore: addRestore(
+    input: {
+      backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280d"
+    }
+  ) {
+    id
+  }
+
   UIProject1Environment1Backup2: addBackup(
     input: {
       environment: 3
@@ -737,12 +769,31 @@ mutation PopulateApi {
     id
   }
 
+  UIProject1Environment1Backup2Restore: addRestore(
+    input: {
+      backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f"
+      status: SUCCESSFUL
+      restoreLocation: "/restore/e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f/files.gz"
+    }
+  ) {
+    id
+  }
+
   UIProject1Environment1Backup3: addBackup(
     input: {
       environment: 3
       source: "files"
       backupId: "e260f07c374e4a3319c5d46e688dab6f1eb23c3e61c166a37609d55762d2ee0b"
       created: "2018-10-13 00:33:16"
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1Backup3Restore: addRestore(
+    input: {
+      backupId: "e260f07c374e4a3319c5d46e688dab6f1eb23c3e61c166a37609d55762d2ee0b"
+      status: FAILED
     }
   ) {
     id

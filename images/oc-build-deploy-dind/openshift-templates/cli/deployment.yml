@@ -58,6 +58,8 @@ objects:
         type: ${DEPLOYMENT_STRATEGY}
       template:
         metadata:
+          annotations:
+            appuio.ch/backupcommand: mysqldump --all-databases -h $MARIADB_HOST -u $MARIADB_USERNAME -p$MARIADB_PASSWORD
           creationTimestamp: null
           labels:
             service: ${SERVICE_NAME}

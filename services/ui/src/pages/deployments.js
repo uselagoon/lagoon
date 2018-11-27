@@ -6,9 +6,8 @@ import gql from 'graphql-tag';
 import Page from '../layouts/main';
 import Breadcrumbs from '../components/Breadcrumbs';
 import NavTabs from '../components/NavTabs';
-import DeploymentData from '../components/Deployments';
+import Deployments from '../components/Deployments';
 import Deployment from '../components/Deployment';
-import moment from 'moment';
 import { bp, color, fontSize } from '../variables';
 
 const query = gql`
@@ -18,24 +17,9 @@ const query = gql`
     ) {
       id
       name
-      created
-      updated
-      deployType
-      environmentType
-      routes
       openshiftProjectName
       project {
         name
-      }
-      deployments {
-        id
-        name
-        status
-        created
-        started
-        remoteId
-        completed
-        buildLog
       }
     }
   }
@@ -68,23 +52,6 @@ const PageDeployments = withRouter(props => {
             }
           ];
 
-          const deployments = environment.deployments.map(deployment => {
-            const deploymentStart = deployment.started || deployment.created;
-            const durationStart =
-              (deploymentStart && moment.utc(deploymentStart)) || moment.utc();
-            const durationEnd =
-              (deployment.completed && moment.utc(deployment.completed)) ||
-              moment.utc();
-            const duration = moment
-              .duration(durationEnd - durationStart)
-              .format('HH[hr] mm[m] ss[sec]');
-
-            return {
-              ...deployment,
-              duration
-            };
-          });
-
           return (
             <React.Fragment>
               <Breadcrumbs breadcrumbs={breadcrumbs} />
@@ -94,22 +61,16 @@ const PageDeployments = withRouter(props => {
                   environment={environment.openshiftProjectName}
                 />
                 {!props.router.query.build && (
-                  <DeploymentData
+                  <Deployments
                     projectName={environment.openshiftProjectName}
-                    deployments={deployments}
                   />
                 )}
-                {props.router.query.build &&
-                  deployments
-                    .filter(
-                      deployment => deployment.name === props.router.query.build
-                    )
-                    .map(deployment => (
-                      <Deployment
-                        key={deployment.name}
-                        deployment={deployment}
-                      />
-                    ))}
+                {props.router.query.build && (
+                  <Deployment
+                    projectName={environment.openshiftProjectName}
+                    deploymentName={props.router.query.build}
+                  />
+                )}
               </div>
               <style jsx>{`
                 .content-wrapper {
@@ -126,5 +87,7 @@ const PageDeployments = withRouter(props => {
     </Page>
   );
 });
+
+PageDeployments.displayName = 'withRouter(PageDeployments)';
 
 export default PageDeployments;

@@ -1,6 +1,7 @@
 // @flow
 
 const R = require('ramda');
+const getFieldNames = require('graphql-list-fields');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const {
@@ -68,13 +69,14 @@ const injectBuildLog = async deployment => {
 
 const getDeploymentsByEnvironmentId = async (
   { id: eid },
-  args,
+  { name },
   {
     credentials: {
       role,
       permissions: { customers, projects },
     },
   },
+  info,
 ) => {
   const prep = prepare(
     sqlClient,
@@ -93,7 +95,24 @@ const getDeploymentsByEnvironmentId = async (
 
   const rows = await query(sqlClient, prep({ eid }));
 
-  return rows.map(row => injectBuildLog(row));
+  const requestedFields = getFieldNames(info);
+
+  return rows.filter(row => {
+    if (R.isNil(name) || R.isEmpty(name)) {
+      return true;
+    }
+
+    return row.name === name;
+  }).map(row => {
+    if (R.contains('buildLog', requestedFields)) {
+      return injectBuildLog(row);
+    }
+
+    return {
+      ...row,
+      buildLog: null,
+    };
+  });
 };
 
 const getDeploymentByRemoteId = async (

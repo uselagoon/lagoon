@@ -7,6 +7,7 @@ import type {
   ProjectPatch,
   DeploymentPatch,
   TaskPatch,
+  RestorePatch,
 } from './types';
 
 const { Lokka } = require('lokka');
@@ -186,6 +187,62 @@ const addBackup = (
       backupId,
       created,
     },
+  );
+
+const deleteBackup = (backupId: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($backupId: String!) {
+    deleteBackup(input: {
+      backupId: $backupId
+    })
+  }
+  `,
+    { backupId },
+  );
+
+const restoreFragment = graphqlapi.createFragment(`
+  fragment on Restore {
+    id
+    status
+    created
+    restoreLocation
+    backupId
+  }
+  `);
+
+const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($backupId: String!, $patch: UpdateRestorePatchInput!) {
+    updateRestore(input: {
+      backupId: $backupId
+      patch: $patch
+    }) {
+      ...${restoreFragment}
+    }
+  }
+`,
+    { backupId, patch },
+  );
+
+const getAllEnvironmentBackups = (): Promise<Project[]> =>
+  graphqlapi.query(
+    `
+  {
+    allEnvironments {
+      id
+      name
+      openshiftProjectName
+      project {
+        name
+      }
+      backups {
+        ...${backupFragment}
+      }
+    }
+  }
+`,
   );
 
 const updateCustomer = (id: number, patch: CustomerPatch): Promise<Object> =>
@@ -648,6 +705,7 @@ const addOrUpdateEnvironment = (
       envVariables {
         name
         value
+        scope
       }
     }
   }
@@ -714,6 +772,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         envVariables {
           name
           value
+          scope
         }
       }
     }
@@ -879,6 +938,9 @@ module.exports = {
   getUserBySshKey,
   addUser,
   addBackup,
+  deleteBackup,
+  updateRestore,
+  getAllEnvironmentBackups,
   updateUser,
   deleteUser,
   addUserToCustomer,

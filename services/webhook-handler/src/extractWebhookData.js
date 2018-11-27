@@ -74,6 +74,30 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       webhooktype = 'resticbackup';
       event = 'snapshot:finished'
       uuid = uuid4();
+    } else if (R.allPass([ R.is(Array), R.compose(R.not(), R.isEmpty()), R.compose(R.has('hostname'), R.prop(0)) ])(bodyObj)) {
+      // Check for a body that matches
+      // [
+      //   {
+      //       "id": "80b698920f97e36616f638cb59c379787967ff45416c9ba23c1807e4e0703414",
+      //       "time": "2018-11-12T04:16:28.320904074Z",
+      //       "tree": "e100116d5477c1746402649fde5219ae506a8d6605ed2600f6ada5dd340b5c23",
+      //       "paths": [
+      //           "/data/solr"
+      //       ],
+      //       "hostname": "ci-local",
+      //       "username": "",
+      //       "uid": 0,
+      //       "gid": 0,
+      //       "tags": null
+      //   }
+      // ]
+      webhooktype = 'resticbackup';
+      event = 'snapshot:pruned'
+      uuid = uuid4();
+    } else if (bodyObj.restore_location) {
+      webhooktype = 'resticbackup';
+      event = 'restore:finished';
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }

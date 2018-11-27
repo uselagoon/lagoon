@@ -315,6 +315,7 @@ services :=       api \
 									openshiftbuilddeploymonitor \
 									openshiftjobs \
 									openshiftjobsmonitor \
+									openshiftmisc \
 									openshiftremove \
 									rest2tasks \
 									webhook-handler \
@@ -333,7 +334,10 @@ services :=       api \
 									keycloak-db \
 									ui
 
-service-images += $(services)
+services-galera := 	api-db-galera \
+										keycloak-db-galera
+
+service-images += $(services) $(services-galera)
 
 build-services = $(foreach image,$(services),build/$(image))
 
@@ -343,16 +347,24 @@ $(build-services):
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
 	touch $@
 
+build-services-galera = $(foreach image,$(services-galera),build/$(image))
+
+$(build-services-galera):
+	$(eval image = $(subst build/,,$@))
+	$(eval service = $(subst -galera,,$(image)))
+	$(call docker_build,$(image),services/$(service)/Dockerfile-galera,services/$(service))
+	touch $@
+
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash
 build/logs-db: build/elasticsearch
 build/logs-db-ui: build/kibana
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
-build/api-db: build/mariadb
-build/keycloak-db: build/mariadb
+build/api-db build/keycloak-db: build/mariadb
+build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
