@@ -20,6 +20,7 @@ COPY build-deploy-docker-compose.sh /oc-build-deploy/build-deploy-docker-compose
 COPY tug.sh /oc-build-deploy/tug.sh
 
 COPY validator /oc-build-deploy/validator
+RUN chmod 555 /oc-build-deploy/validator/validate /oc-build-deploy/validator/validate-schema
 COPY tug /oc-build-deploy/tug
 COPY scripts /oc-build-deploy/scripts
 
