@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import yamale
-schema = yamale.make_schema('/oc-build-deploy/validator/schema/lagoon-schema.yaml')
+schema = yamale.make_schema('/oc-build-deploy/validator/config/lagoon-schema.yaml')
 
 # Create a Data object
 data = yamale.make_data('.lagoon.yml')
