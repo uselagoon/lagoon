@@ -1,0 +1,9 @@
+replicaCount: 1
+image:
+  repository: myregistry.azurecr.io/settingsdemo
+  pullPolicy: Alway
+service:
+  name: settingsDemoService
+  type: LoadBalancer
+  externalPort: 80
+  internalPort: 80

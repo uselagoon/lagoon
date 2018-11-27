@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      protocol: TCP
+      name: control
+      port: 6082
+      protocol: TCP
+      targetPort: 6082
+  selector:
+    service: ${SERVICE_NAME}
+  selector:
+    app: {{ template "name" . }}
+    release: {{ .Release.Name }}

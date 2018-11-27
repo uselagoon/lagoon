@@ -1,0 +1,52 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol : TCP
+          livenessProbe:
+            httpGet:
+              path: /varnish_status
+              port: 8080
+            initialDelaySeconds: 100
+            timeoutSeconds: 3
+            failureThreshold: 5
+          envFrom:
+            - configMapRef:
+                name: lagoon-env 
+          env:
+            - name: SERVICE_NAME       
+              value: ${SERVICE_NAME}
+            - name: CRONJOBS
+              value: ${CRONJOBS}
+
+          readinessProbe:
+            httpGet:
+              path: /varnish_status
+              port: 8080
+            initialDelaySeconds: 100
+            timeoutSeconds: 3
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}

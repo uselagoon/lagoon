@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "SettingsDemoChart.fullname" . }}
+  labels:
+    app: {{ template "SettingsDemoChart.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "SettingsDemoChart.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.internalPort }}
+		  env:
+		  - name: ServiceBus__Url
+		   	value: {{ .Values.settingsDemo.serviceBus__Url | quote }}  
+		  - name: ServiceBus__Key
+			value: {{ .Values.settingsDemo.serviceBus__Key | quote }}
+		  - name: Database__ConnectionString
+			value: {{ .Values.settingsDemo.database__ConnectionString | quote }}
+		  - name: ExtraSettingNotInSettingsFile
+			value: {{ .Values.settingsDemo.extraSettingNotInSettingsFile | quote }}
