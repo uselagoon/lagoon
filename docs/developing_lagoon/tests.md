@@ -41,7 +41,7 @@ This will build all Images, start an OpenShift and run all tests
 
 ## 3. Real World Testing
 
-To make sure that our services also work in the real work (eg deployed on OpenShift with real URLs, real git repositories and stuff), we also have tests for this. Currently we only deploy the `develop` and `master` branches to a real OpenShift infrastructure.
+To make sure that our services also work in the real world (eg deployed on OpenShift with real URLs, real git repositories and stuff), we also have tests for this. Currently we only deploy the `develop` and `master` branches to a real OpenShift infrastructure.
 
 For these tests we use the exact same Ansible scripts like the local or the automated testing, we just push to an actual Github repository https://github.com/amazeeio-ci-testing and send webhooks to the webhook-handler that are running OpenShift.
 

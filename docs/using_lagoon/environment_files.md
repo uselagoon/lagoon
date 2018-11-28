@@ -1,6 +1,6 @@
 #Environment Files
 
-It is commond to store API Tokens or credentials for applications in environment variables.
+It is common to store API Tokens or credentials for applications in environment variables.
 Following best practices those credentials are different per environment. We allow each environment to use a seperate
 set of environment variables defined in Environment Files
 
