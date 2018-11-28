@@ -26,18 +26,6 @@ tasks:
         command: env
         service: cli
     - run:
-        name: IF no Drupal installed drush si with no email sending
-        command: |
-            if ! drush status --fields=bootstrap | grep -q "Successful"; then
-                # no drupal installed, we install drupal from scratch
-                drush -y si
-            else
-                # drupal already installed, do nothing
-                echo "drupal already installed"
-            fi
-        service: cli
-        shell: bash
-    - run:
         name: drush cim
         command: drush -y cim
         service: cli
