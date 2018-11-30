@@ -442,16 +442,24 @@ oc process --local --insecure-skip-tls-verify \
 
 # Add environment variables from lagoon API
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-  oc patch --insecure-skip-tls-verify \
-    -n ${OPENSHIFT_PROJECT} \
-    configmap lagoon-env \
-    -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
+
+  if [ ! "$HAS_PROJECT_RUNTIME_VARS" = "[]" ]; then
+    oc patch --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      configmap lagoon-env \
+      -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  fi
 fi
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  oc patch --insecure-skip-tls-verify \
-    -n ${OPENSHIFT_PROJECT} \
-    configmap lagoon-env \
-    -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  HAS_ENVIRONMENT_RUNTIME_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
+
+  if [ ! "$HAS_ENVIRONMENT_RUNTIME_VARS" = "[]" ]; then
+    oc patch --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      configmap lagoon-env \
+      -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  fi
 fi
 
 if [ "$TYPE" == "pullrequest" ]; then
