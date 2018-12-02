@@ -58,6 +58,8 @@ objects:
       type: ${DEPLOYMENT_STRATEGY}
     template:
       metadata:
+        annotations:
+          appuio.ch/backupcommand: /bin/sh -c "mysqldump --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases"
         creationTimestamp: null
         labels:
           service: ${SERVICE_NAME}
