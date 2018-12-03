@@ -86,16 +86,7 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
             source: newBackup.source
           };
         } catch (error) {
-          sendToLagoonLogs(
-            'error',
-            '',
-            uuid,
-            `${webhooktype}:${event}:error`,
-            {
-              data: body
-            },
-            `Could not create backup, reason: ${error}`
-          );
+          // No error logging for now
         }
       }
     }
