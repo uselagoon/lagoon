@@ -240,21 +240,31 @@ const updateTask = async (
 const taskDrushArchiveDump = async (
   root,
   {
-    environment,
+    environment: environmentId,
   },
   {
     credentials,
   },
 ) => {
-  await envValidators.environmentExists(environment);
-  await envValidators.userAccessEnvironment(credentials, environment);
-  await envValidators.environmentHasService(environment, 'cli');
+  await envValidators.environmentExists(environmentId);
+  await envValidators.userAccessEnvironment(credentials, environmentId);
+  await envValidators.environmentHasService(environmentId, 'cli');
+
+  const environment = await environmentHelpers.getEnvironmentById(environmentId);
+  const filename = `drupal-${Date.now()}-${Math.floor(Math.random() * 998) + 1}.tar.gz`;
+  const command = String.raw`drush status --format=yaml | \
+grep '%files' | \
+awk '{print $2}' | \
+xargs -I_path drush ard --pipe --destination=_path/private/${filename} | \
+xargs -I_file -- printf 'Your archive has been saved to _file.\nYou can download it by running "drush rsync @${
+    environment.name
+  }:_file ./".'`;
 
   const taskData = await Helpers.addTask({
     name: 'Drush archive-dump',
-    environment,
+    environment: environmentId,
     service: 'cli',
-    command: 'drush archive-dump',
+    command,
     execute: true,
   });
 
