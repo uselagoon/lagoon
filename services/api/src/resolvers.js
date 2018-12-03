@@ -27,6 +27,9 @@ const {
   addTask,
   deleteTask,
   updateTask,
+  taskDrushArchiveDump,
+  taskDrushSqlSync,
+  taskDrushRsyncFiles,
 } = require('./resources/task/resolvers');
 
 const {
@@ -257,6 +260,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
+    taskDrushArchiveDump,
+    taskDrushSqlSync,
+    taskDrushRsyncFiles,
     deleteTask,
     updateTask,
     setEnvironmentServices,

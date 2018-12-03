@@ -908,6 +908,15 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
+    taskDrushArchiveDump(environment: Int!): Task
+    taskDrushSqlSync(
+      sourceEnvironment: Int!
+      destinationEnvironment: Int!
+    ): Task
+    taskDrushRsyncFiles(
+      sourceEnvironment: Int!
+      destinationEnvironment: Int!
+    ): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
