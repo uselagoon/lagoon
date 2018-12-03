@@ -31,8 +31,10 @@ SERVICEBROKERS=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
+declare -A MAP_SERVICEBROKERS_NAMES
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
+
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
   # The name of the service can be overridden, if not we use the actual servicename
@@ -50,7 +52,7 @@ do
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
   fi
 
-  # "mariadb" is not a meta service, which allows lagoon to decide itself which of the services to use:
+  # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
   # - mariadb-single (a single mariadb pod)
   # - mariadb-shared (use a mariadb shared service broker)
   if [ "$SERVICE_TYPE" == "mariadb" ]; then
@@ -59,12 +61,33 @@ do
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     else
-      # if this cluster supports shared mariadb service broker, we are using that as a default
-      # if no shared mariadb service broker is available we use the mariadb-single instead
-      if oc get dbaas existing &> /dev/null; then
-        SERVICE_TYPE="mariadb-shared"
+      # Load the name of the mariadb shared servicebroker that should be used, default is `appuio-dbaas-mariadb-apb`
+      MARIADB_SHARED_NAME_DEFAULT="appuio-dbaas-mariadb-apb"
+      MARIADB_SHARED_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.name default)
+
+      # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
+      ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.name false)
+      if [ ! $ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE == "false" ]; then
+        MARIADB_SHARED_NAME=$ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE
+      fi
+
+      # If the default mariadb was given we check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
+      if [[ $MARIADB_SHARED_NAME == "default" ]]; then
+        if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName --no-headers | grep -q $MARIADB_SHARED_NAME_DEFAULT; then
+          SERVICE_TYPE="mariadb-shared"
+          MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME_DEFAULT}"
+        else
+          SERVICE_TYPE="mariadb-single"
+        fi
       else
-        SERVICE_TYPE="mariadb-single"
+        # if the developer has defined a mariadb-shared, we assume that they expected that one to exist and so we fail
+        if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName --no-headers | grep -q $MARIADB_SHARED_NAME; then
+          SERVICE_TYPE="mariadb-shared"
+          MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
+        else
+          echo "defined mariadb-shared for service '$SERVICE_NAME' with name '$MARIADB_SHARED_NAME' not found in cluster";
+          exit 1
+        fi
       fi
     fi
   fi
@@ -293,6 +316,7 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_NAME="${MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]}")
     .  /oc-build-deploy/scripts/exec-openshift-resources.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
