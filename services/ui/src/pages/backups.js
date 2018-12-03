@@ -6,6 +6,7 @@ import gql from 'graphql-tag';
 import Page from '../layouts/main'
 import Breadcrumbs from '../components/Breadcrumbs';
 import NavTabs from '../components/NavTabs';
+import RestoreButton from '../components/RestoreButton';
 import moment from 'moment';
 import { bp, color, fontSize } from '../variables';
 
@@ -30,10 +31,16 @@ const query = gql`
       	source
         backupId
         created
+        restore {
+          id
+          status
+          restoreLocation
+        }
       }
     }
   }
 `;
+
 const PageBackups = withRouter((props) => {
   return (
     <Page>
@@ -82,7 +89,7 @@ const PageBackups = withRouter((props) => {
                             {backup.backupId}
                           </div>
                           <div className="download">
-                            <button>Download</button>
+                            <RestoreButton backup={backup} className="restore-action" />
                           </div>
                         </div>
                       )
@@ -91,6 +98,17 @@ const PageBackups = withRouter((props) => {
                 </div>
               </div>
               <style jsx>{`
+                :global(.restore-action) {
+                  background-color: ${color.lightestGrey};
+                  border: none;
+                  border-radius: 20px;
+                  color: ${color.darkGrey};
+                  font-family: 'source-code-pro', sans-serif;
+                  ${fontSize(13)};
+                  padding: 3px 20px 2px;
+                  text-transform: uppercase;
+                  white-space: nowrap;
+                }
                 .content-wrapper {
                   @media ${bp.tabletUp} {
                     display: flex;
@@ -145,10 +163,6 @@ const PageBackups = withRouter((props) => {
                     border-radius: 3px;
                     box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
                     .data-row {
-                      background-image: url('/static/images/right-arrow.svg');
-                      background-position: right 20px center;
-                      background-repeat: no-repeat;
-                      background-size: 18px 11px;
                       border: 1px solid ${color.white};
                       border-bottom: 1px solid ${color.lightestGrey};
                       border-radius: 0;
@@ -157,7 +171,7 @@ const PageBackups = withRouter((props) => {
                       @media ${bp.wideUp} {
                         display: flex;
                         justify-content: space-between;
-                        padding-right: 40px;
+                        padding-right: 15px;
                       }
                       & > div {
                         padding-left: 20px;
@@ -166,29 +180,16 @@ const PageBackups = withRouter((props) => {
                         }
                         @media ${bp.wideUp} {
                           &.source {
-                            width: 15%;
-                            @media ${bp.extraWideUp} {
-                              width: 10%;
-                            }
+                            width: 10%;
                           }
                           &.created {
-                            width: 25%;
-                            @media ${bp.extraWideUp} {
-                              width: 20%;
-                            }
+                            width: 20%;
                           }
                           &.download {
                             align-self: center;
-                            width: 15%;
-                            button {
-                              background-color: ${color.lightestGrey};
-                              border: none;
-                              border-radius: 20px;
-                              color: ${color.darkGrey};
-                              font-family: 'source-code-pro', sans-serif;
-                              ${fontSize(13)};
-                              padding: 3px 20px 2px;
-                              text-transform: uppercase;
+                            width: 25%;
+                            @media ${bp.extraWideUp} {
+                              width: 20%;
                             }
                           }
                         }
@@ -200,7 +201,7 @@ const PageBackups = withRouter((props) => {
                             width: 45%;
                           }
                           @media ${bp.extraWideUp} {
-                            width: 55%;
+                            width: 50%;
                           }
                         }
                       }

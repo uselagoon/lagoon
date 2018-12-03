@@ -362,6 +362,20 @@ else
   done
 fi
 
+# If restic backups are supported by this cluster we create the schedule definition
+if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
+  TEMPLATE_PARAMETERS=()
+
+  BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 0 * * *")
+  TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
+
+  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 3 * * *")
+  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
+
+  OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup/schedule.yml"
+  .  /oc-build-deploy/scripts/exec-openshift-resources.sh
+fi
+
 if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
@@ -594,7 +608,12 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    .  /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
+    PVC_NAME=$SERVICE_NAME
+    if [ $SERVICE_TYPE == "mariadb" ]; then
+      # mariadb creates PVCs with a `-data` suffix, adding that
+      PVC_NAME=${SERVICE_NAME}-data
+    fi
+    . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
   CRONJOB_COUNTER=0

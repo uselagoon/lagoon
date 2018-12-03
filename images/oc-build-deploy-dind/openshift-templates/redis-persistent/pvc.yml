@@ -33,7 +33,7 @@ parameters:
     required: true
   - name: PERSISTENT_STORAGE_PATH
     description: Full path to which should be mounted into persistent storage
-    required: true
+    value: "/data"
   - name: PERSISTENT_STORAGE_CLASS
     description: Name of the Storage Class to use
     value: "bulk"

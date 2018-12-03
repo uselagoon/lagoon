@@ -2,63 +2,123 @@
 
 const moment = require('moment');
 
-const {
-  sendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   addBackup,
-  getEnvironmentByOpenshiftProjectName
+  getAllEnvironmentBackups
 } = require('@lagoon/commons/src/api');
 const R = require('ramda');
 
-import type {
-  WebhookRequestData
-} from '../types';
+import type { WebhookRequestData } from '../types';
+
+const saveSnapshotAsBackup = async (snapshot, environmentId) => {
+  const hostname = R.prop('hostname', snapshot);
+  const backupId = R.prop('id', snapshot);
+  // mariadb expects a specific timeformat of 'YYYY-MM-DD HH:mm:ss'
+  const created = moment(R.prop('time', snapshot)).format(
+    'YYYY-MM-DD HH:mm:ss'
+  );
+
+  // Determine source from the snapshot path. If the path contains 'stdin',
+  // assume it was a mysql dump. Otherwise the path should be in the format
+  // '/data/nginx' or '/data/solr', where the source is after '/data/'.
+  let source;
+  const paths = R.prop('paths', snapshot);
+  const pattern = /(stdin)|^\/data\/(\w+)/;
+  if (R.isEmpty(paths)) {
+    source = 'unknown';
+  } else {
+    const path = R.head(paths);
+    if (!R.test(pattern, path)) {
+      source = 'unknown';
+    } else {
+      const matches = R.match(pattern, path);
+      source = R.isNil(R.prop(1, matches)) ? R.prop(2, matches) : 'mysql';
+    }
+  }
+
+  return addBackup(null, environmentId, source, backupId, created);
+};
 
 async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
-  const {
-    webhooktype,
-    event,
-    uuid,
-    body
-  } = webhook;
+  const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const environmentName = R.prop('name', body);
-    const currentSnapshot = R.compose(R.last, R.prop('snapshots'))(body)
-    const hostname = R.prop('hostname', currentSnapshot);
-    const backupId = R.prop('id', currentSnapshot);
-    // mariadb expects a specific timeformat of 'YYYY-MM-DD HH:mm:ss'
-    const created = moment(R.prop('time', currentSnapshot)).format('YYYY-MM-DD HH:mm:ss');
-    const environment = await getEnvironmentByOpenshiftProjectName(environmentName);
+    // Get a list of all environments and their existing backups.
+    const allEnvironmentsResult = await getAllEnvironmentBackups();
+    const allEnvironments = R.prop('allEnvironments', allEnvironmentsResult)
+    const existingBackupIds = R.pipe(
+      R.map(env => env.backups),
+      R.flatten(),
+      R.map(backup => backup.backupId)
+    )(allEnvironments);
 
-    // Hostname can be two different type of things:
-    // 1. The same as the environmentName which means that all files are backed up there
-    // 2. Ending with a suffix like `projectname-mariadb` in which case the backup contains the `mariadb` backup
-    let source;
-    if (hostname == environmentName) {
-      source = 'files';
-    } else {
-      source = hostname.replace(`${environmentName}-`,'');
+    // The webhook contains all existing and new snapshots made for all
+    // environments. Filter out snapshots that have already been recorded and
+    // group remaining (new) by hostname.
+    const incomingSnapshots = R.prop('snapshots', body);
+    const newSnapshots = R.pipe(
+      R.reject(snapshot => R.contains(snapshot.id, existingBackupIds)),
+      // Remove '-cli' suffix from hostnames.
+      R.map(R.over(R.lensProp('hostname'), R.replace(/-cli$/, ''))),
+      R.groupBy(snapshot => snapshot.hostname),
+      R.toPairs()
+    )(incomingSnapshots);
+
+    for (const [hostname, snapshots] of newSnapshots) {
+      const environment = R.find(R.propEq('openshiftProjectName', hostname), allEnvironments);
+
+      if (!environment) {
+        sendToLagoonLogs(
+          'error',
+          '',
+          uuid,
+          `${webhooktype}:${event}:error`,
+          {
+            data: body
+          },
+          `Could not create backups, reason: No environment found for hostname "${hostname}"`
+        );
+        continue;
+      }
+
+      for (const snapshot of snapshots) {
+        try {
+          const newBackupResult = await saveSnapshotAsBackup(
+            snapshot,
+            environment.id
+          );
+          const newBackup = R.prop('addBackup', newBackupResult);
+          const meta = {
+            data: newBackup,
+            backupId: newBackup.backupId,
+            project: environment.project.name,
+            source: newBackup.source
+          };
+          sendToLagoonLogs(
+            'info',
+            '',
+            uuid,
+            `${webhooktype}:${event}:imported`,
+            meta,
+            `Created backup ${
+              newBackup.backupId
+            } for environment ${environment.name}`
+          );
+        } catch (error) {
+          sendToLagoonLogs(
+            'error',
+            '',
+            uuid,
+            `${webhooktype}:${event}:error`,
+            {
+              data: body
+            },
+            `Could not create backup, reason: ${error}`
+          );
+        }
+      }
     }
-
-    const meta = {
-      data: currentSnapshot,
-      backupId: backupId,
-      project: environment.environmentByOpenshiftProjectName.project.name,
-      source: source
-    };
-
-    await addBackup(null, environment.environmentByOpenshiftProjectName.id, source, backupId, created);
-
-    sendToLagoonLogs(
-      'info',
-      '',
-      uuid,
-      `${webhooktype}:${event}:imported`,
-      meta,
-      `Created backup ${backupId} for environment ${environmentName}`
-    );
 
     return;
   } catch (error) {
@@ -66,10 +126,11 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
       'error',
       '',
       uuid,
-      `${webhooktype}:${event}:error`, {
+      `${webhooktype}:${event}:error`,
+      {
         data: body
       },
-      `Could not create backup, reason: ${error}`
+      `Could not sync snapshots, reason: ${error}`
     );
 
     return;
