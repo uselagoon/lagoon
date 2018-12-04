@@ -93,6 +93,10 @@ objects:
               key: autoscaled
               operator: Equal
               value: 'true'
+            - effect: NoSchedule
+              key: appuio.ch/autoscaled
+              operator: Equal
+              value: 'true'
           volumes:
             - name: ${SERVICE_NAME}
               persistentVolumeClaim:

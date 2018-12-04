@@ -1,6 +1,6 @@
 site_name: Lagoon
 
-pages:
+nav:
 - Home: index.md
 - Using Lagoon:
   - Overview: using_lagoon/index.md
@@ -13,21 +13,24 @@ pages:
   - Service Types: using_lagoon/service_types.md
   - Build & Deployment Process: using_lagoon/build_deploy_process.md
   - Environment Types: using_lagoon/environment_types.md
+  - Environment Files: using_lagoon/environment_files.md
   - Docker Images:
     - PHP-FPM: using_lagoon/docker_images/php-fpm.md
+    - Nginx: using_lagoon/docker_images/nginx.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
   - Logging: using_lagoon/logging.md
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
-    - Lagoonize: using_lagoon/drupal/lagoonize.md
+    - Getting Drupal ready to run on Lagoon: using_lagoon/drupal/lagoonize.md
     - First Deployment: using_lagoon/drupal/first_deployment.md
     - Drush 9: using_lagoon/drupal/drush9.md
     - Services:
       - MariaDB: using_lagoon/drupal/services/mariadb.md
       - Solr: using_lagoon/drupal/services/solr.md
       - Varnish: using_lagoon/drupal/services/varnish.md
+      - Redis: using_lagoon/drupal/services/redis.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
 - Administration:

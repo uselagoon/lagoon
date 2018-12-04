@@ -69,16 +69,6 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
       const environment = R.find(R.propEq('openshiftProjectName', hostname), allEnvironments);
 
       if (!environment) {
-        sendToLagoonLogs(
-          'error',
-          '',
-          uuid,
-          `${webhooktype}:${event}:error`,
-          {
-            data: body
-          },
-          `Could not create backups, reason: No environment found for hostname "${hostname}"`
-        );
         continue;
       }
 
@@ -95,27 +85,8 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
             project: environment.project.name,
             source: newBackup.source
           };
-          sendToLagoonLogs(
-            'info',
-            '',
-            uuid,
-            `${webhooktype}:${event}:imported`,
-            meta,
-            `Created backup ${
-              newBackup.backupId
-            } for environment ${environment.name}`
-          );
         } catch (error) {
-          sendToLagoonLogs(
-            'error',
-            '',
-            uuid,
-            `${webhooktype}:${event}:error`,
-            {
-              data: body
-            },
-            `Could not create backup, reason: ${error}`
-          );
+          // No error logging for now
         }
       }
     }
