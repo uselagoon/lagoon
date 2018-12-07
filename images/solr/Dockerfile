@@ -32,9 +32,8 @@ RUN fix-permissions /var/solr \
 # solr really doesn't like to be run as root, so we define the default user agin
 USER solr
 
-COPY 00-solr-datadir.sh /lagoon/entrypoints/
 COPY 10-solr-port.sh /lagoon/entrypoints/
-
+COPY 20-solr-datadir.sh /lagoon/entrypoints/
 
 
 # Define Volume so locally we get persistent cores
