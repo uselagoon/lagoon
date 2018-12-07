@@ -33,6 +33,7 @@
  ### Lagoon Solr connection
  // WARNING: you have to create a search_api server having "solr" machine name at
  // /admin/config/search/search-api/add-server to make this work.
+ // Also you need to have the search_api_override module installed and enabled - https://www.drupal.org/project/search_api_override
  if (getenv('LAGOON')){
   // Override search API server settings fetched from default configuration.
   $conf['search_api_override_mode'] = 'load';
