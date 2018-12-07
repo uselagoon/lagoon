@@ -15,7 +15,7 @@ if [ -n "$(ls /var/solr)" ]; then
       # the datadir now has the layout that a newly created core would.
       mv ${datadir}/data/* ${datadir}/
       # remove empty directory
-      rm -Rf ${datadir}/data
+      rm -Rf ${datadir}/data || mv ${datadir}/data ${datadir}/data-delete
     fi
 
     # the new place for config is in the container, in /opt/solr/server/solr/${corename}
