@@ -24,7 +24,14 @@ async function gitlabPush(webhook: WebhookRequestData, project: Project) {
 
     const meta = {
       branch: branchName,
-      sha: sha
+      sha: sha,
+      shortSha: sha.substring(0, 7),
+      repoName: body.project.name,
+      pathWithNamespace: body.project.path_with_namespace,
+      repoUrl: body.project.http_url,
+      branchName: branchName,
+      commitUrl: body.commits[0].url,
+      event: event,
     }
 
     const data: deployData = {
