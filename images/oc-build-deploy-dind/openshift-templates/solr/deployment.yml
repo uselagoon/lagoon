@@ -100,7 +100,7 @@ objects:
             value: ${CRONJOBS}
           volumeMounts:
             - name: ${SERVICE_NAME}
-              mountPath: /opt/solr/server/solr/mycores
+              mountPath: /var/solr
           resources:
             requests:
               cpu: 10m
