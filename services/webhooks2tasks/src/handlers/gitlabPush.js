@@ -23,6 +23,7 @@ async function gitlabPush(webhook: WebhookRequestData, project: Project) {
     const skip_deploy = R.pathOr('',['commits',0,'message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
 
     const meta = {
+      projectName: project.name,
       branch: branchName,
       sha: sha,
       shortSha: sha.substring(0, 7),
