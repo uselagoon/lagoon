@@ -38,7 +38,10 @@ const getBackupsByEnvironmentId = async (
     sqlClient,
     Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted }),
   );
-  return rows;
+
+  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+
+  return newestFirst;
 };
 
 const addBackup = async (

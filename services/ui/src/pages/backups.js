@@ -1,4 +1,5 @@
 import React from 'react';
+import * as R from 'ramda';
 import { withRouter } from 'next/router'
 import Link from 'next/link'
 import { Query } from 'react-apollo';
@@ -17,20 +18,15 @@ const query = gql`
       name
       openshiftProjectName
       project {
-        name
-      }
-      deployments {
         id
         name
-        status
-        started
-        remoteId
       }
       backups {
         id
-      	source
+        source
         backupId
         created
+        deleted
         restore {
           id
           status
@@ -41,13 +37,31 @@ const query = gql`
   }
 `;
 
+const subscribe = gql`
+  subscription subscribeToBackups($project: Int!) {
+    backupChanged(project: $project) {
+      id
+      source
+      backupId
+      created
+      deleted
+      restore {
+        id
+        status
+        restoreLocation
+      }
+    }
+  }
+`;
+
 const PageBackups = withRouter((props) => {
   return (
     <Page>
       <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
-        {({ loading, error, data }) => {
+        {({ loading, error, data, subscribeToMore }) => {
           if (loading) return null;
           if (error) return `Error!: ${error}`;
+
           const environment = data.environmentByOpenshiftProjectName;
           const breadcrumbs = [
             {
@@ -63,6 +77,53 @@ const PageBackups = withRouter((props) => {
               query: { name: environment.openshiftProjectName }
             }
           ];
+
+          subscribeToMore({
+            document: subscribe,
+            variables: { project: environment.project.id },
+            updateQuery: (prevStore, { subscriptionData }) => {
+              if (!subscriptionData.data) return prevStore;
+              const prevBackups = prevStore.environmentByOpenshiftProjectName.backups;
+              const incomingBackup = subscriptionData.data.backupChanged;
+              const existingIndex = prevBackups.findIndex(prevBackup => prevBackup.id === incomingBackup.id);
+              let newBackups;
+
+              // New backup.
+              if (existingIndex === -1) {
+                // Don't add new deleted backups.
+                if (incomingBackup.deleted !== '0000-00-00 00:00:00') {
+                  return prevStore;
+                }
+
+                newBackups = [
+                  incomingBackup,
+                  ...prevBackups,
+                ];
+              }
+              // Existing backup.
+              else {
+                // Updated backup
+                if (incomingBackup.deleted === '0000-00-00 00:00:00') {
+                  newBackups = Object.assign([...prevBackups], {[existingIndex]: incomingBackup});
+                }
+                // Deleted backup
+                else {
+                  newBackups = R.remove(existingIndex, 1, prevBackups);
+                }
+              }
+
+              const newStore = {
+                ...prevStore,
+                environmentByOpenshiftProjectName: {
+                  ...prevStore.environmentByOpenshiftProjectName,
+                  backups: newBackups,
+                },
+              };
+
+              return newStore;
+            }
+          });
+
           return (
             <React.Fragment>
               <Breadcrumbs breadcrumbs={breadcrumbs}/>
