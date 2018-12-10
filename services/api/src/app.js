@@ -9,6 +9,7 @@ const logger = require('./logger');
 const createRouter = require('./routes');
 const { authKeycloakMiddleware } = require('./authKeycloakMiddleware');
 const { createAuthMiddleware } = require('./authMiddleware');
+const apolloServer = require('./apolloServer');
 
 /* ::
 type CreateAppArgs = {
@@ -57,6 +58,8 @@ const createApp = (args /* : CreateAppArgs */) => {
 
   // Add routes.
   app.use('/', createRouter());
+
+  apolloServer.applyMiddleware({ app });
 
   return app;
 };
