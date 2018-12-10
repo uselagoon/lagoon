@@ -35,6 +35,7 @@
     "graphql": "^0.13.2",
     "graphql-iso-date": "^3.5.0",
     "graphql-list-fields": "^2.0.2",
+    "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
     "jwk-to-pem": "^2.0.0",

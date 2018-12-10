@@ -120,6 +120,7 @@ const {
   addRestore,
   getRestoreByBackupId,
   updateRestore,
+  backupSubscriber,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -260,6 +261,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deleteTask,
     updateTask,
     setEnvironmentServices,
+  },
+  Subscription: {
+    backupChanged: backupSubscriber,
   },
   Date: GraphQLDate,
 };

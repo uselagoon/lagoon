@@ -912,6 +912,10 @@ const typeDefs = gql`
     updateTask(input: UpdateTaskInput): Task
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
   }
+
+  type Subscription {
+    backupChanged(project: Int!): Backup
+  }
 `;
 
 module.exports = typeDefs;
