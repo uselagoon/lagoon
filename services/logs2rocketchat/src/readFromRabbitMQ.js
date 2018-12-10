@@ -80,7 +80,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:remove-openshift:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
-      sendToRocketChat(project, message, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      text = `*[${meta.projectName}]* `
+      if (meta.shortSha) {
+        text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
+      } else {
+        text = `${text} \`${meta.branchName}\``
+      }
+      text = `${text} Build \`${meta.buildName}\` complete. ${meta.logLink} \n ${meta.route}\n ${meta.routes.join("\n")}`
+      sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
