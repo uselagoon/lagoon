@@ -2,12 +2,45 @@
 
 const R = require('ramda');
 const { PubSub, withFilter } = require('graphql-subscriptions');
+const { AmqpPubSub } = require('graphql-rabbitmq-subscriptions');
 const { ForbiddenError } = require('apollo-server-express');
+const logger = require('../logger');
 const sqlClient = require('./sqlClient');
 const { query } = require('../util/db');
 const environmentSql = require('../resources/environment/sql');
 
-const pubSub = new PubSub();
+const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
+const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
+
+/* eslint-disable class-methods-use-this */
+class LoggerConverter {
+  child() {
+    return {
+      debug: logger.debug,
+      trace: logger.silly,
+      error: logger.error,
+    };
+  }
+
+  error(...args) {
+    return logger.error.apply(args);
+  }
+
+  debug(...args) {
+    return logger.debug(args);
+  }
+
+  trace(...args) {
+    return logger.silly(args);
+  }
+}
+/* eslint-enable class-methods-use-this */
+
+const pubSub = new AmqpPubSub({
+  config: `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`,
+  logger: new LoggerConverter(),
+});
 
 const createEnvironmentFilteredSubscriber = (events: string[]) => {
   return {
