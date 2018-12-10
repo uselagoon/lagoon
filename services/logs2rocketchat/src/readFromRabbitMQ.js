@@ -100,7 +100,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:remove-openshift:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
-      sendToRocketChat(project, message, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
+      text = `*[${meta.projectName}]*`
+      if (meta.shortSha) {
+        text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
+      } else {
+        text = `${text} \`${meta.branchName}\``
+      }
+      text = `${text} Build \`${meta.buildName}\` failed. ${meta.logLink}`
+      sendToRocketChat(project, text, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:closed:CannotDeleteProductionEnvironment":
