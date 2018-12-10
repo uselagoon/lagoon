@@ -44,19 +44,32 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
  logger.verbose(`received ${event}`, logMessage)
 
+  var text
+
   switch (event) {
 
     case "github:pull_request:closed:handled":
     case "github:pull_request:opened:handled":
     case "github:pull_request:synchronize:handled":
-    case "github:delete:handled":
-    case "github:push:handled":
-    case "bitbucket:repo:push:handled":
     case "bitbucket:pullrequest:created:handled":
     case "bitbucket:pullrequest:updated:handled":
     case "bitbucket:pullrequest:fulfilled:handled":
     case "bitbucket:pullrequest:rejected:handled":
+      sendToRocketChat(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+    case "github:delete:handled":
+    case "github:push:handled":
+    case "bitbucket:repo:push:handled":
     case "gitlab:push:handled":
+      console.log(`tyler: ${JSON.stringify(meta)}`);
+      text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
+      if (meta.shortSha){
+        text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
+      }
+      text = `${text} pushed in [${meta.pathWithNamespace}](${meta.repoUrl})`
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
     case "rest:deploy:receive":
     case "rest:remove:receive":
     case "rest:promote:receive":
