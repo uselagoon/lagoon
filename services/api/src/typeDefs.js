@@ -914,7 +914,7 @@ const typeDefs = gql`
   }
 
   type Subscription {
-    backupChanged(project: Int!): Backup
+    backupChanged(environment: Int!): Backup
   }
 `;
 

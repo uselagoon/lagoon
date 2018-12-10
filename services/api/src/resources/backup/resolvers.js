@@ -4,7 +4,7 @@ const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
 const { query, isPatchEmpty } = require('../../util/db');
-const { pubSub, createProjectFilteredSubscriber } = require('../../clients/pubSub');
+const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
 const sqlClient = require('../../clients/sqlClient');
 const Sql = require('./sql');
 const projectSql = require('../project/sql');
@@ -265,19 +265,12 @@ const getRestoreByBackupId = async (
   return R.prop(0, rows);
 };
 
-const backupSubscriber = createProjectFilteredSubscriber(
+const backupSubscriber = createEnvironmentFilteredSubscriber(
   [
     EVENTS.BACKUP.ADDED,
     EVENTS.BACKUP.UPDATED,
     EVENTS.BACKUP.DELETED,
-  ],
-  async (
-    payload,
-    { project },
-  ) => {
-    const rows = await query(sqlClient, Sql.selectPermsForBackup(payload.backupId));
-    return R.path(['0', 'pid'], rows) === `${project}`;
-  }
+  ]
 );
 
 const Resolvers /* : ResolversObj */ = {

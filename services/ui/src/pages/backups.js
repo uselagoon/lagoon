@@ -38,8 +38,8 @@ const query = gql`
 `;
 
 const subscribe = gql`
-  subscription subscribeToBackups($project: Int!) {
-    backupChanged(project: $project) {
+  subscription subscribeToBackups($environment: Int!) {
+    backupChanged(environment: $environment) {
       id
       source
       backupId
@@ -80,7 +80,7 @@ const PageBackups = withRouter((props) => {
 
           subscribeToMore({
             document: subscribe,
-            variables: { project: environment.project.id },
+            variables: { environment: environment.id },
             updateQuery: (prevStore, { subscriptionData }) => {
               if (!subscriptionData.data) return prevStore;
               const prevBackups = prevStore.environmentByOpenshiftProjectName.backups;
