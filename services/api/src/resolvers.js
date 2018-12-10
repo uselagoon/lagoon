@@ -28,6 +28,7 @@ const {
   addTask,
   deleteTask,
   updateTask,
+  taskSubscriber,
 } = require('./resources/task/resolvers');
 
 const {
@@ -266,6 +267,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   Subscription: {
     backupChanged: backupSubscriber,
     deploymentChanged: deploymentSubscriber,
+    taskChanged: taskSubscriber,
   },
   Date: GraphQLDate,
 };
