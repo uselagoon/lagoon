@@ -20,6 +20,7 @@
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "apollo-server-express": "^2.2.5",
+    "axios": "^0.18.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",
@@ -36,8 +37,8 @@
     "graphql-list-fields": "^2.0.2",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
+    "jwk-to-pem": "^2.0.0",
     "keycloak-admin": "^1.8.0",
-    "keycloak-connect": "^4.5.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "moment": "^2.22.2",

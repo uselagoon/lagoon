@@ -1,14 +1,17 @@
 // @flow
 
-const jwt = require('jsonwebtoken');
+/* ::
+import type { $Request, $Response, NextFunction } from 'express';
+
+class Request extends express$Request {
+  credentials: any
+  authToken: string
+};
+*/
+
 const R = require('ramda');
 const logger = require('./logger');
-const { getPermissionsForUser } = require('./util/auth');
-
-/* ::
-import type { $Application } from 'express';
-import type { CredMaybe } from './resources';
-*/
+const { getCredentialsForKeycloakToken, getCredentialsForLegacyToken } = require('./util/auth');
 
 const parseBearerToken = R.compose(
   R.ifElse(
@@ -26,55 +29,9 @@ const parseBearerToken = R.compose(
   R.defaultTo(''),
 );
 
-const decodeToken = (
-  token,
-  secret,
-) /* : ?{aud: string, role: string, userId: number} */ => {
-  try {
-    const decoded = jwt.verify(token, secret);
-    return decoded;
-  } catch (e) {
-    return null;
-  }
-};
-
-/* ::
-import type { $Request, $Response, NextFunction } from 'express';
-
-type CreateAuthMiddlewareArgs = {
-  baseUri: string,
-  jwtSecret: string,
-  jwtAudience: string,
-};
-
-class Request extends express$Request {
-  credentials: any
-};
-
-type CreateAuthMiddlewareFn =
-  CreateAuthMiddlewareArgs =>
-    (
-      // To allow extending the request object with Flow
-      Request,
-      $Response,
-      NextFunction
-    ) =>
-      Promise<void>
-
-*/
-
-const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
-  jwtSecret,
-  jwtAudience,
-}) => async (req, res, next) => {
-  // Allow access to status without auth
+const prepareToken = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+  // Allow access to status without auth.
   if (req.url === '/status') {
-    next();
-    return;
-  }
-
-  // Allow keycloak authenticated sessions
-  if (req.credentials) {
     next();
     return;
   }
@@ -89,66 +46,45 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
     return;
   }
 
-  let decoded = '';
-  try {
-    decoded = decodeToken(token, jwtSecret);
-  } catch (e) {
-    const errorMessage = `Error while decoding auth token: ${e.message}`;
-    logger.debug(errorMessage);
-    res.status(500).send({
-      errors: [
-        {
-          message: errorMessage,
-        },
-      ],
-    });
+  req.authToken = token;
+
+  next();
+};
+
+const keycloak = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+  // Allow access to status without auth.
+  if (req.url === '/status') {
+    next();
     return;
   }
 
   try {
-    if (decoded == null) {
-      throw new Error('Decoding token resulted in "null" or "undefined"');
-    }
+    const credentials = await getCredentialsForKeycloakToken(req.authToken);
 
-    const { userId, role = 'none', aud } = decoded;
+    req.credentials = credentials;
+  } catch (e) {
+    // It might be a legacy token, so continue on.
+    logger.debug(`Keycloak token auth failed: ${e.message}`);
+  }
 
-    if (jwtAudience && aud !== jwtAudience) {
-      logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
-      res.status(500).send({
-        errors: [{ message: 'Auth token audience mismatch' }],
-      });
-      return;
-    }
+  next();
+};
 
-    // We need this, since non-admin credentials are required to have an user id
-    let nonAdminCreds = {};
+const legacy = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+  // Allow access to status without auth.
+  if (req.url === '/status') {
+    next();
+    return;
+  }
 
-    if (role !== 'admin') {
-      const permissions = await getPermissionsForUser(userId);
+  // Allow keycloak authenticated sessions
+  if (req.credentials) {
+    next();
+    return;
+  }
 
-      if (R.isEmpty(permissions)) {
-        res.status(401).send({
-          errors: [
-            {
-              message: `Unauthorized - No permissions for user id ${userId}`,
-            },
-          ],
-        });
-        return;
-      }
-
-      nonAdminCreds = {
-        userId,
-        // Read and write permissions
-        permissions,
-      };
-    }
-
-    const credentials /* : CredMaybe */ = {
-      role,
-      permissions: {},
-      ...nonAdminCreds,
-    };
+  try {
+    const credentials = await getCredentialsForLegacyToken(req.authToken);
 
     req.credentials = credentials;
 
@@ -160,6 +96,12 @@ const createAuthMiddleware /* : CreateAuthMiddlewareFn */ = ({
   }
 };
 
-module.exports = {
-  createAuthMiddleware,
-};
+const authMiddleware = [
+  prepareToken,
+  // First attempt to validate token with keycloak.
+  keycloak,
+  // Then validate legacy token.
+  legacy,
+];
+
+module.exports = authMiddleware;
