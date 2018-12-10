@@ -173,8 +173,10 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
+        meta.logLink = logLink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        meta.logLink = ''
       }
       sendToLagoonLogs('warn', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` cancelled. ${logLink}`
@@ -186,8 +188,10 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
+        meta.logLink = logLink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        meta.logLink = ''
       }
 
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
@@ -200,8 +204,10 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
+        meta.loglink = loglink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        meta.logLink = ''
       }
 
       try {
@@ -218,6 +224,8 @@ const messageConsumer = async msg => {
 
       const route = configMap.data.LAGOON_ROUTE
       const routes = configMap.data.LAGOON_ROUTES.split(',').filter(e => e !== route);
+      meta.route = route
+      meta.routes = routes
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${route}\n ${routes.join("\n")}`
       )
