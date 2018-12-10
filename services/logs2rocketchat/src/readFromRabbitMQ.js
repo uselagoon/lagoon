@@ -147,6 +147,13 @@ const sendToRocketChat = async (project, message, color, emoji, channelWrapperLo
       attachments: [{
         text: `${emoji} ${message}`,
         color: color,
+        fields: [
+          {
+            "short": true,
+            "title": "Source",
+            "value": appId
+          }
+        ],
       }]
     });
 
