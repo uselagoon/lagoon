@@ -119,12 +119,7 @@ const messageConsumer = async msg => {
     }
   }
 
-  let logMessage = ''
-  if (sha) {
-    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
-  } else {
-    logMessage = `\`${branchName}\``
-  }
+
 
   const buildPhase = buildstatus.status.phase.toLowerCase();
   const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
@@ -149,8 +144,15 @@ const messageConsumer = async msg => {
     logger.error(`Could not update deployment ${projectName} ${buildName}. Message: ${error}`);
   }
 
-  let logLink = ""
   const meta = JSON.parse(msg.content.toString())
+  let logLink = ""
+  let logMessage = ''
+  if (sha) {
+    meta.shortSha = sha.substring(0, 7)
+    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
   switch (buildPhase) {
     case "new":
     case "pending":
