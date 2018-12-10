@@ -80,7 +80,7 @@ do
           SERVICE_TYPE="mariadb-single"
         fi
       else
-        # if the developer has defined a mariadb-shared, we assume that they expected that one to exist and so we fail
+        # if the developer has defined a mariadb-shared, we assume that they expected that one to exist and so we fail if it does not
         if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName --no-headers | grep -q $MARIADB_SHARED_NAME; then
           SERVICE_TYPE="mariadb-shared"
           MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
