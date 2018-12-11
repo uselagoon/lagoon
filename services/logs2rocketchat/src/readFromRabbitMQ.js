@@ -55,11 +55,20 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:pullrequest:updated:handled":
     case "bitbucket:pullrequest:fulfilled:handled":
     case "bitbucket:pullrequest:rejected:handled":
-      sendToRocketChat(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+    case "rest:pullrequest:deploy":
+      text = `*[${meta.projectName}]* REST pullrequest deploy trigger \`${meta.pullrequestTitle}\``
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
+
     case "github:delete:handled":
-    case "github:push:handled":
+    case "rest:remove:receive":
+      console.log(`tyler: ${meta}`);
+      text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
     case "bitbucket:repo:push:handled":
+    case "github:push:handled":
     case "gitlab:push:handled":
       text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
       if (meta.shortSha){
@@ -74,11 +83,12 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.shortSha) {
         text = `${text} (${meta.shortSha})`
       }
-    case "rest:remove:receive":
-    case "rest:promote:receive":
-    case "rest:pullrequest:deploy":
-      text = `*[${meta.projectName}]* REST deploy trigger \`${meta.pullrequestTitle}\``
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
+    case "rest:promote:receive":
+      console.log("rest:promote:receive");
+      sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:finished":

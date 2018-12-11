@@ -259,7 +259,7 @@ app.post('/deploy', async (req, res) => {
     const taskResult = await createDeployTask(data);
 
     const meta = {
-      projectName: projectName,
+      projectName: data.projectName,
       branchName: data.branchName
     }
 
@@ -414,9 +414,14 @@ app.post('/remove', async (req, res) => {
 
   console.log(data)
 
+  const meta = {
+    projectName: data.projectName,
+    branchName: data.branch
+  }
+
   try {
     const taskResult = await createRemoveTask(data);
-    sendToLagoonLogs('info', data.projectName, '', `rest:remove:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:remove:receive`, meta,
       `*[${data.projectName}]* REST remove trigger \`${data.branch}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
