@@ -105,7 +105,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "rest:pullrequest:remove":
-      text = `*[${meta.projectName}]* REST remove trigger \`${meta.pullrequestNumber}\``
+      text = `*[${meta.projectName}]* REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
       sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
