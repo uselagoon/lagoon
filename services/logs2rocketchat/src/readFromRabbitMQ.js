@@ -61,7 +61,6 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "github:push:handled":
     case "bitbucket:repo:push:handled":
     case "gitlab:push:handled":
-      console.log(`tyler: ${JSON.stringify(meta)}`);
       text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
       if (meta.shortSha){
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
