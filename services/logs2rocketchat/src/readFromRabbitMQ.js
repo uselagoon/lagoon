@@ -87,7 +87,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "rest:promote:receive":
-      sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      text = `*[${meta.projectName}]* REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
+      sendToRocketChat(project, text, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:finished":

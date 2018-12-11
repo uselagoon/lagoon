@@ -339,12 +339,18 @@ app.post('/promote', async (req, res) => {
     type: 'promote'
   }
 
+  const meta = {
+    projectName: data.projectName,
+    branchName: data.branchName,
+    promoteSourceEnvironment: data.promoteSourceEnvironment
+  }
+
   try {
     const taskResult = await createPromoteTask(data);
 
     const logMessage = `\`${data.branchName}\` -> \`${data.promoteSourceEnvironment}\``
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:promote:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:promote:receive`, meta,
       `*[${data.projectName}]* REST promote trigger ${logMessage}`
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
