@@ -80,6 +80,11 @@ const messageConsumer = async function(msg) {
     },
   });
 
+  const meta = {
+    projectName: projectName,
+    openshiftProject: openshiftProject,
+  }
+
   // Check if project exists
   try {
     const projectsGet = Promise.promisify(openshift.projects(openshiftProject).get, { context: openshift.projects(openshiftProject) })
@@ -88,7 +93,7 @@ const messageConsumer = async function(msg) {
     // a non existing project also throws an error, we check if it's a 404, means it does not exist, and we assume it's already removed
     if (err.code == 404) {
       logger.info(`${openshiftProject} does not exist, assuming it was removed`);
-      sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+      sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  meta,
         `*[${projectName}]* remove \`${openshiftProject}\``
       )
       // Update GraphQL API that the Environment has been deleted
@@ -145,7 +150,7 @@ const messageConsumer = async function(msg) {
     const projectsDelete = Promise.promisify(openshift.projects(openshiftProject).delete, { context: openshift.projects(openshiftProject) })
     await projectsDelete({ body: {"kind":"DeleteOptions","apiVersion":"v1","propagationPolicy":"Foreground"}})
     logger.info(`${openshiftProject}: Project deleted`);
-    sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  {},
+    sendToLagoonLogs('success', projectName, "", "task:remove-openshift:finished",  meta,
       `*[${projectName}]* remove \`${openshiftProject}\``
     )
   } catch (err) {
