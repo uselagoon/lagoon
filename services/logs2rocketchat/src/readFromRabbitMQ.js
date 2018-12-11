@@ -70,13 +70,18 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "rest:deploy:receive":
+      text = `*[${meta.projectName}]* REST deploy trigger \`${meta.branchName}\``
+      if (meta.shortSha) {
+        text = `${text} (${meta.shortSha})`
+      }
     case "rest:remove:receive":
     case "rest:promote:receive":
-      sendToRocketChat(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+    case "rest:pullrequest:deploy":
+      text = `*[${meta.projectName}]* REST deploy trigger \`${meta.pullrequestTitle}\``
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:finished":
-    case "task:remove-openshift:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
       text = `*[${meta.projectName}]* `
@@ -86,6 +91,16 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
         text = `${text} \`${meta.branchName}\``
       }
       text = `${text} Build \`${meta.buildName}\` complete. ${meta.logLink} \n ${meta.route}\n ${meta.routes.join("\n")}`
+      sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      break;
+
+    case "rest:pullrequest:remove":
+      text = `*[${meta.projectName}]* REST remove trigger \`${meta.pullrequestNumber}\``
+      sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      break;
+
+    case "task:remove-openshift:finished":
+      text = `*[${meta.projectName}]* remove \`${meta.openshiftProject}\``
       sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
