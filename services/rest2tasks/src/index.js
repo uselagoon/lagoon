@@ -107,10 +107,15 @@ app.post('/pullrequest/deploy', async (req, res) => {
     branchName: `pr-${req.body.pullrequestNumber}`,
   }
 
+  var meta = {
+    projectName: data.projectName,
+    pullrequestTitle: data.pullrequestTitle,
+  }
+
   try {
     const taskResult = await createDeployTask(data);
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:deploy`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:deploy`, meta,
       `*[${data.projectName}]* REST deploy trigger \`${data.pullrequestTitle}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -171,11 +176,16 @@ app.post('/pullrequest/remove', async (req, res) => {
     type: 'pullrequest'
   }
 
+  const meta = {
+    projectName: data.projectName,
+    pullrequestNumber: data.pullrequestNumber
+  }
+
   try {
     const taskResult = await createRemoveTask(data);
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:remove`, {},
-      `*[${data.projectName}]* REST remove trigger \`${data.pullrequestTitle}\``
+    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:remove`, meta,
+      `*[${data.projectName}]* REST remove trigger \`${data.pullrequestNumber}\``
     )
 
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -248,14 +258,20 @@ app.post('/deploy', async (req, res) => {
   try {
     const taskResult = await createDeployTask(data);
 
+    const meta = {
+      projectName: projectName,
+      branchName: data.branchName
+    }
+
     let logMessage = ''
     if (data.sha) {
       logMessage = `\`${data.branchName}\` (${data.sha.substring(0, 7)})`
+      meta.sha = data.sha.substring(0, 7)
     } else {
       logMessage = `\`${data.branchName}\``
     }
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:deploy:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:deploy:receive`, meta,
       `*[${data.projectName}]* REST deploy trigger ${logMessage}`
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
