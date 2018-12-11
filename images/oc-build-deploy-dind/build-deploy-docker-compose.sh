@@ -458,7 +458,7 @@ if [ "$TYPE" == "pullrequest" ]; then
   oc patch --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
     configmap lagoon-env \
-    -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":\"${PR_TITLE}\"}}"
+    -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":$(echo $PR_TITLE | jq -R)}}"
 fi
 
 # loop through created ServiceBroker
