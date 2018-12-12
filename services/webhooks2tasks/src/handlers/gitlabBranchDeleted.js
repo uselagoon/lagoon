@@ -17,7 +17,9 @@ async function gitlabBranchDeleted(webhook: WebhookRequestData, project: Project
     } = webhook;
 
     const meta = {
-      branch: body.ref.replace('refs/heads/','')
+      branch: body.ref.replace('refs/heads/',''),
+      branchName: body.ref.replace('refs/heads/',''),
+      projectName: data.projectName,
     }
 
     const data: removeData = {
@@ -28,7 +30,8 @@ async function gitlabBranchDeleted(webhook: WebhookRequestData, project: Project
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+      // we are hardcoding the event type here as gitlab only knows them as a `push` with a all-zero sha
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:remove:handled`, meta,
         `*[${project.name}]* \`${meta.branch}\` deleted in <${body.project.http_url}|${body.project.path_with_namespace}>`
       )
       return;
@@ -38,18 +41,18 @@ async function gitlabBranchDeleted(webhook: WebhookRequestData, project: Project
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+          sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:remove:handledButNoTask`, meta,
             `*[${project.name}]* \`${meta.branch}\` deleted. No remove task created, reason: ${error}`
           )
           return;
 
         case "CannotDeleteProductionEnvironment":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToLagoonLogs('warning', project.name, uuid, `${webhooktype}:${event}:CannotDeleteProductionEnvironment`, meta,
+          sendToLagoonLogs('warning', project.name, uuid, `${webhooktype}:remove:CannotDeleteProductionEnvironment`, meta,
             `*[${project.name}]* \`${meta.branch}\` not deleted. ${error}`
           )
           return;
-          
+
         default:
           // Other messages are real errors and should reschedule the message in RabbitMQ in order to try again
           throw error

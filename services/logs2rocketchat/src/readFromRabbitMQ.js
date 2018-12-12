@@ -61,6 +61,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "github:delete:handled":
+    case "gitlab:remove:handled":
     case "rest:remove:receive":
       console.log(`tyler: ${meta}`);
       text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
