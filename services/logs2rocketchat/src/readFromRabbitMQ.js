@@ -78,6 +78,17 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
+    case "gitlab:push:skipped":
+    case "github:push:skipped":
+    case "bitbucket:push:skipped":
+      text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
+      if (meta.shortSha){
+        text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
+      }
+      text = `${text} pushed in [${meta.pathWithNamespace}](${meta.repoUrl}) *deployment skipped*`
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
     case "rest:deploy:receive":
       text = `*[${meta.projectName}]* REST deploy trigger \`${meta.branchName}\``
       if (meta.shortSha) {
