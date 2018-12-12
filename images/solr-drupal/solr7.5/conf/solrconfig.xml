@@ -1,29 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
- Licensed to the Apache Software Foundation (ASF) under one or more
- contributor license agreements.  See the NOTICE file distributed with
- this work for additional information regarding copyright ownership.
- The ASF licenses this file to You under the Apache License, Version 2.0
- (the "License"); you may not use this file except in compliance with
- the License.  You may obtain a copy of the License at
 
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
--->
 <!DOCTYPE config [
   <!ENTITY spellcheck SYSTEM "solrconfig_spellcheck.xml">
+  <!ENTITY extra SYSTEM "solrconfig_extra.xml">
+  <!ENTITY index SYSTEM "solrconfig_index.xml">
 ]>
 
 <!--
      For more details about configurations options that may appear in
      this file, see http://wiki.apache.org/solr/SolrConfigXml.
 -->
-<config name="drupal-5.4-solr-6.x" >
+<config name="drupal-6.5-solr-7.x" >
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
        including org.apache.solr.(search|update|request|core|analysis)
@@ -50,7 +37,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
     -->
-  <luceneMatchVersion>${solr.luceneMatchVersion:LUCENE_60}</luceneMatchVersion>
+  <luceneMatchVersion>${solr.luceneMatchVersion:LUCENE_70}</luceneMatchVersion>
 
   <!-- <lib/> directives can be used to instruct Solr to load any Jars
        identified and use them to resolve any "plugins" specified in
@@ -98,6 +85,10 @@
   <lib dir="${solr.install.dir:../../../..}/contrib/velocity/lib" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-velocity-\d.*\.jar" />
 
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib" regex=".*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-analysis-extras-\d.*\.jar" />
+
   <!-- an exact 'path' can be used instead of a 'dir' to specify a
        specific jar file.  This will cause a serious error to be logged
        if it can't be loaded.
@@ -127,8 +118,7 @@
        One can force a particular implementation via solr.MMapDirectoryFactory,
        solr.NIOFSDirectoryFactory, or solr.SimpleFSDirectoryFactory.
 
-       solr.RAMDirectoryFactory is memory based, not
-       persistent, and doesn't work with replication.
+       solr.RAMDirectoryFactory is memory based and not persistent.
     -->
   <directoryFactory name="DirectoryFactory"
                     class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}">
@@ -208,15 +198,6 @@
         </mergePolicyFactory>
      -->
 
-    <mergePolicyFactory class="org.apache.solr.index.LogByteSizeMergePolicyFactory">
-      <!-- Merge Factor
-         The merge factor controls how many segments will get merged at a time.
-         For LogByteSizeMergePolicy, mergeFactor decides how many new segments
-         will be allowed before they are merged into one.
-      -->
-      <int name="mergeFactor">4</int>
-    </mergePolicyFactory>
-
     <!-- Expert: Merge Scheduler
          The Merge Scheduler in Lucene controls how merges are
          performed.  The ConcurrentMergeScheduler (Lucene 2.3 default)
@@ -262,18 +243,18 @@
     <!--
     <deletionPolicy class="solr.SolrDeletionPolicy">
     -->
-      <!-- The number of commit points to be kept -->
-      <!-- <str name="maxCommitsToKeep">1</str> -->
-      <!-- The number of optimized commit points to be kept -->
-      <!-- <str name="maxOptimizedCommitsToKeep">0</str> -->
-      <!--
-          Delete all commit points once they have reached the given age.
-          Supports DateMathParser syntax e.g.
-        -->
-      <!--
-         <str name="maxCommitAge">30MINUTES</str>
-         <str name="maxCommitAge">1DAY</str>
+    <!-- The number of commit points to be kept -->
+    <!-- <str name="maxCommitsToKeep">1</str> -->
+    <!-- The number of optimized commit points to be kept -->
+    <!-- <str name="maxOptimizedCommitsToKeep">0</str> -->
+    <!--
+        Delete all commit points once they have reached the given age.
+        Supports DateMathParser syntax e.g.
       -->
+    <!--
+       <str name="maxCommitAge">30MINUTES</str>
+       <str name="maxCommitAge">1DAY</str>
+    -->
     <!--
     </deletionPolicy>
     -->
@@ -285,29 +266,14 @@
 
          Setting the value to true will instruct the underlying Lucene
          IndexWriter to write its info stream to solr's log. By default,
-         this is enabled here, and controlled through log4j.properties.
+         this is enabled here, and controlled through log4j2.xml
       -->
-     <infoStream>true</infoStream>
+    <infoStream>true</infoStream>
+
+    <!-- Let the config generator easily inject additional stuff. -->
+    &index;
+
   </indexConfig>
-
-
-  <!-- JMX
-
-       This example enables JMX if and only if an existing MBeanServer
-       is found, use this if you want to configure JMX through JVM
-       parameters. Remove this to disable exposing Solr configuration
-       and statistics to JMX.
-
-       For more details see http://wiki.apache.org/solr/SolrJmx
-    -->
-  <!-- <jmx /> -->
-  <!-- If you want to connect to a particular server, specify the
-       agentId
-    -->
-  <!-- <jmx agentId="myAgent" /> -->
-  <!-- If you want to start a new MBeanServer, specify the serviceUrl -->
-  <!-- <jmx serviceUrl="service:jmx:rmi:///jndi/rmi://localhost:9999/solr"/>
-    -->
 
   <!-- The default high-performance update handler -->
   <updateHandler class="solr.DirectUpdateHandler2">
@@ -344,8 +310,8 @@
          have some sort of hard autoCommit to limit the log size.
       -->
     <autoCommit>
-      <maxDocs>${solr.autoCommit.MaxDocs:10000}</maxDocs>
-      <maxTime>${solr.autoCommit.MaxTime:120000}</maxTime>
+      <maxDocs>${solr.autoCommit.MaxDocs:-1}</maxDocs>
+      <maxTime>${solr.autoCommit.MaxTime:15000}</maxTime>
       <openSearcher>false</openSearcher>
     </autoCommit>
 
@@ -353,10 +319,11 @@
          'soft' commit which only ensures that changes are visible
          but does not ensure that data is synced to disk.  This is
          faster and more near-realtime friendly than a hard commit.
-    -->
+      -->
+
     <autoSoftCommit>
-      <maxDocs>${solr.autoSoftCommit.MaxDocs:2000}</maxDocs>
-      <maxTime>${solr.autoSoftCommit.MaxTime:10000}</maxTime>
+      <maxDocs>${solr.autoSoftCommit.MaxDocs:-1}</maxDocs>
+      <maxTime>${solr.autoSoftCommit.MaxTime:-1}</maxTime>
     </autoSoftCommit>
 
     <!-- Update Related Event Listeners
@@ -483,9 +450,9 @@
          (DocList) based on a query, a sort, and the range of documents requested.
       -->
     <queryResultCache class="solr.LRUCache"
-                     size="512"
-                     initialSize="512"
-                     autowarmCount="32"/>
+                      size="512"
+                      initialSize="512"
+                      autowarmCount="0"/>
 
     <!-- Document Cache
 
@@ -500,11 +467,11 @@
 
     <!-- custom cache currently used by block join -->
     <cache name="perSegFilter"
-      class="solr.search.LRUCache"
-      size="10"
-      initialSize="0"
-      autowarmCount="10"
-      regenerator="solr.NoOpRegenerator" />
+           class="solr.search.LRUCache"
+           size="10"
+           initialSize="0"
+           autowarmCount="10"
+           regenerator="solr.NoOpRegenerator" />
 
     <!-- Field Value Cache
 
@@ -549,55 +516,55 @@
     -->
     <enableLazyFieldLoading>true</enableLazyFieldLoading>
 
-   <!-- Use Filter For Sorted Query
+    <!-- Use Filter For Sorted Query
 
-        A possible optimization that attempts to use a filter to
-        satisfy a search.  If the requested sort does not include
-        score, then the filterCache will be checked for a filter
-        matching the query. If found, the filter will be used as the
-        source of document ids, and then the sort will be applied to
-        that.
+         A possible optimization that attempts to use a filter to
+         satisfy a search.  If the requested sort does not include
+         score, then the filterCache will be checked for a filter
+         matching the query. If found, the filter will be used as the
+         source of document ids, and then the sort will be applied to
+         that.
 
-        For most situations, this will not be useful unless you
-        frequently get the same search repeatedly with different sort
-        options, and none of them ever use "score"
-     -->
-   <!--
-      <useFilterForSortedQuery>true</useFilterForSortedQuery>
-     -->
+         For most situations, this will not be useful unless you
+         frequently get the same search repeatedly with different sort
+         options, and none of them ever use "score"
+      -->
+    <!--
+       <useFilterForSortedQuery>true</useFilterForSortedQuery>
+      -->
 
-   <!-- Result Window Size
+    <!-- Result Window Size
 
-        An optimization for use with the queryResultCache.  When a search
-        is requested, a superset of the requested number of document ids
-        are collected.  For example, if a search for a particular query
-        requests matching documents 10 through 19, and queryWindowSize is 50,
-        then documents 0 through 49 will be collected and cached.  Any further
-        requests in that range can be satisfied via the cache.
-     -->
-   <queryResultWindowSize>20</queryResultWindowSize>
+         An optimization for use with the queryResultCache.  When a search
+         is requested, a superset of the requested number of document ids
+         are collected.  For example, if a search for a particular query
+         requests matching documents 10 through 19, and queryWindowSize is 50,
+         then documents 0 through 49 will be collected and cached.  Any further
+         requests in that range can be satisfied via the cache.
+      -->
+    <queryResultWindowSize>20</queryResultWindowSize>
 
-   <!-- Maximum number of documents to cache for any entry in the
-        queryResultCache.
-     -->
-   <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
+    <!-- Maximum number of documents to cache for any entry in the
+         queryResultCache.
+      -->
+    <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
 
-   <!-- Query Related Event Listeners
+    <!-- Query Related Event Listeners
 
-        Various IndexSearcher related events can trigger Listeners to
-        take actions.
+         Various IndexSearcher related events can trigger Listeners to
+         take actions.
 
-        newSearcher - fired whenever a new searcher is being prepared
-        and there is a current searcher handling requests (aka
-        registered).  It can be used to prime certain caches to
-        prevent long request times for certain requests.
+         newSearcher - fired whenever a new searcher is being prepared
+         and there is a current searcher handling requests (aka
+         registered).  It can be used to prime certain caches to
+         prevent long request times for certain requests.
 
-        firstSearcher - fired whenever a new searcher is being
-        prepared but there is no current registered searcher to handle
-        requests or to gain autowarming data from.
+         firstSearcher - fired whenever a new searcher is being
+         prepared but there is no current registered searcher to handle
+         requests or to gain autowarming data from.
 
 
-     -->
+      -->
     <!-- QuerySenderListener takes an array of NamedList and executes a
          local query request for each NamedList in sequence.
       -->
@@ -626,17 +593,6 @@
       -->
     <useColdSearcher>false</useColdSearcher>
 
-    <!-- Max Warming Searchers
-
-         Maximum number of searchers that may be warming in the
-         background concurrently.  An error is returned if this limit
-         is exceeded.
-
-         Recommend values of 1-2 for read-only slaves, higher for
-         masters w/o cache warming.
-      -->
-    <maxWarmingSearchers>2</maxWarmingSearchers>
-
   </query>
 
 
@@ -644,22 +600,8 @@
 
        This section contains instructions for how the SolrDispatchFilter
        should behave when processing requests for this SolrCore.
-
-       handleSelect is a legacy option that affects the behavior of requests
-       such as /select?qt=XXX
-
-       handleSelect="true" will cause the SolrDispatchFilter to process
-       the request and dispatch the query to a handler specified by the
-       "qt" param, assuming "/select" isn't already registered.
-
-       handleSelect="false" will cause the SolrDispatchFilter to
-       ignore "/select" requests, resulting in a 404 unless a handler
-       is explicitly registered with the name "/select"
-
-       handleSelect="true" is not recommended for new users, but is the default
-       for backwards compatibility
     -->
-  <requestDispatcher handleSelect="false" >
+  <requestDispatcher>
     <!-- Request Parsing
 
          These settings indicate how Solr Requests may be parsed, and
@@ -685,15 +627,14 @@
          plugins.
 
          *** WARNING ***
-         The settings below authorize Solr to fetch remote files, You
-         should make sure your system has some authentication before
-         using enableRemoteStreaming="true"
+         Before enabling remote streaming, you should make sure your
+         system has authentication enabled.
 
-      -->
-    <requestParsers enableRemoteStreaming="true"
-                    multipartUploadLimitInKB="2048000"
-                    formdataUploadLimitInKB="2048"
+    <requestParsers enableRemoteStreaming="false"
+                    multipartUploadLimitInKB="-1"
+                    formdataUploadLimitInKB="-1"
                     addHttpRequestToContext="false"/>
+      -->
 
     <!-- HTTP Caching
 
@@ -757,14 +698,6 @@
        Incoming queries will be dispatched to a specific handler by name
        based on the path specified in the request.
 
-       Legacy behavior: If the request path uses "/select" but no Request
-       Handler has that name, and if handleSelect="true" has been specified in
-       the requestDispatcher, then the Request Handler is dispatched based on
-       the qt parameter.  Handlers without a leading '/' are accessed this way
-       like so: http://host/app/[core/]select?qt=name  If no qt is
-       given, then the requestHandler that declares default="true" will be
-       used or the one named "standard".
-
        If a Request Handler is declared with startup="lazy", then it will
        not be initialized until the first request that uses it.
 
@@ -791,14 +724,12 @@
          will be overridden by parameters in the request
       -->
     <lst name="defaults">
-      <str name="defType">edismax</str>
-      <str name="df">content</str>
+      <str name="defType">lucene</str>
+      <str name="df">id</str>
       <str name="echoParams">explicit</str>
       <bool name="omitHeader">true</bool>
-      <float name="tie">0.01</float>
       <!-- Don't abort searches for the /select request handler (set in solrcore.properties) -->
       <int name="timeAllowed">${solr.selectSearchHandler.timeAllowed:-1}</int>
-      <str name="q.alt">*:*</str>
 
       <!-- By default, don't spell check -->
       <str name="spellcheck">false</str>
@@ -816,12 +747,12 @@
 
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
-     <lst name="defaults">
-       <str name="echoParams">explicit</str>
-       <str name="wt">json</str>
-       <str name="indent">true</str>
-       <str name="df">text</str>
-     </lst>
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="wt">json</str>
+      <str name="indent">true</str>
+      <str name="df">text</str>
+    </lst>
   </requestHandler>
 
   <!-- A Robust Example
@@ -1101,20 +1032,13 @@
     </arr>
   </requestHandler>
 
-  <searchComponent name="suggest" class="solr.SuggestComponent">
-    <lst name="suggester">
-      <str name="name">mySuggester</str>
-      <str name="lookupImpl">FuzzyLookupFactory</str>      <!-- org.apache.solr.spelling.suggest.fst -->
-      <str name="dictionaryImpl">DocumentDictionaryFactory</str>     <!-- org.apache.solr.spelling.suggest.HighFrequencyDictionaryFactory -->
-      <str name="field">cat</str>
-      <str name="weightField">price</str>
-      <str name="suggestAnalyzerFieldType">string</str>
-    </lst>
-  </searchComponent>
+  <!-- Following is a dynamic way to include other components or any customized solrconfig.xml stuff, added by other contrib modules -->
+  &extra;
 
   <requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
       <str name="suggest">true</str>
+      <str name="suggest.dictionary">und</str>
       <str name="suggest.count">10</str>
     </lst>
     <arr name="components">
@@ -1169,17 +1093,17 @@
     <lst name="defaults">
       <bool name="terms">false</bool>
       <bool name="distrib">false</bool>
-      <!-- By default, don't spell check -->
       <str name="spellcheck">false</str>
-      <!-- Defaults for the spell checker when used -->
       <str name="spellcheck.onlyMorePopular">true</str>
       <str name="spellcheck.extendedResults">false</str>
-      <!--  The number of suggestions to return -->
       <str name="spellcheck.count">1</str>
+      <str name="suggest">false</str>
+      <str name="suggest.count">10</str>
     </lst>
     <arr name="components">
       <str>terms</str>
       <str>spellcheck</str>
+      <str>suggest</str>
     </arr>
   </requestHandler>
 
@@ -1356,17 +1280,17 @@
        rich documents injected via ExtractingRequestHandler.
        See more about langId at http://wiki.apache.org/solr/LanguageDetection
     -->
-    <!--
-     <updateRequestProcessorChain name="langid">
-       <processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory">
-         <str name="langid.fl">text,title,subject,description</str>
-         <str name="langid.langField">language_s</str>
-         <str name="langid.fallback">en</str>
-       </processor>
-       <processor class="solr.LogUpdateProcessorFactory" />
-       <processor class="solr.RunUpdateProcessorFactory" />
-     </updateRequestProcessorChain>
-    -->
+  <!--
+   <updateRequestProcessorChain name="langid">
+     <processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory">
+       <str name="langid.fl">text,title,subject,description</str>
+       <str name="langid.langField">language_s</str>
+       <str name="langid.fallback">en</str>
+     </processor>
+     <processor class="solr.LogUpdateProcessorFactory" />
+     <processor class="solr.RunUpdateProcessorFactory" />
+   </updateRequestProcessorChain>
+  -->
 
   <!-- Script update processor
 
@@ -1414,11 +1338,6 @@
     -->
 
   <queryResponseWriter name="json" class="solr.JSONResponseWriter">
-     <!-- For the purposes of the tutorial, JSON responses are written as
-      plain text so that they are easy to read in *any* browser.
-      If you expect a MIME type of "application/json" just remove this override.
-     -->
-    <str name="content-type">application/json; charset=UTF-8</str>
   </queryResponseWriter>
 
   <!--
@@ -1442,7 +1361,7 @@
 
   <!-- Query Parsers
 
-       https://cwiki.apache.org/confluence/display/solr/Query+Syntax+and+Parsing
+       https://lucene.apache.org/solr/guide/query-syntax-and-parsing.html
 
        Multiple QParserPlugins can be registered by name, and then
        used in either the "defType" param for the QueryComponent (used
