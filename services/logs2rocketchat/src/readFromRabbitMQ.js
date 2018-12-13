@@ -77,6 +77,10 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "github:delete:handled":
     case "gitlab:remove:handled":
+      text = `*[${meta.projectName}]* deleted in \`${meta.branchName}\``
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
     case "rest:remove:receive":
       text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
