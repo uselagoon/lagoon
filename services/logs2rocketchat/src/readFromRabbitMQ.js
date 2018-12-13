@@ -50,13 +50,13 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "github:pull_request:opened:handled":
     case "gitlab:merge_request:opened:handled":
-    case "bitbucket:pullrequest:created:handled":
+    case "bitbucket:pullrequest:created:opened:handled":
       text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) opened in [${meta.repoName}](${meta.repoUrl})`
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:synchronize:handled":
-    case "bitbucket:pullrequest:updated:handled":
+    case "bitbucket:pullrequest:updated:opened:handled":
     case "gitlab:merge_request:updated:handled":
       text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in [${meta.repoName}](${meta.repoUrl})`
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
