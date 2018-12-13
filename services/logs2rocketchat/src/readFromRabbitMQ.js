@@ -93,7 +93,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.shortSha){
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
       }
-      text = `${text} pushed in [${meta.pathWithNamespace}](${meta.repoUrl})`
+      text = `${text} pushed in [${meta.repoFullName}](${meta.repoUrl})`
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
@@ -104,7 +104,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.shortSha){
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
       }
-      text = `${text} pushed in [${meta.pathWithNamespace}](${meta.repoUrl}) *deployment skipped*`
+      text = `${text} pushed in [${meta.repoFullName}](${meta.repoUrl}) *deployment skipped*`
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 

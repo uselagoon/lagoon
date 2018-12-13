@@ -20,6 +20,7 @@ async function gitlabBranchDeleted(webhook: WebhookRequestData, project: Project
       branch: body.ref.replace('refs/heads/',''),
       branchName: body.ref.replace('refs/heads/',''),
       projectName: data.projectName,
+      repoFullName: body.project.path_with_namespace,
     }
 
     const data: removeData = {
