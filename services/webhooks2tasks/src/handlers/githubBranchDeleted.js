@@ -17,7 +17,8 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
 
     const meta = {
       projectName: project.name,
-      branch: body.ref.replace('refs/heads/','')
+      branch: body.ref.replace('refs/heads/',''),
+      branchName: body.ref.replace('refs/heads/','')
     }
 
     const data: removeData = {
