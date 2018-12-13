@@ -17,7 +17,9 @@ async function bitbucketBranchDeleted(webhook: WebhookRequestData, project: Proj
     } = webhook;
 
     const meta = {
-      branch: body.push.changes[0].old.name
+      branch: body.push.changes[0].old.name,
+      branchName: body.push.changes[0].old.name,
+      projectName: project.name,
     }
 
     const data: removeData = {
@@ -28,7 +30,8 @@ async function bitbucketBranchDeleted(webhook: WebhookRequestData, project: Proj
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+      // setting the event type manually so that further systems know that it is a delete
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:delete:handled`, meta,
         `*[${project.name}]* \`${meta.branch}\` deleted in <${body.repository.links.html.href}|${body.repository.full_name}>`
       )
       return;
@@ -49,7 +52,7 @@ async function bitbucketBranchDeleted(webhook: WebhookRequestData, project: Proj
             `*[${project.name}]* \`${meta.branch}\` not deleted. ${error}`
           )
           return;
-          
+
         default:
           // Other messages are real errors and should reschedule the message in RabbitMQ in order to try again
           throw error
