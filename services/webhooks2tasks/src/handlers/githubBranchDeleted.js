@@ -16,6 +16,7 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
     } = webhook;
 
     const meta = {
+      projectName: project.name,
       branch: body.ref.replace('refs/heads/','')
     }
 
@@ -27,7 +28,7 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:delete:handled`, meta,
         `*[${project.name}]* \`${meta.branch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
