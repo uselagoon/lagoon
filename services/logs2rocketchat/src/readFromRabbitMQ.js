@@ -177,7 +177,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:repo:push:CannotDeleteProductionEnvironment":
     case "gitlab:push:CannotDeleteProductionEnvironment":
     case "rest:remove:CannotDeleteProductionEnvironment":
-      text = `*[${meta.name}]* \`${meta.branchName}\` not deleted. ${meta.error}
+      text = `*[${meta.name}]* \`${meta.branchName}\` not deleted. ${meta.error}`
       sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
