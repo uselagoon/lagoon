@@ -17,7 +17,13 @@ async function gitlabPullRequestClosed(webhook: WebhookRequestData, project: Pro
     } = webhook;
 
     const meta = {
-      pullrequestNumber: body.number
+      projectName: project.name,
+      pullrequestNumber: body.object_attributes.id,
+      pullrequestTitle: body.object_attributes.title,
+      pullrequestNumber: body.number,
+      pullrequestUrl: body.object_attributes.url,
+      repoName: body.object_attributes.target.name,
+      repoUrl: body.object_attributes.target.web_url,
     }
 
     const data: removeData = {

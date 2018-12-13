@@ -23,6 +23,9 @@ async function gitlabPullRequestOpened(webhook: WebhookRequestData, project: Pro
 
 
     const data: deployData = {
+      repoUrl: body.object_attributes.target.web_url,
+      repoName: body.object_attributes.target.name,
+      pullrequestUrl: body.object_attributes.url,
       pullrequestTitle: body.object_attributes.title,
       pullrequestNumber: body.object_attributes.id,
       projectName: project.name,

@@ -48,13 +48,28 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
   switch (event) {
 
-    case "github:pull_request:closed:handled":
     case "github:pull_request:opened:handled":
-    case "github:pull_request:synchronize:handled":
+    case "gitlab:merge_request:opened:handled":
     case "bitbucket:pullrequest:created:handled":
+      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) opened in [${meta.repoName}](${meta.repoUrl})`
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
+    case "github:pull_request:synchronize:handled":
     case "bitbucket:pullrequest:updated:handled":
+    case "gitlab:merge_request:updated:handled":
+      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in [${meta.repoName}](${meta.repoUrl})`
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
     case "bitbucket:pullrequest:fulfilled:handled":
     case "bitbucket:pullrequest:rejected:handled":
+    case "github:pull_request:closed:handled":
+    case "gitlab:merge_request:closed:handled":
+      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) closed in [${meta.repoName}](${meta.repoUrl})`
+      sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
+
     case "rest:pullrequest:deploy":
       text = `*[${meta.projectName}]* REST pullrequest deploy trigger \`${meta.pullrequestTitle}\``
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
@@ -63,7 +78,6 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "github:delete:handled":
     case "gitlab:remove:handled":
     case "rest:remove:receive":
-      console.log(`tyler: ${meta}`);
       text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
