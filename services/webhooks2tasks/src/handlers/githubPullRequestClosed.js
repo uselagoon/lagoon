@@ -39,6 +39,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, project: Pro
       )
       return;
     } catch (error) {
+      meta.error = error
       switch (error.name) {
         case "ProjectNotFound":
         case "NoActiveSystemsDefined":

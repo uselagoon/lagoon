@@ -36,6 +36,7 @@ async function bitbucketBranchDeleted(webhook: WebhookRequestData, project: Proj
       )
       return;
     } catch (error) {
+      meta.error
       switch (error.name) {
         case "ProjectNotFound":
         case "NoActiveSystemsDefined":

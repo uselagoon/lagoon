@@ -34,6 +34,7 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
       )
       return;
     } catch (error) {
+      meta.error = error
       switch (error.name) {
         case "ProjectNotFound":
         case "NoActiveSystemsDefined":

@@ -148,6 +148,13 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
+      text = `*[${meta.projectName}]*`
+      if (meta.shortSha) {
+        text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
+      } else {
+        text = `${text} \`${meta.branchName}\``
+      }
+      text = `${text} Build \`${meta.buildName}\` failed. ${meta.logLink}`
       sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
@@ -170,6 +177,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:repo:push:CannotDeleteProductionEnvironment":
     case "gitlab:push:CannotDeleteProductionEnvironment":
     case "rest:remove:CannotDeleteProductionEnvironment":
+      text = `*[${meta.name}]* \`${meta.branchName}\` not deleted. ${meta.error}
       sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
