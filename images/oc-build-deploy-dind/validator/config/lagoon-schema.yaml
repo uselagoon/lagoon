@@ -14,7 +14,7 @@ run:
   service: str(required=True)
 ---
 environment:
-  cronjobs: list(include('cron'))
+  cronjobs: list(include('cron'), required=False)
   routes: list(map(list(str(),include('routeitem'))), required=False) #include('routetype')
 ---
 routeitem:
