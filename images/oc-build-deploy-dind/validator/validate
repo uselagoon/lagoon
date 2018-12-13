@@ -1,7 +1,14 @@
 #!/bin/sh
 BASE=$(dirname $0)
 
+echo "Linting files:"
+
 yamllint -c ${BASE}/config/yamllint.yaml .lagoon.yml | cat
 yamllint -c ${BASE}/config/yamllint.yaml docker-compose.yml | cat
 
+echo "Validating files:"
+
 ${BASE}/validate-schema
+
+echo "the file parsed was:"
+grep -n . .lagoon.yml
