@@ -1,12 +1,13 @@
 # .lagoon.yml file
-The `.lagoon.yml` is used to:
+The `.lagoon.yml` is the central file to setup your project:
 
-* define post rollout tasks
+* define pre-rollout tasks
+* define post-rollout tasks
 * set up SSL certificates
-* add cronjobs for Environments
+* add cronjobs for environments
 * define routes for accessing your sites
 
-The `.lagoon.yml` file must be placed at the root of your repo.
+The `.lagoon.yml` file must be placed at the root of your git repository.
 
 ## Example `.lagoon.yml`
 
@@ -24,18 +25,6 @@ tasks:
         name: env variables
         command: env
         service: cli
-    - run:
-        name: IF no Drupal installed drush si with no email sending
-        command: |
-            if ! drush status --fields=bootstrap | grep -q "Successful"; then
-                # no drupal installed, we install drupal from scratch
-                drush -y si
-            else
-                # drupal already installed, do nothing
-                echo "drupal already installed"
-            fi
-        service: cli
-        shell: bash
     - run:
         name: drush cim
         command: drush -y cim
@@ -203,7 +192,7 @@ environments:
 
 ## Polysite
 
-In Lagoon, the same git repo can be added to multiple projects, creating what is called a Polysite. This allows us to run the same codebase but allow for different, isolated, databases. In `.lagoon.yml` we currently only specifying custom routes for a polysite project. The key difference from a standard project is that the `enviornments` becomes the second-level element, and the project name the top level.
+In Lagoon, the same git repository can be added to multiple projects, creating what is called a Polysite. This allows you to run the same codebase but allow for different, isolated, databases and persistent files. In `.lagoon.yml` we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `enviornments` becomes the second-level element, and the project name the top level.
 
 Example:
 
@@ -219,11 +208,13 @@ example-project-name:
 ## Specials
 
 #### `api`
+**Note:** If you run directly on amazee.io you will not need this key set.
 
 With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL `api`. This needs to be a full URL with a scheme, like: `http://localhost:3000`
 This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
 
 #### `ssh`
+**Note:** If you run directly on amazee.io you will not need this key set.
 
 With the key `ssh` you can define another SSH endpoing that should be used by `lagu` and `drush` to connect to the Lagoon Remote Shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020`
 This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
