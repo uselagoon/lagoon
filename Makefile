@@ -215,15 +215,17 @@ $(build-phpimages): build/commons
 base-images += $(phpimages)
 s3-images += php
 
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm: images/commons
+build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
 build/php__7.0-cli: build/php__7.0-fpm
 build/php__7.1-cli: build/php__7.1-fpm
 build/php__7.2-cli: build/php__7.2-fpm
+build/php__7.3-cli: build/php__7.3-fpm
 build/php__5.6-cli-drupal: build/php__5.6-cli
 build/php__7.0-cli-drupal: build/php__7.0-cli
 build/php__7.1-cli-drupal: build/php__7.1-cli
 build/php__7.2-cli-drupal: build/php__7.2-cli
+build/php__7.3-cli-drupal: build/php__7.3-cli
 
 #######
 ####### Solr Images
@@ -461,7 +463,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
