@@ -51,7 +51,10 @@ RUN apk update \
         libxslt-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
-    && if [ ${PHP_VERSION%.*.*} == "7" ]; then \
+    && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
+        yes '' | pecl install -f apcu \
+        && yes '' | pecl install -f xdebug-2.7.0; \
+       elif [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug; \
        fi \
