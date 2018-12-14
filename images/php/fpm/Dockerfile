@@ -37,6 +37,7 @@ RUN apk update \
     && apk upgrade \
     && apk add --no-cache fcgi \
         ssmtp \
+        libzip libzip-dev \
         # for gd
         libpng-dev \
         libjpeg-turbo-dev \

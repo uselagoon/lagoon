@@ -180,14 +180,17 @@ phpimages := 	php__5.6-fpm \
 							php__7.0-fpm \
 							php__7.1-fpm  \
 							php__7.2-fpm \
+							php__7.3-fpm \
 							php__5.6-cli \
 							php__7.0-cli \
 							php__7.1-cli \
 							php__7.2-cli \
+							php__7.3-cli \
 							php__5.6-cli-drupal \
 							php__7.0-cli-drupal \
 							php__7.1-cli-drupal \
-							php__7.2-cli-drupal
+							php__7.2-cli-drupal \
+							php__7.3-cli-drupal
 
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
