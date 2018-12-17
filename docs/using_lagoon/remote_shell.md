@@ -20,7 +20,7 @@ ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh
 
 - `PORT` - The Remote Shell SSH Endpoint Port (for amazee.io `32222`)
 - `HOST` - The Remote Shell SSH Endpoint Host (for amazee.io `ssh.lagoon.amazeeio.cloud`)
-- `PROJECT-ENVIRONMENT-NAME` - the environment you like to connect too, this is most commonly in the pattern `PROJECTNAME-ENVIORNMENT`
+- `PROJECT-ENVIRONMENT-NAME` - the environment you like to connect too, this is most commonly in the pattern `PROJECTNAME-ENVIRONMENT`
 
 As en example:
 

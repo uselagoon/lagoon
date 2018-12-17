@@ -9,7 +9,7 @@ It does the following:
 4. the handler will then create a task in the correct rabbitmq task queue. (In our example, closed pull requests need to remove openshift resources, so it creates a task in `lagoon-tasks:remove-openshift-resources`)
 5. If no handler is defined for the webhook type or the event, it will log that to `lagoon-logs`
 
-It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is rechable again, it will send the messages there.
+It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is reachable again, it will send the messages there.
 
 ## Hosting
 

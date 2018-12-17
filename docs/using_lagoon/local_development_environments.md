@@ -1,4 +1,4 @@
-# Local Development Enviornments
+# Local Development Environments
 
 Even though Lagoon has only a hard dependency on Docker and Docker Compose (which is mostly shipped with Docker) some things that are nice for local development are not included in Docker:
 

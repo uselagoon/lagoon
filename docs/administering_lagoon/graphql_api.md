@@ -117,7 +117,7 @@ mutation {
 }
 ```
 
-**Grant a user access to a customer (which will grant acccess to all projects of the customer)**
+**Grant a user access to a customer (which will grant access to all projects of the customer)**
 
 ```graphql
 mutation {

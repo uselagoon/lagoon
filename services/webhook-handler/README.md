@@ -7,7 +7,7 @@ This webhook handler is part of the amazee.io lagoon deployment system and is re
 - `giturl` (URL of the git repo)
 - `body` (full body of webhook payload)
 
-It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is rechable again, it will send the messages there.
+It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is reachable again, it will send the messages there.
 
 Logs each received webhook to the lagoon-logs queue.
 
