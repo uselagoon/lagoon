@@ -231,7 +231,7 @@ mutation {
       # TODO: Fill in the name field
       # This is the customer name
       name: ""
-      # TODO: Fill in the privateKey field
+      # TODO: Fill in the privateKey field - create a new private and public keypair with `ssh-keygen`
       # The private key is a string, with new lines represented by `\n`
       privateKey: ""
     }
