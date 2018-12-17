@@ -48,7 +48,7 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      appuio.ch/backup: "true"
+      appuio.ch/backup: "false"
     name: ${SERVICE_NAME}
   spec:
     accessModes:

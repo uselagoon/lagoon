@@ -59,7 +59,8 @@ objects:
       template:
         metadata:
           annotations:
-            appuio.ch/backupcommand: /bin/bash -c "if [[ $MARIADB_HOST ]]; then mysqldump --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $MARIADB_HOST -u $MARIADB_USERNAME -p$MARIADB_PASSWORD $MARIADB_DATABASE; fi"
+            appuio.ch/backupcommand: /bin/sh -c "if [[ $MARIADB_HOST ]]; then mysqldump --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $MARIADB_HOST -u $MARIADB_USERNAME -p$MARIADB_PASSWORD $MARIADB_DATABASE; fi"
+            backup.appuio.ch/file-extension: .mysql.sql
           creationTimestamp: null
           labels:
             service: ${SERVICE_NAME}

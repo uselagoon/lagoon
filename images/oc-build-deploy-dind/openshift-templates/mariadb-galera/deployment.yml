@@ -60,6 +60,7 @@ objects:
       metadata:
         annotations:
           appuio.ch/backupcommand: /bin/sh -c "mysqldump --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases"
+          backup.appuio.ch/file-extension: .${SERVICE_NAME}.sql
         creationTimestamp: null
         labels:
           service: ${SERVICE_NAME}
