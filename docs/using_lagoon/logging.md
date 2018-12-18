@@ -28,7 +28,7 @@ Lagoon provides access to the following logs via Kibana:
     - For Drupal: Install [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive Logs from Drupal Watchdog
 
 
-To access the Logs, please check with your Lagon Administrator to get the URL for the Kibana Route (for amazee.io this is <https://logs-db-ui-lagoon-master.ch.amazee.io/>).
+To access the Logs, please check with your Lagoon Administrator to get the URL for the Kibana Route (for amazee.io this is <https://logs-db-ui-lagoon-master.ch.amazee.io/>).
 
 Each Lagoon Account has their own Login and will see the Logs only for the projects that they have access to.
 

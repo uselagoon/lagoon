@@ -82,7 +82,7 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 There are different type of tasks you can define, they differ when exactly they are executed in a build flow:
 
 ### `pre_rollout.[i].run`
-The taks defined as `pre_rollout` tasks will run against your project _after_ the new images have been built sucessfully and _before_ the project gets altered in any way.
+The task defined as `pre_rollout` tasks will run against your project _after_ the new images have been built successfully and _before_ the project gets altered in any way.
 This feature enables you for example to create a database dump before the rollout is running. This will make it easier to roll-back in case of an issue with the rollout.
 
 #### `post_rollout.[i].run`
@@ -90,7 +90,7 @@ Here you can specify tasks which need to run against your project, _after_:
 
 - all Images have been successfully built
 - all Containers are updated with the new Images
-- all Containers are running have passed their readyness checks
+- all Containers are running have passed their readiness checks
 
 Common uses are to run `drush updb`, `drush cim`, or clear various caches.
 
@@ -101,7 +101,7 @@ Common uses are to run `drush updb`, `drush cim`, or clear various caches.
 * `service`
     - The service which to run the task in. If following our drupal-example, this will be the CLI container, as it has all your site code, files, and a connection to the DB. Typically you do not need to change this.
 * `shell`
-    - Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells (like `bash`, you can define it here). This is usefull if you want to run some small if/else bash scripts within the post-rollouts. (see the example above how to write a script with multiple lines)
+    - Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells (like `bash`, you can define it here). This is useful if you want to run some small if/else bash scripts within the post-rollouts. (see the example above how to write a script with multiple lines)
 
 ## Environments
 Environment names match your deployed branches or pull requests, it allows you for each environment to have a different config, in our example it will apply to the `master` and `staging` environment.
@@ -123,7 +123,7 @@ In the `"www.example.com"` example, we see two more options (also see the `:` at
 * `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 #### `environments.[name].cronjobs`
-As most of the time it is not desireable to run the same cronjobs across all environments, you must explicitely define which jobs you want to run for each environment.
+As most of the time it is not desirable to run the same cronjobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
 * `name:`
     * Just a friendly name for identifying what the cronjob will do
@@ -177,7 +177,7 @@ environments:
 #### `environments.[name].rollouts`
 The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
 
-Sometimes though you would like to override the rollout type just for a single environment, especially if you also overwrote the template type for the enviornment
+Sometimes though you would like to override the rollout type just for a single environment, especially if you also overwrote the template type for the environment
 
 `service-name: rollout-type`
 
@@ -198,7 +198,7 @@ At the end of a deplpoy, Lagoon will check this field for any URLs which you spe
 
 ## Polysite
 
-In Lagoon, the same git repository can be added to multiple projects, creating what is called a Polysite. This allows you to run the same codebase but allow for different, isolated, databases and persistent files. In `.lagoon.yml` we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `enviornments` becomes the second-level element, and the project name the top level.
+In Lagoon, the same git repository can be added to multiple projects, creating what is called a Polysite. This allows you to run the same codebase but allow for different, isolated, databases and persistent files. In `.lagoon.yml` we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
 
 Example:
 
@@ -222,7 +222,7 @@ This usually does not need to be changed, but there might be situations where yo
 #### `ssh`
 **Note:** If you run directly on amazee.io you will not need this key set.
 
-With the key `ssh` you can define another SSH endpoing that should be used by `lagu` and `drush` to connect to the Lagoon Remote Shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020`
+With the key `ssh` you can define another SSH endpoint that should be used by `lagu` and `drush` to connect to the Lagoon Remote Shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020`
 This usually does not need to be changed, but there might be situations where your Lagoon Administrator tells you to do so.
 
 
@@ -249,4 +249,4 @@ Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in th
 
 * `path` - the path to the yaml file
 * `command` - can either be `create` or `apply`, depending on if you like to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`
-* `ignore_error` - either `true` or `false` (default), this allows you to instruct the lagoon build script to ignore any errors that might are returned during running the command. (This can be usefull to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist).
+* `ignore_error` - either `true` or `false` (default), this allows you to instruct the lagoon build script to ignore any errors that might are returned during running the command. (This can be useful to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist).
