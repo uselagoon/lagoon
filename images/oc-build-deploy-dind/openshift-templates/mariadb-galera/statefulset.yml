@@ -103,8 +103,6 @@ objects:
               value: ${CRONJOBS}
     volumeClaimTemplates:
     - metadata:
-        annotations:
-          appuio.ch/backup: "false"
         name: ${SERVICE_NAME}-galera
       spec:
         accessModes: [ "ReadWriteOnce" ]
