@@ -7,7 +7,9 @@ ENV WEBROOT=docroot \
 RUN apk update \
     && apk del nodejs nodejs-current yarn \
     && apk add nodejs-npm patch rsync --update-cache --repository http://dl-3.alpinelinux.org/alpine/v3.7/main/ \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* \
+    && apk add --update clamav clamav-libunrar \
+    && freshclam
 
 # Add common drupal config.
 RUN mkdir /bay
