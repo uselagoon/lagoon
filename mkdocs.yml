@@ -35,6 +35,7 @@ pages:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
 - Administration:
   - Installing Lagoon: administering_lagoon/install.md
+  - OpenShift Requirements: administering_lagoon/openshift_requirements.md
   - GraphQL API: administering_lagoon/graphql_api.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md

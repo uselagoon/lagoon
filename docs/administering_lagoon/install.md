@@ -4,6 +4,8 @@ Lagoon is not only capable to deploy into OpenShift, it actually runs in OpenShi
 
 Luckily we can use the local development environment to kickstart another Lagoon in any OpenShift, running somewhere in the world.
 
+Check the [Requirements for OpenShift by Lagoon](/administering_lagoon/openshift_requirements.md) before continuing.
+
 This process consists of 3 main stages, which are in short:
 
 1. Configure existing OpenShift
