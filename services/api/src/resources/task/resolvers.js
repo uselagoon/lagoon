@@ -3,6 +3,7 @@
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createTaskTask } = require('@lagoon/commons/src/tasks');
+const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const {
@@ -16,6 +17,7 @@ const {
 const Sql = require('./sql');
 const projectSql = require('../project/sql');
 const environmentSql = require('../environment/sql');
+const EVENTS = require('./events');
 
 /* ::
 
@@ -93,7 +95,9 @@ const getTasksByEnvironmentId = async (
 
   const rows = await query(sqlClient, prep({ eid }));
 
-  return rows.map(row => injectLogs(row));
+  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+
+  return newestFirst.map(row => injectLogs(row));
 };
 
 const getTaskByRemoteId = async (
@@ -190,11 +194,13 @@ const addTask = async (
   );
 
   let rows = await query(sqlClient, Sql.selectTask(insertId));
-  const taskData = R.prop(0, rows);
+  const taskData = await injectLogs(R.prop(0, rows));
+
+  pubSub.publish(EVENTS.TASK.ADDED, taskData);
 
   // Allow creating task data w/o executing the task
   if (role === 'admin' && execute === false) {
-    return injectLogs(taskData);
+    return taskData;
   }
 
   rows = await query(sqlClient, environmentSql.selectEnvironmentById(taskData.environment));
@@ -216,7 +222,7 @@ const addTask = async (
     );
   }
 
-  return injectLogs(taskData);
+  return taskData;
 };
 
 const deleteTask = async (
@@ -321,9 +327,19 @@ const updateTask = async (
   );
 
   const rows = await query(sqlClient, Sql.selectTask(id));
+  const taskData = await injectLogs(R.prop(0, rows));
 
-  return injectLogs(R.prop(0, rows));
+  pubSub.publish(EVENTS.TASK.UPDATED, taskData);
+
+  return taskData;
 };
+
+const taskSubscriber = createEnvironmentFilteredSubscriber(
+  [
+    EVENTS.TASK.ADDED,
+    EVENTS.TASK.UPDATED,
+  ]
+);
 
 const Resolvers /* : ResolversObj */ = {
   getTasksByEnvironmentId,
@@ -331,6 +347,7 @@ const Resolvers /* : ResolversObj */ = {
   addTask,
   deleteTask,
   updateTask,
+  taskSubscriber,
 };
 
 module.exports = Resolvers;

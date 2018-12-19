@@ -3,8 +3,10 @@ import getConfig from 'next/config';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
+import { WebSocketLink } from 'apollo-link-ws';
 import { onError } from 'apollo-link-error';
 import { ApolloLink } from 'apollo-link';
+import { getMainDefinition } from 'apollo-utilities';
 import { ApolloProvider } from 'react-apollo';
 import { AuthContext } from './withAuth';
 import NotAuthenticated from '../components/NotAuthenticated';
@@ -18,6 +20,32 @@ const ApiConnection = ({ children }) =>
         return <NotAuthenticated />;
       }
 
+      const httpLink = new HttpLink({
+        uri: publicRuntimeConfig.GRAPHQL_API,
+        headers: {
+          authorization: `Bearer ${auth.apiToken}`,
+        },
+      })
+
+      const wsLink = new WebSocketLink({
+        uri: publicRuntimeConfig.GRAPHQL_API.replace(/https?/, 'ws'),
+        options: {
+          reconnect: true,
+          connectionParams: {
+              authToken: auth.apiToken,
+          },
+        },
+      });
+
+      const requestLink = ApolloLink.split(
+        ({ query }) => {
+          const { kind, operation } = getMainDefinition(query);
+          return kind === 'OperationDefinition' && operation === 'subscription';
+        },
+        wsLink,
+        httpLink
+      );
+
       const client = new ApolloClient({
         link: ApolloLink.from([
           onError(({ graphQLErrors, networkError }) => {
@@ -29,12 +57,7 @@ const ApiConnection = ({ children }) =>
               );
             if (networkError) console.log(`[Network error]: ${networkError}`);
           }),
-          new HttpLink({
-            uri: publicRuntimeConfig.GRAPHQL_API,
-            headers: {
-              authorization: `Bearer ${auth.apiToken}`,
-            },
-          })
+          requestLink
         ]),
         cache: new InMemoryCache()
       });

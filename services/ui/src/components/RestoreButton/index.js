@@ -1,7 +1,7 @@
 import React from 'react';
 import Prepare from './Prepare';
 
-const RestoreButton = ({ backup: { backupId }, backup: { restore }, className }) => {
+const RestoreButton = ({ backup: { backupId, restore }, className }) => {
   if (!restore)
     return <Prepare className={className} backupId={backupId} />;
 

@@ -4,6 +4,7 @@ const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
+const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
 const {
   knex,
   ifNotAdmin,
@@ -13,6 +14,7 @@ const {
   isPatchEmpty,
 } = require('../../util/db');
 const Sql = require('./sql');
+const EVENTS = require('./events');
 
 /* ::
 
@@ -94,10 +96,11 @@ const getDeploymentsByEnvironmentId = async (
   );
 
   const rows = await query(sqlClient, prep({ eid }));
+  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
 
   const requestedFields = getFieldNames(info);
 
-  return rows.filter(row => {
+  return newestFirst.filter(row => {
     if (R.isNil(name) || R.isEmpty(name)) {
       return true;
     }
@@ -207,8 +210,10 @@ const addDeployment = async (
   );
 
   const rows = await query(sqlClient, Sql.selectDeployment(insertId));
+  const deployment = await injectBuildLog(R.prop(0, rows));
 
-  return injectBuildLog(R.prop(0, rows));
+  pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
+  return deployment;
 };
 
 const deleteDeployment = async (
@@ -312,9 +317,19 @@ const updateDeployment = async (
   );
 
   const rows = await query(sqlClient, Sql.selectDeployment(id));
+  const deployment = await injectBuildLog(R.prop(0, rows));
 
-  return injectBuildLog(R.prop(0, rows));
+  pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
+
+  return deployment;
 };
+
+const deploymentSubscriber = createEnvironmentFilteredSubscriber(
+  [
+    EVENTS.DEPLOYMENT.ADDED,
+    EVENTS.DEPLOYMENT.UPDATED,
+  ]
+);
 
 const Resolvers /* : ResolversObj */ = {
   getDeploymentsByEnvironmentId,
@@ -322,6 +337,7 @@ const Resolvers /* : ResolversObj */ = {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  deploymentSubscriber,
 };
 
 module.exports = Resolvers;
