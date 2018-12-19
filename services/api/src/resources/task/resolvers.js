@@ -15,9 +15,12 @@ const {
   isPatchEmpty,
 } = require('../../util/db');
 const Sql = require('./sql');
+const EVENTS = require('./events');
+const Helpers = require('./helpers');
 const projectSql = require('../project/sql');
 const environmentSql = require('../environment/sql');
-const EVENTS = require('./events');
+const environmentHelpers = require('../environment/helpers');
+const envValidators = require('../environment/validators');
 
 /* ::
 
@@ -31,42 +34,6 @@ const taskStatusTypeToString = R.cond([
   [R.equals('FAILED'), R.toLower],
   [R.T, R.identity],
 ]);
-
-const injectLogs = async task => {
-  if (!task.remoteId) {
-    return {
-      ...task,
-      logs: null,
-    };
-  }
-
-  const result = await esClient.search({
-    index: 'lagoon-logs-*',
-    sort: '@timestamp:desc',
-    body: {
-      query: {
-        bool: {
-          must: [
-            { match_phrase: { 'meta.remoteId': task.remoteId } },
-            { match_phrase: { 'meta.jobStatus': task.status } },
-          ],
-        },
-      },
-    },
-  });
-
-  if (!result.hits.total) {
-    return {
-      ...task,
-      logs: null,
-    };
-  }
-
-  return {
-    ...task,
-    logs: R.path(['hits', 'hits', 0, '_source', 'message'], result),
-  };
-};
 
 const getTasksByEnvironmentId = async (
   { id: eid },
@@ -97,7 +64,7 @@ const getTasksByEnvironmentId = async (
 
   const newestFirst = R.sort(R.descend(R.prop('created')), rows);
 
-  return newestFirst.map(row => injectLogs(row));
+  return newestFirst.map(row => Helpers.injectLogs(row));
 };
 
 const getTaskByRemoteId = async (
@@ -132,7 +99,7 @@ const getTaskByRemoteId = async (
     }
   }
 
-  return injectLogs(task);
+  return Helpers.injectLogs(task);
 };
 
 const addTask = async (
@@ -149,78 +116,35 @@ const addTask = async (
       service,
       command,
       remoteId,
-      execute,
+      execute: executeRequest,
     },
   },
   {
+    credentials,
     credentials: {
       role,
-      permissions: { customers, projects },
     },
   },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
+  const execute = role === 'admin' ? executeRequest : true;
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(environment),
-    );
+  await envValidators.environmentExists(environment);
+  await envValidators.userAccessEnvironment(credentials, environment);
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
-  const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
-    Sql.insertTask({
-      id,
-      name,
-      status,
-      created,
-      started,
-      completed,
-      environment,
-      service,
-      command,
-      remoteId,
-    }),
-  );
-
-  let rows = await query(sqlClient, Sql.selectTask(insertId));
-  const taskData = await injectLogs(R.prop(0, rows));
-
-  pubSub.publish(EVENTS.TASK.ADDED, taskData);
-
-  // Allow creating task data w/o executing the task
-  if (role === 'admin' && execute === false) {
-    return taskData;
-  }
-
-  rows = await query(sqlClient, environmentSql.selectEnvironmentById(taskData.environment));
-  const environmentData = R.prop(0, rows);
-
-  rows = await query(sqlClient, projectSql.selectProject(environmentData.project));
-  const projectData = R.prop(0, rows);
-
-  try {
-    await createTaskTask({ task: taskData, project: projectData, environment: environmentData });
-  } catch (error) {
-    sendToLagoonLogs(
-      'error',
-      projectData.name,
-      '',
-      'api:addTask',
-      { taskId: taskData.id },
-      `*[${projectData.name}]* Task not initiated, reason: ${error}`,
-    );
-  }
+  const taskData = await Helpers.addTask({
+    id,
+    name,
+    status,
+    created,
+    started,
+    completed,
+    environment,
+    service,
+    command,
+    remoteId,
+    execute,
+  });
 
   return taskData;
 };
@@ -271,6 +195,7 @@ const updateTask = async (
     },
   },
   {
+    credentials,
     credentials: {
       role,
       permissions: { customers, projects },
@@ -279,8 +204,8 @@ const updateTask = async (
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
 
+  // Check access to modify task as it currently stands
   if (role !== 'admin') {
-    // Check access to modify task as it currently stands
     const rowsCurrent = await query(sqlClient, Sql.selectPermsForTask(id));
 
     if (
@@ -289,20 +214,10 @@ const updateTask = async (
     ) {
       throw new Error('Unauthorized.');
     }
-
-    // Check access to modify task as it will be updated
-    const rowsNew = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(environment),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsNew), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsNew), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
   }
+
+  // Check access to modify task as it will be updated
+  await envValidators.userAccessEnvironment(credentials, environment);
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -327,9 +242,105 @@ const updateTask = async (
   );
 
   const rows = await query(sqlClient, Sql.selectTask(id));
-  const taskData = await injectLogs(R.prop(0, rows));
+  const taskData = await Helpers.injectLogs(R.prop(0, rows));
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
+
+  return taskData;
+};
+
+const taskDrushArchiveDump = async (
+  root,
+  {
+    environment: environmentId,
+  },
+  {
+    credentials,
+  },
+) => {
+  await envValidators.environmentExists(environmentId);
+  await envValidators.userAccessEnvironment(credentials, environmentId);
+  await envValidators.environmentHasService(environmentId, 'cli');
+
+  const environment = await environmentHelpers.getEnvironmentById(environmentId);
+  const filename = `drupal-${Date.now()}-${Math.floor(Math.random() * 998) + 1}.tar.gz`;
+  const command = String.raw`drush status --format=yaml | \
+grep '%files' | \
+awk '{print $2}' | \
+xargs -I_path drush ard --pipe --destination=_path/private/${filename} | \
+xargs -I_file -- printf 'Your archive has been saved to _file.\nYou can download it by running "drush rsync @${
+    environment.name
+  }:_file ./".'`;
+
+  const taskData = await Helpers.addTask({
+    name: 'Drush archive-dump',
+    environment: environmentId,
+    service: 'cli',
+    command,
+    execute: true,
+  });
+
+  return taskData;
+};
+
+const taskDrushSqlSync = async (
+  root,
+  {
+    sourceEnvironment: sourceEnvironmentId,
+    destinationEnvironment: destinationEnvironmentId,
+  },
+  {
+    credentials,
+  },
+) => {
+  await envValidators.environmentExists(sourceEnvironmentId);
+  await envValidators.environmentExists(destinationEnvironmentId);
+  await envValidators.environmentsHaveSameProject([sourceEnvironmentId, destinationEnvironmentId]);
+  await envValidators.userAccessEnvironment(credentials, sourceEnvironmentId);
+  await envValidators.userAccessEnvironment(credentials, destinationEnvironmentId);
+  await envValidators.environmentHasService(sourceEnvironmentId, 'cli');
+
+  const sourceEnvironment = await environmentHelpers.getEnvironmentById(sourceEnvironmentId);
+  const destinationEnvironment = await environmentHelpers.getEnvironmentById(destinationEnvironmentId);
+
+  const taskData = await Helpers.addTask({
+    name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
+    environment: destinationEnvironmentId,
+    service: 'cli',
+    command: `drush -y sql-sync @${sourceEnvironment.name} @self`,
+    execute: true,
+  });
+
+  return taskData;
+};
+
+const taskDrushRsyncFiles = async (
+  root,
+  {
+    sourceEnvironment: sourceEnvironmentId,
+    destinationEnvironment: destinationEnvironmentId,
+  },
+  {
+    credentials,
+  },
+) => {
+  await envValidators.environmentExists(sourceEnvironmentId);
+  await envValidators.environmentExists(destinationEnvironmentId);
+  await envValidators.environmentsHaveSameProject([sourceEnvironmentId, destinationEnvironmentId]);
+  await envValidators.userAccessEnvironment(credentials, sourceEnvironmentId);
+  await envValidators.userAccessEnvironment(credentials, destinationEnvironmentId);
+  await envValidators.environmentHasService(sourceEnvironmentId, 'cli');
+
+  const sourceEnvironment = await environmentHelpers.getEnvironmentById(sourceEnvironmentId);
+  const destinationEnvironment = await environmentHelpers.getEnvironmentById(destinationEnvironmentId);
+
+  const taskData = await Helpers.addTask({
+    name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
+    environment: destinationEnvironmentId,
+    service: 'cli',
+    command: `drush -y rsync @${sourceEnvironment.name}:%files @self:%files`,
+    execute: true,
+  });
 
   return taskData;
 };
@@ -347,6 +358,9 @@ const Resolvers /* : ResolversObj */ = {
   addTask,
   deleteTask,
   updateTask,
+  taskDrushArchiveDump,
+  taskDrushSqlSync,
+  taskDrushRsyncFiles,
   taskSubscriber,
 };
 

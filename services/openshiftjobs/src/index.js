@@ -158,7 +158,9 @@ const messageConsumer = async msg => {
       '/sbin/tini',
       '--',
       '/lagoon/entrypoints.sh',
-      ...task.command.split(' '),
+      '/bin/sh',
+      '-c',
+      task.command,
     ]);
 
     taskPodSpec = R.pipe(
