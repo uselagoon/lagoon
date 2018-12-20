@@ -5,8 +5,13 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM alpine:3.7 as vmod
 ENV VERSION=5.2
 RUN apk --no-cache add varnish varnish-dev automake autoconf libtool python py-docutils make
+
 RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${VERSION}.zip && \
   unzip ${VERSION}.zip && cd libvmod-dynamic-${VERSION} && \
+  ./autogen.sh && ./configure && make && make install
+
+RUN cd /tmp && wget https://github.com/aondio/libvmod-bodyaccess/archive/5.0.zip && \
+  unzip 5.0.zip && cd libvmod-bodyaccess-5.0 && \
   ./autogen.sh && ./configure && make && make install
 
 FROM alpine:3.7
@@ -31,6 +36,7 @@ RUN apk --no-cache add varnish
 
 # Add varnish mod after the varnish package creates the directory.
 COPY --from=vmod /usr/lib/varnish/vmods/libvmod_dynamic.* /usr/lib/varnish/vmods/
+COPY --from=vmod /usr/lib/varnish/vmods/libvmod_bodyaccess.* /usr/lib/varnish/vmods/
 
 RUN echo "${VARNISH_SECRET:-lagoon_default_secret}" >> /etc/varnish/secret
 
