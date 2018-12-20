@@ -13,6 +13,19 @@ environments:
       mariadb: mariadb-galera
 ```
 
+also you will need to change your service definition in your `docker-compose.yml`
+
+```
+  mariadb:
+    image: amazeeio/mariadb-galera-drupal
+    labels:
+      lagoon.type: mariadb
+    ports:
+      - "3306" # exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`
+    environment:
+      << : *default-environment
+```
+
 It is recommended to configure the environment before the initial deploy of the
 production site, otherwise manual intervention may be needed from your lagoon
 administrator.

@@ -101,7 +101,7 @@ Our Varnish configurations have full support for Ban Lurker. Ban Lurker is basic
 
 Varnish doesn't cache? Or something else not working? Here a couple of ways to debug:
 
-- Run `drush p-debug-en` to enable debug logging of the purge module, this should show you debbugging in the Drupal log under `admin/reports/dblog`
+- Run `drush p-debug-en` to enable debug logging of the purge module, this should show you debugging in the Drupal log under `admin/reports/dblog`
 - Make sure that Drupal sends a proper cache headers. To test this best use the URL that Lagoon generates for bypassing the Varnish cache (locally in Drupal example this is http://nginx-drupal-example.docker.amazee.io). Check for an `Cache-Control: max-age=900, public` header, while the `900` is depending on what you configured in `$config['system.performance']['cache']['page']['max_age']`
 - Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` (see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly.)
 - If all fails and before you flip your table, talk to the Lagoon Team, we're happy to help.

@@ -79,13 +79,13 @@ For each service that requests a Cronjob (like the mariadb), plus for each custo
 ## 8. DeploymentConfigs, Statefulsets, Deamonsets
 
 This is probably the most important step. Based on the defined service type, Lagoon will create the DeploymentConfigs, Statefulset or Daemonsets for the service.
-It will include all previously gattered information like the Cronjobs, the location of persistent storage, the pushed images and so on.
+It will include all previously gathered information like the Cronjobs, the location of persistent storage, the pushed images and so on.
 
-Creation of these Objects will also automatically cause OpenShift/Kubernetes to trigger new deployments of the Pods if necessary, like when a environment variable has changed or an Image has changed. But if there is no change, there will be no deployment! This means if you just update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but doesn not include your code will not be deployed. This makes everything much much faster.
+Creation of these Objects will also automatically cause OpenShift/Kubernetes to trigger new deployments of the Pods if necessary, like when a environment variable has changed or an Image has changed. But if there is no change, there will be no deployment! This means if you just update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
 
 ## 9. Wait for all rollouts to be done
 
-Now Lagoon waits, it waits for all just triggered deployments of the new pods to be finished, plus their healthchecks to be successfull.
+Now Lagoon waits, it waits for all just triggered deployments of the new pods to be finished, plus their healthchecks to be successful.
 
 If any of the deployments or healtchecks fails, the deployment will be stopped here and you will be informed via the defined Notification systems (like Slack) that the deployment has failed.
 
@@ -93,8 +93,8 @@ If any of the deployments or healtchecks fails, the deployment will be stopped h
 
 Now Lagoon will check the `.lagoon.yml` file for defined tasks in `post-rollout` and will run them one by one in the defined services.
 
-If any of them fails, Lagoon will immediatelly stop and notify you.
+If any of them fails, Lagoon will immediately stop and notify you.
 
 ## 11. Success
 
-If all went correct and nothing threw any error, Lagoon will mark this build as successfull and inform you via defined notifications.
+If all went correct and nothing threw any error, Lagoon will mark this build as successful and inform you via defined notifications.
