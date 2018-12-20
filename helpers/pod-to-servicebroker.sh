@@ -17,7 +17,7 @@ OLD_POD=$(oc get pod -o  custom-columns=NAME:.metadata.name --no-headers -l serv
 echo "found $SERVICE_NAME pod $OLD_POD"
 
 oc scale dc/nginx --replicas=0
-echo "Pausing nginx"
+echo "*** Pausing nginx"
 
 # create service broker
 ## taken from build-deploy-docker-compose.sh
@@ -73,7 +73,7 @@ echo "*** Scaling old mariadb to 0; you can clean up the DC and pv later"
 oc scale dc/mariadb --replicas=0
 
 # transfer complete, clean up
-rm -fv $SECRETS
+rm -f $SECRETS
 
 oc scale dc/nginx --replicas=1
 
