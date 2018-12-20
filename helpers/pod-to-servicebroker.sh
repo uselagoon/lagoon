@@ -55,21 +55,21 @@ DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -D)
 DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -D)
 DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
 
-echo "Transfering from $OLD_POD to $DB_HOST"
+echo "*** Transfering from $OLD_POD to $DB_HOST"
 # transfer database between from old to new
 oc exec $OLD_POD -- bash -c "mysqldump --no-create-db drupal | mysql -h $DB_HOST -u $DB_USER -p${DB_PASSWORD} -P $DB_PORT $DB_NAME"
 
 CONFIG_BAK="/tmp/${PROJECT_NAME}-$(date +%F-%T)-lagoon-env.yaml"
-echo "Backing up configmap in case we need to revert:"
+echo "*** Backing up configmap in case we need to revert: ${CONFIG_BAK}"
 oc get configmap lagoon-env -o yaml > $CONFIG_BAK
 
-echo "updating configmap to point to ${DB_HOST}."
+echo "*** updating configmap to point to ${DB_HOST}."
 # Add credentials to our configmap, prefixed with the name of the servicename of this servicebroker
 oc patch --insecure-skip-tls-verify configmap lagoon-env \
    -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
 
 
-echo "Scaling old mariadb to 0; clean up later"
+echo "*** Scaling old mariadb to 0; you can clean up the DC and pv later"
 oc scale dc/mariadb --replicas=0
 
 # transfer complete, clean up
@@ -79,3 +79,4 @@ oc scale dc/nginx --replicas=1
 
 oc rollout latest dc/nginx
 oc rollout status dc/nginx
+echo "*** done."
