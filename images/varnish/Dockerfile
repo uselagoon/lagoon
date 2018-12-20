@@ -4,14 +4,15 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 
 FROM alpine:3.7 as vmod
 ENV LIBVMOD_DYNAMIC_VERSION=5.2
+ENV LIBVMOD_BODYACCESS_VERSION=5.0
 RUN apk --no-cache add varnish varnish-dev automake autoconf libtool python py-docutils make
 
 RUN cd /tmp && wget https://github.com/nigoroll/libvmod-dynamic/archive/${LIBVMOD_DYNAMIC_VERSION}.zip && \
   unzip ${LIBVMOD_DYNAMIC_VERSION}.zip && cd libvmod-dynamic-${LIBVMOD_DYNAMIC_VERSION} && \
   ./autogen.sh && ./configure && make && make install
 
-RUN cd /tmp && wget https://github.com/aondio/libvmod-bodyaccess/archive/5.0.zip && \
-  unzip 5.0.zip && cd libvmod-bodyaccess-5.0 && \
+RUN cd /tmp && wget https://github.com/aondio/libvmod-bodyaccess/archive/${LIBVMOD_BODYACCESS_VERSION}.zip && \
+  unzip ${LIBVMOD_BODYACCESS_VERSION}.zip && cd libvmod-bodyaccess-${LIBVMOD_BODYACCESS_VERSION} && \
   ./autogen.sh && ./configure && make && make install
 
 FROM alpine:3.7
