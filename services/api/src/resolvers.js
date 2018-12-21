@@ -35,6 +35,12 @@ const {
 } = require('./resources/task/resolvers');
 
 const {
+  getFilesByTaskId,
+  uploadFilesForTask,
+  deleteFilesForTask,
+} = require('./resources/file/resolvers');
+
+const {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
   getEnvironmentByName,
@@ -167,6 +173,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Task: {
     environment: getEnvironmentByTaskId,
+    files: getFilesByTaskId,
   },
   Notification: {
     __resolveType(obj) {
@@ -269,6 +276,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deleteTask,
     updateTask,
     setEnvironmentServices,
+    uploadFilesForTask,
+    deleteFilesForTask,
   },
   Subscription: {
     backupChanged: backupSubscriber,

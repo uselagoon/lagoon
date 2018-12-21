@@ -20,6 +20,7 @@
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "apollo-server-express": "^2.2.5",
+    "aws-sdk": "^2.378.0",
     "axios": "^0.18.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",

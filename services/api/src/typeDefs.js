@@ -65,6 +65,13 @@ const typeDefs = gql`
     FAILED
   }
 
+  type File {
+    id: Int
+    filename: String
+    download: String
+    created: String
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -408,6 +415,7 @@ const typeDefs = gql`
     command: String
     remoteId: String
     logs: String
+    files: [File]
   }
 
   input DeleteEnvironmentInput {
@@ -828,6 +836,15 @@ const typeDefs = gql`
     services: [String]!
   }
 
+  input UploadFilesForTaskInput {
+    task: Int!,
+    files: [Upload]!,
+  }
+
+  input DeleteFilesForTaskInput {
+    id: Int!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -920,6 +937,8 @@ const typeDefs = gql`
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
+    uploadFilesForTask(input: UploadFilesForTaskInput!): Task
+    deleteFilesForTask(input: DeleteFilesForTaskInput!): String
   }
 
   type Subscription {
