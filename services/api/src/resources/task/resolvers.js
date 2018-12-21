@@ -262,15 +262,13 @@ const taskDrushArchiveDump = async (
   await envValidators.userAccessEnvironment(credentials, environmentId);
   await envValidators.environmentHasService(environmentId, 'cli');
 
-  const environment = await environmentHelpers.getEnvironmentById(environmentId);
-  const filename = `drupal-${Date.now()}-${Math.floor(Math.random() * 998) + 1}.tar.gz`;
-  const command = String.raw`drush status --format=yaml | \
-grep '%files' | \
-awk '{print $2}' | \
-xargs -I_path drush ard --pipe --destination=_path/private/${filename} | \
-xargs -I_file -- printf 'Your archive has been saved to _file.\nYou can download it by running "drush rsync @${
-    environment.name
-  }:_file ./".'`;
+  const command = String.raw`drush ard --pipe | \
+xargs -I_file curl -sS "$TASK_API_HOST"/graphql \
+-H "Authorization: Bearer $TASK_API_AUTH" \
+-F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
+-F map='{ "0": ["variables.files.0"] }' \
+-F 0=@_file
+`;
 
   const taskData = await Helpers.addTask({
     name: 'Drush archive-dump',

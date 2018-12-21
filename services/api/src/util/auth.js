@@ -159,30 +159,39 @@ const getCredentialsForLegacyToken = async token => {
     throw new Error(`Error decoding token: ${e.message}`);
   }
 
-  const { userId, role = 'none' } = decoded;
+  const { userId, permissions, role = 'none' } = decoded;
 
-  // We need this, since non-admin credentials are required to have an user id
-  let nonAdminCreds = {};
+  if (role === 'admin') {
+    return {
+      role,
+      permissions: {},
+    };
+  }
 
-  if (role !== 'admin') {
-    const permissions = await getPermissionsForUser(userId);
+  // Get permissions for user, override any from JWT.
+  if (userId) {
+    const dbPermissions = await getPermissionsForUser(userId);
 
-    if (R.isEmpty(permissions)) {
+    if (R.isEmpty(dbPermissions)) {
       throw new Error(`No permissions for user id ${userId}.`);
     }
 
-    nonAdminCreds = {
+    return {
       userId,
-      // Read and write permissions
+      role,
+      permissions: dbPermissions,
+    };
+  }
+
+  // Use permissions from JWT.
+  if (permissions) {
+    return {
+      role,
       permissions,
     };
   }
 
-  return {
-    role,
-    permissions: {},
-    ...nonAdminCreds,
-  };
+  throw new Error('Cannot authenticate non-admin user with no userId or permissions.');
 };
 
 module.exports = {
