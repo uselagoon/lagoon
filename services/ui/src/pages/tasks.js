@@ -38,6 +38,11 @@ const query = gql`
         command
         service
         logs
+        files {
+          id
+          filename
+          download
+        }
       }
     }
   }
@@ -56,6 +61,11 @@ const subscribe = gql`
       command
       service
       logs
+      files {
+        id
+        filename
+        download
+      }
     }
   }
 `;
