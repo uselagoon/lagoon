@@ -638,7 +638,7 @@ mutation PopulateApi {
 
   CiSolr: addProject(
     input: {
-      id: 19
+      id: 20
       name: "ci-solr"
       customer: 3
       openshift: 2
