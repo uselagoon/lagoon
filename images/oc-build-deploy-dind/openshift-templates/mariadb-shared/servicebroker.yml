@@ -34,6 +34,9 @@ parameters:
   - name: SERVICEBROKER_NAME
     description: Name of the ServiceBroker that should be used
     required: true
+  - name: SERVICEBROKER_PLAN_NAME
+    description: Name of the ServiceBroker Plan that should be used
+    value: 'default'
 objects:
 - apiVersion: servicecatalog.k8s.io/v1beta1
   kind: ServiceInstance
@@ -41,7 +44,7 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     clusterServiceClassExternalName: ${SERVICEBROKER_NAME}
-    clusterServicePlanExternalName: default
+    clusterServicePlanExternalName: ${SERVICEBROKER_PLAN_NAME}
 - apiVersion: servicecatalog.k8s.io/v1beta1
   kind: ServiceBinding
   metadata:

@@ -31,7 +31,8 @@ SERVICEBROKERS=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
-declare -A MAP_SERVICEBROKERS_NAMES
+declare -A MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME
+declare -A MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 
@@ -61,9 +62,12 @@ do
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     else
-      # Load the name of the mariadb shared servicebroker that should be used, default is `appuio-dbaas-mariadb-apb`
-      MARIADB_SHARED_NAME_DEFAULT="appuio-dbaas-mariadb-apb"
+      # Load the name of the mariadb shared servicebroker that should be used, default is `lagoon-dbaas-mariadb-apb`
+      MARIADB_SHARED_NAME_DEFAULT="lagoon-dbaas-mariadb-apb"
+      MARIADB_SHARED_PLAN_NAME_DEFAULT="${ENVIRONMENT_TYPE}"
       MARIADB_SHARED_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.name default)
+      # Default plan name is the enviroment type
+      MARIADB_SHARED_PLAN_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
 
       # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
       ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.name false)
@@ -71,22 +75,40 @@ do
         MARIADB_SHARED_NAME=$ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE
       fi
 
+      # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
+      MARIADB_SHARED_PLAN_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
+      if [ ! $MARIADB_SHARED_PLAN_NAME_OVERRIDE == "false" ]; then
+        MARIADB_SHARED_PLAN_NAME=$MARIADB_SHARED_PLAN_NAME_OVERRIDE
+      fi
+
       # If the default mariadb was given we check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
       if [[ $MARIADB_SHARED_NAME == "default" ]]; then
-        if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName --no-headers | grep -q $MARIADB_SHARED_NAME_DEFAULT; then
+        if oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep -q $MARIADB_SHARED_NAME_DEFAULT; then
           SERVICE_TYPE="mariadb-shared"
-          MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME_DEFAULT}"
+          MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME_DEFAULT}"
+          SERVICEBROKER_ID=$(oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep "${MARIADB_SHARED_NAME_DEFAULT}" | awk '{ print $2 }')
         else
           SERVICE_TYPE="mariadb-single"
         fi
       else
         # if the developer has defined a mariadb-shared, we assume that they expected that one to exist and so we fail if it does not
-        if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName --no-headers | grep -q $MARIADB_SHARED_NAME; then
+        if oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep -q $MARIADB_SHARED_NAME; then
           SERVICE_TYPE="mariadb-shared"
-          MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
+          MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
+          SERVICEBROKER_ID=$(oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep "${MARIADB_SHARED_NAME}" | awk '{ print $2 }')
         else
           echo "defined mariadb-shared for service '$SERVICE_NAME' with name '$MARIADB_SHARED_NAME' not found in cluster";
           exit 1
+        fi
+      fi
+
+      # Check if the defined service broker plan name exists
+      if [[ $SERVICE_TYPE == "mariadb-shared" ]]; then
+        if oc --insecure-skip-tls-verify get clusterserviceplan -o=custom-columns=externalName:.spec.externalName,serviceClassRef:.spec.clusterServiceClassRef.name | grep "${SERVICEBROKER_ID}" | grep "${MARIADB_SHARED_PLAN_NAME}"; then
+            MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN_NAME}"
+        else
+            echo "defined service broker plan '${MARIADB_SHARED_PLAN_NAME}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_NAME' not found in cluster";
+            exit 1
         fi
       fi
     fi
@@ -316,7 +338,8 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_NAME="${MAP_SERVICEBROKERS_NAMES["${SERVICE_NAME}"]}")
+    TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_NAME="${MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]}")
+    TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_PLAN_NAME="${MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]}")
     .  /oc-build-deploy/scripts/exec-openshift-resources.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
