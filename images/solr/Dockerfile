@@ -23,7 +23,7 @@ ENV TMPDIR=/tmp \
 # we need root for the fix-permissions to work
 USER root
 
-RUN mkdir /var/solr
+RUN mkdir -p /var/solr
 RUN fix-permissions /var/solr \
     && fix-permissions /opt/solr/server/logs \
     && fix-permissions /opt/solr/server/solr
