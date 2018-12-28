@@ -23,6 +23,9 @@ DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.d
 # Load all Services that are defined
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
+# Default shared mariadb service broker
+MARIADB_SHARED_NAME_DEFAULT="lagoon-dbaas-mariadb-apb"
+
 # Figure out which services should we handle
 SERVICE_TYPES=()
 IMAGES=()
@@ -61,54 +64,49 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
+    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
+    elif svcat --scope cluster get class $MARIADB_SHARED_NAME_DEFAULT > /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
     else
-      # Load the name of the mariadb shared servicebroker that should be used, default is `lagoon-dbaas-mariadb-apb`
-      MARIADB_SHARED_NAME_DEFAULT="lagoon-dbaas-mariadb-apb"
-      MARIADB_SHARED_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.name default)
-      # Default plan name is the enviroment type
-      MARIADB_SHARED_PLAN_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
+      SERVICE_TYPE="mariadb-single"
+    fi
 
-      # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
-      ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.name false)
-      if [ ! $ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE == "false" ]; then
-        MARIADB_SHARED_NAME=$ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE
-      fi
+  fi
 
-      # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
-      MARIADB_SHARED_PLAN_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
-      if [ ! $MARIADB_SHARED_PLAN_NAME_OVERRIDE == "false" ]; then
-        MARIADB_SHARED_PLAN_NAME=$MARIADB_SHARED_PLAN_NAME_OVERRIDE
-      fi
+  if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
+    # Load a possible defined mariadb-shared
+    MARIADB_SHARED_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.name "${MARIADB_SHARED_NAME_DEFAULT}")
 
-      # If the default mariadb was given we check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
-      if [[ $MARIADB_SHARED_NAME == "default" ]]; then
-        if svcat --scope cluster get class $MARIADB_SHARED_NAME_DEFAULT > /dev/null; then
-          SERVICE_TYPE="mariadb-shared"
-          MARIADB_SHARED_NAME="${MARIADB_SHARED_NAME_DEFAULT}"
-          MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
-        else
-          SERVICE_TYPE="mariadb-single"
-        fi
-      else
-        # if the developer has defined a mariadb-shared, we assume that they expected that one to exist and so we fail if it does not
-        if svcat --scope cluster get class $MARIADB_SHARED_NAME > /dev/null; then
-          SERVICE_TYPE="mariadb-shared"
-          MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
-        else
-          echo "defined mariadb-shared for service '$SERVICE_NAME' with name '$MARIADB_SHARED_NAME' not found in cluster";
-          exit 1
-        fi
-      fi
+    # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.name false)
+    if [ ! $ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE == "false" ]; then
+      MARIADB_SHARED_NAME=$ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE
+    fi
 
-      # Check if the defined service broker plan name exists
-      if [[ $SERVICE_TYPE == "mariadb-shared" ]]; then
-        if svcat --scope cluster get plan --class "${MARIADB_SHARED_NAME}" "${MARIADB_SHARED_PLAN_NAME}" > /dev/null; then
-            MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN_NAME}"
-        else
-            echo "defined service broker plan '${MARIADB_SHARED_PLAN_NAME}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_NAME' not found in cluster";
-            exit 1
-        fi
-      fi
+    # check if the defined service broker exists
+    if svcat --scope cluster get class $MARIADB_SHARED_NAME > /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
+      MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
+    else
+      echo "defined mariadb-shared service broker for service '$SERVICE_NAME' with name '$MARIADB_SHARED_NAME' not found in cluster";
+      exit 1
+    fi
+
+    # Default plan name is the enviroment type
+    MARIADB_SHARED_PLAN_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
+
+    # Allow the mariadb shared servicebroker plan name to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_MARIADB_SHARED_PLAN_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
+    if [ ! $MARIADB_SHARED_PLAN_NAME_OVERRIDE == "false" ]; then
+      MARIADB_SHARED_PLAN_NAME=$ENVIRONMENT_MARIADB_SHARED_PLAN_NAME_OVERRIDE
+    fi
+
+    # Check if the defined service broker plan name exists
+    if svcat --scope cluster get plan --class "${MARIADB_SHARED_NAME}" "${MARIADB_SHARED_PLAN_NAME}" > /dev/null; then
+        MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN_NAME}"
+    else
+        echo "defined service broker plan '${MARIADB_SHARED_PLAN_NAME}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_NAME' not found in cluster";
+        exit 1
     fi
   fi
 
