@@ -64,7 +64,6 @@ do
     else
       # Load the name of the mariadb shared servicebroker that should be used, default is `lagoon-dbaas-mariadb-apb`
       MARIADB_SHARED_NAME_DEFAULT="lagoon-dbaas-mariadb-apb"
-      MARIADB_SHARED_PLAN_NAME_DEFAULT="${ENVIRONMENT_TYPE}"
       MARIADB_SHARED_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.name default)
       # Default plan name is the enviroment type
       MARIADB_SHARED_PLAN_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
@@ -83,19 +82,18 @@ do
 
       # If the default mariadb was given we check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
       if [[ $MARIADB_SHARED_NAME == "default" ]]; then
-        if oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep -q $MARIADB_SHARED_NAME_DEFAULT; then
+        if svcat --scope cluster get class $MARIADB_SHARED_NAME_DEFAULT > /dev/null; then
           SERVICE_TYPE="mariadb-shared"
-          MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME_DEFAULT}"
-          SERVICEBROKER_ID=$(oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep "${MARIADB_SHARED_NAME_DEFAULT}" | awk '{ print $2 }')
+          MARIADB_SHARED_NAME="${MARIADB_SHARED_NAME_DEFAULT}"
+          MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
         else
           SERVICE_TYPE="mariadb-single"
         fi
       else
         # if the developer has defined a mariadb-shared, we assume that they expected that one to exist and so we fail if it does not
-        if oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep -q $MARIADB_SHARED_NAME; then
+        if svcat --scope cluster get class $MARIADB_SHARED_NAME > /dev/null; then
           SERVICE_TYPE="mariadb-shared"
           MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
-          SERVICEBROKER_ID=$(oc --insecure-skip-tls-verify get clusterserviceclasses -o=custom-columns=externalName:.spec.externalName,name:.metadata.name --no-headers | grep "${MARIADB_SHARED_NAME}" | awk '{ print $2 }')
         else
           echo "defined mariadb-shared for service '$SERVICE_NAME' with name '$MARIADB_SHARED_NAME' not found in cluster";
           exit 1
@@ -104,7 +102,7 @@ do
 
       # Check if the defined service broker plan name exists
       if [[ $SERVICE_TYPE == "mariadb-shared" ]]; then
-        if oc --insecure-skip-tls-verify get clusterserviceplan -o=custom-columns=externalName:.spec.externalName,serviceClassRef:.spec.clusterServiceClassRef.name | grep "${SERVICEBROKER_ID}" | grep "${MARIADB_SHARED_PLAN_NAME}"; then
+        if svcat --scope cluster get plan --class "${MARIADB_SHARED_NAME}" "${MARIADB_SHARED_PLAN_NAME}" > /dev/null; then
             MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN_NAME}"
         else
             echo "defined service broker plan '${MARIADB_SHARED_PLAN_NAME}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_NAME' not found in cluster";
