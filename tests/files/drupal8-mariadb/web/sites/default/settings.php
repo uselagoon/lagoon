@@ -29,11 +29,11 @@
 if(getenv('LAGOON')){
   $databases['default']['default'] = array(
     'driver' => 'mysql',
-    'database' => getenv('DB_DATABASE') ?: 'drupal',
-    'username' => getenv('DB_USERNAME') ?: 'drupal',
-    'password' => getenv('DB_PASSWORD') ?: 'drupal',
-    'host' => getenv('DB_HOST') ?: 'mariadb',
-    'port' => getenv('DB_PORT') ?: '3306',
+    'database' => getenv('MARIADB_DATABASE') ?: 'drupal',
+    'username' => getenv('MARIADB_USERNAME') ?: 'drupal',
+    'password' => getenv('MARIADB_PASSWORD') ?: 'drupal',
+    'host' => getenv('MARIADB_HOST') ?: 'mariadb',
+    'port' => 3306,
     'prefix' => '',
   );
 }
