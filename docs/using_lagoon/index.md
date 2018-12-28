@@ -4,7 +4,7 @@
 
 ### Docker
 
-To run Lagoon Project your system must meet the requirements to run Docker. We suggest installing the latest version of Docker for your workstation. You can download Docker [here](https://www.docker.com/get-docker). We also suggest allowing Docker at least 4 CPUs and 4GB RAM.
+To run Lagoon Project your system must meet the requirements to run Docker. We suggest installing the latest version of Docker for your workstation. You can download Docker [here](https://www.docker.com/get-docker). We also suggest allowing Docker at least **4 CPUs** and **4GB RAM**.
 
 ### Local Development Environments
 
@@ -37,7 +37,7 @@ This file is used by Docker Compose to start you Local Development environment. 
 
 Some Docker Images and Containers need additional customizations from the provided Images, this usually has two reasons:
 1. Application code: Containers like Nginx, PHP, Node, etc. need the actual programming code within their Images. This is done during a Docker Build step which are configured in Dockerfiles. Lagoon has full support for Docker and therefore also allows you full control over the resulting Images via Dockerfile customizations.
-2. Customization of Images: Lagoon also allows you to customize the base Images according to your needs. This can be to inject an addtional environment variable, change a service configuration or even install additional tools, even though we advise caution with installing additional tools to the Docker Images, as such adaptions need to be maintained by yourself in the future!
+2. Customization of Images: Lagoon also allows you to customize the base Images according to your needs. This can be to inject an additional environment variable, change a service configuration or even install additional tools, even though we advise caution with installing additional tools to the Docker Images, as such adaptions need to be maintained by yourself in the future!
 
 ## Supported Services & Base Images by Lagoon
 

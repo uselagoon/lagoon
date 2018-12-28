@@ -8,10 +8,10 @@ This Dockerfile is intended to be used as an base for any php needs within amaze
 
 This image is prepared to be used on amazee.io which leverages OpenShift. There are therefore some things already done:
 
-- Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
+- Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
 - The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf` plus all files within `/usr/local/etc/php-fpm.d/` are parsed through [envplate](https://github.com/kreuzwerker/envplate) with an container-entrypoint.
-- See the [Dockerfile](./Dockerfile) for installed php extensions
-- To install further extenstions, extend your Dockerfile from this image, and install extensions according to the docs, under the heading ["How to install more PHP extensions"](https://hub.docker.com/_/php/)
+- See the [Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) for installed php extensions
+- To install further extensions, extend your Dockerfile from this image, and install extensions according to the docs, under the heading ["How to install more PHP extensions"](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)
 
 ## Included php config
 
@@ -29,14 +29,14 @@ The included php config contains sane values that will make the creation of php 
 
 Hint: If you don't like any of these configs, you have three possibilities:
 1. If they are changeable via environment variables, use them (preferred version, see list of environment variables below)
-2. Create your own fpm-pool config and set configs them via `php_admin_value` and `php_admin_flag` in there (learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes this refeers to Apache, but it is also the case for php-fpm). _Important:_
+2. Create your own fpm-pool config and set configs them via `php_admin_value` and `php_admin_flag` in there (learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes this refers to Apache, but it is also the case for php-fpm). _Important:_
     1. If you like to provide your own php-fpm pool, overwrite the file `/usr/local/etc/php-fpm.d/www.conf` with your own config or remove this file if you like another name. If you don't do that the provided pool will be started!
     2. PHP Values with the [`PHP_INI_SYSTEM` changeable mode](http://php.net/manual/en/configuration.changes.modes.php) cannot be changed via an fpm-pool config. They need to changed either via already provided Environment variables or:
 3. Provide your own `php.ini` or `php-fpm.conf` file (least preferred version)
 
 ## default fpm-pool
 
-This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](./php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000. This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :) Here a short description of what this file does:
+This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000. This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :) Here a short description of what this file does:
 
 - listens on port 9000 via ipv4 and ipv6
 - uses the pm `dynamic` and creates between 2-50 children

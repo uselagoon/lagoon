@@ -6,7 +6,7 @@ It's time! It's time for the first deployment into Lagoon! We hope you are as ex
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successfull one, please make sure that your [Drupal Project is Lagoonized](./lagoonize.md) and you have setup the Project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides](./index.md) which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](./lagoonize.md) and you have setup the Project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides](../index.md) which show you how this works.
 
 ## 2. Push!
 

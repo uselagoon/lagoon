@@ -1,6 +1,7 @@
 # Step by Step: Setup a new Project in Lagoon
 
-**NOTE: We are working hard on having a CLI and GraphQL API ready for everybody to setup and configure their projects themselves. We just need a little longer to test it all before making it all live.**
+> **NOTE: We are working hard on getting a CLI and GraphQL API ready for everyone using Lagoon to setup and configure their projects themselves. We just need a little bit longer to test it before making the CLI and API publicly available.**
+
 Until then the setup of a new project involves talking to your Lagoon Administrator. Anyway, they are anyway much friendlier than APIs ;)
 
 Please have the following information ready for your Lagoon Administrator:
@@ -10,11 +11,11 @@ Please have the following information ready for your Lagoon Administrator:
 - The name of the Git branch you would like to use for your production environment (see [Environment Types](./environment_types.md))
 - Which Branches and Pull Requests you would like to deploy to your additional environments. With Lagoon you can filter Branches by their name with Regex, and Pull Requests by title again with Regex.
 
-We suggest that you deploy specific important Branches (like `develop` and `master`) and Pull Requests. But that's all upto how you would like it.
+We suggest that you deploy specific important Branches (like `develop` and `master`) and Pull Requests. But that's all up to how you would like it. (see [Workflows](workflows.md))
 
 ## 1. Make sure your project is Lagoonized
 
-We assume that your project is already lagoonized, aka that the `.lagoon.yml` and `docker-compose.yml` files are available in your Git Repo and configured accordingly.
+We assume that your project is already lagoonized, this means that the `.lagoon.yml` and `docker-compose.yml` files are available in your Git repository and configured accordingly.
 
 If this is not the case, check out the list of [Step-by-Step Guides](./index.md) on how to do so.
 
