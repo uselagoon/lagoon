@@ -1,8 +1,16 @@
 #!/bin/bash
 
+set -euo pipefail
+
 which shyaml > /dev/null
 if [ $? -gt 0 ]; then
   echo "please install shyaml (pip3 install shyaml)"
+  exit 1
+fi
+
+which jq > /dev/null
+if [ $? -gt 0 ]; then
+  echo "please install jq"
   exit 1
 fi
 
@@ -12,12 +20,16 @@ SERVICE_NAME=mariadb
 SERVICE_NAME_UPPERCASE=$(echo $SERVICE_NAME | tr [:lower:] [:upper:])
 SERVICE_TYPE=mariadb-shared
 
-# export old mariadb
+ENVIRONMENT_TYPE=$(oc get configmap lagoon-env -o json | jq -r '.data.LAGOON_ENVIRONMENT_TYPE')
+
+# export old mariadb pod name
 OLD_POD=$(oc get pod -o  custom-columns=NAME:.metadata.name --no-headers -l service=$SERVICE_NAME)
 echo "found $SERVICE_NAME pod $OLD_POD"
 
+echo "*** Pausing nginx and cli"
 oc scale dc/nginx --replicas=0
-echo "*** Pausing nginx"
+oc scale dc/cli --replicas=0
+
 
 # create service broker
 ## taken from build-deploy-docker-compose.sh
@@ -28,6 +40,8 @@ OPENSHIFT_TEMPLATE="$(git rev-parse --show-toplevel)/images/oc-build-deploy-dind
 oc process  --local -o yaml --insecure-skip-tls-verify \
   -f ${OPENSHIFT_TEMPLATE} \
   -p SERVICE_NAME="${SERVICE_NAME}" \
+  -p SERVICEBROKER_NAME="lagoon-dbaas-mariadb-apb" \
+  -p SERVICEBROKER_PLAN_NAME="${ENVIRONMENT_TYPE}" \
   -p SAFE_BRANCH="NULL" \
   -p SAFE_PROJECT="NULL" \
   -p BRANCH="NULL" \
@@ -55,7 +69,7 @@ DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -D)
 DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -D)
 DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
 
-echo "*** Transfering from $OLD_POD to $DB_HOST"
+echo "*** Transfering 'drupal' database from $OLD_POD to $DB_HOST"
 # transfer database between from old to new
 oc exec $OLD_POD -- bash -c "mysqldump --no-create-db drupal | mysql -h $DB_HOST -u $DB_USER -p${DB_PASSWORD} -P $DB_PORT $DB_NAME"
 
@@ -69,14 +83,18 @@ oc patch --insecure-skip-tls-verify configmap lagoon-env \
    -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
 
 
-echo "*** Scaling old mariadb to 0; you can clean up the DC and pv later"
+echo "*** Deleting mariadb service. Scaling old mariadb to 0; you can clean up the DC and pv later"
+oc delete service mariadb
 oc scale dc/mariadb --replicas=0
 
 # transfer complete, clean up
 rm -f $SECRETS
 
 oc scale dc/nginx --replicas=1
+oc scale dc/cli --replicas=1
 
 oc rollout latest dc/nginx
+oc rollout latest dc/cli
 oc rollout status dc/nginx
+oc rollout status dc/cli
 echo "*** done."
