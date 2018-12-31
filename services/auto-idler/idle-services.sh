@@ -83,7 +83,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
 
             ### Faster Unidling:
             ## Instead of depending that each endpoint is unidling their own service (which means it takes a lot of time to unidle multiple services)
-            ## This update makes sure that every endpoing is unidling every service that is currently idled, which means the whole system is much much faster unidled.
+            ## This update makes sure that every endpoint is unidling every service that is currently idled, which means the whole system is much much faster unidled.
             # load all endpoints which have unidle targets, format it as a space separated
             IDLING_ENDPOINTS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq  --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.name ] | join(" ")')
             if [[ "${IDLING_ENDPOINTS}" ]]; then
