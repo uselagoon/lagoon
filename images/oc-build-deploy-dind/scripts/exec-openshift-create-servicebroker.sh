@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get servicebroker "${SERVICE_NAME}" &> /dev/null; then
-  echo "ServiceBroker ${SERVICE_NAME} already existing, not attempting to update"
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get ServiceInstance "${SERVICE_NAME}" &> /dev/null; then
+  echo "ServiceInstance ${SERVICE_NAME} already existing, not attempting to update"
 else
   oc process  --local -o yaml --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
