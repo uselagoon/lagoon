@@ -119,12 +119,7 @@ const messageConsumer = async msg => {
     }
   }
 
-  let logMessage = ''
-  if (sha) {
-    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
-  } else {
-    logMessage = `\`${branchName}\``
-  }
+
 
   const buildPhase = buildstatus.status.phase.toLowerCase();
   const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
@@ -149,8 +144,15 @@ const messageConsumer = async msg => {
     logger.error(`Could not update deployment ${projectName} ${buildName}. Message: ${error}`);
   }
 
-  let logLink = ""
   const meta = JSON.parse(msg.content.toString())
+  let logLink = ""
+  let logMessage = ''
+  if (sha) {
+    meta.shortSha = sha.substring(0, 7)
+    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+  } else {
+    logMessage = `\`${branchName}\``
+  }
   switch (buildPhase) {
     case "new":
     case "pending":
@@ -173,8 +175,10 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
+        meta.logLink = logLink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        meta.logLink = ''
       }
       sendToLagoonLogs('warn', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` cancelled. ${logLink}`
@@ -186,8 +190,10 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
+        meta.logLink = logLink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        meta.logLink = ''
       }
 
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
@@ -200,8 +206,10 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = `<${s3UploadResult.Location}|Logs>`
+        meta.loglink = loglink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        meta.logLink = ''
       }
 
       try {
@@ -218,6 +226,8 @@ const messageConsumer = async msg => {
 
       const route = configMap.data.LAGOON_ROUTE
       const routes = configMap.data.LAGOON_ROUTES.split(',').filter(e => e !== route);
+      meta.route = route
+      meta.routes = routes
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. ${logLink} \n ${route}\n ${routes.join("\n")}`
       )

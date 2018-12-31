@@ -17,7 +17,12 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, project: Pro
     } = webhook;
 
     const meta = {
-      pullrequestNumber: body.number
+      projectName: project.name,
+      pullrequestTitle: body.pull_request.title,
+      pullrequestNumber: body.number,
+      pullrequestUrl: body.pull_request.html_url,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.html_url,
     }
 
     const data: removeData = {
@@ -34,6 +39,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, project: Pro
       )
       return;
     } catch (error) {
+      meta.error = error
       switch (error.name) {
         case "ProjectNotFound":
         case "NoActiveSystemsDefined":

@@ -234,7 +234,7 @@ mutation PopulateApi {
   CiRocketChat: addNotificationRocketChat(
     input: {
       name: "amazeeio--lagoon-local-ci"
-      webhook: "https://amazeeio.rocket.chat/hooks/WkLMnprX6HWp5Eyom/3RLRRtHWYYvXfhCsbEtmZpYvH9FgjoiLhzvvfPpXSbwaBhe7"
+      webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"
       channel: "lagoon-local-ci"
     }
   ) {
@@ -650,7 +650,7 @@ mutation PopulateApi {
   KickstartRocketChat: addNotificationRocketChat(
     input: {
       name: "amazeeio--lagoon-kickstart"
-      webhook: "https://amazeeio.rocket.chat/hooks/WkLMnprX6HWp5Eyom/3RLRRtHWYYvXfhCsbEtmZpYvH9FgjoiLhzvvfPpXSbwaBhe7"
+      webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"
       channel: "lagoon-kickstart"
     }
   ) {

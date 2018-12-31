@@ -26,7 +26,13 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
 
     const meta = {
       branch: branchName,
-      sha: sha
+      branchName: branchName,
+      commitUrl: body.push.changes[0].new.target.links.html.href,
+      projectName: project.name,
+      repoFullName:body.repository.full_name,
+      repoUrl: body.repository.links.html.href,
+      sha: sha,
+      shortSha: sha.substring(0, 7),
     }
 
     const data: deployData = {
@@ -48,7 +54,7 @@ async function bitbucketPush(webhook: WebhookRequestData, project: project) {
       )
       return;
     }
-    
+
     try {
       const taskResult = await createDeployTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
