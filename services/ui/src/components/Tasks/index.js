@@ -43,7 +43,6 @@ const Tasks = ({
     <div className="header">
       <label>Name</label>
       <label>Created</label>
-      <label>Command</label>
       <label className="service">Service</label>
       <label className="status">Status</label>
     </div>
@@ -71,7 +70,6 @@ const Tasks = ({
                   .local()
                   .format('DD MMM YYYY, HH:mm:ss')}
               </div>
-              <div className="command">{task.command}</div>
               <div className="service">{task.service}</div>
               <div className={`status ${task.status}`}>
                 <span>{task.status.charAt(0).toUpperCase() +

@@ -3,7 +3,6 @@
 const express = require('express');
 const statusRoute = require('./status');
 const keysRoute = require('./keys');
-const graphqlRoute = require('./graphql');
 
 /* ::
 import type { $Request, $Response } from 'express';
@@ -22,9 +21,6 @@ function createRouter() {
 
   // Return keys of all customers
   router.post('/keys', ...keysRoute);
-
-  // Enable graphql requests.
-  router.all('/graphql', ...graphqlRoute);
 
   return router;
 }

@@ -22,6 +22,19 @@ const query = gql`
   }
 `;
 
+const subscribe = gql`
+  subscription subscribeToDeployments($environment: Int!) {
+    deploymentChanged(environment: $environment) {
+      id
+      name
+      status
+      created
+      started
+      completed
+    }
+  }
+`;
+
 const getDuration = deployment => {
   const deploymentStart = deployment.started || deployment.created;
   const durationStart =
@@ -45,7 +58,7 @@ const Deployments = ({ projectName }) => (
     </div>
     <div className="data-table">
       <Query query={query} variables={{ name: projectName }}>
-        {({ loading, error, data }) => {
+        {({ loading, error, data, subscribeToMore }) => {
           if (loading) {
             return <div className="data-none">Loading...</div>;
           }
@@ -53,6 +66,43 @@ const Deployments = ({ projectName }) => (
           if (error) {
             return <div className="data-none">Error: {error.toString()}</div>;
           }
+
+          subscribeToMore({
+            document: subscribe,
+            variables: { environment: R.path(
+              ['environmentByOpenshiftProjectName', 'id'],
+              data
+            )},
+            updateQuery: (prevStore, { subscriptionData }) => {
+              if (!subscriptionData.data) return prevStore;
+              const prevDeployments = prevStore.environmentByOpenshiftProjectName.deployments;
+              const incomingDeployment = subscriptionData.data.deploymentChanged;
+              const existingIndex = prevDeployments.findIndex(prevDeployment => prevDeployment.id === incomingDeployment.id);
+              let newDeployments;
+
+              // New deployment.
+              if (existingIndex === -1) {
+                newDeployments = [
+                  incomingDeployment,
+                  ...prevDeployments,
+                ];
+              }
+              // Updated deployment
+              else {
+                newDeployments = Object.assign([...prevDeployments], {[existingIndex]: incomingDeployment});
+              }
+
+              const newStore = {
+                ...prevStore,
+                environmentByOpenshiftProjectName: {
+                  ...prevStore.environmentByOpenshiftProjectName,
+                  deployments: newDeployments,
+                },
+              };
+
+              return newStore;
+            }
+          });
 
           const deployments = R.path(
             ['environmentByOpenshiftProjectName', 'deployments'],

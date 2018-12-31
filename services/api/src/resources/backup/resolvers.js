@@ -4,10 +4,12 @@ const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
 const { query, isPatchEmpty } = require('../../util/db');
+const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
 const sqlClient = require('../../clients/sqlClient');
 const Sql = require('./sql');
 const projectSql = require('../project/sql');
 const environmentSql = require('../environment/sql');
+const EVENTS = require('./events');
 
 /* ::
 
@@ -36,7 +38,10 @@ const getBackupsByEnvironmentId = async (
     sqlClient,
     Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted }),
   );
-  return rows;
+
+  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+
+  return newestFirst;
 };
 
 const addBackup = async (
@@ -60,7 +65,11 @@ const addBackup = async (
     }),
   );
   const rows = await query(sqlClient, Sql.selectBackup(insertId));
-  return R.prop(0, rows);
+  const backup = R.prop(0, rows);
+
+  pubSub.publish(EVENTS.BACKUP.ADDED, backup);
+
+  return backup;
 };
 
 const deleteBackup = async (
@@ -85,6 +94,9 @@ const deleteBackup = async (
   }
 
   await query(sqlClient, Sql.deleteBackup(backupId));
+
+  const rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
+  pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
   return 'success';
 };
@@ -129,13 +141,15 @@ const addRestore = async (
   let rows = await query(sqlClient, Sql.selectRestore(insertId));
   const restoreData = R.prop(0, rows);
 
+  rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
+  const backupData = R.prop(0, rows);
+
+  pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+
   // Allow creating restore data w/o executing the restore
   if (role === 'admin' && execute === false) {
     return restoreData;
   }
-
-  rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
-  const backupData = R.prop(0, rows);
 
   rows = await query(sqlClient, environmentSql.selectEnvironmentById(backupData.environment));
   const environmentData = R.prop(0, rows);
@@ -229,9 +243,15 @@ const updateRestore = async (
     }),
   );
 
-  const rows = await query(sqlClient, Sql.selectRestoreByBackupId(backupId));
+  let rows = await query(sqlClient, Sql.selectRestoreByBackupId(backupId));
+  const restoreData = R.prop(0, rows);
 
-  return R.prop(0, rows);
+  rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
+  const backupData = R.prop(0, rows);
+
+  pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+
+  return restoreData;
 };
 
 // Data protected by environment auth
@@ -245,6 +265,14 @@ const getRestoreByBackupId = async (
   return R.prop(0, rows);
 };
 
+const backupSubscriber = createEnvironmentFilteredSubscriber(
+  [
+    EVENTS.BACKUP.ADDED,
+    EVENTS.BACKUP.UPDATED,
+    EVENTS.BACKUP.DELETED,
+  ]
+);
+
 const Resolvers /* : ResolversObj */ = {
   addBackup,
   getBackupsByEnvironmentId,
@@ -253,6 +281,7 @@ const Resolvers /* : ResolversObj */ = {
   addRestore,
   getRestoreByBackupId,
   updateRestore,
+  backupSubscriber,
 };
 
 module.exports = Resolvers;

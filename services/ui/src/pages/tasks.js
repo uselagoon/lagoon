@@ -38,6 +38,33 @@ const query = gql`
         command
         service
         logs
+        files {
+          id
+          filename
+          download
+        }
+      }
+    }
+  }
+`;
+
+const subscribe = gql`
+  subscription subscribeToTasks($environment: Int!) {
+    taskChanged(environment: $environment) {
+      id
+      name
+      status
+      created
+      started
+      completed
+      remoteId
+      command
+      service
+      logs
+      files {
+        id
+        filename
+        download
       }
     }
   }
@@ -50,7 +77,7 @@ const PageTasks = withRouter(props => {
         query={query}
         variables={{ openshiftProjectName: props.router.query.name }}
       >
-        {({ loading, error, data }) => {
+        {({ loading, error, data, subscribeToMore }) => {
           if (loading) return null;
           if (error) return `Error!: ${error}`;
           const environment = data.environmentByOpenshiftProjectName;
@@ -68,6 +95,40 @@ const PageTasks = withRouter(props => {
               query: { name: environment.openshiftProjectName }
             }
           ];
+
+          subscribeToMore({
+            document: subscribe,
+            variables: { environment: environment.id},
+            updateQuery: (prevStore, { subscriptionData }) => {
+              if (!subscriptionData.data) return prevStore;
+              const prevTasks = prevStore.environmentByOpenshiftProjectName.tasks;
+              const incomingTask = subscriptionData.data.taskChanged;
+              const existingIndex = prevTasks.findIndex(prevTask => prevTask.id === incomingTask.id);
+              let newTasks;
+
+              // New task.
+              if (existingIndex === -1) {
+                newTasks = [
+                  incomingTask,
+                  ...prevTasks,
+                ];
+              }
+              // Updated task
+              else {
+                newTasks = Object.assign([...prevTasks], {[existingIndex]: incomingTask});
+              }
+
+              const newStore = {
+                ...prevStore,
+                environmentByOpenshiftProjectName: {
+                  ...prevStore.environmentByOpenshiftProjectName,
+                  tasks: newTasks,
+                },
+              };
+
+              return newStore;
+            }
+          });
 
           const tasks = environment.tasks.map(task => {
 
