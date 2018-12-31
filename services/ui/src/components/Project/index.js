@@ -106,6 +106,7 @@ class Project extends React.Component {
               border-right: 1px solid ${color.midGrey};
               padding: 32px calc((100vw / 16) * 1);
               display: inline-table;
+              width: 100%;
               @media ${bp.xs_smallUp} {
                 padding: 24px calc((100vw / 16) * 1) 24px calc(((100vw / 16) * 1.5) + 28px);
               }
