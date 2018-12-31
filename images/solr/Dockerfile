@@ -25,6 +25,7 @@ USER root
 
 RUN mkdir -p /var/solr
 RUN fix-permissions /var/solr \
+    && chown solr:solr /var/solr \
     && fix-permissions /opt/solr/server/logs \
     && fix-permissions /opt/solr/server/solr
 
