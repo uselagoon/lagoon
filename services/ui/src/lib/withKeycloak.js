@@ -24,7 +24,8 @@ export default (App, initialAuth) => {
 
       await keycloak.init({
         onLoad: 'login-required',
-        checkLoginIframe: false
+        checkLoginIframe: false,
+        promiseType: 'native',
       });
 
       this.setAuth(keycloak);
