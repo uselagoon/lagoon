@@ -234,8 +234,10 @@ build/php__7.3-cli-drupal: build/php__7.3-cli
 
 solrimages := 	solr__5.5 \
 								solr__6.6 \
+								solr__7.5 \
 								solr__5.5-drupal \
-								solr__6.6-drupal
+								solr__6.6-drupal \
+								solr__7.5-drupal
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -255,9 +257,10 @@ $(build-solrimages): build/commons
 base-images += $(solrimages)
 s3-images += solr
 
-build/solr__5.5  build/solr__6.6: images/commons
+build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
 build/solr__6.6-drupal: build/solr__6.6
+build/solr__7.5-drupal: build/solr__7.5
 
 #######
 ####### Node Images
