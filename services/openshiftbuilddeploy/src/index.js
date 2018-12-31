@@ -4,6 +4,7 @@ const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const R = require('ramda');
+const sha1 = require('sha1');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
 
@@ -40,6 +41,16 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(branchName)
     var safeProjectName = ocsafety(projectName)
+
+
+    var overlength = 58 - safeProjectName.length;
+    if ( safeBranchName.length > overlength ) {
+      var hash = sha1(safeBranchName).substring(0,4)
+
+      safeBranchName = safeBranchName.substring(0, overlength-5)
+      safeBranchName = safeBranchName.concat('-' + hash)
+    }
+
     var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
