@@ -115,6 +115,7 @@ const {
   addUserToCustomer,
   removeUserFromCustomer,
   getUsersByCustomerId,
+  getProjectsByCustomerId,
   addUserToProject,
   removeUserFromProject,
   deleteAllUsers,
@@ -190,6 +191,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Customer: {
     users: getUsersByCustomerId,
+    projects: getProjectsByCustomerId,
   },
   User: {
     sshKeys: getUserSshKeys,

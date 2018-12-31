@@ -117,6 +117,7 @@ const typeDefs = gql`
     privateKey: String
     users: [User]
     created: String
+    projects: [Project]
   }
 
   type Openshift {
