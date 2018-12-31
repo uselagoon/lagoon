@@ -55,7 +55,8 @@ mutation {
       # This is the OpenShift ID from the response of the first query
       openshift: 0
       # TODO: Fill in the gitUrl field
-      # This is the URL to the git repository where a `.lagoon.yml` file should be committed in the root.
+      # This is the SSH URL to the Git repository where a `.lagoon.yml` file should be committed in the root.
+      # HTTPS URLs are currently not supported.
       gitUrl: ""
     }
   ) {
