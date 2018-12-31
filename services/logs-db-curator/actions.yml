@@ -2,8 +2,7 @@ actions:
   1:
     action: index_settings
     description: >-
-      Set lagoon indices older than 40 days to be read only (block writes)
-      and to use best_compression codec
+      Set lagoon indices not created in current month to be read only (block writes)
     options:
       ignore_empty_list: True
       index_settings:
@@ -14,17 +13,17 @@ actions:
     - filtertype: pattern
       kind: regex
       value: ${LAGOON_INDEXES}
-    - filtertype: age
-      source: name
-      timestring: '%Y.%m'
-      direction: older
-      unit: ${OLDER_UNIT:days}
-      unit_count: ${OLDER_UNIT_COUNT:40}
+    - filtertype: period
+      period_type: relative
+      source: creation_date
+      range_from: 0
+      range_to: 1
+      unit: months
+      exclude: True
   2:
     action: replicas
     description: >-
-      Reduce the replica count to 0 for lagoon indices older than
-      40 days
+      Reduce the replica count to 0 for lagoon indices not created in current month
     options:
       ignore_empty_list: True
       count: 0
@@ -33,33 +32,37 @@ actions:
     - filtertype: pattern
       kind: regex
       value: ${LAGOON_INDEXES}
-    - filtertype: age
-      source: name
-      timestring: '%Y.%m'
-      direction: older
-      unit: ${OLDER_UNIT:days}
-      unit_count: ${OLDER_UNIT_COUNT:40}
+    - filtertype: period
+      period_type: relative
+      source: creation_date
+      range_from: 0
+      range_to: 1
+      unit: months
+      exclude: True
   3:
     action: allocation
     description: >-
       Apply shard allocation routing to 'require' 'box_type=archive' for hot/cold node
-      setup for lagoon indices older than 40 days
+      setup for lagoon indices not created in current month
     options:
       ignore_empty_list: True
       key: box_type
       value: archive
       allocation_type: require
       wait_for_completion: True
+      max_wait: 1800
+      disable_action: ${LOGS_DB_HAS_NO_ARCHIVE:False}
     filters:
     - filtertype: pattern
       kind: regex
       value: ${LAGOON_INDEXES}
-    - filtertype: age
-      source: name
-      timestring: '%Y.%m'
-      direction: older
-      unit: ${OLDER_UNIT:days}
-      unit_count: ${OLDER_UNIT_COUNT:40}
+    - filtertype: period
+      period_type: relative
+      source: creation_date
+      range_from: 0
+      range_to: 1
+      unit: months
+      exclude: True
     - filtertype: allocated
       key: box_type
       value: archive
@@ -68,7 +71,7 @@ actions:
   4:
     action: forcemerge
     description: >-
-      forceMerge lagoon indices older than 40 days to 1 segments per shard.
+      forceMerge lagoon indices not created in current month to 1 segments per shard.
       Delay 20 seconds between each forceMerge operation to allow the cluster
       to quiesce. Skip indices that have already been forcemerged to the
       minimum number of segments to avoid reprocessing.
@@ -81,12 +84,13 @@ actions:
     - filtertype: pattern
       kind: regex
       value: ${LAGOON_INDEXES}
-    - filtertype: age
-      source: name
-      timestring: '%Y.%m'
-      direction: older
-      unit: ${OLDER_UNIT:days}
-      unit_count: ${OLDER_UNIT_COUNT:40}
+    - filtertype: period
+      period_type: relative
+      source: creation_date
+      range_from: 0
+      range_to: 1
+      unit: months
+      exclude: True
     - filtertype: forcemerged
       max_num_segments: 1
       exclude: True

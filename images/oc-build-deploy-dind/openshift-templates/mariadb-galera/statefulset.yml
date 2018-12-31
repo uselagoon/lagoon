@@ -90,7 +90,6 @@ objects:
           volumeMounts:
           - name: ${SERVICE_NAME}-galera
             mountPath: /var/lib/mysql
-            subPath: data
           env:
             - name: POD_NAMESPACE
               valueFrom:
