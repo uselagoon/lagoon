@@ -336,7 +336,7 @@ do
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
     TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_NAME="${MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]}")
     TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_PLAN_NAME="${MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]}")
-    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
+    .  /oc-build-deploy/scripts/exec-openshift-create-servicebroker.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
