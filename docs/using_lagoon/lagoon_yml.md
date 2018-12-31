@@ -40,6 +40,9 @@ routes:
 
 environments:
   master:
+    monitoring_urls:
+      - "www.example.com"
+      - "www.example.com/special_page"
     routes:
       - nginx:
         - example.com
@@ -189,6 +192,9 @@ environments:
     rollouts:
       mariadb: statefulset
 ```
+
+#### `environments.[name].monitoring_urls`
+At the end of a deplpoy, Lagoon will check this field for any URLs which you specify to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service. Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the monitoring_urls and add them to our Statuscake account.
 
 ## Polysite
 
