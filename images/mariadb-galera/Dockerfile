@@ -92,6 +92,7 @@ RUN apk add --no-cache --virtual .common-run-deps \
     rm -rf /var/cache/apk/*
 
 COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
+COPY fix-data-subpath.sh /lagoon/entrypoints/100-fix-data-subpath
 COPY maxscale-entrypoint.sh /lagoon/entrypoints/80-maxscale
 COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 COPY maxscale.cnf /etc/maxscale.cnf

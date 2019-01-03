@@ -78,7 +78,7 @@ function backup_database(){
     backup_file="$BACKUP_DIR/$TIMESTAMP.$database.sql.gz"
     output="${output}${database} => $backup_file\n"
     echo_status "...backing up $count of $total databases: $database"
-    $(mysqldump $(mysql_login) $database | gzip -9 > $backup_file)
+    $(mysqldump --events --routines --quick --add-locks --no-autocommit --single-transaction $(mysql_login) $database | gzip -9 > $backup_file)
 }
 
 function backup_databases(){

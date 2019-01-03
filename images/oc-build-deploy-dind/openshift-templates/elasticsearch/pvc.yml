@@ -41,6 +41,8 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
+    annotations:
+      appuio.ch/backup: "false"
     name: ${SERVICE_NAME}
   spec:
     accessModes:

@@ -3,7 +3,7 @@ client:
   hosts:
     - logs-db
   port: 9200
-  http_auth: ${LOGSDB_ADMIN_PASSWORD}
+  http_auth: ${LOGSDB_HTTP_AUTH}
 
 logging:
   loglevel: INFO
