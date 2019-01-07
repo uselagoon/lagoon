@@ -71,7 +71,7 @@ DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
 
 echo "*** Transfering 'drupal' database from $OLD_POD to $DB_HOST"
 # transfer database between from old to new
-oc exec $OLD_POD -- bash -c "mysqldump --no-create-db drupal | mysql -h $DB_HOST -u $DB_USER -p${DB_PASSWORD} -P $DB_PORT $DB_NAME"
+oc exec $OLD_POD -- bash -c "mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db drupal | mysql -h $DB_HOST -u $DB_USER -p${DB_PASSWORD} -P $DB_PORT $DB_NAME"
 
 CONFIG_BAK="/tmp/${PROJECT_NAME}-$(date +%F-%T)-lagoon-env.yaml"
 echo "*** Backing up configmap in case we need to revert: ${CONFIG_BAK}"
