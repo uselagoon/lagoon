@@ -150,16 +150,12 @@ objects:
               readinessProbe:
                 exec:
                   command:
-                    - /usr/bin/env
-                    - "-i"
                     - /usr/sbin/check_fcgi
                 initialDelaySeconds: 2
                 periodSeconds: 5
               livenessProbe:
                 exec:
                   command:
-                    - /usr/bin/env
-                    - "-i"
                     - /usr/sbin/check_fcgi
                 initialDelaySeconds: 60
                 periodSeconds: 5

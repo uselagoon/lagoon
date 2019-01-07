@@ -1,8 +1,6 @@
-#!/bin/sh -v
-
+#!/usr/bin/env -i sh
 # cgi-fcgi has issues with non-standard environment variables, so this script
-# should be called with "env -i" or another suitable way to clean the
-# environment before running.
+# ist called with "env -i" to clean the # environment
 
 # This script calls the /ping endpoing of the php-fpm, if the return code is 0, the php-fpm has correctly started
 SCRIPT_NAME=/${1:-ping} SCRIPT_FILENAME=/${1:-ping} REQUEST_METHOD=GET /usr/bin/cgi-fcgi -bind -connect 127.0.0.1:9000
