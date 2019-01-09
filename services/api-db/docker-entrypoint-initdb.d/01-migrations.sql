@@ -568,6 +568,26 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  convert_task_command_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'task'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'command';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE task
+      MODIFY command text NOT NULL;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -597,6 +617,7 @@ CALL add_active_systems_task_to_project();
 CALL add_default_value_to_task_status();
 CALL add_scope_to_env_vars();
 CALL add_deleted_to_environment_backup();
+CALL convert_task_command_to_text();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
