@@ -294,6 +294,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   args,
 ) => {
   const interested_date = args.month ? new Date(args.month) : new Date();
+  // This generates YYYY-MM
+  const interested_year_month = `${interested_date.getFullYear()}-${(`0${interested_date.getMonth() + 1}`).slice(-2)}`;
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -304,8 +306,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `${interested_date.getFullYear()}-${interested_date.getMonth()}||/M`,
-                    lte: `${interested_date.getFullYear()}-${interested_date.getMonth()}||/M`,
+                    gte: `${interested_year_month}||/M`,
+                    lte: `${interested_year_month}||/M`,
                   },
                 },
               },
