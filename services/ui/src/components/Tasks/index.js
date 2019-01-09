@@ -1,45 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
-import compose from 'recompose/compose';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
-import ReactSelect from 'react-select';
-import withTaskMutation from './withTaskMutation';
-import withLogic from './logic';
+import AddTask from '../AddTask';
 import { bp, color, fontSize } from '../../variables';
 
 const Tasks = ({
-  environmentId,
-  projectName,
+  pageEnvironment,
   tasks,
-  onSubmit,
-  formValues,
-  setFormValues,
 }) => (
   <div className="content">
-    <div className="taskFormWrapper">
-      <div className="taskForm">
-        <div className="selectTask">
-          <ReactSelect
-            aria-labelledby="task"
-            placeholder=""
-            name="selectTask"
-            value={formValues}
-            onChange={e => {
-              setFormValues(e);
-            }}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.command}
-            options={[
-              { name: 'Site Status', command: 'drush status', service: 'cli'  },
-              { name: 'Drupal Archive', command: 'drush archive-dump', service: 'cli' }
-            ]}
-            required
-          />
-        </div>
-        <button onClick={(e) => onSubmit()}>Add task</button>
-      </div>
-    </div>
+    <AddTask pageEnvironment={pageEnvironment} />
     <div className="header">
       <label>Name</label>
       <label>Created</label>
@@ -57,7 +28,7 @@ const Tasks = ({
             href={{
               pathname: '/tasks',
               query: {
-                name: projectName,
+                name: pageEnvironment.openshiftProjectName,
                 task_id: task.id,
               }
             }}
@@ -84,60 +55,6 @@ const Tasks = ({
       .content {
         padding: 32px calc((100vw / 16) * 1);
         width: 100%;
-        .taskFormWrapper {
-          @media ${bp.wideUp} {
-            display: flex;
-          }
-          &::before {
-            @media ${bp.wideUp} {
-              content: '';
-              display: block;
-              flex-grow: 1;
-            }
-          }
-        }
-        .taskForm {
-          background: ${color.white};
-          border: 1px solid ${color.lightestGrey};
-          border-radius: 3px;
-          box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
-          display: flex;
-          flex-flow: column;
-          margin-bottom: 32px;
-          padding: 32px 20px;
-          @media ${bp.tabletUp} {
-            margin-bottom: 0;
-          }
-          @media ${bp.tinyUp} {
-            flex-flow: row;
-            justify-content: flex-end;
-          }
-          @media ${bp.wideUp} {
-            min-width: 52%;
-          }
-          .selectTask {
-            flex-grow: 1;
-            margin: 0 0 20px;
-            min-width: 220px;
-            @media ${bp.tinyUp} {
-              margin: 0 20px 0 0;
-            }
-          }
-          button {
-            align-self: flex-end;
-            background-color: ${color.lightestGrey};
-            border: none;
-            border-radius: 20px;
-            color: ${color.darkGrey};
-            font-family: 'source-code-pro', sans-serif;
-            ${fontSize(13)};
-            padding: 3px 20px 2px;
-            text-transform: uppercase;
-            @media ${bp.tinyUp} {
-              align-self: auto;
-            }
-          }
-        }
         .header {
           @media ${bp.tinyUp} {
             align-items: center;
@@ -247,7 +164,4 @@ const Tasks = ({
   </div>
 );
 
-export default compose(
-  withTaskMutation,
-  withLogic,
-)(Tasks);
+export default Tasks;

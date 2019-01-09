@@ -27,6 +27,10 @@ const query = gql`
       project {
         name
       }
+      services {
+        id
+        name
+      }
       tasks {
         id
         name
@@ -157,8 +161,7 @@ const PageTasks = withRouter(props => {
                 />
                 {!props.router.query.task_id && (
                   <TaskData
-                    environmentId={environment.id}
-                    projectName={environment.openshiftProjectName}
+                    pageEnvironment={environment}
                     tasks={tasks}
                   />
                 )}
