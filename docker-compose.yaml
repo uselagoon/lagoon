@@ -192,6 +192,12 @@ services:
       - auth-server
     ports:
       - '2020:2020'
+    # command:
+    #   - "/usr/sbin/sshd"
+    #   - "-e"
+    #   - "-ddd"
+    #   - "-f"
+    #   - "/etc/ssh/sshd_config"
     environment:
       - OPENSHIFT_CONSOLE_URL=https://192.168.99.100:8443
     user: '111111111'
