@@ -58,6 +58,17 @@ objects:
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}-cluster
       spec:
+        volumes:
+          - name: empty
+            emptyDir: {}
+          - name: config-volume
+            configMap:
+              name: ${SERVICE_NAME}-config
+              items:
+              - key: rabbitmq.conf
+                path: rabbitmq.conf
+              - key: enabled_plugins
+                path: enabled_plugins
         # affinity:
         #   podAntiAffinity:
         #     requiredDuringSchedulingIgnoredDuringExecution:
@@ -70,6 +81,11 @@ objects:
         #         topologyKey: kubernetes.io/hostname
         containers:
         - name: ${SERVICE_NAME}-cluster
+          command:
+            - sh
+          args:
+            - -c
+            - cp -v /etc/rabbitmq/config/* /etc/rabbitmq/; docker-entrypoint.sh rabbitmq-server
           image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           ports:
@@ -83,8 +99,12 @@ objects:
             initialDelaySeconds: 15
             timeoutSeconds: 1
           volumeMounts:
-          - name: ${SERVICE_NAME}-cluster
-            mountPath: /var/lib/rabbitmq
+            - name: ${SERVICE_NAME}-cluster
+              mountPath: /var/lib/rabbitmq
+            - name: config-volume
+              mountPath: /etc/rabbitmq/config
+            - name: empty
+              mountPath: /etc/rabbitmqq
           env:
             - name: RABBITMQ_DEFAULT_USER
               valueFrom:
@@ -117,6 +137,26 @@ objects:
       type: RollingUpdate
 
 - apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: ${SERVICE_NAME}-config
+  data:
+    rabbitmq.conf: |
+        loopback_users.guest = false
+        ## Clustering
+        cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
+        cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+        cluster_formation.k8s.address_type = hostname
+        cluster_formation.k8s.hostname_suffix = .${CLUSTER_NAME}.${NAMESPACE}.svc.cluster.local
+        cluster_formation.node_cleanup.interval = 10
+        cluster_formation.node_cleanup.only_log_warning = true
+        cluster_partition_handling = autoheal
+        ## queue master locator
+        queue_master_locator=min-masters
+    enabled_plugins: |
+      [rabbitmq_management,rabbitmq_peer_discovery_k8s].
+
+- apiVersion: v1
   kind: Service
   metadata:
     creationTimestamp: null
@@ -136,7 +176,7 @@ objects:
       protocol: TCP
       targetPort: 5672
     selector:
-      service: ${SERVICE_NAME}
+      service: ${SERVICE_NAME}-cluster
   status:
     loadBalancer: {}
 - apiVersion: v1
