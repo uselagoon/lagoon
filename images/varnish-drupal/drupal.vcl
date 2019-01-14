@@ -321,6 +321,11 @@ sub vcl_backend_response {
     set beresp.http.Cache-Control = "public, max-age=${VARNISH_ASSETS_TTL:-2628001}";
     set beresp.http.Expires = "" + (now + beresp.ttl);
   }
+  # Disable buffering only for BigPipe responses
+  if (beresp.http.Surrogate-Control ~ "BigPipe/1.0") {
+    set beresp.do_stream = true;
+    set beresp.ttl = 0s;
+  }
 
   return (deliver);
 }
