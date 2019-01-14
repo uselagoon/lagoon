@@ -16,6 +16,7 @@
     "apollo-link": "^1.2.3",
     "apollo-link-error": "^1.1.1",
     "apollo-link-http": "^1.5.5",
+    "apollo-link-ws": "^1.0.10",
     "dotenv-extended": "^2.2.0",
     "git-url-parse": "^10.0.1",
     "graphql": "^0.13.2",

@@ -31,14 +31,20 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
+  - name: SERVICEBROKER_NAME
+    description: Name of the ServiceBroker that should be used
+    required: true
+  - name: SERVICEBROKER_PLAN_NAME
+    description: Name of the ServiceBroker Plan that should be used
+    value: 'default'
 objects:
 - apiVersion: servicecatalog.k8s.io/v1beta1
   kind: ServiceInstance
   metadata:
     name: ${SERVICE_NAME}
   spec:
-    clusterServiceClassExternalName: appuio-dbaas-mariadb-apb
-    clusterServicePlanExternalName: default
+    clusterServiceClassExternalName: ${SERVICEBROKER_NAME}
+    clusterServicePlanExternalName: ${SERVICEBROKER_PLAN_NAME}
 - apiVersion: servicecatalog.k8s.io/v1beta1
   kind: ServiceBinding
   metadata:

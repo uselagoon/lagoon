@@ -23,8 +23,11 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
 
 
     const data: deployData = {
+      repoUrl: body.repository.html_url,
+      repoName: body.repository.full_name,
       pullrequestTitle: body.pull_request.title,
       pullrequestNumber: body.number,
+      pullrequestUrl: body.pull_request.html_url,
       projectName: project.name,
       type: 'pullrequest',
       headBranchName: headBranchName,

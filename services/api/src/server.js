@@ -3,7 +3,8 @@
 const http = require('http');
 const util = require('util');
 const logger = require('./logger');
-const createApp = require('./app');
+const app = require('./app');
+const apolloServer = require('./apolloServer');
 
 const normalizePort = value => {
   const port = parseInt(value, 10);
@@ -15,19 +16,13 @@ const normalizePort = value => {
   return false;
 };
 
-/* ::
-type CreateServerArgs = {
-  store?: Object,
-  jwtSecret: string,
-  jwtAudience: string,
-};
-*/
-
-const createServer = async (args /* : CreateServerArgs */) => {
+const createServer = async () => {
   logger.debug('Starting to boot the server.');
 
   const port = normalizePort(process.env.PORT || '3000');
-  const server = http.createServer(createApp(args));
+  const server = http.createServer(app);
+
+  apolloServer.installSubscriptionHandlers(server);
 
   const listen = util.promisify(server.listen).bind(server);
   await listen(port);

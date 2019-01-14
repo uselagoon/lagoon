@@ -65,6 +65,13 @@ const typeDefs = gql`
     FAILED
   }
 
+  type File {
+    id: Int
+    filename: String
+    download: String
+    created: String
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -110,6 +117,7 @@ const typeDefs = gql`
     privateKey: String
     users: [User]
     created: String
+    projects: [Project]
   }
 
   type Openshift {
@@ -408,6 +416,7 @@ const typeDefs = gql`
     command: String
     remoteId: String
     logs: String
+    files: [File]
   }
 
   input DeleteEnvironmentInput {
@@ -828,6 +837,15 @@ const typeDefs = gql`
     services: [String]!
   }
 
+  input UploadFilesForTaskInput {
+    task: Int!,
+    files: [Upload]!,
+  }
+
+  input DeleteFilesForTaskInput {
+    id: Int!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -908,9 +926,26 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
+    taskDrushArchiveDump(environment: Int!): Task
+    taskDrushSqlSync(
+      sourceEnvironment: Int!
+      destinationEnvironment: Int!
+    ): Task
+    taskDrushRsyncFiles(
+      sourceEnvironment: Int!
+      destinationEnvironment: Int!
+    ): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
+    uploadFilesForTask(input: UploadFilesForTaskInput!): Task
+    deleteFilesForTask(input: DeleteFilesForTaskInput!): String
+  }
+
+  type Subscription {
+    backupChanged(environment: Int!): Backup
+    deploymentChanged(environment: Int!): Deployment
+    taskChanged(environment: Int!): Task
   }
 `;
 

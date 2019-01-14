@@ -42,6 +42,15 @@
     custom_domain1: "multiproject1.com"
     custom_domain2: "multiproject2.com"
 
+- include: features/openshift-limit.yaml
+  vars:
+    testname: "openshift-character-limit"
+    node_version: 8
+    git_repo_name: features.git
+    project: ci-features
+    branch: very-long-branch-name-what-would-otherwise-overflow-the-sixty-three-limit
+    # not going to try hashing something in yaml.
+    check_url: "http://node.ci-features.very-long-branch-name-what-would-otherwise-aae9.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
 - include: features/production-environment-protection.yaml
   vars:

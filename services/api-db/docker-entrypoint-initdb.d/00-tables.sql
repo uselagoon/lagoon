@@ -160,6 +160,14 @@ CREATE TABLE IF NOT EXISTS task (
        remote_id    varchar(50) NULL
 );
 
+CREATE TABLE IF NOT EXISTS s3_file (
+  id           int NOT NULL auto_increment PRIMARY KEY,
+  filename     varchar(100) NOT NULL,
+  s3_key       text NOT NULL,
+  created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted      datetime NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
 -- Junction Tables
 
 CREATE TABLE IF NOT EXISTS project_notification (
@@ -185,4 +193,10 @@ CREATE TABLE IF NOT EXISTS project_user (
   pid int REFERENCES project (id),
   usid int REFERENCES user (id),
   CONSTRAINT project_user_pkey PRIMARY KEY (pid, usid)
+);
+
+CREATE TABLE IF NOT EXISTS task_file (
+  tid int REFERENCES task (id),
+  fid int REFERENCES file (id),
+  CONSTRAINT task_file_pkey PRIMARY KEY (tid, fid)
 );

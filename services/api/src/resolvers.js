@@ -19,6 +19,7 @@ const {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  deploymentSubscriber,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -27,7 +28,17 @@ const {
   addTask,
   deleteTask,
   updateTask,
+  taskDrushArchiveDump,
+  taskDrushSqlSync,
+  taskDrushRsyncFiles,
+  taskSubscriber,
 } = require('./resources/task/resolvers');
+
+const {
+  getFilesByTaskId,
+  uploadFilesForTask,
+  deleteFilesForTask,
+} = require('./resources/file/resolvers');
 
 const {
   addOrUpdateEnvironment,
@@ -104,6 +115,7 @@ const {
   addUserToCustomer,
   removeUserFromCustomer,
   getUsersByCustomerId,
+  getProjectsByCustomerId,
   addUserToProject,
   removeUserFromProject,
   deleteAllUsers,
@@ -120,6 +132,7 @@ const {
   addRestore,
   getRestoreByBackupId,
   updateRestore,
+  backupSubscriber,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -161,6 +174,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Task: {
     environment: getEnvironmentByTaskId,
+    files: getFilesByTaskId,
   },
   Notification: {
     __resolveType(obj) {
@@ -177,6 +191,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Customer: {
     users: getUsersByCustomerId,
+    projects: getProjectsByCustomerId,
   },
   User: {
     sshKeys: getUserSshKeys,
@@ -257,9 +272,19 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
+    taskDrushArchiveDump,
+    taskDrushSqlSync,
+    taskDrushRsyncFiles,
     deleteTask,
     updateTask,
     setEnvironmentServices,
+    uploadFilesForTask,
+    deleteFilesForTask,
+  },
+  Subscription: {
+    backupChanged: backupSubscriber,
+    deploymentChanged: deploymentSubscriber,
+    taskChanged: taskSubscriber,
   },
   Date: GraphQLDate,
 };

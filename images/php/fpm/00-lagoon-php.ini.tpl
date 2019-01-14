@@ -1,6 +1,6 @@
 [PHP]
 max_execution_time = ${PHP_MAX_EXECUTION_TIME:-900}
-max_input_vars = ${PHP_MAX_INPUT_VARS:-1000}
+max_input_vars = ${PHP_MAX_INPUT_VARS:-2000}
 max_file_uploads = ${PHP_MAX_FILE_UPLOADS:-20}
 memory_limit = ${PHP_MEMORY_LIMIT:-400M}
 display_errors = ${PHP_DISPLAY_ERRORS:-Off}

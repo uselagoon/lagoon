@@ -23,6 +23,9 @@ async function gitlabPullRequestUpdated(webhook: WebhookRequestData, project: Pr
 
 
     const data: deployData = {
+      repoUrl: body.object_attributes.target.web_url,
+      repoName: body.object_attributes.target.name,
+      pullrequestUrl: body.object_attributes.url,
       pullrequestTitle: body.object_attributes.title,
       pullrequestNumber: body.object_attributes.id,
       projectName: project.name,
@@ -36,7 +39,8 @@ async function gitlabPullRequestUpdated(webhook: WebhookRequestData, project: Pr
 
     try {
       const taskResult = await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
+      // gitlab does not identify well that this is an update to a merge request, so we manually set the event type here.
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:updated:handled`, data,
         `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.id} (${body.object_attributes.title})> updated in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
       )
       return;

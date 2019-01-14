@@ -129,5 +129,3 @@ EOF
 echo "done, now starting daemon"
 
 fi
-
-exec $@
