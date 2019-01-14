@@ -293,14 +293,9 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   { openshiftProjectName },
   args,
 ) => {
-  const interested_month = args.month ? new Date(args.month) : new Date();
-  const now = new Date();
-  const interested_month_relative =
-    interested_month.getMonth() - now.getMonth();
-  // Elasticsearch needs relative numbers with + or - in front. The - already exists, so we add the + if it's a positive number.
-  const interested_month_relative_plus_sign =
-    (interested_month_relative < 0 ? '' : '+') + interested_month_relative;
-
+  const interested_date = args.month ? new Date(args.month) : new Date();
+  // This generates YYYY-MM
+  const interested_year_month = `${interested_date.getFullYear()}-${(`0${interested_date.getMonth() + 1}`).slice(-2)}`;
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -311,8 +306,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `now${interested_month_relative_plus_sign}M/M`,
-                    lte: `now${interested_month_relative_plus_sign}M/M`,
+                    gte: `${interested_year_month}||/M`,
+                    lte: `${interested_year_month}||/M`,
                   },
                 },
               },
