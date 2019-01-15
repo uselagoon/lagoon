@@ -1,4 +1,4 @@
-#!/usr/bin/dumb-init /bin/sh
+#!/bin/sh
 
 # If $FLUENT_FORWARD_EXTERNAL_ENABLED is set, we enable the forward external config
 if [ "$LOGS_FORWARDER_EXTERNAL_FLUENTD_ENABLED" ] && [ -f /fluentd/etc/logs-copy-forward-external-fluentd.conf.disabled ]; then

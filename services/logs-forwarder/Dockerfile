@@ -2,7 +2,8 @@ FROM fluent/fluentd:v0.12
 
 USER root
 
-RUN apk add --update --virtual .build-deps \
+RUN apk add --no-cache tini \
+ && apk add --update --virtual .build-deps \
         sudo build-base ruby-dev \
  && gem install \
         fluent-plugin-elasticsearch \
@@ -24,5 +25,5 @@ ENV LOGS_FORWARDER_SHARED_KEY=secret \
     LOGS_FORWARDER_TARGET_SHARED_KEY=secret \
     LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE=amazing1
 
-ENTRYPOINT ["/bin/entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/bin/entrypoint.sh"]
 CMD ["sh", "-c", "exec fluentd -c /fluentd/etc/${FLUENTD_CONF} -p /fluentd/plugins $FLUENTD_OPT"]
