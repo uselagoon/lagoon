@@ -11,6 +11,7 @@ const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
   debug: process.env.NODE_ENV === 'development',
+  introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
