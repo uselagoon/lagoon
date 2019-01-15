@@ -101,7 +101,7 @@ objects:
             - sh
           args:
             - -c
-            - cp -v /etc/rabbitmq/config/* /etc/rabbitmq/; docker-entrypoint.sh rabbitmq-server
+            - cp -v /etc/rabbitmq/config/* /etc/rabbitmq/; echo "$ERLANG_COOKIE" > /var/lib/rabbitmq/.erlang.cookie; chmod 600 /var/lib/rabbitmq/.erlang.cookie; docker-entrypoint.sh rabbitmq-server
           image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           ports:
@@ -132,6 +132,12 @@ objects:
                 secretKeyRef:
                   name: rabbitmq-password
                   key: RABBITMQ_PASSWORD
+            - name: ERLANG_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-erlang-cookie
+                  key: ERLANG_COOKIE
+
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
