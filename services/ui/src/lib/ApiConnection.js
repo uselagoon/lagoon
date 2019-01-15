@@ -28,7 +28,7 @@ const ApiConnection = ({ children }) =>
       })
 
       const wsLink = new WebSocketLink({
-        uri: publicRuntimeConfig.GRAPHQL_API.replace(/https?/, 'ws'),
+        uri: publicRuntimeConfig.GRAPHQL_API.replace(/https/, 'wss').replace(/http/, 'ws'),
         options: {
           reconnect: true,
           connectionParams: {
