@@ -188,6 +188,7 @@ objects:
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
+    clusterIP: None
     ports:
     - name: 15672-tcp
       port: 15672
