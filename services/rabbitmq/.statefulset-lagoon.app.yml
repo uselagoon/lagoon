@@ -120,7 +120,7 @@ objects:
             - name: config-volume
               mountPath: /etc/rabbitmq/config
             - name: empty
-              mountPath: /etc/rabbitmqq
+              mountPath: /etc/rabbitmq
           env:
             - name: RABBITMQ_DEFAULT_USER
               valueFrom:
