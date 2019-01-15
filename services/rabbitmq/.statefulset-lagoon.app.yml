@@ -41,6 +41,21 @@ parameters:
     description: Oneliner of Cronjobs
     value: ""
 objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: rabbitmq
+- apiVersion: v1
+  kind: RoleBinding
+  metadata:
+    name: rabbitmq-view
+  roleRef:
+    kind: Role
+    name: view
+  subjects:
+  - kind: ServiceAccount
+    name: rabbitmq
+
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
@@ -58,6 +73,7 @@ objects:
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}-cluster
       spec:
+        serviceAccountName: rabbitmq
         volumes:
           - name: empty
             emptyDir: {}
