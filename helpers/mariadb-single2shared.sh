@@ -7,7 +7,7 @@ if [ ! "$1" ]; then
   exit 1;
 fi
 
-set -euo pipefail
+set -uo pipefail
 
 which shyaml > /dev/null
 if [ $? -gt 0 ]; then
@@ -20,6 +20,8 @@ if [ $? -gt 0 ]; then
   echo "please install jq"
   exit 1
 fi
+
+set -e
 
 PROJECT_NAME=$1
 
