@@ -43,15 +43,15 @@ fi
 
 if [ -n "$(ls /var/solr)" ]; then
   # Iterate through all existing solr cores
-  for solrcorepath in $(ls -d /var/solr/*) ; do
+  for solrcorepath in $(ls -d /var/solr/*/ | grep -v lost+found) ; do
     corename=$(basename $solrcorepath)
-    if [ -d ${solrcorepath}/data ]; then
-      echo "${solrcorepath} has it's data in deprecated location ${solrcorepath}/data, moving to ${solrcorepath}."
+    if [ -d ${solrcorepath}data ]; then
+      echo "${solrcorepath} has it's data in deprecated location ${solrcorepath}data, moving to ${solrcorepath}."
       # moving the  contents of /var/solr/${corename}/data to /var/solr/${corename}
       # the datadir now has the layout that a newly created core would.
-      mv ${solrcorepath}/data/* ${solrcorepath}/
+      mv ${solrcorepath}data/* ${solrcorepath}
       # remove empty directory
-      rm -Rf ${solrcorepath}/data || mv ${solrcorepath}/data ${solrcorepath}/data-delete
+      rm -Rf ${solrcorepath}data || mv ${solrcorepath}data ${solrcorepath}data-delete
     fi
 
     # If the core has no files in /opt/solr/server/solr/mycores/${corename} this means:
@@ -61,8 +61,8 @@ if [ -n "$(ls /var/solr)" ]; then
     if [ ! -d /opt/solr/server/solr/mycores/${corename} ]; then
       mkdir -p /opt/solr/server/solr/mycores/${corename}
       # Copy the solr config from the persistent volume in the solr home config directory
-      cp -R ${solrcorepath}/conf /opt/solr/server/solr/mycores/${corename}/
-      echo "copied pre-existing solr config from '${solrcorepath}/conf' to '/opt/solr/server/solr/mycores/${corename}/conf'"
+      cp -R ${solrcorepath}conf /opt/solr/server/solr/mycores/${corename}/
+      echo "copied pre-existing solr config from '${solrcorepath}conf' to '/opt/solr/server/solr/mycores/${corename}/conf'"
       printf "\n\n"
       # there must be a core.properties to be recognized as a core
       touch /opt/solr/server/solr/mycores/${corename}/core.properties
@@ -113,7 +113,7 @@ function fixConfig {
 # check if `/opt/solr/server/solr/mycores` has cores, which means that `precreate-core` has already be called so we check the configs there
 if [ -n "$(ls /opt/solr/server/solr/mycores)" ]; then
   # Iterate through all solr cores
-  for solrcorepath in $(ls -d /opt/solr/server/solr/mycores/*) ; do
+  for solrcorepath in $(ls -d /opt/solr/server/solr/mycores/*/) ; do
     corename=$(basename $solrcorepath)
     # Check and Update the solr config with lagoon compatible config
     if [ -f /opt/solr/server/solr/mycores/${corename}/conf/solrconfig.xml ]; then
