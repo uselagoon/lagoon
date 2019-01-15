@@ -59,19 +59,19 @@ objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
-    name: ${SERVICE_NAME}-cluster
+    name: ${SERVICE_NAME}
   spec:
-    serviceName: ${SERVICE_NAME}-cluster
+    serviceName: ${SERVICE_NAME}
     replicas: 3
     selector:
       matchLabels:
-        service: ${SERVICE_NAME}-cluster
+        service: ${SERVICE_NAME}
     template:
       metadata:
         labels:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
-          service: ${SERVICE_NAME}-cluster
+          service: ${SERVICE_NAME}
       spec:
         serviceAccountName: rabbitmq
         volumes:
@@ -93,10 +93,10 @@ objects:
         #             - key: service
         #               operator: In
         #               values:
-        #                 - ${SERVICE_NAME}-cluster
+        #                 - ${SERVICE_NAME}
         #         topologyKey: kubernetes.io/hostname
         containers:
-        - name: ${SERVICE_NAME}-cluster
+        - name: ${SERVICE_NAME}
           command:
             - sh
           args:
@@ -115,7 +115,7 @@ objects:
             initialDelaySeconds: 15
             timeoutSeconds: 1
           volumeMounts:
-            - name: ${SERVICE_NAME}-cluster
+            - name: ${SERVICE_NAME}
               mountPath: /var/lib/rabbitmq
             - name: config-volume
               mountPath: /etc/rabbitmq/config
@@ -143,7 +143,7 @@ objects:
               value: ${CRONJOBS}
     volumeClaimTemplates:
     - metadata:
-        name: ${SERVICE_NAME}-cluster
+        name: ${SERVICE_NAME}
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
@@ -192,7 +192,7 @@ objects:
       protocol: TCP
       targetPort: 5672
     selector:
-      service: ${SERVICE_NAME}-cluster
+      service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
 - apiVersion: v1
