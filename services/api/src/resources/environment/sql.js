@@ -18,6 +18,11 @@ const Sql /* : SqlObj */ = {
     knex('environment')
       .where('id', '=', id)
       .toString(),
+  selectEnvironmentByNameAndProject: (name /* : string */, projectId /* : numbere */) =>
+    knex('environment')
+      .where('name', '=', name)
+      .andWhere('project', '=', projectId)
+      .toString(),
   truncateEnvironment: () =>
     knex('environment')
       .truncate()

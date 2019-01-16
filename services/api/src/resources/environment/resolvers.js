@@ -1,6 +1,8 @@
 // @flow
 
 const R = require('ramda');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createRemoveTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const {
@@ -12,6 +14,8 @@ const {
   whereAnd,
 } = require('../../util/db');
 const Sql = require('./sql');
+const projectSql = require('../project/sql');
+const projectHelpers = require('../project/helpers');
 
 /* ::
 
@@ -472,17 +476,72 @@ const addOrUpdateEnvironmentStorage = async (
 
 const deleteEnvironment = async (
   root,
-  { input },
-  { credentials: { role } },
+  {
+    input,
+    input: {
+      project: projectName,
+      name,
+      execute,
+    },
+  },
+  { credentials: { role, permissions: { customers, projects } } },
 ) => {
   if (role !== 'admin') {
-    throw new Error('Unauthorized');
+    const prep = prepare(sqlClient, 'SELECT `id` AS `pid`, `customer` AS `cid` FROM project WHERE `name` = :name');
+    const rows = await query(sqlClient, prep({ name: projectName }));
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
   }
 
-  const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
-  await query(sqlClient, prep(input));
+  const projectId = await projectHelpers.getProjectIdByName(projectName);
 
-  // TODO: maybe check rows for changed result
+  const projectRows = await query(
+    sqlClient,
+    projectSql.selectProject(projectId),
+  );
+  const project = projectRows[0];
+
+  const environmentRows = await query(
+    sqlClient,
+    Sql.selectEnvironmentByNameAndProject(name, projectId),
+  );
+  const environment = environmentRows[0];
+
+  if (!environment) {
+    throw new Error(`Environment "${name}" does not exist in project "${projectId}"`);
+  }
+
+  if (role !== 'admin' && environment.environmentType === 'production') {
+    throw new Error('Unauthorized - You may not delete a production environment');
+  }
+
+  // Deleting environment in api w/o executing the openshift remove.
+  // This gets called by openshiftremove service after successful remove.
+  if (role === 'admin' && execute === false) {
+    const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
+    await query(sqlClient, prep({ name, project: projectId }));
+
+    // TODO: maybe check rows for changed result
+    return 'success';
+  }
+
+  const data = {
+    projectName: project.name,
+    branch: name,
+    type: environment.deployType,
+    forceDeleteProductionEnvironment: role === 'admin',
+  };
+
+  await createRemoveTask(data);
+  sendToLagoonLogs('info', data.projectName, '', 'api:deleteEnvironment', {},
+    `*[${data.projectName}]* Deleting environment \`${data.branch}\``
+  );
+
   return 'success';
 };
 

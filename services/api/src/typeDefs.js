@@ -421,7 +421,8 @@ const typeDefs = gql`
 
   input DeleteEnvironmentInput {
     name: String!
-    project: Int!
+    project: String!
+    execute: Boolean
   }
 
   type Query {
