@@ -1,4 +1,9 @@
 ---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
 - include: nginx/nginx.yaml
   vars:
     testname: "NGINX"

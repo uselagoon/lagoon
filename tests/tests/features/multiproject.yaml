@@ -60,23 +60,23 @@
   tasks:
   - include: ../../checks/check-url-content-host.yaml
 
-- name: "{{ testname }} - rest2tasks /remove POST on {{ project1 }}, which should remove all resources"
+- name: "{{ testname }} - api deleteEnvironment on {{ project1 }}, which should remove all resources"
   hosts: localhost
   serial: 1
   vars:
     project: "{{ project1 }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/rest/remove.yaml
+  - include: ../../tasks/api/remove.yaml
 
-- name: "{{ testname }} - rest2tasks /remove POST on {{ project2 }}, which should remove all resources"
+- name: "{{ testname }} - api deleteEnvironment on {{ project2 }}, which should remove all resources"
   hosts: localhost
   serial: 1
   vars:
     project: "{{ project2 }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/rest/remove.yaml
+  - include: ../../tasks/api/remove.yaml
 
 - name: "{{ testname }} - check if site for {{ project1 }} does not exist anymore"
   hosts: localhost

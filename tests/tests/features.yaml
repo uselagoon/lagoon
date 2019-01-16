@@ -52,14 +52,6 @@
     # not going to try hashing something in yaml.
     check_url: "http://node.ci-features.very-long-branch-name-what-would-otherwise-aae9.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
-- include: features/production-environment-protection.yaml
-  vars:
-    testname: "PROTECTED PRODUCTION ENVIRONMENT"
-    git_repo_name: features.git
-    project: ci-features
-    branch: master
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-
 - include: features/environment-type.yaml
   vars:
     testname: "ENVIRONMENT TYPE DEVELOPMENT"

@@ -1,4 +1,9 @@
 ---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
 - include: rest/pullrequest.yaml
   vars:
     testname: "REST - pullrequest"
