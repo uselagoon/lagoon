@@ -21,6 +21,12 @@ if [ $? -gt 0 ]; then
   exit 1
 fi
 
+which svcat > /dev/null
+if [ $? -gt 0 ]; then
+  echo "please install svcat"
+  exit 1
+fi
+
 set -e
 
 PROJECT_NAME=$1
@@ -61,22 +67,10 @@ oc -n $1 scale dc/cli --replicas=0
 ## taken from build-deploy-docker-compose.sh
 
 OPENSHIFT_TEMPLATE="$(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
-
-# Only SERVICE_NAME is used in the template, fudge the other parameters.
-oc -n $1 process  --local -o yaml --insecure-skip-tls-verify \
-  -f ${OPENSHIFT_TEMPLATE} \
-  -p SERVICE_NAME="${SERVICE_NAME}" \
-  -p SERVICEBROKER_NAME="lagoon-dbaas-mariadb-apb" \
-  -p SERVICEBROKER_PLAN_NAME="${ENVIRONMENT_TYPE}" \
-  -p SAFE_BRANCH="NULL" \
-  -p SAFE_PROJECT="NULL" \
-  -p BRANCH="NULL" \
-  -p PROJECT="NULL" \
-  -p LAGOON_GIT_SHA="NULL" \
-  -p SERVICE_ROUTER_URL="NULL" \
-  -p REGISTRY="NULL" \
-  -p OPENSHIFT_PROJECT="NULL" \
-| oc -n $1 apply -f -
+SERVICEBROKER_CLASS="lagoon-dbaas-mariadb-apb"
+SERVICEBROKER_PLAN="${ENVIRONMENT_TYPE}"
+OPENSHIFT_PROJECT=$1
+. $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/exec-openshift-create-servicebroker.sh
 
 # ServiceBrokers take a bit, wait until the credentials secret is available
 until oc -n $1 get --insecure-skip-tls-verify secret ${SERVICE_NAME}-servicebroker-credentials

@@ -24,7 +24,7 @@ DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.d
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Default shared mariadb service broker
-MARIADB_SHARED_NAME_DEFAULT="lagoon-dbaas-mariadb-apb"
+MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
 
 # Figure out which services should we handle
 SERVICE_TYPES=()
@@ -34,8 +34,8 @@ SERVICEBROKERS=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
-declare -A MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME
-declare -A MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME
+declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
+declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 
@@ -65,7 +65,7 @@ do
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
-    elif svcat --scope cluster get class $MARIADB_SHARED_NAME_DEFAULT > /dev/null; then
+    elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
@@ -75,37 +75,37 @@ do
 
   if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
     # Load a possible defined mariadb-shared
-    MARIADB_SHARED_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.name "${MARIADB_SHARED_NAME_DEFAULT}")
+    MARIADB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
 
     # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.name false)
-    if [ ! $ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE == "false" ]; then
-      MARIADB_SHARED_NAME=$ENVIRONMENT_MARIADB_SHARED_NAME_OVERRIDE
+    ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.class false)
+    if [ ! $ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE == "false" ]; then
+      MARIADB_SHARED_CLASS=$ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE
     fi
 
-    # check if the defined service broker exists
-    if svcat --scope cluster get class $MARIADB_SHARED_NAME > /dev/null; then
+    # check if the defined service broker class exists
+    if svcat --scope cluster get class $MARIADB_SHARED_CLASS > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
-      MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_NAME}"
+      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
     else
-      echo "defined mariadb-shared service broker for service '$SERVICE_NAME' with name '$MARIADB_SHARED_NAME' not found in cluster";
+      echo "defined mariadb-shared service broker class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
       exit 1
     fi
 
-    # Default plan name is the enviroment type
-    MARIADB_SHARED_PLAN_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
+    # Default plan is the enviroment type
+    MARIADB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
 
-    # Allow the mariadb shared servicebroker plan name to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_MARIADB_SHARED_PLAN_NAME_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
-    if [ ! $MARIADB_SHARED_PLAN_NAME_OVERRIDE == "false" ]; then
-      MARIADB_SHARED_PLAN_NAME=$ENVIRONMENT_MARIADB_SHARED_PLAN_NAME_OVERRIDE
+    # Allow the mariadb shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_MARIADB_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
+    if [ ! $MARIADB_SHARED_PLAN_OVERRIDE == "false" ]; then
+      MARIADB_SHARED_PLAN=$ENVIRONMENT_MARIADB_SHARED_PLAN_OVERRIDE
     fi
 
-    # Check if the defined service broker plan name exists
-    if svcat --scope cluster get plan --class "${MARIADB_SHARED_NAME}" "${MARIADB_SHARED_PLAN_NAME}" > /dev/null; then
-        MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN_NAME}"
+    # Check if the defined service broker plan  exists
+    if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
+        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
     else
-        echo "defined service broker plan '${MARIADB_SHARED_PLAN_NAME}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_NAME' not found in cluster";
+        echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
         exit 1
     fi
   fi
@@ -333,10 +333,10 @@ do
 
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_NAME="${MAP_SERVICE_NAME_TO_SERVICEBROKERS_NAME["${SERVICE_NAME}"]}")
-    TEMPLATE_PARAMETERS+=(-p SERVICEBROKER_PLAN_NAME="${MAP_SERVICE_NAME_TO_SERVICEBROKERS_PLAN_NAME["${SERVICE_NAME}"]}")
-    .  /oc-build-deploy/scripts/exec-openshift-create-servicebroker.sh
+    # Load the requested class and plan for this service
+    SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
+    SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
+    . /oc-build-deploy/scripts/exec-openshift-create-servicebroker.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
