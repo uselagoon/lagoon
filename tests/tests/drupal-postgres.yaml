@@ -1,4 +1,9 @@
 ---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
 - include: drupal/drupal.yaml
   vars:
     testname: "Drupal 8 composer PHP 7.0 - POSTGRES"
