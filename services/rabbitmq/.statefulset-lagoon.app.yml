@@ -167,7 +167,7 @@ objects:
         loopback_users.guest = false
         ## Clustering
         cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
-        cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+        cluster_formation.k8s.host = kubernetes.default.svc
         cluster_formation.k8s.address_type = hostname
         cluster_formation.k8s.hostname_suffix = .${CLUSTER_NAME}.${NAMESPACE}.svc.cluster.local
         cluster_formation.node_cleanup.interval = 10
