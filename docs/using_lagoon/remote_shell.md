@@ -47,7 +47,7 @@ ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh service=[SERVICE-NAME] co
 As example to connect to the `php` container within the `nginx` pod:
 
 ```
-ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh service=nginx container=pod
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh service=nginx container=php
 ```
 
 ### Execute Commands
