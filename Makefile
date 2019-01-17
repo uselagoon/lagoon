@@ -116,6 +116,8 @@ images :=     oc \
 							nginx-drupal \
 							varnish \
 							varnish-drupal \
+							varnish-persistent \
+							varnish-persistent-drupal \
 							redis \
 							redis-persistent \
 							mongo \
