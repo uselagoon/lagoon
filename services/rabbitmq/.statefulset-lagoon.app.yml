@@ -176,7 +176,7 @@ objects:
         ## queue master locator
         queue_master_locator=min-masters
     enabled_plugins: |
-      [rabbitmq_management,rabbitmq_peer_discovery_k8s].
+      [rabbitmq_management,rabbitmq_delayed_message_exchange,rabbitmq_peer_discovery_k8s].
 
 - apiVersion: v1
   kind: Service
