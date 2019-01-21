@@ -530,16 +530,42 @@ const deleteEnvironment = async (
     return 'success';
   }
 
-  const data = {
+  let data = {
     projectName: project.name,
-    branch: name,
     type: environment.deployType,
     forceDeleteProductionEnvironment: role === 'admin',
   };
 
+  const meta = {
+    projectName: data.projectName,
+    environmentName: environment.name,
+  };
+
+  switch (environment.deployType) {
+    case 'branch':
+      data = {
+        ...data,
+        branch: name,
+      };
+      break;
+
+    case 'pullrequest':
+      data = {
+        ...data,
+        pullrequestNumber: environment.name.replace('pr-', ''),
+      };
+      break;
+
+    default:
+      sendToLagoonLogs('error', data.projectName, '', 'api:deleteEnvironment:error', meta,
+        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``
+      );
+      return `Error: unknown deploy type ${environment.deployType}`;
+  }
+
   await createRemoveTask(data);
-  sendToLagoonLogs('info', data.projectName, '', 'api:deleteEnvironment', {},
-    `*[${data.projectName}]* Deleting environment \`${data.branch}\``
+  sendToLagoonLogs('info', data.projectName, '', 'api:deleteEnvironment', meta,
+    `*[${data.projectName}]* Deleting environment \`${environment.name}\``
   );
 
   return 'success';
