@@ -93,6 +93,9 @@ RUN apk update \
     && fix-permissions /app \
     && fix-permissions /etc/ssmtp/ssmtp.conf
 
+RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] ; then \
+  echo echo \"PHP ${PHP_VERSION} is end of life and should no longer be used. For more information, visit https://secure.php.net/eol.php\" \> /dev/stderr > /home/.bashrc ; fi
+
 EXPOSE 9000
 
 ENV AMAZEEIO_DB_HOST=mariadb \
