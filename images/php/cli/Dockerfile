@@ -54,6 +54,9 @@ RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 COPY 55-cli-helpers.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
 
+RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] ; then \
+  echo echo \"PHP ${PHP_VERSION} is end of life and should no longer be used. For more information, visit https://secure.php.net/eol.php\" \> /dev/stderr > /home/.bashrc ; fi
+
 # SSH Key and Agent Setup
 COPY 05-ssh-key.sh /lagoon/entrypoints/
 COPY 10-ssh-agent.sh /lagoon/entrypoints/
