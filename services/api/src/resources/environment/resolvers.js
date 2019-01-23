@@ -543,6 +543,7 @@ const deleteEnvironment = async (
 
   switch (environment.deployType) {
     case 'branch':
+    case 'promote':
       data = {
         ...data,
         branch: name,
@@ -558,14 +559,14 @@ const deleteEnvironment = async (
 
     default:
       sendToLagoonLogs('error', data.projectName, '', 'api:deleteEnvironment:error', meta,
-        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``
+        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``,
       );
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
   await createRemoveTask(data);
   sendToLagoonLogs('info', data.projectName, '', 'api:deleteEnvironment', meta,
-    `*[${data.projectName}]* Deleting environment \`${environment.name}\``
+    `*[${data.projectName}]* Deleting environment \`${environment.name}\``,
   );
 
   return 'success';
