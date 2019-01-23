@@ -52,6 +52,11 @@ const messageConsumer = async function(msg) {
         environmentName = branch
         openshiftProject = `${safeProjectName}-${safeBranchName}`
         break;
+
+      case 'promote':
+        environmentName = branch
+        openshiftProject = `${projectName}-${branch}`
+        break;
     }
 
   } catch(error) {
@@ -98,7 +103,7 @@ const messageConsumer = async function(msg) {
       )
       // Update GraphQL API that the Environment has been deleted
       try {
-        await deleteEnvironment(environmentName, projectName)
+        await deleteEnvironment(environmentName, projectName, false)
         logger.info(`${openshiftProject}: Deleted Environment '${environmentName}' in API`)
       } catch (err) {
         logger.error(err)
@@ -160,7 +165,7 @@ const messageConsumer = async function(msg) {
 
   // Update GraphQL API that the Environment has been deleted
   try {
-    await deleteEnvironment(environmentName, projectName)
+    await deleteEnvironment(environmentName, projectName, false)
     logger.info(`${openshiftProject}: Deleted Environment '${environmentName}' in API`)
   } catch (err) {
     logger.error(err)
