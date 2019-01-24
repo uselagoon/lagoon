@@ -100,11 +100,12 @@ objects:
           command:
             - sh
           args:
-            - -c
-            - cp -v /etc/rabbitmq/config/* /etc/rabbitmq/; echo "$ERLANG_COOKIE" > /var/lib/rabbitmq/.erlang.cookie; chmod 600 /var/lib/rabbitmq/.erlang.cookie; docker-entrypoint.sh rabbitmq-server
-          image: ${SERVICE_IMAGE}
+            - /cluster-rabbit.sh
+          image: docker-registry.default.svc:5000/elliot/rabbitmq
           imagePullPolicy: Always
           ports:
+          - containerPort: 4369
+            protocol: TCP
           - containerPort: 15672
             protocol: TCP
           - containerPort: 5672
@@ -122,6 +123,8 @@ objects:
             - name: empty
               mountPath: /etc/rabbitmq
           env:
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
             - name: RABBITMQ_DEFAULT_USER
               valueFrom:
                 secretKeyRef:
@@ -169,7 +172,6 @@ objects:
         cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
         cluster_formation.k8s.host = kubernetes.default.svc
         cluster_formation.k8s.address_type = hostname
-        cluster_formation.k8s.hostname_suffix = .${CLUSTER_NAME}.${NAMESPACE}.svc.cluster.local
         cluster_formation.node_cleanup.interval = 10
         cluster_formation.node_cleanup.only_log_warning = true
         cluster_partition_handling = autoheal
