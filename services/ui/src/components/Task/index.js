@@ -20,14 +20,6 @@ const Task = ({ task }) => (
           </div>
         </div>
       </div>
-      <div className="field-wrapper command">
-        <div>
-          <label>Command</label>
-          <div className="field">
-            {task.command}
-          </div>
-        </div>
-      </div>
       <div className="field-wrapper service">
         <div>
           <label>Service</label>
@@ -45,6 +37,17 @@ const Task = ({ task }) => (
           </div>
         </div>
       </div>
+      {task.files.length > 0 &&
+        <div className="field-wrapper files">
+          <div>
+            <label>Files</label>
+            <ul className="field">
+            {task.files.map(file => (
+              <li key={file.id}><a href={file.download}>{file.filename}</a></li>
+            ))}
+            </ul>
+          </div>
+        </div>}
     </div>
     <LogViewer logs={task.logs} />
     <style jsx>{`
@@ -164,6 +167,17 @@ const Task = ({ task }) => (
             padding-right: calc((100vw / 16) * 1);
             @media ${bp.extraWideUp} {
               padding-right: calc((100vw / 16) * 0.5);
+            }
+          }
+          &.files {
+            ul.field {
+              margin: 0;
+
+              li {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+              }
             }
           }
         }

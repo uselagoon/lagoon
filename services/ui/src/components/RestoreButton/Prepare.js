@@ -17,7 +17,7 @@ const Prepare = ({ backupId, className }) => (
         return <button className={className} disabled>Download error</button>;
       }
 
-      if (called) {
+      if (loading || called) {
         return <button className={className} disabled>Preparing ...</button>;
       }
 

@@ -1,6 +1,8 @@
 // @flow
 
 const R = require('ramda');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createRemoveTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const {
@@ -12,6 +14,8 @@ const {
   whereAnd,
 } = require('../../util/db');
 const Sql = require('./sql');
+const projectSql = require('../project/sql');
+const projectHelpers = require('../project/helpers');
 
 /* ::
 
@@ -293,14 +297,9 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   { openshiftProjectName },
   args,
 ) => {
-  const interested_month = args.month ? new Date(args.month) : new Date();
-  const now = new Date();
-  const interested_month_relative =
-    interested_month.getMonth() - now.getMonth();
-  // Elasticsearch needs relative numbers with + or - in front. The - already exists, so we add the + if it's a positive number.
-  const interested_month_relative_plus_sign =
-    (interested_month_relative < 0 ? '' : '+') + interested_month_relative;
-
+  const interested_date = args.month ? new Date(args.month) : new Date();
+  // This generates YYYY-MM
+  const interested_year_month = `${interested_date.getFullYear()}-${(`0${interested_date.getMonth() + 1}`).slice(-2)}`;
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -311,8 +310,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `now${interested_month_relative_plus_sign}M/M`,
-                    lte: `now${interested_month_relative_plus_sign}M/M`,
+                    gte: `${interested_year_month}||/M`,
+                    lte: `${interested_year_month}||/M`,
                   },
                 },
               },
@@ -477,17 +476,99 @@ const addOrUpdateEnvironmentStorage = async (
 
 const deleteEnvironment = async (
   root,
-  { input },
-  { credentials: { role } },
+  {
+    input,
+    input: {
+      project: projectName,
+      name,
+      execute,
+    },
+  },
+  { credentials: { role, permissions: { customers, projects } } },
 ) => {
   if (role !== 'admin') {
-    throw new Error('Unauthorized');
+    const prep = prepare(sqlClient, 'SELECT `id` AS `pid`, `customer` AS `cid` FROM project WHERE `name` = :name');
+    const rows = await query(sqlClient, prep({ name: projectName }));
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
   }
 
-  const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
-  await query(sqlClient, prep(input));
+  const projectId = await projectHelpers.getProjectIdByName(projectName);
 
-  // TODO: maybe check rows for changed result
+  const projectRows = await query(
+    sqlClient,
+    projectSql.selectProject(projectId),
+  );
+  const project = projectRows[0];
+
+  const environmentRows = await query(
+    sqlClient,
+    Sql.selectEnvironmentByNameAndProject(name, projectId),
+  );
+  const environment = environmentRows[0];
+
+  if (!environment) {
+    throw new Error(`Environment "${name}" does not exist in project "${projectId}"`);
+  }
+
+  if (role !== 'admin' && environment.environmentType === 'production') {
+    throw new Error('Unauthorized - You may not delete a production environment');
+  }
+
+  // Deleting environment in api w/o executing the openshift remove.
+  // This gets called by openshiftremove service after successful remove.
+  if (role === 'admin' && execute === false) {
+    const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
+    await query(sqlClient, prep({ name, project: projectId }));
+
+    // TODO: maybe check rows for changed result
+    return 'success';
+  }
+
+  let data = {
+    projectName: project.name,
+    type: environment.deployType,
+    forceDeleteProductionEnvironment: role === 'admin',
+  };
+
+  const meta = {
+    projectName: data.projectName,
+    environmentName: environment.name,
+  };
+
+  switch (environment.deployType) {
+    case 'branch':
+    case 'promote':
+      data = {
+        ...data,
+        branch: name,
+      };
+      break;
+
+    case 'pullrequest':
+      data = {
+        ...data,
+        pullrequestNumber: environment.name.replace('pr-', ''),
+      };
+      break;
+
+    default:
+      sendToLagoonLogs('error', data.projectName, '', 'api:deleteEnvironment:error', meta,
+        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``,
+      );
+      return `Error: unknown deploy type ${environment.deployType}`;
+  }
+
+  await createRemoveTask(data);
+  sendToLagoonLogs('info', data.projectName, '', 'api:deleteEnvironment', meta,
+    `*[${data.projectName}]* Deleting environment \`${environment.name}\``,
+  );
+
   return 'success';
 };
 

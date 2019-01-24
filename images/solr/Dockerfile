@@ -23,16 +23,22 @@ ENV TMPDIR=/tmp \
 # we need root for the fix-permissions to work
 USER root
 
-RUN fix-permissions /opt/solr/server/solr/mycores/ \
-    && fix-permissions /opt/solr/server/logs
+RUN mkdir -p /var/solr
+RUN fix-permissions /var/solr \
+    && chown solr:solr /var/solr \
+    && fix-permissions /opt/solr/server/logs \
+    && fix-permissions /opt/solr/server/solr
+
 
 # solr really doesn't like to be run as root, so we define the default user agin
 USER solr
 
 COPY 10-solr-port.sh /lagoon/entrypoints/
+COPY 20-solr-datadir.sh /lagoon/entrypoints/
+
 
 # Define Volume so locally we get persistent cores
-VOLUME /opt/solr/server/solr/mycores/
+VOLUME /var/solr
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 

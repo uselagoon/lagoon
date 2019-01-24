@@ -236,6 +236,8 @@ async function processProjects(
 
       case 'gitlab:push':
         if (body.after == '0000000000000000000000000000000000000000') {
+          // be aware, even though we classify this as a delete/remove event by the all-zero sha
+          // the gitlab webhook payload has this marked as a normal `push` event
           await handle(
             gitlabBranchDeleted,
             webhook,

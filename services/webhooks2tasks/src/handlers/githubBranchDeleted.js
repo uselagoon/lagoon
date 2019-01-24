@@ -16,7 +16,9 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
     } = webhook;
 
     const meta = {
-      branch: body.ref.replace('refs/heads/','')
+      projectName: project.name,
+      branch: body.ref.replace('refs/heads/',''),
+      branchName: body.ref.replace('refs/heads/','')
     }
 
     const data: removeData = {
@@ -27,11 +29,12 @@ async function githubBranchDeleted(webhook: WebhookRequestData, project: Project
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:delete:handled`, meta,
         `*[${project.name}]* \`${meta.branch}\` deleted in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
+      meta.error = error
       switch (error.name) {
         case "ProjectNotFound":
         case "NoActiveSystemsDefined":

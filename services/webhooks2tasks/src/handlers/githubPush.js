@@ -23,8 +23,15 @@ async function githubPush(webhook: WebhookRequestData, project: Project) {
     const skip_deploy = R.pathOr('',['head_commit','message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
 
     const meta = {
+      projectName: project.name,
       branch: branchName,
-      sha: sha
+      sha: sha,
+      shortSha: sha.substring(0, 7),
+      repoFullName: body.repository.full_name,
+      repoUrl: body.repository.html_url,
+      branchName: branchName,
+      commitUrl: body.head_commit.url,
+      event: event,
     }
 
     const data: deployData = {

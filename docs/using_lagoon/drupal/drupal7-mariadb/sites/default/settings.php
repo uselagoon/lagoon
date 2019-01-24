@@ -64,7 +64,8 @@ if (getenv('LAGOON')) {
 
 ### Base URL
 if (getenv('LAGOON_ROUTE')) {
-  $base_url = getenv('LAGOON_ROUTE');
+  $proto = isset($_SERVER["HTTP_X_FORWARDED_PROTO"]) ? $_SERVER["HTTP_X_FORWARDED_PROTO"] : 'http';
+  $base_url = $proto . "://" . $_SERVER["HTTP_HOST"];
 }
 
 ### Temp directory

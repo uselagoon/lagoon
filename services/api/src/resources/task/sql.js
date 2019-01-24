@@ -69,12 +69,6 @@ const Sql /* : SqlObj */ = {
       .join('project', 'environment.project', '=', 'project.id')
       .where('task.id', id)
       .toString(),
-  selectPermsForEnvironment: (id /* : number */) =>
-    knex('environment')
-      .select({ pid: 'project.id', cid: 'project.customer' })
-      .join('project', 'environment.project', '=', 'project.id')
-      .where('environment.id', id)
-      .toString(),
 };
 
 module.exports = Sql;

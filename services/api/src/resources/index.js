@@ -53,8 +53,12 @@ type ResolverFn = (
   |},
 ) => any;
 
+type SubscribeObj = {
+  subscribe: () => mixed,
+};
+
 export type ResolversObj = {
-  [string]: ResolverFn
+  [string]: ResolverFn | SubscribeObj
 };
 
 type SqlFn = (...args: Array<any>) => string;

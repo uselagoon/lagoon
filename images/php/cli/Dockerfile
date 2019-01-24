@@ -19,7 +19,9 @@ RUN apk update \
         procps \
         coreutils \
         postgresql-client \
+        openssh-sftp-server \
     && apk add nodejs-current nodejs-npm yarn --update-cache --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
+    && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
     && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.6.5/composer.phar \
     && echo "67bebe9df9866a795078bb2cf21798d8b0214f2e0b2fd81f2e907a8ef0be3434 /usr/local/bin/composer" | sha256sum \
@@ -51,6 +53,9 @@ RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 # helper functions
 COPY 55-cli-helpers.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
+
+RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] ; then \
+  echo echo \"PHP ${PHP_VERSION} is end of life and should no longer be used. For more information, visit https://secure.php.net/eol.php\" \> /dev/stderr >> /home/.bashrc ; fi
 
 # SSH Key and Agent Setup
 COPY 05-ssh-key.sh /lagoon/entrypoints/

@@ -57,7 +57,7 @@ const Sql /* : SqlObj */ = {
       .update(patch)
       .toString(),
   selectPermsForDeployment: (id /* : number */) =>
-    knex('devployment')
+    knex('deployment')
       .select({ pid: 'project.id', cid: 'project.customer' })
       .join('environment', 'deployment.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')

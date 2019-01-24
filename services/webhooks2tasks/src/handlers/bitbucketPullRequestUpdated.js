@@ -24,6 +24,9 @@ async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project:
     const baseSha = body.pullrequest.destination.commit.hash
 
     const data: deployData = {
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.links.html.href,
+      pullrequestUrl: body.pullrequest.links.html.href,
       pullrequestTitle: body.pullrequest.title,
       pullrequestNumber: body.pullrequest.id,
       projectName: project.name,

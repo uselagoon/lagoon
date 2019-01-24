@@ -17,7 +17,12 @@ async function bitbucketPullRequestClosed(webhook: WebhookRequestData, project: 
     } = webhook;
 
     const meta = {
-      pullrequestNumber: body.pullrequest.id
+      projectName: project.name,
+      pullrequestTitle: body.pullrequest.title,
+      pullrequestNumber: body.pullrequest.id,
+      pullrequestUrl: body.pullrequest.destination.repository.links.html.href,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.links.html.href,
     }
 
     const data: removeData = {

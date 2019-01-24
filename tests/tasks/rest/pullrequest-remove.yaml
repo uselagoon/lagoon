@@ -1,8 +1,0 @@
-- name: "{{ testname }} - POST rest2task /pullrequest/remove with with pr number {{ git_pr_number }} to {{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}"
-  uri:
-    url: "{{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}/pullrequest/remove"
-    method: POST
-    follow_redirects: yes
-    body_format: json
-    body: '{"projectName": "{{ project }}", "pullrequestNumber": "{{ git_pr_number }}" }'
-

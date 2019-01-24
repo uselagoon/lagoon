@@ -107,10 +107,15 @@ app.post('/pullrequest/deploy', async (req, res) => {
     branchName: `pr-${req.body.pullrequestNumber}`,
   }
 
+  var meta = {
+    projectName: data.projectName,
+    pullrequestTitle: data.pullrequestTitle,
+  }
+
   try {
     const taskResult = await createDeployTask(data);
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:deploy`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:deploy`, meta,
       `*[${data.projectName}]* REST deploy trigger \`${data.pullrequestTitle}\``
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -125,67 +130,6 @@ app.post('/pullrequest/deploy', async (req, res) => {
 
       case "NoNeedToDeployBranch":
           res.status(501).type('json').send({ "ok": "false", "message": error.message})
-          return;
-        break;
-
-      default:
-          logger.error(error)
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
-          return;
-        break;
-    }
-  }
-
-})
-
-
-app.post('/pullrequest/remove', async (req, res) => {
-
-  req.checkBody({
-    'projectName': {
-      notEmpty: true,
-      matches: {
-        options: [/^[a-zA-Z0-9-_]+$/],
-        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
-      },
-    },
-    'pullrequestNumber': {
-      notEmpty: true,
-      isInt: {},
-      matches: {
-        errorMessage: 'pullrequestNumber must be defined and a number'
-      },
-    }
-  });
-
-  const result = await req.getValidationResult()
-
-  if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
-    return;
-  }
-
-  const data = {
-    projectName: req.body.projectName,
-    pullrequestNumber: req.body.pullrequestNumber,
-    type: 'pullrequest'
-  }
-
-  try {
-    const taskResult = await createRemoveTask(data);
-
-    sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:remove`, {},
-      `*[${data.projectName}]* REST remove trigger \`${data.pullrequestTitle}\``
-    )
-
-    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
-    return;
-  } catch (error) {
-    switch (error.name) {
-      case "ProjectNotFound":
-      case "ActiveSystemsNotFound":
-      case "UnknownActiveSystem":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
           return;
         break;
 
@@ -248,14 +192,20 @@ app.post('/deploy', async (req, res) => {
   try {
     const taskResult = await createDeployTask(data);
 
+    const meta = {
+      projectName: data.projectName,
+      branchName: data.branchName
+    }
+
     let logMessage = ''
     if (data.sha) {
       logMessage = `\`${data.branchName}\` (${data.sha.substring(0, 7)})`
+      meta.sha = data.sha.substring(0, 7)
     } else {
       logMessage = `\`${data.branchName}\``
     }
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:deploy:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:deploy:receive`, meta,
       `*[${data.projectName}]* REST deploy trigger ${logMessage}`
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -323,12 +273,18 @@ app.post('/promote', async (req, res) => {
     type: 'promote'
   }
 
+  const meta = {
+    projectName: data.projectName,
+    branchName: data.branchName,
+    promoteSourceEnvironment: data.promoteSourceEnvironment
+  }
+
   try {
     const taskResult = await createPromoteTask(data);
 
     const logMessage = `\`${data.branchName}\` -> \`${data.promoteSourceEnvironment}\``
 
-    sendToLagoonLogs('info', data.projectName, '', `rest:promote:receive`, {},
+    sendToLagoonLogs('info', data.projectName, '', `rest:promote:receive`, meta,
       `*[${data.projectName}]* REST promote trigger ${logMessage}`
     )
     res.status(200).type('json').send({ "ok": "true", "message": taskResult})
@@ -343,73 +299,6 @@ app.post('/promote', async (req, res) => {
 
       case "NoNeedToDeployBranch":
           res.status(501).type('json').send({ "ok": "false", "message": error.message})
-          return;
-        break;
-
-      default:
-          logger.error(error)
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
-          return;
-        break;
-    }
-  }
-
-})
-
-
-app.post('/remove', async (req, res) => {
-
-  req.checkBody({
-    'projectName': {
-      notEmpty: true,
-      matches: {
-        options: [/^[a-zA-Z0-9-_]+$/],
-        errorMessage: 'projectName must be defined and must only contain alphanumeric, dashes and underline'
-      },
-    },
-    'branch': {
-      notEmpty: true,
-      matches: {
-        options: [/^[a-zA-Z0-9-._\/]+$/],
-        errorMessage: 'branch must be defined and must only contain alphanumeric, dashes, underline, dots and slashes'
-      },
-    },
-    'forceDeleteProductionEnvironment': {
-      optional: {},
-      isBoolean: {
-        errorMessage: 'should be a boolean'
-      }
-    }
-  });
-
-  const result = await req.getValidationResult()
-
-  if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
-    return;
-  }
-
-  const data = {
-    projectName: req.body.projectName,
-    branch: req.body.branch,
-    type: 'branch',
-    forceDeleteProductionEnvironment: req.body.forceDeleteProductionEnvironment,
-  }
-
-  console.log(data)
-
-  try {
-    const taskResult = await createRemoveTask(data);
-    sendToLagoonLogs('info', data.projectName, '', `rest:remove:receive`, {},
-      `*[${data.projectName}]* REST remove trigger \`${data.branch}\``
-    )
-    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
-    return;
-  } catch (error) {
-    switch (error.name) {
-      case "ProjectNotFound":
-      case "ActiveSystemsNotFound":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
           return;
         break;
 

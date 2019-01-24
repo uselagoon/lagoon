@@ -309,6 +309,27 @@ const getUsersByCustomerId = async (
   return rows;
 };
 
+const getProjectsByCustomerId = async (
+  { id: customerId },
+  args,
+  {
+    credentials: {
+      role,
+      permissions: { customers },
+    },
+  },
+) => {
+  if (role !== 'admin' && !R.contains(customerId, customers)) {
+    throw new Error('Unauthorized.');
+  }
+
+  const rows = await query(
+    sqlClient,
+    Sql.selectProjectsByCustomerId({ customerId }),
+  );
+  return rows;
+};
+
 const addUserToCustomer = async (
   root,
   { input: { customer, userId } },
@@ -559,6 +580,7 @@ const Resolvers /* : ResolversObj */ = {
   addUserToCustomer,
   removeUserFromCustomer,
   getUsersByCustomerId,
+  getProjectsByCustomerId,
   addUserToProject,
   removeUserFromProject,
   deleteAllUsers,
