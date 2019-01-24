@@ -56,13 +56,6 @@ else
   exit 1
 fi
 
-echo "*** Pausing nginx and cli"
-NGINX_REPLICAS=$(oc -n $1 get dc/nginx -o json | jq -r '.spec.replicas')
-CLI_REPLICAS=$(oc -n $1 get dc/cli -o json | jq -r '.spec.replicas')
-oc -n $1 scale dc/nginx --replicas=0
-oc -n $1 scale dc/cli --replicas=0
-
-
 # create service broker
 ## taken from build-deploy-docker-compose.sh
 
@@ -91,7 +84,7 @@ DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
 
 echo "*** Transfering 'drupal' database from $OLD_POD to $DB_HOST"
 # transfer database between from old to new
-oc -n $1 exec $OLD_POD -- bash -eo pipefail -c "{ mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db drupal || mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -S /tmp/mysql.sock -u \$MYSQL_USER -p\$MYSQL_PASSWORD \$MYSQL_DATABASE; } | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | mysql -h $DB_HOST -u $DB_USER -p${DB_PASSWORD} -P $DB_PORT $DB_NAME"
+oc -n $1 exec $OLD_POD -- bash -eo pipefail -c "{ mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db \$MARIADB_DATABASE || mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -S /tmp/mysql.sock -u \$MYSQL_USER -p\$MYSQL_PASSWORD \$MYSQL_DATABASE; } | mysql -h $DB_HOST -u $DB_USER -p${DB_PASSWORD} -P $DB_PORT $DB_NAME"
 
 CONFIG_BAK="/tmp/${PROJECT_NAME}-$(date +%F-%T)-lagoon-env.yaml"
 echo "*** Backing up configmap in case we need to revert: ${CONFIG_BAK}"
@@ -110,11 +103,4 @@ oc -n $1 scale dc/mariadb --replicas=0
 # transfer complete, clean up
 rm -f $SECRETS
 
-oc -n $1 scale dc/nginx --replicas=$NGINX_REPLICAS
-oc -n $1 scale dc/cli --replicas=$CLI_REPLICAS
-
-oc -n $1 rollout latest dc/nginx
-oc -n $1 rollout latest dc/cli
-oc -n $1 rollout status dc/nginx
-oc -n $1 rollout status dc/cli
 echo "*** done."

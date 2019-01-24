@@ -290,6 +290,17 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
+  local-minio:
+    image: minio/minio
+    entrypoint: sh
+    command: -c 'mkdir -p /export/lagoon-files && /usr/bin/minio server /export'
+    ports:
+      - '9000:9000'
+    environment:
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+    labels:
+      lagoon.type: none
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:

@@ -421,7 +421,8 @@ const typeDefs = gql`
 
   input DeleteEnvironmentInput {
     name: String!
-    project: Int!
+    project: String!
+    execute: Boolean
   }
 
   type Query {
@@ -927,6 +928,8 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     taskDrushArchiveDump(environment: Int!): Task
+    taskDrushSqlDump(environment: Int!): Task
+    taskDrushCacheClear(environment: Int!): Task
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!

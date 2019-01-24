@@ -20,14 +20,6 @@ const Task = ({ task }) => (
           </div>
         </div>
       </div>
-      <div className="field-wrapper command">
-        <div>
-          <label>Command</label>
-          <div className="field">
-            {task.command}
-          </div>
-        </div>
-      </div>
       <div className="field-wrapper service">
         <div>
           <label>Service</label>

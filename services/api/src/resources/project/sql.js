@@ -87,6 +87,11 @@ const Sql /* : SqlObj */ = {
       .where('project_via_user.id', projectId)
       .orWhere('project_via_customer.id', projectId)
       .toString(),
+  selectPermsForProject: (id /* : number */) =>
+    knex('project')
+      .select({ pid: 'id', cid: 'customer' })
+      .where('id', id)
+      .toString(),
   updateProject: ({ id, patch } /* : {id: number, patch: {[string]: any}} */) =>
     knex('project')
       .where('id', '=', id)

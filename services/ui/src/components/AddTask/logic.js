@@ -19,17 +19,26 @@ const withOptions = withProps(({ pageEnvironment }) => {
   return {
     options: [
       {
+        label: 'Drush cache-clear',
+        value: 'DrushCacheClear'
+      },
+      {
         label: 'Drush sql-sync',
         value: 'DrushSqlSync'
       },
       {
-        label: 'Drush archive-dump',
-        value: 'DrushArchiveDump'
-      },
-      {
         label: 'Drush rsync',
         value: 'DrushRsyncFiles'
+      },
+      {
+        label: 'Drush sql-dump',
+        value: 'DrushSqlDump'
+      },
+      {
+        label: 'Drush archive-dump (D7 only)',
+        value: 'DrushArchiveDump'
       }
+
     ]
   };
 });

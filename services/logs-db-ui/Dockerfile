@@ -46,9 +46,12 @@ searchguard.openid.base_redirect_url: "${LOGSDB_UI_URL:-http://0.0.0.0:5601}"\n\
 searchguard.openid.scope: "profile email"\n\
 \n\
 searchguard.cookie.password: "${SEARCHGUARD_COOKIE_PASSWORD:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"\n\
+\n\
+# disable kibana spaces, as they don\'t work with searchguard multitenancy\n\
+xpack.spaces.enabled: false\n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.4.2-15/search-guard-kibana-plugin-6.4.2-15.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.5.4-17/search-guard-kibana-plugin-6.5.4-17.zip
 
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/
