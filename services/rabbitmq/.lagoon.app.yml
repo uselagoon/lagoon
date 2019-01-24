@@ -104,6 +104,8 @@ objects:
               value: ${SERVICE_NAME}
             - name: CRONJOBS
               value: ${CRONJOBS}
+            - name: RABBITMQ_NODENAME
+              value: rabbitmq@localhost
           resources:
             requests:
               cpu: 10m
