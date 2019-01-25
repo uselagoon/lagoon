@@ -101,7 +101,7 @@ objects:
             - sh
           args:
             - /cluster-rabbit.sh
-          image: docker-registry.default.svc:5000/elliot/rabbitmq
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           ports:
           - containerPort: 4369
