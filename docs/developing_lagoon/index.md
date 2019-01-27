@@ -6,7 +6,7 @@ Development of Lagoon happens locally via Docker. We are using the new [Docker M
 
 Please check the [official Docs of Docker](https://docs.docker.com/engine/installation/) how to install Docker.
 
-## On Linux Install Docker Compose
+### On Linux Install Docker Compose
 
 Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
@@ -61,7 +61,7 @@ The services not only share many node packages, but also share actual custom cod
 
 The API uses a puppet compatible yaml format to store it's data. On production this hiera is in another git repository. For local development there is a folder `local-hiera` which contains testdata that is used during development and testing, plus has no client related data in them. For easier development there is `local-hiera-watcher-pusher` which watches the `local-hiera` folder and on every changes pushes the changes into `local-git-server` which emulates a git server like it is on production. The api service is connecting to this local git server and updates it's data from it.
 
-### Troubleshooting
+## Troubleshooting
 
 **I can't build any docker image for any Node.js based service**
 
