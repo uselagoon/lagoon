@@ -6,6 +6,10 @@ Development of Lagoon happens locally via Docker. We are using the new [Docker M
 
 Please check the [official Docs of Docker](https://docs.docker.com/engine/installation/) how to install Docker.
 
+## On Linux Install Docker Compose
+
+Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
+
 ## Start Services
 
 1. Add `192.168.99.0/24` to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
@@ -41,7 +45,7 @@ make logs
 make tests
 ```
 
-6. Look what happens in OpenShift: [https://192.168.99.100:8443/console]() (developer/developer)
+6. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
 
 ## Local Development
 
@@ -78,7 +82,7 @@ Some ISPs set up a "search domain" to catch domain name errors. Virtualbox will 
 into minishift which can cause domain resolution errors in the openshift pods. To check for this
 problem, look at the `/etc/resolv.conf` in your failing pod and check for errant search domains.
 
-![OpenShift pod resolver settings](/images/pod_search_domains.jpg)
+![OpenShift pod resolver settings](../images/pod_search_domains.jpg)
 
 To fix, you must remove the extra search domain. Login to the minishift vm (`minishift ssh`) and
 remove the setting from `/etc/resolv.conf`. Restart openshift docker, `sudo docker restart origin`.
