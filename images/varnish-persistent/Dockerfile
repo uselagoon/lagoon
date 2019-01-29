@@ -5,5 +5,3 @@ VOLUME /var/cache/varnish
 
 ENV CACHE_TYPE=file,/var/cache/varnish/file \
     CACHE_SIZE=950M
-
-RUN fix-permissions /etc/varnish/default.vcl
