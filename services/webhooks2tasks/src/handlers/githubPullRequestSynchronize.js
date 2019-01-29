@@ -27,9 +27,18 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
       body,
     } = webhook;
 
+    const meta = {
+      projectName: project.name,
+      pullrequestTitle: body.pull_request.title,
+      pullrequestNumber: body.number,
+      pullrequestUrl: body.pull_request.html_url,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.html_url,
+    }
+
     // Don't trigger deploy if only the PR body was edited.
     if (skipRedeploy(body)) {
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, {},
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
         `*[${project.name}]* PR ${body.number} updated. No deploy task created, reason: Only body changed`
       )
       return;
@@ -68,7 +77,7 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.number} opened. No remove task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: ${error}`
           )
           return;
 
