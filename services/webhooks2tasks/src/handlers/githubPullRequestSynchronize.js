@@ -1,10 +1,21 @@
 // @flow
 
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
+
+const isEditAction = R.propEq('action', 'edited');
+
+const onlyBodyChanges = R.pipe(
+  R.propOr({}, 'changes'),
+  R.keys,
+  R.equals(['body']),
+);
+
+const skipRedeploy = R.and(isEditAction, onlyBodyChanges);
 
 async function githubPullRequestSynchronize(webhook: WebhookRequestData, project: Project) {
 
@@ -16,9 +27,12 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
       body,
     } = webhook;
 
-    if (body.action == 'updated' && !('base' in body.changes)) {
-      // we are only interested in this webhook if the base had been updated, ofter updates like title or description don't need a redeploy
-      return
+    // Don't trigger deploy if only the PR body was edited.
+    if (skipRedeploy(body)) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, {},
+        `*[${project.name}]* PR ${body.number} updated. No deploy task created, reason: Only body changed`
+      )
+      return;
     }
 
     const headBranchName = body.pull_request.head.ref
