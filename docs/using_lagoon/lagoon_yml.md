@@ -22,10 +22,6 @@ tasks:
         service: cli
   post-rollout:
     - run:
-        name: env variables
-        command: env
-        service: cli
-    - run:
         name: drush cim
         command: drush -y cim
         service: cli
@@ -46,6 +42,7 @@ environments:
     routes:
       - nginx:
         - example.com
+        - example.net
         - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
