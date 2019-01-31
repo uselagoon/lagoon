@@ -23,6 +23,9 @@ DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.d
 # Load all Services that are defined
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
+# Default shared mariadb service broker
+MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
+
 # Figure out which services should we handle
 SERVICE_TYPES=()
 IMAGES=()
@@ -31,8 +34,11 @@ SERVICEBROKERS=()
 declare -A MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME
 declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
+declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
+declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
+
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
   # The name of the service can be overridden, if not we use the actual servicename
@@ -45,9 +51,63 @@ do
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.type custom)
 
   # Allow the servicetype to be overriden by environment in .lagoon.yml
-  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE_NAME false)
+  ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
   if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
+  fi
+
+  # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
+  # - mariadb-single (a single mariadb pod)
+  # - mariadb-shared (use a mariadb shared service broker)
+  if [ "$SERVICE_TYPE" == "mariadb" ]; then
+    # if there is already a service existing with the service_name we assume that for this project there has been a
+    # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
+    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mariadb-single"
+    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
+    elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
+    else
+      SERVICE_TYPE="mariadb-single"
+    fi
+
+  fi
+
+  if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
+    # Load a possible defined mariadb-shared
+    MARIADB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
+
+    # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.class false)
+    if [ ! $ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE == "false" ]; then
+      MARIADB_SHARED_CLASS=$ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE
+    fi
+
+    # check if the defined service broker class exists
+    if svcat --scope cluster get class $MARIADB_SHARED_CLASS > /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
+      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
+    else
+      echo "defined mariadb-shared service broker class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
+      exit 1
+    fi
+
+    # Default plan is the enviroment type
+    MARIADB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
+
+    # Allow the mariadb shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_MARIADB_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
+    if [ ! $MARIADB_SHARED_PLAN_OVERRIDE == "false" ]; then
+      MARIADB_SHARED_PLAN=$ENVIRONMENT_MARIADB_SHARED_PLAN_OVERRIDE
+    fi
+
+    # Check if the defined service broker plan  exists
+    if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
+        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
+    else
+        echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
+        exit 1
+    fi
   fi
 
   if [ "$SERVICE_TYPE" == "none" ]; then
@@ -242,7 +302,7 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.types.$SERVICE_NAME false)
+  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
   if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
   fi
@@ -273,8 +333,10 @@ do
 
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    .  /oc-build-deploy/scripts/exec-openshift-resources.sh
+    # Load the requested class and plan for this service
+    SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
+    SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
+    . /oc-build-deploy/scripts/exec-openshift-create-servicebroker.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -369,9 +431,6 @@ if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.a
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 0 * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
-  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 3 * * *")
-  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
-
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup/schedule.yml"
   .  /oc-build-deploy/scripts/exec-openshift-resources.sh
 fi
@@ -442,23 +501,31 @@ oc process --local --insecure-skip-tls-verify \
 
 # Add environment variables from lagoon API
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-  oc patch --insecure-skip-tls-verify \
-    -n ${OPENSHIFT_PROJECT} \
-    configmap lagoon-env \
-    -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
+
+  if [ ! "$HAS_PROJECT_RUNTIME_VARS" = "[]" ]; then
+    oc patch --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      configmap lagoon-env \
+      -p "{\"data\":$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  fi
 fi
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  oc patch --insecure-skip-tls-verify \
-    -n ${OPENSHIFT_PROJECT} \
-    configmap lagoon-env \
-    -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  HAS_ENVIRONMENT_RUNTIME_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
+
+  if [ ! "$HAS_ENVIRONMENT_RUNTIME_VARS" = "[]" ]; then
+    oc patch --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      configmap lagoon-env \
+      -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  fi
 fi
 
 if [ "$TYPE" == "pullrequest" ]; then
   oc patch --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
     configmap lagoon-env \
-    -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":\"${PR_TITLE}\"}}"
+    -p "{\"data\":{\"LAGOON_PR_HEAD_BRANCH\":\"${PR_HEAD_BRANCH}\", \"LAGOON_PR_BASE_BRANCH\":\"${PR_BASE_BRANCH}\", \"LAGOON_PR_TITLE\":$(echo $PR_TITLE | jq -R)}}"
 fi
 
 # loop through created ServiceBroker
@@ -608,7 +675,12 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/pvc.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    . /oc-build-deploy/scripts/exec-openshift-resources.sh
+    PVC_NAME=$SERVICE_NAME
+    if [ $SERVICE_TYPE == "mariadb-single" ]; then
+      # mariadb creates PVCs with a `-data` suffix, adding that
+      PVC_NAME=${SERVICE_NAME}-data
+    fi
+    . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
   CRONJOB_COUNTER=0
@@ -664,7 +736,7 @@ do
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
-  ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.templates.$SERVICE_NAME false)
+  ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.templates.$SERVICE_NAME false)
   if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
     # Generate deployment if service type defines it
     OPENSHIFT_DEPLOYMENT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
@@ -728,7 +800,7 @@ do
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deploymentconfigs)
 
   # Allow the rollout type to be overriden by environment in .lagoon.yml
-  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.rollouts.${SERVICE_NAME} false)
+  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.rollouts.${SERVICE_NAME} false)
   if [ ! $ENVIRONMENT_SERVICE_ROLLOUT_TYPE == "false" ]; then
     SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
   fi

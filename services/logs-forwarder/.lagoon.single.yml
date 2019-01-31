@@ -163,8 +163,17 @@ objects:
             # We run automated testing which creates project names in the form of e2e-0000000000-AAAAAAAAAAAAAAAAAAAAAAAAAA
             # we just save them as with the project name 'e2'
             key namespace_name
-            expression /^e2e-\\d{10}-\\S{26}$/
+            expression /^e2e-\d{10}-\S{26}$/
             replace e2e
+          </replace>
+        </filter>
+        <filter **>
+          @type record_modifier
+          <replace>
+            # Ansible Service Broker creates individual openshift projects, we put them all in one index
+            key namespace_name
+            expression /^.*-apb-prov-.*$/
+            replace apb-prov
           </replace>
         </filter>
         <filter **>

@@ -39,5 +39,8 @@ if [ ${XDEBUG_ENABLE+x} ]; then
 
   # Add the found remote_host to xdebug.ini
   echo -e "\n\nxdebug.remote_host=${DOCKERHOST}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-fi
 
+  if [ ${XDEBUG_LOG+x} ]; then
+    echo -e "\n\nxdebug.remote_log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+  fi
+fi

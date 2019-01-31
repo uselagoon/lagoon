@@ -11,7 +11,7 @@ import type {
 } from './types';
 
 const { Lokka } = require('lokka');
-const { Transport } = require('lokka-transport-http');
+const { Transport } = require('@lagoon/lokka-transport-http');
 const R = require('ramda');
 const { createJWTWithoutUserId } = require('./jwt');
 const { logger } = require('./local-logging');
@@ -44,6 +44,7 @@ const options = {
   headers: {
     Authorization: `Bearer ${apiAdminToken}`,
   },
+  timeout: 30000,
 };
 
 const transport = new Transport(`${API_HOST}/graphql`, options);
@@ -730,24 +731,24 @@ const updateEnvironment = (
 async function deleteEnvironment(
   name: string,
   project: string,
+  execute: boolean = true,
 ): Promise<Object> {
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}"){
-        id
-      }
-    }
-  `);
-
-  if (!result || !result.project) {
-    throw new ProjectNotFound(`Cannot load id for project ${project}`);
+  return graphqlapi.mutate(
+    `
+  ($name: String!, $project: String!, $execute: Boolean) {
+    deleteEnvironment(input: {
+      name: $name
+      project: $project
+      execute: $execute
+    })
   }
-
-  return graphqlapi.query(`
-    mutation {
-      deleteEnvironment(input: {name: "${name}", project: ${result.project.id}})
-    }
-  `);
+  `,
+    {
+      name,
+      project,
+      execute,
+    },
+  );
 }
 
 const getOpenShiftInfoForProject = (project: string): Promise<Object> =>

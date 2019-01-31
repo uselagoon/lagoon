@@ -148,11 +148,21 @@ objects:
             name: filebufferstorage
           - mountPath: /fluentd/ssl/
             name: ca-cert
-        nodeSelector:
-          lagoon-${SERVICE_NAME}: allowed
         restartPolicy: Always
         serviceAccount: logs-collector
         serviceAccountName: logs-collector
+        tolerations:
+          - effect: NoSchedule
+            key: autoscaled
+            operator: Equal
+            value: 'true'
+          - effect: NoSchedule
+            key: appuio.ch/autoscaled
+            operator: Equal
+            value: 'true'
+          - effect: NoSchedule
+            key: lagoon/build
+            operator: Exists
         volumes:
         - hostPath:
             path: /run/log/journal

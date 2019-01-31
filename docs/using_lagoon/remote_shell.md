@@ -20,7 +20,7 @@ ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh
 
 - `PORT` - The Remote Shell SSH Endpoint Port (for amazee.io `32222`)
 - `HOST` - The Remote Shell SSH Endpoint Host (for amazee.io `ssh.lagoon.amazeeio.cloud`)
-- `PROJECT-ENVIRONMENT-NAME` - the environment you like to connect too, this is most commonly in the pattern `PROJECTNAME-ENVIORNMENT`
+- `PROJECT-ENVIRONMENT-NAME` - the environment you like to connect too, this is most commonly in the pattern `PROJECTNAME-ENVIRONMENT`
 
 As en example:
 
@@ -47,7 +47,7 @@ ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh service=[SERVICE-NAME] co
 As example to connect to the `php` container within the `nginx` pod:
 
 ```
-ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh service=nginx container=pod
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh service=nginx container=php
 ```
 
 ### Execute Commands

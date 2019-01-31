@@ -234,7 +234,7 @@ mutation PopulateApi {
   CiRocketChat: addNotificationRocketChat(
     input: {
       name: "amazeeio--lagoon-local-ci"
-      webhook: "https://amazeeio.rocket.chat/hooks/WkLMnprX6HWp5Eyom/3RLRRtHWYYvXfhCsbEtmZpYvH9FgjoiLhzvvfPpXSbwaBhe7"
+      webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"
       channel: "lagoon-local-ci"
     }
   ) {
@@ -636,6 +636,27 @@ mutation PopulateApi {
     id
   }
 
+  CiSolr: addProject(
+    input: {
+      id: 20
+      name: "ci-solr"
+      customer: 3
+      openshift: 2
+      gitUrl: "ssh://git@192.168.99.1:2222/git/solr.git"
+    }
+  ) {
+    id
+  }
+  CiSolrRocketChat: addNotificationToProject(
+    input: {
+      project: "ci-solr"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
   #### Lagoon Kickstart Objects
   # Customer with a private key that has access to the local-git server.
   KickstartCustomer: addCustomer(
@@ -650,7 +671,7 @@ mutation PopulateApi {
   KickstartRocketChat: addNotificationRocketChat(
     input: {
       name: "amazeeio--lagoon-kickstart"
-      webhook: "https://amazeeio.rocket.chat/hooks/WkLMnprX6HWp5Eyom/3RLRRtHWYYvXfhCsbEtmZpYvH9FgjoiLhzvvfPpXSbwaBhe7"
+      webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"
       channel: "lagoon-kickstart"
     }
   ) {

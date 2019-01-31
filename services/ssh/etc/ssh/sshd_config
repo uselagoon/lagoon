@@ -37,3 +37,6 @@ Banner none
 
 ClientAliveInterval 60
 ClientAliveCountMax 1440 # max keepalive of 24h
+
+# This will allow sftp access
+Subsystem sftp sftp-server -u 0002

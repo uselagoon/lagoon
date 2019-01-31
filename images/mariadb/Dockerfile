@@ -28,10 +28,6 @@ ENV MARIADB_DATABASE=lagoon \
     MARIADB_PASSWORD=lagoon \
     MARIADB_ROOT_PASSWORD=Lag00n
 
-# fix some environmental items
-RUN mkdir -p /usr/include/bits; mkdir -p /usr/
-COPY root/usr/include/bits/wordsize.h /usr/include/bits/wordsize.h
-
 RUN \
     apk add --no-cache --virtual .common-run-deps \
     bash \
@@ -47,24 +43,21 @@ RUN \
     rm -rf /var/lib/mysql/* /etc/mysql/; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
 
-COPY logging.bash           /lagoon/entrypoints/10-mariadb-logging
-COPY envplate.bash          /lagoon/entrypoints/20-mariadb-envplate
-COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
+COPY entrypoints/ /lagoon/entrypoints/
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
 RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
     do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
     done && \
-    ln -s /var/lib/mysql/.my.cnf /home/.my.cnf && \
-    sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
+    ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
 
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/ \
     && /bin/fix-permissions /etc/mysql
 
-RUN touch /var/log/mariadb-slow.log && /bin/fix-permissions /var/log/mariadb-slow.log
-RUN touch /var/log/mariadb-queries.log && /bin/fix-permissions /var/log/mariadb-queries.log
+RUN touch /var/log/mariadb-slow.log && /bin/fix-permissions /var/log/mariadb-slow.log \
+    && touch /var/log/mariadb-queries.log && /bin/fix-permissions /var/log/mariadb-queries.log
 
 # We cannot start mysql as root, we add the user mysql to the group root and
 # change the user of the Docker Image to this user.

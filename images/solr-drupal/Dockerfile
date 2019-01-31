@@ -5,4 +5,6 @@ ARG SOLR_MAJ_MIN_VERSION
 
 COPY solr${SOLR_MAJ_MIN_VERSION} /solr-conf
 
-CMD ["solr-precreate", "drupal", "/solr-conf"]
+RUN precreate-core drupal /solr-conf
+
+CMD ["solr-foreground"]

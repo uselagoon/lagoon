@@ -5,11 +5,17 @@ const jwt = require('jsonwebtoken');
 
 /* ::
 type Role = 'none' | 'admin' | 'drush';
+type Permissions = {
+  projects: number[],
+  customers: number[],
+};
 
 type Payload = {|
   userId: number,
 
   role: Role,
+
+  permissions: Permissions,
 
   // Issuer - Information on who created this token
   iss: string,

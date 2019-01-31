@@ -192,6 +192,12 @@ services:
       - auth-server
     ports:
       - '2020:2020'
+    # command:
+    #   - "/usr/sbin/sshd"
+    #   - "-e"
+    #   - "-ddd"
+    #   - "-f"
+    #   - "/etc/ssh/sshd_config"
     environment:
       - OPENSHIFT_CONSOLE_URL=https://192.168.99.100:8443
     user: '111111111'
@@ -282,6 +288,17 @@ services:
     volumes:
       - ./local-dev/api-data:/api-data
       - ./local-dev/api-data-watcher-pusher:/home
+    labels:
+      lagoon.type: none
+  local-minio:
+    image: minio/minio
+    entrypoint: sh
+    command: -c 'mkdir -p /export/lagoon-files && /usr/bin/minio server /export'
+    ports:
+      - '9000:9000'
+    environment:
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
     labels:
       lagoon.type: none
   drush-alias:

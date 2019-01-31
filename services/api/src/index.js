@@ -35,10 +35,7 @@ initSendToLagoonTasks();
       );
     }
 
-    await createServer({
-      jwtSecret: JWTSECRET,
-      jwtAudience: JWTAUDIENCE,
-    });
+    await createServer();
 
     logger.debug('Finished booting the application.');
   } catch (e) {

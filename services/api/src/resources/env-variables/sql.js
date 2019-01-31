@@ -47,11 +47,11 @@ const Sql /* : SqlObj */ = {
       .del()
       .toString(),
   selectPermsForEnvVariable: (id /* : number */) =>
-    knex('ev')
+    knex('env_vars')
       .select({ pid: 'project.id', cid: 'project.customer' })
-      .leftJoin('environment', 'ev.environment', '=', 'environment.id')
-      .leftJoin('project', 'ev.project', '=', 'project.id')
-      .where('ev.id', id)
+      .leftJoin('environment', 'env_vars.environment', '=', 'environment.id')
+      .leftJoin('project', 'env_vars.project', '=', 'project.id')
+      .where('env_vars.id', id)
       .toString(),
   selectPermsForProject: (id /* : number */) =>
     knex('project')

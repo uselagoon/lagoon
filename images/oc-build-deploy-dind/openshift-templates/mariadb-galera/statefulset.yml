@@ -85,12 +85,13 @@ objects:
             exec:
               command:
               - /usr/share/container-scripts/mysql/readiness-probe.sh
+            failureThreshold: 100
+            periodSeconds: 10
             initialDelaySeconds: 15
             timeoutSeconds: 5
           volumeMounts:
           - name: ${SERVICE_NAME}-galera
             mountPath: /var/lib/mysql
-            subPath: data
           env:
             - name: POD_NAMESPACE
               valueFrom:

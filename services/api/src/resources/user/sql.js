@@ -57,6 +57,10 @@ const Sql /* : SqlObj */ = {
       )
       .where('cu.cid', customerId)
       .toString(),
+  selectProjectsByCustomerId: ({ customerId } /* : { customerId: number } */) =>
+    knex('project')
+      .where('customer', customerId)
+      .toString(),
   insertUser: (
     {
       id,

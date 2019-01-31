@@ -78,6 +78,10 @@ objects:
               key: autoscaled
               operator: Equal
               value: 'true'
+            - effect: NoSchedule
+              key: appuio.ch/autoscaled
+              operator: Equal
+              value: 'true'
           containers:
             - image: ${NGINX_SERVICE_IMAGE}
               name: ${NGINX_SERVICE_NAME}

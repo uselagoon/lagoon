@@ -91,8 +91,7 @@ RUN apk add --no-cache --virtual .common-run-deps \
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
 
-COPY docker-entrypoint.bash /lagoon/entrypoints/9999-mariadb-entrypoint
-COPY maxscale-entrypoint.sh /lagoon/entrypoints/80-maxscale
+COPY entrypoints/ /lagoon/entrypoints/
 COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
 COPY maxscale.cnf /etc/maxscale.cnf
 COPY maxscale-start.sh /usr/local/bin/maxscale-start
@@ -106,6 +105,7 @@ RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint
         do mkdir -p $i; /bin/fix-permissions $i; \
     done && \
     /bin/fix-permissions /etc/maxscale.cnf && \
+    /bin/fix-permissions /etc/mysql && \
     ln -s /var/lib/mysql/.my.cnf /home/.my.cnf && \
     sed -i 's/#!\/bin\/bash -ue/#!\/bin\/bash -e/' /usr/bin/wsrep_sst_rsync
 
@@ -115,6 +115,9 @@ COPY root/usr/share/container-scripts/mysql/galera.cnf /usr/share/container-scri
 COPY root/usr/share/container-scripts/mysql/configure-galera.sh /usr/share/container-scripts/mysql/configure-galera.sh
 
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/
+
+RUN touch /var/log/mariadb-slow.log && /bin/fix-permissions /var/log/mariadb-slow.log \
+    && touch /var/log/mariadb-queries.log && /bin/fix-permissions /var/log/mariadb-queries.log
 
 ### we cannot start mysql as root, we add the user mysql to the group root and change the user of the Docker Image to this user
 RUN addgroup mysql root

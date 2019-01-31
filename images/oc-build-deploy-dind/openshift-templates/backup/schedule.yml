@@ -34,9 +34,6 @@ parameters:
   - name: BACKUP_SCHEDULE
     description: Schedule of the Backup in Cron format
     required: true
-  - name: PRUNE_SCHEDULE
-    description: Schedule of the Pruning in Cron format
-    required: true
 objects:
 - apiVersion: backup.appuio.ch/v1alpha1
   kind: Schedule
@@ -44,12 +41,4 @@ objects:
     name: backup-schedule
   spec:
     backup:
-      keepJobs: 2
       schedule: '${BACKUP_SCHEDULE}'
-    check:
-      schedule: 0 0 * * 0
-    prune:
-      retention:
-        keepDaily: 7
-        keepWeekly: 4
-      schedule: '${PRUNE_SCHEDULE}'

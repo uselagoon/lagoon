@@ -195,23 +195,23 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
   vars:
     project: "{{ project }}"
     branch: "drush-first"
   tasks:
-  - include: ../../tasks/rest/remove.yaml
+  - include: ../../tasks/api/remove.yaml
 
-- name: "{{ testname }} - rest2tasks /remove POST on {{ project }}, which should remove all resources"
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
   vars:
     project: "{{ project }}"
     branch: "drush-second"
   tasks:
-  - include: ../../tasks/rest/remove.yaml
+  - include: ../../tasks/api/remove.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost

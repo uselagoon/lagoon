@@ -1,5 +1,6 @@
 #!/bin/bash
 set -x
+set -eo pipefail
 
 REMOTE=$1
 PR_HEAD_SHA=$2

@@ -55,7 +55,7 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.15.1
+MINISHIFT_VERSION := 1.16.1
 
 MINISHIFT_CPUS := 6
 MINISHIFT_MEMORY := 2GB
@@ -180,14 +180,17 @@ phpimages := 	php__5.6-fpm \
 							php__7.0-fpm \
 							php__7.1-fpm  \
 							php__7.2-fpm \
+							php__7.3-fpm \
 							php__5.6-cli \
 							php__7.0-cli \
 							php__7.1-cli \
 							php__7.2-cli \
+							php__7.3-cli \
 							php__5.6-cli-drupal \
 							php__7.0-cli-drupal \
 							php__7.1-cli-drupal \
-							php__7.2-cli-drupal
+							php__7.2-cli-drupal \
+							php__7.3-cli-drupal
 
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
@@ -212,15 +215,17 @@ $(build-phpimages): build/commons
 base-images += $(phpimages)
 s3-images += php
 
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm: images/commons
+build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
 build/php__7.0-cli: build/php__7.0-fpm
 build/php__7.1-cli: build/php__7.1-fpm
 build/php__7.2-cli: build/php__7.2-fpm
+build/php__7.3-cli: build/php__7.3-fpm
 build/php__5.6-cli-drupal: build/php__5.6-cli
 build/php__7.0-cli-drupal: build/php__7.0-cli
 build/php__7.1-cli-drupal: build/php__7.1-cli
 build/php__7.2-cli-drupal: build/php__7.2-cli
+build/php__7.3-cli-drupal: build/php__7.3-cli
 
 #######
 ####### Solr Images
@@ -229,8 +234,10 @@ build/php__7.2-cli-drupal: build/php__7.2-cli
 
 solrimages := 	solr__5.5 \
 								solr__6.6 \
+								solr__7.5 \
 								solr__5.5-drupal \
-								solr__6.6-drupal
+								solr__6.6-drupal \
+								solr__7.5-drupal
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -250,9 +257,10 @@ $(build-solrimages): build/commons
 base-images += $(solrimages)
 s3-images += solr
 
-build/solr__5.5  build/solr__6.6: images/commons
+build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
 build/solr__6.6-drupal: build/solr__6.6
+build/solr__7.5-drupal: build/solr__7.5
 
 #######
 ####### Node Images
@@ -458,7 +466,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -613,7 +621,7 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift with name $(CI_BUILD_TAG))
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="v3.9.0"
+	MINISHIFT_ENABLE_EXPERIMENTAL=y ./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="v3.9.0" --extra-clusterup-flags "--service-catalog"
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \

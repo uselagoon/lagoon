@@ -69,6 +69,10 @@ objects:
               key: autoscaled
               operator: Equal
               value: 'true'
+            - effect: NoSchedule
+              key: appuio.ch/autoscaled
+              operator: Equal
+              value: 'true'
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
