@@ -206,7 +206,7 @@ const messageConsumer = async msg => {
         const buildLog = await buildsLogGet()
         const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
         logLink = s3UploadResult.Location
-        meta.loglink = loglink
+        meta.logLink = logLink
       } catch (err) {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
         meta.logLink = ''
