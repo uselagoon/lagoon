@@ -131,11 +131,11 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       } else {
         text = `${text} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` complete.\n`
+      text = `${text} Build \`${meta.buildName}\` complete.`
       if (meta.logLink){
         text = `${text} [Logs](${meta.logLink})\n`
       }
-      text = `${text}${meta.route}\n ${meta.routes.join("\n")}`
+      text = `\n${text}${meta.route}\n ${meta.routes.join("\n")}`
       sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
