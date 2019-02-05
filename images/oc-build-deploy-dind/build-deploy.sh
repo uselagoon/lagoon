@@ -18,7 +18,13 @@ else
   /oc-build-deploy/scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
 fi
 
-LAGOON_GIT_SHA=`git rev-parse HEAD`
+INJECT_GIT_SHA=$(cat .lagoon.yml | shyaml get-value environment_variables.git_sha false)
+if [ "$INJECT_GIT_SHA" == "true" ]
+then
+  LAGOON_GIT_SHA=`git rev-parse HEAD`
+else
+  LAGOON_GIT_SHA="0000000000000000"
+fi
 
 if [[ -n "$SUBFOLDER" ]]; then
   cd $SUBFOLDER
