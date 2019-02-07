@@ -8,5 +8,9 @@ RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange; \
 ENV RABBITMQ_DEFAULT_USER=guest \
     RABBITMQ_DEFAULT_PASS="guest"
 
+ADD enabled_plugins /etc/rabbitmq/enabled_plugins
+ADD rabbitmq.conf /etc/rabbbitmq/rabbitmq.conf
+RUN chgrp 0 /etc/rabbbitmq/rabbitmq.conf; chmod g+rw /etc/rabbbitmq/rabbitmq.conf
+
 # this is only used in the cluster version
 ADD cluster-rabbit.sh /
