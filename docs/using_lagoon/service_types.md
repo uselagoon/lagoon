@@ -20,6 +20,7 @@ This table lists all service types that can be defined via `lagoon.type` within 
 | `node` | Nodejs container. | TCP connection on `3000` | `3000` | yes | - |
 | `node-persistent` | Like `node`, will generate persistent storage, define mount location via `lagoon.persistent` | TCP connection on `3000` | `3000` | yes | `lagoon.persistent`, `lagoon.persistent.name`, `lagoon.persistent.size`, `lagoon.persistent.class` |
 | `mongo` | MongoDB container, will generate persistent storage of min 1GB mounted at `/data/db` | TCP connection on `27017` | `27017` | - | - |
+| `mongo-shared` | Uses a shared mongodb server via a service broker | not needed | `27017` | - | - |
 | `kibana` | Kibana container. | TCP connection on `5601` | `5601` | yes | - |
 | `logstash` | Logstash container. | TCP connection on `9600` | `9600` | - | - |
 | `elasticsearch` | Elasticsearch container, will auto generate persistent storage under `/usr/share/elasticsearch/data` | HTTP on `localhost:9200/_cluster/health?local=true` | `9200` | - | `lagoon.persistent.size` |
