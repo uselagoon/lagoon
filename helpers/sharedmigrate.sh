@@ -117,9 +117,8 @@ oc exec $POD -- tail /migrator/migration.sql
 #TODO; ask if this dump is ok.
 
 
-
 # delete the old servicebroker
-svcat deprovision $INSTANCE
+svcat deprovision $INSTANCE --wait
 
 # set some parameters to be compatible with oc-build-deploy-dind
 export OPENSHIFT_PROJECT=${NAMESPACE}
