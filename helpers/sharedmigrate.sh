@@ -108,16 +108,41 @@ oc rollout status deploymentconfig/migrator --watch
 # Do the dump: 
 POD=$(oc get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
-echo pod: $POD
-oc exec $POD -- mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql
+oc exec $POD -- bash -c 'mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql'
+
+echo "DUMP IS DONE;"
+oc exec $POD -- head /migrator/migration.sql
+oc exec $POD -- tail /migrator/migration.sql
+
+#TODO; ask if this dump is ok.
 
 
 
+# delete the old servicebroker
+svcat deprovision $INSTANCE
+
+# set some parameters to be compatible with oc-build-deploy-dind
+export OPENSHIFT_PROJECT=${NAMESPACE}
+export SERVICE_NAME=${INSTANCE}
+export SERVICEBROKER_CLASS=${CLASS}
+export SERVICEBROKER_PLAN=${PLAN}
+. $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/exec-openshift-create-servicebroker.sh
+
+#Now lookup the new binding and add it to the migrator;
+
+SECRET=$(svcat get binding -o json  |jq -r ".items[] | select (.spec.instanceRef.name == \"$INSTANCE\") | .spec.secretName")
+echo secret: $SECRET
+oc set env --from=secret/${SECRET} --prefix=NEW_ dc/migrator
+
+oc rollout resume deploymentconfig/migrator
+oc rollout status deploymentconfig/migrator --watch
+
+# Do the dump: 
+POD=$(oc get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
+
+oc exec $POD -- bash -c 'mysql -h $NEW_DB_HOST -u $NEW_DB_USER -p${NEW_DB_PASSWORD} $NEW_DB_NAME < /migrator/migration.sql'
 
 
-
-# create the new service broker instance
-# svcat provision mariadb --class $CLASS --plan $PLAN
 
 
 
