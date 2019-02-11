@@ -45,6 +45,7 @@ pages:
 theme: readthedocs
 
 markdown_extensions:
-    - toc:
-        permalink: true
-        baselevel: 1
+  - toc:
+      permalink: true
+      baselevel: 1
+  - admonition
