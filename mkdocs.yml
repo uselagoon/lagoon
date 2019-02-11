@@ -33,6 +33,7 @@ pages:
       - Redis: using_lagoon/drupal/services/redis.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
+  - GoLive: using_lagoon/golive.md
 - Administration:
   - Installing Lagoon: administering_lagoon/install.md
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
