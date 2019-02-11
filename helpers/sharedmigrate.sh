@@ -57,7 +57,7 @@ done
 
 # set a default instance, if not specified.
 if [ -z ${INSTANCE+x} ]; then
-  INSTANCE=$(svcat get instance -o json |jq -r '.items[].metadata.name')
+  INSTANCE=$(svcat get instance -o json |jq -r '.items[0].metadata.name')
   echo "instance not specified, using $INSTANCE"
 fi
 
