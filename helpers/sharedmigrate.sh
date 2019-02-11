@@ -2,10 +2,10 @@
 
 trap bail INT
 function bail() {
-  oc delete dc/migrator
-  oc delete pvc/migrator
-  oc adm policy remove-scc-from-user privileged -z migrator
-  oc delete serviceaccount migrator
+  oc -n ${NAMESPACE} delete dc/migrator
+  oc -n ${NAMESPACE} delete pvc/migrator
+  oc -n ${NAMESPACE} adm policy remove-scc-from-user privileged -z migrator
+  oc -n ${NAMESPACE} delete serviceaccount migrator
   exit
 }
 
@@ -63,21 +63,21 @@ fi
 
 # validate $broker
 
-oc create serviceaccount migrator
-oc adm policy add-scc-to-user privileged -z migrator
+oc -n ${NAMESPACE} create serviceaccount migrator
+oc -n ${NAMESPACE} adm policy add-scc-to-user privileged -z migrator
 
-oc run --image mariadb --env="MYSQL_RANDOM_ROOT_PASSWORD=yes"  migrator
+oc -n ${NAMESPACE} run --image mariadb --env="MYSQL_RANDOM_ROOT_PASSWORD=yes"  migrator
 
 # pause and make some changes
-oc rollout pause deploymentconfig/migrator
+oc -n ${NAMESPACE} rollout pause deploymentconfig/migrator
 
 # We don't care about the database in /var/lib/mysql; just privilege it and let it do its thing. 
-oc patch deploymentconfig/migrator -p '{"spec":{"template":{"spec":{"serviceAccountName": "migrator"}}}}'
-oc patch deploymentconfig/migrator -p '{"spec":{"template":{"spec":{"securityContext":{ "privileged": "true",  "runAsUser": 0 }}}}}'
+oc -n ${NAMESPACE} patch deploymentconfig/migrator -p '{"spec":{"template":{"spec":{"serviceAccountName": "migrator"}}}}'
+oc -n ${NAMESPACE} patch deploymentconfig/migrator -p '{"spec":{"template":{"spec":{"securityContext":{ "privileged": "true",  "runAsUser": 0 }}}}}'
 
 
 # create a volume to store the dump.
-cat << EOF | oc apply -f -
+cat << EOF | oc -n ${NAMESPACE} apply -f -
   apiVersion: v1
   items:
   - apiVersion: v1
@@ -94,25 +94,26 @@ cat << EOF | oc apply -f -
   metadata: {}
 EOF
 
-oc volume deploymentconfig/migrator --add --name=migrator --type=persistentVolumeClaim --claim-name=migrator --mount-path=/migrator
+oc -n ${NAMESPACE} volume deploymentconfig/migrator --add --name=migrator --type=persistentVolumeClaim --claim-name=migrator --mount-path=/migrator
 
 
 # look up the secret from the instance and add it to the new container
 SECRET=$(svcat get binding -o json  |jq -r ".items[] | select (.spec.instanceRef.name == \"$INSTANCE\") | .spec.secretName")
 echo secret: $SECRET
-oc set env --from=secret/${SECRET} --prefix=OLD_ dc/migrator
+oc -n ${NAMESPACE} set env --from=secret/${SECRET} --prefix=OLD_ dc/migrator
 
-oc rollout resume deploymentconfig/migrator
-oc rollout status deploymentconfig/migrator --watch
+oc -n ${NAMESPACE} rollout resume deploymentconfig/migrator
+oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
+sleep 30;
 
 # Do the dump: 
-POD=$(oc get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
+POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
-oc exec $POD -- bash -c 'mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql'
+oc -n ${NAMESPACE} exec $POD -- bash -c 'mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql'
 
 echo "DUMP IS DONE;"
-oc exec $POD -- head /migrator/migration.sql
-oc exec $POD -- tail /migrator/migration.sql
+oc -n ${NAMESPACE} exec $POD -- head /migrator/migration.sql
+oc -n ${NAMESPACE} exec $POD -- tail /migrator/migration.sql
 
 #TODO; ask if this dump is ok.
 
@@ -131,18 +132,14 @@ export SERVICEBROKER_PLAN=${PLAN}
 
 SECRET=$(svcat get binding -o json  |jq -r ".items[] | select (.spec.instanceRef.name == \"$INSTANCE\") | .spec.secretName")
 echo secret: $SECRET
-oc set env --from=secret/${SECRET} --prefix=NEW_ dc/migrator
+oc -n ${NAMESPACE} set env --from=secret/${SECRET} --prefix=NEW_ dc/migrator
 
-oc rollout resume deploymentconfig/migrator
-oc rollout status deploymentconfig/migrator --watch
+oc -n ${NAMESPACE} rollout resume deploymentconfig/migrator
+oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
 
 # Do the dump: 
-POD=$(oc get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
+POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
-oc exec $POD -- bash -c 'mysql -h $NEW_DB_HOST -u $NEW_DB_USER -p${NEW_DB_PASSWORD} $NEW_DB_NAME < /migrator/migration.sql'
-
-
-
-
+oc -n ${NAMESPACE} exec $POD -- bash -c 'mysql -h $NEW_DB_HOST -u $NEW_DB_USER -p${NEW_DB_PASSWORD} $NEW_DB_NAME < /migrator/migration.sql'
 
 bail()
