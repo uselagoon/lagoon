@@ -135,8 +135,6 @@ done
 
 
 #copy the new credentials into the migrator
-oc -n ${NAMESPACE} set env --from=secret/${INSTANCE}-servicebroker-credentials --prefix=NEW_ dc/migrator
-oc -n ${NAMESPACE} rollout resume deploymentconfig/migrator
 oc -n ${NAMESPACE} rollout latest deploymentconfig/migrator
 oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
 
@@ -145,11 +143,12 @@ sleep 10;
 # Do the dump: 
 POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
-oc -n ${NAMESPACE} exec $POD -- bash -c 'cat /migrator/migration.sql |sed -e "s/DEFINER[ ]*=[ ]*[^*]*\*/\*/" | tee | mysql -h $NEW_DB_HOST -u $NEW_DB_USER -p${NEW_DB_PASSWORD} $NEW_DB_NAME'
+oc -n ${NAMESPACE} exec $POD -- bash -c 'cat /migrator/migration.sql |sed -e "s/DEFINER[ ]*=[ ]*[^*]*\*/\*/" | mysql -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME'
 
 
 # Load credentials out of secret
-SECRETS=/tmp/${PROJECT_NAME}-${OLD_POD}-migration.yaml
+SECRETS=$(mktemp).yaml
+echo "Exporting  ${INSTANCE}-servicebroker-credentials  into $SECRETS   "
 oc -n ${NAMESPACE} get --insecure-skip-tls-verify secret ${INSTANCE}-servicebroker-credentials -o yaml > $SECRETS
 
 DB_HOST=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -D)
