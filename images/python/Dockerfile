@@ -26,6 +26,9 @@ ENV TMPDIR=/tmp \
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache python-dev \
-        py2-pip \
-        py2-virtualenv
+    py2-pip \
+    py2-virtualenv
 
+# Make sure shells are not running forever
+COPY 80-shell-timeout.sh /lagoon/entrypoints/
+RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
