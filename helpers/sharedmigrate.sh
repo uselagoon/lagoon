@@ -1,14 +1,5 @@
 #!/bin/sh
 
-trap bail INT
-function bail() {
-  oc -n ${NAMESPACE} delete dc/migrator
-  oc -n ${NAMESPACE} delete pvc/migrator
-  oc -n ${NAMESPACE} adm policy remove-scc-from-user privileged -z migrator
-  oc -n ${NAMESPACE} delete serviceaccount migrator
-  exit
-}
-
 for util in oc svcat jq; do 
 which ${util} > /dev/null
 if [ $? -gt 0 ]; then
@@ -166,8 +157,11 @@ DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -D)
 DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -D)
 DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
 
+SERVICE_NAME_UPPERCASE=$(echo $INSTANCE | tr [:lower:] [:upper:])
 oc -n $NAMESPACE patch configmap lagoon-env \
    -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
 
-
-bail()
+oc -n ${NAMESPACE} delete dc/migrator
+oc -n ${NAMESPACE} delete pvc/migrator
+oc -n ${NAMESPACE} adm policy remove-scc-from-user privileged -z migrator
+oc -n ${NAMESPACE} delete serviceaccount migrator
