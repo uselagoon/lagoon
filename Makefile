@@ -285,8 +285,7 @@ solrimages := 	solr__5.5 \
 								solr__6.6-drupal \
 								solr__7.5-drupal \
 								solr__5.5-ckan \
-								solr__6.6-ckan \
-								solr__7.5-ckan
+								solr__6.6-ckan
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -312,7 +311,6 @@ build/solr__6.6-drupal: build/solr__6.6
 build/solr__7.5-drupal: build/solr__7.5
 build/solr__5.5-ckan: build/solr__5.5
 build/solr__6.6-ckan: build/solr__6.6
-build/solr__7.5-ckan: build/solr__7.5
 
 #######
 ####### Node Images
