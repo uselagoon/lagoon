@@ -222,7 +222,6 @@ build/python__2.7.15 build/python__3.7.2: images/commons
 build/python__2.7.15-cli:      build/python__2.7.15
 build/python__3.7.2-cli:       build/python__3.7.2
 build/python__2.7.15-cli-ckan: build/python__2.7.15-cli
-build/python__3.7.2-cli-ckan:  build/python__3.7.2-cli
 
 
 #######
