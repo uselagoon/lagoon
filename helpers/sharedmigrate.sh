@@ -106,7 +106,7 @@ oc -n ${NAMESPACE} volume deploymentconfig/migrator --add --name=migrator --type
 
 
 # look up the secret from the instance and add it to the new container
-SECRET=$(svcat get binding -o json  |jq -r ".items[] | select (.spec.instanceRef.name == \"$INSTANCE\") | .spec.secretName")
+SECRET=$(svcat -n ${NAMESPACE} get binding -o json  |jq -r ".items[] | select (.spec.instanceRef.name == \"$INSTANCE\") | .spec.secretName")
 echo secret: $SECRET
 oc -n ${NAMESPACE} set env --from=secret/${SECRET} --prefix=OLD_ dc/migrator
 
@@ -127,27 +127,47 @@ oc -n ${NAMESPACE} exec $POD -- tail /migrator/migration.sql
 
 
 # delete the old servicebroker
-svcat deprovision $INSTANCE --wait
+svcat -n ${NAMESPACE} unbind $INSTANCE
+svcat -n ${NAMESPACE} deprovision $INSTANCE --wait --interval 2s --timeout=1h
+echo "===== old instance deprovisioned, waiting 30 seconds."
+sleep 30;
 
-# set some parameters to be compatible with oc-build-deploy-dind
-export OPENSHIFT_PROJECT=${NAMESPACE}
-export SERVICE_NAME=${INSTANCE}
-export SERVICEBROKER_CLASS=${CLASS}
-export SERVICEBROKER_PLAN=${PLAN}
-. $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/exec-openshift-create-servicebroker.sh
+svcat -n ${NAMESPACE} provision $INSTANCE --class $CLASS --plan $PLAN --wait
+svcat -n ${NAMESPACE} bind $INSTANCE --name ${INSTANCE}-servicebroker-credentials --wait 
 
-#Now lookup the new binding and add it to the migrator;
+until oc get -n ${NAMESPACE} secret ${INSTANCE}-servicebroker-credentials
+do
+  echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
+  sleep 5
+done
 
-SECRET=$(svcat get binding -o json  |jq -r ".items[] | select (.spec.instanceRef.name == \"$INSTANCE\") | .spec.secretName")
-echo secret: $SECRET
-oc -n ${NAMESPACE} set env --from=secret/${SECRET} --prefix=NEW_ dc/migrator
 
+#copy the new credentials into the migrator
+oc -n ${NAMESPACE} set env --from=secret/${INSTANCE}-servicebroker-credentials --prefix=NEW_ dc/migrator
 oc -n ${NAMESPACE} rollout resume deploymentconfig/migrator
+oc -n ${NAMESPACE} rollout latest deploymentconfig/migrator
 oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
+
+sleep 10;
 
 # Do the dump: 
 POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
-oc -n ${NAMESPACE} exec $POD -- bash -c 'mysql -h $NEW_DB_HOST -u $NEW_DB_USER -p${NEW_DB_PASSWORD} $NEW_DB_NAME < /migrator/migration.sql'
+oc -n ${NAMESPACE} exec $POD -- bash -c 'cat /migrator/migration.sql |sed -e "s/DEFINER[ ]*=[ ]*[^*]*\*/\*/" | tee | mysql -h $NEW_DB_HOST -u $NEW_DB_USER -p${NEW_DB_PASSWORD} $NEW_DB_NAME'
+
+
+# Load credentials out of secret
+SECRETS=/tmp/${PROJECT_NAME}-${OLD_POD}-migration.yaml
+oc -n ${NAMESPACE} get --insecure-skip-tls-verify secret ${INSTANCE}-servicebroker-credentials -o yaml > $SECRETS
+
+DB_HOST=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -D)
+DB_USER=$(cat $SECRETS | shyaml get-value data.DB_USER | base64 -D)
+DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -D)
+DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -D)
+DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
+
+oc -n $NAMESPACE patch configmap lagoon-env \
+   -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
+
 
 bail()
