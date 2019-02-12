@@ -79,6 +79,12 @@ BRANCH_NAME :=
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
+# Build a Python docker image. Expects as arguments:
+# 1. Python version
+# 2. Location of Dockerfile
+# 3. Path of Docker Build context
+docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
+
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
@@ -177,6 +183,47 @@ build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
+
+
+#######
+####### Python Images
+#######
+####### Python Images are alpine linux based Python images.
+
+pythonimages :=  python__2.7.15 \
+								 python__3.7.2 \
+								 python__2.7.15-cli \
+								 python__3.7.2-cli \
+								 python__2.7.15-cli-ckan
+
+build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-pythonimages): build/commons
+	$(eval clean = $(subst build/python__,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+	$(eval subtype = $(word 3,$(subst -, ,$(clean))))
+# this fills variables only if $type is existing, if not they are just empty
+	$(eval type_dash = $(if $(type),-$(type)))
+	$(eval type_slash = $(if $(type),/$(type)))
+# if there is a subtype, add it. If not, just keep what we already had
+	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
+	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
+# Call the docker build
+	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_slash)/Dockerfile,images/python$(type_slash))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images += $(pythonimages)
+s3-images += python
+
+build/python__2.7.15 build/python__3.7.2: images/commons
+build/python__2.7.15-cli:      build/python__2.7.15
+build/python__3.7.2-cli:       build/python__3.7.2
+build/python__2.7.15-cli-ckan: build/python__2.7.15-cli
+build/python__3.7.2-cli-ckan:  build/python__3.7.2-cli
+
 
 #######
 ####### PHP Images
