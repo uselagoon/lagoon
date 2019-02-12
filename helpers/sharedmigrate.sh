@@ -73,6 +73,7 @@ oc -n ${NAMESPACE} rollout pause deploymentconfig/migrator
 # We don't care about the database in /var/lib/mysql; just privilege it and let it do its thing. 
 oc -n ${NAMESPACE} patch deploymentconfig/migrator -p '{"spec":{"template":{"spec":{"serviceAccountName": "migrator"}}}}'
 oc -n ${NAMESPACE} patch deploymentconfig/migrator -p '{"spec":{"template":{"spec":{"securityContext":{ "privileged": "true",  "runAsUser": 0 }}}}}'
+oc -n ${NAMESPACE} patch deploymentconfig/migrator -p '{"spec":{"strategy":{"type":"Recreate"}}}'
 
 
 # create a volume to store the dump.
