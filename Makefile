@@ -114,6 +114,7 @@ images :=     oc \
 							mariadb-galera \
 							mariadb-galera-drupal \
 							postgres \
+							postgres-ckan \
 							postgres-drupal \
 							oc-build-deploy-dind \
 							commons \
@@ -162,6 +163,7 @@ build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
 build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
+build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
@@ -192,9 +194,7 @@ build/athenapdf-service: images/athenapdf-service/Dockerfile
 
 pythonimages :=  python__2.7.15 \
 								 python__3.7.2 \
-								 python__2.7.15-cli \
-								 python__3.7.2-cli \
-								 python__2.7.15-cli-ckan
+								 python__2.7.15-ckan
 
 build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
 
@@ -203,15 +203,10 @@ $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval subtype = $(word 3,$(subst -, ,$(clean))))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
-	$(eval type_slash = $(if $(type),/$(type)))
-# if there is a subtype, add it. If not, just keep what we already had
-	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
-	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
 # Call the docker build
-	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_slash)/Dockerfile,images/python$(type_slash))
+	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -219,9 +214,7 @@ base-images += $(pythonimages)
 s3-images += python
 
 build/python__2.7.15 build/python__3.7.2: images/commons
-build/python__2.7.15-cli:      build/python__2.7.15
-build/python__3.7.2-cli:       build/python__3.7.2
-build/python__2.7.15-cli-ckan: build/python__2.7.15-cli
+build/python__2.7.15-ckan: build/python__2.7.15
 
 
 #######
@@ -290,7 +283,10 @@ solrimages := 	solr__5.5 \
 								solr__7.5 \
 								solr__5.5-drupal \
 								solr__6.6-drupal \
-								solr__7.5-drupal
+								solr__7.5-drupal \
+								solr__5.5-ckan \
+								solr__6.6-ckan \
+								solr__7.5-ckan
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -314,6 +310,9 @@ build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
 build/solr__6.6-drupal: build/solr__6.6
 build/solr__7.5-drupal: build/solr__7.5
+build/solr__5.5-ckan: build/solr__5.5
+build/solr__6.6-ckan: build/solr__6.6
+build/solr__7.5-ckan: build/solr__7.5
 
 #######
 ####### Node Images
@@ -522,7 +521,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
