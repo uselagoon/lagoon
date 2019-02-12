@@ -57,9 +57,17 @@ done
 
 # set a default instance, if not specified.
 if [ -z ${INSTANCE+x} ]; then
-  INSTANCE=$(svcat get instance -o json |jq -r '.items[0].metadata.name')
+  INSTANCE=$(svcat -n ${NAMESPACE} get instance -o json |jq -r '.items[0].metadata.name')
   echo "instance not specified, using $INSTANCE"
 fi
+
+# verify instance exists
+svcat -n ${NAMESPACE} get instance $INSTANCE
+if [ $? -gt 0 ] ;then 
+    echo "no instance found"
+    exit 2
+fi
+
 
 # validate $broker
 
