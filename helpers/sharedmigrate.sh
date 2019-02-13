@@ -134,28 +134,32 @@ oc -n ${NAMESPACE} set env --from=secret/${SECRET} --prefix=OLD_ dc/migrator
 
 oc -n ${NAMESPACE} rollout resume deploymentconfig/migrator
 oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
-sleep 30;
 
-# Do the dump: 
+sleep 20;
+# Do the dump:
 POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
-oc -n ${NAMESPACE} exec $POD -- bash -c 'mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql'
+oc -n ${NAMESPACE} exec $POD -- bash -c 'time mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql'
 
 echo "DUMP IS DONE;"
 oc -n ${NAMESPACE} exec $POD -- head /migrator/migration.sql
 oc -n ${NAMESPACE} exec $POD -- tail /migrator/migration.sql
 
-#TODO; ask if this dump is ok.
 
+printf "\n\n\nLAST CHANCE TO CANCEL BEFORE I DELETE THE OLD SERVICEBROKER.\n\n"
+echo "sleeping 30 seconds..."
+sleep 30
 
 # delete the old servicebroker
-svcat -n ${NAMESPACE} unbind $INSTANCE
-svcat -n ${NAMESPACE} deprovision $INSTANCE --wait --interval 2s --timeout=1h
+time svcat -n ${NAMESPACE} unbind $INSTANCE
+time svcat -n ${NAMESPACE} deprovision $INSTANCE --wait --interval 2s --timeout=1h
 echo "===== old instance deprovisioned, waiting 30 seconds."
 sleep 30;
 
-svcat -n ${NAMESPACE} provision $INSTANCE --class $CLASS --plan $PLAN --wait
-svcat -n ${NAMESPACE} bind $INSTANCE --name ${INSTANCE}-servicebroker-credentials --wait 
+echo "===== provisioning new $CLASS of plan $PLAN"
+time svcat -n ${NAMESPACE} provision $INSTANCE --class $CLASS --plan $PLAN --wait
+echo "      and binding"
+time svcat -n ${NAMESPACE} bind $INSTANCE --name ${INSTANCE}-servicebroker-credentials --wait
 
 until oc get -n ${NAMESPACE} secret ${INSTANCE}-servicebroker-credentials
 do
@@ -164,13 +168,13 @@ do
 done
 
 
-#copy the new credentials into the migrator
+echo "rolling out migrator again so the secrets get propagated."
 oc -n ${NAMESPACE} rollout latest deploymentconfig/migrator
 oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
 
 sleep 10;
 
-# Do the dump: 
+# Do the dump:
 POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq -r '.items[].metadata.name')
 
 oc -n ${NAMESPACE} exec $POD -- bash -c 'cat /migrator/migration.sql |sed -e "s/DEFINER[ ]*=[ ]*[^*]*\*/\*/" | mysql -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME'
@@ -178,7 +182,7 @@ oc -n ${NAMESPACE} exec $POD -- bash -c 'cat /migrator/migration.sql |sed -e "s/
 
 # Load credentials out of secret
 SECRETS=$(mktemp).yaml
-echo "Exporting  ${INSTANCE}-servicebroker-credentials  into $SECRETS   "
+echo "Exporting ${INSTANCE}-servicebroker-credentials into $SECRETS   "
 oc -n ${NAMESPACE} get --insecure-skip-tls-verify secret ${INSTANCE}-servicebroker-credentials -o yaml > $SECRETS
 
 DB_HOST=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -D)
@@ -190,8 +194,3 @@ DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
 SERVICE_NAME_UPPERCASE=$(echo $INSTANCE | tr [:lower:] [:upper:])
 oc -n $NAMESPACE patch configmap lagoon-env \
    -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
-
-oc -n ${NAMESPACE} delete dc/migrator
-oc -n ${NAMESPACE} delete pvc/migrator
-oc -n ${NAMESPACE} adm policy remove-scc-from-user privileged -z migrator
-oc -n ${NAMESPACE} delete serviceaccount migrator
