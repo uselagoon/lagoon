@@ -8,14 +8,31 @@ if [ $? -gt 0 ]; then
 fi
 done;
 
+usage() {
+  cat << EOF
+    ${0}: migrate a mariadb servicebroker to another mariadb servicebroker
+    This script is useful when needing to change either the class or the plan
+    of and existing service broker.
+    By default, it will use:
+      'lagoon-dbaas-mariadb-apb' as the class,
+      'production' as the plan,
+      current openshift context as the namespace, and
+      first servicebroker in the namespace.
+
+    when completed, run with -x to delete migration pvc, dc and serviceaccount.
+
+    e.g: $0 -n mysite-devel -c lagoon-dbaas-mariadb-apb -p development -i mariadb
+         $0 -n mysite-devel -x
+EOF
+}
+
 # n- namespace
 # c- class ( lagoon-dbaas-mariadb-apb )
 # p- plan ( production / stage )
 
-args=`getopt n:c:p:i: $*` 
+args=`getopt n:c:p:i:xh $*`
 if [[ $# -eq 0 ]]; then
-  echo "usage: $0 -n namespace -c broker-class -p broker-plan -i instance"
-  echo "e.g.: $0 -n mysite-devel -c lagoon-dbaas-mariadb-apb -p development -i mariadb"
+  usage
   exit
 fi
 
@@ -27,22 +44,35 @@ CLASS=lagoon-dbaas-mariadb-apb
 set -- $args
 for i
 do
-    case "$i"
-        in
-        -n)
-            NAMESPACE="$2"; shift;
-	    shift;;
-        -c)
-            CLASS="$2"; shift;
-            shift;;
-	-p)
-            PLAN="$2"; shift;
-            shift;;
-	-i)
-            INSTANCE="$2"; shift;
-	    shift;;
-        --)
-            shift; break;;
+    case "$i" in
+    -n)
+        NAMESPACE="$2"; shift;
+  	    shift;;
+    -c)
+        CLASS="$2"; shift;
+        shift;;
+  	-p)
+        PLAN="$2"; shift;
+        shift;;
+  	-i)
+        INSTANCE="$2"; shift;
+  	    shift;;
+    -h)
+        usage
+        exit 0
+        shift;;
+
+    -x)
+        echo "cleaning up "
+        oc -n ${NAMESPACE} delete dc/migrator
+        oc -n ${NAMESPACE} delete pvc/migrator
+        oc -n ${NAMESPACE} adm policy remove-scc-from-user privileged -z migrator
+        oc -n ${NAMESPACE} delete serviceaccount migrator
+        exit 0
+        shift;;
+
+    --)
+        shift; break;;
     esac
 done
 
