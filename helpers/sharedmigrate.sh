@@ -84,11 +84,13 @@ fi
 
 # verify instance exists
 svcat -n ${NAMESPACE} get instance $INSTANCE
-if [ $? -gt 0 ] ;then 
+if [ $? -gt 0 ] ;then
     echo "no instance found"
     exit 2
 fi
 
+echo "Verifying secret ${INSTANCE}-servicebroker-credentials "
+oc -n ${NAMESPACE} get --insecure-skip-tls-verify secret ${INSTANCE}-servicebroker-credentials || exit
 
 # validate $broker
 
@@ -133,6 +135,7 @@ echo secret: $SECRET
 oc -n ${NAMESPACE} set env --from=secret/${SECRET} --prefix=OLD_ dc/migrator
 
 oc -n ${NAMESPACE} rollout resume deploymentconfig/migrator
+oc -n ${NAMESPACE} rollout latest deploymentconfig/migrator
 oc -n ${NAMESPACE} rollout status deploymentconfig/migrator --watch
 
 sleep 20;
@@ -142,8 +145,9 @@ POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l run=migrator | jq 
 oc -n ${NAMESPACE} exec $POD -- bash -c 'time mysqldump -h $OLD_DB_HOST -u $OLD_DB_USER -p${OLD_DB_PASSWORD} $OLD_DB_NAME > /migrator/migration.sql'
 
 echo "DUMP IS DONE;"
+oc -n ${NAMESPACE} exec $POD -- ls -al /migrator/migration.sql || exit 1
 oc -n ${NAMESPACE} exec $POD -- head /migrator/migration.sql
-oc -n ${NAMESPACE} exec $POD -- tail /migrator/migration.sql
+oc -n ${NAMESPACE} exec $POD -- tail /migrator/migration.sql || exit 1
 
 
 printf "\n\n\nLAST CHANCE TO CANCEL BEFORE I DELETE THE OLD SERVICEBROKER.\n\n"
