@@ -47,6 +47,18 @@ const getJobStatus = jobInfo => {
   return 'unknown';
 };
 
+const failTask = async task => {
+  try {
+    await updateTask(task.id, {
+      status: 'FAILED',
+    });
+  } catch (error) {
+    logger.error(
+      `Could not fail task ${task.id}. Message: ${error}`
+    );
+  }
+}
+
 const messageConsumer = async msg => {
   const { project, task, environment } = JSON.parse(msg.content.toString());
 
@@ -116,6 +128,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Project ${openshiftProject} does not exist, bailing`);
+      failTask(task);
       return;
     } else {
       logger.error(err);
@@ -132,6 +145,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Job ${jobName} does not exist, bailing`);
+      failTask(task);
       return;
     } else {
       logger.error(err);
@@ -289,6 +303,8 @@ const saveTaskLog = async (jobName, projectName, jobInfo, log) => {
 
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
+
+  failTask(task);
 
   sendToLagoonLogs(
     'error',
