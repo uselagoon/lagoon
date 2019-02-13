@@ -9,7 +9,10 @@ RUN apk update \
     postgresql-dev \
     gcc \
     musl-dev \
-    libmagic
+    libmagic \
+    libxslt-dev \
+    libxml2-dev \
+    libffi-dev
 
 RUN mkdir -p /app/ckan/default \
     && fix-permissions /app/ckan/default
