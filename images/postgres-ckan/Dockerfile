@@ -8,3 +8,5 @@ RUN sed -i "s/#log_min_error_statement = error/log_min_error_statement = log/" /
 ENV POSTGRES_PASSWORD=ckan \
     POSTGRES_USER=ckan \
     POSTGRES_DB=ckan
+
+COPY 90-datastore-user.sh /docker-entrypoint-initdb.d/
