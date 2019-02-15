@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:3.7
+FROM alpine:latest
 
 MAINTAINER amazee.io
 
@@ -93,7 +93,8 @@ RUN apk add --no-cache --virtual .common-run-deps \
     cd /tmp/maxscale-build && make && make install && \
     apk del --purge .common-build-deps && \
     rm -rf /tmp/* && \
-    rm -rf /var/cache/apk/*
+    rm -rf /var/cache/apk/* && \
+    rm -rf /etc/my.cnf*
 
 COPY entrypoints/ /lagoon/entrypoints/
 COPY maxscale.sql /docker-entrypoint-initdb.d/maxscale.sql
