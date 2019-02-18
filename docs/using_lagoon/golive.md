@@ -44,14 +44,12 @@ environments:
             insecure: Redirect
 ```
 
-
 !!! hint
     As checking every page of your website might get a bit a tedious job you can make use of <a href="https://github.com/bramus/mixed-content-scan">mixed-content-scan</a>. This will crawl the entire site and give you back Sites that include assets from a non-https site.
 
 
 ### Redirects
 If you need non-www to www redirects make sure you have them setup in the `redirects-map.conf` - [see Documentation](https://lagoon.readthedocs.io/en/latest/using_lagoon/docker_images/nginx/#redirects-mapconf)
-
 
 ### Cronjobs
 Check if your cronjobs have been setup for your production environment - see [.lagoon.yml](lagoon_yml.md#environmentsnamecronjobs)
