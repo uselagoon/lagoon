@@ -129,8 +129,8 @@ As most of the time it is not desirable to run the same cronjobs across all envi
     * Just a friendly name for identifying what the cronjob will do
 * `schedule:`
     * The schedule at which to execute the cronjob. This follows the standard convention of cron. If you're not sure about the syntax [Crontab Generator](https://crontab-generator.org/) can help.
-    * You can specify `H` for the minute, and your cronjob will run once per hour at a random minute (the same minute each hour), or `H/15` to run it every 15 mins but with a random offset from the hour (like `6,21,36,51`)
-    * You can specify `H` for the hour, and your cronjob will run once per day at a random hour (the same hour every day)
+    * You can specify `M` for the minute, and your cronjob will run once per hour at a random minute (the same minute each hour), or `M/15` to run it every 15 mins but with a random offset from the hour (like `6,21,36,51`)
+    * You can specify `H` for the hour, and your cronjob will run once per day at a random hour (the same hour every day) or `H(2-4)` to run it once per day within the hours of 2-4
 * `command:`
     * The command to execute. Like the tasks, this executes in the WORKDIR of the service, for Lagoon images this is `/app`
 * `service:`
