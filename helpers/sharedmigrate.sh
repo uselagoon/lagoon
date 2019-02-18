@@ -90,7 +90,7 @@ if [ $? -gt 0 ] ;then
 fi
 
 echo "Verifying secret ${INSTANCE}-servicebroker-credentials "
-oc -n ${NAMESPACE} get --insecure-skip-tls-verify secret ${INSTANCE}-servicebroker-credentials || exit
+oc -n ${NAMESPACE} get --insecure-skip-tls-verify secret ${INSTANCE}-servicebroker-credentials || svcat bind $INSTANCE --name ${INSTANCE}-servicebroker-credentials
 
 # validate $broker
 
