@@ -4,7 +4,7 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
 const { addCustomer } = require('@lagoon/commons/src/api');
 
-const GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY = process.env.GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY || null;
+const GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY = process.env.GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY.replace(/\\n/g, '\n'); || null;
 import type { WebhookRequestData } from '../types';
 
 async function gitlabGroupCreate(webhook: WebhookRequestData) {
