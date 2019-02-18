@@ -16,7 +16,7 @@ const API_TOKEN = R.propOr(
 
 const options = {
   baseURL: `${API_HOST}/api/v4/`,
-  timeout: 2000,
+  timeout: 30000,
   headers: {
     'Private-Token': API_TOKEN,
   },
