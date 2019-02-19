@@ -118,6 +118,8 @@ images :=     oc \
 							varnish-drupal \
 							redis \
 							redis-persistent \
+							rabbitmq \
+							rabbitmq-cluster \
 							mongo \
 							elasticsearch \
 							kibana \
@@ -161,6 +163,8 @@ build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
+build/rabbitmq: build/commons images/rabbitmq/Dockerfile
+build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
@@ -328,7 +332,7 @@ services :=       api \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
-									rabbitmq \
+									broker \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
