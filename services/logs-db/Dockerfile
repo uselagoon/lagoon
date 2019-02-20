@@ -8,6 +8,7 @@ RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.5.4-24.0 
     && sed -i 's/searchguard.audit.type: internal_elasticsearch//' config/elasticsearch.yml \
     && echo "searchguard.roles_mapping_resolution: BOTH" >> config/elasticsearch.yml \
     && echo "xpack.monitoring.collection.enabled: true" >> config/elasticsearch.yml \
+    && echo "xpack.monitoring.history.duration: 1d" >> config/elasticsearch.yml \
     && echo "node.attr.box_type: \${BOX_TYPE}" >> config/elasticsearch.yml \
     && chmod +x plugins/search-guard-6/tools/hash.sh
 
