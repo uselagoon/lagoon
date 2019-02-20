@@ -110,22 +110,6 @@ objects:
           env:
             - name: RABBITMQ_USE_LONGNAME
               value: "true"
-            - name: RABBITMQ_DEFAULT_USER
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-username
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_DEFAULT_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-password
-                  key: RABBITMQ_PASSWORD
-            - name: ERLANG_COOKIE
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-erlang-cookie
-                  key: ERLANG_COOKIE
-
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:

@@ -80,16 +80,6 @@ objects:
           - configMapRef:
               name: lagoon-env
           env:
-            - name: RABBITMQ_DEFAULT_USER
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-username
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_DEFAULT_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-password
-                  key: RABBITMQ_PASSWORD
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
             - name: CRONJOBS
