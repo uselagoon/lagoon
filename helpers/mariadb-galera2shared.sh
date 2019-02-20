@@ -31,7 +31,7 @@ set -e
 
 PROJECT_NAME=$1
 
-echo "*** Starting mariadb-single --> mariadb-shared migration in ${PROJECT_NAME}"
+echo "*** Starting mariadb-galera --> mariadb-shared migration in ${PROJECT_NAME}"
 
 SERVICE_NAME=mariadb
 SERVICE_NAME_UPPERCASE=$(echo $SERVICE_NAME | tr [:lower:] [:upper:])
@@ -39,15 +39,7 @@ SERVICE_TYPE=mariadb-shared
 
 ENVIRONMENT_TYPE=$(oc -n $1 get configmap lagoon-env -o json | jq -r '.data.LAGOON_ENVIRONMENT_TYPE')
 
-MARIADB_REPLICAS=$(oc -n $1 get dc/mariadb -o json | jq -r '.spec.replicas')
-
-if [ "$MARIADB_REPLICAS" == "0" ]; then
-  oc -n $1 scale dc/mariadb --replicas=1
-  oc -n $1 rollout status dc/mariadb
-fi
-
-# export old mariadb pod name
-OLD_POD=$(oc -n $1 get pod -o  custom-columns=NAME:.metadata.name --no-headers -l service=$SERVICE_NAME)
+OLD_POD="mariadb-galera-0"
 
 if [[ "$OLD_POD" ]]; then
   echo "found $SERVICE_NAME pod $OLD_POD"
@@ -105,7 +97,9 @@ oc -n $1 patch --insecure-skip-tls-verify configmap lagoon-env \
 
 echo "*** Deleting mariadb service. Scaling old mariadb to 0; you can clean up the DC and pv later"
 oc -n $1 delete service mariadb
-oc -n $1 scale dc/mariadb --replicas=0
+oc -n $1 scale dc/mariadb-maxscale --replicas=0
+oc -n $1 scale statefulset/mariadb-galera --replicas=0
+
 
 # transfer complete, clean up
 rm -f $SECRETS

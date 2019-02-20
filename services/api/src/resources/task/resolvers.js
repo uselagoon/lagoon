@@ -262,16 +262,83 @@ const taskDrushArchiveDump = async (
   await envValidators.userAccessEnvironment(credentials, environmentId);
   await envValidators.environmentHasService(environmentId, 'cli');
 
-  const command = String.raw`drush ard --pipe | \
-xargs -I_file curl -sS "$TASK_API_HOST"/graphql \
+  const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
+curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TASK_API_AUTH" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
 -F map='{ "0": ["variables.files.0"] }' \
--F 0=@_file
+-F 0=@$file; rm -rf $file;
 `;
 
   const taskData = await Helpers.addTask({
     name: 'Drush archive-dump',
+    environment: environmentId,
+    service: 'cli',
+    command,
+    execute: true,
+  });
+
+  return taskData;
+};
+
+const taskDrushSqlDump = async (
+  root,
+  {
+    environment: environmentId,
+  },
+  {
+    credentials,
+  },
+) => {
+  await envValidators.environmentExists(environmentId);
+  await envValidators.userAccessEnvironment(credentials, environmentId);
+  await envValidators.environmentHasService(environmentId, 'cli');
+
+  const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
+curl -sS "$TASK_API_HOST"/graphql \
+-H "Authorization: Bearer $TASK_API_AUTH" \
+-F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
+-F map='{ "0": ["variables.files.0"] }' \
+-F 0=@$file.gz; rm -rf $file.gz
+`;
+
+  const taskData = await Helpers.addTask({
+    name: 'Drush sql-dump',
+    environment: environmentId,
+    service: 'cli',
+    command,
+    execute: true,
+  });
+
+  return taskData;
+};
+
+const taskDrushCacheClear = async (
+  root,
+  {
+    environment: environmentId,
+  },
+  {
+    credentials,
+  },
+) => {
+  await envValidators.environmentExists(environmentId);
+  await envValidators.userAccessEnvironment(credentials, environmentId);
+  await envValidators.environmentHasService(environmentId, 'cli');
+
+  const command = 'drupal_version=$(drush status drupal-version --format=list) && \
+  if [ ${drupal_version%.*.*} == "8" ]; then \
+    drush cr; \
+  elif [ ${drupal_version%.*} == "7" ]; then \
+    drush cc all; \
+  else \
+    echo \"could not clear cache for found Drupal Version ${drupal_version}\"; \
+    exit 1; \
+  fi';
+
+
+  const taskData = await Helpers.addTask({
+    name: 'Drush cache-clear',
     environment: environmentId,
     service: 'cli',
     command,
@@ -347,7 +414,7 @@ const taskSubscriber = createEnvironmentFilteredSubscriber(
   [
     EVENTS.TASK.ADDED,
     EVENTS.TASK.UPDATED,
-  ]
+  ],
 );
 
 const Resolvers /* : ResolversObj */ = {
@@ -357,9 +424,12 @@ const Resolvers /* : ResolversObj */ = {
   deleteTask,
   updateTask,
   taskDrushArchiveDump,
+  taskDrushSqlDump,
+  taskDrushCacheClear,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
   taskSubscriber,
 };
+
 
 module.exports = Resolvers;

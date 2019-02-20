@@ -164,7 +164,8 @@ CREATE OR REPLACE PROCEDURE
       e.*
     FROM environment e
     WHERE e.name = name AND
-    deleted = '0000-00-00 00:00:00';
+    e.project = pid AND
+    e.deleted = '0000-00-00 00:00:00';
   END;
 $$
 
