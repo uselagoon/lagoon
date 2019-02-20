@@ -130,6 +130,9 @@ const PageBackups = withRouter((props) => {
               <div className='content-wrapper'>
                 <NavTabs activeTab='backups' environment={environment.openshiftProjectName}/>
                 <div className="content">
+                  <div className="notification">
+                    If you need a current database or files dump, use the tasks "drush sql-dump" or "drush archive-dump" in the new "Tasks" section!
+                  </div>
                   <div className="header">
                     <label className="source">Source</label>
                     <label className="created">Created</label>
@@ -179,6 +182,11 @@ const PageBackups = withRouter((props) => {
                 .content {
                   padding: 32px calc((100vw / 16) * 1);
                   width: 100%;
+                  .notification {
+                    background-color: ${color.lightBlue};
+                    color: ${color.white};
+                    padding: 10px 20px;
+                  }
                   .header {
                     @media ${bp.wideUp} {
                       align-items: center;

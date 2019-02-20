@@ -45,6 +45,7 @@ const DrushSqlSync = ({
     {(taskDrushSqlSync, { loading, called, error, data }) => {
       return (
         <React.Fragment>
+          <div className="warning">Warning! <br />This task overwrites databases. Be careful to double check the source and destination environment!</div>
           <div className="envSelect">
             <label id="source-env">Source:</label>
             <ReactSelect
@@ -92,6 +93,12 @@ const DrushSqlSync = ({
             Add task
           </button>
           <style jsx>{`
+            .warning {
+              background-color: red;
+              color: white;
+              padding: 10px;
+
+            }
             .envSelect {
               margin-top: 10px;
             }
