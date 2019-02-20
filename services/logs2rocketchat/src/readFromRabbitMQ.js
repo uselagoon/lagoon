@@ -42,7 +42,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
   const appId = msg.properties.appId || ""
 
- logger.verbose(`received ${event}`, logMessage)
+  logger.verbose(`received ${event} for project ${project}`)
 
   var text
 
@@ -181,19 +181,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
-    case "unresolvedProject:webhooks2tasks":
-    case "unhandledWebhook":
-    case "webhooks:receive":
-    case "task:deploy-openshift:start":
-    case "task:remove-openshift:start":
-    case "task:remove-openshift-resources:start":
-    case "task:builddeploy-openshift:running":
-      // known logs entries that should never go to RocketChat
-      channelWrapperLogs.ack(msg)
-      break;
-
     default:
-      logger.info(`unhandled log message ${event} ${JSON.stringify(logMessage)}`)
       return channelWrapperLogs.ack(msg)
   }
 
