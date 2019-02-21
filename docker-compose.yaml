@@ -39,14 +39,13 @@ services:
       lagoon.template: services/webhook-handler/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhook-handler:${SAFE_BRANCH:-master}
   rabbitmq:
-    image: ${IMAGE_REPO:-lagoon}/rabbitmq
+    image: ${IMAGE_REPO:-lagoon}/broker
     ports:
       - '15672:15672'
       - '5672:5672'
     labels:
-      lagoon.type: custom
-      lagoon.template: services/rabbitmq/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rabbitmq:${SAFE_BRANCH:-master}
+      lagoon.type: rabbitmq
+      lagoon.image: amazeeiolagoon/rabbitmq-cluster:${SAFE_BRANCH:-master}
   openshiftremove:
     image: ${IMAGE_REPO:-lagoon}/openshiftremove
     command: yarn run dev
