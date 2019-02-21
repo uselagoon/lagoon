@@ -45,17 +45,17 @@ objects:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: rabbitmq
+    name: ${SERVICE_NAME}-sa
 - apiVersion: v1
   kind: RoleBinding
   metadata:
-    name: rabbitmq-view
+    name: ${SERVICE_NAME}-view
   roleRef:
     kind: Role
     name: view
   subjects:
   - kind: ServiceAccount
-    name: rabbitmq
+    name: ${SERVICE_NAME}-sa
 - apiVersion: apps/v1beta1
   kind: StatefulSet
   metadata:
@@ -73,7 +73,7 @@ objects:
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}
       spec:
-        serviceAccountName: rabbitmq
+        serviceAccountName: ${SERVICE_NAME}-sa
         affinity:
          podAntiAffinity:
            requiredDuringSchedulingIgnoredDuringExecution:
