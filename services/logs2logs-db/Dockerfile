@@ -16,7 +16,7 @@ RUN fix-permissions pipeline/
 # https://github.com/elastic/logstash-docker/issues/64
 ENV PATH_CONFIG=null
 
-ENV RABBITMQ_HOST="rabbitmq" \
+ENV RABBITMQ_HOST="broker" \
     RABBITMQ_USER="guest" \
     RABBITMQ_PASSWORD="guest" \
     ELASTICSEARCH_URL="http://logs-db:9200" \
