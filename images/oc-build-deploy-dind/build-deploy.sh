@@ -31,7 +31,7 @@ if [ "$INJECT_GIT_SHA" == "true" ]
 then
   LAGOON_GIT_SHA=`git rev-parse HEAD`
 else
-  LAGOON_GIT_SHA="0000000000000000"
+  LAGOON_GIT_SHA="0000000000000000000000000000000000000000"
 fi
 
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
