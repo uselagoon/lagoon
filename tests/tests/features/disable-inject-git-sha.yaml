@@ -22,7 +22,7 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_content: "LAGOON_GIT_SHA=0000000000000000"
+    expected_content: "LAGOON_GIT_SHA=0000000000000000000000000000000000000000"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
