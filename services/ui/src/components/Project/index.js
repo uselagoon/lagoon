@@ -1,4 +1,5 @@
 import React from 'react';
+import * as R from 'ramda';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import Environment from '../EnvironmentTeaser';
@@ -11,6 +12,8 @@ class Project extends React.Component {
 
     const gitUrlParsed = giturlparse(this.props.project.gitUrl);
     const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
+    const environmentCount = R.countBy(R.prop('environmentType'))(this.props.project.environments)
+    const developEnvironmentCount = environmentCount.development ? environmentCount.development: 0;
 
     this.state = {
       project: [],
@@ -18,6 +21,7 @@ class Project extends React.Component {
       copied: false,
       gitLinkWithScheme: `https://${gitLink}`,
       gitLink: gitLink,
+      developEnvironmentCount: developEnvironmentCount,
     };
   }
 
@@ -71,7 +75,7 @@ class Project extends React.Component {
           <div className='field-wrapper envlimit'>
             <div>
               <label>Non-Production environments in use</label>
-              <div className='field'>{this.props.project.environments.length} of {this.props.project.developmentEnvironmentsLimit} </div>
+              <div className='field'>{this.state.developEnvironmentCount} of {this.props.project.developmentEnvironmentsLimit} </div>
             </div>
           </div>
         </div>
