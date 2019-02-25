@@ -69,6 +69,12 @@ class Project extends React.Component {
             </div>
           </div>
         </div>
+        <div className='field-wrapper envlimit'>
+          <div>
+            <label>Non-Production environments in use</label>
+            <div className='field'>{this.props.project.environments.length} of {this.props.project.developmentEnvironmentsLimit} </div>
+          </div>
+        </div>
         <div className="environments-wrapper">
           <h3>Environments</h3>
           <div className="environments">
