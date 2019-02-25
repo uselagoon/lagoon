@@ -18,6 +18,7 @@ const query = gql`
       created
       gitUrl
       productionEnvironment
+      developmentEnvironmentsLimit
       environments {
         id
         name
