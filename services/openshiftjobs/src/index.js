@@ -111,16 +111,6 @@ const messageConsumer = async msg => {
     }
   });
 
-  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
-  // the OpenShift API does not support them.
-  const kubernetes = new OpenShiftClient.Core({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    }
-  });
-
   const batchApi = new OpenShiftClient.Batch({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
@@ -147,17 +137,17 @@ const messageConsumer = async msg => {
   // Get pod spec for desired service
   let taskPodSpec;
   try {
-    const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
-    const pods = await podsGet();
+    const deploymentConfigsGet = promisify(openshift.ns(openshiftProject).deploymentconfigs.get);
+    const deploymentConfigs = await deploymentConfigsGet();
 
-    const oneContainerPerSpec = pods.items.reduce(
-      (specs, pod) => ({
+    const oneContainerPerSpec = deploymentConfigs.items.reduce(
+      (specs, deploymentConfig) => ({
         ...specs,
-        ...pod.spec.containers.reduce(
+        ...deploymentConfig.spec.template.spec.containers.reduce(
           (specs, container) => ({
             ...specs,
             [container.name]: {
-              ...pod.spec,
+              ...deploymentConfig.spec.template.spec,
               containers: [container]
             }
           }),
