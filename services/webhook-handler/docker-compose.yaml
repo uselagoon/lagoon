@@ -17,7 +17,7 @@ services:
     links:
       - rabbitmq:3-management
     environment:
-      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_HOST=broker
     volumes:
       - ./src:/app/src
       - ./package.json:/app/package.json
