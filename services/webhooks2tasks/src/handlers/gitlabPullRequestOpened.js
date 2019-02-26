@@ -16,6 +16,15 @@ async function gitlabPullRequestOpened(webhook: WebhookRequestData, project: Pro
       body,
     } = webhook;
 
+    const meta = {
+      projectName: project.name,
+      pullrequestNumber: body.object_attributes.id,
+      pullrequestTitle: body.object_attributes.title,
+      pullrequestUrl: body.object_attributes.url,
+      repoName: body.object_attributes.target.name,
+      repoUrl: body.object_attributes.target.web_url,
+    }
+
     const headBranchName = body.object_attributes.source_branch
     const headSha = body.object_attributes.last_commit.id
     const baseBranchName = body.object_attributes.target_branch
@@ -50,7 +59,7 @@ async function gitlabPullRequestOpened(webhook: WebhookRequestData, project: Pro
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.object_attributes.id} opened. No remove task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.object_attributes.id} opened. No deploy task created, reason: ${error}`
           )
           return;
 
