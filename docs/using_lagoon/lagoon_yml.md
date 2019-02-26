@@ -14,6 +14,9 @@ The `.lagoon.yml` file must be placed at the root of your git repository.
 ```
 docker-compose-yaml: docker-compose.yml
 
+environment_variables:
+  git_sha: 'true'
+
 tasks:
   pre-rollout:
     - run:
@@ -76,6 +79,9 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 * `Allow` simply sets up both routes for http and https (this is the default).
 * `Redirect` will redirect any http requests to https
 * `None` will mean a route for http will _not_ be created, and no redirect
+
+### `environment_variables.git_sha`
+This setting allows you to enable injecting the deployed git SHA into your project as an environment variable. By default this is disabled, setting the value to `true` then sets the SHA as the environment variable `LAGOON_GIT_SHA`.
 
 ## Tasks
 
