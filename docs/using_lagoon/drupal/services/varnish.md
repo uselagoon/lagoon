@@ -85,7 +85,7 @@ If you come from other Drupal hosters or did for a Drupal 8 & Varnish tutorial b
 
 #### Usage of `Varnish Bundled Purger` instead of `Varnish Purger`
 
-The `Varnish Purger` purger sends a `BAN` request for each single Cache-Tag that should be invalidated. Drupal has a lot of Cache-Tags and therefore this could lead into quite an amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe (`|`) which fits perfectly to the varnish regex system of bans. This causes less requests and a less big ban list table inside Varnish.
+The `Varnish Purger` purger sends a `BAN` request for each single Cache-Tag that should be invalidated. Drupal has a lot of Cache-Tags and therefore this could lead into quite an amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe (`|`) which fits perfectly to the varnish regular expression system of bans. This causes less requests and a less big ban list table inside Varnish.
 
 #### Usage of `Purge Late runtime processor`
 
