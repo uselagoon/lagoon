@@ -74,7 +74,7 @@ class Project extends React.Component {
           </div>
           <div className='field-wrapper envlimit'>
             <div>
-              <label>Non-Production environments in use</label>
+              <label>Development environments in use</label>
               <div className='field'>{this.state.developEnvironmentCount} of {R.defaultTo('unlimited', this.props.project.developmentEnvironmentsLimit)}</div>
             </div>
           </div>
