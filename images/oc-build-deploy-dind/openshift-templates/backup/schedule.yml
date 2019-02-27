@@ -34,11 +34,30 @@ parameters:
   - name: BACKUP_SCHEDULE
     description: Schedule of the Backup in Cron format
     required: true
+  - name: CHECK_SCHEDULE
+    description: Schedule of the Backup Check in Cron format
+    required: true
+  - name: PRUNE_SCHEDULE
+    description: Schedule of the Backup Prune in Cron format
+    required: true
 objects:
 - apiVersion: backup.appuio.ch/v1alpha1
   kind: Schedule
   metadata:
     name: backup-schedule
   spec:
+    backend:
+      repoPasswordSecretRef:
+        key: repo-pw
+        name: baas-repo-pw
+      s3:
+        bucket: 'baas-${PROJECT}'
     backup:
+      keepJobs: 2
       schedule: '${BACKUP_SCHEDULE}'
+    check:
+      schedule: '${CHECK_SCHEDULE}'
+    prune:
+      retention:
+        keepDaily: 7
+      schedule: '${PRUNE_SCHEDULE}'
