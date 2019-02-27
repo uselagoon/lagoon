@@ -194,4 +194,8 @@ ${lastError}
 
 }
 
-consumeTasks('remove-openshift', messageConsumer, deathHandler)
+const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
+  return
+}
+
+consumeTasks('remove-openshift', messageConsumer, retryHandler, deathHandler)
