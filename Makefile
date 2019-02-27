@@ -116,8 +116,12 @@ images :=     oc \
 							nginx-drupal \
 							varnish \
 							varnish-drupal \
+							varnish-persistent \
+							varnish-persistent-drupal \
 							redis \
 							redis-persistent \
+							rabbitmq \
+							rabbitmq-cluster \
 							mongo \
 							elasticsearch \
 							kibana \
@@ -159,8 +163,12 @@ build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
+build/varnish-persistent: build/commons images/varnish/Dockerfile
+build/varnish-persistent-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
+build/rabbitmq: build/commons images/rabbitmq/Dockerfile
+build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
 build/elasticsearch: build/commons images/elasticsearch/Dockerfile
 build/logstash: build/commons images/logstash/Dockerfile
@@ -328,7 +336,7 @@ services :=       api \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
-									rabbitmq \
+									broker \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
@@ -453,7 +461,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = rabbitmq openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch
