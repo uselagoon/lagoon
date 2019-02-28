@@ -38,7 +38,7 @@ let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function send
 });
 
 let connection = (exports.connection = function connection() {});
-const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
+const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 

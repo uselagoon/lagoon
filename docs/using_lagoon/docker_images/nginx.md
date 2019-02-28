@@ -28,6 +28,12 @@ RUN echo "~^www.example.com           http://example.com\$request_uri;" >> /etc/
 
 To get more details about the various types of redirects that can be achieved see the documentation within the [redirects-map.conf](https://github.com/amazeeio/lagoon/blob/master/images/nginx/redirects-map.conf) directly.
 
+After you put the `redirects-map.conf` in place you also need to include it in your `Dockerfile.nginx` in order to get
+the configuration file into your build.
+
+```
+COPY redirects-map.conf /etc/nginx/redirects-map.conf
+```
 
 ### Basic Authentication
 If you want to protect your site via Basic Authentication you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your .lagoon.env.environment files.

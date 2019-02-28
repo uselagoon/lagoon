@@ -51,7 +51,7 @@ searchguard.cookie.password: "${SEARCHGUARD_COOKIE_PASSWORD:-aaaaaaaaaaaaaaaaaaa
 xpack.spaces.enabled: false\n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.5.4-17/search-guard-kibana-plugin-6.5.4-17.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.6.1-18.1/search-guard-kibana-plugin-6.6.1-18.1.zip
 
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/

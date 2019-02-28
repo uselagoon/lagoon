@@ -27,7 +27,7 @@ GRAPHQL='query developmentEnvironments {
 query=$(set -e -o pipefail; echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 DEVELOPMENT_ENVIRONMENTS=$(set -e -o pipefail; curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
 
-# All data successfully loaded, now we don't want to fail anymore if a single idleing fails
+# All data successfully loaded, now we don't want to fail anymore if a single idle fails
 set +eo pipefail
 
 # Filter only projects that actually have an environment
@@ -75,10 +75,10 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME no data found, skipping"
             continue
           elif [ "$HITS" -gt 0 ]; then
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last four hours, no idleing"
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last four hours, no idling"
           else
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last four hours, starting to idle"
-            # actually idleing happens here
+            # actually idling happens here
             oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle -l "service notin (mariadb,postgres)"
 
             ### Faster Unidling:
