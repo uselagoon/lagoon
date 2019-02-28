@@ -381,6 +381,7 @@ build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
+build/broker: build/rabbitmq-cluster
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
