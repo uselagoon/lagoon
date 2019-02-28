@@ -5,9 +5,7 @@ FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
-RUN apk update \
-    && apk upgrade \
-    && apk add git \
+RUN apk add --no-cache git \
         mysql-client \
         unzip \
         gzip  \
@@ -20,7 +18,7 @@ RUN apk update \
         coreutils \
         postgresql-client \
         openssh-sftp-server \
-    && apk add nodejs-current nodejs-npm yarn --update-cache --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
+    && apk add --no-cache nodejs-current nodejs-npm yarn --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
     && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.8.4/composer.phar \
