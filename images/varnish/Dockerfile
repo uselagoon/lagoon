@@ -58,6 +58,7 @@ ENV LAGOON_LOCALDEV_HTTP_PORT=8080
 ENV HTTP_RESP_HDR_LEN=8k \
     HTTP_RESP_SIZE=32k \
     NUKE_LIMIT=150 \
+    CACHE_TYPE=malloc \
     CACHE_SIZE=100M
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]

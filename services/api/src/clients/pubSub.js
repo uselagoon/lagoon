@@ -9,7 +9,7 @@ const sqlClient = require('./sqlClient');
 const { query } = require('../util/db');
 const environmentSql = require('../resources/environment/sql');
 
-const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
+const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
@@ -42,8 +42,7 @@ const pubSub = new AmqpPubSub({
   logger: new LoggerConverter(),
 });
 
-const createEnvironmentFilteredSubscriber = (events: string[]) => {
-  return {
+const createEnvironmentFilteredSubscriber = (events: string[]) => ({
     // Allow publish functions to pass data without knowledge of query schema.
     resolve: (payload: Object) => payload,
     subscribe: async (rootValue: any, args: any, context: any, info: any) => {
@@ -72,8 +71,7 @@ const createEnvironmentFilteredSubscriber = (events: string[]) => {
 
       return filtered(rootValue, args, context, info);
     },
-  };
-};
+  });
 
 module.exports = {
   pubSub,

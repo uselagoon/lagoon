@@ -16,7 +16,14 @@ async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project:
       body,
     } = webhook;
 
-    console.log(body);
+    const meta = {
+      projectName: project.name,
+      pullrequestTitle: body.pullrequest.title,
+      pullrequestNumber: body.pullrequest.id,
+      pullrequestUrl: body.pullrequest.destination.repository.links.html.href,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.links.html.href,
+    }
 
     const headBranchName = body.pullrequest.source.branch.name
     const headSha = body.pullrequest.source.commit.hash
@@ -51,7 +58,7 @@ async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project:
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.object_attributes.id} opened. No remove task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.object_attributes.id} updated. No deploy task created, reason: ${error}`
           )
           return;
 
