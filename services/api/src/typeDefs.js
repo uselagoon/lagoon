@@ -495,7 +495,7 @@ const typeDefs = gql`
     activeSystemsTask: String
     branches: String
     pullrequests: String
-    productionEnvironment: String
+    productionEnvironment: String!
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int

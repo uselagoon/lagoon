@@ -195,22 +195,7 @@ ${lastError}
 }
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
-  const {
-    projectName,
-    branch,
-    pullrequestNumber,
-    type
-  } = JSON.parse(msg.content.toString())
-
-  const openshiftProject = ocsafety(`${projectName}-${branch || pullrequestNumber}`)
-
-  sendToLagoonLogs('warn', projectName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${projectName}]* remove \`${openshiftProject}\` ERROR:
-\`\`\`
-${error}
-\`\`\`
-Retrying in ${retryExpirationSecs} secs`
-  )
+  return
 }
 
 consumeTasks('remove-openshift', messageConsumer, retryHandler, deathHandler)

@@ -31,6 +31,18 @@ const lagoonApiRoute = R.compose(
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
+const failTask = async task => {
+  try {
+    await updateTask(task.id, {
+      status: 'FAILED',
+    });
+  } catch (error) {
+    logger.error(
+      `Could not fail task ${task.id}. Message: ${error}`
+    );
+  }
+}
+
 const messageConsumer = async msg => {
   const { project, task, environment } = JSON.parse(msg.content.toString());
 
@@ -99,16 +111,6 @@ const messageConsumer = async msg => {
     }
   });
 
-  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
-  // the OpenShift API does not support them.
-  const kubernetes = new OpenShiftClient.Core({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    }
-  });
-
   const batchApi = new OpenShiftClient.Batch({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
@@ -124,6 +126,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Project ${openshiftProject} does not exist, bailing`);
+      failTask(task);
       return;
     } else {
       logger.error(err);
@@ -134,17 +137,17 @@ const messageConsumer = async msg => {
   // Get pod spec for desired service
   let taskPodSpec;
   try {
-    const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
-    const pods = await podsGet();
+    const deploymentConfigsGet = promisify(openshift.ns(openshiftProject).deploymentconfigs.get);
+    const deploymentConfigs = await deploymentConfigsGet();
 
-    const oneContainerPerSpec = pods.items.reduce(
-      (specs, pod) => ({
+    const oneContainerPerSpec = deploymentConfigs.items.reduce(
+      (specs, deploymentConfig) => ({
         ...specs,
-        ...pod.spec.containers.reduce(
+        ...deploymentConfig.spec.template.spec.containers.reduce(
           (specs, container) => ({
             ...specs,
             [container.name]: {
-              ...pod.spec,
+              ...deploymentConfig.spec.template.spec,
               containers: [container]
             }
           }),
@@ -156,6 +159,7 @@ const messageConsumer = async msg => {
 
     if (!oneContainerPerSpec[task.service]) {
       logger.error(`No spec for service ${task.service}, bailing`);
+      failTask(task);
       return;
     }
 
@@ -271,6 +275,8 @@ const messageConsumer = async msg => {
 
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
+
+  failTask(task);
 
   sendToLagoonLogs(
     'error',

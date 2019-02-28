@@ -3,7 +3,7 @@
 const amqp = require('amqp-connection-manager');
 const { logger } = require('./local-logging');
 
-const rabbitmqHost = process.env.RABBITMQ_HOST || 'rabbitmq';
+const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 let channelWrapperLogs;
