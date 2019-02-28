@@ -85,13 +85,15 @@ async function processOther(
       await handle(gitlabUserProjectRemove, webhook, `${webhooktype}:${event}`);
       break;
 
-    case "gitlab:key_create":
-      await handle(gitlabSshKeyAdd, webhook, `${webhooktype}:${event}`);
-      break;
+    // https://govdex.gov.au/jira/browse/GOVCMS-2658
+    // Disable SSH Key Syncing for now
+    // case "gitlab:key_create":
+    //   await handle(gitlabSshKeyAdd, webhook, `${webhooktype}:${event}`);
+    //   break;
 
-    case "gitlab:key_destroy":
-      await handle(gitlabSshKeyRemove, webhook, `${webhooktype}:${event}`);
-      break;
+    // case "gitlab:key_destroy":
+    //   await handle(gitlabSshKeyRemove, webhook, `${webhooktype}:${event}`);
+    //   break;
 
     default:
       unhandled(webhook, `${webhooktype}:${event}`);
