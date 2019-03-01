@@ -25,7 +25,7 @@ node {
         stage ('push images to amazeeiolagoon/*') {
           withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
             sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages PUBLISH_TAG=${SAFEBRANCH_NAME} -j4"
+            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME} -j4"
           }
         }
 
@@ -75,23 +75,21 @@ node {
           )
         }
 
-        if (env.BRANCH_NAME == 'master') {
-          parallel (
-            'publish-amazeeio': {
-              stage ('publish-amazeeio') {
-                withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-                  sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                  sh "make publish-amazeeio-baseimages -j4"
-                }
-              }
-            },
-            'save-images-s3': {
-              stage ('save-images-s3') {
-                sh "make s3-save -j8"
-              }
+        if (env.TAG_NAME) {
+          stage ('publish-amazeeio') {
+            withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+              sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+              sh "make publish-amazeeio-baseimages -j4"
             }
-          )
+          }
         }
+
+        if (env.BRANCH_NAME == 'master') {
+          stage ('save-images-s3') {
+            sh "make s3-save -j8"
+          }
+        }
+
       } catch (e) {
         currentBuild.result = 'FAILURE'
         throw e

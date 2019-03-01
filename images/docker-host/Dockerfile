@@ -5,6 +5,9 @@ FROM docker:stable-dind
 LABEL maintainer="amazee.io"
 ENV LAGOON=docker-host
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/

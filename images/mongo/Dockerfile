@@ -5,6 +5,8 @@ FROM alpine:3.8
 LABEL maintainer="amazee.io"
 ENV LAGOON=mongo
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/

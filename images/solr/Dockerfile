@@ -6,6 +6,9 @@ FROM solr:${SOLR_MAJ_MIN_VERSION}-alpine
 LABEL maintainer="amazee.io"
 ENV LAGOON=solr
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/

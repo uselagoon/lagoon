@@ -7,6 +7,9 @@ ENV LAGOON=logstash
 
 USER root
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
