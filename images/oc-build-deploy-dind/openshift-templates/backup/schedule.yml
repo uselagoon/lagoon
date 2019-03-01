@@ -53,11 +53,11 @@ objects:
       s3:
         bucket: 'baas-${PROJECT}'
     backup:
-      keepJobs: 2
       schedule: '${BACKUP_SCHEDULE}'
     check:
       schedule: '${CHECK_SCHEDULE}'
     prune:
       retention:
         keepDaily: 7
+        keepWeekly: 4
       schedule: '${PRUNE_SCHEDULE}'
