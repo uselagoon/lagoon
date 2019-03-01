@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
-LAGOON_VERSION := $(shell git describe --tags)
+LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Name of the Branch we are currently in
 BRANCH_NAME :=
 
