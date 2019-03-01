@@ -16,6 +16,7 @@ node {
         stage ('Checkout') {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
+          sh "git fetch --tags"
         }
 
         stage ('build images') {
