@@ -34,6 +34,7 @@ else
   LAGOON_GIT_SHA="0000000000000000000000000000000000000000"
 fi
 
+set +x
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
 docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
@@ -41,6 +42,7 @@ docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
+set -x
 
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 
