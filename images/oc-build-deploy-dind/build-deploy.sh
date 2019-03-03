@@ -44,6 +44,9 @@ DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
 set -x
 
+# Generate the Fingerprint of the PublicKey of this Cluster (will be used as seed to generate hashes)
+CLUSTER_PUBKEY_FINGERPRINT=$(openssl x509 -in /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -noout -pubkey | grep -v 'PUBLIC KEY' | base64 -d | sha256sum | cut -d " " -f 1)
+
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 
 for ADDITIONAL_YAML in "${ADDITIONAL_YAMLS[@]}"

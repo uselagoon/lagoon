@@ -20,13 +20,11 @@ const saveSnapshotAsBackup = async (snapshot, environmentId) => {
   );
 
   // Determine source from the snapshot path.
-  // 1: `stdin` anywhere in the string --> which means it's a mysql backup (loaded from the stdin)
-  // 2: `/data/*` --> means this is a PVC we use whatever is after `/data/` as the name of the backup
-  // 3: `*.tar` or `*.sql` --> current implementation with the name of the backup right before the ending, for example: foo.bar.tar (the backup is called `bar`)
-  // 4: anything with `-cli-` but NOT `.tar` or `.sql` endings (as already catched by Nr 3) --> again just a mysql backup
+  // 1: `/data/*` --> means this is a PVC we use whatever is after `/data/` as the name of the backup
+  // 2: `*.tar` or `*.sql` --> current implementation with the name of the backup right before the ending, for example: foo.bar.tar (the backup is called `bar`)
   let source;
   const paths = R.prop('paths', snapshot);
-  const pattern = /(stdin)|^\/data\/.([\w-]+)|([\w-]+).(?:sql|tar)|(cli).*(?<!tar|sql)$/;
+  const pattern = /^\/data\/([\w-]+)|([\w-]+).(?:sql|tar)$/;
   if (R.isEmpty(paths)) {
     source = 'unknown';
   } else {
@@ -36,13 +34,9 @@ const saveSnapshotAsBackup = async (snapshot, environmentId) => {
     } else {
       const matches = R.match(pattern, path);
       if (R.prop(1, matches)) {
-        source = 'mysql';
+        source = R.prop(1, matches);
       } else if (R.prop(2, matches)) {
         source = R.prop(2, matches);
-      } else if (R.prop(3, matches)) {
-        source = R.prop(3, matches);
-      } else if (R.prop(4, matches)) {
-        source = 'mysql';
       } else {
         source = 'unknown';
       }

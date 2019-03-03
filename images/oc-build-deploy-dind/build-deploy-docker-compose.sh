@@ -440,10 +440,25 @@ fi
 
 # If restic backups are supported by this cluster we create the schedule definition
 if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
+
+  if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
+    # Create baas-repo-pw secret based on Cluster Public Key and Project Name (the Cluster Public Key is used so that the password cannot easily be generated from the public known pw)
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo "$CLUSTER_PUBKEY_FINGERPRINT-$PROJECT" | sha256sum | cut -d " " -f 1)
+  fi
+
   TEMPLATE_PARAMETERS=()
 
+  # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
+
+  # Run Checks on Sunday at 0300-0600
+  CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 0")
+  TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
+
+  # Run Prune on Saturday at 0300-0600
+  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
+  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup/schedule.yml"
   .  /oc-build-deploy/scripts/exec-openshift-resources.sh
