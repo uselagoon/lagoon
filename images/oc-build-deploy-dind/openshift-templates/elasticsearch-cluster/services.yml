@@ -56,3 +56,25 @@ objects:
       service: ${SERVICE_NAME}
   status:
     loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}-service
+  spec:
+    ports:
+    - name: 9200-tcp
+      port: 9200
+      protocol: TCP
+    - name: 9300-tcp
+      port: 9300
+      protocol: TCP
+    selector:
+      service: ${SERVICE_NAME}
+  status:
+    loadBalancer: {}
