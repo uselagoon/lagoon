@@ -125,7 +125,7 @@ const messageConsumer = async msg => {
           "nodeSelector": null,
           "postCommit": {},
           "resources": {},
-          "runPolicy": "Serial",
+          "runPolicy": "SerialLatestOnly",
           "successfulBuildsHistoryLimit": 1,
           "failedBuildsHistoryLimit": 1,
           "source": {
