@@ -18,8 +18,6 @@ else
   /oc-build-deploy/scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
 fi
 
-LAGOON_GIT_SHA=`git rev-parse HEAD`
-
 if [[ -n "$SUBFOLDER" ]]; then
   cd $SUBFOLDER
 fi
@@ -28,6 +26,15 @@ if [ ! -f .lagoon.yml ]; then
   echo "no .lagoon.yml file found"; exit 1;
 fi
 
+INJECT_GIT_SHA=$(cat .lagoon.yml | shyaml get-value environment_variables.git_sha false)
+if [ "$INJECT_GIT_SHA" == "true" ]
+then
+  LAGOON_GIT_SHA=`git rev-parse HEAD`
+else
+  LAGOON_GIT_SHA="0000000000000000000000000000000000000000"
+fi
+
+set +x
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
 docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
@@ -35,6 +42,10 @@ docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
+set -x
+
+# Generate the Fingerprint of the PublicKey of this Cluster (will be used as seed to generate hashes)
+CLUSTER_PUBKEY_FINGERPRINT=$(openssl x509 -in /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -noout -pubkey | grep -v 'PUBLIC KEY' | base64 -d | sha256sum | cut -d " " -f 1)
 
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 

@@ -2,6 +2,9 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM postgres:alpine
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/

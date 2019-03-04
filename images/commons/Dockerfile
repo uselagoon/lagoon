@@ -26,6 +26,7 @@ RUN chmod g+w /etc/passwd
 
 ARG LAGOON_VERSION
 RUN echo $LAGOON_VERSION > /lagoon/version
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 ENV TMPDIR=/tmp \
     TMP=/tmp \

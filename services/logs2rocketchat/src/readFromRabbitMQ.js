@@ -131,7 +131,11 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       } else {
         text = `${text} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` complete. ${meta.logLink} \n ${meta.route}\n ${meta.routes.join("\n")}`
+      text = `${text} Build \`${meta.buildName}\` complete.`
+      if (meta.logLink){
+        text = `${text} [Logs](${meta.logLink})\n`
+      }
+      text = `\n${text}${meta.route}\n ${meta.routes.join("\n")}`
       sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
@@ -154,7 +158,10 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       } else {
         text = `${text} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` failed. ${meta.logLink}`
+      text = `${text} Build \`${meta.buildName}\` failed.`
+      if (meta.logLink){
+        text = `${text} ${meta.logLink}`
+      }
       sendToRocketChat(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
@@ -168,7 +175,10 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       } else {
         text = `${text} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` failed. ${meta.logLink}`
+      text = `${text} Build \`${meta.buildName}\` failed.`
+      if (meta.logLink){
+        text = `${text} ${meta.logLink}`
+      }
       sendToRocketChat(project, text, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 

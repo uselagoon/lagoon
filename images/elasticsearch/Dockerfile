@@ -1,9 +1,12 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+FROM docker.elastic.co/elasticsearch/elasticsearch:6.6.1
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=elasticsearch
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
@@ -37,6 +40,8 @@ RUN echo $'xpack.security.enabled: false\n\
 node.name: "${HOSTNAME}"\n\
 node.master: "${NODE_MASTER}"\n\
 discovery.zen.minimum_master_nodes: "${DISCOVERY_ZEN_MINIMUM_MASTER_NODES}"' >> config/elasticsearch.yml
+
+RUN fix-permissions config
 
 ENV ES_JAVA_OPTS="-Xms200m -Xmx200m" \
     DISCOVERY_ZEN_MINIMUM_MASTER_NODES=1 \
