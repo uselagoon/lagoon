@@ -27,24 +27,26 @@ const ApiConnection = ({ children }) =>
         },
       })
 
-      const wsLink = new WebSocketLink({
-        uri: publicRuntimeConfig.GRAPHQL_API.replace(/https/, 'wss').replace(/http/, 'ws'),
-        options: {
-          reconnect: true,
-          connectionParams: {
-              authToken: auth.apiToken,
+      const HttpWebsocketLink = () => {
+        const wsLink = new WebSocketLink({
+          uri: publicRuntimeConfig.GRAPHQL_API.replace(/https/, 'wss').replace(/http/, 'ws'),
+          options: {
+            reconnect: true,
+            connectionParams: {
+                authToken: auth.apiToken,
+            },
           },
-        },
-      });
+        });
 
-      const requestLink = ApolloLink.split(
-        ({ query }) => {
-          const { kind, operation } = getMainDefinition(query);
-          return kind === 'OperationDefinition' && operation === 'subscription';
-        },
-        wsLink,
-        httpLink
-      );
+        return ApolloLink.split(
+          ({ query }) => {
+            const { kind, operation } = getMainDefinition(query);
+            return kind === 'OperationDefinition' && operation === 'subscription';
+          },
+          wsLink,
+          httpLink
+        );
+      }
 
       const client = new ApolloClient({
         link: ApolloLink.from([
@@ -57,7 +59,8 @@ const ApiConnection = ({ children }) =>
               );
             if (networkError) console.log(`[Network error]: ${networkError}`);
           }),
-          requestLink
+          // Disable websockets when rendering server side.
+          process.browser ? HttpWebsocketLink() : httpLink
         ]),
         cache: new InMemoryCache()
       });
