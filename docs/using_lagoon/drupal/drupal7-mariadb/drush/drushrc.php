@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Amazee.io drushrc.php file.
+ * amazee.io drushrc.php file
  *
  * This file tells drush about the amazee.io environment
  * It contains some defaults that the amazee.io team suggests, please edit them as required.
