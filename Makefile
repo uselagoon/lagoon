@@ -54,18 +54,26 @@ SHELL := /bin/bash
 # Parameter for all `docker build` commands, can be overwritten by passing `DOCKER_BUILD_PARAMS=` via the `-e` option
 DOCKER_BUILD_PARAMS := --quiet
 
-# Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.34.1
-OPENSHIFT_VERSION := v3.11.0
-
-MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 8GB
-MINISHIFT_DISK_SIZE := 30GB
-
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
+
+# Version and Hash of the OpenShift cli that should be downloaded
+
+MINISHIFT_VERSION := 1.34.1
+OPENSHIFT_VERSION := v3.11.0
+MINISHIFT_PROFILE := $(CI_BUILD_TAG)-minishift
+MINISHIFT_CPUS := 6
+MINISHIFT_MEMORY := 8GB
+MINISHIFT_DISK_SIZE := 30GB
+
+# Version and Hash of the minikube cli that should be downloaded
+MINIKUBE_VERSION := 0.34.1
+MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
+MINIKUBE_CPUS := 6
+MINIKUBE_MEMORY := 2048
+MINIKUBE_DISK_SIZE := 30g
 
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
@@ -794,25 +802,25 @@ ifeq ($(ARCH), darwin)
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
 	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 else
-	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
+	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 endif
-	./local-dev/minishift/minishift ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
+	eval $$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) oc-env); \
 	oc login -u system:admin; \
-	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
-	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
-	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
+	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
+	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
+	@echo "$$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ip)" > $@
 	@echo "wait 60secs in order to give openshift time to setup it's registry"
 	sleep 60
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
+	eval $$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) oc-env); \
+	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
 	$(MAKE) minishift/configure-lagoon-local push-docker-host-image
 
 minishift/login-docker-registry:
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	eval $$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) oc-env); \
 	oc login --insecure-skip-tls-verify -u developer -p developer $$(cat minishift):8443; \
 	oc whoami -t | docker login --username developer --password-stdin $$(cat minishift):30000
 
@@ -820,7 +828,7 @@ minishift/login-docker-registry:
 .PHONY: openshift-lagoon-setup
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
-	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
+	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) oc-env); fi; \
 	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5140; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
@@ -852,14 +860,14 @@ openshift-lagoon-setup:
 # It then overwrites the docker-host deploymentconfig and cronjobs to use our own just-built docker-host images.
 .PHONY: minishift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
-	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	eval $$(./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) oc-env); \
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140;
 
 # Stop MiniShift
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
+	./local-dev/minishift/minishift --profile $(MINISHIFT_PROFILE) delete --force
 	rm -f minishift
 
 # Stop All MiniShifts
@@ -889,6 +897,54 @@ else
 	$(info downloading minishift version $(MINISHIFT_VERSION) for $(ARCH))
 	curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-$(ARCH)-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
+
+# Start Local kubernetes Cluster within a docker machine with a given name, also check if the IP
+# that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
+minikube: local-dev/minikube
+	$(info starting minikube with name $(MINIKUBE_PROFILE))
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) start --cpus $(MINIKUBE_CPUS) --memory $(MINIKUBE_MEMORY) --disk-size $(MINIKUBE_DISK_SIZE) --vm-driver virtualbox --kubernetes-version="v1.13.4"
+# ifeq ($(ARCH), Darwin)
+# 	@MINIKUBE_MACHINE_IP=$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip); \
+# 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$MINIKUBE_MACHINE_IP'"; \
+# 	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${MINIKUBE_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
+# else
+# 	@MINIKUBE_MACHINE_IP=$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip); \
+# 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$MINIKUBE_MACHINE_IP'"; \
+# 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${MINIKUBE_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
+# endif
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
+	# eval $$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) oc-env); \
+	# oc login -u system:admin; \
+	# bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="default/$$(./local-dev/minishift/minishift --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
+	# oc --context="default/$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	# oc --context="default/$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
+	@echo "$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip)" > $@
+	# @echo "wait 60secs in order to give openshift time to setup it's registry"
+	# sleep 60
+	# eval $$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) oc-env); \
+	# for i in {10..30}; do oc --context="default/$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
+	# $(MAKE) minikube/configure-lagoon-local push-docker-host-image
+
+# Stop kubernetes Cluster
+.PHONY: minikube/stop
+minikube/stop: local-dev/minikube
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) delete
+	rm minikube
+
+# Stop kubernetes, remove downloaded minikube
+.PHONY: minikube/clean
+minikube/clean: minikube/stop
+	rm -rf ./local-dev/minikube
+
+# Downloads the correct minikube cli client based on if we are on OS X or Linux
+local-dev/minikube:
+	$(info downloading minikube)
+ifeq ($(ARCH), Darwin)
+		curl -Lo local-dev/minikube https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-darwin-amd64
+else
+		curl -Lo local-dev/minikube https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-linux-amd64
+endif
+	chmod +x local-dev/minikube
 
 .PHONY: push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:

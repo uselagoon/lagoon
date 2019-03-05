@@ -7,6 +7,7 @@ deploytest
 startVagrant.sh
 local-dev/oc
 minishift
+minikube
 **/v8-*
 node_modules/
 build/*
