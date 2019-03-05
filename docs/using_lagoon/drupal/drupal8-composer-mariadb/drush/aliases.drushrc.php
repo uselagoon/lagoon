@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * Don't change anything here, it's magic!
  */
 
