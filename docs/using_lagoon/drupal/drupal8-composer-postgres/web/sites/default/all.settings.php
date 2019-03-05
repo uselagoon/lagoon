@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Lagoon Drupal 8 all environment configuration file.
