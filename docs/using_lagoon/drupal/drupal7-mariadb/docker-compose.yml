@@ -84,13 +84,15 @@ services:
     environment:
       << : *default-environment
 
-  redis:
-    image: amazeeio/redis
-    labels:
-      lagoon.type: redis
-    environment:
-      << : *default-environment
+  ## Uncomment for Redis
+  # redis:
+  #   image: amazeeio/redis
+  #   labels:
+  #     lagoon.type: redis
+  #   environment:
+  #     << : *default-environment
 
+  ## Uncomment for Solr
   # solr:
   #   image: amazeeio/solr:6.6-drupal
   #   labels:
