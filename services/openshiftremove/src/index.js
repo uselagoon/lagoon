@@ -2,6 +2,7 @@
 
 const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
+const { ServiceCatalog } = require('@lagoon/commons/src/openshiftApi');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   sendToLagoonLogs,
@@ -102,6 +103,91 @@ const messageConsumer = async function(msg) {
     }
   });
 
+  const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
+
+  const serviceCatalog = new ServiceCatalog({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
+    }
+  });
+
+  const serviceInstancesGet = promisify(
+    serviceCatalog.ns(openshiftProject).serviceinstances.get
+  );
+
+  const serviceInstanceDelete = async name => {
+    const deleteFn = promisify(
+      serviceCatalog.ns(openshiftProject).serviceinstances(name).delete
+    );
+
+    return deleteFn({
+      body: {
+        kind: 'DeleteOptions',
+        apiVersion: 'servicecatalog.k8s.io/v1beta1'
+      }
+    });
+  };
+
+  const serviceBindingsGet = promisify(
+    serviceCatalog.ns(openshiftProject).servicebindings.get
+  );
+
+  const serviceBindingDelete = async name => {
+    const deleteFn = promisify(serviceCatalog.ns(openshiftProject).servicebindings(name).delete);
+
+    return deleteFn({
+      body: {
+        kind: 'DeleteOptions',
+        apiVersion: 'servicecatalog.k8s.io/v1beta1'
+      }
+    });
+  };
+
+
+  const hasZeroPods = () =>
+    new Promise(async (resolve, reject) => {
+      const pods = await podsGet();
+      if (pods.items.length === 0) {
+        logger.info(`${openshiftProject}: All Pods deleted`);
+        resolve();
+      } else {
+        logger.info(
+          `${openshiftProject}: Pods not deleted yet, will try again in 2sec`
+        );
+        reject();
+      }
+    });
+
+  const hasZeroServiceBindings = () =>
+    new Promise(async (resolve, reject) => {
+      const serviceBindings = await serviceBindingsGet();
+      if (serviceBindings.items.length === 0) {
+        logger.info(`${openshiftProject}: All ServiceBindings deleted`);
+        resolve();
+      } else {
+        logger.info(
+          `${openshiftProject}: ServiceBindings not deleted yet, will try again in 2sec`
+        );
+        reject();
+      }
+    });
+
+  const hasZeroServiceInstances = () =>
+    new Promise(async (resolve, reject) => {
+      const serviceInstances = await serviceInstancesGet();
+      if (serviceInstances.items.length === 0) {
+        logger.info(`${openshiftProject}: All ServiceInstances deleted`);
+        resolve();
+      } else {
+        logger.info(
+          `${openshiftProject}: ServiceInstances not deleted yet, will try again in 10sec`
+        );
+        reject();
+      }
+    });
+
   const meta = {
     projectName: projectName,
     openshiftProject: openshiftProject
@@ -169,7 +255,6 @@ const messageConsumer = async function(msg) {
       );
     }
 
-    const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
     const pods = await podsGet();
     for (let pod of pods.items) {
       const podDelete = promisify(
@@ -185,24 +270,48 @@ const messageConsumer = async function(msg) {
       logger.info(`${openshiftProject}: Deleted Pod ${pod.metadata.name}`);
     }
 
-    const hasZeroPods = () =>
-      new Promise(async (resolve, reject) => {
-        const pods = await podsGet();
-        if (pods.items.length === 0) {
-          logger.info(`${openshiftProject}: All Pods deleted`);
-          resolve();
-        } else {
-          logger.info(
-            `${openshiftProject}: Pods not deleted yet, will try again in 2sec`
-          );
-          reject();
-        }
-      });
+    const serviceBindings = await serviceBindingsGet();
+    for (let serviceBinding of serviceBindings.items) {
+      await serviceBindingDelete(serviceBinding.metadata.name);
 
+      logger.info(
+        `${openshiftProject}: Deleting ServiceBinding ${
+          serviceBinding.metadata.name
+        }`
+      );
+    }
+
+    // ServiceBindings are deleted quickly, but we still have to wait before
+    // we attempt to delete the ServiceInstance.
     try {
-      await retry(10, hasZeroPods, 2000);
+      await retry(10, hasZeroServiceBindings, 2000);
     } catch (err) {
-      throw new Error(`${openshiftProject}: Pods not deleted`);
+      throw new Error(
+        `${openshiftProject}: ServiceBindings not deleted`
+      );
+    }
+
+    const serviceInstances = await serviceInstancesGet();
+    for (let serviceInstance of serviceInstances.items) {
+      await serviceInstanceDelete(serviceInstance.metadata.name);
+
+      logger.info(
+        `${openshiftProject}: Deleting ServiceInstance ${
+          serviceInstance.metadata.name
+        }`
+      );
+    }
+
+    // Confirm all pods and ServiceInstances are deleted.
+    try {
+      await Promise.all([
+        retry(10, hasZeroPods, 2000),
+        retry(12, hasZeroServiceInstances, 10000)
+      ]);
+    } catch (err) {
+      throw new Error(
+        `${openshiftProject}: Pods or ServiceInstances not deleted`
+      );
     }
 
     const projectsDelete = promisify(
