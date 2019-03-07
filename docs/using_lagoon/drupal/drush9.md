@@ -33,3 +33,15 @@ and to use them: `drush @lagoon.master ssh`
 ### Update Site Aliases
 
 If a new environment in Lagoon has been created, you can just run `drush site:alias-convert` to update the site aliases file.
+
+### Drush rsync from local to remote environments
+
+If you like to sync files from a local to a remote environment you need to pass additional parameters:
+
+```
+drush rsync @self:%files @lagoon.master:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
+```
+
+This is not necessary if you rsync from a remote to a local environment.
+
+Also we're (working with the Drush Maintainers)[https://github.com/drush-ops/drush/issues/3491] to find a way to inject this fully automatically.

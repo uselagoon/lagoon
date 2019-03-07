@@ -36,7 +36,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
   else
     echo "MySQL data directory not found, creating initial DBs"
 
-    mysql_install_db --skip-name-resolve --skip-auth-anonymous-user
+    mysql_install_db --skip-name-resolve --skip-auth-anonymous-user --datadir=/var/lib/mysql --basedir=/usr
 
     echo "starting mysql for initdb.d import."
     /usr/bin/mysqld --skip-networking --wsrep_on=OFF &

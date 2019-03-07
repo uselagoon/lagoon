@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-rabbitmq-cluster
 parameters:
   - name: SERVICE_NAME
     description: Name of this service

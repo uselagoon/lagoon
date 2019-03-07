@@ -16,7 +16,6 @@ service to `docker-compose.yaml`.
 Also, to configure redis, add the following to your `settings.php`.
 
 
-
 ### Drupal 7
 ```
 if(getenv('LAGOON')){
@@ -91,3 +90,12 @@ redis:
   environment:
     << : *default-environment
 ```
+
+## Environment Variables
+Environment variables are meant to do common behavior changes of redis.
+
+| Environment Variable   | Default   | Description                                    |
+| -----------------------| --------- | ---------------------------------------------- |
+| `LOGLEVEL`             | `notice`  | Redis Loglevel                                 |
+| `DATABASES`            | `1`       | Number of Databases                            |
+| `MAXMEMORY`            | `100mb`   | Maximum Memory usage of Redis                  |

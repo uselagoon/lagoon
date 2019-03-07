@@ -219,20 +219,27 @@ objects:
       <label @LAGOON_ELASTICSEARCH>
         <match **>
           @type elasticsearch
+          #with_transporter_log true
+          #@log_level debug
           host logs-db
           port 9200
           templates { "container-logs": "/fluentd/etc/container-logs.json"}
           template_overwrite true
           target_index_key index_name
           index_name container-logs-noproject-%Y.%m
+          reconnect_on_error true
+          reload_on_failure true
+          ssl_version TLSv1_2
+          request_timeout 60s
+          slow_flush_log_threshold 90s
           <buffer tag,time>
             @type file
             path /fluentd/buffer/elasticsarch
             timekey 3600
             timekey_wait 0s
             flush_mode interval
-            flush_interval 1s
-            chunk_limit_size 256MB
+            flush_interval 10s
+            chunk_limit_size 16MB
             total_limit_size 15GB
             flush_thread_count 8
             overflow_action block

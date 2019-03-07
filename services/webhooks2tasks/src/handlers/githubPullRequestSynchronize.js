@@ -1,10 +1,21 @@
 // @flow
 
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
+
+const isEditAction = R.propEq('action', 'edited');
+
+const onlyBodyChanges = R.pipe(
+  R.propOr({}, 'changes'),
+  R.keys,
+  R.equals(['body']),
+);
+
+const skipRedeploy = R.and(isEditAction, onlyBodyChanges);
 
 async function githubPullRequestSynchronize(webhook: WebhookRequestData, project: Project) {
 
@@ -16,9 +27,21 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
       body,
     } = webhook;
 
-    if (body.action == 'updated' && !('base' in body.changes)) {
-      // we are only interested in this webhook if the base had been updated, ofter updates like title or description don't need a redeploy
-      return
+    const meta = {
+      projectName: project.name,
+      pullrequestTitle: body.pull_request.title,
+      pullrequestNumber: body.number,
+      pullrequestUrl: body.pull_request.html_url,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.html_url,
+    }
+
+    // Don't trigger deploy if only the PR body was edited.
+    if (skipRedeploy(body)) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* PR ${body.number} updated. No deploy task created, reason: Only body changed`
+      )
+      return;
     }
 
     const headBranchName = body.pull_request.head.ref
@@ -54,7 +77,7 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.number} opened. No remove task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: ${error}`
           )
           return;
 

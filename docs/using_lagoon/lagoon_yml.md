@@ -14,6 +14,9 @@ The `.lagoon.yml` file must be placed at the root of your git repository.
 ```
 docker-compose-yaml: docker-compose.yml
 
+environment_variables:
+  git_sha: 'true'
+
 tasks:
   pre-rollout:
     - run:
@@ -21,10 +24,6 @@ tasks:
         command: mkdir -p /app/web/sites/default/files/private/ && drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz
         service: cli
   post-rollout:
-    - run:
-        name: env variables
-        command: env
-        service: cli
     - run:
         name: drush cim
         command: drush -y cim
@@ -46,6 +45,7 @@ environments:
     routes:
       - nginx:
         - example.com
+        - example.net
         - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
@@ -76,6 +76,9 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 * `Allow` simply sets up both routes for http and https (this is the default).
 * `Redirect` will redirect any http requests to https
 * `None` will mean a route for http will _not_ be created, and no redirect
+
+### `environment_variables.git_sha`
+This setting allows you to enable injecting the deployed git SHA into your project as an environment variable. By default this is disabled, setting the value to `true` then sets the SHA as the environment variable `LAGOON_GIT_SHA`.
 
 ## Tasks
 
@@ -129,8 +132,8 @@ As most of the time it is not desirable to run the same cronjobs across all envi
     * Just a friendly name for identifying what the cronjob will do
 * `schedule:`
     * The schedule at which to execute the cronjob. This follows the standard convention of cron. If you're not sure about the syntax [Crontab Generator](https://crontab-generator.org/) can help.
-    * You can specify `H` for the minute, and your cronjob will run once per hour at a random minute (the same minute each hour), or `H/15` to run it every 15 mins but with a random offset from the hour (like `6,21,36,51`)
-    * You can specify `H` for the hour, and your cronjob will run once per day at a random hour (the same hour every day)
+    * You can specify `M` for the minute, and your cronjob will run once per hour at a random minute (the same minute each hour), or `M/15` to run it every 15 mins but with a random offset from the hour (like `6,21,36,51`)
+    * You can specify `H` for the hour, and your cronjob will run once per day at a random hour (the same hour every day) or `H(2-4)` to run it once per day within the hours of 2-4
 * `command:`
     * The command to execute. Like the tasks, this executes in the WORKDIR of the service, for Lagoon images this is `/app`
 * `service:`

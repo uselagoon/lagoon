@@ -6,6 +6,9 @@ FROM php:${PHP_VERSION}-fpm-alpine
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 # Copy commons files
 COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
@@ -33,9 +36,7 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
 ENV NEWRELIC_VERSION=8.1.0.209
 
-RUN apk update \
-    && apk upgrade \
-    && apk add --no-cache fcgi \
+RUN apk add --no-cache fcgi \
         ssmtp \
         libzip libzip-dev \
         # for gd

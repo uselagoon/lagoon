@@ -1,13 +1,14 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/elasticsearch
 
-RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.5.4-24.0 \
+RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.6.1-24.1 \
     && chmod a+x plugins/search-guard-6/tools/install_demo_configuration.sh \
     && plugins/search-guard-6/tools/install_demo_configuration.sh -y \
     && sed -i 's/searchguard.ssl.http.*//' config/elasticsearch.yml \
     && sed -i 's/searchguard.audit.type: internal_elasticsearch//' config/elasticsearch.yml \
     && echo "searchguard.roles_mapping_resolution: BOTH" >> config/elasticsearch.yml \
     && echo "xpack.monitoring.collection.enabled: true" >> config/elasticsearch.yml \
+    && echo "xpack.monitoring.history.duration: 1d" >> config/elasticsearch.yml \
     && echo "node.attr.box_type: \${BOX_TYPE}" >> config/elasticsearch.yml \
     && chmod +x plugins/search-guard-6/tools/hash.sh
 

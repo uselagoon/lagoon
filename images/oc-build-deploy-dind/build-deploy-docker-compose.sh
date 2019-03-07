@@ -25,6 +25,7 @@ COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Default shared mariadb service broker
 MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
+MONGODB_SHARED_DEFAULT_CLASS="lagoon-maas-mongodb-apb"
 
 # Figure out which services should we handle
 SERVICE_TYPES=()
@@ -106,6 +107,19 @@ do
         MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
     else
         echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
+        exit 1
+    fi
+  fi
+
+  if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
+    MONGODB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.class "${MONGODB_SHARED_DEFAULT_CLASS}")
+    MONGODB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.plan "${ENVIRONMENT_TYPE}")
+
+    # Check if the defined service broker plan  exists
+    if svcat --scope cluster get plan --class "${MONGODB_SHARED_CLASS}" "${MONGODB_SHARED_PLAN}" > /dev/null; then
+        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MONGODB_SHARED_PLAN}"
+    else
+        echo "defined service broker plan '${MONGODB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MONGODB_SHARED_CLASS' not found in cluster";
         exit 1
     fi
   fi
@@ -426,10 +440,25 @@ fi
 
 # If restic backups are supported by this cluster we create the schedule definition
 if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
+
+  if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
+    # Create baas-repo-pw secret based on Cluster Public Key and Project Name (the Cluster Public Key is used so that the password cannot easily be generated from the public known pw)
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo "$CLUSTER_PUBKEY_FINGERPRINT-$PROJECT" | sha256sum | cut -d " " -f 1)
+  fi
+
   TEMPLATE_PARAMETERS=()
 
-  BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "H 0 * * *")
+  # Run Backups every day at 2200-0200
+  BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
+
+  # Run Checks on Sunday at 0300-0600
+  CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 0")
+  TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
+
+  # Run Prune on Saturday at 0300-0600
+  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
+  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup/schedule.yml"
   .  /oc-build-deploy/scripts/exec-openshift-resources.sh
@@ -593,6 +622,14 @@ if [[ $THIS_IS_TUG == "true" ]]; then
   done
 
 elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+
+  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  for IMAGE_NAME in "${!IMAGES_PULL[@]}"
+  do
+    PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
+    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+  done
+
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
   do
     # Before the push the temporary name is resolved to the future tag with the registry in the image name
@@ -607,12 +644,6 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
     parallel --retries 4 < /oc-build-deploy/lagoon/push
   fi
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
-  for IMAGE_NAME in "${!IMAGES_PULL[@]}"
-  do
-    PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
-  done
 elif [ "$TYPE" == "promote" ]; then
 
   for IMAGE_NAME in "${IMAGES[@]}"
@@ -815,6 +846,11 @@ do
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
 
   elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
+
+    STATEFULSET="${SERVICE_NAME}"
+    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
+
+  elif [ $SERVICE_TYPE == "rabbitmq-cluster" ]; then
 
     STATEFULSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-statefulset.sh

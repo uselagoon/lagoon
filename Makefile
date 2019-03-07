@@ -67,9 +67,9 @@ MINISHIFT_DISK_SIZE := 30GB
 CI_BUILD_TAG ?= lagoon
 
 ARCH := $(shell uname)
-VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
-# Docker Image Tag that should be used when publishing to docker hub registry
-PUBLISH_TAG :=
+LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
+# Name of the Branch we are currently in
+BRANCH_NAME :=
 
 #######
 ####### Functions
@@ -77,25 +77,24 @@ PUBLISH_TAG :=
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
 # 3. Location of Dockerfile
 # 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
 
-docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
+docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
 
-docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
+docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
 
-# Tags and image with the `amazeeio` repository and pushes it
-docker_publish_amazeeio_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(1) && docker push amazeeio/$(1) | cat
+# Tags an image with the `amazeeio` repository and pushes it
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
 
-# Tags and image with the `amazeeiolagoon` repository and pushes it
-docker_publish_amazeeiolagoon_serviceimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(1):$(PUBLISH_TAG) && docker push amazeeiolagoon/$(1):$(PUBLISH_TAG) | cat
-docker_publish_amazeeiolagoon_baseimages = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(PUBLISH_TAG)-$(1) && docker push amazeeiolagoon/$(PUBLISH_TAG)-$(1) | cat
+# Tags an image with the `amazeeiolagoon` repository and pushes it
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2) | cat
 
 
 #######
@@ -116,6 +115,8 @@ images :=     oc \
 							nginx-drupal \
 							varnish \
 							varnish-drupal \
+							varnish-persistent \
+							varnish-persistent-drupal \
 							redis \
 							redis-persistent \
 							rabbitmq \
@@ -161,6 +162,8 @@ build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
+build/varnish-persistent: build/commons images/varnish/Dockerfile
+build/varnish-persistent-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
@@ -216,7 +219,7 @@ $(build-phpimages): build/commons
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-base-images += $(phpimages)
+base-images-with-versions += $(phpimages)
 s3-images += php
 
 build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm: images/commons
@@ -258,7 +261,7 @@ $(build-solrimages): build/commons
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-base-images += $(solrimages)
+base-images-with-versions += $(solrimages)
 s3-images += solr
 
 build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
@@ -295,7 +298,7 @@ $(build-nodeimages): build/commons
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-base-images += $(nodeimages)
+base-images-with-versions += $(nodeimages)
 s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
@@ -377,6 +380,7 @@ build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
+build/broker: build/rabbitmq-cluster
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -422,7 +426,7 @@ s3-images += $(service-images)
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(base-images) $(service-images),build/$(image))
+build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images),build/$(image))
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
@@ -504,7 +508,7 @@ end2end-tests/clean:
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
 
 # push command of our base images into minishift
-push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
+push-minishift-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-minishift]-$(image))
 # tag and push all images
 .PHONY: push-minishift
 push-minishift: minishift/login-docker-registry $(push-minishift-images)
@@ -531,46 +535,81 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
-
+publish-amazeeio-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeio-baseimages-with-versions]-$(image))
 # tag and push all images
 .PHONY: publish-amazeeio-baseimages
-publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
+publish-amazeeio-baseimages: $(publish-amazeeio-baseimages) $(publish-amazeeio-baseimages-with-versions)
+
+
 # tag and push of each image
 .PHONY: $(publish-amazeeio-baseimages)
 $(publish-amazeeio-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages]-' first
 		$(eval image = $(subst [publish-amazeeio-baseimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_amazeeio,$(image),$(image):latest)
+# 	Publish images with version tag
+		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
+
+
+# tag and push of base image with version
+.PHONY: $(publish-amazeeio-baseimages-with-versions)
+$(publish-amazeeio-baseimages-with-versions):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages-with-versions]-' first
+		$(eval image = $(subst [publish-amazeeio-baseimages-with-versions]-,,$@))
+#   The underline is a placeholder for a colon, replace that
 		$(eval image = $(subst __,:,$(image)))
-		$(call docker_publish_amazeeio_baseimages,$(image))
+#		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
+#		Therefore they don't have any latest tag
+		$(call docker_publish_amazeeio,$(image),$(image))
+#		We add the Lagoon Version just as a dash
+		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
+
 
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
-
+publish-amazeeiolagoon-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeiolagoon-baseimages-with-versions]-$(image))
 # tag and push all images
 .PHONY: publish-amazeeiolagoon-baseimages
-publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages)
+publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages) $(publish-amazeeiolagoon-baseimages-with-versions)
+
+
 # tag and push of each image
 .PHONY: $(publish-amazeeiolagoon-baseimages)
 $(publish-amazeeiolagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages]-' first
 		$(eval image = $(subst [publish-amazeeiolagoon-baseimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+# tag and push of base image with version
+.PHONY: $(publish-amazeeiolagoon-baseimages-with-versions)
+$(publish-amazeeiolagoon-baseimages-with-versions):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages-with-versions]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-baseimages-with-versions]-,,$@))
+#   The underline is a placeholder for a colon, replace that
 		$(eval image = $(subst __,:,$(image)))
-		$(call docker_publish_amazeeiolagoon_baseimages,$(image))
+#		We add the Lagoon Version just as a dash
+		$(call docker_publish_amazeeiolagoon,$(image),$(image)-$(BRANCH_NAME))
 
-# Publish command to amazeeiolagoon docker hub, we want all branches there, so this is save to run on every deployment
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeiolagoon-serviceimages = $(foreach image,$(service-images),[publish-amazeeiolagoon-serviceimages]-$(image))
-
 # tag and push all images
 .PHONY: publish-amazeeiolagoon-serviceimages
 publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
+
+
 # tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-serviceimagesimages)
+.PHONY: $(publish-amazeeiolagoon-serviceimages)
 $(publish-amazeeiolagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[[publish]]-' first
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-serviceimages]-' first
 		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		$(call docker_publish_amazeeiolagoon_serviceimages,$(image))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
+
 
 s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
 # save all images to s3
