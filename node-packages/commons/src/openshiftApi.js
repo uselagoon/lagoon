@@ -14,6 +14,19 @@ class BaaS extends ApiGroup {
   }
 }
 
+class ServiceCatalog extends ApiGroup {
+  constructor(options) {
+    options = Object.assign({}, options, {
+      path: 'apis/servicecatalog.k8s.io',
+      version: options.version || 'v1beta1',
+      groupResources: [],
+      namespaceResources: ['serviceinstances', 'servicebindings'],
+    });
+    super(options);
+  }
+}
+
 module.exports = {
   BaaS,
+  ServiceCatalog,
 };
