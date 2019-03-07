@@ -5,6 +5,7 @@ const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const R = require('ramda');
 const sha1 = require('sha1');
+const crypto = require('crypto');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
 
@@ -19,6 +20,7 @@ const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const overwriteOcBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
+const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
 const messageConsumer = async msg => {
   const {
@@ -74,6 +76,8 @@ const messageConsumer = async msg => {
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
+    // A secret which is the same across all Environments of this Lagoon Project
+    var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -205,6 +209,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "OPENSHIFT_NAME",
                           "value": openshiftName
+                      },
+                      {
+                          "name": "PROJECT_SECRET",
+                          "value": projectSecret
                       }
                   ],
                   "forcePull": true,
