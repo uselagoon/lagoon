@@ -14,11 +14,13 @@ const {
 const KeycloakOperations = require('../project/keycloak');
 const Sql = require('../project/sql');
 
+const getProjectById = async (id /* : string */) => {
+  const rows = await query(sqlClient, Sql.selectProject(id));
+  return R.prop(0, rows);
+};
+
 const Helpers = {
-  getProjectById: async (id /* : string */) => {
-    const rows = await query(sqlClient, Sql.selectProject(id));
-    return R.prop(0, rows);
-  },
+  getProjectById,
   getProjectIdByName: async (name /* : string */) => {
     const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
 
@@ -37,6 +39,35 @@ const Helpers = {
 
     return pid;
   },
+  getProjectByProjectInput: async projectInput => {
+    const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
+    const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
+    const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
+
+    const projectFromId = R.pipe(
+      R.prop('id'),
+      getProjectById,
+    );
+
+    const projectFromName = R.pipe(
+      R.prop('name'),
+      async name => {
+        const rows = await query(sqlClient, Sql.selectProjectByName(name));
+        return R.prop(0, rows);
+      },
+    );
+
+    return R.cond([
+      [hasId, projectFromId],
+      [hasName, projectFromName],
+      [
+        R.T,
+        () => {
+          throw new Error('Must provide project "id" or "name"');
+        },
+      ],
+    ])(projectInput);
+  },
   getProjectsWithoutDirectUserAccess: async (
     projectIds /* : Array<string> */,
     userIds /* : Array<number> */,
@@ -47,8 +78,7 @@ const Helpers = {
     ),
   getProjectIdsByCustomerIds: async (customerIds /* : Array<string> */) =>
     query(sqlClient, Sql.selectProjectIdsByCustomerIds(customerIds)),
-  getAllProjects: async () =>
-    query(sqlClient, Sql.selectAllProjects()),
+  getAllProjects: async () => query(sqlClient, Sql.selectAllProjects()),
   getCustomerProjectsWithoutDirectUserAccess: async (
     customerIds /* : Array<number> */,
     userIds /* : Array<number> */,
@@ -95,10 +125,11 @@ const Helpers = {
   },
   // Given a lagoon project, add all users (direct and indirect) that have access to the projects
   // corresponding keycloak group.
-  addProjectUsersToKeycloakGroup: async (
-    project /* : Object */,
-  ) => {
-    const users = await query(sqlClient, Sql.selectAllUsersForProjectId(project.id));
+  addProjectUsersToKeycloakGroup: async (project /* : Object */) => {
+    const users = await query(
+      sqlClient,
+      Sql.selectAllUsersForProjectId(project.id),
+    );
 
     const keycloakGroupId = await KeycloakOperations.findGroupIdByName(
       project.name,
@@ -112,9 +143,7 @@ const Helpers = {
         id: keycloakUserId,
         groupId: keycloakGroupId,
       });
-      logger.debug(
-        `Added Keycloak user ${email} to group "${project.name}"`,
-      );
+      logger.debug(`Added Keycloak user ${email} to group "${project.name}"`);
     }
   },
 };

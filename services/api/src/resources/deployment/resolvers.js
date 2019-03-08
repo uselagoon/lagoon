@@ -2,6 +2,8 @@
 
 const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createDeployTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
@@ -15,6 +17,8 @@ const {
 } = require('../../util/db');
 const Sql = require('./sql');
 const EVENTS = require('./events');
+const environmentHelpers = require('../environment/helpers');
+const projectHelpers = require('../project/helpers');
 
 /* ::
 
@@ -324,6 +328,85 @@ const updateDeployment = async (
   return deployment;
 };
 
+const deployEnvironmentLatest = async (
+  root,
+  {
+    input: {
+      environment: environmentInput,
+    },
+  },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  const environment = await environmentHelpers.getEnvironmentByEnvironmentInput(environmentInput);
+  const project = await projectHelpers.getProjectById(environment.project);
+
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      Sql.selectPermsForEnvironment(environment.id),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  let deployData = {
+    projectName: project.name,
+    type: environment.deployType,
+  };
+  let meta = {
+    projectName: project.name,
+  };
+  switch (environment.deployType) {
+    case 'branch':
+      deployData = {
+        ...deployData,
+        branchName: environment.deployBaseRef,
+      };
+      meta = {
+        ...meta,
+        branchName: deployData.branchName,
+      };
+      break;
+
+    default:
+      return `Error: Unkown deploy type ${environment.deployType}`;
+  }
+
+  try {
+    await createDeployTask(deployData);
+
+    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentLatest', meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``,
+    );
+
+    return 'success';
+  } catch (error) {
+    switch (error.name) {
+      case 'NoNeedToDeployBranch':
+        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentLatest', meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${environment.name}\`: ${error.message}`,
+        );
+        return `Skipped: ${error.message}`;
+
+      default:
+        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentLatest:error', meta,
+          `*[${deployData.projectName}]* Error deploying \`${environment.name}\`: ${error.message}`,
+        );
+        return `Error: ${error.message}`;
+    }
+  }
+};
+
 const deploymentSubscriber = createEnvironmentFilteredSubscriber(
   [
     EVENTS.DEPLOYMENT.ADDED,
@@ -337,6 +420,7 @@ const Resolvers /* : ResolversObj */ = {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  deployEnvironmentLatest,
   deploymentSubscriber,
 };
 

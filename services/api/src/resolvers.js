@@ -19,6 +19,7 @@ const {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  deployEnvironmentLatest,
   deploymentSubscriber,
 } = require('./resources/deployment/resolvers');
 
@@ -284,6 +285,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     setEnvironmentServices,
     uploadFilesForTask,
     deleteFilesForTask,
+    deployEnvironmentLatest,
   },
   Subscription: {
     backupChanged: backupSubscriber,
