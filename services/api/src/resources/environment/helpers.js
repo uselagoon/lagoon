@@ -32,7 +32,7 @@ const Helpers = {
           throw new Error('Unauthorized');
         }
 
-        return environment;
+        return [environment];
       },
     );
 
