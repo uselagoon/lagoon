@@ -91,18 +91,21 @@ const messageConsumer = async msg => {
       var gitRef = gitSha ? gitSha : `origin/${branchName}`
       var deployBaseRef = branchName
       var deployHeadRef = null
+      var deployTitle = null
       break;
 
     case "pullrequest":
       var gitRef = gitSha
       var deployBaseRef = prBaseBranchName
       var deployHeadRef = prHeadBranchName
+      var deployTitle = prPullrequestTitle
       break;
 
     case "promote":
       var gitRef = `origin/${promoteSourceEnvironment}`
       var deployBaseRef = promoteSourceEnvironment
       var deployHeadRef = null
+      var deployTitle = null
       break;
   }
 
@@ -310,7 +313,7 @@ const messageConsumer = async msg => {
   // Update GraphQL API with information about this environment
   let environment;
   try {
-    environment = await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef)
+    environment = await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef, deployTitle)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(err)

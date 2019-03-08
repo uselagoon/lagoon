@@ -378,6 +378,23 @@ const deployEnvironmentLatest = async (
       };
       break;
 
+    case 'pullrequest':
+      deployData = {
+        ...deployData,
+        pullrequestTitle: environment.deployTitle,
+        pullrequestNumber: environment.name.replace('pr-', ''),
+        headBranchName: environment.deployHeadRef,
+        headSha: `origin/${environment.deployHeadRef}`,
+        baseBranchName: environment.deployBaseRef,
+        baseSha: `origin/${environment.deployBaseRef}`,
+        branchName: environment.name,
+      };
+      meta = {
+        ...meta,
+        pullrequestTitle: deployData.pullrequestTitle,
+      };
+      break;
+
     default:
       return `Error: Unkown deploy type ${environment.deployType}`;
   }

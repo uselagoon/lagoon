@@ -690,16 +690,18 @@ const addOrUpdateEnvironment = (
   environmentType: string,
   openshiftProjectName: string,
   deployHeadRef: ?string = null,
+  deployTitle: ?string = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-($name: String!, $project: Int!, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
+($name: String!, $project: Int!, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
   addOrUpdateEnvironment(input: {
     name: $name,
     project: $project,
     deployType: $deployType,
     deployBaseRef: $deployBaseRef,
     deployHeadRef: $deployHeadRef,
+    deployTitle: $deployTitle,
     environmentType: $environmentType,
     openshiftProjectName: $openshiftProjectName
   }) {
@@ -725,6 +727,7 @@ const addOrUpdateEnvironment = (
       deployType,
       deployBaseRef,
       deployHeadRef,
+      deployTitle,
       environmentType,
       openshiftProjectName,
     },
