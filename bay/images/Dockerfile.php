@@ -2,7 +2,8 @@ FROM amazeeio/php:7.1-fpm
 
 # Add ClamAV.
 RUN apk add --update clamav clamav-libunrar \
-&& freshclam
+    && rm -rf /var/lib/clamav/daily.cvd \
+    && freshclam --no-warnings || true
 
 # Add blackfire probe.
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
