@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ''
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: development
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -51,6 +54,7 @@ objects:
         project: ${SAFE_PROJECT}
       name: ${SERVICE_NAME}
     spec:
+
       replicas: 1
       selector:
         service: ${SERVICE_NAME}
@@ -64,6 +68,7 @@ objects:
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
         spec:
+          priorityClassName: priority-${ENVIRONMENT_TYPE}
           tolerations:
             - effect: NoSchedule
               key: autoscaled
@@ -76,6 +81,7 @@ objects:
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
+              priorityClassName: priority-${ENVIRONMENT_TYPE}
               ports:
                 - containerPort: 8080
                   protocol: TCP
