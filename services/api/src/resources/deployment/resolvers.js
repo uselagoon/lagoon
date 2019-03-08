@@ -3,7 +3,7 @@
 const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { createDeployTask } = require('@lagoon/commons/src/tasks');
+const { createDeployTask, createPromoteTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
 const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
@@ -366,6 +366,7 @@ const deployEnvironmentLatest = async (
   let meta = {
     projectName: project.name,
   };
+  let taskFunction;
   switch (environment.deployType) {
     case 'branch':
       deployData = {
@@ -376,6 +377,7 @@ const deployEnvironmentLatest = async (
         ...meta,
         branchName: deployData.branchName,
       };
+      taskFunction = createDeployTask;
       break;
 
     case 'pullrequest':
@@ -393,6 +395,21 @@ const deployEnvironmentLatest = async (
         ...meta,
         pullrequestTitle: deployData.pullrequestTitle,
       };
+      taskFunction = createDeployTask;
+      break;
+
+    case 'promote':
+      deployData = {
+        ...deployData,
+        branchName: environment.name,
+        promoteSourceEnvironment: environment.deployBaseRef,
+      };
+      meta = {
+        ...meta,
+        branchName: deployData.branchName,
+        promoteSourceEnvironment: deployData.promoteSourceEnvironment,
+      };
+      taskFunction = createPromoteTask;
       break;
 
     default:
@@ -400,7 +417,7 @@ const deployEnvironmentLatest = async (
   }
 
   try {
-    await createDeployTask(deployData);
+    await taskFunction(deployData);
 
     sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentLatest', meta,
       `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``,
