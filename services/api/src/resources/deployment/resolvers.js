@@ -18,6 +18,7 @@ const {
 const Sql = require('./sql');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
+const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
 
 /* ::
@@ -458,6 +459,246 @@ const deployEnvironmentLatest = async (
   }
 };
 
+const deployEnvironmentBranch = async (
+  root,
+  {
+    input: {
+      project: projectInput,
+      branchName,
+      branchRef,
+    },
+  },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  const project = await projectHelpers.getProjectByProjectInput(projectInput);
+
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      projectSql.selectPermsForProject(project.id),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  const deployData = {
+    type: 'branch',
+    projectName: project.name,
+    branchName,
+    sha: branchRef,
+  };
+
+  const meta = {
+    projectName: project.name,
+    branchName: deployData.branchName,
+  };
+
+  try {
+    await createDeployTask(deployData);
+
+    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentBranch', meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
+    );
+
+    return 'success';
+  } catch (error) {
+    switch (error.name) {
+      case 'NoNeedToDeployBranch':
+        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentBranch', meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
+        );
+        return `Skipped: ${error.message}`;
+
+      default:
+        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentBranch:error', meta,
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
+        );
+        return `Error: ${error.message}`;
+    }
+  }
+};
+
+const deployEnvironmentPullrequest = async (
+  root,
+  {
+    input: {
+      project: projectInput,
+      number,
+      title,
+      baseBranchName,
+      baseBranchRef,
+      headBranchName,
+      headBranchRef,
+    },
+  },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  const project = await projectHelpers.getProjectByProjectInput(projectInput);
+
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      projectSql.selectPermsForProject(project.id),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  const deployData = {
+    type: 'pullrequest',
+    projectName: project.name,
+    pullrequestTitle: title,
+    pullrequestNumber: number,
+    headBranchName,
+    headSha: headBranchRef,
+    baseBranchName,
+    baseSha: baseBranchRef,
+    branchName: `pr-${number}`,
+  };
+
+  const meta = {
+    projectName: project.name,
+    pullrequestTitle: deployData.pullrequestTitle,
+  };
+
+  try {
+    await createDeployTask(deployData);
+
+    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPullrequest', meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
+    );
+
+    return 'success';
+  } catch (error) {
+    switch (error.name) {
+      case 'NoNeedToDeployBranch':
+        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPullrequest', meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
+        );
+        return `Skipped: ${error.message}`;
+
+      default:
+        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentPullrequest:error', meta,
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
+        );
+        return `Error: ${error.message}`;
+    }
+  }
+};
+
+const deployEnvironmentPromote = async (
+  root,
+  {
+    input: {
+      sourceEnvironment: sourceEnvironmentInput,
+      project: projectInput,
+      destinationEnvironment,
+    },
+  },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+  },
+) => {
+  const destProject = await projectHelpers.getProjectByProjectInput(projectInput);
+
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      projectSql.selectPermsForProject(destProject.id),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  const sourceEnvironments = await environmentHelpers.getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
+  const activeEnvironments = R.filter(R.propEq('deleted', '0000-00-00 00:00:00'), sourceEnvironments);
+
+  if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
+    throw new Error('Unauthorized');
+  }
+
+  const sourceEnvironment = R.prop(0, activeEnvironments);
+
+  if (role !== 'admin') {
+    const rows = await query(
+      sqlClient,
+      Sql.selectPermsForEnvironment(sourceEnvironment.id),
+    );
+
+    if (
+      !R.contains(R.path(['0', 'pid'], rows), projects) &&
+      !R.contains(R.path(['0', 'cid'], rows), customers)
+    ) {
+      throw new Error('Unauthorized.');
+    }
+  }
+
+  const deployData = {
+    type: 'promote',
+    projectName: destProject.name,
+    branchName: destinationEnvironment,
+    promoteSourceEnvironment: sourceEnvironment.name,
+  };
+
+  const meta = {
+    projectName: deployData.projectName,
+    branchName: deployData.branchName,
+    promoteSourceEnvironment: deployData.promoteSourceEnvironment
+  };
+
+  try {
+    await createPromoteTask(deployData);
+
+    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPromote', meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
+    );
+
+    return 'success';
+  } catch (error) {
+    switch (error.name) {
+      case 'NoNeedToDeployBranch':
+        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPromote', meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
+        );
+        return `Skipped: ${error.message}`;
+
+      default:
+        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentPromote:error', meta,
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
+        );
+        return `Error: ${error.message}`;
+    }
+  }
+};
+
 const deploymentSubscriber = createEnvironmentFilteredSubscriber(
   [
     EVENTS.DEPLOYMENT.ADDED,
@@ -472,6 +713,9 @@ const Resolvers /* : ResolversObj */ = {
   deleteDeployment,
   updateDeployment,
   deployEnvironmentLatest,
+  deployEnvironmentBranch,
+  deployEnvironmentPullrequest,
+  deployEnvironmentPromote,
   deploymentSubscriber,
 };
 

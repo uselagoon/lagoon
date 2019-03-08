@@ -884,6 +884,28 @@ const typeDefs = gql`
     environment: EnvironmentInput!
   }
 
+  input DeployEnvironmentBranchInput {
+    project: ProjectInput!
+    branchName: String!
+    branchRef: String
+  }
+
+  input DeployEnvironmentPullrequestInput {
+    project: ProjectInput!
+    number: Int!
+    title: String!
+    baseBranchName: String!
+    baseBranchRef: String!
+    headBranchName: String!
+    headBranchRef: String!
+  }
+
+  input DeployEnvironmentPromoteInput {
+    sourceEnvironment: EnvironmentInput!
+    project: ProjectInput!
+    destinationEnvironment: String!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -981,6 +1003,9 @@ const typeDefs = gql`
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
+    deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
+    deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
+    deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
   }
 
   type Subscription {
