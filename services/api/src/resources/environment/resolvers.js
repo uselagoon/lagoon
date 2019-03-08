@@ -399,6 +399,7 @@ const addOrUpdateEnvironment = async (
   const input = R.compose(
     R.over(R.lensProp('environmentType'), envTypeToString),
     R.over(R.lensProp('deployType'), deployTypeToString),
+    R.over(R.lensProp('deployHeadRef'), R.defaultTo(null)),
   )(unformattedInput);
 
   const pid = input.project.toString();
@@ -414,6 +415,8 @@ const addOrUpdateEnvironment = async (
         :name,
         :project,
         :deploy_type,
+        :deploy_base_ref,
+        :deploy_head_ref,
         :environment_type,
         :openshift_project_name
       );

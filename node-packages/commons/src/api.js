@@ -212,7 +212,10 @@ const restoreFragment = graphqlapi.createFragment(`
   }
   `);
 
-const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =>
+const updateRestore = (
+  backupId: string,
+  patch: RestorePatch,
+): Promise<Object> =>
   graphqlapi.mutate(
     `
   ($backupId: String!, $patch: UpdateRestorePatchInput!) {
@@ -683,34 +686,49 @@ const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
   deployType: string,
+  deployBaseRef: string,
   environmentType: string,
   openshiftProjectName: string,
+  deployHeadRef: ?string = null,
 ): Promise<Object> =>
-  graphqlapi.query(`
-  mutation {
-    addOrUpdateEnvironment(input: {
-        name: "${name}",
-        project: ${projectId},
-        deployType: ${deployType},
-        environmentType: ${environmentType},
-        openshiftProjectName: "${openshiftProjectName}"
-    }) {
-      id
+  graphqlapi.mutate(
+    `
+($name: String!, $project: Int!, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
+  addOrUpdateEnvironment(input: {
+    name: $name,
+    project: $project,
+    deployType: $deployType,
+    deployBaseRef: $deployBaseRef,
+    deployHeadRef: $deployHeadRef,
+    environmentType: $environmentType,
+    openshiftProjectName: $openshiftProjectName
+  }) {
+    id
+    name
+    project {
       name
-      project {
-        name
-      }
-      deployType
-      environmentType
-      openshiftProjectName
-      envVariables {
-        name
-        value
-        scope
-      }
+    }
+    deployType
+    environmentType
+    openshiftProjectName
+    envVariables {
+      name
+      value
+      scope
     }
   }
-`);
+}
+`,
+    {
+      name,
+      project: projectId,
+      deployType,
+      deployBaseRef,
+      deployHeadRef,
+      environmentType,
+      openshiftProjectName,
+    },
+  );
 
 const updateEnvironment = (
   environmentId: number,

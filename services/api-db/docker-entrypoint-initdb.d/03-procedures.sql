@@ -128,9 +128,11 @@ CREATE OR REPLACE PROCEDURE
     IN id                     int,
     IN name                   varchar(100),
     IN pid                    int,
-    IN deploy_type               ENUM('branch', 'pullrequest', 'promote'),
+    IN deploy_type            ENUM('branch', 'pullrequest', 'promote'),
+    IN deploy_base_ref        varchar(100),
+    IN deploy_head_ref        varchar(100),
     IN environment_type       ENUM('production', 'development'),
-    IN openshift_project_name  varchar(100)
+    IN openshift_project_name varchar(100)
   )
   BEGIN
     INSERT INTO environment (
@@ -138,6 +140,8 @@ CREATE OR REPLACE PROCEDURE
         name,
         project,
         deploy_type,
+        deploy_base_ref,
+        deploy_head_ref,
         environment_type,
         openshift_project_name,
         deleted
@@ -147,6 +151,8 @@ CREATE OR REPLACE PROCEDURE
         name,
         p.id,
         deploy_type,
+        deploy_base_ref,
+        deploy_head_ref,
         environment_type,
         openshift_project_name,
         '0000-00-00 00:00:00'
@@ -156,6 +162,8 @@ CREATE OR REPLACE PROCEDURE
         p.id = pid
     ON DUPLICATE KEY UPDATE
         deploy_type=deploy_type,
+        deploy_base_ref=deploy_base_ref,
+        deploy_head_ref=deploy_head_ref,
         environment_type=environment_type,
         updated=NOW();
 

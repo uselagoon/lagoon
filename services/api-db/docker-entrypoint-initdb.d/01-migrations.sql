@@ -606,6 +606,25 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_deploy_base_head_ref_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deploy_base_ref'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `deploy_base_ref` varchar(100),
+      ADD `deploy_head_ref` varchar(100);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -637,6 +656,7 @@ CALL add_scope_to_env_vars();
 CALL add_deleted_to_environment_backup();
 CALL convert_task_command_to_text();
 CALL add_key_fingerprint_to_ssh_key();
+CALL add_deploy_base_head_ref_to_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

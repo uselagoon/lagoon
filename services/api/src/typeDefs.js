@@ -294,6 +294,14 @@ const typeDefs = gql`
     """
     deployType: String
     """
+    The version control base ref for deployments (e.g., branch name, tag, or commit id)
+    """
+    deployBaseRef: String
+    """
+    The version control head ref for deployments (e.g., branch name, tag, or commit id)
+    """
+    deployHeadRef: String
+    """
     Which Environment Type this environment is, can be \`production\`, \`development\`
     """
     environmentType: String
@@ -509,6 +517,8 @@ const typeDefs = gql`
     name: String!
     project: Int!
     deployType: DeployType!
+    deployBaseRef: String!
+    deployHeadRef: String
     environmentType: EnvType!
     openshiftProjectName: String!
   }
@@ -810,6 +820,8 @@ const typeDefs = gql`
   input UpdateEnvironmentPatchInput {
     project: Int
     deployType: DeployType
+    deployBaseRef: String
+    deployHeadRef: String
     environmentType: EnvType
     openshiftProjectName: String
     route: String
