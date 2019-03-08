@@ -1,6 +1,7 @@
 // @flow
 
 const R = require('ramda');
+const { asyncPipe } = require('@lagoon/commons/src/util');
 const sqlClient = require('../../clients/sqlClient');
 const { query } = require('../../util/db');
 const Sql = require('./sql');
@@ -13,7 +14,7 @@ const getEnvironmentById = async (environmentID /* : number */) => {
 
 const Helpers = {
   getEnvironmentById,
-  getEnvironmentByEnvironmentInput: async environmentInput => {
+  getEnvironmentsByEnvironmentInput: async environmentInput => {
     const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
     const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
     const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
@@ -23,9 +24,16 @@ const Helpers = {
     );
     const hasNameAndProject = R.both(hasName, hasProject);
 
-    const envFromId = R.pipe(
+    const envFromId = asyncPipe(
       R.prop('id'),
       getEnvironmentById,
+      environment => {
+        if (!environment) {
+          throw new Error('Unauthorized');
+        }
+
+        return environment;
+      },
     );
 
     const envFromNameProject = async input => {
@@ -39,7 +47,12 @@ const Helpers = {
           project.id,
         ),
       );
-      return R.prop(0, rows);
+
+      if (!R.prop(0, rows)) {
+        throw new Error('Unauthorized');
+      }
+
+      return rows;
     };
 
     return R.cond([

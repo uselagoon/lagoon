@@ -342,7 +342,14 @@ const deployEnvironmentLatest = async (
     },
   },
 ) => {
-  const environment = await environmentHelpers.getEnvironmentByEnvironmentInput(environmentInput);
+  const environments = await environmentHelpers.getEnvironmentsByEnvironmentInput(environmentInput);
+  const activeEnvironments = R.filter(R.propEq('deleted', '0000-00-00 00:00:00'), environments);
+
+  if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
+    throw new Error('Unauthorized');
+  }
+
+  const environment = R.prop(0, activeEnvironments);
   const project = await projectHelpers.getProjectById(environment.project);
 
   if (role !== 'admin') {
@@ -356,6 +363,16 @@ const deployEnvironmentLatest = async (
       !R.contains(R.path(['0', 'cid'], rows), customers)
     ) {
       throw new Error('Unauthorized.');
+    }
+  }
+
+  if (environment.deployType === 'branch' || environment.deployType === 'promote') {
+    if (!environment.deployBaseRef) {
+      throw new Error('Cannot deploy: deployBaseRef is empty');
+    }
+  } else if (environment.deployType === 'pullrequest') {
+    if (!environment.deployBaseRef && !environment.deployHeadRef && !environment.deployTitle) {
+      throw new Error('Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty');
     }
   }
 

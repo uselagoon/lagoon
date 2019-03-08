@@ -1,6 +1,7 @@
 // @flow
 
 const R = require('ramda');
+const { asyncPipe } = require('@lagoon/commons/src/util');
 const sqlClient = require('../../clients/sqlClient');
 const keycloakClient = require('../../clients/keycloakClient');
 const { query } = require('../../util/db');
@@ -44,16 +45,29 @@ const Helpers = {
     const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
     const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
 
-    const projectFromId = R.pipe(
+    const projectFromId = asyncPipe(
       R.prop('id'),
       getProjectById,
+      project => {
+        if (!project) {
+          throw new Error('Unauthorized');
+        }
+
+        return project;
+      },
     );
 
-    const projectFromName = R.pipe(
+    const projectFromName = asyncPipe(
       R.prop('name'),
       async name => {
         const rows = await query(sqlClient, Sql.selectProjectByName(name));
-        return R.prop(0, rows);
+        const project = R.prop(0, rows);
+
+        if (!project) {
+          throw new Error('Unauthorized');
+        }
+
+        return project;
       },
     );
 
