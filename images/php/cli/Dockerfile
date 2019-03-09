@@ -6,7 +6,6 @@ LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 RUN apk add --no-cache git \
-        mysql-client \
         unzip \
         gzip  \
         bash \
@@ -18,6 +17,7 @@ RUN apk add --no-cache git \
         coreutils \
         postgresql-client \
         openssh-sftp-server \
+    && apk add --no-cache "mariadb-client=10.2.22-r0" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
     && apk add --no-cache nodejs-current nodejs-npm yarn --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
