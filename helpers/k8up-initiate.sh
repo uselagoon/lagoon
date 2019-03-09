@@ -37,10 +37,16 @@ SERVICE_NAME="none"
 PROJECT_SECRET=$(echo -n "$PROJECT-$JWTSECRET" | sha256sum | cut -d " " -f 1)
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
+if oc get customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
 
-  # Create baas-repo-pw secret based on the project secret
-  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo -n "$PROJECT_SECRET-BAAS-REPO-PW" | sha256sum | cut -d " " -f 1)
+  baas_repo_pw=$(oc -n ${OPENSHIFT_PROJECT} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo -n "$PROJECT_SECRET-BAAS-REPO-PW" | sha256sum | cut -d " " -f 1) -o json --dry-run)
+
+  if ! oc -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
+    # Create baas-repo-pw secret based on the project secret
+    echo "$baas_repo_pw" | oc -n ${OPENSHIFT_PROJECT} create -f -
+  else
+    echo "$baas_repo_pw" | oc -n ${OPENSHIFT_PROJECT} replace -f -
+  fi
 
   TEMPLATE_PARAMETERS=()
 
