@@ -14,23 +14,23 @@ const withSelectedTask = withState('selectedTask', 'setSelectedTask', null);
 const withOptions = withProps(({ pageEnvironment }) => {
   let options = [
     {
-      label: 'Drush cache-clear',
+      label: 'Clear Drupal caches [drush cache-clear]',
       value: 'DrushCacheClear'
     },
     {
-      label: 'Drush sql-sync',
+      label: 'Copy database between environments [drush sql-sync]',
       value: 'DrushSqlSync'
     },
     {
-      label: 'Drush rsync',
+      label: 'Copy files between environments [drush rsync]',
       value: 'DrushRsyncFiles'
     },
     {
-      label: 'Drush sql-dump',
+      label: 'Generate database backup [drush sql-dump]',
       value: 'DrushSqlDump'
     },
     {
-      label: 'Drush archive-dump (D7 only)',
+      label: 'Generate database and files backup (D7 only) [drush archive-dump]',
       value: 'DrushArchiveDump'
     }
   ];
