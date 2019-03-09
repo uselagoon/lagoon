@@ -444,7 +444,7 @@ if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.a
   if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
     set +x
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo "$PROJECT_SECRET-BAAS-REPO-PW" | sha256sum | cut -d " " -f 1)
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo -n "$PROJECT_SECRET-BAAS-REPO-PW" | sha256sum | cut -d " " -f 1)
     set -x
   fi
 
