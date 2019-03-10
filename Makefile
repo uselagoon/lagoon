@@ -336,6 +336,7 @@ services :=       api \
 									webhook-handler \
 									webhooks2tasks \
 									broker \
+									broker-single \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
@@ -381,6 +382,7 @@ build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster
+build/broker-single: build/rabbitmq
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons

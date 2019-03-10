@@ -39,7 +39,7 @@ services:
       lagoon.template: services/webhook-handler/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhook-handler:v0-21-2
   broker:
-    image: ${IMAGE_REPO:-lagoon}/broker
+    image: ${IMAGE_REPO:-lagoon}/broker-single
     ports:
       - '15672:15672'
       - '5672:5672'
