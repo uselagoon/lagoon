@@ -30,7 +30,7 @@ const withOptions = withProps(({ pageEnvironment }) => {
       value: 'DrushSqlDump'
     },
     {
-      label: 'Drush archive-dump (D7 only)',
+      label: 'Drush archive-dump (Drush 8 only)',
       value: 'DrushArchiveDump'
     }
   ];
