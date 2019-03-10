@@ -53,7 +53,13 @@ async function resticRestore (data: Object) {
           s3: {},
         },
         backend: {
-          s3: {},
+          s3: {
+            bucket: `baas-${safeProjectName}`
+          },
+          repoPasswordSecretRef: {
+            key: 'repo-pw',
+            name: 'baas-repo-pw'
+          },
         },
       },
     };

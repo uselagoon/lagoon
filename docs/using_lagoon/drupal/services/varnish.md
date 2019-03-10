@@ -17,11 +17,13 @@ TL;DR: Check out the [Drupal 8 Example](https://github.com/amazeeio/drupal-examp
 
 In order to fully use Varnish with Drupal 8 Cache Tags, you need to install the [Purge](https://www.drupal.org/project/purge) and [Varnish Purge](https://www.drupal.org/project/varnish_purge) modules. They itself ship with many submodules, we suggest to install at least the following: `purge`, `purge_drush`, `purge_tokens`, `purge_ui`, `purge_processor_cron`, `purge_processor_lateruntime`, `purge_queuer_coretags`, `varnish_purger`, `varnish_purge_tags`. For the lacy ones:
 
+    composer require drupal/purge drupal/varnish_purge
+
     drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_processor_lateruntime purge_queuer_coretags varnish_purger varnish_purge_tags
 
 ### Configure Varnish Purge
 
-1. Visit `Configuration > Development > Performance`
+1. Visit `Configuration > Development > Performance > Purge`
 2. Add a purger via `Add purger`
 3. Select `Varnish Bundled Purger` (not the `Varnish Purger`, see the #Behind the Scenes section, for more information.)
 4. Click the dropdown beside the just added purger and click `Configure`
@@ -50,7 +52,7 @@ That's it! If you like to test this locally, make sure you read the next section
 
 There are a few other configurations that can be done:
 
-1. Uninstall the `Internal Page Cache` Drupal module. It can cause some weird double caching situations where only the Varnish cache is cleared but not the internal cache and changes appear very slowly to the users. Also it uses a lot of cache storage on big sites.
+1. Uninstall the `Internal Page Cache` Drupal module with `drush pmu page_cache`. It can cause some weird double caching situations where only the Varnish cache is cleared but not the internal cache and changes appear very slowly to the users. Also it uses a lot of cache storage on big sites.
 2. Change `$config['system.performance']['cache']['page']['max_age']` in `production.settings.php` to `2628000`. This tells Varnish to cache sites for up 1 month, which sounds maybe a bit a lot, but the Drupal 8 Cache Tag system is so awesome, that it will basically make sure that the varnish cache is purged whenever something changes.
 
 ### Test Varnish Locally
@@ -85,7 +87,7 @@ If you come from other Drupal hosters or did for a Drupal 8 & Varnish tutorial b
 
 #### Usage of `Varnish Bundled Purger` instead of `Varnish Purger`
 
-The `Varnish Purger` purger sends a `BAN` request for each single Cache-Tag that should be invalidated. Drupal has a lot of Cache-Tags and therefore this could lead into quite an amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe (`|`) which fits perfectly to the varnish regex system of bans. This causes less requests and a less big ban list table inside Varnish.
+The `Varnish Purger` purger sends a `BAN` request for each single Cache-Tag that should be invalidated. Drupal has a lot of Cache-Tags and therefore this could lead into quite an amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe (`|`) which fits perfectly to the varnish regular expression system of bans. This causes less requests and a less big ban list table inside Varnish.
 
 #### Usage of `Purge Late runtime processor`
 
