@@ -7,6 +7,7 @@ const s3Host = R.propOr('http://docker.for.mac.localhost:9000', 'S3_HOST', proce
 const accessKeyId = R.propOr('minio', 'S3_ACCESS_KEY_ID', process.env);
 const secretAccessKey = R.propOr('minio123', 'S3_SECRET_ACCESS_KEY', process.env);
 const bucket = R.propOr('lagoon-files', 'S3_BUCKET', process.env);
+const s3Region = R.propOr('', 'S3_REGION', process.env);
 
 const s3 = new AWS.S3({
   endpoint: s3Host,
@@ -14,6 +15,7 @@ const s3 = new AWS.S3({
   secretAccessKey,
   s3ForcePathStyle: true,
   signatureVersion: 'v4',
+  region: s3Region,
 });
 
 module.exports = {

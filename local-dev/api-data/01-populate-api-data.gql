@@ -930,6 +930,10 @@ mutation PopulateApi {
     id
   }
 
+  UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {
+    id
+  }
+
   UIProject1Environment2: addOrUpdateEnvironment(
     input: {
       id: 4

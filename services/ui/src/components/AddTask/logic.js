@@ -30,7 +30,7 @@ const withOptions = withProps(({ pageEnvironment }) => {
       value: 'DrushSqlDump'
     },
     {
-      label: 'Generate database and files backup (D7 only) [drush archive-dump]',
+      label: 'Generate database and files backup (Drush 8 only) [drush archive-dump]',
       value: 'DrushArchiveDump'
     }
   ];
