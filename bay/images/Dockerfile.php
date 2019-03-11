@@ -3,7 +3,9 @@ FROM amazeeio/php:7.1-fpm
 # Add ClamAV.
 RUN apk add --update clamav clamav-libunrar \
     && rm -rf /var/lib/clamav/daily.cvd \
-    && freshclam --no-warnings || true
+    && freshclam --no-warnings || true \
+    && apk del --no-cache curl \
+    && apk add --no-cache "curl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/
 
 # Add blackfire probe.
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \

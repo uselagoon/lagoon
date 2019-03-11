@@ -15,7 +15,9 @@ RUN apk update \
     && rm -rf /var/cache/apk/* \
     && apk add --update jq clamav clamav-libunrar \
     && rm -rf /var/lib/clamav/daily.cvd \
-    && freshclam --no-warnings || true
+    && freshclam --no-warnings || true \
+    && apk del --no-cache curl \
+    && apk add --no-cache "curl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/
 
 # Add common drupal config.
 RUN mkdir /bay
