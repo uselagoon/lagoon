@@ -77,6 +77,7 @@ const typeDefs = gql`
     name: String
     keyValue: String
     keyType: String
+    keyFingerprint: String
     created: String
   }
 
