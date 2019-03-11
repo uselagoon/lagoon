@@ -21,10 +21,6 @@ function join {
     local IFS="$1"; shift; echo "$*";
 }
 
-HOSTNAME=$(hostname)
-# Parse out cluster name, from service name:
-CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
-
 while read -ra LINE; do
     if [[ "${LINE}" == *"${HOSTNAME}"* ]]; then
         MY_NAME=$LINE
