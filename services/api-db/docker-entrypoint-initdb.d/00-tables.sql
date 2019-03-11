@@ -3,11 +3,12 @@ USE infrastructure;
 -- Tables
 
 CREATE TABLE IF NOT EXISTS ssh_key (
-  id            int NOT NULL auto_increment PRIMARY KEY,
-  name          varchar(100) NOT NULL,
-  key_value     varchar(5000) NOT NULL,
-  key_type      ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
-  created       timestamp DEFAULT CURRENT_TIMESTAMP
+  id               int NOT NULL auto_increment PRIMARY KEY,
+  name             varchar(100) NOT NULL,
+  key_value        varchar(5000) NOT NULL,
+  key_type         ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
+  key_fingerprint  char(51) NULL UNIQUE,
+  created          timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user (
