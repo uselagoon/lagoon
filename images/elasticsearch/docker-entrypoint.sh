@@ -9,7 +9,7 @@ else
   # Is running in Kubernetes/OpenShift, so find all other pods
   # belonging to the namespace
   echo "Elasticsearch: Finding peers"
-  K8S_SVC_NAME=$SERVICE_NAME-headless
+  K8S_SVC_NAME=$(hostname -f | cut -d"." -f2)
   echo "Using service name: ${K8S_SVC_NAME}"
   # copy the pristine version to the one that can be edited
   /usr/bin/peer-finder -on-start="/lagoon/configure-es.sh" -service=${K8S_SVC_NAME}

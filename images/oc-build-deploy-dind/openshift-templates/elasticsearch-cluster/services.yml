@@ -42,7 +42,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}-headless
+    name: ${SERVICE_NAME}
   spec:
     clusterIP: None
     ports:
@@ -65,7 +65,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
+    name: ${SERVICE_NAME}-service
   spec:
     ports:
     - name: 9200-tcp
