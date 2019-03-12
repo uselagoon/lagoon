@@ -36,8 +36,8 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
 ENV NEWRELIC_VERSION=8.1.0.209
 
-RUN apk del --no-cache curl \
-    && apk add --no-cache "curl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
+RUN apk del --no-cache curl libcurl \
+    && apk add --no-cache "curl=7.61.1-r2" "libcurl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
     && apk add --no-cache fcgi \
         ssmtp \
         libzip libzip-dev \
