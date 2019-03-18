@@ -40,6 +40,7 @@ mutation PopulateApi {
       customer: 1
       openshift: 1
       gitUrl: "ssh://git@192.168.99.1:2222/git/project1.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -51,6 +52,7 @@ mutation PopulateApi {
       customer: 2
       openshift: 1
       gitUrl: "ssh://git@192.168.99.1:2222/git/project2.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -249,6 +251,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/github.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -282,6 +285,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/gitlab.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -303,6 +307,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/bitbucket.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -324,6 +329,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/rest.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -345,6 +351,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/node.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -366,6 +373,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -387,6 +395,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/multiproject.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -408,6 +417,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/drupal.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -429,6 +439,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/nginx.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -601,6 +612,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-galera.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -622,6 +634,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/drupal-postgres.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -643,6 +656,7 @@ mutation PopulateApi {
       customer: 3
       openshift: 2
       gitUrl: "ssh://git@192.168.99.1:2222/git/solr.git"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -695,6 +709,7 @@ mutation PopulateApi {
       openshift: 3
       gitUrl: "git@github.com:amazeeio/lagoon.git"
       openshiftProjectPattern: "lagoon"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -912,6 +927,10 @@ mutation PopulateApi {
       execute: false
     }
   ) {
+    id
+  }
+
+  UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {
     id
   }
 

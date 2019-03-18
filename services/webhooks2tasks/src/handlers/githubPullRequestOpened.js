@@ -21,6 +21,14 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
     const baseBranchName = body.pull_request.base.ref
     const baseSha = body.pull_request.base.sha
 
+    const meta = {
+      projectName: project.name,
+      pullrequestTitle: body.pull_request.title,
+      pullrequestNumber: body.number,
+      pullrequestUrl: body.pull_request.html_url,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.html_url,
+    }
 
     const data: deployData = {
       repoUrl: body.repository.html_url,
@@ -50,7 +58,7 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.number} opened. No remove task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: ${error}`
           )
           return;
 

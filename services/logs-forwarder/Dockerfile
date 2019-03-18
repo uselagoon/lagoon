@@ -26,4 +26,4 @@ ENV LOGS_FORWARDER_SHARED_KEY=secret \
     LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE=amazing1
 
 ENTRYPOINT ["/sbin/tini", "--", "/bin/entrypoint.sh"]
-CMD ["sh", "-c", "exec fluentd -c /fluentd/etc/${FLUENTD_CONF} -p /fluentd/plugins $FLUENTD_OPT"]
+CMD ["sh", "-c", "exec fluentd -c /fluentd/etc/fluent.conf -p /fluentd/plugins $FLUENTD_OPT"]

@@ -2,8 +2,8 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
-import withLogic from './logic';
-import { bp, color, fontSize } from '../../../variables';
+import withLogic from 'components/AddTask/components/logic';
+import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushRsyncFiles = gql`
   mutation taskDrushRsyncFiles(
@@ -45,6 +45,7 @@ const DrushRsyncFiles = ({
     {(taskDrushRsyncFiles, { loading, called, error, data }) => {
       return (
         <React.Fragment>
+          <div className="warning">Warning! <br />This task replaces files. Be careful to double check the source and destination environment!</div>
           <div className="envSelect">
             <label id="source-env">Source:</label>
             <ReactSelect
@@ -92,6 +93,12 @@ const DrushRsyncFiles = ({
             Add task
           </button>
           <style jsx>{`
+            .warning {
+              background-color: red;
+              color: white;
+              padding: 10px;
+
+            }
             .envSelect {
               margin-top: 10px;
             }

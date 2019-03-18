@@ -1,15 +1,15 @@
 import React from 'react';
 import ReactSelect from 'react-select';
-import withLogic from './logic';
-import DrushArchiveDump from './components/DrushArchiveDump';
-import DrushSqlDump from './components/DrushSqlDump';
-import DrushCacheClear from './components/DrushCacheClear';
-import DrushRsyncFiles from './components/DrushRsyncFiles';
-import DrushSqlSync from './components/DrushSqlSync';
-import Empty from './components/Empty';
-import Completed from './components/Completed';
-import Error from './components/Error';
-import { bp, color, fontSize } from '../../variables';
+import withLogic from 'components/AddTask/logic';
+import DrushArchiveDump from 'components/AddTask/components/DrushArchiveDump';
+import DrushSqlDump from 'components/AddTask/components/DrushSqlDump';
+import DrushCacheClear from 'components/AddTask/components/DrushCacheClear';
+import DrushRsyncFiles from 'components/AddTask/components/DrushRsyncFiles';
+import DrushSqlSync from 'components/AddTask/components/DrushSqlSync';
+import Empty from 'components/AddTask/components/Empty';
+import Completed from 'components/AddTask/components/Completed';
+import Error from 'components/AddTask/components/Error';
+import { bp, color, fontSize } from 'lib/variables';
 
 const AddTask = ({
   pageEnvironment,

@@ -70,7 +70,6 @@ function createReqHandler(options: Options): Handler {
           giturl: giturl,
           rawbody: data.toString(),
         }
-        console.log(`Calling sendToLagoonLogs`)
         sendToLagoonLogs('info', "", uuid, "webhooks:receive",  meta,
           `Received new ${webhooktype} webhook,  event: ${event}, giturl: ${giturl}`
         )

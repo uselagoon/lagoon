@@ -1,11 +1,14 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/logstash/logstash:6.5.4
+FROM docker.elastic.co/logstash/logstash:6.6.1
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=logstash
 
 USER root
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 # Copy commons files
 COPY --from=commons /lagoon /lagoon

@@ -14,7 +14,7 @@ import type { ChannelWrapper } from './types';
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
-const rabbitmqHost = process.env.RABBITMQ_HOST || "rabbitmq"
+const rabbitmqHost = process.env.RABBITMQ_HOST || "broker"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });

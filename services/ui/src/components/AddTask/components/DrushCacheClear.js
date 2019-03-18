@@ -2,7 +2,7 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
-import { bp, color, fontSize } from '../../../variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushCacheClear = gql`
   mutation taskDrushCacheClear(

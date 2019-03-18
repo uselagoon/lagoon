@@ -18,8 +18,6 @@ else
   /oc-build-deploy/scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
 fi
 
-LAGOON_GIT_SHA=`git rev-parse HEAD`
-
 if [[ -n "$SUBFOLDER" ]]; then
   cd $SUBFOLDER
 fi
@@ -30,6 +28,15 @@ fi
 
 /oc-build-deploy/validator/validate .lagoon.yml
 
+INJECT_GIT_SHA=$(cat .lagoon.yml | shyaml get-value environment_variables.git_sha false)
+if [ "$INJECT_GIT_SHA" == "true" ]
+then
+  LAGOON_GIT_SHA=`git rev-parse HEAD`
+else
+  LAGOON_GIT_SHA="0000000000000000000000000000000000000000"
+fi
+
+set +x
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
 docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
@@ -37,6 +44,7 @@ docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
+set -x
 
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 

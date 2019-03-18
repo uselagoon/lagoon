@@ -5,6 +5,7 @@ const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
 const R = require('ramda');
 const sha1 = require('sha1');
+const crypto = require('crypto');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
 
@@ -15,7 +16,11 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const CI = process.env.CI || "false"
-const gitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
+const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
+const lagoonVersion = process.env.LAGOON_VERSION
+const overwriteOcBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
+const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
+const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
 const messageConsumer = async msg => {
   const {
@@ -71,6 +76,8 @@ const messageConsumer = async msg => {
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
+    // A secret which is the same across all Environments of this Lagoon Project
+    var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -103,13 +110,25 @@ const messageConsumer = async msg => {
       buildFromImage = {
         "kind": "ImageStreamTag",
         "namespace": "lagoon",
-        "name": "oc-build-deploy-dind:latest"
+        "name": "oc-build-deploy-dind:latest",
       }
-    } else {
-    // By default we load oc-build-deploy-dind from DockerHub with our current branch as tag
+    } else if (overwriteOcBuildDeployDindImage) {
+      // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
       buildFromImage = {
         "kind": "DockerImage",
-        "name": `amazeeiolagoon/${gitSafeBranch}-oc-build-deploy-dind`
+        "name": overwriteOcBuildDeployDindImage,
+      }
+    } else if (lagoonEnvironmentType == 'production') {
+      // we are a production environment, use the amazeeio/ image with our current lagoon version
+      buildFromImage = {
+        "kind": "DockerImage",
+        "name": `amazeeio/oc-build-deploy-dind:${lagoonVersion}`,
+      }
+    } else {
+      // we are a development enviornment, use the amazeeiolagoon image with the same branch name
+      buildFromImage = {
+        "kind": "DockerImage",
+        "name": `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`,
       }
     }
 
@@ -125,7 +144,7 @@ const messageConsumer = async msg => {
           "nodeSelector": null,
           "postCommit": {},
           "resources": {},
-          "runPolicy": "Serial",
+          "runPolicy": "SerialLatestOnly",
           "successfulBuildsHistoryLimit": 1,
           "failedBuildsHistoryLimit": 1,
           "source": {
@@ -190,6 +209,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "OPENSHIFT_NAME",
                           "value": openshiftName
+                      },
+                      {
+                          "name": "PROJECT_SECRET",
+                          "value": projectSecret
                       }
                   ],
                   "forcePull": true,
@@ -320,7 +343,7 @@ const messageConsumer = async msg => {
       const serviceaccountsPost = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
       await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
       await sleep(2000); // sleep a bit after creating the ServiceAccount for OpenShift to create all the secrets
-      await rolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":"lagoon-deployer-edit","namespace":openshiftProject},"roleRef":{"name":"edit"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+      await rolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":"lagoon-deployer-admin","namespace":openshiftProject},"roleRef":{"name":"admin"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
     } else {
       logger.error(err)
       throw new Error
