@@ -1,3 +1,4 @@
+const path = require('path');
 require('dotenv-extended').load();
 
 const lagoonRoutes =
@@ -26,5 +27,11 @@ module.exports = {
     LAGOON_UI_ICON: process.env.LAGOON_UI_ICON,
     LAGOON_UI_TASK_BLACKLIST: taskBlacklist
   },
-  distDir: '../build'
+  distDir: '../build',
+  webpack(config, options) {
+    config.resolve.alias['components'] = path.join(__dirname, 'components');
+    config.resolve.alias['layouts'] = path.join(__dirname, 'layouts');
+    config.resolve.alias['lib'] = path.join(__dirname, 'lib');
+    return config;
+  }
 };
