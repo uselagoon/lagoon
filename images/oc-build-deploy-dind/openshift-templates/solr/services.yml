@@ -33,7 +33,6 @@ parameters:
     required: true
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
-    value: development        
 objects:
 - apiVersion: v1
   kind: Service
