@@ -1,7 +1,22 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import css from 'styled-jsx/css';
 import Highlighter from 'react-highlight-words';
+import Box from 'components/style/Box';
 import { bp, color, fontSize } from 'lib/variables';
+
+const { className: boxClassName, styles: boxStyles } = css.resolve`
+  .box {
+    margin-bottom: 7px;
+
+    .content {
+      padding: 9px 20px 14px;
+      @media ${bp.tinyUp} {
+        display: flex;
+      }
+    }
+  }
+`;
 
 const Projects = ({ projects = [] }) => {
   const [searchInput, setSearchInput] = useState('');
@@ -38,12 +53,27 @@ const Projects = ({ projects = [] }) => {
           value={searchInput}
           onChange={e => setSearchInput(e.target.value)}
           placeholder="Type to search"
+          disabled={projects.length === 0}
         />
       </div>
+      {!projects.length && (
+        <Box>
+          <div className="project">
+            <h4>No projects</h4>
+          </div>
+        </Box>
+      )}
+      {(searchInput && !filteredProjects.length) && (
+        <Box>
+          <div className="project">
+            <h4>No projects matching "{searchInput}"</h4>
+          </div>
+        </Box>
+      )}
       {filteredProjects.map(project => (
-        <div className="box" key={project.id}>
-          <Link href={{ pathname: '/project', query: { name: project.name } }}>
-            <a>
+        <Link href={{ pathname: '/project', query: { name: project.name } }}>
+          <a>
+            <Box className={boxClassName} key={project.id}>
               <div className="project">
                 <h4>
                   <Highlighter
@@ -74,9 +104,9 @@ const Projects = ({ projects = [] }) => {
                   textToHighlight={project.customer.name}
                 />
               </div>
-            </a>
-          </Link>
-        </div>
+            </Box>
+          </a>
+        </Link>
       ))}
       <style jsx>{`
         .header {
@@ -130,43 +160,34 @@ const Projects = ({ projects = [] }) => {
             }
           }
         }
-        .box {
-          margin-bottom: 7px;
-          a {
-            padding: 9px 20px 14px;
-            @media ${bp.tinyUp} {
-              display: flex;
-            }
-            & > div {
-              @media ${bp.tinyUp} {
-                width: 50%;
-              }
-            }
-            .project-name {
-              ${fontSize(25, 36)};
-              font-weight: normal;
-              margin: 4px 0 0;
-            }
-            .route {
-              color: ${color.linkBlue};
-              line-height: 24px;
-            }
-            .customer {
-              color: ${color.darkGrey};
-              padding-top: 16px;
-              @media ${bp.tinyUp} {
-                padding-left: 20px;
-              }
-              @media ${bp.wideUp} {
-                width: calc((100vw / 16) * 7);
-              }
-              @media ${bp.extraWideUp} {
-                width: calc((100vw / 16) * 6);
-              }
-            }
+        .project {
+          ${fontSize(25, 36)};
+          font-weight: normal;
+          margin: 4px 0 0;
+
+          @media ${bp.tinyUp} {
+            width: 50%;
+          }
+        }
+        .route {
+          color: ${color.linkBlue};
+          line-height: 24px;
+        }
+        .customer {
+          color: ${color.darkGrey};
+          padding-top: 16px;
+          @media ${bp.tinyUp} {
+            padding-left: 20px;
+          }
+          @media ${bp.wideUp} {
+            width: calc((100vw / 16) * 7);
+          }
+          @media ${bp.extraWideUp} {
+            width: calc((100vw / 16) * 6);
           }
         }
       `}</style>
+      {boxStyles}
     </>
   );
 };

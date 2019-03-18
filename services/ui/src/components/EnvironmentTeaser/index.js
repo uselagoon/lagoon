@@ -1,24 +1,79 @@
 import React from 'react';
 import Link from 'next/link';
+import css from 'styled-jsx/css';
+import Box from 'components/style/Box';
 import { bp, color, fontSize } from 'lib/variables';
 
 const EnvironmentTeaser = ({ environment, project }) => {
-  const environmentLabel = environment.deployType === 'branch' ? environment.deployType : 'PR';
+  const environmentLabel =
+    environment.deployType === 'branch' ? environment.deployType : 'PR';
+
+  let bgImages;
+  switch (environment.deployType) {
+    case 'branch':
+      bgImages = {
+        normal: "url('/static/images/environment-branch.svg')",
+        hover: "url('/static/images/environment-branch-hover.svg')"
+      };
+      break;
+
+    case 'pullrequest':
+      bgImages = {
+        normal: "url('/static/images/environment-pull-request.svg')",
+        hover: "url('/static/images/environment-pull-request-hover.svg')"
+      };
+      break;
+
+    default:
+      bgImages = {
+        normal: 'none',
+        hover: 'none'
+      };
+  }
+
+  const { className: boxClassName, styles: boxStyles } = css.resolve`
+    .box {
+      margin-bottom: 46px;
+
+      .content {
+        background-image: ${bgImages.normal};
+        background-position: right 32px bottom -6px;
+        background-repeat: no-repeat;
+        background-size: 40px 50px;
+        min-height: 122px;
+        padding: 19px 20px;
+
+        &:hover {
+          background-image: ${bgImages.hover};
+        }
+      }
+    }
+  `;
+
   return (
-    <div className={`environment box ${environment.deployType}`} >
+    <>
       <Link
-        href={{ pathname: '/environment', query: { name: environment.openshiftProjectName } }}
+        href={{
+          pathname: '/environment',
+          query: { name: environment.openshiftProjectName }
+        }}
       >
         <a>
-          {environment.environmentType == 'production' ? <div className='productionLabel'><span>Production</span></div> : ''}
-          <label>{environmentLabel}</label>
-          <h4>{environment.name}</h4>
+          <Box className={boxClassName}>
+            {environment.environmentType == 'production' && (
+              <div className="productionLabel">
+                <span>Production</span>
+              </div>
+            )}
+            <label>{environmentLabel}</label>
+            <h4>{environment.name}</h4>
+          </Box>
         </a>
       </Link>
       <style jsx>{`
-        .environment {
-          margin-bottom: 46px;
-          min-height: 122px;
+        a {
+          width: 100%;
+
           @media ${bp.xs_smallUp} {
             margin-left: 48px;
             min-width: calc(50% - 24px);
@@ -51,62 +106,45 @@ const EnvironmentTeaser = ({ environment, project }) => {
               margin-left: 0;
             }
           }
-          a {
-            background-position: right 32px bottom -6px;
-            background-repeat: no-repeat;
-            background-size: 40px 50px;
-            padding: 19px 20px;
+        }
+
+        .productionLabel {
+          color: ${color.green};
+          ${fontSize(13)};
+          position: absolute;
+          right: -38px;
+          text-transform: uppercase;
+          top: 50%;
+          transform: translateY(-50%) rotate(-90deg);
+
+          &::after {
+            border-top: 1px solid ${color.grey};
+            content: '';
+            display: block;
+            position: relative;
+            right: 12px;
+            top: -12px;
+            width: calc(100% + 26px);
+            z-index: -1;
           }
-          &.branch {
-            a {
-              background-image: url('/static/images/environment-branch.svg');
-              &:hover {
-                background-image: url('/static/images/environment-branch-hover.svg');
-              }
-            }
-          }
-          &.pullrequest {
-            a {
-              background-image: url('/static/images/environment-pull-request.svg');
-              &:hover {
-                background-image: url('/static/images/environment-pull-request-hover.svg');
-              }
-            }
-          }
-          .productionLabel {
-            color: ${color.green};
-            ${fontSize(13)};
-            position: absolute;
-            right: -38px;
-            text-transform: uppercase;
-            top: 50%;
-            transform: translateY(-50%) rotate(-90deg);
-            span {
-              background-color: ${color.white};
-              padding: 0 16px;
-              z-index: 0;
-            }
-            &::after {
-              border-top: 1px solid ${color.grey};
-              content: '';
-              display: block;
-              position: relative;
-              right: 12px;
-              top: -12px;
-              width: calc(100% + 26px);
-              z-index: -1;
-            }
-          }
-          label {
-            background-color: ${color.lightestGrey};
-            border-bottom-right-radius: 20px;
-            border-top-right-radius: 20px;
-            margin-left: -20px;
-            padding: 3px 20px 2px;
+
+          span {
+            background-color: ${color.white};
+            padding: 0 16px;
+            z-index: 0;
           }
         }
+
+        label {
+          background-color: ${color.lightestGrey};
+          border-bottom-right-radius: 20px;
+          border-top-right-radius: 20px;
+          margin-left: -20px;
+          padding: 3px 20px 2px;
+        }
       `}</style>
-    </div>
+      {boxStyles}
+    </>
   );
 };
 
