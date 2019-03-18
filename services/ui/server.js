@@ -26,6 +26,10 @@ app
       app.render(req, res, '/environment', { openshiftProjectName: req.params.environmentSlug });
     });
 
+    server.get('/projects/:projectSlug/:environmentSlug/backups', (req, res) => {
+      app.render(req, res, '/backups', { openshiftProjectName: req.params.environmentSlug });
+    });
+
     server.get('*', (req, res) => {
       return handle(req, res);
     });
