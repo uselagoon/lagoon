@@ -1,5 +1,5 @@
 import React from 'react';
-import { bp, color, fontSize } from '../variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 const Global = ({ children }) => (
   <>

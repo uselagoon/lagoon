@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { bp, color, fontSize } from '../../variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 const EnvironmentTeaser = ({ environment, project }) => {
   const environmentLabel = environment.deployType === 'branch' ? environment.deployType : 'PR';

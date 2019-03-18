@@ -4,7 +4,7 @@ import Link from 'next/link';
 import gql from 'graphql-tag';
 import { Query } from 'react-apollo';
 import moment from 'moment';
-import { bp, color } from '../../variables';
+import { bp, color } from 'lib/variables';
 
 const query = gql`
   query getEnvironment($name: String!) {

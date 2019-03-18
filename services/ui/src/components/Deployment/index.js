@@ -5,8 +5,8 @@ import gql from 'graphql-tag';
 import { Query } from 'react-apollo';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
-import LogViewer from '../LogViewer';
-import { bp, color } from '../../variables';
+import LogViewer from 'components/LogViewer';
+import { bp, color } from 'lib/variables';
 import giturlparse from 'git-url-parse';
 
 const query = gql`

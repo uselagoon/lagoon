@@ -8,8 +8,8 @@ import { onError } from 'apollo-link-error';
 import { ApolloLink } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { ApolloProvider } from 'react-apollo';
-import { AuthContext } from './withAuth';
-import NotAuthenticated from '../components/NotAuthenticated';
+import { AuthContext } from 'lib/withAuth';
+import NotAuthenticated from 'components/NotAuthenticated';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 

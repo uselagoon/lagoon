@@ -1,6 +1,6 @@
 import React from 'react';
-import Page from '../../layouts/main';
-import { bp } from '../../variables';
+import Page from 'layouts/main';
+import { bp } from 'lib/variables';
 
 const NotAuthenticated = props => (
   <Page>

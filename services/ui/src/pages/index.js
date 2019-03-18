@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Highlighter from "react-highlight-words";
-import Page from '../layouts/main'
-import { bp, color, fontSize } from '../variables';
+import Page from 'layouts/main'
+import { bp, color, fontSize } from 'lib/variables';
 
 const query = gql`
 {

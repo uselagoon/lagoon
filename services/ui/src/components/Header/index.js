@@ -1,8 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import getConfig from 'next/config';
-import { AuthContext } from '../../lib/withAuth';
-import { color } from '../../variables';
+import { AuthContext } from 'lib/withAuth';
+import { color } from 'lib/variables';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 

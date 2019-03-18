@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { bp, color, fontSize } from '../../variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 const Breadcrumbs = ({ breadcrumbs}) => (
   <div className='breadcrumbs-wrapper'>

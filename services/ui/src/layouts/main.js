@@ -1,5 +1,5 @@
-import Global from './global'
-import Header from '../components/Header'
+import Global from 'layouts/global'
+import Header from 'components/Header'
 
 const Page = ({ children }) => (
   <Global>

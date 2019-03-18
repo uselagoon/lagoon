@@ -3,8 +3,8 @@ import Link from 'next/link';
 import moment from 'moment';
 import gql from 'graphql-tag';
 import { Mutation } from 'react-apollo';
-import DeleteConfirm from '../DeleteConfirm';
-import { bp, color } from '../../variables';
+import DeleteConfirm from 'components/DeleteConfirm';
+import { bp, color } from 'lib/variables';
 import giturlparse from 'git-url-parse';
 
 const DELETE_ENVIRONMENT_MUTATION = gql`

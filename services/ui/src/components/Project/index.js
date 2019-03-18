@@ -2,8 +2,8 @@ import React from 'react';
 import * as R from 'ramda';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
-import Environment from '../EnvironmentTeaser';
-import { bp, color, fontSize } from '../../variables';
+import Environment from 'components/EnvironmentTeaser';
+import { bp, color, fontSize } from 'lib/variables';
 import giturlparse from 'git-url-parse';
 
 class Project extends React.Component {

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { bp, color } from '../../variables';
+import { bp, color } from 'lib/variables';
 
 const NavTabs = ({activeTab, environment}) => (
   <ul className='navigation'>

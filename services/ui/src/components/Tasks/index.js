@@ -2,8 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
-import AddTask from '../AddTask';
-import { bp, color, fontSize } from '../../variables';
+import AddTask from 'components/AddTask';
+import { bp, color, fontSize } from 'lib/variables';
 
 const Tasks = ({
   pageEnvironment,

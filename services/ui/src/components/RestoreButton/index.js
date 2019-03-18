@@ -1,5 +1,5 @@
 import React from 'react';
-import Prepare from './Prepare';
+import Prepare from 'components/RestoreButton/Prepare';
 
 const RestoreButton = ({ backup: { backupId, restore }, className }) => {
   if (!restore)

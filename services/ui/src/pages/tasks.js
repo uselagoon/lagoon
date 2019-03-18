@@ -3,13 +3,13 @@ import { withRouter } from 'next/router';
 import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
-import Page from '../layouts/main';
-import Breadcrumbs from '../components/Breadcrumbs';
-import NavTabs from '../components/NavTabs';
-import TaskData from '../components/Tasks';
-import Task from '../components/Task';
+import Page from 'layouts/main';
+import Breadcrumbs from 'components/Breadcrumbs';
+import NavTabs from 'components/NavTabs';
+import TaskData from 'components/Tasks';
+import Task from 'components/Task';
 import moment from 'moment';
-import { bp, color } from '../variables';
+import { bp, color } from 'lib/variables';
 
 const query = gql`
   query getEnvironment($openshiftProjectName: String!) {

@@ -4,8 +4,8 @@ import React from 'react';
 import Head from 'next/head';
 import getConfig from 'next/config';
 import Typekit from 'react-typekit';
-import withAuth, { AuthContext } from '../lib/withAuth';
-import ApiConnection from '../lib/ApiConnection';
+import withAuth, { AuthContext } from 'lib/withAuth';
+import ApiConnection from 'lib/ApiConnection';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 

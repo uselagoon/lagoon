@@ -3,10 +3,10 @@ import { withRouter } from 'next/router';
 import Link from 'next/link';
 import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
-import Page from '../layouts/main'
-import Breadcrumbs from '../components/Breadcrumbs';
-import NavTabs from '../components/NavTabs';
-import ProjectData from '../components/Project';
+import Page from 'layouts/main'
+import Breadcrumbs from 'components/Breadcrumbs';
+import NavTabs from 'components/NavTabs';
+import ProjectData from 'components/Project';
 
 const query = gql`
   query getProject($name: String!){

@@ -1,7 +1,7 @@
 import React from 'react';
 import getConfig from 'next/config';
-import withKeycloak from './withKeycloak';
-import withLocalAuth from './withLocalAuth';
+import withKeycloak from 'lib/withKeycloak';
+import withLocalAuth from 'lib/withLocalAuth';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 

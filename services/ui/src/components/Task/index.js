@@ -2,8 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
-import LogViewer from '../LogViewer';
-import { bp, color } from '../../variables';
+import LogViewer from 'components/LogViewer';
+import { bp, color } from 'lib/variables';
 
 const Task = ({ task }) => (
   <div className="content">
