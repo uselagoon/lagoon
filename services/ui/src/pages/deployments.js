@@ -1,47 +1,95 @@
 import React from 'react';
 import { withRouter } from 'next/router';
-import Link from 'next/link';
+import Head from 'next/head';
 import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
-import Page from 'layouts/main';
+import MainLayout from 'layouts/main';
+import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
+import DeploymentsSubscription from 'lib/subscription/Deployments';
+import LoadingPage from 'pages/_loading';
+import ErrorPage from 'pages/_error';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import Deployments from 'components/Deployments';
-import Deployment from 'components/Deployment';
-import { bp, color, fontSize } from 'lib/variables';
+import { bp } from 'lib/variables';
 
-const query = gql`
-  query getEnvironment($openshiftProjectName: String!) {
-    environmentByOpenshiftProjectName(
-      openshiftProjectName: $openshiftProjectName
-    ) {
-      id
-      name
-      openshiftProjectName
-      project {
-        name
-      }
-    }
-  }
-`;
-
-const PageDeployments = withRouter(props => {
+const PageDeployments = ({ router }) => {
   return (
-    <Page>
+    <>
+      <Head>
+        <title>{`${router.query.openshiftProjectName} | Deployments`}</title>
+      </Head>
       <Query
-        query={query}
-        variables={{ openshiftProjectName: props.router.query.name }}
+        query={EnvironmentWithDeploymentsQuery}
+        variables={{ openshiftProjectName: router.query.openshiftProjectName }}
       >
-        {({ loading, error, data }) => {
-          if (loading) return null;
-          if (error) return `Error!: ${error}`;
+        {({
+          loading,
+          error,
+          data: { environmentByOpenshiftProjectName: environment },
+          subscribeToMore
+        }) => {
+          if (loading) {
+            return <LoadingPage />;
+          }
 
-          const environment = data.environmentByOpenshiftProjectName;
+          if (error) {
+            return (
+              <ErrorPage statusCode={500} errorMessage={error.toString()} />
+            );
+          }
+
+          if (!environment) {
+            return (
+              <ErrorPage
+                statusCode={404}
+                errorMessage={`Environment "${
+                  router.query.openshiftProjectName
+                }" not found`}
+              />
+            );
+          }
+
+          subscribeToMore({
+            document: DeploymentsSubscription,
+            variables: { environment: environment.id },
+            updateQuery: (prevStore, { subscriptionData }) => {
+              if (!subscriptionData.data) return prevStore;
+              const prevDeployments =
+                prevStore.environmentByOpenshiftProjectName.deployments;
+              const incomingDeployment =
+                subscriptionData.data.deploymentChanged;
+              const existingIndex = prevDeployments.findIndex(
+                prevDeployment => prevDeployment.id === incomingDeployment.id
+              );
+              let newDeployments;
+
+              // New deployment.
+              if (existingIndex === -1) {
+                newDeployments = [incomingDeployment, ...prevDeployments];
+              }
+              // Updated deployment
+              else {
+                newDeployments = Object.assign([...prevDeployments], {
+                  [existingIndex]: incomingDeployment
+                });
+              }
+
+              const newStore = {
+                ...prevStore,
+                environmentByOpenshiftProjectName: {
+                  ...prevStore.environmentByOpenshiftProjectName,
+                  deployments: newDeployments
+                }
+              };
+
+              return newStore;
+            }
+          });
 
           return (
-            <React.Fragment>
+            <MainLayout>
               <Breadcrumbs>
                 <ProjectBreadcrumb projectSlug={environment.project.name} />
                 <EnvironmentBreadcrumb
@@ -50,21 +98,13 @@ const PageDeployments = withRouter(props => {
                 />
               </Breadcrumbs>
               <div className="content-wrapper">
-                <NavTabs
-                  activeTab="deployments"
-                  environment={environment}
-                />
-                {!props.router.query.build && (
+                <NavTabs activeTab="deployments" environment={environment} />
+                <div className="content">
                   <Deployments
+                    deployments={environment.deployments}
                     projectName={environment.openshiftProjectName}
                   />
-                )}
-                {props.router.query.build && (
-                  <Deployment
-                    projectName={environment.openshiftProjectName}
-                    deploymentName={props.router.query.build}
-                  />
-                )}
+                </div>
               </div>
               <style jsx>{`
                 .content-wrapper {
@@ -73,15 +113,18 @@ const PageDeployments = withRouter(props => {
                     padding: 0;
                   }
                 }
+
+                .content {
+                  padding: 32px calc((100vw / 16) * 1);
+                  width: 100%;
+                }
               `}</style>
-            </React.Fragment>
+            </MainLayout>
           );
         }}
       </Query>
-    </Page>
+    </>
   );
-});
+};
 
-PageDeployments.displayName = 'withRouter(PageDeployments)';
-
-export default PageDeployments;
+export default withRouter(PageDeployments);

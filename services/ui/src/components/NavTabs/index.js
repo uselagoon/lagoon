@@ -3,6 +3,7 @@ import Link from 'next/link';
 import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
 import BackupsLink from 'components/link/Backups';
+import DeploymentsLink from 'components/link/Deployments';
 import { bp, color } from 'lib/variables';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
@@ -36,14 +37,13 @@ const NavTabs = ({ activeTab, environment }) => (
       </EnvironmentLink>
     </li>
     <li className={`deployments ${activeTab == 'deployments' ? 'active' : ''}`}>
-      <Link
-        href={{
-          pathname: '/deployments',
-          query: { name: environment.openshiftProjectName }
-        }}
+      <DeploymentsLink
+        environmentSlug={environment.openshiftProjectName}
+        projectSlug={environment.project.name}
+        className={aClassName}
       >
-        <a>Deployments</a>
-      </Link>
+        Deployments
+      </DeploymentsLink>
     </li>
     <li className={`backups ${activeTab == 'backups' ? 'active' : ''}`}>
       <BackupsLink

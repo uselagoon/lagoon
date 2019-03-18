@@ -23,12 +23,38 @@ app
     });
 
     server.get('/projects/:projectSlug/:environmentSlug', (req, res) => {
-      app.render(req, res, '/environment', { openshiftProjectName: req.params.environmentSlug });
+      app.render(req, res, '/environment', {
+        openshiftProjectName: req.params.environmentSlug
+      });
     });
 
-    server.get('/projects/:projectSlug/:environmentSlug/backups', (req, res) => {
-      app.render(req, res, '/backups', { openshiftProjectName: req.params.environmentSlug });
-    });
+    server.get(
+      '/projects/:projectSlug/:environmentSlug/backups',
+      (req, res) => {
+        app.render(req, res, '/backups', {
+          openshiftProjectName: req.params.environmentSlug
+        });
+      }
+    );
+
+    server.get(
+      '/projects/:projectSlug/:environmentSlug/deployments',
+      (req, res) => {
+        app.render(req, res, '/deployments', {
+          openshiftProjectName: req.params.environmentSlug
+        });
+      }
+    );
+
+    server.get(
+      '/projects/:projectSlug/:environmentSlug/deployments/:deploymentSlug',
+      (req, res) => {
+        app.render(req, res, '/deployment', {
+          openshiftProjectName: req.params.environmentSlug,
+          deploymentName: req.params.deploymentSlug
+        });
+      }
+    );
 
     server.get('*', (req, res) => {
       return handle(req, res);
