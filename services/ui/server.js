@@ -56,6 +56,22 @@ app
       }
     );
 
+    server.get('/projects/:projectSlug/:environmentSlug/tasks', (req, res) => {
+      app.render(req, res, '/tasks', {
+        openshiftProjectName: req.params.environmentSlug
+      });
+    });
+
+    server.get(
+      '/projects/:projectSlug/:environmentSlug/tasks/:taskSlug',
+      (req, res) => {
+        app.render(req, res, '/task', {
+          openshiftProjectName: req.params.environmentSlug,
+          taskId: req.params.taskSlug
+        });
+      }
+    );
+
     server.get('*', (req, res) => {
       return handle(req, res);
     });

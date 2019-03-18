@@ -3,25 +3,23 @@ import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/main';
-import EnvironmentWithTasksQuery from 'lib/query/EnvironmentWithTasks';
-import TasksSubscription from 'lib/subscription/Tasks';
+import EnvironmentWithTaskQuery from 'lib/query/EnvironmentWithTask';
 import LoadingPage from 'pages/_loading';
 import ErrorPage from 'pages/_error';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
-import AddTask from 'components/AddTask';
-import Tasks from 'components/Tasks';
+import Task from 'components/Task';
 import { bp } from 'lib/variables';
 
-const PageTasks = ({ router }) => (
+const PageTask = ({ router }) => (
   <>
     <Head>
-      <title>{`${router.query.openshiftProjectName} | Tasks`}</title>
+      <title>{`${router.query.taskId} | Task`}</title>
     </Head>
     <Query
-      query={EnvironmentWithTasksQuery}
+      query={EnvironmentWithTaskQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName
       }}
@@ -29,8 +27,7 @@ const PageTasks = ({ router }) => (
       {({
         loading,
         error,
-        data: { environmentByOpenshiftProjectName: environment },
-        subscribeToMore
+        data: { environmentByOpenshiftProjectName: environment }
       }) => {
         if (loading) {
           return <LoadingPage />;
@@ -51,40 +48,18 @@ const PageTasks = ({ router }) => (
           );
         }
 
-        subscribeToMore({
-          document: TasksSubscription,
-          variables: { environment: environment.id },
-          updateQuery: (prevStore, { subscriptionData }) => {
-            if (!subscriptionData.data) return prevStore;
-            const prevTasks = prevStore.environmentByOpenshiftProjectName.tasks;
-            const incomingTask = subscriptionData.data.taskChanged;
-            const existingIndex = prevTasks.findIndex(
-              prevTask => prevTask.id === incomingTask.id
-            );
-            let newTasks;
+        const task = environment.tasks.find(
+          task => task.id === parseInt(router.query.taskId)
+        );
 
-            // New task.
-            if (existingIndex === -1) {
-              newTasks = [incomingTask, ...prevTasks];
-            }
-            // Updated task
-            else {
-              newTasks = Object.assign([...prevTasks], {
-                [existingIndex]: incomingTask
-              });
-            }
-
-            const newStore = {
-              ...prevStore,
-              environmentByOpenshiftProjectName: {
-                ...prevStore.environmentByOpenshiftProjectName,
-                tasks: newTasks
-              }
-            };
-
-            return newStore;
-          }
-        });
+        if (!task) {
+          return (
+            <ErrorPage
+              statusCode={404}
+              errorMessage={`Task "${router.query.taskId}" not found`}
+            />
+          );
+        }
 
         return (
           <MainLayout>
@@ -98,8 +73,7 @@ const PageTasks = ({ router }) => (
             <div className="content-wrapper">
               <NavTabs activeTab="tasks" environment={environment} />
               <div className="content">
-                <AddTask pageEnvironment={environment} />
-                <Tasks tasks={environment.tasks} />
+                <Task task={task} />
               </div>
             </div>
             <style jsx>{`
@@ -111,7 +85,6 @@ const PageTasks = ({ router }) => (
               }
 
               .content {
-                padding: 32px calc((100vw / 16) * 1);
                 width: 100%;
               }
             `}</style>
@@ -122,4 +95,4 @@ const PageTasks = ({ router }) => (
   </>
 );
 
-export default withRouter(PageTasks);
+export default withRouter(PageTask);

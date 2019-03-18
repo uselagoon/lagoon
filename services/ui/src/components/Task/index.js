@@ -1,12 +1,10 @@
 import React from 'react';
-import Link from 'next/link';
 import moment from 'moment';
-import momentDurationFormatSetup from 'moment-duration-format';
 import LogViewer from 'components/LogViewer';
-import { bp, color } from 'lib/variables';
+import { bp } from 'lib/variables';
 
 const Task = ({ task }) => (
-  <div className="content">
+  <div className="task">
     <div className="details">
       <h3>{task.name}</h3>
       <div className="field-wrapper created">
@@ -51,26 +49,6 @@ const Task = ({ task }) => (
     </div>
     <LogViewer logs={task.logs} />
     <style jsx>{`
-      .content {
-        width: 100%;
-      }
-      .logs {
-        padding: 0 calc(100vw / 16) 48px;
-        width: 100%;
-        .log-viewer {
-          background-color: #222222;
-          color: #d6d6d6;
-          font-family: 'Monaco', monospace;
-          font-size: 12px;
-          font-weight: 400;
-          height: 600px;
-          margin: 0;
-          overflow-x: scroll;
-          padding: calc((100vw / 16) * 0.5) calc(100vw / 16);
-          white-space: pre;
-          will-change: initial;
-        }
-      }
       .details {
         padding: 104px calc(100vw / 16) 20px;
         width: 100%;
@@ -88,6 +66,7 @@ const Task = ({ task }) => (
         @media ${bp.extraWideUp} {
           padding: 48px calc(100vw / 16) 20px calc((100vw / 16) * 1.5);
         }
+
         h3 {
           width: 100%;
           @media ${bp.xs_smallUp} {
@@ -103,6 +82,7 @@ const Task = ({ task }) => (
             position: initial;
           }
         }
+
         .field-wrapper {
           &::before {
             left: calc(((-100vw / 16) * 1.5) - 28px);
@@ -122,53 +102,63 @@ const Task = ({ task }) => (
             min-width: 25%;
             width: 25%;
           }
+
           &.created {
             &::before {
               background-image: url('/static/images/created.svg');
               background-size: 17px 16px;
             }
           }
+
           &.command {
             &::before {
               background-image: url('/static/images/command.svg');
               background-size: 16px;
             }
           }
+
           &.service {
             &::before {
               background-image: url('/static/images/service.svg');
               background-size: 16px;
             }
           }
+
           &.status {
             &::before {
               background-size: 14px;
             }
+
             &.active {
               &::before {
                 background-image: url('/static/images/in-progress.svg');
               }
             }
+
             &.failed {
               &::before {
                 background-image: url('/static/images/failed.svg');
               }
             }
+
             &.succeeded {
               &::before {
                 background-image: url('/static/images/successful.svg');
               }
             }
           }
+
           & > div {
             width: 100%;
           }
+
           .field {
             padding-right: calc((100vw / 16) * 1);
             @media ${bp.extraWideUp} {
               padding-right: calc((100vw / 16) * 0.5);
             }
           }
+
           &.files {
             ul.field {
               margin: 0;

@@ -4,6 +4,7 @@ import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
 import BackupsLink from 'components/link/Backups';
 import DeploymentsLink from 'components/link/Deployments';
+import TasksLink from 'components/link/Tasks';
 import { bp, color } from 'lib/variables';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
@@ -55,14 +56,13 @@ const NavTabs = ({ activeTab, environment }) => (
       </BackupsLink>
     </li>
     <li className={`tasks ${activeTab == 'tasks' ? 'active' : ''}`}>
-      <Link
-        href={{
-          pathname: '/tasks',
-          query: { name: environment.openshiftProjectName }
-        }}
+      <TasksLink
+        environmentSlug={environment.openshiftProjectName}
+        projectSlug={environment.project.name}
+        className={aClassName}
       >
-        <a>Tasks</a>
-      </Link>
+        Tasks
+      </TasksLink>
     </li>
     <style jsx>{`
       .navigation {
