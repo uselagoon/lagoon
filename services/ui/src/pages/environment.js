@@ -1,77 +1,81 @@
 import React from 'react';
-import { withRouter } from 'next/router'
-import Link from 'next/link'
+import { withRouter } from 'next/router';
+import Head from 'next/head';
 import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
-import Page from 'layouts/main'
+import MainLayout from 'layouts/main';
+import EnvironmentByOpenshiftProjectNameQuery from 'lib/query/EnvironmentByOpenshiftProjectName';
+import LoadingPage from 'pages/_loading';
+import ErrorPage from 'pages/_error';
 import Breadcrumbs from 'components/Breadcrumbs';
-import Breadcrumb from 'components/Breadcrumbs/Breadcrumb';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
+import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
-import EnvironmentData from 'components/Environment';
+import Environment from 'components/Environment';
 import { bp } from 'lib/variables';
 
-const query = gql`
-  query getEnvironment($openshiftProjectName: String!){
-    environmentByOpenshiftProjectName(openshiftProjectName: $openshiftProjectName) {
-      id
-      name
-      created
-      updated
-      deployType
-      environmentType
-      routes
-      openshiftProjectName
-      project {
-        name
-        gitUrl
-      }
-    }
-  }
-`;
-const PageEnvironment = withRouter((props) => {
-  return (
-    <Page>
-      <Query query={query} variables={{openshiftProjectName: props.router.query.name}}>
-        {({ loading, error, data }) => {
-          if (loading) return null;
-          if (error) return `Error!: ${error}`;
+const PageEnvironment = ({ router }) => (
+  <>
+    <Head>
+      <title>{`${router.query.openshiftProjectName} | Environment`}</title>
+    </Head>
+    <Query
+      query={EnvironmentByOpenshiftProjectNameQuery}
+      variables={{
+        openshiftProjectName: router.query.openshiftProjectName
+      }}
+    >
+      {({
+        loading,
+        error,
+        data: { environmentByOpenshiftProjectName: environment }
+      }) => {
+        if (loading) {
+          return <LoadingPage />;
+        }
 
-          const environment = data.environmentByOpenshiftProjectName;
+        if (error) {
+          return <ErrorPage statusCode={500} errorMessage={error.toString()} />;
+        }
 
+        if (!environment) {
           return (
-            <React.Fragment>
-              <Breadcrumbs>
-                <ProjectBreadcrumb projectSlug={environment.project.name} />
-                <Breadcrumb
-                  header="Environment"
-                  title={environment.name}
-                  urlObject={{
-                    pathname: '/environment',
-                    query: { name: environment.openshiftProjectName },
-                  }}
-                />
-              </Breadcrumbs>
-              <div className='content-wrapper'>
-                <NavTabs activeTab='overview' environment={environment.openshiftProjectName}/>
-                <EnvironmentData environment={environment} />
-              </div>
-              <style jsx>{`
-                .content-wrapper {
-                  @media ${bp.tabletUp} {
-                    display: flex;
-                    padding: 0;
-                  }
-                }
-              `}</style>
-            </React.Fragment>
+            <ErrorPage
+              statusCode={404}
+              errorMessage={`Environment "${
+                router.query.openshiftProjectName
+              }" not found`}
+            />
           );
-        }}
-      </Query>
-    </Page>
-  )
-});
+        }
 
-PageEnvironment.displayName = 'withRouter(PageEnvironment)';
+        return (
+          <MainLayout>
+            <Breadcrumbs>
+              <ProjectBreadcrumb projectSlug={environment.project.name} />
+              <EnvironmentBreadcrumb
+                environmentSlug={environment.openshiftProjectName}
+                projectSlug={environment.project.name}
+              />
+            </Breadcrumbs>
+            <div className="content-wrapper">
+              <NavTabs activeTab="overview" environment={environment} />
+              <div className="content">
+                <Environment environment={environment} />
+              </div>
+            </div>
+            <style jsx>{`
+              .content-wrapper {
+                @media ${bp.tabletUp} {
+                  display: flex;
+                  padding: 0;
+                }
+              }
+            `}</style>
+          </MainLayout>
+        );
+      }}
+    </Query>
+  </>
+);
 
-export default PageEnvironment;
+export default withRouter(PageEnvironment);

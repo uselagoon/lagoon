@@ -6,8 +6,8 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Page from 'layouts/main'
 import Breadcrumbs from 'components/Breadcrumbs';
-import Breadcrumb from 'components/Breadcrumbs/Breadcrumb';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
+import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import RestoreButton from 'components/RestoreButton';
 import moment from 'moment';
@@ -116,17 +116,13 @@ const PageBackups = withRouter((props) => {
             <React.Fragment>
               <Breadcrumbs>
                 <ProjectBreadcrumb projectSlug={environment.project.name} />
-                <Breadcrumb
-                  header="Environment"
-                  title={environment.name}
-                  urlObject={{
-                    pathname: '/environment',
-                    query: { name: environment.openshiftProjectName },
-                  }}
+                <EnvironmentBreadcrumb
+                  environmentSlug={environment.openshiftProjectName}
+                  projectSlug={environment.project.name}
                 />
               </Breadcrumbs>
               <div className='content-wrapper'>
-                <NavTabs activeTab='backups' environment={environment.openshiftProjectName}/>
+                <NavTabs activeTab='backups' environment={environment}/>
                 <div className="content">
                   <div className="notification">
                     If you need a current database or files dump, use the tasks "drush sql-dump" or "drush archive-dump" in the new "Tasks" section!

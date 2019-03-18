@@ -22,7 +22,9 @@ app
       app.render(req, res, '/project', { projectName: req.params.projectSlug });
     });
 
-
+    server.get('/projects/:projectSlug/:environmentSlug', (req, res) => {
+      app.render(req, res, '/environment', { openshiftProjectName: req.params.environmentSlug });
+    });
 
     server.get('*', (req, res) => {
       return handle(req, res);

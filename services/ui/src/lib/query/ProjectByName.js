@@ -19,6 +19,10 @@ export default gql`
         deployType
         environmentType
         openshiftProjectName
+        project {
+          id
+          name
+        }
       }
     }
   }

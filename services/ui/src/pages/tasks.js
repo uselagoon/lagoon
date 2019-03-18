@@ -5,8 +5,8 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Page from 'layouts/main';
 import Breadcrumbs from 'components/Breadcrumbs';
-import Breadcrumb from 'components/Breadcrumbs/Breadcrumb';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
+import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import TaskData from 'components/Tasks';
 import Task from 'components/Task';
@@ -144,19 +144,15 @@ const PageTasks = withRouter(props => {
             <React.Fragment>
               <Breadcrumbs>
                 <ProjectBreadcrumb projectSlug={environment.project.name} />
-                <Breadcrumb
-                  header="Environment"
-                  title={environment.name}
-                  urlObject={{
-                    pathname: '/environment',
-                    query: { name: environment.openshiftProjectName },
-                  }}
+                <EnvironmentBreadcrumb
+                  environmentSlug={environment.openshiftProjectName}
+                  projectSlug={environment.project.name}
                 />
               </Breadcrumbs>
               <div className="content-wrapper">
                 <NavTabs
                   activeTab="tasks"
-                  environment={environment.openshiftProjectName}
+                  environment={environment}
                 />
                 {!props.router.query.task_id && (
                   <TaskData
