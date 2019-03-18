@@ -2,8 +2,8 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
-import withLogic from './logic';
-import { bp, color, fontSize } from '../../../variables';
+import withLogic from 'components/AddTask/components/logic';
+import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushSqlSync = gql`
   mutation taskDrushSqlSync(
