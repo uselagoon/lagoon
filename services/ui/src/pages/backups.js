@@ -6,6 +6,8 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Page from 'layouts/main'
 import Breadcrumbs from 'components/Breadcrumbs';
+import Breadcrumb from 'components/Breadcrumbs/Breadcrumb';
+import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import NavTabs from 'components/NavTabs';
 import RestoreButton from 'components/RestoreButton';
 import moment from 'moment';
@@ -63,20 +65,6 @@ const PageBackups = withRouter((props) => {
           if (error) return `Error!: ${error}`;
 
           const environment = data.environmentByOpenshiftProjectName;
-          const breadcrumbs = [
-            {
-              header: 'Project',
-              title: environment.project.name,
-              pathname: '/project',
-              query: {name: environment.project.name}
-            },
-            {
-              header: 'Environment',
-              title: environment.name,
-              pathname: '/environment',
-              query: { name: environment.openshiftProjectName }
-            }
-          ];
 
           subscribeToMore({
             document: subscribe,
@@ -126,7 +114,17 @@ const PageBackups = withRouter((props) => {
 
           return (
             <React.Fragment>
-              <Breadcrumbs breadcrumbs={breadcrumbs}/>
+              <Breadcrumbs>
+                <ProjectBreadcrumb projectSlug={environment.project.name} />
+                <Breadcrumb
+                  header="Environment"
+                  title={environment.name}
+                  urlObject={{
+                    pathname: '/environment',
+                    query: { name: environment.openshiftProjectName },
+                  }}
+                />
+              </Breadcrumbs>
               <div className='content-wrapper'>
                 <NavTabs activeTab='backups' environment={environment.openshiftProjectName}/>
                 <div className="content">

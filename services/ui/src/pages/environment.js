@@ -5,6 +5,8 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Page from 'layouts/main'
 import Breadcrumbs from 'components/Breadcrumbs';
+import Breadcrumb from 'components/Breadcrumbs/Breadcrumb';
+import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import NavTabs from 'components/NavTabs';
 import EnvironmentData from 'components/Environment';
 import { bp } from 'lib/variables';
@@ -34,24 +36,22 @@ const PageEnvironment = withRouter((props) => {
         {({ loading, error, data }) => {
           if (loading) return null;
           if (error) return `Error!: ${error}`;
+
           const environment = data.environmentByOpenshiftProjectName;
-          const breadcrumbs = [
-            {
-              header: 'Project',
-              title: environment.project.name,
-              pathname: '/project',
-              query: {name: environment.project.name}
-            },
-            {
-              header: 'Environment',
-              title: environment.name,
-              pathname: '/environment',
-              query: { name: environment.openshiftProjectName }
-            }
-          ];
+
           return (
             <React.Fragment>
-              <Breadcrumbs breadcrumbs={breadcrumbs}/>
+              <Breadcrumbs>
+                <ProjectBreadcrumb projectSlug={environment.project.name} />
+                <Breadcrumb
+                  header="Environment"
+                  title={environment.name}
+                  urlObject={{
+                    pathname: '/environment',
+                    query: { name: environment.openshiftProjectName },
+                  }}
+                />
+              </Breadcrumbs>
               <div className='content-wrapper'>
                 <NavTabs activeTab='overview' environment={environment.openshiftProjectName}/>
                 <EnvironmentData environment={environment} />

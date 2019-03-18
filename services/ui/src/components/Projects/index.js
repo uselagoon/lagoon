@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import css from 'styled-jsx/css';
 import Highlighter from 'react-highlight-words';
+import ProjectLink from 'components/link/Project';
 import Box from 'components/style/Box';
 import { bp, color, fontSize } from 'lib/variables';
 
@@ -71,42 +72,40 @@ const Projects = ({ projects = [] }) => {
         </Box>
       )}
       {filteredProjects.map(project => (
-        <Link href={{ pathname: '/project', query: { name: project.name } }}>
-          <a>
-            <Box className={boxClassName} key={project.id}>
-              <div className="project">
-                <h4>
-                  <Highlighter
-                    searchWords={[searchInput]}
-                    autoEscape={true}
-                    textToHighlight={project.name}
-                  />
-                </h4>
-                <div className="route">
-                  {project.environments.map((environment, index) => (
-                    <Highlighter
-                      key={index}
-                      searchWords={[searchInput]}
-                      autoEscape={true}
-                      textToHighlight={
-                        environment.route
-                          ? environment.route.replace(/^https?\:\/\//i, '')
-                          : ''
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="customer">
+        <ProjectLink projectSlug={project.name} key={project.id}>
+          <Box className={boxClassName} >
+            <div className="project">
+              <h4>
                 <Highlighter
                   searchWords={[searchInput]}
                   autoEscape={true}
-                  textToHighlight={project.customer.name}
+                  textToHighlight={project.name}
                 />
+              </h4>
+              <div className="route">
+                {project.environments.map((environment, index) => (
+                  <Highlighter
+                    key={index}
+                    searchWords={[searchInput]}
+                    autoEscape={true}
+                    textToHighlight={
+                      environment.route
+                        ? environment.route.replace(/^https?\:\/\//i, '')
+                        : ''
+                    }
+                  />
+                ))}
               </div>
-            </Box>
-          </a>
-        </Link>
+            </div>
+            <div className="customer">
+              <Highlighter
+                searchWords={[searchInput]}
+                autoEscape={true}
+                textToHighlight={project.customer.name}
+              />
+            </div>
+          </Box>
+        </ProjectLink>
       ))}
       <style jsx>{`
         .header {
