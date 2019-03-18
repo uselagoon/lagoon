@@ -1,15 +1,54 @@
 // @flow
 
 const R = require('ramda');
-const { ApolloServer, AuthenticationError } = require('apollo-server-express');
-const { getCredentialsForLegacyToken, getCredentialsForKeycloakToken } = require('./util/auth');
+const {
+  ApolloServer,
+  AuthenticationError,
+  makeExecutableSchema,
+} = require('apollo-server-express');
+const { applyMiddleware } = require('graphql-middleware');
+const {
+  getCredentialsForLegacyToken,
+  getCredentialsForKeycloakToken,
+} = require('./util/auth');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+const operationBlacklist = R.split(
+  ',',
+  R.propOr('', 'LAGOON_API_OPERATION_BLACKLIST', process.env),
+);
+
+const evaluateOperationsBlacklist = async (
+  resolve,
+  parent,
+  args,
+  context,
+  info,
+) => {
+  const {
+    credentials: { role },
+  } = context;
+
+  if (role !== 'admin' && R.contains(info.fieldName, operationBlacklist)) {
+    throw new Error('Unauthorized.');
+  }
+
+  const result = await resolve(parent, args, context, info);
+  return result;
+};
+
+const schemaWithMiddleware = applyMiddleware(schema, {
+  Query: evaluateOperationsBlacklist,
+  Mutation: evaluateOperationsBlacklist,
+  Subscription: evaluateOperationsBlacklist,
+});
+
 const apolloServer = new ApolloServer({
-  typeDefs,
-  resolvers,
+  schema: schemaWithMiddleware,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
   subscriptions: {
@@ -55,7 +94,7 @@ const apolloServer = new ApolloServer({
       };
     }
   },
-  formatError: (error) => {
+  formatError: error => {
     logger.warn(error.message);
     return {
       message: error.message,
