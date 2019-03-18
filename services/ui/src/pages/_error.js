@@ -5,6 +5,7 @@ import StatusLayout from 'layouts/status';
 
 const statusCodes = {
   400: 'Bad Request',
+  401: 'Not Authenticated',
   404: 'This page could not be found',
   500: 'Internal Server Error',
   501: 'Not Implemented'

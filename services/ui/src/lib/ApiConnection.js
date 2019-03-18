@@ -9,44 +9,54 @@ import { ApolloLink } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { ApolloProvider } from 'react-apollo';
 import { AuthContext } from 'lib/withAuth';
-import NotAuthenticated from 'components/NotAuthenticated';
+import ErrorPage from 'pages/_error.js';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-const ApiConnection = ({ children }) =>
+const ApiConnection = ({ children }) => (
   <AuthContext.Consumer>
     {auth => {
       if (!auth.authenticated) {
-        return <NotAuthenticated />;
+        return (
+          <ErrorPage
+            statusCode={401}
+            errorMessage="Please wait while we log you in..."
+          />
+        );
       }
 
       const httpLink = new HttpLink({
         uri: publicRuntimeConfig.GRAPHQL_API,
         headers: {
-          authorization: `Bearer ${auth.apiToken}`,
-        },
-      })
+          authorization: `Bearer ${auth.apiToken}`
+        }
+      });
 
       const HttpWebsocketLink = () => {
         const wsLink = new WebSocketLink({
-          uri: publicRuntimeConfig.GRAPHQL_API.replace(/https/, 'wss').replace(/http/, 'ws'),
+          uri: publicRuntimeConfig.GRAPHQL_API.replace(/https/, 'wss').replace(
+            /http/,
+            'ws'
+          ),
           options: {
             reconnect: true,
             connectionParams: {
-                authToken: auth.apiToken,
-            },
-          },
+              authToken: auth.apiToken
+            }
+          }
         });
 
         return ApolloLink.split(
           ({ query }) => {
             const { kind, operation } = getMainDefinition(query);
-            return kind === 'OperationDefinition' && operation === 'subscription';
+            return (
+              kind === 'OperationDefinition' && operation === 'subscription'
+            );
           },
           wsLink,
           httpLink
         );
-      }
+      };
 
       const client = new ApolloClient({
         link: ApolloLink.from([
@@ -54,8 +64,8 @@ const ApiConnection = ({ children }) =>
             if (graphQLErrors)
               graphQLErrors.map(({ message, locations, path }) =>
                 console.log(
-                  `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-                ),
+                  `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+                )
               );
             if (networkError) console.log(`[Network error]: ${networkError}`);
           }),
@@ -65,12 +75,9 @@ const ApiConnection = ({ children }) =>
         cache: new InMemoryCache()
       });
 
-      return (
-        <ApolloProvider client={client}>
-          {children}
-        </ApolloProvider>
-      );
+      return <ApolloProvider client={client}>{children}</ApolloProvider>;
     }}
-  </AuthContext.Consumer>;
+  </AuthContext.Consumer>
+);
 
 export default ApiConnection;
