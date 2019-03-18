@@ -1,10 +1,11 @@
+import Global from './global'
 import Header from '../components/Header'
 
 const Page = ({ children }) => (
-  <React.Fragment>
+  <Global>
     <Header />
     { children }
-  </React.Fragment>
+  </Global>
 )
 
 export default Page;
