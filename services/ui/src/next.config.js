@@ -33,6 +33,21 @@ module.exports = {
     config.resolve.alias['layouts'] = path.join(__dirname, 'layouts');
     config.resolve.alias['lib'] = path.join(__dirname, 'lib');
     config.resolve.alias['pages'] = path.join(__dirname, 'pages');
+
+    const originalEntry = config.entry;
+    config.entry = async () => {
+      const entries = await originalEntry();
+
+      if (
+        entries['main.js'] &&
+        !entries['main.js'].includes('./lib/polyfills.js')
+      ) {
+        entries['main.js'].unshift('./lib/polyfills.js');
+      }
+
+      return entries;
+    };
+
     return config;
   }
 };
