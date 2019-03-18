@@ -8,7 +8,7 @@ import { onError } from 'apollo-link-error';
 import { ApolloLink } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { ApolloProvider } from 'react-apollo';
-import { AuthContext } from 'lib/withAuth';
+import { AuthContext } from 'lib/Authenticator';
 import ErrorPage from 'pages/_error.js';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();

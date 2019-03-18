@@ -9,10 +9,12 @@ const initialAuth = { authenticated: false };
 
 export const AuthContext = React.createContext(initialAuth);
 
-export default App => {
-  if (publicRuntimeConfig.GRAPHQL_API_TOKEN) {
-    return withLocalAuth(App, initialAuth);
-  } else {
-    return withKeycloak(App, initialAuth);
-  }
-};
+const ContextProvider = ({ children, auth }) => (
+  <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
+);
+
+const Authenticator = publicRuntimeConfig.GRAPHQL_API_TOKEN
+  ? withLocalAuth(ContextProvider, initialAuth)
+  : withKeycloak(ContextProvider, initialAuth);
+
+export default Authenticator;
