@@ -32,3 +32,6 @@ RUN apk update \
 # Make sure shells are not running forever
 COPY 80-shell-timeout.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
+CMD ["python"]

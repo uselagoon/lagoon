@@ -31,4 +31,4 @@ RUN mkdir -p /app/ckan/datapusher/src \
     && cp deployment/datapusher.wsgi /etc/ckan/ \
     && cp deployment/datapusher_settings.py /etc/ckan/
 
-ENTRYPOINT . /app/ckan/datapusher/bin/activate && uwsgi --http :8800 --wsgi-file /etc/ckan/datapusher.wsgi
+CMD ["sh", "-c", ". /app/ckan/datapusher/bin/activate && uwsgi --http :8800 --wsgi-file /etc/ckan/datapusher.wsgi"]
