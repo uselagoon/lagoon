@@ -34,7 +34,7 @@ COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
-ENV NEWRELIC_VERSION=8.1.0.209
+ENV NEWRELIC_VERSION=8.6.0.238
 
 RUN apk del --no-cache curl libcurl \
     && apk add --no-cache "curl=7.61.1-r2" "libcurl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
@@ -75,9 +75,7 @@ RUN apk del --no-cache curl libcurl \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
-
-    &&  if [ ${PHP_VERSION%.*} != "7.3" ]; then \
-    mkdir -p /tmp/newrelic && cd /tmp/newrelic \
+    && mkdir -p /tmp/newrelic && cd /tmp/newrelic \
     && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
 	&& gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
 	&& NR_INSTALL_USE_CP_NOT_LN=1 ./newrelic-install install \
@@ -89,8 +87,7 @@ RUN apk del --no-cache curl libcurl \
 	&& sed -i -e "s/newrelic.logfile = .*/newrelic.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
 	&& sed -i -e "s/newrelic.daemon.logfile = .*/newrelic.daemon.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
 	&& mv /usr/local/etc/php/conf.d/newrelic.ini /usr/local/etc/php/conf.d/newrelic.disable \
-    && cd / && rm -rf /tmp/newrelic; \
-    fi \
+    && cd / && rm -rf /tmp/newrelic \
     && mkdir -p /app \
     && fix-permissions /usr/local/etc/ \
     && fix-permissions /app \
