@@ -1,7 +1,9 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/mariadb
 
+USER root
 RUN apk add --no-cache openssh-keygen
+USER mysql
 
 ENV MARIADB_DATABASE=infrastructure \
     MARIADB_USER=api \
