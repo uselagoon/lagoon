@@ -818,6 +818,7 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
+    autoIdle: Int
   }
 
   input UpdateEnvironmentInput {
