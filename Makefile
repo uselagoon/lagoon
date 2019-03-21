@@ -83,7 +83,7 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(
 # 1. Python version
 # 2. Location of Dockerfile
 # 3. Path of Docker Build context
-docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
+docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
@@ -211,7 +211,7 @@ $(build-pythonimages): build/commons
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
-base-images += $(pythonimages)
+base-images-with-versions += $(pythonimages)
 s3-images += python
 
 build/python__2.7 build/python__3.7: images/commons
