@@ -432,7 +432,7 @@ build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-ima
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
-	@for number in $(foreach image,$(build-images),build/$(image)); do \
+	@for number in $(foreach image,$(base-images) $(base-images-with-versions) $(service-images),build/$(image)); do \
 			echo $$number ; \
 	done
 

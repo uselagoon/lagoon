@@ -22,10 +22,19 @@ All of it is based around tests. So if you like to only build the part that is n
 
 If you would still like to build and start all services, go ahead:
 
-2. Build images
+2. Images need to be built into your build directory.
+
+Build images in series
 
 ```sh
 make build
+```
+
+- or -
+
+Build images in parallel where 5 is the number of processes being run in parallel.
+```sh
+make build-list | xargs -n 1 -P 5 make
 ```
 
 3. start Lagoon Services
