@@ -293,11 +293,15 @@ const typeDefs = gql`
     """
     deployType: String
     """
+    Should this environment have auto idling enabled (\`1\` or \`0\`)
+    """
+    autoIdle: Int
+    """
     Which Environment Type this environment is, can be \`production\`, \`development\`
     """
     environmentType: String
     """
-    Name of the OpenShift Project/Namespace this environemnt is deployed into
+    Name of the OpenShift Project/Namespace this environment is deployed into
     """
     openshiftProjectName: String
     """
