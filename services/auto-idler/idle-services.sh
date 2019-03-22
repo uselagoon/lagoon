@@ -20,6 +20,7 @@ GRAPHQL='query developmentEnvironments {
     environments(type: DEVELOPMENT) {
       openshiftProjectName
       name
+      autoIdle
     }
   }
 }'
@@ -49,6 +50,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
         do
           ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
           ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
+          ENVIRONMENT_AUTOIDLE=$(echo "$environment" | jq -r '.autoIdle')
           echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
           # Check if this environment has hits
@@ -68,7 +70,10 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
             }
           }'| jq ".hits.total")
 
-          if [ ! $? -eq 0 ]; then
+          if [ "$ENVIRONMENT_AUTOIDLE" == "0" ]; then
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME idling disabled, skipping"
+            continue
+          elif [ ! $? -eq 0 ]; then
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
             continue
           elif [ "$HITS" == "null"  ]; then
