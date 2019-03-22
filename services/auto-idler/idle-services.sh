@@ -53,53 +53,54 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
           ENVIRONMENT_AUTOIDLE=$(echo "$environment" | jq -r '.autoIdle')
           echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
-          # Check if this environment has hits
-          HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d'
-          {
-            "size": 0,
-            "query": {
-              "bool": {
-                "filter": {
-                  "range": {
-                    "@timestamp": {
-                      "gte": "now-4h"
+          if [ "$ENVIRONMENT_AUTOIDLE" == "0" ]; then
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME idling disabled, skipping"
+            continue
+          else
+            # Check if this environment has hits
+            HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d'
+            {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "filter": {
+                    "range": {
+                      "@timestamp": {
+                        "gte": "now-4h"
+                      }
                     }
                   }
                 }
               }
-            }
-          }'| jq ".hits.total")
+            }'| jq ".hits.total")
 
-          if [ "$ENVIRONMENT_AUTOIDLE" == "0" ]; then
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME idling disabled, skipping"
-            continue
-          elif [ ! $? -eq 0 ]; then
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
-            continue
-          elif [ "$HITS" == "null"  ]; then
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME no data found, skipping"
-            continue
-          elif [ "$HITS" -gt 0 ]; then
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last four hours, no idling"
-          else
-            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last four hours, starting to idle"
-            # actually idling happens here
-            oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle -l "service notin (mariadb,postgres)"
+            if [ ! $? -eq 0 ]; then
+              echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
+              continue
+            elif [ "$HITS" == "null"  ]; then
+              echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME no data found, skipping"
+              continue
+            elif [ "$HITS" -gt 0 ]; then
+              echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had $HITS hits in last four hours, no idling"
+            else
+              echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME had no hits in last four hours, starting to idle"
+              # actually idling happens here
+              oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" idle -l "service notin (mariadb,postgres)"
 
-            ### Faster Unidling:
-            ## Instead of depending that each endpoint is unidling their own service (which means it takes a lot of time to unidle multiple services)
-            ## This update makes sure that every endpoint is unidling every service that is currently idled, which means the whole system is much much faster unidled.
-            # load all endpoints which have unidle targets, format it as a space separated
-            IDLING_ENDPOINTS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq  --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.name ] | join(" ")')
-            if [[ "${IDLING_ENDPOINTS}" ]]; then
-              # Load all unidling targets of all endpoints and generate one bit JSON array from it
-              ALL_IDLED_SERVICES_JSON=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.annotations."idling.alpha.openshift.io/unidle-targets" | fromjson | .[] ] | unique_by(.name) | tojson')
-              # add this generated JSON array to all endpoints
-              if [[ "${ALL_IDLED_SERVICES_JSON}" ]]; then
-                oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" annotate --overwrite endpoints $IDLING_ENDPOINTS "idling.alpha.openshift.io/unidle-targets=${ALL_IDLED_SERVICES_JSON}"
+              ### Faster Unidling:
+              ## Instead of depending that each endpoint is unidling their own service (which means it takes a lot of time to unidle multiple services)
+              ## This update makes sure that every endpoint is unidling every service that is currently idled, which means the whole system is much much faster unidled.
+              # load all endpoints which have unidle targets, format it as a space separated
+              IDLING_ENDPOINTS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq  --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.name ] | join(" ")')
+              if [[ "${IDLING_ENDPOINTS}" ]]; then
+                # Load all unidling targets of all endpoints and generate one bit JSON array from it
+                ALL_IDLED_SERVICES_JSON=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get endpoints -o json | jq --raw-output '[ .items[] | select(.metadata.annotations | has("idling.alpha.openshift.io/unidle-targets")) | .metadata.annotations."idling.alpha.openshift.io/unidle-targets" | fromjson | .[] ] | unique_by(.name) | tojson')
+                # add this generated JSON array to all endpoints
+                if [[ "${ALL_IDLED_SERVICES_JSON}" ]]; then
+                  oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" annotate --overwrite endpoints $IDLING_ENDPOINTS "idling.alpha.openshift.io/unidle-targets=${ALL_IDLED_SERVICES_JSON}"
+                fi
               fi
             fi
-
           fi
         done
       else
