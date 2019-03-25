@@ -704,6 +704,7 @@ openshift-lagoon-setup:
 	oc -n lagoon policy add-role-to-user admin -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/priorityclasses.yaml; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
 	oc -n lagoon create -f openshift-setup/policybinding.yaml | oc -n lagoon create -f openshift-setup/rolebinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \

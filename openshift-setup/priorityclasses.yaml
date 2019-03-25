@@ -1,0 +1,16 @@
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: priority-development
+value: 1000000
+globalDefault: false
+description: "This priority class should be used for production environments."
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: priority-development
+value: 10000
+globalDefault: true
+description: "This priority class should be used for development environments."
