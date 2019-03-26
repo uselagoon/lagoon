@@ -37,7 +37,11 @@ const NavTabs = ({ activeTab, environment }) => (
         Overview
       </EnvironmentLink>
     </li>
-    <li className={`deployments ${activeTab == 'deployments' ? 'active' : ''}`}>
+    <li
+      className={`deployments ${
+        activeTab == 'deployments' ? 'active' : ''
+      } ${aClassName}`}
+    >
       <DeploymentsLink
         environmentSlug={environment.openshiftProjectName}
         projectSlug={environment.project.name}
@@ -46,7 +50,11 @@ const NavTabs = ({ activeTab, environment }) => (
         Deployments
       </DeploymentsLink>
     </li>
-    <li className={`backups ${activeTab == 'backups' ? 'active' : ''}`}>
+    <li
+      className={`backups ${
+        activeTab == 'backups' ? 'active' : ''
+      } ${aClassName}`}
+    >
       <BackupsLink
         environmentSlug={environment.openshiftProjectName}
         projectSlug={environment.project.name}
@@ -55,7 +63,9 @@ const NavTabs = ({ activeTab, environment }) => (
         Backups
       </BackupsLink>
     </li>
-    <li className={`tasks ${activeTab == 'tasks' ? 'active' : ''}`}>
+    <li
+      className={`tasks ${activeTab == 'tasks' ? 'active' : ''} ${aClassName}`}
+    >
       <TasksLink
         environmentSlug={environment.openshiftProjectName}
         projectSlug={environment.project.name}
