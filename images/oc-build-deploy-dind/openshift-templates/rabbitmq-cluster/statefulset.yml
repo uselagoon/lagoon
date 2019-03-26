@@ -61,7 +61,7 @@ objects:
   metadata:
     name: ${SERVICE_NAME}
   spec:
-    serviceName: ${SERVICE_NAME}
+    serviceName: ${SERVICE_NAME}-headless
     replicas: 3
     selector:
       matchLabels:

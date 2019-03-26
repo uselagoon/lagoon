@@ -3,7 +3,7 @@
 const R = require('ramda');
 const sqlClient = require('../../clients/sqlClient');
 const { isPatchEmpty, prepare, query } = require('../../util/db');
-const { validateSshKey } = require('.');
+const { validateSshKey, getSshKeyFingerprint } = require('.');
 const Sql = require('./sql');
 
 /* ::
@@ -66,8 +66,9 @@ const addSshKey = async (
   { credentials: { role, userId: credentialsUserId } },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
+  const keyFormatted = formatSshKey({ keyType, keyValue });
 
-  if (!validateSshKey(formatSshKey({ keyType, keyValue }))) {
+  if (!validateSshKey(keyFormatted)) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
@@ -86,6 +87,7 @@ const addSshKey = async (
       name,
       keyValue,
       keyType,
+      keyFingerprint: getSshKeyFingerprint(keyFormatted),
     }),
   );
   await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: insertId, userId }));
@@ -125,16 +127,20 @@ const updateSshKey = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  if (
-    (keyType || keyValue) &&
-    !validateSshKey(formatSshKey({ keyType, keyValue }))
-  ) {
-    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
+  let keyFingerprint = null;
+  if ((keyType || keyValue)) {
+    const keyFormatted = formatSshKey({ keyType, keyValue });
+
+    if (!validateSshKey(keyFormatted)) {
+      throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
+    }
+
+    keyFingerprint = getSshKeyFingerprint(keyFormatted);
   }
 
   await query(
     sqlClient,
-    Sql.updateSshKey({ id, patch: { name, keyType, keyValue } }),
+    Sql.updateSshKey({ id, patch: { name, keyType, keyValue, keyFingerprint } }),
   );
   const rows = await query(sqlClient, Sql.selectSshKey(id));
 

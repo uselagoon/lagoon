@@ -1,198 +1,125 @@
 import React from 'react';
 import { withRouter } from 'next/router';
-import Link from 'next/link';
+import Head from 'next/head';
 import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
-import Page from '../layouts/main';
-import Breadcrumbs from '../components/Breadcrumbs';
-import NavTabs from '../components/NavTabs';
-import TaskData from '../components/Tasks';
-import Task from '../components/Task';
-import moment from 'moment';
-import { bp, color } from '../variables';
+import MainLayout from 'layouts/main';
+import EnvironmentWithTasksQuery from 'lib/query/EnvironmentWithTasks';
+import TasksSubscription from 'lib/subscription/Tasks';
+import LoadingPage from 'pages/_loading';
+import ErrorPage from 'pages/_error';
+import Breadcrumbs from 'components/Breadcrumbs';
+import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
+import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import NavTabs from 'components/NavTabs';
+import AddTask from 'components/AddTask';
+import Tasks from 'components/Tasks';
+import { bp } from 'lib/variables';
 
-const query = gql`
-  query getEnvironment($openshiftProjectName: String!) {
-    environmentByOpenshiftProjectName(
-      openshiftProjectName: $openshiftProjectName
-    ) {
-      id
-      name
-      created
-      updated
-      deployType
-      environmentType
-      routes
-      openshiftProjectName
-      project {
-        name
-      }
-      services {
-        id
-        name
-      }
-      tasks {
-        id
-        name
-        status
-        created
-        started
-    		completed
-    		remoteId
-        command
-        service
-        logs
-        files {
-          id
-          filename
-          download
+const PageTasks = ({ router }) => (
+  <>
+    <Head>
+      <title>{`${router.query.openshiftProjectName} | Tasks`}</title>
+    </Head>
+    <Query
+      query={EnvironmentWithTasksQuery}
+      variables={{
+        openshiftProjectName: router.query.openshiftProjectName
+      }}
+    >
+      {({
+        loading,
+        error,
+        data: { environmentByOpenshiftProjectName: environment },
+        subscribeToMore
+      }) => {
+        if (loading) {
+          return <LoadingPage />;
         }
-      }
-    }
-  }
-`;
 
-const subscribe = gql`
-  subscription subscribeToTasks($environment: Int!) {
-    taskChanged(environment: $environment) {
-      id
-      name
-      status
-      created
-      started
-      completed
-      remoteId
-      command
-      service
-      logs
-      files {
-        id
-        filename
-        download
-      }
-    }
-  }
-`;
+        if (error) {
+          return <ErrorPage statusCode={500} errorMessage={error.toString()} />;
+        }
 
-const PageTasks = withRouter(props => {
-  return (
-    <Page>
-      <Query
-        query={query}
-        variables={{ openshiftProjectName: props.router.query.name }}
-      >
-        {({ loading, error, data, subscribeToMore }) => {
-          if (loading) return null;
-          if (error) return `Error!: ${error}`;
-          const environment = data.environmentByOpenshiftProjectName;
-          const breadcrumbs = [
-            {
-              header: 'Project',
-              title: environment.project.name,
-              pathname: '/project',
-              query: { name: environment.project.name }
-            },
-            {
-              header: 'Environment',
-              title: environment.name,
-              pathname: '/environment',
-              query: { name: environment.openshiftProjectName }
-            }
-          ];
-
-          subscribeToMore({
-            document: subscribe,
-            variables: { environment: environment.id},
-            updateQuery: (prevStore, { subscriptionData }) => {
-              if (!subscriptionData.data) return prevStore;
-              const prevTasks = prevStore.environmentByOpenshiftProjectName.tasks;
-              const incomingTask = subscriptionData.data.taskChanged;
-              const existingIndex = prevTasks.findIndex(prevTask => prevTask.id === incomingTask.id);
-              let newTasks;
-
-              // New task.
-              if (existingIndex === -1) {
-                newTasks = [
-                  incomingTask,
-                  ...prevTasks,
-                ];
-              }
-              // Updated task
-              else {
-                newTasks = Object.assign([...prevTasks], {[existingIndex]: incomingTask});
-              }
-
-              const newStore = {
-                ...prevStore,
-                environmentByOpenshiftProjectName: {
-                  ...prevStore.environmentByOpenshiftProjectName,
-                  tasks: newTasks,
-                },
-              };
-
-              return newStore;
-            }
-          });
-
-          const tasks = environment.tasks.map(task => {
-
-            const taskStart = task.started || task.created;
-            const durationStart =
-              (taskStart && moment.utc(taskStart)) || moment.utc();
-            const durationEnd =
-              (task.completed && moment.utc(task.completed)) ||
-              moment.utc();
-            const duration = moment
-              .duration(durationEnd - durationStart)
-              .format('HH[hr] mm[m] ss[sec]');
-            return {
-              ...task,
-              duration
-            };
-          });
-
+        if (!environment) {
           return (
-            <React.Fragment>
-              <Breadcrumbs breadcrumbs={breadcrumbs} />
-              <div className="content-wrapper">
-                <NavTabs
-                  activeTab="tasks"
-                  environment={environment.openshiftProjectName}
-                />
-                {!props.router.query.task_id && (
-                  <TaskData
-                    pageEnvironment={environment}
-                    tasks={tasks}
-                  />
-                )}
-                {props.router.query.task_id &&
-                  tasks
-                    .filter(
-                      task => task.id === parseInt(props.router.query.task_id)
-                    )
-                    .map(task => (
-                      <Task
-                        key={task.id}
-                        task={task}
-                      />
-                    ))}
-              </div>
-              <style jsx>{`
-                .content-wrapper {
-                  @media ${bp.tabletUp} {
-                    display: flex;
-                    padding: 0;
-                  }
-                }
-              `}</style>
-            </React.Fragment>
+            <ErrorPage
+              statusCode={404}
+              errorMessage={`Environment "${
+                router.query.openshiftProjectName
+              }" not found`}
+            />
           );
-        }}
-      </Query>
-    </Page>
-  );
-});
+        }
 
-PageTasks.displayName = 'withRouter(PageTasks)';
+        subscribeToMore({
+          document: TasksSubscription,
+          variables: { environment: environment.id },
+          updateQuery: (prevStore, { subscriptionData }) => {
+            if (!subscriptionData.data) return prevStore;
+            const prevTasks = prevStore.environmentByOpenshiftProjectName.tasks;
+            const incomingTask = subscriptionData.data.taskChanged;
+            const existingIndex = prevTasks.findIndex(
+              prevTask => prevTask.id === incomingTask.id
+            );
+            let newTasks;
 
-export default PageTasks;
+            // New task.
+            if (existingIndex === -1) {
+              newTasks = [incomingTask, ...prevTasks];
+            }
+            // Updated task
+            else {
+              newTasks = Object.assign([...prevTasks], {
+                [existingIndex]: incomingTask
+              });
+            }
+
+            const newStore = {
+              ...prevStore,
+              environmentByOpenshiftProjectName: {
+                ...prevStore.environmentByOpenshiftProjectName,
+                tasks: newTasks
+              }
+            };
+
+            return newStore;
+          }
+        });
+
+        return (
+          <MainLayout>
+            <Breadcrumbs>
+              <ProjectBreadcrumb projectSlug={environment.project.name} />
+              <EnvironmentBreadcrumb
+                environmentSlug={environment.openshiftProjectName}
+                projectSlug={environment.project.name}
+              />
+            </Breadcrumbs>
+            <div className="content-wrapper">
+              <NavTabs activeTab="tasks" environment={environment} />
+              <div className="content">
+                <AddTask pageEnvironment={environment} />
+                <Tasks tasks={environment.tasks} />
+              </div>
+            </div>
+            <style jsx>{`
+              .content-wrapper {
+                @media ${bp.tabletUp} {
+                  display: flex;
+                  padding: 0;
+                }
+              }
+
+              .content {
+                padding: 32px calc((100vw / 16) * 1);
+                width: 100%;
+              }
+            `}</style>
+          </MainLayout>
+        );
+      }}
+    </Query>
+  </>
+);
+
+export default withRouter(PageTasks);

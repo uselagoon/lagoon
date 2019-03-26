@@ -1,5 +1,5 @@
 import React from 'react';
-import { color } from '../../variables';
+import { color } from 'lib/variables';
 
 const Footer = () => (
   <footer>

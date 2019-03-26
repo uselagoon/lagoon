@@ -1,5 +1,5 @@
 import React from 'react';
-import { bp } from '../../variables';
+import { bp } from 'lib/variables';
 
 const LogViewer = ({ logs }) => (
   <React.Fragment>

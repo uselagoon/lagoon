@@ -58,11 +58,13 @@ const Sql /* : SqlObj */ = {
       name,
       keyValue,
       keyType,
+      keyFingerprint,
     } /* : {
     id: number,
     name: string,
     keyValue: string,
     keyType: string,
+    keyFingerprint: string,
   } */,
   ) =>
     knex('ssh_key')
@@ -71,6 +73,7 @@ const Sql /* : SqlObj */ = {
         name,
         key_value: keyValue,
         key_type: keyType,
+        key_fingerprint: keyFingerprint,
       })
       .toString(),
   addSshKeyToUser: (

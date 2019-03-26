@@ -9,6 +9,7 @@ const gql = require('./util/gql');
 // Ref: https://github.com/prettier/prettier/issues/4974
 // prettier-ignore
 const typeDefs = gql`
+  scalar Upload
   scalar Date
 
   enum SshKeyType {
@@ -77,6 +78,7 @@ const typeDefs = gql`
     name: String
     keyValue: String
     keyType: String
+    keyFingerprint: String
     created: String
   }
 

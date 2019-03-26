@@ -1,5 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-INITDB_DIR="/docker-entrypoint-initdb.d"
-
-for sql_file in `ls $INITDB_DIR`; do mysql --verbose < "$INITDB_DIR/$sql_file" ; done
+for f in `ls /docker-entrypoint-initdb.d/*`; do
+  case "$f" in
+    *.sh)     echo "$0: running $f"; . "$f" ;;
+    *.sql)    echo "$0: running $f"; cat $f| tee | mysql --verbose; echo ;;
+    *)        echo "$0: ignoring $f" ;;
+  esac
+echo
+done

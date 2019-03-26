@@ -29,57 +29,46 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
 do
   PROJECT_NAME=$(echo "$project" | jq -r '.name')
   OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
-  STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
-  echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
-  OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
-  # loop through each environment of the current project
-  echo "$project" | jq -c '.environments[]' | while read environment
-  do
-    ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
-    ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
-    ENVIRONMENT_ID=$(echo "$environment" | jq -r '.id')
+  # Match the Project name to the Project Regex
+  if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
+    STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
+    echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
+    OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
+    # loop through each environment of the current project
+    echo "$project" | jq -c '.environments[]' | while read environment
+    do
+      ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
+      ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
+      ENVIRONMENT_ID=$(echo "$environment" | jq -r '.id')
 
-    echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
+      echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
-    if [[ $STORAGE_CALC != "1" ]]; then
-      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
+      if [[ $STORAGE_CALC != "1" ]]; then
+        echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
 
-      MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"storage-calc-disabled\", bytesUsed:0}) {
-          id
-        }
-      }"
+        MUTATION="mutation addOrUpdateEnvironmentStorage {
+          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"storage-calc-disabled\", bytesUsed:0}) {
+            id
+          }
+        }"
 
-      # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-      query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-      curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+        # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+        query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
 
-      continue
+        continue
 
-    fi
+      fi
 
-    OC="oc --insecure-skip-tls-verify --token=$OPENSHIFT_TOKEN --server=$OPENSHIFT_URL -n $ENVIRONMENT_OPENSHIFT_PROJECTNAME"
-
-    PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
-
-    if [[ ! ${#PVCS[@]} -gt 0 ]]; then
-      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no PVCs found writing API with 0 bytes"
-
-      MUTATION="mutation addOrUpdateEnvironmentStorage {
-        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"none\", bytesUsed:0}) {
-          id
-        }
-      }"
-
-      # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-      query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-      curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
-
-    else
+      OC="oc --insecure-skip-tls-verify --token=$OPENSHIFT_TOKEN --server=$OPENSHIFT_URL -n $ENVIRONMENT_OPENSHIFT_PROJECTNAME"
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
 
-      ${OC} run --image alpine storage-calc -- sh -c "while sleep 3600; do :; done"
+      ${OC} run --image amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
       ${OC} rollout pause deploymentconfig/storage-calc
+
+      ${OC} env --from=configmap/lagoon-env deploymentconfig/storage-calc
+
+      PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
 
       for PVC in "${PVCS[@]}"
       do
@@ -100,14 +89,11 @@ do
 
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: loading storage information"
 
-      for PVC in "${PVCS[@]}"
-      do
-        STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
-        # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
-        echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} bytes"
+      if [[ ! ${#PVCS[@]} -gt 0 ]]; then
+        echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no PVCs found writing API with 0 bytes"
 
         MUTATION="mutation addOrUpdateEnvironmentStorage {
-          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"${PVC}\", bytesUsed:${STORAGE_BYTES}}) {
+          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"none\", bytesUsed:0}) {
             id
           }
         }"
@@ -116,10 +102,45 @@ do
         query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
         curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
 
-      done
+      else
+        for PVC in "${PVCS[@]}"
+        do
+          STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
+          # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
+          echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} kilobytes"
+
+            MUTATION="mutation addOrUpdateEnvironmentStorage {
+              addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"${PVC}\", bytesUsed:${STORAGE_BYTES}}) {
+                id
+              }
+            }"
+
+            # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+            query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+            curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+
+        done
+      fi
+
+      if mariadb_size=$(${OC} exec ${POD} -- sh -c "if [ \"\$MARIADB_HOST\" ]; then mysql -N -s -h \$MARIADB_HOST -u\$MARIADB_USERNAME -p\$MARIADB_PASSWORD -P\$MARIADB_PORT -e 'SELECT ROUND(SUM(data_length + index_length) / 1024, 0) FROM information_schema.tables'; else exit 1; fi") && [ "$mariadb_size" ]; then
+        echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: Database uses ${mariadb_size} kilobytes"
+
+        MUTATION="mutation addOrUpdateEnvironmentStorage {
+          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"mariadb\", bytesUsed:${mariadb_size}}) {
+            id
+          }
+        }"
+
+        # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+        query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+      fi
 
       ${OC} delete deploymentconfig/storage-calc
-    fi
-  done
+
+    done
+  else
+    echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
+  fi
 done
 

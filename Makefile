@@ -79,6 +79,12 @@ BRANCH_NAME :=
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
+# Build a Python docker image. Expects as arguments:
+# 1. Python version
+# 2. Location of Dockerfile
+# 3. Path of Docker Build context
+docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
+
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
@@ -108,6 +114,7 @@ images :=     oc \
 							mariadb-galera \
 							mariadb-galera-drupal \
 							postgres \
+							postgres-ckan \
 							postgres-drupal \
 							oc-build-deploy-dind \
 							commons \
@@ -156,6 +163,7 @@ build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
 build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
+build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
@@ -177,6 +185,39 @@ build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
+
+
+#######
+####### Python Images
+#######
+####### Python Images are alpine linux based Python images.
+
+pythonimages :=  python__2.7 \
+								 python__3.7 \
+								 python__2.7-ckan \
+								 python__2.7-ckandatapusher
+
+build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-pythonimages): build/commons
+	$(eval clean = $(subst build/python__,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+# this fills variables only if $type is existing, if not they are just empty
+	$(eval type_dash = $(if $(type),-$(type)))
+# Call the docker build
+	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(pythonimages)
+s3-images += python
+
+build/python__2.7 build/python__3.7: images/commons
+build/python__2.7-ckan: build/python__2.7
+build/python__2.7-ckandatapusher: build/python__2.7
+
 
 #######
 ####### PHP Images
@@ -244,7 +285,9 @@ solrimages := 	solr__5.5 \
 								solr__7.5 \
 								solr__5.5-drupal \
 								solr__6.6-drupal \
-								solr__7.5-drupal
+								solr__7.5-drupal \
+								solr__5.5-ckan \
+								solr__6.6-ckan
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -268,6 +311,8 @@ build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
 build/solr__6.6-drupal: build/solr__6.6
 build/solr__7.5-drupal: build/solr__7.5
+build/solr__5.5-ckan: build/solr__5.5
+build/solr__6.6-ckan: build/solr__6.6
 
 #######
 ####### Node Images
@@ -336,6 +381,7 @@ services :=       api \
 									webhook-handler \
 									webhooks2tasks \
 									broker \
+									broker-single \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
@@ -381,6 +427,7 @@ build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster
+build/broker-single: build/rabbitmq
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -474,7 +521,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
