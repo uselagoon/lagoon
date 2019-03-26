@@ -38,7 +38,7 @@ const taskStatusTypeToString = R.cond([
 
 const getTasksByEnvironmentId = async (
   { id: eid },
-  args,
+  { id: filterId },
   {
     credentials: {
       role,
@@ -67,7 +67,13 @@ const getTasksByEnvironmentId = async (
 
   const requestedFields = getFieldNames(info);
 
-  return newestFirst.map(row => {
+  return newestFirst.filter(row => {
+    if (R.isNil(filterId) || R.isEmpty(filterId)) {
+      return true;
+    }
+
+    return row.id === String(filterId);
+  }).map(row => {
     if (R.contains('logs', requestedFields)) {
       return Helpers.injectLogs(row);
     }

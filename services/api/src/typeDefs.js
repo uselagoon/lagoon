@@ -338,7 +338,7 @@ const typeDefs = gql`
     monitoringUrls: String
     deployments(name: String): [Deployment]
     backups(includeDeleted: Boolean): [Backup]
-    tasks: [Task]
+    tasks(id: Int): [Task]
     services: [EnvironmentService]
   }
 
