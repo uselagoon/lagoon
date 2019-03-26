@@ -75,10 +75,10 @@ objects:
               key: appuio.ch/autoscaled
               operator: Equal
               value: 'true'
-          priorityClassName: priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
+              priorityClassName: priority-${ENVIRONMENT_TYPE}
               ports:
                 - containerPort: 8080
                   protocol: TCP
