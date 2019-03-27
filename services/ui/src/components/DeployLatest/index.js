@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
-import { bp, color, fontSize } from '../../variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 const DEPLOY_ENVIRONMENT_LATEST_MUTATION = gql`
   mutation deployEnvironmentLatest(
