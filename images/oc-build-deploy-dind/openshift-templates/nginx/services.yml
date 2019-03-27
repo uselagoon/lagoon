@@ -31,8 +31,6 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
-  - name: ENVIRONMENT_TYPE
-    description: production level of this environment
 objects:
 - apiVersion: v1
   kind: Service
