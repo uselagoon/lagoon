@@ -45,6 +45,7 @@ parameters:
     value: "1Gi"
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
+    required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig

@@ -42,6 +42,7 @@ parameters:
     value: ''
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
+    required: true
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -86,6 +87,7 @@ objects:
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
+              priorityClassName: priority-${ENVIRONMENT_TYPE}
               envFrom:
                 - configMapRef:
                     name: lagoon-env
