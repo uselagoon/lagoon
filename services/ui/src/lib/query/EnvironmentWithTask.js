@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 import TaskFragment from 'lib/fragment/Task';
 
 export default gql`
-  query getEnvironment($openshiftProjectName: String!) {
+  query getEnvironment($openshiftProjectName: String!, $taskId: Int!) {
     environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
@@ -22,7 +22,7 @@ export default gql`
         id
         name
       }
-      tasks {
+      tasks(id: $taskId) {
         ...taskFields
         logs
       }

@@ -21,7 +21,8 @@ const PageTask = ({ router }) => (
     <Query
       query={EnvironmentWithTaskQuery}
       variables={{
-        openshiftProjectName: router.query.openshiftProjectName
+        openshiftProjectName: router.query.openshiftProjectName,
+        taskId: router.query.taskId
       }}
     >
       {({
@@ -48,11 +49,7 @@ const PageTask = ({ router }) => (
           );
         }
 
-        const task = environment.tasks.find(
-          task => task.id === parseInt(router.query.taskId)
-        );
-
-        if (!task) {
+        if (!environment.tasks.length) {
           return (
             <ErrorPage
               statusCode={404}
@@ -73,7 +70,7 @@ const PageTask = ({ router }) => (
             <div className="content-wrapper">
               <NavTabs activeTab="tasks" environment={environment} />
               <div className="content">
-                <Task task={task} />
+                <Task task={environment.tasks[0]} />
               </div>
             </div>
             <style jsx>{`
