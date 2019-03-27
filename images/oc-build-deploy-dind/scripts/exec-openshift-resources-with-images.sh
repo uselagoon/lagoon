@@ -37,6 +37,7 @@ oc process  --local -o yaml --insecure-skip-tls-verify \
   -p SAFE_PROJECT="${SAFE_PROJECT}" \
   -p BRANCH="${BRANCH}" \
   -p PROJECT="${PROJECT}" \
+  $(grep -q -s ENVIRONMENT_TYPE ${OPENSHIFT_TEMPLATE} && echo -p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" ) \
   -p LAGOON_GIT_SHA="${LAGOON_GIT_SHA}" \
   -p SERVICE_ROUTER_URL="${SERVICE_ROUTER_URL}" \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
