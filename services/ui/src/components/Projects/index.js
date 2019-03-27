@@ -160,9 +160,7 @@ const Projects = ({ projects = [] }) => {
           }
         }
         .project {
-          ${fontSize(25, 36)};
           font-weight: normal;
-          margin: 4px 0 0;
 
           @media ${bp.tinyUp} {
             width: 50%;
