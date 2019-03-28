@@ -588,6 +588,43 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_key_fingerprint_to_ssh_key()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'ssh_key'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'key_fingerprint'
+    ) THEN
+      ALTER TABLE `ssh_key`
+      ADD `key_fingerprint` char(51) NULL UNIQUE;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_autoidle_to_environment()
+
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'auto_idle'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `auto_idle` int(1) NOT NULL default '1';
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -618,6 +655,8 @@ CALL add_default_value_to_task_status();
 CALL add_scope_to_env_vars();
 CALL add_deleted_to_environment_backup();
 CALL convert_task_command_to_text();
+CALL add_key_fingerprint_to_ssh_key();
+CALL add_autoidle_to_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
