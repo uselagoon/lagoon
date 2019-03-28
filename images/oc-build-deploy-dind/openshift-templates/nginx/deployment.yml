@@ -68,7 +68,6 @@ objects:
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
         spec:
-          priorityClassName: priority-${ENVIRONMENT_TYPE}
           tolerations:
             - effect: NoSchedule
               key: autoscaled
