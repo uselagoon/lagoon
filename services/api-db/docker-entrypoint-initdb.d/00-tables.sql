@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS environment (
   project                int REFERENCES project (id),
   deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
   environment_type       ENUM('production', 'development') NOT NULL,
+  auto_idle              int(1) NOT NULL default 1,
   openshift_project_name varchar(100),
   route                  varchar(300),
   routes                 text,
