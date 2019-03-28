@@ -87,7 +87,7 @@ objects:
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
-              priorityClassName: priority-${ENVIRONMENT_TYPE}
+              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
               envFrom:
                 - configMapRef:
                     name: lagoon-env

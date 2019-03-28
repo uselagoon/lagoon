@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-cli
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -34,6 +34,11 @@ parameters:
   - name: PERSISTENT_STORAGE_PATH
     description: Full path to which should be mounted into persistent storage
     required: true
+  - name: PERSISTENT_STORAGE_NAME
+    description: Name of the Persistent Volume Claim to use
+    required: true
+  # The following two parameters are actually not used anywhere in this YAML, but they are injected by oc-build-deploy
+  # and `oc process` fails if you inject a parameter that is not defined
   - name: PERSISTENT_STORAGE_CLASS
     description: Name of the Storage Class to use
     value: ''
@@ -51,7 +56,6 @@ parameters:
     value: ''
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
-    required: true
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -71,8 +75,8 @@ objects:
       template:
         metadata:
           annotations:
-            appuio.ch/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C ${PERSISTENT_STORAGE_PATH} ."
-            backup.appuio.ch/file-extension: .${SERVICE_NAME}.tar
+            appuio.ch/backupcommand: /bin/sh -c "if [[ $MARIADB_HOST ]]; then dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $MARIADB_HOST -u $MARIADB_USERNAME -p$MARIADB_PASSWORD $MARIADB_DATABASE > $dump && cat $dump && rm $dump; fi"
+            backup.appuio.ch/file-extension: .mysql.sql
           creationTimestamp: null
           labels:
             service: ${SERVICE_NAME}
@@ -89,26 +93,17 @@ objects:
               operator: Equal
               value: 'true'
           volumes:
-            - name: ${SERVICE_NAME}
+            - name: ${PERSISTENT_STORAGE_NAME}
               persistentVolumeClaim:
-                claimName: ${SERVICE_NAME}
+                claimName: ${PERSISTENT_STORAGE_NAME}
+            - name: lagoon-sshkey
+              secret:
+                defaultMode: 420
+                secretName: lagoon-sshkey
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
-              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
-              ports:
-                - containerPort: 3000
-                  protocol: TCP
-              readinessProbe:
-                tcpSocket:
-                  port: 3000
-                initialDelaySeconds: 15
-                timeoutSeconds: 1
-              livenessProbe:
-                tcpSocket:
-                  port: 3000
-                initialDelaySeconds: 60
-                periodSeconds: 5
+              priorityClassName: priority-${ENVIRONMENT_TYPE}
               envFrom:
                 - configMapRef:
                     name: lagoon-env
@@ -122,8 +117,11 @@ objects:
                 - name: CRONJOBS
                   value: ${CRONJOBS}
               volumeMounts:
-                - name: ${SERVICE_NAME}
+                - name: ${PERSISTENT_STORAGE_NAME}
                   mountPath: ${PERSISTENT_STORAGE_PATH}
+                - mountPath: /var/run/secrets/lagoon/sshkey/
+                  name: lagoon-sshkey
+                  readOnly: true
               resources:
                 requests:
                   cpu: 10m

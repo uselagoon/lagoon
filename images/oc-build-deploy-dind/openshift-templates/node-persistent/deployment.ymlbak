@@ -95,7 +95,7 @@ objects:
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
-              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
+              priorityClassName: priority-${ENVIRONMENT_TYPE}
               ports:
                 - containerPort: 3000
                   protocol: TCP

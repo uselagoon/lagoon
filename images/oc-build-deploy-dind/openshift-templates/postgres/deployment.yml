@@ -74,7 +74,7 @@ objects:
         containers:
         - image: ${POSTGRES_SERVICE_IMAGE}
           name: ${SERVICE_NAME}
-          priorityClassName: priority-${ENVIRONMENT_TYPE}
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           ports:
           - containerPort: 5432
             protocol: TCP

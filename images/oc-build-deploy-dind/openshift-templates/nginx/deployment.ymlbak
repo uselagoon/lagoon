@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node
+  name: lagoon-openshift-template-nginx
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -31,15 +31,6 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
-  - name: PERSISTENT_STORAGE_PATH
-    description: Full path to which should be mounted into persistent storage
-    required: true
-  - name: PERSISTENT_STORAGE_CLASS
-    description: Name of the Storage Class to use
-    value: ''
-  - name: PERSISTENT_STORAGE_SIZE
-    description: Size of the Storage to request
-    value: '5Gi'
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: 'Rolling'
@@ -63,6 +54,7 @@ objects:
         project: ${SAFE_PROJECT}
       name: ${SERVICE_NAME}
     spec:
+
       replicas: 1
       selector:
         service: ${SERVICE_NAME}
@@ -70,9 +62,6 @@ objects:
         type: ${DEPLOYMENT_STRATEGY}
       template:
         metadata:
-          annotations:
-            appuio.ch/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C ${PERSISTENT_STORAGE_PATH} ."
-            backup.appuio.ch/file-extension: .${SERVICE_NAME}.tar
           creationTimestamp: null
           labels:
             service: ${SERVICE_NAME}
@@ -88,27 +77,26 @@ objects:
               key: appuio.ch/autoscaled
               operator: Equal
               value: 'true'
-          volumes:
-            - name: ${SERVICE_NAME}
-              persistentVolumeClaim:
-                claimName: ${SERVICE_NAME}
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
-              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
+              priorityClassName: priority-${ENVIRONMENT_TYPE}
               ports:
-                - containerPort: 3000
+                - containerPort: 8080
                   protocol: TCP
               readinessProbe:
-                tcpSocket:
-                  port: 3000
-                initialDelaySeconds: 15
-                timeoutSeconds: 1
+                httpGet:
+                  path: /nginx_status
+                  port: 50000
+                initialDelaySeconds: 5
+                timeoutSeconds: 3
               livenessProbe:
-                tcpSocket:
-                  port: 3000
-                initialDelaySeconds: 60
-                periodSeconds: 5
+                httpGet:
+                  path: /nginx_status
+                  port: 50000
+                initialDelaySeconds: 90
+                timeoutSeconds: 3
+                failureThreshold: 5
               envFrom:
                 - configMapRef:
                     name: lagoon-env
@@ -121,9 +109,6 @@ objects:
                   value: ${SERVICE_NAME}
                 - name: CRONJOBS
                   value: ${CRONJOBS}
-              volumeMounts:
-                - name: ${SERVICE_NAME}
-                  mountPath: ${PERSISTENT_STORAGE_PATH}
               resources:
                 requests:
                   cpu: 10m
@@ -131,3 +116,4 @@ objects:
       test: false
       triggers:
         - type: ConfigChange
+    status: {}

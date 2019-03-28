@@ -80,7 +80,7 @@ objects:
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
-              priorityClassName: priority-${ENVIRONMENT_TYPE}
+              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
               ports:
                 - containerPort: 8080
                   protocol: TCP
