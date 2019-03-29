@@ -8,14 +8,14 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post for git branch {{ source_environment }} on {{ project }}, which will deploy our source environment"
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }} for branch {{ source_environment }}, which will deploy our source environment"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ source_environment }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - include: ../../checks/check-branch-sha.yaml
   vars:
@@ -24,7 +24,7 @@
     project: "{{ project }}"
     url: "{{ check_url_source }}"
 
-- name: "{{ testname }} - rest2tasks promote post for target environment {{ promote_environment }} with source environment {{ source_environment }} on {{ project }}"
+- name: "{{ testname }} - api deployEnvironmentPromote for target environment {{ promote_environment }} with source environment {{ source_environment }} on {{ project }}"
   hosts: localhost
   serial: 1
   vars:
@@ -32,7 +32,7 @@
     source_environment: "{{ source_environment }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/promote.yaml
+  - include: ../../tasks/api/promote.yaml
 
 - include: ../../checks/check-branch-sha.yaml
   vars:

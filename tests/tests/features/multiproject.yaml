@@ -8,23 +8,23 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on first project {{ project1 }}"
+- name: "{{ testname }} - api deployEnvironmentBranch on first project {{ project1 }}"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
     project: "{{ project1 }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on second project {{ project2 }}"
+- name: "{{ testname }} - api deployEnvironmentBranch on second project {{ project2 }}"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
     project: "{{ project2 }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - include: ../../checks/check-branch-sha.yaml
   vars:

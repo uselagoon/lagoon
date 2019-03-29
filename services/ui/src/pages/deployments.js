@@ -11,6 +11,7 @@ import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
+import DeployLatest from 'components/DeployLatest';
 import Deployments from 'components/Deployments';
 import { bp } from 'lib/variables';
 
@@ -100,6 +101,7 @@ const PageDeployments = ({ router }) => {
               <div className="content-wrapper">
                 <NavTabs activeTab="deployments" environment={environment} />
                 <div className="content">
+                  <DeployLatest pageEnvironment={environment} />
                   <Deployments
                     deployments={environment.deployments}
                     projectName={environment.openshiftProjectName}

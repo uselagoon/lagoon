@@ -11,14 +11,14 @@
   - set_fact:
       current_head_first: "{{ current_head }}"
 
-- name: "{{ testname }} FIRST - rest2tasks /deploy POST for just git branch on {{ project }}, which should deploy the first commit"
+- name: "{{ testname }} FIRST - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "drush-first"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} SECOND - init git, add files, commit, git push"
   hosts: localhost
@@ -33,14 +33,14 @@
   - set_fact:
       current_head_second: "{{ current_head }}"
 
-- name: "{{ testname }} SECOND - rest2tasks /deploy POST for just git branch on {{ project }}, which should deploy the first commit"
+- name: "{{ testname }} SECOND - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "drush-second"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - include: check-deployed.yaml
   vars:
@@ -160,14 +160,14 @@
   - set_fact:
       current_head_third: "{{ current_head }}"
 
-- name: "{{ testname }} third - rest2tasks /deploy POST for just git branch on {{ project }}, which should deploy the first commit"
+- name: "{{ testname }} third - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "foo/bar"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - include: check-deployed.yaml
   vars:
