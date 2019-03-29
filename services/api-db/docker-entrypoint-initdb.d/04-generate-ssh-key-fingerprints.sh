@@ -18,7 +18,7 @@ if [ ${#DUPLICATE_SSHKEY_RECORDS[@]} -ne 0 ]; then
   done;
   echo ""
   echo "====== PLEASE REMOVE DUPLICATED SSH KEYS AND RUN INITIALIZATION OF DB AGAIN"
-  #exit 1
+  exit 1
 fi
 
 echo "=== Starting SSH KEY Fingerprint generation"
