@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS environment (
   deploy_head_ref        varchar(100),
   deploy_title           varchar(300),
   environment_type       ENUM('production', 'development') NOT NULL,
+  auto_idle              int(1) NOT NULL default 1,
   openshift_project_name varchar(100),
   route                  varchar(300),
   routes                 text,

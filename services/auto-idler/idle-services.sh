@@ -20,6 +20,7 @@ GRAPHQL='query developmentEnvironments {
     environments(type: DEVELOPMENT) {
       openshiftProjectName
       name
+      autoIdle
     }
   }
 }'
@@ -49,8 +50,13 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
         do
           ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
           ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
+          ENVIRONMENT_AUTOIDLE=$(echo "$environment" | jq -r '.autoIdle')
           echo "$OPENSHIFT_URL - $PROJECT_NAME: handling development environment $ENVIRONMENT_NAME"
 
+          if [ "$ENVIRONMENT_AUTOIDLE" == "0" ]; then
+            echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME idling disabled, skipping"
+            continue
+          fi
           # Check if this environment has hits
           HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d'
           {
@@ -94,7 +100,6 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
                 oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" annotate --overwrite endpoints $IDLING_ENDPOINTS "idling.alpha.openshift.io/unidle-targets=${ALL_IDLED_SERVICES_JSON}"
               fi
             fi
-
           fi
         done
       else

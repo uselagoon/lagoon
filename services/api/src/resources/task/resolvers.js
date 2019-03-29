@@ -1,6 +1,7 @@
 // @flow
 
 const R = require('ramda');
+const getFieldNames = require('graphql-list-fields');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createTaskTask } = require('@lagoon/commons/src/tasks');
 const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
@@ -37,13 +38,14 @@ const taskStatusTypeToString = R.cond([
 
 const getTasksByEnvironmentId = async (
   { id: eid },
-  args,
+  { id: filterId },
   {
     credentials: {
       role,
       permissions: { customers, projects },
     },
   },
+  info,
 ) => {
   const prep = prepare(
     sqlClient,
@@ -61,10 +63,26 @@ const getTasksByEnvironmentId = async (
   );
 
   const rows = await query(sqlClient, prep({ eid }));
-
   const newestFirst = R.sort(R.descend(R.prop('created')), rows);
 
-  return newestFirst.map(row => Helpers.injectLogs(row));
+  const requestedFields = getFieldNames(info);
+
+  return newestFirst.filter(row => {
+    if (R.isNil(filterId) || R.isEmpty(filterId)) {
+      return true;
+    }
+
+    return row.id === String(filterId);
+  }).map(row => {
+    if (R.contains('logs', requestedFields)) {
+      return Helpers.injectLogs(row);
+    }
+
+    return {
+      ...row,
+      logs: null,
+    };
+  });
 };
 
 const getTaskByRemoteId = async (
