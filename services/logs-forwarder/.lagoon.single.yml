@@ -178,6 +178,15 @@ objects:
         </filter>
         <filter **>
           @type record_modifier
+          <replace>
+            # Ansible Service Broker creates individual openshift projects, we put them all in one index
+            key namespace_name
+            expression /^.*-apb-depr-.*$/
+            replace apb-depr
+          </replace>
+        </filter>
+        <filter **>
+          @type record_modifier
           <record>
             index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
           </record>
