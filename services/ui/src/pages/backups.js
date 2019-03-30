@@ -6,13 +6,14 @@ import { Query } from 'react-apollo';
 import MainLayout from 'layouts/main';
 import EnvironmentWithBackupsQuery from 'lib/query/EnvironmentWithBackups';
 import BackupsSubscription from 'lib/subscription/Backups';
-import LoadingPage from 'pages/_loading';
-import ErrorPage from 'pages/_error';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import Backups from 'components/Backups';
+import withQueryLoading from 'lib/withQueryLoading';
+import withQueryError from 'lib/withQueryError';
+import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
 
 const PageBackups = ({ router }) => (
@@ -24,31 +25,11 @@ const PageBackups = ({ router }) => (
       query={EnvironmentWithBackupsQuery}
       variables={{ openshiftProjectName: router.query.openshiftProjectName }}
     >
-      {({
-        loading,
-        error,
-        data: { environmentByOpenshiftProjectName: environment },
-        subscribeToMore
-      }) => {
-        if (loading) {
-          return <LoadingPage />;
-        }
-
-        if (error) {
-          return <ErrorPage statusCode={500} errorMessage={error.toString()} />;
-        }
-
-        if (!environment) {
-          return (
-            <ErrorPage
-              statusCode={404}
-              errorMessage={`Environment "${
-                router.query.openshiftProjectName
-              }" not found`}
-            />
-          );
-        }
-
+      {R.compose(
+        withQueryLoading,
+        withQueryError,
+        withEnvironmentRequired
+      )(({ data: { environment }, subscribeToMore }) => {
         subscribeToMore({
           document: BackupsSubscription,
           variables: { environment: environment.id },
@@ -138,7 +119,7 @@ const PageBackups = ({ router }) => (
             `}</style>
           </MainLayout>
         );
-      }}
+      })}
     </Query>
   </>
 );

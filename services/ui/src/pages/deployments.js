@@ -1,18 +1,20 @@
 import React from 'react';
+import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/main';
 import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
 import DeploymentsSubscription from 'lib/subscription/Deployments';
-import LoadingPage from 'pages/_loading';
-import ErrorPage from 'pages/_error';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import DeployLatest from 'components/DeployLatest';
 import Deployments from 'components/Deployments';
+import withQueryLoading from 'lib/withQueryLoading';
+import withQueryError from 'lib/withQueryError';
+import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
 const PageDeployments = ({ router }) => {
@@ -25,33 +27,11 @@ const PageDeployments = ({ router }) => {
         query={EnvironmentWithDeploymentsQuery}
         variables={{ openshiftProjectName: router.query.openshiftProjectName }}
       >
-        {({
-          loading,
-          error,
-          data: { environmentByOpenshiftProjectName: environment },
-          subscribeToMore
-        }) => {
-          if (loading) {
-            return <LoadingPage />;
-          }
-
-          if (error) {
-            return (
-              <ErrorPage statusCode={500} errorMessage={error.toString()} />
-            );
-          }
-
-          if (!environment) {
-            return (
-              <ErrorPage
-                statusCode={404}
-                errorMessage={`Environment "${
-                  router.query.openshiftProjectName
-                }" not found`}
-              />
-            );
-          }
-
+        {R.compose(
+          withQueryLoading,
+          withQueryError,
+          withEnvironmentRequired
+        )(({ data: { environment }, subscribeToMore }) => {
           subscribeToMore({
             document: DeploymentsSubscription,
             variables: { environment: environment.id },
@@ -123,7 +103,7 @@ const PageDeployments = ({ router }) => {
               `}</style>
             </MainLayout>
           );
-        }}
+        })}
       </Query>
     </>
   );

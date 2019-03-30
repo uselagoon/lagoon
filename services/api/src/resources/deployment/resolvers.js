@@ -3,10 +3,16 @@
 const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { createDeployTask, createPromoteTask } = require('@lagoon/commons/src/tasks');
+const {
+  createDeployTask,
+  createPromoteTask,
+} = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const sqlClient = require('../../clients/sqlClient');
-const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
+const {
+  pubSub,
+  createEnvironmentFilteredSubscriber,
+} = require('../../clients/pubSub');
 const {
   knex,
   ifNotAdmin,
@@ -46,32 +52,39 @@ const injectBuildLog = async deployment => {
     };
   }
 
-  const result = await esClient.search({
-    index: 'lagoon-logs-*',
-    sort: '@timestamp:desc',
-    body: {
-      query: {
-        bool: {
-          must: [
-            { match_phrase: { 'meta.remoteId': deployment.remoteId } },
-            { match_phrase: { 'meta.buildPhase': deployment.status } },
-          ],
+  try {
+    const result = await esClient.search({
+      index: 'lagoon-logs-*',
+      sort: '@timestamp:desc',
+      body: {
+        query: {
+          bool: {
+            must: [
+              { match_phrase: { 'meta.remoteId': deployment.remoteId } },
+              { match_phrase: { 'meta.buildPhase': deployment.status } },
+            ],
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!result.hits.total) {
+    if (!result.hits.total) {
+      return {
+        ...deployment,
+        buildLog: null,
+      };
+    }
+
     return {
       ...deployment,
-      buildLog: null,
+      buildLog: R.path(['hits', 'hits', 0, '_source', 'message'], result),
+    };
+  } catch (e) {
+    return {
+      ...deployment,
+      buildLog: `There was an error loading the logs: ${e.message}`,
     };
   }
-
-  return {
-    ...deployment,
-    buildLog: R.path(['hits', 'hits', 0, '_source', 'message'], result),
-  };
 };
 
 const getDeploymentsByEnvironmentId = async (
@@ -105,22 +118,24 @@ const getDeploymentsByEnvironmentId = async (
 
   const requestedFields = getFieldNames(info);
 
-  return newestFirst.filter(row => {
-    if (R.isNil(name) || R.isEmpty(name)) {
-      return true;
-    }
+  return newestFirst
+    .filter(row => {
+      if (R.isNil(name) || R.isEmpty(name)) {
+        return true;
+      }
 
-    return row.name === name;
-  }).map(row => {
-    if (R.contains('buildLog', requestedFields)) {
-      return injectBuildLog(row);
-    }
+      return row.name === name;
+    })
+    .map(row => {
+      if (R.contains('buildLog', requestedFields)) {
+        return injectBuildLog(row);
+      }
 
-    return {
-      ...row,
-      buildLog: null,
-    };
-  });
+      return {
+        ...row,
+        buildLog: null,
+      };
+    });
 };
 
 const getDeploymentByRemoteId = async (
@@ -331,11 +346,7 @@ const updateDeployment = async (
 
 const deployEnvironmentLatest = async (
   root,
-  {
-    input: {
-      environment: environmentInput,
-    },
-  },
+  { input: { environment: environmentInput } },
   {
     credentials: {
       role,
@@ -343,8 +354,13 @@ const deployEnvironmentLatest = async (
     },
   },
 ) => {
-  const environments = await environmentHelpers.getEnvironmentsByEnvironmentInput(environmentInput);
-  const activeEnvironments = R.filter(R.propEq('deleted', '0000-00-00 00:00:00'), environments);
+  const environments = await environmentHelpers.getEnvironmentsByEnvironmentInput(
+    environmentInput,
+  );
+  const activeEnvironments = R.filter(
+    R.propEq('deleted', '0000-00-00 00:00:00'),
+    environments,
+  );
 
   if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
     throw new Error('Unauthorized');
@@ -367,13 +383,22 @@ const deployEnvironmentLatest = async (
     }
   }
 
-  if (environment.deployType === 'branch' || environment.deployType === 'promote') {
+  if (
+    environment.deployType === 'branch' ||
+    environment.deployType === 'promote'
+  ) {
     if (!environment.deployBaseRef) {
       throw new Error('Cannot deploy: deployBaseRef is empty');
     }
   } else if (environment.deployType === 'pullrequest') {
-    if (!environment.deployBaseRef && !environment.deployHeadRef && !environment.deployTitle) {
-      throw new Error('Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty');
+    if (
+      !environment.deployBaseRef &&
+      !environment.deployHeadRef &&
+      !environment.deployTitle
+    ) {
+      throw new Error(
+        'Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty',
+      );
     }
   }
 
@@ -437,22 +462,43 @@ const deployEnvironmentLatest = async (
   try {
     await taskFunction(deployData);
 
-    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentLatest', meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``,
+    sendToLagoonLogs(
+      'info',
+      deployData.projectName,
+      '',
+      'api:deployEnvironmentLatest',
+      meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${
+        environment.name
+      }\``,
     );
 
     return 'success';
   } catch (error) {
     switch (error.name) {
       case 'NoNeedToDeployBranch':
-        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentLatest', meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${environment.name}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'info',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentLatest',
+          meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${
+            environment.name
+          }\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
       default:
-        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentLatest:error', meta,
-          `*[${deployData.projectName}]* Error deploying \`${environment.name}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'error',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentLatest:error',
+          meta,
+          `*[${deployData.projectName}]* Error deploying \`${
+            environment.name
+          }\`: ${error.message}`,
         );
         return `Error: ${error.message}`;
     }
@@ -461,13 +507,7 @@ const deployEnvironmentLatest = async (
 
 const deployEnvironmentBranch = async (
   root,
-  {
-    input: {
-      project: projectInput,
-      branchName,
-      branchRef,
-    },
-  },
+  { input: { project: projectInput, branchName, branchRef } },
   {
     credentials: {
       role,
@@ -506,22 +546,43 @@ const deployEnvironmentBranch = async (
   try {
     await createDeployTask(deployData);
 
-    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentBranch', meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
+    sendToLagoonLogs(
+      'info',
+      deployData.projectName,
+      '',
+      'api:deployEnvironmentBranch',
+      meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${
+        deployData.branchName
+      }\``,
     );
 
     return 'success';
   } catch (error) {
     switch (error.name) {
       case 'NoNeedToDeployBranch':
-        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentBranch', meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'info',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentBranch',
+          meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${
+            deployData.branchName
+          }\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
       default:
-        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentBranch:error', meta,
-          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'error',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentBranch:error',
+          meta,
+          `*[${deployData.projectName}]* Error deploying \`${
+            deployData.branchName
+          }\`: ${error.message}`,
         );
         return `Error: ${error.message}`;
     }
@@ -584,22 +645,43 @@ const deployEnvironmentPullrequest = async (
   try {
     await createDeployTask(deployData);
 
-    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPullrequest', meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
+    sendToLagoonLogs(
+      'info',
+      deployData.projectName,
+      '',
+      'api:deployEnvironmentPullrequest',
+      meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${
+        deployData.branchName
+      }\``,
     );
 
     return 'success';
   } catch (error) {
     switch (error.name) {
       case 'NoNeedToDeployBranch':
-        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPullrequest', meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'info',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentPullrequest',
+          meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${
+            deployData.branchName
+          }\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
       default:
-        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentPullrequest:error', meta,
-          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'error',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentPullrequest:error',
+          meta,
+          `*[${deployData.projectName}]* Error deploying \`${
+            deployData.branchName
+          }\`: ${error.message}`,
         );
         return `Error: ${error.message}`;
     }
@@ -622,7 +704,9 @@ const deployEnvironmentPromote = async (
     },
   },
 ) => {
-  const destProject = await projectHelpers.getProjectByProjectInput(projectInput);
+  const destProject = await projectHelpers.getProjectByProjectInput(
+    projectInput,
+  );
 
   if (role !== 'admin') {
     const rows = await query(
@@ -638,8 +722,13 @@ const deployEnvironmentPromote = async (
     }
   }
 
-  const sourceEnvironments = await environmentHelpers.getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
-  const activeEnvironments = R.filter(R.propEq('deleted', '0000-00-00 00:00:00'), sourceEnvironments);
+  const sourceEnvironments = await environmentHelpers.getEnvironmentsByEnvironmentInput(
+    sourceEnvironmentInput,
+  );
+  const activeEnvironments = R.filter(
+    R.propEq('deleted', '0000-00-00 00:00:00'),
+    sourceEnvironments,
+  );
 
   if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
     throw new Error('Unauthorized');
@@ -671,40 +760,59 @@ const deployEnvironmentPromote = async (
   const meta = {
     projectName: deployData.projectName,
     branchName: deployData.branchName,
-    promoteSourceEnvironment: deployData.promoteSourceEnvironment
+    promoteSourceEnvironment: deployData.promoteSourceEnvironment,
   };
 
   try {
     await createPromoteTask(deployData);
 
-    sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPromote', meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
+    sendToLagoonLogs(
+      'info',
+      deployData.projectName,
+      '',
+      'api:deployEnvironmentPromote',
+      meta,
+      `*[${deployData.projectName}]* Deployment triggered \`${
+        deployData.branchName
+      }\``,
     );
 
     return 'success';
   } catch (error) {
     switch (error.name) {
       case 'NoNeedToDeployBranch':
-        sendToLagoonLogs('info', deployData.projectName, '', 'api:deployEnvironmentPromote', meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'info',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentPromote',
+          meta,
+          `*[${deployData.projectName}]* Deployment skipped \`${
+            deployData.branchName
+          }\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
       default:
-        sendToLagoonLogs('error', deployData.projectName, '', 'api:deployEnvironmentPromote:error', meta,
-          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
+        sendToLagoonLogs(
+          'error',
+          deployData.projectName,
+          '',
+          'api:deployEnvironmentPromote:error',
+          meta,
+          `*[${deployData.projectName}]* Error deploying \`${
+            deployData.branchName
+          }\`: ${error.message}`,
         );
         return `Error: ${error.message}`;
     }
   }
 };
 
-const deploymentSubscriber = createEnvironmentFilteredSubscriber(
-  [
-    EVENTS.DEPLOYMENT.ADDED,
-    EVENTS.DEPLOYMENT.UPDATED,
-  ]
-);
+const deploymentSubscriber = createEnvironmentFilteredSubscriber([
+  EVENTS.DEPLOYMENT.ADDED,
+  EVENTS.DEPLOYMENT.UPDATED,
+]);
 
 const Resolvers /* : ResolversObj */ = {
   getDeploymentsByEnvironmentId,
