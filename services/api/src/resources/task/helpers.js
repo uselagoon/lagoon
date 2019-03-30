@@ -20,48 +20,57 @@ const injectLogs = async (task /* : Object */) => {
     };
   }
 
-  const result = await esClient.search({
-    index: 'lagoon-logs-*',
-    sort: '@timestamp:desc',
-    body: {
-      query: {
-        bool: {
-          must: [
-            { match_phrase: { 'meta.remoteId': task.remoteId } },
-            { match_phrase: { 'meta.jobStatus': task.status } },
-          ],
+  try {
+    const result = await esClient.search({
+      index: 'lagoon-logs-*',
+      sort: '@timestamp:desc',
+      body: {
+        query: {
+          bool: {
+            must: [
+              { match_phrase: { 'meta.remoteId': task.remoteId } },
+              { match_phrase: { 'meta.jobStatus': task.status } },
+            ],
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!result.hits.total) {
+    if (!result.hits.total) {
+      return {
+        ...task,
+        logs: null,
+      };
+    }
+
     return {
       ...task,
-      logs: null,
+      logs: R.path(['hits', 'hits', 0, '_source', 'message'], result),
+    };
+  } catch (e) {
+    return {
+      ...task,
+      logs: `There was an error loading the logs: ${e.message}`,
     };
   }
-
-  return {
-    ...task,
-    logs: R.path(['hits', 'hits', 0, '_source', 'message'], result),
-  };
 };
 
 const Helpers = {
-  addTask: async ({
-    id,
-    name,
-    status,
-    created,
-    started,
-    completed,
-    environment,
-    service,
-    command,
-    remoteId,
-    execute,
-  } /* : { id?: number, name: string, status?: string, created?: string, started?: string, completed?: string, environment: number, service: string, command: string, remoteId?: string, execute: boolean } */) => {
+  addTask: async (
+    {
+      id,
+      name,
+      status,
+      created,
+      started,
+      completed,
+      environment,
+      service,
+      command,
+      remoteId,
+      execute,
+    } /* : { id?: number, name: string, status?: string, created?: string, started?: string, completed?: string, environment: number, service: string, command: string, remoteId?: string, execute: boolean } */,
+  ) => {
     const {
       info: { insertId },
     } = await query(
@@ -90,14 +99,24 @@ const Helpers = {
       return taskData;
     }
 
-    rows = await query(sqlClient, environmentSql.selectEnvironmentById(taskData.environment));
+    rows = await query(
+      sqlClient,
+      environmentSql.selectEnvironmentById(taskData.environment),
+    );
     const environmentData = R.prop(0, rows);
 
-    rows = await query(sqlClient, projectSql.selectProject(environmentData.project));
+    rows = await query(
+      sqlClient,
+      projectSql.selectProject(environmentData.project),
+    );
     const projectData = R.prop(0, rows);
 
     try {
-      await createTaskTask({ task: taskData, project: projectData, environment: environmentData });
+      await createTaskTask({
+        task: taskData,
+        project: projectData,
+        environment: environmentData,
+      });
     } catch (error) {
       sendToLagoonLogs(
         'error',
