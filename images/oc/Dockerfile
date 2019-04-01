@@ -32,6 +32,7 @@ ENV TMPDIR=/tmp \
 	# When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
 	BASH_ENV=/home/.bashrc
 
+# Defining Versions
 ENV OC_VERSION=v3.7.2 \
     OC_HASH=282e43f \
     OC_SHA256=abc89f025524eb205e433622e59843b09d2304cc913534c4ed8af627da238624 \
