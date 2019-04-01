@@ -4,7 +4,11 @@ const logger = require('../logger');
 const R = require('ramda');
 const sshpk = require('sshpk');
 const bodyParser = require('body-parser');
-const { getCustomerSshKeys, getProjectSshKeys } = require('../resources/sshKey/resolvers');
+const { getSqlClient } = require('../clients/sqlClient');
+const {
+  getCustomerSshKeys,
+  getProjectSshKeys,
+} = require('../resources/sshKey/resolvers');
 
 const toFingerprint = sshKey => {
   try {
@@ -37,15 +41,16 @@ const keysRoute = async (
     // $FlowFixMe
     {},
     // $FlowFixMe
-    { credentials: { role } },
+    { credentials: { role }, sqlClient: getSqlClient() },
   );
 
-  const projectSshKeys = await getProjectSshKeys(// $FlowFixMe
-    {},
+  const projectSshKeys = await getProjectSshKeys(
     // $FlowFixMe
     {},
     // $FlowFixMe
-    { credentials: { role } },
+    {},
+    // $FlowFixMe
+    { credentials: { role }, sqlClient: getSqlClient() },
   );
 
   // Object of fingerprints mapping to SSH keys
