@@ -1,8 +1,6 @@
 // @flow
 
 const R = require('ramda');
-const searchguardClient = require('../../clients/searchguardClient');
-const sqlClient = require('../../clients/sqlClient');
 const {
   ifNotAdmin,
   inClause,
@@ -23,8 +21,11 @@ import type {ResolversObj} from '../';
 
 */
 
-
-const addCustomer = async (root, { input }, { credentials: { role } }) => {
+const addCustomer = async (
+  root,
+  { input },
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -42,7 +43,7 @@ const addCustomer = async (root, { input }, { credentials: { role } }) => {
   const rows = await query(sqlClient, prep(input));
   const customer = R.path([0, 0], rows);
 
-  await SearchguardOperations.createOrUpdateLagoonadminRole();
+  await SearchguardOperations(sqlClient).createOrUpdateLagoonadminRole();
 
   return customer;
 };
@@ -56,6 +57,7 @@ const getCustomerByProjectId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const str = `
@@ -77,12 +79,18 @@ const getCustomerByProjectId = async (
 
   const rows = await query(sqlClient, prep({ pid }));
 
-  const filtered = rows ? Helpers.filterRestrictedData(credentials, rows) : [null];
+  const filtered = rows
+    ? Helpers(sqlClient).filterRestrictedData(credentials, rows)
+    : [null];
 
   return filtered[0];
 };
 
-const deleteCustomer = async (root, { input }, { credentials: { role } }) => {
+const deleteCustomer = async (
+  root,
+  { input },
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -90,7 +98,7 @@ const deleteCustomer = async (root, { input }, { credentials: { role } }) => {
 
   await query(sqlClient, prep(input));
 
-  await SearchguardOperations.createOrUpdateLagoonadminRole();
+  await SearchguardOperations(sqlClient).createOrUpdateLagoonadminRole();
 
   // TODO: maybe check rows for changed values
   return 'success';
@@ -105,6 +113,7 @@ const getAllCustomers = async (
       role,
       permissions: { customers },
     },
+    sqlClient,
   },
 ) => {
   const where = whereAnd([
@@ -113,18 +122,13 @@ const getAllCustomers = async (
   ]);
   const prep = prepare(sqlClient, `SELECT * FROM customer ${where}`);
   const rows = await query(sqlClient, prep(args));
-  return Helpers.filterRestrictedData(credentials, rows);
+  return Helpers(sqlClient).filterRestrictedData(credentials, rows);
 };
 
 const updateCustomer = async (
   root,
   { input },
-  {
-    credentials,
-    credentials: {
-      role,
-    },
-  },
+  { credentials, credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
@@ -136,48 +140,45 @@ const updateCustomer = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await query(
-    sqlClient,
-    Sql.updateCustomer(
-      credentials,
-      input,
-    ),
-  );
+  await query(sqlClient, Sql.updateCustomer(credentials, input));
 
   const rows = await query(sqlClient, Sql.selectCustomer(cid));
 
   return R.prop(0, rows);
 };
 
-const getCustomerByName = async (
-  root,
-  args,
-  { credentials },
-) => {
+const getCustomerByName = async (root, args, { credentials, sqlClient }) => {
   const rows = await query(
     sqlClient,
-    Sql.selectCustomerByName(
-      credentials,
-      args.name,
-    ),
+    Sql.selectCustomerByName(credentials, args.name),
   );
 
-  const filtered = rows ? Helpers.filterRestrictedData(credentials, rows) : [null];
+  const filtered = rows
+    ? Helpers(sqlClient).filterRestrictedData(credentials, rows)
+    : [null];
 
   return filtered[0];
 };
 
-const resyncCustomersWithSearchguard = async (root, args, { credentials: { role } }) => {
+const resyncCustomersWithSearchguard = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
 
-  await SearchguardOperations.createOrUpdateLagoonadminRole();
+  await SearchguardOperations(sqlClient).createOrUpdateLagoonadminRole();
 
   return 'success';
 };
 
-const deleteAllCustomers = async (root, args, { credentials: { role } }) => {
+const deleteAllCustomers = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }

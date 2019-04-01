@@ -1,12 +1,8 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
 const {
-  ifNotAdmin,
-  inClauseOr,
-  prepare,
-  query,
+  ifNotAdmin, inClauseOr, prepare, query,
 } = require('../../util/db');
 const Sql = require('./sql');
 
@@ -31,6 +27,7 @@ const getEnvVarsByProjectId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -60,6 +57,7 @@ const getEnvVarsByEnvironmentId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -83,13 +81,14 @@ const getEnvVarsByEnvironmentId = async (
 };
 
 const addEnvVariable = async (obj, args, context) => {
-  const { input: { type } } = args;
+  const {
+    input: { type },
+  } = args;
 
   if (type.toLowerCase() === 'project') {
-    return addEnvVariableToProject(obj, args, context)
-  }
-  else if (type.toLowerCase() === 'environment') {
-    return addEnvVariableToEnvironment(obj, args, context)
+    return addEnvVariableToProject(obj, args, context);
+  } else if (type.toLowerCase() === 'environment') {
+    return addEnvVariableToEnvironment(obj, args, context);
   }
 };
 
@@ -97,12 +96,7 @@ const addEnvVariableToProject = async (
   root,
   {
     input: {
-      id,
-      type,
-      typeId,
-      name,
-      value,
-      scope: unformattedScope,
+      id, type, typeId, name, value, scope: unformattedScope,
     },
   },
   {
@@ -110,13 +104,11 @@ const addEnvVariableToProject = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForProject(typeId),
-    );
+    const rows = await query(sqlClient, Sql.selectPermsForProject(typeId));
 
     if (
       !R.contains(R.path(['0', 'pid'], rows), projects) &&
@@ -150,12 +142,7 @@ const addEnvVariableToEnvironment = async (
   root,
   {
     input: {
-      id,
-      type,
-      typeId,
-      name,
-      value,
-      scope: unformattedScope,
+      id, type, typeId, name, value, scope: unformattedScope,
     },
   },
   {
@@ -163,13 +150,11 @@ const addEnvVariableToEnvironment = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(typeId),
-    );
+    const rows = await query(sqlClient, Sql.selectPermsForEnvironment(typeId));
 
     if (
       !R.contains(R.path(['0', 'pid'], rows), projects) &&
@@ -207,6 +192,7 @@ const deleteEnvVariable = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {

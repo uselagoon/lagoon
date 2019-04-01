@@ -1,9 +1,8 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
 const { query, prepare, isPatchEmpty } = require('../../util/db');
-const { getProjectIdByName } = require('../project/helpers');
+const projectHelpers = require('../project/helpers');
 const Helpers = require('./helpers');
 const Sql = require('./sql');
 
@@ -19,7 +18,7 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const addNotificationRocketChat = async (root, { input }) => {
+const addNotificationRocketChat = async (root, { input }, { sqlClient }) => {
   const prep = prepare(
     sqlClient,
     'CALL CreateNotificationRocketChat(:name, :webhook, :channel)',
@@ -31,7 +30,7 @@ const addNotificationRocketChat = async (root, { input }) => {
   return rocketchat;
 };
 
-const addNotificationSlack = async (root, { input }) => {
+const addNotificationSlack = async (root, { input }, { sqlClient }) => {
   const prep = prepare(
     sqlClient,
     'CALL CreateNotificationSlack(:name, :webhook, :channel)',
@@ -51,6 +50,7 @@ const addNotificationToProject = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const input = R.compose(
@@ -59,7 +59,7 @@ const addNotificationToProject = async (
 
   if (role !== 'admin') {
     // Will throw on invalid conditions
-    const pid = await getProjectIdByName(input.project);
+    const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
 
     if (!R.contains(pid, projects)) {
       throw new Error('Unauthorized.');
@@ -92,11 +92,12 @@ const deleteNotificationRocketChat = async (
     credentials: {
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const { name } = input;
 
-  const nids = await Helpers.getAssignedNotificationIds({
+  const nids = await Helpers(sqlClient).getAssignedNotificationIds({
     name,
     type: 'slack',
   });
@@ -138,11 +139,12 @@ const deleteNotificationSlack = async (
     credentials: {
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const { name } = input;
 
-  const nids = await Helpers.getAssignedNotificationIds({
+  const nids = await Helpers(sqlClient).getAssignedNotificationIds({
     name,
     type: 'slack',
   });
@@ -185,6 +187,7 @@ const removeNotificationFromProject = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const input = R.compose(
@@ -261,11 +264,12 @@ const updateNotificationRocketChat = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const { name } = input;
 
-  const isAllowed = await Helpers.isAllowedToModify(
+  const isAllowed = await Helpers(sqlClient).isAllowedToModify(
     { role, permissions: { projects } },
     { name },
   );
@@ -294,11 +298,12 @@ const updateNotificationSlack = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const { name } = input;
 
-  const isAllowed = await Helpers.isAllowedToModify(
+  const isAllowed = await Helpers(sqlClient).isAllowedToModify(
     { role, permissions: { projects } },
     { name },
   );
@@ -319,7 +324,7 @@ const updateNotificationSlack = async (
 const deleteAllNotificationSlacks = async (
   root,
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
@@ -334,7 +339,7 @@ const deleteAllNotificationSlacks = async (
 const deleteAllNotificationRocketChats = async (
   root,
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
@@ -349,7 +354,7 @@ const deleteAllNotificationRocketChats = async (
 const removeAllNotificationsFromAllProjects = async (
   root,
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');

@@ -1,7 +1,6 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
 const { s3Client } = require('../../clients/aws');
 const { query } = require('../../util/db');
 const Sql = require('./sql');
@@ -35,6 +34,7 @@ const getFilesByTaskId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -65,6 +65,7 @@ const uploadFilesForTask = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -118,7 +119,7 @@ const uploadFilesForTask = async (
 const deleteFilesForTask = async (
   root,
   { input: { id } },
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');

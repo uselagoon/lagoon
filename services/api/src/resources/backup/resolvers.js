@@ -8,7 +8,6 @@ const {
   pubSub,
   createEnvironmentFilteredSubscriber,
 } = require('../../clients/pubSub');
-const sqlClient = require('../../clients/sqlClient');
 const Sql = require('./sql');
 const Helpers = require('./helpers');
 const projectSql = require('../project/sql');
@@ -31,12 +30,7 @@ const restoreStatusTypeToString = R.cond([
 const getBackupsByEnvironmentId = async (
   { id: environmentId },
   { includeDeleted },
-  {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
-  },
+  { sqlClient },
 ) => {
   const rows = await query(
     sqlClient,
@@ -55,6 +49,7 @@ const addBackup = async (
       id, environment, source, backupId, created,
     },
   },
+  { sqlClient },
 ) => {
   const {
     info: { insertId },
@@ -84,6 +79,7 @@ const deleteBackup = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -105,7 +101,11 @@ const deleteBackup = async (
   return 'success';
 };
 
-const deleteAllBackups = async (root, args, { credentials: { role } }) => {
+const deleteAllBackups = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -128,7 +128,7 @@ const addRestore = async (
       execute,
     },
   },
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   const status = restoreStatusTypeToString(unformattedStatus);
   const {
@@ -205,6 +205,7 @@ const updateRestore = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const status = restoreStatusTypeToString(unformattedStatus);
@@ -262,7 +263,7 @@ const updateRestore = async (
 };
 
 // Data protected by environment auth
-const getRestoreByBackupId = async ({ backupId }) => {
+const getRestoreByBackupId = async ({ backupId }, args, { sqlClient }) => {
   const rows = await query(sqlClient, Sql.selectRestoreByBackupId(backupId));
 
   return Helpers.makeS3TempLink(R.prop(0, rows));

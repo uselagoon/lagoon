@@ -1,11 +1,14 @@
 // @flow
 
+/* ::
+import type MariaSQL from 'mariasql';
+*/
+
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createTaskTask } = require('@lagoon/commons/src/tasks');
 const { query } = require('../../util/db');
 const { pubSub } = require('../../clients/pubSub');
-const sqlClient = require('../../clients/sqlClient');
 const esClient = require('../../clients/esClient');
 const Sql = require('./sql');
 const EVENTS = require('./events');
@@ -55,7 +58,7 @@ const injectLogs = async (task /* : Object */) => {
   }
 };
 
-const Helpers = {
+const Helpers = (sqlClient /* : MariaSQL */) => ({
   addTask: async (
     {
       id,
@@ -131,6 +134,6 @@ const Helpers = {
     return taskData;
   },
   injectLogs,
-};
+});
 
 module.exports = Helpers;

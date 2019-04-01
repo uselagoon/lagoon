@@ -11,7 +11,11 @@ class Request extends express$Request {
 
 const R = require('ramda');
 const logger = require('./logger');
-const { getCredentialsForKeycloakToken, getCredentialsForLegacyToken } = require('./util/auth');
+const { getSqlClient } = require('./clients/sqlClient');
+const {
+  getCredentialsForKeycloakToken,
+  getCredentialsForLegacyToken,
+} = require('./util/auth');
 
 const parseBearerToken = R.compose(
   R.ifElse(
@@ -29,7 +33,11 @@ const parseBearerToken = R.compose(
   R.defaultTo(''),
 );
 
-const prepareToken = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+const prepareToken = async (
+  req /* : Request */,
+  res /* : $Response */,
+  next /* : NextFunction */,
+) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
     next();
@@ -51,7 +59,11 @@ const prepareToken = async (req /* : Request */, res /* : $Response */, next /* 
   next();
 };
 
-const keycloak = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+const keycloak = async (
+  req /* : Request */,
+  res /* : $Response */,
+  next /* : NextFunction */,
+) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
     next();
@@ -59,7 +71,10 @@ const keycloak = async (req /* : Request */, res /* : $Response */, next /* : Ne
   }
 
   try {
-    const credentials = await getCredentialsForKeycloakToken(req.authToken);
+    const credentials = await getCredentialsForKeycloakToken(
+      getSqlClient(),
+      req.authToken,
+    );
 
     req.credentials = credentials;
   } catch (e) {
@@ -70,7 +85,11 @@ const keycloak = async (req /* : Request */, res /* : $Response */, next /* : Ne
   next();
 };
 
-const legacy = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+const legacy = async (
+  req /* : Request */,
+  res /* : $Response */,
+  next /* : NextFunction */,
+) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
     next();
@@ -84,7 +103,10 @@ const legacy = async (req /* : Request */, res /* : $Response */, next /* : Next
   }
 
   try {
-    const credentials = await getCredentialsForLegacyToken(req.authToken);
+    const credentials = await getCredentialsForLegacyToken(
+      getSqlClient(),
+      req.authToken,
+    );
 
     req.credentials = credentials;
 

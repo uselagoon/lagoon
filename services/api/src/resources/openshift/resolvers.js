@@ -1,7 +1,6 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
 const {
   ifNotAdmin,
   inClauseOr,
@@ -28,7 +27,11 @@ const attrFilter = R.curry((role, entity) => {
   return R.omit(['token'], entity);
 });
 
-const addOpenshift = async (args, { input }, { credentials: { role } }) => {
+const addOpenshift = async (
+  args,
+  { input },
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Project creation unauthorized.');
   }
@@ -54,7 +57,11 @@ const addOpenshift = async (args, { input }, { credentials: { role } }) => {
   return openshift;
 };
 
-const deleteOpenshift = async (args, { input }, { credentials: { role } }) => {
+const deleteOpenshift = async (
+  args,
+  { input },
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -74,6 +81,7 @@ const getAllOpenshifts = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -102,6 +110,7 @@ const getOpenshiftByProjectId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -123,7 +132,11 @@ const getOpenshiftByProjectId = async (
   return rows ? attrFilter(role, rows[0]) : null;
 };
 
-const updateOpenshift = async (root, { input }, { credentials: { role } }) => {
+const updateOpenshift = async (
+  root,
+  { input },
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -140,7 +153,11 @@ const updateOpenshift = async (root, { input }, { credentials: { role } }) => {
   return R.prop(0, rows);
 };
 
-const deleteAllOpenshifts = async (root, args, { credentials: { role } }) => {
+const deleteAllOpenshifts = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
