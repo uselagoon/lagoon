@@ -221,6 +221,7 @@ const getNotificationsByProjectId = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const args = R.compose(R.over(R.lensProp('type'), notificationTypeToString))(
