@@ -38,7 +38,7 @@ const PageTasks = ({ router }) => (
           variables: { environment: environment.id },
           updateQuery: (prevStore, { subscriptionData }) => {
             if (!subscriptionData.data) return prevStore;
-            const prevTasks = prevStore.environmentByOpenshiftProjectName.tasks;
+            const prevTasks = prevStore.environment.tasks;
             const incomingTask = subscriptionData.data.taskChanged;
             const existingIndex = prevTasks.findIndex(
               prevTask => prevTask.id === incomingTask.id
@@ -58,8 +58,8 @@ const PageTasks = ({ router }) => (
 
             const newStore = {
               ...prevStore,
-              environmentByOpenshiftProjectName: {
-                ...prevStore.environmentByOpenshiftProjectName,
+              environment: {
+                ...prevStore.environment,
                 tasks: newTasks
               }
             };
