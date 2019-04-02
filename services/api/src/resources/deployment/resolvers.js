@@ -8,7 +8,6 @@ const {
   createPromoteTask,
 } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
-const sqlClient = require('../../clients/sqlClient');
 const {
   pubSub,
   createEnvironmentFilteredSubscriber,
@@ -95,6 +94,7 @@ const getDeploymentsByEnvironmentId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
   info,
 ) => {
@@ -146,6 +146,7 @@ const getDeploymentByRemoteId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const queryString = knex('deployment')
@@ -195,6 +196,7 @@ const addDeployment = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
@@ -244,6 +246,7 @@ const deleteDeployment = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -284,6 +287,7 @@ const updateDeployment = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
@@ -352,11 +356,12 @@ const deployEnvironmentLatest = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
-  const environments = await environmentHelpers.getEnvironmentsByEnvironmentInput(
-    environmentInput,
-  );
+  const environments = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentsByEnvironmentInput(environmentInput);
   const activeEnvironments = R.filter(
     R.propEq('deleted', '0000-00-00 00:00:00'),
     environments,
@@ -367,7 +372,9 @@ const deployEnvironmentLatest = async (
   }
 
   const environment = R.prop(0, activeEnvironments);
-  const project = await projectHelpers.getProjectById(environment.project);
+  const project = await projectHelpers(sqlClient).getProjectById(
+    environment.project,
+  );
 
   if (role !== 'admin') {
     const rows = await query(
@@ -513,9 +520,12 @@ const deployEnvironmentBranch = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
-  const project = await projectHelpers.getProjectByProjectInput(projectInput);
+  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+    projectInput,
+  );
 
   if (role !== 'admin') {
     const rows = await query(
@@ -607,9 +617,12 @@ const deployEnvironmentPullrequest = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
-  const project = await projectHelpers.getProjectByProjectInput(projectInput);
+  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+    projectInput,
+  );
 
   if (role !== 'admin') {
     const rows = await query(
@@ -702,9 +715,10 @@ const deployEnvironmentPromote = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
-  const destProject = await projectHelpers.getProjectByProjectInput(
+  const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
 
@@ -722,9 +736,9 @@ const deployEnvironmentPromote = async (
     }
   }
 
-  const sourceEnvironments = await environmentHelpers.getEnvironmentsByEnvironmentInput(
-    sourceEnvironmentInput,
-  );
+  const sourceEnvironments = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
   const activeEnvironments = R.filter(
     R.propEq('deleted', '0000-00-00 00:00:00'),
     sourceEnvironments,

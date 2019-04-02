@@ -1,13 +1,17 @@
 // @flow
 
+/* ::
+import type MariaSQL from 'mariasql';
+*/
+
 const R = require('ramda');
 const searchguardClient = require('../../clients/searchguardClient');
 const logger = require('../../logger');
-const { getAllCustomerNames } = require('./helpers');
+const Helpers = require('./helpers');
 
-const SearchguardOperations = {
+const SearchguardOperations = (sqlClient /* : MariaSQL */) => ({
   createOrUpdateLagoonadminRole: async () => {
-    const customerNames = await getAllCustomerNames();
+    const customerNames = await Helpers(sqlClient).getAllCustomerNames();
 
     const tenants = R.reduce(
       (acc, elem) => {
@@ -40,6 +44,6 @@ const SearchguardOperations = {
       );
     }
   },
-};
+});
 
 module.exports = SearchguardOperations;

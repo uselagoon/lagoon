@@ -1,11 +1,14 @@
 // @flow
 
+/* ::
+import type MariaSQL from 'mariasql';
+*/
+
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
 const { query } = require('../../util/db');
 const Sql = require('./sql');
 
-const Helpers = {
+const Helpers = (sqlClient /* : MariaSQL */) => ({
   getCustomerById: async (id /* : number */) => {
     const rows = await query(sqlClient, Sql.selectCustomer(id));
     return R.prop(0, rows);
@@ -33,19 +36,20 @@ const Helpers = {
   getAllCustomerNames: async () =>
     R.map(R.prop('name'), await query(sqlClient, Sql.selectAllCustomerNames())),
   getAllCustomers: async () => query(sqlClient, Sql.selectAllCustomers()),
-  filterRestrictedData: (creds, rows) => rows.map(row => {
-    const { role } = creds;
-    let privateKey = row.privateKey;
+  filterRestrictedData: (creds, rows) =>
+    rows.map(row => {
+      const { role } = creds;
+      let privateKey = row.privateKey;
 
-    if (role !== 'admin') {
-      privateKey = null;
-    }
+      if (role !== 'admin') {
+        privateKey = null;
+      }
 
-    return {
-      ...row,
-      privateKey,
-    };
-  }),
-};
+      return {
+        ...row,
+        privateKey,
+      };
+    }),
+});
 
 module.exports = Helpers;
