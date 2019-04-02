@@ -70,9 +70,11 @@ const keycloak = async (
     return;
   }
 
+  const sqlClient = getSqlClient();
+
   try {
     const credentials = await getCredentialsForKeycloakToken(
-      getSqlClient(),
+      sqlClient,
       req.authToken,
     );
 
@@ -81,6 +83,8 @@ const keycloak = async (
     // It might be a legacy token, so continue on.
     logger.debug(`Keycloak token auth failed: ${e.message}`);
   }
+
+  sqlClient.end();
 
   next();
 };
@@ -102,16 +106,20 @@ const legacy = async (
     return;
   }
 
+  const sqlClient = getSqlClient();
+
   try {
     const credentials = await getCredentialsForLegacyToken(
-      getSqlClient(),
+      sqlClient,
       req.authToken,
     );
 
     req.credentials = credentials;
+    sqlClient.end();
 
     next();
   } catch (e) {
+    sqlClient.end();
     res.status(403).send({
       errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
     });

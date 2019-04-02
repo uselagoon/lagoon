@@ -35,13 +35,15 @@ const keysRoute = async (
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
+  const sqlClient = getSqlClient();
+
   const customerSshKeys = await getCustomerSshKeys(
     // $FlowFixMe
     {},
     // $FlowFixMe
     {},
     // $FlowFixMe
-    { credentials: { role }, sqlClient: getSqlClient() },
+    { credentials: { role }, sqlClient },
   );
 
   const projectSshKeys = await getProjectSshKeys(
@@ -50,8 +52,10 @@ const keysRoute = async (
     // $FlowFixMe
     {},
     // $FlowFixMe
-    { credentials: { role }, sqlClient: getSqlClient() },
+    { credentials: { role }, sqlClient },
   );
+
+  sqlClient.end();
 
   // Object of fingerprints mapping to SSH keys
   // Ex. { <fingerprint>: <key> }

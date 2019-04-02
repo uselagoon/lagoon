@@ -113,6 +113,17 @@ const apolloServer = new ApolloServer({
       path: error.path,
     };
   },
+  plugins: [
+    {
+      requestDidStart: () => ({
+        willSendResponse: response => {
+          if (response.context.sqlClient) {
+            response.context.sqlClient.end();
+          }
+        },
+      }),
+    },
+  ],
 });
 
 module.exports = apolloServer;
