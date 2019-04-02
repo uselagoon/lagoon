@@ -38,7 +38,7 @@ const PageDeployments = ({ router }) => {
             updateQuery: (prevStore, { subscriptionData }) => {
               if (!subscriptionData.data) return prevStore;
               const prevDeployments =
-                prevStore.environmentByOpenshiftProjectName.deployments;
+                prevStore.environment.deployments;
               const incomingDeployment =
                 subscriptionData.data.deploymentChanged;
               const existingIndex = prevDeployments.findIndex(
@@ -59,8 +59,8 @@ const PageDeployments = ({ router }) => {
 
               const newStore = {
                 ...prevStore,
-                environmentByOpenshiftProjectName: {
-                  ...prevStore.environmentByOpenshiftProjectName,
+                environment: {
+                  ...prevStore.environment,
                   deployments: newDeployments
                 }
               };

@@ -36,7 +36,7 @@ const PageBackups = ({ router }) => (
           updateQuery: (prevStore, { subscriptionData }) => {
             if (!subscriptionData.data) return prevStore;
             const prevBackups =
-              prevStore.environmentByOpenshiftProjectName.backups;
+              prevStore.environment.backups;
             const incomingBackup = subscriptionData.data.backupChanged;
             const existingIndex = prevBackups.findIndex(
               prevBackup => prevBackup.id === incomingBackup.id
@@ -68,8 +68,8 @@ const PageBackups = ({ router }) => (
 
             const newStore = {
               ...prevStore,
-              environmentByOpenshiftProjectName: {
-                ...prevStore.environmentByOpenshiftProjectName,
+              environment: {
+                ...prevStore.environment,
                 backups: newBackups
               }
             };
