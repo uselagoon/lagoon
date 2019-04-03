@@ -28,10 +28,4 @@ while [[ RET -ne 0 ]]; do
     sleep 5
 done
 
-if [[ $(curl -s -XGET -k -u "admin:$LOGSDB_ADMIN_PASSWORD" "http://localhost:9200/_searchguard") =~ "Search Guard not initialized" ]]; then
-
-    echo "SearchGuard: Initializing..."
-    ./sgadmin_demo.sh
-fi
-
 fg
