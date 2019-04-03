@@ -5,7 +5,7 @@ metadata:
   name: lagoon-docker-host
 parameters:
   - name: REPOSITORY_TO_UPDATE
-    description: Repository that should be updated by the cronjob
+    description: Repository(ies) that should be updated by the cronjob - use a pipe '|' to separate multiples
     value: amazeeio
   - name: SERVICE_NAME
     description: Name of this service
