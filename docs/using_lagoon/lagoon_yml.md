@@ -10,6 +10,7 @@ The `.lagoon.yml` is the central file to setup your project:
 The `.lagoon.yml` file must be placed at the root of your git repository.
 
 ## Example `.lagoon.yml`
+This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your needs.
 
 ```
 docker-compose-yaml: docker-compose.yml
