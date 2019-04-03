@@ -717,7 +717,8 @@ do
   fi
 
   CRONJOB_COUNTER=0
-  CRONJOBS_ARRAY=()
+  CRONJOBS_ARRAY_POD=()  #crons run inside an existing pod
+  CRONJOBS_ARRAY_TYPE=() #crons using kubernetes cronjob type
   while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
   do
 
@@ -730,12 +731,17 @@ do
       # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
       NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      if [ $(checkFrequency $CRONJOB_SCHEDULE_RAW) == "true" ]; then
+        CRONJOBS_ARRAY_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      else
+        CRONJOBS_ARRAY_TYPE+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      fi
 
     fi
 
@@ -753,9 +759,9 @@ do
       # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
       NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
-      CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
+      CRONJOB_SCHEDULE_RAW=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
 
       CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
