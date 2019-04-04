@@ -749,7 +749,8 @@ do
   done
 
   # Generate cronjobs if service type defines them
-  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
+  # They will never be more often than quarterly.
+  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/crontabs.yml"
   if [ -f $SERVICE_CRONJOB_FILE ]; then
     CRONJOB_COUNTER=0
     while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
@@ -764,14 +765,22 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
 
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      # managed crontabs will never be more often than */15
+      CRONJOBS_ARRAY_TYPE+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+
       let CRONJOB_COUNTER=CRONJOB_COUNTER+1
     done
   fi
 
-  if [[ ${#CRONJOBS_ARRAY[@]} -ge 1 ]]; then
-    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY[@]}")
+  # if there are pod-bound crons, add them to the deploymentconfig.
+  if [[ ${#CRONJOBS_ARRAY_POD[@]} -ge 1 ]]; then
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_POD[@]}")
     TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
+  fi
+
+  if [[ ${#CRONJOBS_ARRAY_TYPE[@]} -ge 1 ]]; then
+    # CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_POD[@]}")
+    # TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
