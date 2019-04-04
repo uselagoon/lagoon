@@ -16,7 +16,7 @@ function checkFrequency() {
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -gt 15 ]; then
+    if [ $STEP -ge 15 ]; then
       echo -n true
     else
       echo -n false
