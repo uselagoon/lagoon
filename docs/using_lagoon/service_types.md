@@ -1,6 +1,6 @@
 # Service Types
 
-This table lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](/using_lagoon/docker-compose_yml.md)
+This table lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](./docker-compose_yml.md)
 
 | Type           | Description                                          | Healtcheck      | Exposed Ports | Auto generated routes | Additional customization parameters             |
 | ---------------| -----------------------------------------------------|-----------------|-------|-------------| ---------------------------------------------------|

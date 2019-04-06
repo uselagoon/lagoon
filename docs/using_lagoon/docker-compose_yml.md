@@ -129,7 +129,7 @@ Additionally twice the `lagoon.name: nginx` is defined, which will cause Lagoon 
 
 If you need some changes on the OpenShift Templates, you can define your own template via `lagoon.template`. Check out the shipped Templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). Important: The template is called with `oc process`, so you should define the same parameters like in the default templates.
 
-You can also overwrite the templates only for a specific environment, this is done in the [`.lagoon.yml`](/using_lagoon/lagoon_yml.md/#environmentsnametypes)
+You can also overwrite the templates only for a specific environment, this is done in the [`.lagoon.yml`](./lagoon_yml.md/#environmentsnametypes)
 
 #### Custom Rollout Monitor Types
 
@@ -140,7 +140,7 @@ By default Lagoon expects that the way services from custom templates are rolled
 - `daemonset` - expects a `Daemonset` object in the template for the service
 - `false` - will not monitor any rollouts and just be happy of the template applies and does not throw any errors
 
-You can also overwrite the rollout only for a specific environment, this is done in the [`.lagoon.yml`](/using_lagoon/lagoon_yml.md/#environmentsnamerollouts)
+You can also overwrite the rollout only for a specific environment, this is done in the [`.lagoon.yml`](./lagoon_yml.md/#environmentsnamerollouts)
 
 #### Custom Type
 
