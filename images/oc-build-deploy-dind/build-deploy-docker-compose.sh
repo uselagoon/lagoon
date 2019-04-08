@@ -761,7 +761,7 @@ do
 
   # Generate cronjobs if service type defines them
   # They will never be more often than quarterly.
-  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/crontabs.yml"
+  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
   if [ -f $SERVICE_CRONJOB_FILE ]; then
     CRONJOB_COUNTER=0
     while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]

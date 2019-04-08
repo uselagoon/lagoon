@@ -53,7 +53,7 @@ parameters:
     description: Pullable image of service
     required: true
 objects:
-- apiVersion: batch/v2alpha1
+- apiVersion: batch/v1beta1
   kind: CronJob
   metadata:
     name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}

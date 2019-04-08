@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-custom-custom-cronjob
+  name: lagoon-openshift-template-cli
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -40,11 +40,8 @@ parameters:
   - name: CRONJOB_COMMAND
     description: Command of this cronjob
     required: true
-  - name: DEPLOYMENT_STRATEGY
-    description: Strategy of Deploymentconfig
-    value: "Rolling"
   - name: SERVICE_IMAGE
-    description: Pullable image of custom service
+    description: Pullable image of service
     required: true
 objects:
 - apiVersion: batch/v1beta1
@@ -60,6 +57,8 @@ objects:
       spec:
         template:
           metadata:
+            annotations:
+              alpha.image.policy.openshift.io/resolve-names: "*"
             labels:
               cronjob: ${CRONJOB_NAME}
               branch: ${SAFE_BRANCH}
