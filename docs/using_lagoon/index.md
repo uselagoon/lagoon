@@ -4,7 +4,7 @@
 
 ### Docker
 
-To run Lagoon Project your system must meet the requirements to run Docker. We suggest installing the latest version of Docker for your workstation. You can download Docker [here](https://www.docker.com/get-docker). We also suggest allowing Docker at least **4 CPUs** and **4GB RAM**.
+To run Lagoon Project your system must meet the requirements to run Docker. We suggest installing the latest version of Docker for your workstation. You can download Docker [here](https://www.docker.com/get-docker). We also suggest allowing Docker at least **4 CPUs** and **4 GB RAM**.
 
 ### Local Development Environments
 
@@ -57,3 +57,6 @@ Some Docker Images and Containers need additional customizations from the provid
 | redis-persistent | 5.0.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
 | varnish | 5 | [varnish/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile) |
 | varnish-drupal | 5 | [varnish-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/Dockerfile) |
+
+All images are pushed to https://hub.docker.com/u/amazeeio.
+We suggest to always use the latest tag (like `amazeeio/nignx:latest`) or unsuffixed images (like `amazeeio/node:10`), as they are kept up to date in terms of features and security. If you shall choose to use a specific Lagoon Version of an image like `amazeeio/nignx:v0.21.0` or `amazeeio/node:10-v0.21.0` it is your own responsibility to upgrade the version of the Images as soon as a new Lagoon Version is released!

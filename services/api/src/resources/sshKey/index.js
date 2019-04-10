@@ -14,6 +14,12 @@ const validateSshKey = (key /* : string */) /* : boolean */ => {
   }
 };
 
+const getSshKeyFingerprint = (key /* : string */) /* : string */ => {
+  const parsed = sshpk.parseKey(key, 'ssh');
+  return parsed.fingerprint('sha256', 'ssh').toString();
+};
+
 module.exports = {
   validateSshKey,
+  getSshKeyFingerprint,
 };

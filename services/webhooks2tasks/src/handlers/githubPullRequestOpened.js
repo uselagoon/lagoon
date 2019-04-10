@@ -1,5 +1,6 @@
 // @flow
 
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
@@ -16,8 +17,10 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
       body,
     } = webhook;
 
+    const headRepoId = body.pull_request.head.repo.id
     const headBranchName = body.pull_request.head.ref
     const headSha = body.pull_request.head.sha
+    const baseRepoId = body.pull_request.base.repo.id
     const baseBranchName = body.pull_request.base.ref
     const baseSha = body.pull_request.base.sha
 
@@ -28,6 +31,14 @@ async function githubPullRequestOpened(webhook: WebhookRequestData, project: Pro
       pullrequestUrl: body.pull_request.html_url,
       repoName: body.repository.full_name,
       repoUrl: body.repository.html_url,
+    }
+
+    // Don't trigger deploy if the head and base repos are different
+    if (!R.equals(headRepoId, baseRepoId)) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: Head/Base not same repo`
+      )
+      return;
     }
 
     const data: deployData = {

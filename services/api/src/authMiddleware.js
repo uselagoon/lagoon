@@ -11,7 +11,11 @@ class Request extends express$Request {
 
 const R = require('ramda');
 const logger = require('./logger');
-const { getCredentialsForKeycloakToken, getCredentialsForLegacyToken } = require('./util/auth');
+const { getSqlClient } = require('./clients/sqlClient');
+const {
+  getCredentialsForKeycloakToken,
+  getCredentialsForLegacyToken,
+} = require('./util/auth');
 
 const parseBearerToken = R.compose(
   R.ifElse(
@@ -29,7 +33,11 @@ const parseBearerToken = R.compose(
   R.defaultTo(''),
 );
 
-const prepareToken = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+const prepareToken = async (
+  req /* : Request */,
+  res /* : $Response */,
+  next /* : NextFunction */,
+) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
     next();
@@ -51,15 +59,24 @@ const prepareToken = async (req /* : Request */, res /* : $Response */, next /* 
   next();
 };
 
-const keycloak = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+const keycloak = async (
+  req /* : Request */,
+  res /* : $Response */,
+  next /* : NextFunction */,
+) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
     next();
     return;
   }
 
+  const sqlClient = getSqlClient();
+
   try {
-    const credentials = await getCredentialsForKeycloakToken(req.authToken);
+    const credentials = await getCredentialsForKeycloakToken(
+      sqlClient,
+      req.authToken,
+    );
 
     req.credentials = credentials;
   } catch (e) {
@@ -67,10 +84,16 @@ const keycloak = async (req /* : Request */, res /* : $Response */, next /* : Ne
     logger.debug(`Keycloak token auth failed: ${e.message}`);
   }
 
+  sqlClient.end();
+
   next();
 };
 
-const legacy = async (req /* : Request */, res /* : $Response */, next /* : NextFunction */) => {
+const legacy = async (
+  req /* : Request */,
+  res /* : $Response */,
+  next /* : NextFunction */,
+) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
     next();
@@ -83,13 +106,20 @@ const legacy = async (req /* : Request */, res /* : $Response */, next /* : Next
     return;
   }
 
+  const sqlClient = getSqlClient();
+
   try {
-    const credentials = await getCredentialsForLegacyToken(req.authToken);
+    const credentials = await getCredentialsForLegacyToken(
+      sqlClient,
+      req.authToken,
+    );
 
     req.credentials = credentials;
+    sqlClient.end();
 
     next();
   } catch (e) {
+    sqlClient.end();
     res.status(403).send({
       errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
     });

@@ -2,29 +2,12 @@
 
 const R = require('ramda');
 const keycloakClient = require('../../clients/keycloakClient');
-const sqlClient = require('../../clients/sqlClient');
 const logger = require('../../logger');
 const sleep = require('es7-sleep');
 
-const {
-  query,
-  isPatchEmpty,
-} = require('../../util/db');
-
-const {
-  getCustomerIdByName,
-  getCustomerById,
-  getAllCustomerIds,
-  getAllCustomers,
-} = require('../customer/helpers');
-const {
-  getProjectById,
-  getProjectIdByName,
-  getProjectIdsByCustomerIds,
-  getCustomerProjectsWithoutDirectUserAccess,
-  getAllProjectNames,
-  getAllProjects,
-} = require('../project/helpers');
+const { query, isPatchEmpty } = require('../../util/db');
+const customerHelpers = require('../customer/helpers');
+const projectHelpers = require('../project/helpers');
 const KeycloakOperations = require('./keycloak');
 const Sql = require('./sql');
 
@@ -42,10 +25,13 @@ const getUsersByProjectId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
-    const customerProjectIds = await getProjectIdsByCustomerIds(customers);
+    const customerProjectIds = await projectHelpers(
+      sqlClient,
+    ).getProjectIdsByCustomerIds(customers);
 
     if (!R.contains(projectId, R.concat(projects, customerProjectIds))) {
       throw new Error('Unauthorized.');
@@ -60,7 +46,11 @@ const getUsersByProjectId = async (
   return rows;
 };
 
-const getUserBySshKey = async (root, { sshKey }, { credentials: { role } }) => {
+const getUserBySshKey = async (
+  root,
+  { sshKey },
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -84,6 +74,7 @@ const addUser = async (
       id, email, firstName, lastName, comment, gitlabId,
     },
   },
+  { sqlClient },
 ) => {
   const {
     info: { insertId },
@@ -117,7 +108,7 @@ const updateUser = async (
       },
     },
   },
-  { credentials: { role, userId } },
+  { credentials: { role, userId }, sqlClient },
 ) => {
   if (role !== 'admin' && !R.equals(userId, id)) {
     throw new Error('Unauthorized.');
@@ -199,7 +190,7 @@ const updateUser = async (
 const deleteUser = async (
   root,
   { input: { id } },
-  { credentials: { role, userId } },
+  { credentials: { role, userId }, sqlClient },
 ) => {
   if (role !== 'admin' && !R.equals(userId, id)) {
     throw new Error('Unauthorized.');
@@ -232,10 +223,11 @@ const addUserToProject = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   // Will throw on invalid conditions
-  const projectId = await getProjectIdByName(project);
+  const projectId = await projectHelpers(sqlClient).getProjectIdByName(project);
 
   if (role !== 'admin' && !R.contains(projectId, projects)) {
     throw new Error('Unauthorized.');
@@ -253,7 +245,7 @@ const addUserToProject = async (
     groupName: project,
   });
 
-  return getProjectById(projectId);
+  return projectHelpers(sqlClient).getProjectById(projectId);
 };
 
 const removeUserFromProject = async (
@@ -264,10 +256,11 @@ const removeUserFromProject = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   // Will throw on invalid conditions
-  const projectId = await getProjectIdByName(project);
+  const projectId = await projectHelpers(sqlClient).getProjectIdByName(project);
 
   if (role !== 'admin' && !R.contains(projectId, projects)) {
     throw new Error('Unauthorized.');
@@ -285,7 +278,7 @@ const removeUserFromProject = async (
     groupName: project,
   });
 
-  return getProjectById(projectId);
+  return projectHelpers(sqlClient).getProjectById(projectId);
 };
 
 const getUsersByCustomerId = async (
@@ -296,6 +289,7 @@ const getUsersByCustomerId = async (
       role,
       permissions: { customers },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin' && !R.contains(customerId, customers)) {
@@ -317,6 +311,7 @@ const getProjectsByCustomerId = async (
       role,
       permissions: { customers },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin' && !R.contains(customerId, customers)) {
@@ -338,10 +333,13 @@ const addUserToCustomer = async (
       role,
       permissions: { customers },
     },
+    sqlClient,
   },
 ) => {
   // Will throw on invalid conditions
-  const customerId = await getCustomerIdByName(customer);
+  const customerId = await customerHelpers(sqlClient).getCustomerIdByName(
+    customer,
+  );
 
   if (role !== 'admin' && !R.contains(customerId, customers)) {
     throw new Error('Unauthorized.');
@@ -350,10 +348,9 @@ const addUserToCustomer = async (
   await query(sqlClient, Sql.addUserToCustomer({ customerId, userId }));
 
   // Get customer projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-  const projects = await getCustomerProjectsWithoutDirectUserAccess(
-    [customerId],
-    [userId],
-  );
+  const projects = await projectHelpers(
+    sqlClient,
+  ).getCustomerProjectsWithoutDirectUserAccess([customerId], [userId]);
 
   const username = R.path(
     [0, 'email'],
@@ -367,7 +364,7 @@ const addUserToCustomer = async (
     });
   }
 
-  return getCustomerById(customerId);
+  return customerHelpers(sqlClient).getCustomerById(customerId);
 };
 
 const removeUserFromCustomer = async (
@@ -378,20 +375,22 @@ const removeUserFromCustomer = async (
       role,
       permissions: { customers },
     },
+    sqlClient,
   },
 ) => {
   // Will throw on invalid conditions
-  const customerId = await getCustomerIdByName(customer);
+  const customerId = await customerHelpers(sqlClient).getCustomerIdByName(
+    customer,
+  );
 
   if (role !== 'admin' && !R.contains(customerId, customers)) {
     throw new Error('Unauthorized.');
   }
 
   // Get customer projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-  const projects = await getCustomerProjectsWithoutDirectUserAccess(
-    [customerId],
-    [userId],
-  );
+  const projects = await projectHelpers(
+    sqlClient,
+  ).getCustomerProjectsWithoutDirectUserAccess([customerId], [userId]);
 
   const username = R.path(
     [0, 'email'],
@@ -407,10 +406,14 @@ const removeUserFromCustomer = async (
 
   // The removal query needs to be performed further down in the function because the query in  `getCustomerProjectsWithoutDirectUserAccess` needs the connection between user and customer to still exist.
   await query(sqlClient, Sql.removeUserFromCustomer({ customerId, userId }));
-  return getCustomerById(customerId);
+  return customerHelpers(sqlClient).getCustomerById(customerId);
 };
 
-const deleteAllUsers = async (root, args, { credentials: { role } }) => {
+const deleteAllUsers = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -429,11 +432,11 @@ const deleteAllUsers = async (root, args, { credentials: { role } }) => {
   return 'success';
 };
 
-const createAllUsersInKeycloak = async (root, args, {
-  credentials: {
-    role,
-  },
-}) => {
+const createAllUsersInKeycloak = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -442,18 +445,28 @@ const createAllUsersInKeycloak = async (root, args, {
 
   // FIRST: Create all Users in Keycloack
   for (const user of users) {
-    logger.debug(`createAllUsersInKeycloak: Processing user: ${R.prop('email', user)}`);
+    logger.debug(
+      `createAllUsersInKeycloak: Processing user: ${R.prop('email', user)}`,
+    );
     await KeycloakOperations.createUser(user);
   }
 
   // SECOND: Give access to projects which users have direct access
 
   // Load all projects
-  const projects = await getAllProjects();
+  const projects = await projectHelpers(sqlClient).getAllProjects();
   for (const project of projects) {
-    logger.debug(`createAllUsersInKeycloak: Processing project: ${R.prop('name', project)}`);
+    logger.debug(
+      `createAllUsersInKeycloak: Processing project: ${R.prop(
+        'name',
+        project,
+      )}`,
+    );
     // Load users that have access to this project
-    const project_users = await query(sqlClient, Sql.selectUsersByProjectId({ projectId: R.prop('id', project) }));
+    const project_users = await query(
+      sqlClient,
+      Sql.selectUsersByProjectId({ projectId: R.prop('id', project) }),
+    );
     for (const project_user of project_users) {
       await KeycloakOperations.addUserToGroup({
         username: R.prop('email', project_user),
@@ -465,16 +478,31 @@ const createAllUsersInKeycloak = async (root, args, {
   // THIRD: Give access to projects via customer assignement (but only the ones that the users maybe don't have direct acces via project assignement)
 
   // Load all customers
-  const customers = await getAllCustomers();
+  const customers = await customerHelpers(sqlClient).getAllCustomers();
   for (const customer of customers) {
-    logger.debug(`createAllUsersInKeycloak: Processing customer: ${R.prop('name', customer)}`);
+    logger.debug(
+      `createAllUsersInKeycloak: Processing customer: ${R.prop(
+        'name',
+        customer,
+      )}`,
+    );
     // Load users that have access to this customer
-    const customer_users = await query(sqlClient, Sql.selectUsersByCustomerId({ customerId: R.prop('id', customer) }));
+    const customer_users = await query(
+      sqlClient,
+      Sql.selectUsersByCustomerId({ customerId: R.prop('id', customer) }),
+    );
     for (const customer_user of customer_users) {
-      logger.debug(`createAllUsersInKeycloak: Processing user "${R.prop('email', customer_user)}" having access to customer: ${R.prop('name', customer)}`);
+      logger.debug(
+        `createAllUsersInKeycloak: Processing user "${R.prop(
+          'email',
+          customer_user,
+        )}" having access to customer: ${R.prop('name', customer)}`,
+      );
       // Load all projects that are given access because the user has access to the project's customer
       // But only if the access is not given also directly to the project itself.
-      const customer_user_projects = await getCustomerProjectsWithoutDirectUserAccess(
+      const customer_user_projects = await projectHelpers(
+        sqlClient,
+      ).getCustomerProjectsWithoutDirectUserAccess(
         [R.prop('id', customer)],
         [R.prop('id', customer_user)],
       );
@@ -503,13 +531,13 @@ const createAllUsersInKeycloak = async (root, args, {
 const removeAllUsersFromAllCustomers = async (
   root,
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
 
-  const customerIds = await getAllCustomerIds();
+  const customerIds = await customerHelpers(sqlClient).getAllCustomerIds();
 
   const users /* : Array<{id: number, email: string}> */ = await query(
     sqlClient,
@@ -521,7 +549,9 @@ const removeAllUsersFromAllCustomers = async (
   for (const user of users) {
     for (const customerId of customerIds) {
       // Get customer projects where given user ids do not have other access via `project_user` (put another way, projects where the user loses access if they lose customer access).
-      const projects = await getCustomerProjectsWithoutDirectUserAccess(
+      const projects = await projectHelpers(
+        sqlClient,
+      ).getCustomerProjectsWithoutDirectUserAccess(
         [customerId],
         [R.prop('id', user)],
       );
@@ -543,7 +573,7 @@ const removeAllUsersFromAllCustomers = async (
 const removeAllUsersFromAllProjects = async (
   root,
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
@@ -553,7 +583,7 @@ const removeAllUsersFromAllProjects = async (
     R.prop('email'),
     await query(sqlClient, Sql.selectAllUserEmails()),
   );
-  const projectNames = await getAllProjectNames();
+  const projectNames = await projectHelpers(sqlClient).getAllProjectNames();
 
   await query(sqlClient, Sql.truncateProjectUser());
 

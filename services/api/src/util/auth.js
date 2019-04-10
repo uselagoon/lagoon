@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 const axios = require('axios');
 const logger = require('../logger');
-const sqlClient = require('../clients/sqlClient');
 const { query, prepare } = require('../util/db');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
@@ -33,7 +32,7 @@ const splitCommaSeparatedPermissions /* :  (?string) => Array<string> */ = R.com
   R.defaultTo(''),
 );
 
-const getPermissions = async args => {
+const getPermissions = async (sqlClient, args) => {
   const prep = prepare(
     sqlClient,
     'SELECT projects, customers FROM permission WHERE user_id = :user_id',
@@ -43,8 +42,8 @@ const getPermissions = async args => {
   return R.propOr(null, 0, rows);
 };
 
-const getPermissionsForUser = async userId => {
-  const rawPermissions = await getPermissions({ userId });
+const getPermissionsForUser = async (sqlClient, userId) => {
+  const rawPermissions = await getPermissions(sqlClient, { userId });
 
   if (rawPermissions == null) {
     return {};
@@ -74,7 +73,9 @@ const fetchKeycloakKey = async (header, cb) => {
     : 'http://docker.for.mac.localhost:8088/auth';
 
   try {
-    const response = await axios.get(`${authServerUrl}/realms/lagoon/protocol/openid-connect/certs`);
+    const response = await axios.get(
+      `${authServerUrl}/realms/lagoon/protocol/openid-connect/certs`,
+    );
     const jwks = response.data.keys;
 
     const jwk = jwks.find(key => key.kid === header.kid);
@@ -89,7 +90,7 @@ const fetchKeycloakKey = async (header, cb) => {
   }
 };
 
-const getCredentialsForKeycloakToken = async token => {
+const getCredentialsForKeycloakToken = async (sqlClient, token) => {
   const decodeToken = util.promisify(jwt.verify);
 
   // Check for a valid keycloak token before cryptographically verifying it to
@@ -112,14 +113,11 @@ const getCredentialsForKeycloakToken = async token => {
 
   let nonAdminCreds = {};
 
-  if (!R.contains(
-    'admin',
-    decoded.realm_access.roles,
-  )) {
+  if (!R.contains('admin', decoded.realm_access.roles)) {
     const {
       lagoon: { user_id: userId },
     } = decoded;
-    const permissions = await getPermissionsForUser(userId);
+    const permissions = await getPermissionsForUser(sqlClient, userId);
 
     if (R.isEmpty(permissions)) {
       throw new Error(`No permissions for user id ${userId}.`);
@@ -140,7 +138,7 @@ const getCredentialsForKeycloakToken = async token => {
   };
 };
 
-const getCredentialsForLegacyToken = async token => {
+const getCredentialsForLegacyToken = async (sqlClient, token) => {
   let decoded = '';
   try {
     decoded = jwt.verify(token, JWTSECRET);
@@ -170,7 +168,7 @@ const getCredentialsForLegacyToken = async token => {
 
   // Get permissions for user, override any from JWT.
   if (userId) {
-    const dbPermissions = await getPermissionsForUser(userId);
+    const dbPermissions = await getPermissionsForUser(sqlClient, userId);
 
     if (R.isEmpty(dbPermissions)) {
       throw new Error(`No permissions for user id ${userId}.`);
@@ -191,11 +189,12 @@ const getCredentialsForLegacyToken = async token => {
     };
   }
 
-  throw new Error('Cannot authenticate non-admin user with no userId or permissions.');
+  throw new Error(
+    'Cannot authenticate non-admin user with no userId or permissions.',
+  );
 };
 
 module.exports = {
-  getPermissionsForUser,
   splitCommaSeparatedPermissions,
   getCredentialsForLegacyToken,
   getCredentialsForKeycloakToken,

@@ -1,5 +1,6 @@
 // @flow
 
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
@@ -25,10 +26,20 @@ async function gitlabPullRequestOpened(webhook: WebhookRequestData, project: Pro
       repoUrl: body.object_attributes.target.web_url,
     }
 
+    const headRepoId = body.object_attributes.source.git_ssh_url
     const headBranchName = body.object_attributes.source_branch
     const headSha = body.object_attributes.last_commit.id
+    const baseRepoId = body.object_attributes.target.git_ssh_url
     const baseBranchName = body.object_attributes.target_branch
     const baseSha = `origin/${body.object_attributes.target_branch}` // gitlab does not send us the target sha, we just use the target_branch
+
+    // Don't trigger deploy if the head and base repos are different
+    if (!R.equals(headRepoId, baseRepoId)) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: Target/Source not same repo`
+      )
+      return;
+    }
 
 
     const data: deployData = {
