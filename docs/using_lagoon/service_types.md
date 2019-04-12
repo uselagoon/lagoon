@@ -1,6 +1,6 @@
 # Service Types
 
-This table lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](./docker-compose_yml.md)
+This table lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](docker-compose_yml.md)
 
 | Type           | Description                                          | Healtcheck      | Exposed Ports | Auto generated routes | Additional customization parameters             |
 | ---------------| -----------------------------------------------------|-----------------|-------|-------------| ---------------------------------------------------|
@@ -26,4 +26,4 @@ This table lists all service types that can be defined via `lagoon.type` within 
 | `elasticsearch` | Elasticsearch container, will auto generate persistent storage under `/usr/share/elasticsearch/data` | HTTP on `localhost:9200/_cluster/health?local=true` | `9200` | - | `lagoon.persistent.size` |
 | `elasticsearch-cluster` | Elasticsearch Cluster with 3 nodes, users Statefulset, will auto generate persistent storage for each cluster node under `/usr/share/elasticsearch/data` | HTTP on `localhost:9200/_cluster/health?local=true` | `9200`, `9300` | - | - |
 | `none` | Instructs Lagoon to completely ignore this service | - | - | - | - |
-| `custom` | Full custom definition, see [documentation](./docker-compose_yml.md) | - | - | - | - |
+| `custom` | Full custom definition, see [documentation](docker-compose_yml.md) | - | - | - | - |
