@@ -728,6 +728,8 @@ do
     . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
+
+  set -o noglob
   CRONJOB_COUNTER=0
   CRONJOBS_ARRAY_POD=()  #crons run inside an existing pod
   CRONJOBS_ARRAY_TYPE=() #crons using kubernetes cronjob type
@@ -749,7 +751,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if [ $(checkFrequency $CRONJOB_SCHEDULE_RAW) == "true" ]; then
+      if [ "$(checkFrequency $CRONJOB_SCHEDULE_RAW)" == "true" ]; then
         CRONJOBS_ARRAY_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
         CRONJOBS_ARRAY_TYPE+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
