@@ -37,7 +37,8 @@ type ResolverFn = (
     sshKey: string,
   },
   context: {
-    credentials: Cred
+    credentials: Cred,
+    sqlClient: MariaSQL,
   },
   info?: {|
     +fieldName: string,

@@ -1,5 +1,6 @@
 // @flow
 
+const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createDeployTask } = require('@lagoon/commons/src/tasks');
@@ -25,10 +26,20 @@ async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project:
       repoUrl: body.repository.links.html.href,
     }
 
+    const headRepoId = body.pullrequest.source.repository.uuid;
     const headBranchName = body.pullrequest.source.branch.name
     const headSha = body.pullrequest.source.commit.hash
+    const baseRepoId = body.pullrequest.destination.repository.uuid;
     const baseBranchName = body.pullrequest.destination.branch.name
     const baseSha = body.pullrequest.destination.commit.hash
+
+    // Don't trigger deploy if the head and base repos are different
+    if (!R.equals(headRepoId, baseRepoId)) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* PR ${body.number}. No deploy task created, reason: Source/Destination not same repo`
+      )
+      return;
+    }
 
     const data: deployData = {
       repoName: body.repository.full_name,

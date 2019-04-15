@@ -1,20 +1,28 @@
 // @flow
 
+/* ::
+import type MariaSQL from 'mariasql';
+*/
+
 const searchguardClient = require('../../clients/searchguardClient');
 const kibanaClient = require('../../clients/kibanaClient');
 const logger = require('../../logger');
 
-const { getCustomerById } = require('../customer/helpers');
+const customerHelpers = require('../customer/helpers');
 
-const SearchguardOperations = {
+const SearchguardOperations = (sqlClient /* : MariaSQL */) => ({
   addProject: async (project /* : any */) => {
     // Within elasticsearch we don't support any special characters, except dashes, convert all special characters to them and make it lowercase
-    const openshiftProjectNameStyle = project.name.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+    const openshiftProjectNameStyle = project.name
+      .toLocaleLowerCase()
+      .replace(/[^0-9a-z-]/g, '-');
 
-    const customer = await getCustomerById(project.customer);
+    const customer = await customerHelpers(sqlClient).getCustomerById(
+      project.customer,
+    );
 
     try {
-    // Create a new SearchGuard Role for this project with the same name as the Project
+      // Create a new SearchGuard Role for this project with the same name as the Project
       await searchguardClient.put(`roles/${project.name}`, {
         body: {
           indices: {
@@ -42,28 +50,25 @@ const SearchguardOperations = {
       `lagoon-logs-${openshiftProjectNameStyle}-*`,
     ]) {
       try {
-        await kibanaClient.post(
-          `saved_objects/index-pattern/${indexPattern}`,
-          {
-            body: {
-              attributes: {
-                title: `${indexPattern}`,
-                timeFieldName: '@timestamp',
-              },
-            },
-            headers: {
-              sgtenant: customer.name,
+        await kibanaClient.post(`saved_objects/index-pattern/${indexPattern}`, {
+          body: {
+            attributes: {
+              title: `${indexPattern}`,
+              timeFieldName: '@timestamp',
             },
           },
-        );
+          headers: {
+            sgtenant: customer.name,
+          },
+        });
         logger.debug(`Created index-pattern "${indexPattern}"`);
       } catch (err) {
-      // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
+        // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
         if (err.statusCode !== 409) {
           logger.error(
             `Kibana Error during setup of index pattern "${indexPattern}": ${err}`,
           );
-        // Don't fail if we have Kibana Errors, as they are "non-critical"
+          // Don't fail if we have Kibana Errors, as they are "non-critical"
         } else {
           logger.debug(`index-pattern "${indexPattern}" already existing`);
         }
@@ -92,15 +97,25 @@ const SearchguardOperations = {
             sgtenant: customer.name,
           },
         });
-        logger.debug(`Configured default index for tenant "${customer.name}" to  "${defaultIndexPattern}"`);
+        logger.debug(
+          `Configured default index for tenant "${
+            customer.name
+          }" to  "${defaultIndexPattern}"`,
+        );
       } else {
-        logger.debug(`Configured default index for tenant "${customer.name}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`);
+        logger.debug(
+          `Configured default index for tenant "${
+            customer.name
+          }" was already set to "${
+            currentSettings.body.settings.defaultIndex.userValue
+          }"`,
+        );
       }
     } catch (err) {
       logger.error(`Kibana Error during config of default Index: ${err}`);
       // Don't fail if we have Kibana Errors, as they are "non-critical"
     }
   },
-};
+});
 
 module.exports = SearchguardOperations;

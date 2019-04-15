@@ -78,6 +78,7 @@ const typeDefs = gql`
     name: String
     keyValue: String
     keyType: String
+    keyFingerprint: String
     created: String
   }
 
@@ -293,11 +294,27 @@ const typeDefs = gql`
     """
     deployType: String
     """
+    The version control base ref for deployments (e.g., branch name, tag, or commit id)
+    """
+    deployBaseRef: String
+    """
+    The version control head ref for deployments (e.g., branch name, tag, or commit id)
+    """
+    deployHeadRef: String
+    """
+    The title of the last deployment (PR title)
+    """
+    deployTitle: String
+    """
+    Should this environment have auto idling enabled (\`1\` or \`0\`)
+    """
+    autoIdle: Int
+    """
     Which Environment Type this environment is, can be \`production\`, \`development\`
     """
     environmentType: String
     """
-    Name of the OpenShift Project/Namespace this environemnt is deployed into
+    Name of the OpenShift Project/Namespace this environment is deployed into
     """
     openshiftProjectName: String
     """
@@ -337,7 +354,7 @@ const typeDefs = gql`
     monitoringUrls: String
     deployments(name: String): [Deployment]
     backups(includeDeleted: Boolean): [Backup]
-    tasks: [Task]
+    tasks(id: Int): [Task]
     services: [EnvironmentService]
   }
 
@@ -470,6 +487,19 @@ const typeDefs = gql`
     allEnvironments(createdAfter: String, type: EnvType): [Environment]
   }
 
+  # Must provide id OR name
+  input ProjectInput {
+    id: Int
+    name: String
+  }
+
+  # Must provide id OR name and project
+  input EnvironmentInput {
+    id: Int
+    name: String
+    project: ProjectInput
+  }
+
   input AddSshKeyInput {
     id: Int
     name: String!
@@ -508,6 +538,9 @@ const typeDefs = gql`
     name: String!
     project: Int!
     deployType: DeployType!
+    deployBaseRef: String!
+    deployHeadRef: String
+    deployTitle: String
     environmentType: EnvType!
     openshiftProjectName: String!
   }
@@ -809,11 +842,15 @@ const typeDefs = gql`
   input UpdateEnvironmentPatchInput {
     project: Int
     deployType: DeployType
+    deployBaseRef: String
+    deployHeadRef: String
+    deployTitle: String
     environmentType: EnvType
     openshiftProjectName: String
     route: String
     routes: String
     monitoringUrls: String
+    autoIdle: Int
   }
 
   input UpdateEnvironmentInput {
@@ -846,6 +883,32 @@ const typeDefs = gql`
 
   input DeleteFilesForTaskInput {
     id: Int!
+  }
+
+  input DeployEnvironmentLatestInput {
+    environment: EnvironmentInput!
+  }
+
+  input DeployEnvironmentBranchInput {
+    project: ProjectInput!
+    branchName: String!
+    branchRef: String
+  }
+
+  input DeployEnvironmentPullrequestInput {
+    project: ProjectInput!
+    number: Int!
+    title: String!
+    baseBranchName: String!
+    baseBranchRef: String!
+    headBranchName: String!
+    headBranchRef: String!
+  }
+
+  input DeployEnvironmentPromoteInput {
+    sourceEnvironment: EnvironmentInput!
+    project: ProjectInput!
+    destinationEnvironment: String!
   }
 
   type Mutation {
@@ -944,6 +1007,10 @@ const typeDefs = gql`
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
+    deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
+    deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
+    deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
+    deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
   }
 
   type Subscription {

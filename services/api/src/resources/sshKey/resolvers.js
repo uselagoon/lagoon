@@ -1,9 +1,8 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
 const { isPatchEmpty, prepare, query } = require('../../util/db');
-const { validateSshKey } = require('.');
+const { validateSshKey, getSshKeyFingerprint } = require('.');
 const Sql = require('./sql');
 
 /* ::
@@ -20,7 +19,11 @@ const sshKeyTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const getCustomerSshKeys = async (root, args, { credentials: { role } }) => {
+const getCustomerSshKeys = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -31,7 +34,11 @@ const getCustomerSshKeys = async (root, args, { credentials: { role } }) => {
   return R.map(R.prop('sshKey'), rows);
 };
 
-const getProjectSshKeys = async (root, args, { credentials: { role } }) => {
+const getProjectSshKeys = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
   }
@@ -45,7 +52,7 @@ const getProjectSshKeys = async (root, args, { credentials: { role } }) => {
 const getUserSshKeys = async (
   { id: userId },
   args,
-  { credentials: { role, userId: credentialsUserId } },
+  { credentials: { role, userId: credentialsUserId }, sqlClient },
 ) => {
   if (role !== 'admin' && !R.equals(credentialsUserId, userId)) {
     throw new Error('Unauthorized.');
@@ -63,11 +70,12 @@ const addSshKey = async (
       id, name, keyValue, keyType: unformattedKeyType, userId,
     },
   },
-  { credentials: { role, userId: credentialsUserId } },
+  { credentials: { role, userId: credentialsUserId }, sqlClient },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
+  const keyFormatted = formatSshKey({ keyType, keyValue });
 
-  if (!validateSshKey(formatSshKey({ keyType, keyValue }))) {
+  if (!validateSshKey(keyFormatted)) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
@@ -76,9 +84,7 @@ const addSshKey = async (
   }
 
   const {
-    info: {
-      insertId,
-    },
+    info: { insertId },
   } = await query(
     sqlClient,
     Sql.insertSshKey({
@@ -86,6 +92,7 @@ const addSshKey = async (
       name,
       keyValue,
       keyType,
+      keyFingerprint: getSshKeyFingerprint(keyFormatted),
     }),
   );
   await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: insertId, userId }));
@@ -103,7 +110,7 @@ const updateSshKey = async (
       patch: { name, keyType: unformattedKeyType, keyValue },
     },
   },
-  { credentials: { role, userId } },
+  { credentials: { role, userId }, sqlClient },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
 
@@ -125,16 +132,27 @@ const updateSshKey = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  if (
-    (keyType || keyValue) &&
-    !validateSshKey(formatSshKey({ keyType, keyValue }))
-  ) {
-    throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
+  let keyFingerprint = null;
+  if (keyType || keyValue) {
+    const keyFormatted = formatSshKey({ keyType, keyValue });
+
+    if (!validateSshKey(keyFormatted)) {
+      throw new Error(
+        'Invalid SSH key format! Please verify keyType + keyValue',
+      );
+    }
+
+    keyFingerprint = getSshKeyFingerprint(keyFormatted);
   }
 
   await query(
     sqlClient,
-    Sql.updateSshKey({ id, patch: { name, keyType, keyValue } }),
+    Sql.updateSshKey({
+      id,
+      patch: {
+        name, keyType, keyValue, keyFingerprint,
+      },
+    }),
   );
   const rows = await query(sqlClient, Sql.selectSshKey(id));
 
@@ -144,7 +162,7 @@ const updateSshKey = async (
 const deleteSshKey = async (
   root,
   { input: { name } },
-  { credentials: { role, userId } },
+  { credentials: { role, userId }, sqlClient },
 ) => {
   if (role !== 'admin') {
     // Map from sshKey name to id and throw on several error cases
@@ -176,7 +194,11 @@ const deleteSshKey = async (
   return 'success';
 };
 
-const deleteAllSshKeys = async (root, args, { credentials: { role } }) => {
+const deleteAllSshKeys = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -190,7 +212,7 @@ const deleteAllSshKeys = async (root, args, { credentials: { role } }) => {
 const removeAllSshKeysFromAllUsers = async (
   root,
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
