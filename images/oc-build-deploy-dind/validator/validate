@@ -1,10 +1,15 @@
 #!/bin/sh
 BASE=$(dirname $0)
 
-echo "Linting files:"
+echo "Linting file: .lagoon.yml"
 
 yamllint -c ${BASE}/config/yamllint.yaml .lagoon.yml | cat
-yamllint -c ${BASE}/config/yamllint.yaml docker-compose.yml | cat
+
+DOCKER_COMPOSE_YAML=$(cat .lagoon.yml | shyaml get-value docker-compose-yaml)
+echo "Linting file: $(DOCKER_COMPOSE_YAML)"
+yamllint -c ${BASE}/config/yamllint.yaml "$(DOCKER_COMPOSE_YAML)" | cat
+
+
 
 echo "Validating files:"
 
