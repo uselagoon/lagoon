@@ -734,8 +734,13 @@ do
     . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
-
+  YAML_CONFIG_FILE="cronjobs"
   set -o noglob
+
+  # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+  # if cronpod, it won't recogognize the other CRONJOB_* parameters
+
+  NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
   CRONJOB_COUNTER=0
   CRONJOBS_ARRAY_POD=()  #crons run inside an existing pod
   CRONJOBS_ARRAY_TYPE=() #crons using kubernetes cronjob type
@@ -760,7 +765,15 @@ do
       if [ "$(checkFrequency $CRONJOB_SCHEDULE_RAW)" == "true" ]; then
         CRONJOBS_ARRAY_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
-        CRONJOBS_ARRAY_TYPE+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+          OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+          # restore TEMPLATE_PARAMETERS
+          TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
+
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+           . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
       fi
 
     fi
