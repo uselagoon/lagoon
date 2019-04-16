@@ -781,6 +781,13 @@ do
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
   done
 
+  #restore template parameters before creating deployment configs
+  TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
+
+  if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+    oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+  fi
+
   # Generate cronjobs if service type defines them
   # They will never be more often than quarterly.
   SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
