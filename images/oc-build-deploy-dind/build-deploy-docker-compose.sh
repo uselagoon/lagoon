@@ -912,17 +912,6 @@ do
 done
 
 ##############################################
-### CLEANUP NATIVE CRONJOBS NOW RUNNING WITHIN CONTAINERS DIRECTLY
-##############################################
-
-for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
-do
-  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get cronjob ${CRONJOB}; then
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
-  fi
-done
-
-##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
