@@ -788,9 +788,9 @@ do
     oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
   fi
 
-  # Generate cronjobs if service type defines them
+  # Generate provided cronjobs if service type defines them
   # They will never be more often than quarterly.
-  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjob.yml"
   if [ -f $SERVICE_CRONJOB_FILE ]; then
     CRONJOB_COUNTER=0
     while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
