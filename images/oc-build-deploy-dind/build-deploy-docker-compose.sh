@@ -21,6 +21,12 @@ function checkFrequency() {
     else
       echo -n false
     fi
+  else
+    if [ "$MINUTE" == "H" ] || "$MINUTE" == "M"  ; then
+      echo -n false
+    else
+      echo -n true
+    fi
   fi
 }
 ##############################################
