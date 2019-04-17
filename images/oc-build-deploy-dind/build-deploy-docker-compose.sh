@@ -11,23 +11,30 @@ function outputToYaml() {
   set -x
 }
 
-function checkFrequency() {
+function scheduleMoreOftenThan15() {
   #takes a unexpanded cron schedule, returns true if it's less often that 15 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     STEP=${BASH_REMATCH[2]}
     if [ $STEP -ge 15 ]; then
-      echo -n true
+      return 0
     else
-      echo -n false
+      return 1
     fi
   else
-    if [ "$MINUTE" == "H" ] || "$MINUTE" == "M"  ; then
-      echo -n false
-    else
-      echo -n true
+    if [ "$MINUTE" == "H" ] || [ "$MINUTE" == "M" ]; then #hourly
+      return 0
     fi
-  fi
+
+    if [ "$MINUTE" -ge 0 ]; then # 30 * * * *, also hourly
+      return 1
+    else
+      echo unknown schedule "$1"
+      return 0
+    fi
+
+    fi
+
 }
 ##############################################
 ### PREPARATION
@@ -762,7 +769,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if [ "$(checkFrequency $CRONJOB_SCHEDULE_RAW)" == "true" ]; then
+      if scheduleMoreOftenThan15 "$CRONJOB_SCHEDULE_RAW" ; then
         CRONJOBS_ARRAY_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
           OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
