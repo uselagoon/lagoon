@@ -749,7 +749,8 @@ do
 
   NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
   CRONJOB_COUNTER=0
-  CRONJOBS_ARRAY_POD=()  #crons run inside an existing pod
+  CRONJOBS_ARRAY_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
+  CRONJOBS_ARRAY_POD15=() #crons run inside an existing pod less frequently than every 15 minutes
   CRONJOBS_ARRAY_TYPE=() #crons using kubernetes cronjob type
   while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
   do
@@ -772,15 +773,18 @@ do
       if scheduleMoreOftenThan15 "$CRONJOB_SCHEDULE_RAW" ; then
         CRONJOBS_ARRAY_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
-          OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
-          # restore TEMPLATE_PARAMETERS
-          TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
+        # this is only used if length of CRONJOBS_ARRAY_POD >0 later.
+        CRONJOBS_ARRAY_POD15+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
 
-          TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
-          TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
-          TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+        OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+        # restore TEMPLATE_PARAMETERS
+        TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
 
-           . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+        TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
+        TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
+        TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+         . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
       fi
 
     fi
@@ -791,9 +795,6 @@ do
   #restore template parameters before creating deployment configs
   TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
 
-  if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
-    oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
-  fi
 
   # Generate provided cronjobs if service type defines them
   # They will never be more often than quarterly.
@@ -814,15 +815,20 @@ do
 
       # managed crontabs will never be more often than */15
       CRONJOBS_ARRAY_TYPE+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
-
+      CRONJOBS_ARRAY_POD15+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       let CRONJOB_COUNTER=CRONJOB_COUNTER+1
     done
   fi
 
   # if there are pod-bound crons, add them to the deploymentconfig.
   if [[ ${#CRONJOBS_ARRAY_POD[@]} -ge 1 ]]; then
-    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_POD[@]}")
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_POD[@]} ${CRONJOBS_ARRAY_POD15[@]}")
     TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
+  else
+    # if we have no frequent crons, parse the cronjob generated template
+    if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
+      oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+    fi
   fi
 
   OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
