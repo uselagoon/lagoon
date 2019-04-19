@@ -25,7 +25,7 @@ SERVERS=$(awk '{print $3}' mariadb-services | sort |uniq )
 
 for SERVER in $SERVERS; do
   echo "getting database list for server ${SERVER}..."
-  ssh $SERVER mysql -se 'show\ databases;' > ${SERVER}-databases
+  ssh $SERVER mysql -se 'show\ databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
 done
 
 
