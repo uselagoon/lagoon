@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # this script will assumed you're logged into a openshift cluster
 # and that you can ssh directly to the database servers listed in DB_HOST
@@ -28,15 +28,26 @@ for SERVER in $SERVERS; do
   ssh $SERVER mysql -se 'show\ databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
 done
 
-
+errors=()
 for PROJECT in $(awk '{print $1}' mariadb-services); do
-  DBHOST=$(grep ^${PROJECT}\  mariadb-services | awk '{print $3}')
-  DATABASE=$(oc -n $PROJECT get configmap lagoon-env -o json | jq -r ".data.MARIADB_DATABASE")
-
   echo checking project $PROJECT
-  echo found database $DATABASE on host $DBHOST
-  sed -ibak -e "/${DATABASE}/d" ${DBHOST}-databases
+  DBHOST=$(grep ^${PROJECT}\  mariadb-services | awk '{print $3}')
+  DATABASE=$(oc -n $PROJECT get configmap lagoon-env -o json | jq -r '.data | with_entries(select(.key|match("_DATABASE";"i")))[]')
+
+  if [ -z $DATABASE ]; then
+    echo "some problem with $PROJECT"
+    errors+=("$PROJECT")
+  else
+    echo found database $DATABASE on host $DBHOST
+    sed -ibak -e "/${DATABASE}/d" ${DBHOST}-databases
+  fi
 done
+
+echo; echo 
+echo These projects could not adaquately checked:
+printf "%s\\n" "${errors[@]}"
+echo
+
 
 for SERVER in $SERVERS; do
   echo "Orphaned databases for: ${SERVER}..."
