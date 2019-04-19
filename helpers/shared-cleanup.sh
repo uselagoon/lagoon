@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# this script will assumed you're logged into a openshift cluster
+# and that you can ssh directly to the database servers listed in DB_HOST
+# with a .my.cnf that allows you to run non-interactive mysql commands.
+
+# after running this script, the user will be presented with a list of
+# databases that are probably ok to remove.
+
 for util in oc svcat jq; do
 which ${util} > /dev/null
 if [ $? -gt 0 ]; then
