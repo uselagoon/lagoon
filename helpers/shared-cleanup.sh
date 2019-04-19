@@ -30,17 +30,16 @@ done
 
 
 for PROJECT in $(awk '{print $1}' mariadb-services); do
-  DBHOST=$(grep $PROJECT mariadb-services | awk '{print $3}')
+  DBHOST=$(grep ^${PROJECT}\  mariadb-services | awk '{print $3}')
   DATABASE=$(oc -n $PROJECT get configmap lagoon-env -o json | jq -r ".data.MARIADB_DATABASE")
 
   echo checking project $PROJECT
   echo found database $DATABASE on host $DBHOST
-  sed -i /$DATABASE/d ${SERVER}-databases
+  sed -ibak -e "/${DATABASE}/d" ${DBHOST}-databases
+done
 
-
-
-  # BINDING=$(svcat -n $PROJECT  get bindings -o json | jq -r ".items[0].metadata.name")
-  # echo "binding for $PROJECT is $BINDING ..."
-  # svcat -n $PROJECT describe bindings $BINDING --show-secrets #| grep DB_NAME | awk '{print $2}'
-
+for SERVER in $SERVERS; do
+  echo "Orphaned databases for: ${SERVER}..."
+  cat ${SERVER}-databases
+  echo
 done
