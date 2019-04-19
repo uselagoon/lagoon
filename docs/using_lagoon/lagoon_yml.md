@@ -68,7 +68,7 @@ environments:
 ##### `docker-compose-yaml`
 Tells the build script which docker-compose yaml file should be used in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml` but could be used for a specific lagoon docker-compose yaml file if you need something like that.
 
-#### `routes.autogenerate.generate`
+#### `routes.autogenerate.enabled`
 This allows you to disable the automatic created routes (NOT the custom routes per environment, see below for them) all together.
 
 #### `routes.autogenerate.insecure`
