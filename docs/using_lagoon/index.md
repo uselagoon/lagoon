@@ -13,7 +13,7 @@ TL;DR: install and start `pygmy`:
     gem install pygmy
     pygmy up
 
-Learn more about Lagoon and [Local Development Environments](./local_development_environments.md)
+Learn more about Lagoon and [Local Development Environments](local_development_environments.md)
 
 ## Step by Step Guides
 
@@ -27,11 +27,11 @@ Learn more about Lagoon and [Local Development Environments](./local_development
 
 ### `.lagoon.yml`
 
-They main file that will be used by Lagoon to understand what should be deployed and many more things. See [Documentation for .lagoon.yml](/using_lagoon/lagoon_yml.md)
+They main file that will be used by Lagoon to understand what should be deployed and many more things. See [Documentation for .lagoon.yml](lagoon_yml.md)
 
 ### `docker-compose.yml`
 
-This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml](/using_lagoon/docker-compose_yml.md)
+This file is used by Docker Compose to start you Local Development environment. Lagoon also uses it to understand which of the Services should be deployed, which type and how to build them. This happens via `labels`. See [Documentation for docker-compose.yml](docker-compose_yml.md)
 
 ### Dockerfiles
 
