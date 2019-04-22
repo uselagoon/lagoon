@@ -12,7 +12,7 @@ Docker compose is included in Docker for Mac installations.  For linux installat
 
 ## Install VirtualBox 
 
-We are using VitualBox to run the Openshift Minishift VM. For download an instalation instructions see here:
+We are using VitualBox to run the Openshift Minishift VM. For download and instalation instructions see here:
 [https://www.virtualbox.org/](https://www.virtualbox.org/)
 
 ## Start Services
