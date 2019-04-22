@@ -10,6 +10,11 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
+## Install VirtualBox 
+
+We are using VitualBox to run the Openshift Minishift VM. For download an instalation instructions see here:
+[https://www.virtualbox.org/](https://www.virtualbox.org/)
+
 ## Start Services
 
 1. Add `192.168.99.0/24` to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
