@@ -17,7 +17,7 @@ As there can be environment variables defined in either the Dockerfile of during
 
 We suggest to use the Lagoon API environment variable system for variables that you would like to not be existing in the Git Repo (like secrets or API keys), as they could be leaked by somebody having them on their local development environment.
 
-The Lagoon API allows you to define Project wide or Environment specific variables, additionally they can be defined for a scope only buildtime or runtime. They are all created via the Lagoon GraphQL API, read more how to use the GraphQL API at [Using Lagoon » GraphQL API](./using_lagoon/graphql_api.md).
+The Lagoon API allows you to define Project wide or Environment specific variables, additionally they can be defined for a scope only buildtime or runtime. They are all created via the Lagoon GraphQL API, read more how to use the GraphQL API at [Using Lagoon » GraphQL API](./graphql_api.md).
 
 ### Runtime Environment Variables (Lagoon API)
 
