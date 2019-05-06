@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# this script will assumed you're logged into a openshift cluster
+# this script will assumed you're logged into an openshift cluster
 # and that you can ssh directly to the database servers listed in DB_HOST
 # with a .my.cnf that allows you to run non-interactive mysql commands.
 
