@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 
-# this script will assumed you're logged into an openshift master host.
+# this script will assumed you're logged into an openshift cluster locally.
 # and that you can connect directly to the database servers listed in DB_HOST
 # on port 3306 with a .my.cnf that allows you to run
 # non-interactive mysql commands.
 
-# Hint: use  oc -n openshift-ansible-service-broker get secret/lagoon-dbaas-db-credentials to
-# create .my.cnf
+# use oc -n openshift-ansible-service-broker get secret/lagoon-dbaas-db-credentials
+# if the database is not directly connectable, an ssh tunnel can be used:
+# ~/.my.cnf-mysql-development-cluster.cluster-xxx.rds.amazonaws.com
+# [client]
+# host=127.0.0.1
+# port=33007
+# user=root
+# password=af105380aa4a2f034a083daeb9ed27b7a8395a44
+
+# ssh -L 33007:mysql-development-cluster.cluster-xxx.rds.amazonaws.com:3306 infra1.cluster1.amazee.io
 
 # after running this script, the user will be presented with a list of
 # databases that are probably ok to remove.
