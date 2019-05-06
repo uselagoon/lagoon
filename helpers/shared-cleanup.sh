@@ -22,14 +22,20 @@ done;
 
 # services with a port are not servicebrokers.
 echo "getting a list of services for cluster $(oc whoami --show-server)..."
-oc get service --all-namespaces |grep mariadb  |grep -v 3306  > mariadb-services
+# oc get service --all-namespaces |grep mariadb  |grep -v 3306  > mariadb-services
 
 # get a list of database servers
 SERVERS=$(awk '{print $3}' mariadb-services | sort |uniq )
 
 for SERVER in $SERVERS; do
-  echo "getting database list for server ${SERVER}..."
-  ssh $SERVER mysql -se 'show\ databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
+  CONFFILE=${HOME}/.my.cnf-${SERVER}
+  if [ -f $CONFFILE ]; then
+    echo "getting database list for server ${SERVER}..."
+    mysql --defaults-file=$CONFFILE -se 'show\ databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
+  else
+    echo ERROR: please create $CONFFILE so I can know how to connect to $SERVER
+    exit 2
+  fi
 done
 
 errors=()
