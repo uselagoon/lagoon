@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
-# this script will assumed you're logged into an openshift cluster
-# and that you can ssh directly to the database servers listed in DB_HOST
-# with a .my.cnf that allows you to run non-interactive mysql commands.
+# this script will assumed you're logged into an openshift master host.
+# and that you can connect directly to the database servers listed in DB_HOST
+# on port 3306 with a .my.cnf that allows you to run
+# non-interactive mysql commands.
+
+# Hint: use  oc -n openshift-ansible-service-broker get secret/lagoon-dbaas-db-credentials to
+# create .my.cnf
 
 # after running this script, the user will be presented with a list of
 # databases that are probably ok to remove.
 
-for util in oc svcat jq; do
+for util in oc svcat jq mysql; do
 which ${util} > /dev/null
 if [ $? -gt 0 ]; then
   echo "please install ${util}"
