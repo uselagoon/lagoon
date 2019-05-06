@@ -22,7 +22,7 @@ done;
 
 # services with a port are not servicebrokers.
 echo "getting a list of services for cluster $(oc whoami --show-server)..."
-# oc get service --all-namespaces |grep mariadb  |grep -v 3306  > mariadb-services
+oc get service --all-namespaces |grep mariadb  |grep -v 3306  > mariadb-services
 
 # get a list of database servers
 SERVERS=$(awk '{print $3}' mariadb-services | sort |uniq )
