@@ -31,7 +31,7 @@ for SERVER in $SERVERS; do
   CONFFILE=${HOME}/.my.cnf-${SERVER}
   if [ -f $CONFFILE ]; then
     echo "getting database list for server ${SERVER}..."
-    mysql --defaults-file=$CONFFILE -se 'show\ databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
+    mysql --defaults-file=$CONFFILE -se 'show databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
   else
     echo ERROR: please create $CONFFILE so I can know how to connect to $SERVER
     exit 2
