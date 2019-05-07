@@ -17,9 +17,9 @@ function scheduleMoreOftenThan15() {
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     STEP=${BASH_REMATCH[2]}
     if [ $STEP -ge 15 ]; then
-      return 0
-    else
       return 1
+    else
+      return 0
     fi
   else
     if [ "$MINUTE" == "H" ] || [ "$MINUTE" == "M" ]; then #hourly
