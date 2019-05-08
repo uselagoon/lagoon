@@ -712,7 +712,10 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift with name $(CI_BUILD_TAG))
-	MINISHIFT_ENABLE_EXPERIMENTAL=y ./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)" --extra-clusterup-flags "--service-catalog"
+ifeq ($(OPENSHIFT_VERSION), "v3.09.0")
+	MINI_START_FLAGS='--extra-clusterup-flags "--service-catalog"'
+endif
+	MINISHIFT_ENABLE_EXPERIMENTAL=y ./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)" $(MINI_START_FLAGS)
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
