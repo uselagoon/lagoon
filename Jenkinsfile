@@ -1,10 +1,7 @@
 node {
 
-build()
-build(minishift_version='1.33.0', openshift_version = 'v3.11.0')
+  openshift_versions = ['v3.09.0', 'v3.10.0', 'v3.11.0']
 
-
-def build(String minishift_version = '1.16.1', String openshift_version = 'v3.09.0') {
   // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
   // Jenkins HOME Folder
@@ -35,50 +32,59 @@ def build(String minishift_version = '1.16.1', String openshift_version = 'v3.09
           }
         }
 
-        lock('minishift') {
-          notifySlack()
-
-          try {
-            parallel (
-              'start services': {
-                stage ('start services') {
-                  sh "make kill"
-                  sh "make up"
-                  sh "sleep 60"
-                }
-              },
-              'start minishift': {
-                stage ('start minishift') {
-                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}'
-                }
-              }
-            )
-          } catch (e) {
-            echo "Something went wrong, trying to cleanup"
-            cleanup()
-            throw e
+        openshift_versions.each { openshift_version ->
+          if (openshift_version = 'v3.09.0') {
+            minishift_version = 'v1.16.1'
+          } else {
+            minishift_version = 'v1.33.0'
           }
 
-          parallel (
-            '_tests': {
-                stage ('run tests') {
-                  try {
-                    sh "make push-minishift"
-                    sh "make tests -j2"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup()
-                    throw e
+          lock('minishift') {
+            notifySlack()
+
+            try {
+              parallel (
+                'start services': {
+                  stage ('start services') {
+                    sh "make kill"
+                    sh "make up"
+                    sh "sleep 60"
                   }
-                  cleanup()
+                },
+                'start minishift': {
+                  stage ('start minishift') {
+                    sh 'make minishift/clean'
+                    sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}'
+                  }
                 }
-            },
-            'logs': {
-                stage ('all') {
-                  sh "make logs"
-                }
-            },
-          )
+              )
+            } catch (e) {
+              echo "Something went wrong, trying to cleanup"
+              cleanup()
+              throw e
+            }
+
+            parallel (
+              '_tests': {
+                  stage ('run tests') {
+                    try {
+                      sh "make push-minishift"
+                      sh "make tests -j2"
+                    } catch (e) {
+                      echo "Something went wrong, trying to cleanup"
+                      cleanup()
+                      throw e
+                    }
+                    cleanup()
+                  }
+              },
+              'logs': {
+                  stage ('all') {
+                    sh "make logs"
+                  }
+              },
+            )
+          }
         }
 
         if (env.TAG_NAME) {
@@ -107,7 +113,6 @@ def build(String minishift_version = '1.16.1', String openshift_version = 'v3.09
 
 }
 
-} // def build
 def cleanup() {
   try {
     sh "make down"
