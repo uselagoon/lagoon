@@ -786,7 +786,7 @@ minishift/configure-lagoon-local: openshift-lagoon-setup
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
-	rm minishift
+	rm -f minishift
 
 # Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
