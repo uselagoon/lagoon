@@ -711,7 +711,7 @@ openshift:
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
-	$(info starting minishift with name $(CI_BUILD_TAG))
+	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
 ifeq ($(OPENSHIFT_VERSION), "v3.09.0")
 	MINI_START_FLAGS='--extra-clusterup-flags "--service-catalog"'
 endif
@@ -795,7 +795,7 @@ minishift/clean: minishift/stop
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
 local-dev/minishift/minishift:
-	$(info downloading minishift)
+	$(info downloading minishift version $(MINISHIFT_VERSION))
 	@mkdir -p ./local-dev/minishift
 ifeq ($(ARCH), Darwin)
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
