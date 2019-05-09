@@ -33,7 +33,7 @@ node {
         }
 
         openshift_versions.each { openshift_version ->
-          if (openshift_version = 'v3.09.0') {
+          if (openshift_version == 'v3.09.0') {
             minishift_version = 'v1.16.1'
           } else {
             minishift_version = 'v1.33.0'
