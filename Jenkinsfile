@@ -71,10 +71,11 @@ node {
             }
 
             parallel (
-              '_tests': {
+              "_tests_${openshift_version}": {
                   stage ('run tests') {
                     try {
                       sh "make push-minishift"
+                      sh "make tests -j2"
                     } catch (e) {
                       echo "Something went wrong, trying to cleanup"
                       cleanup()
@@ -83,7 +84,7 @@ node {
                     cleanup()
                   }
               },
-              'logs': {
+              'logs_${openshift_version}': {
                   stage ('all') {
                     sh "make logs"
                   }
