@@ -1,7 +1,41 @@
 node {
 
-build()
-build(minishift_version='1.33.0', openshift_version = 'v3.11.0')
+    build()
+    build(minishift_version='1.33.0', openshift_version = 'v3.11.0')
+
+}
+
+
+def cleanup() {
+  try {
+    sh "make down"
+    sh "make minishift/clean"
+    sh "make clean"
+  } catch (error) {
+    echo "cleanup failed, ignoring this."
+  }
+}
+
+def notifySlack(String buildStatus = 'STARTED') {
+    // Build status of null means success.
+    buildStatus = buildStatus ?: 'SUCCESS'
+
+    def color
+
+    if (buildStatus == 'STARTED') {
+        color = '#68A1D1'
+    } else if (buildStatus == 'SUCCESS') {
+        color = '#BDFFC3'
+    } else if (buildStatus == 'UNSTABLE') {
+        color = '#FFFE89'
+    } else {
+        color = '#FF9FA1'
+    }
+
+    def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+
+    slackSend(color: color, message: msg)
+}
 
 
 def build(String minishift_version = '1.16.1', String openshift_version = 'v3.09.0') {
@@ -105,36 +139,4 @@ def build(String minishift_version = '1.16.1', String openshift_version = 'v3.09
     }
   }
 
-}
-
-} // def build
-def cleanup() {
-  try {
-    sh "make down"
-    sh "make minishift/clean"
-    sh "make clean"
-  } catch (error) {
-    echo "cleanup failed, ignoring this."
-  }
-}
-
-def notifySlack(String buildStatus = 'STARTED') {
-    // Build status of null means success.
-    buildStatus = buildStatus ?: 'SUCCESS'
-
-    def color
-
-    if (buildStatus == 'STARTED') {
-        color = '#68A1D1'
-    } else if (buildStatus == 'SUCCESS') {
-        color = '#BDFFC3'
-    } else if (buildStatus == 'UNSTABLE') {
-        color = '#FFFE89'
-    } else {
-        color = '#FF9FA1'
-    }
-
-    def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
-
-    slackSend(color: color, message: msg)
 }
