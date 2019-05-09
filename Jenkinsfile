@@ -1,5 +1,10 @@
 node {
 
+build()
+build(minishift_version='1.33.0', openshift_version = 'v3.11.0')
+
+
+def build(String minishift_version = '1.16.1', String openshift_version = 'v3.09.0') {
   // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
   // Jenkins HOME Folder
@@ -44,7 +49,7 @@ node {
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
+                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}'
                 }
               }
             )
@@ -102,6 +107,7 @@ node {
 
 }
 
+} // def build
 def cleanup() {
   try {
     sh "make down"
