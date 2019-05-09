@@ -53,7 +53,7 @@ node {
                 },
                 'start minishift': {
                   stage ('start minishift') {
-                    sh 'make minishift/clean'
+                    sh 'make minishift/clean || echo'
                     sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}'
                   }
                 }
