@@ -84,7 +84,7 @@ node {
                     cleanup()
                   }
               },
-              'logs_${openshift_version}': {
+              "logs_${openshift_version}": {
                   stage ('all') {
                     sh "make logs"
                   }
