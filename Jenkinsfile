@@ -1,6 +1,6 @@
 node {
 
-  openshift_versions = ['v3.9.0', 'v3.10.0', 'v3.11.0']
+  openshift_versions = ['v3.11.0', 'v3.9.0', 'v3.10.0' ]
 
   // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
@@ -34,6 +34,7 @@ node {
 
         openshift_versions.each { openshift_version ->
           lock('minishift') {
+          parallel (
             notifySlack()
 
             if (openshift_version == 'v3.9.0') {
@@ -75,7 +76,7 @@ node {
                   stage ('run tests') {
                     try {
                       sh "make push-minishift"
-                      
+
                     } catch (e) {
                       echo "Something went wrong, trying to cleanup"
                       cleanup()
@@ -91,6 +92,7 @@ node {
               },
             )
           }
+          )
         }
 
         if (env.TAG_NAME) {
