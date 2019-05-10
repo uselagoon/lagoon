@@ -33,20 +33,20 @@ node {
         }
 
         openshift_versions.each { openshift_version ->
-          if (openshift_version == 'v3.9.0') {
-            minishift_version = '1.16.1'
-          }
-
-          if (openshift_version == 'v3.10.0') {
-            minishift_version = '1.23.0'
-          }
-
-          if (openshift_version == 'v3.11.0') {
-            minishift_version = '1.33.0'
-          }
-
           lock('minishift') {
             notifySlack()
+
+            if (openshift_version == 'v3.9.0') {
+              minishift_version = '1.16.1'
+            }
+
+            if (openshift_version == 'v3.10.0') {
+              minishift_version = '1.23.0'
+            }
+
+            if (openshift_version == 'v3.11.0') {
+              minishift_version = '1.33.0'
+            }
 
             try {
               parallel (
