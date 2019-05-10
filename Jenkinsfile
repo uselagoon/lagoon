@@ -34,7 +34,7 @@ node {
 
         openshift_versions.each { openshift_version ->
           lock('minishift') {
-          parallel (
+          parallel {
             notifySlack()
 
             if (openshift_version == 'v3.9.0') {
@@ -92,7 +92,7 @@ node {
               },
             )
           }
-          )
+        }
         }
 
         if (env.TAG_NAME) {
