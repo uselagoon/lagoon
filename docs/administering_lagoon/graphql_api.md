@@ -26,7 +26,7 @@ Press ESC to close the HTTP header overlay and now we are ready to send the firs
 Enter this in the left panel
 
 ```graphql
-{
+query allProjects{
   allProjects {
     name
   }
