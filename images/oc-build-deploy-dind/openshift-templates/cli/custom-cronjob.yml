@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-node-persistent-cronjob
+  name: lagoon-openshift-template-cli-cronjob
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -31,18 +31,9 @@ parameters:
   - name: REGISTRY
     description: Registry where Images are pushed to
     required: true
-  - name: PERSISTENT_STORAGE_PATH
-    description: Full path to which should be mounted into persistent storage
-    required: true
-  - name: PERSISTENT_STORAGE_CLASS
-    description: Name of the Storage Class to use
-    value: ''
-  - name: PERSISTENT_STORAGE_SIZE
-    description: Size of the Storage to request
-    value: '5Gi'
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
-    value: 'Rolling'
+    value: "Rolling"
   - name: SERVICE_IMAGE
     description: Pullable image of service
     required: true
@@ -92,9 +83,10 @@ objects:
                 operator: Equal
                 value: 'true'
             volumes:
-              - name: ${SERVICE_NAME}
-                persistentVolumeClaim:
-                  claimName: ${SERVICE_NAME}
+              - name: lagoon-sshkey
+                secret:
+                  defaultMode: 420
+                  secretName: lagoon-sshkey
             containers:
               - image: ${SERVICE_IMAGE}
                 command:
@@ -112,8 +104,9 @@ objects:
                   - name: SERVICE_NAME
                     value: ${SERVICE_NAME}
                 volumeMounts:
-                  - name: ${SERVICE_NAME}
-                    mountPath: ${PERSISTENT_STORAGE_PATH}
+                  - mountPath: /var/run/secrets/lagoon/sshkey/
+                    name: lagoon-sshkey
+                    readOnly: true
                 resources:
                   requests:
                     cpu: 10m

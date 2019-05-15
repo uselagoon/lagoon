@@ -37,6 +37,18 @@ parameters:
   - name: PERSISTENT_STORAGE_NAME
     description: Name of the Persistent Volume Claim to use
     required: true
+  - name: PERSISTENT_STORAGE_CLASS
+    description: Name of the Storage Class to use
+    value: ''
+  - name: PERSISTENT_STORAGE_SIZE
+    description: Size of the Storage to request
+    value: '5Gi'
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Rolling"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
   - name: CRONJOB_NAME
     description: Name of this cronjob
     required: true
@@ -46,12 +58,6 @@ parameters:
   - name: CRONJOB_COMMAND
     description: Command of this cronjob
     required: true
-  - name: DEPLOYMENT_STRATEGY
-    description: Strategy of Deploymentconfig
-    value: "Rolling"
-  - name: SERVICE_IMAGE
-    description: Pullable image of service
-    required: true
 objects:
 - apiVersion: batch/v1beta1
   kind: CronJob
@@ -60,18 +66,34 @@ objects:
   spec:
     schedule: "${CRONJOB_SCHEDULE}"
     concurrencyPolicy: Forbid
-    successfulJobsHistoryLimit: 1
+    successfulJobsHistoryLimit: 0
     failedJobsHistoryLimit: 1
     jobTemplate:
+      metadata:
+        labels:
+          cronjob: ${CRONJOB_NAME}
+          branch: ${SAFE_BRANCH}
+          project: ${SAFE_PROJECT}
+          parent: ${SERVICE_NAME}
       spec:
+        backoffLimit: 1
         template:
           metadata:
             labels:
               cronjob: ${CRONJOB_NAME}
               branch: ${SAFE_BRANCH}
               project: ${SAFE_PROJECT}
-              parent: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
+              parent: ${SERVICE_NAME}
           spec:
+            tolerations:
+              - effect: NoSchedule
+                key: autoscaled
+                operator: Equal
+                value: 'true'
+              - effect: NoSchedule
+                key: appuio.ch/autoscaled
+                operator: Equal
+                value: 'true'
             volumes:
               - name: ${PERSISTENT_STORAGE_NAME}
                 persistentVolumeClaim:
@@ -81,28 +103,29 @@ objects:
                   defaultMode: 420
                   secretName: lagoon-sshkey
             containers:
-            - name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
-              image: ${SERVICE_IMAGE}
-              command:
-                - /lagoon/cronjob.sh
-                - "${CRONJOB_COMMAND}"
-              volumeMounts:
-              - name: ${PERSISTENT_STORAGE_NAME}
-                mountPath: ${PERSISTENT_STORAGE_PATH}
-              envFrom:
-              - configMapRef:
-                  name: lagoon-env
-              env:
-                ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-                ## This will cause the cli to redeploy on every deployment, even the files have not changed
-                - name: LAGOON_GIT_SHA
-                  value: ${LAGOON_GIT_SHA}
-                - name: SERVICE_NAME
-                  value: ${SERVICE_NAME}
-              volumeMounts:
-                - name: ${PERSISTENT_STORAGE_NAME}
-                  mountPath: ${PERSISTENT_STORAGE_PATH}
-                - mountPath: /var/run/secrets/lagoon/sshkey/
-                  name: lagoon-sshkey
-                  readOnly: true
-            restartPolicy: OnFailure
+              - image: ${SERVICE_IMAGE}
+                command:
+                  - /lagoon/cronjob.sh
+                  - "${CRONJOB_COMMAND}"
+                name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
+                envFrom:
+                  - configMapRef:
+                      name: lagoon-env
+                env:
+                  ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+                  ## This will cause the cli to redeploy on every deployment, even the files have not changed
+                  - name: LAGOON_GIT_SHA
+                    value: ${LAGOON_GIT_SHA}
+                  - name: SERVICE_NAME
+                    value: ${SERVICE_NAME}
+                volumeMounts:
+                  - name: ${PERSISTENT_STORAGE_NAME}
+                    mountPath: ${PERSISTENT_STORAGE_PATH}
+                  - mountPath: /var/run/secrets/lagoon/sshkey/
+                    name: lagoon-sshkey
+                    readOnly: true
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 10Mi
+            restartPolicy: Never
