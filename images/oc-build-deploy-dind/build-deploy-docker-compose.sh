@@ -767,13 +767,16 @@ do
         # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
         OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
 
-        TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
-        TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
-        TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+        if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+          echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
+        else
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
 
-         . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+          . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+        fi
       fi
-
     fi
 
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
