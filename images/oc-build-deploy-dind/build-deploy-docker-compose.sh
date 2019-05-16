@@ -786,7 +786,7 @@ do
   TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
 
   # if there are cronjobs running inside pods, add them to the deploymentconfig.
-  if [[ ${#CRONJOBS_ARRAY_POD[@]} -ge 1 ]]; then
+  if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
     CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_INSIDE_POD[@]}")
     TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
   fi
