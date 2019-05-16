@@ -737,9 +737,6 @@ do
     . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
   fi
 
-  # Create a copy of TEMPLATE_PARAMETERS so we can restore it
-  NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
-
   CRONJOB_COUNTER=0
   CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
   while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
@@ -770,11 +767,19 @@ do
         if [ ! -f $OPENSHIFT_TEMPLATE ]; then
           echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
         else
+
+          # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+          NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+
           TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
           TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
           TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
 
           . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+
+          # restore template parameters without any cronjobs in them (allows to create a secondary cronjob, plus also any other templates)
+          TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
+
         fi
       fi
     fi
@@ -782,8 +787,6 @@ do
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
   done
 
-  #restore template parameters before creating deployment configs
-  TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
 
   # if there are cronjobs running inside pods, add them to the deploymentconfig.
   if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
