@@ -64,7 +64,7 @@ objects:
           project: ${SAFE_PROJECT}
           parent: ${SERVICE_NAME}
       spec:
-        backoffLimit: 1
+        backoffLimit: 0
         template:
           metadata:
             labels:
