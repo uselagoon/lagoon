@@ -463,16 +463,18 @@ const addProject = (
   customer: number,
   gitUrl: string,
   openshift: number,
+  productionenvironment: string,
   id: ?number = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-    ($name: String!, $customer: Int!, $gitUrl: String!, $openshift: Int!, $id: Int) {
+    ($name: String!, $customer: Int!, $gitUrl: String!, $openshift: Int!, $productionenvironment: String!, $id: Int) {
       addProject(input: {
         name: $name,
         customer: $customer,
         gitUrl: $gitUrl,
         openshift: $openshift,
+        productionEnvironment: $productionenvironment,
         id: $id,
       }) {
         ...${projectFragment}
