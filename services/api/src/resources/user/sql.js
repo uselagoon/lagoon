@@ -13,6 +13,15 @@ const Sql /* : SqlObj */ = {
     knex('user')
       .where('id', '=', id)
       .toString(),
+  selectUserByName: (name /* : string */) =>
+    knex('user')
+      .where('first_name', 'like', "%" + name + "%")
+      .orwhere('last_name', 'like', "%" + name + "%")
+      .toString(),
+  selectUserByEmail: (email /* : string */) =>
+    knex('user')
+      .where('email', 'like', "%" + email + "%")
+      .toString(),
   selectAllUsers: () => knex('user').toString(),
   selectAllUserEmails: () =>
     knex('user')
