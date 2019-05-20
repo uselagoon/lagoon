@@ -40,7 +40,7 @@ if [[ $ret -ne 0 ]]; then
 
   # shows all logs we collected for the new containers
   if [ -z "$(ls -A /tmp/oc-build-deploy/logs/container/${SERVICE_NAME})" ]; then
-    echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, but unfortunately there where none created, sorry."
+    echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, but unfortunately there were none created, sorry."
   else
     echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, hope this helps debugging:"
     find /tmp/oc-build-deploy/logs/container/${SERVICE_NAME}/ -type f -print0 2>/dev/null | xargs -0 -I % sh -c 'echo ======== % =========; cat %; echo'
