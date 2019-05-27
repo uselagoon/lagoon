@@ -445,6 +445,10 @@ const typeDefs = gql`
 
   type Query {
     """
+    Returns User Object by a given email
+    """
+    getUserIdByEmail(email: String!): User
+    """
     Returns User Object by a given sshKey
     """
     userBySshKey(sshKey: String!): User

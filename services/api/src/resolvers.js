@@ -113,6 +113,7 @@ const {
 } = require('./resources/sshKey/resolvers');
 
 const {
+  getUserIdByEmail,
   getUsersByProjectId,
   getUserBySshKey,
   addUser,
@@ -206,6 +207,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     restore: getRestoreByBackupId,
   },
   Query: {
+    userByEmail: getUserIdByEmail,
     userBySshKey: getUserBySshKey,
     customerByName: getCustomerByName,
     projectByGitUrl: getProjectByGitUrl,

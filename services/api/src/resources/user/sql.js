@@ -11,16 +11,12 @@ import type {SqlObj} from '../';
 const Sql /* : SqlObj */ = {
   selectUser: (id /* : number */) =>
     knex('user')
-      .where('id', '=', id)
+      .where('id', 'like', id)
       .toString(),
-  selectUserByName: (name /* : string */) =>
+  selectUserIdByEmail: (email /* : string */) =>
     knex('user')
-      .where('first_name', 'like', "%" + name + "%")
-      .orwhere('last_name', 'like', "%" + name + "%")
-      .toString(),
-  selectUserByEmail: (email /* : string */) =>
-    knex('user')
-      .where('email', 'like', "%" + email + "%")
+      .where('email', '=', email)
+      .select('id')
       .toString(),
   selectAllUsers: () => knex('user').toString(),
   selectAllUserEmails: () =>

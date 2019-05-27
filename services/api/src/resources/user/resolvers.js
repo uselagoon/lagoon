@@ -17,6 +17,25 @@ import type {ResolversObj} from '../';
 
 */
 
+const getUserIdByEmail = async (
+  { email: userEmail },
+  args,
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+    sqlClient,
+  },
+) => {
+  const rows = await query(
+    sqlClient,
+    Sql.selectUserIdByEmail({ userEmail }),
+  );
+
+  return rows;
+};
+
 const getUsersByProjectId = async (
   { id: projectId },
   args,
@@ -602,6 +621,7 @@ const removeAllUsersFromAllProjects = async (
 };
 
 const Resolvers /* : ResolversObj */ = {
+  getUserIdByEmail,
   getUsersByProjectId,
   getUserBySshKey,
   addUser,
