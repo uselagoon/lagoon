@@ -666,7 +666,7 @@ done
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
-YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs"
+YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs-backups"
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -714,6 +714,13 @@ do
       PVC_NAME=${SERVICE_NAME}-data
     fi
     . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
+  fi
+
+  # Generate Backup Definitions if service type defines one
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/backups.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
   fi
 
   CRONJOB_COUNTER=0
