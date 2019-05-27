@@ -9,7 +9,7 @@ fi
 docker login -u=serviceaccount --password-stdin ${OPENSHIFT_REGISTRY} < /var/run/secrets/kubernetes.io/serviceaccount/token
 
 # Iterates through all images that have the name of the repository we are interested in in it
-for FULL_IMAGE in $(docker image ls --format "{{.Repository}}:{{.Tag}}" | grep "${REPOSITORY_TO_UPDATE}/" | grep -v none); do
+for FULL_IMAGE in $(docker image ls --format "{{.Repository}}:{{.Tag}}" | grep -E "${REPOSITORY_TO_UPDATE}/" | grep -v none); do
   IMAGE=(${FULL_IMAGE//// })
   if [ ${#IMAGE[@]} == "3" ]; then
     IMAGE_NO_REPOSITORY=${IMAGE[2]}
