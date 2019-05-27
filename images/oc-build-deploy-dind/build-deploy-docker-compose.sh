@@ -575,7 +575,7 @@ do
         # ServiceBrokers take a bit, wait until the credentials secret is available
 	# We added a timeout of 10 minutes (120 retries) before exit
 	SERVICE_BROKER_COUNTER=1
-	SERVICE_BROKER_TIMEOUT=120
+	SERVICE_BROKER_TIMEOUT=180
         until oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials
         do
 	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
