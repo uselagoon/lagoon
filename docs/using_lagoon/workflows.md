@@ -63,7 +63,7 @@ tasks:
 
 ### Promotion
 
-Another way of deploying your code into an environment is the Promotion Workflow. The idea behind the promotion workflow comes from the fact that even if you merge (as an example) the branch `staging` into the `master` branch and it there where no changes in `master` before, so `master` and `staging` have the exact same code in the git repository, it could still technically be possible that the resulting Docker Images are slightly different, this comes from the fact that between the last `staging` deployment and the current `master` deployment maybe some upstream Docker Images have changed or dependencies loaded from the various package managers have changed. This is a very small chance, but it's there.
+Another way of deploying your code into an environment is the Promotion Workflow. The idea behind the promotion workflow comes from the fact that even if you merge (as an example) the branch `staging` into the `master` branch and if there were no changes in `master` before, so `master` and `staging` have the exact same code in the git repository, it could still technically be possible that the resulting Docker Images are slightly different, this comes from the fact that between the last `staging` deployment and the current `master` deployment maybe some upstream Docker Images have changed or dependencies loaded from the various package managers have changed. This is a very small chance, but it's there.
 
 For this Lagoon has the understanding of promoting Lagoon Images from one environment to another. Which basically means that it will take the already built and deployed Docker Images from one environment and will use the exact same Docker Images for another environment.
 
