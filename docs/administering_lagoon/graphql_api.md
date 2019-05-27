@@ -262,6 +262,10 @@ mutation {
       # TODO: Fill in the name field
       # This is the project name
       gitUrl: ""
+      # TODO: Fill in the branches to be deployed
+      branches: ""
+      # TODO: Define the production environment
+      productionEnvironment: ""
     }
   ) {
     name
