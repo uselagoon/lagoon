@@ -439,7 +439,7 @@ else
 fi
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
+if oc auth --insecure-skip-tls-verify can-i create schedules.backup.appuio.ch -q > /dev/null; then
 
   if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -462,7 +462,7 @@ if oc get --insecure-skip-tls-verify customresourcedefinition schedules.backup.a
   PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
-  OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup/schedule.yml"
+  OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup-schedule.yml"
   .  /oc-build-deploy/scripts/exec-openshift-resources.sh
 fi
 
@@ -666,7 +666,7 @@ done
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 
-YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs"
+YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs-backups"
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -714,6 +714,15 @@ do
       PVC_NAME=${SERVICE_NAME}-data
     fi
     . /oc-build-deploy/scripts/exec-openshift-create-pvc.sh
+  fi
+
+  # Generate Backup Definitions are supported and if service type defines one
+  if oc auth --insecure-skip-tls-verify can-i create prebackuppod.backup.appuio.ch -q > /dev/null; then
+    OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
+    if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+      . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+    fi
   fi
 
   CRONJOB_COUNTER=0
