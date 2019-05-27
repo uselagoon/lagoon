@@ -26,7 +26,7 @@ Press ESC to close the HTTP header overlay and now we are ready to send the firs
 Enter this in the left panel
 
 ```graphql
-{
+query allProjects{
   allProjects {
     name
   }
@@ -262,6 +262,10 @@ mutation {
       # TODO: Fill in the name field
       # This is the project name
       gitUrl: ""
+      # TODO: Fill in the branches to be deployed
+      branches: ""
+      # TODO: Define the production environment
+      productionEnvironment: ""
     }
   ) {
     name

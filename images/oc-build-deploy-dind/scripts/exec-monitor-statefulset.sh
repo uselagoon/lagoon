@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# while the rollout of a new statefulset is running we gatter the logs of the new generated pods and save them in a known location
+# while the rollout of a new statefulset is running we gather the logs of the new generated pods and save them in a known location
 # in case this rollout fails, we show the logs of the new containers to the user as they might contain information about why
 # the rollout has failed
 stream_logs_statefulset() {
@@ -12,7 +12,7 @@ stream_logs_statefulset() {
   # this runs in a loop forever (until killed)
   while [ 1 ]
   do
-    # Gatter all pods and their containers for the current statefulset revision and stream their logs into files
+    # Gather all pods and their containers for the current statefulset revision and stream their logs into files
     oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify pods -l controller-revision-hash=${UPDATE_REVISION} -o json | jq -r '.items[] | .metadata.name + " " + .spec.containers[].name' |
     {
       while read -r POD CONTAINER ; do
@@ -42,9 +42,9 @@ while true; do
 
       # shows all logs we collected for the new containers
       if [ -z "$(ls -A /tmp/oc-build-deploy/logs/container/${STATEFULSET})" ]; then
-        echo "Statefulset '${STATEFULSET}' was not fully scaled within $MAX_WAIT_SECONDS seconds, tried to gatter some startup logs of the containers, but unfortunately there where none created, sorry."
+        echo "Statefulset '${STATEFULSET}' was not fully scaled within $MAX_WAIT_SECONDS seconds, tried to gather some startup logs of the containers, but unfortunately there were none created, sorry."
       else
-        echo "Statefulset '${STATEFULSET}' was not fully scaled within $MAX_WAIT_SECONDS seconds, tried to gatter some startup logs of the containers, hope this helps debugging:"
+        echo "Statefulset '${STATEFULSET}' was not fully scaled within $MAX_WAIT_SECONDS seconds, tried to gather some startup logs of the containers, hope this helps debugging:"
         find /tmp/oc-build-deploy/logs/container/${STATEFULSET}/ -type f -print0 2>/dev/null | xargs -0 -I % sh -c 'echo ======== % =========; cat %; echo'
       fi
 
