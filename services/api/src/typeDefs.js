@@ -342,9 +342,9 @@ const typeDefs = gql`
     """
     storageMonth(month: Date): EnvironmentStorageMonth
     """
-    Reference to EnviornmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
+    Reference to EnvironmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
     """
-    hitsMonth(month: Date): EnviornmentHitsMonth
+    hitsMonth(month: Date): EnvironmentHitsMonth
     """
     Environment variables available during build-time and run-time
     """
@@ -358,7 +358,7 @@ const typeDefs = gql`
     services: [EnvironmentService]
   }
 
-  type EnviornmentHitsMonth {
+  type EnvironmentHitsMonth {
     total: Int
   }
 

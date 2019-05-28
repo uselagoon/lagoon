@@ -121,15 +121,13 @@ objects:
                 - containerPort: 9000
                   protocol: TCP
               readinessProbe:
-                exec:
-                  command:
-                    - /usr/sbin/check_fcgi
+                tcpSocket:
+                  port: 9000
                 initialDelaySeconds: 2
                 periodSeconds: 5
               livenessProbe:
-                exec:
-                  command:
-                    - /usr/sbin/check_fcgi
+                tcpSocket:
+                  port: 9000
                 initialDelaySeconds: 60
                 periodSeconds: 5
               envFrom:
