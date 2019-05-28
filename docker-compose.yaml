@@ -388,6 +388,6 @@ services:
   logs-collector:
     image: openshift/origin-logging-fluentd:v3.6.1
     labels:
-      lagoon.type: custom
+      lagoon.type: none
       lagoon.template: services/logs-collector/.lagoon.yml
       lagoon.rollout: daemonset
