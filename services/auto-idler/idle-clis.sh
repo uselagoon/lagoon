@@ -91,6 +91,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
                 NO_PROCESSES=true
               else
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has $RUNNING_PROCESSES running processes, skipping"
+                continue
               fi
 
               # Check for cronjobs present
@@ -103,6 +104,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
                 NO_CRONJOBS=true
               else
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has cronjobs defined, skipping"
+                continue
               fi
 
               # Check for any running builds
@@ -116,11 +118,12 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
                 NO_BUILDS=true
               else
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has $RUNNING_BUILDS running builds, skipping"
+                continue
               fi
 
               ## If there are no builds AND no processes, then we can idle the pods
               if [[ "$NO_BUILDS" == "true" && "$NO_PROCESSES" == "true" && "$NO_CRONJOBS" == "true" ]]; then
-                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: not busy, scaling to 0"
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: scaling to 0"
                 oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" scale --replicas=0 $deploymentconfig
               fi
             else
