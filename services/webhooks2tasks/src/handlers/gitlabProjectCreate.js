@@ -16,6 +16,9 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
     // TODO: figure out openshift id
     const openshift = 1;
 
+    // set production environment to default master
+    const productionenvironment = "master";
+
     const meta = {
       data: project,
       project: name
@@ -34,7 +37,7 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
       return;
     }
 
-    await addProject(name, namespace.id, gitUrl, openshift, id);
+    await addProject(name, namespace.id, gitUrl, openshift, productionenvironment, id);
 
     sendToLagoonLogs(
       'info',

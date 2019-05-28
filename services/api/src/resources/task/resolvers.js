@@ -2,11 +2,10 @@
 
 const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { createTaskTask } = require('@lagoon/commons/src/tasks');
-const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
-const esClient = require('../../clients/esClient');
-const sqlClient = require('../../clients/sqlClient');
+const {
+  pubSub,
+  createEnvironmentFilteredSubscriber,
+} = require('../../clients/pubSub');
 const {
   knex,
   ifNotAdmin,
@@ -18,8 +17,6 @@ const {
 const Sql = require('./sql');
 const EVENTS = require('./events');
 const Helpers = require('./helpers');
-const projectSql = require('../project/sql');
-const environmentSql = require('../environment/sql');
 const environmentHelpers = require('../environment/helpers');
 const envValidators = require('../environment/validators');
 
@@ -44,6 +41,7 @@ const getTasksByEnvironmentId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
   info,
 ) => {
@@ -67,22 +65,24 @@ const getTasksByEnvironmentId = async (
 
   const requestedFields = getFieldNames(info);
 
-  return newestFirst.filter(row => {
-    if (R.isNil(filterId) || R.isEmpty(filterId)) {
-      return true;
-    }
+  return newestFirst
+    .filter(row => {
+      if (R.isNil(filterId) || R.isEmpty(filterId)) {
+        return true;
+      }
 
-    return row.id === String(filterId);
-  }).map(row => {
-    if (R.contains('logs', requestedFields)) {
-      return Helpers.injectLogs(row);
-    }
+      return row.id === String(filterId);
+    })
+    .map(row => {
+      if (R.contains('logs', requestedFields)) {
+        return Helpers(sqlClient).injectLogs(row);
+      }
 
-    return {
-      ...row,
-      logs: null,
-    };
-  });
+      return {
+        ...row,
+        logs: null,
+      };
+    });
 };
 
 const getTaskByRemoteId = async (
@@ -93,6 +93,7 @@ const getTaskByRemoteId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const queryString = knex('task')
@@ -117,7 +118,7 @@ const getTaskByRemoteId = async (
     }
   }
 
-  return Helpers.injectLogs(task);
+  return Helpers(sqlClient).injectLogs(task);
 };
 
 const addTask = async (
@@ -137,20 +138,18 @@ const addTask = async (
       execute: executeRequest,
     },
   },
-  {
-    credentials,
-    credentials: {
-      role,
-    },
-  },
+  { credentials, credentials: { role }, sqlClient },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
   const execute = role === 'admin' ? executeRequest : true;
 
-  await envValidators.environmentExists(environment);
-  await envValidators.userAccessEnvironment(credentials, environment);
+  await envValidators(sqlClient).environmentExists(environment);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    environment,
+  );
 
-  const taskData = await Helpers.addTask({
+  const taskData = await Helpers(sqlClient).addTask({
     id,
     name,
     status,
@@ -175,6 +174,7 @@ const deleteTask = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -218,6 +218,7 @@ const updateTask = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
@@ -235,7 +236,10 @@ const updateTask = async (
   }
 
   // Check access to modify task as it will be updated
-  await envValidators.userAccessEnvironment(credentials, environment);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    environment,
+  );
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -260,7 +264,7 @@ const updateTask = async (
   );
 
   const rows = await query(sqlClient, Sql.selectTask(id));
-  const taskData = await Helpers.injectLogs(R.prop(0, rows));
+  const taskData = await Helpers(sqlClient).injectLogs(R.prop(0, rows));
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
 
@@ -269,16 +273,15 @@ const updateTask = async (
 
 const taskDrushArchiveDump = async (
   root,
-  {
-    environment: environmentId,
-  },
-  {
-    credentials,
-  },
+  { environment: environmentId },
+  { credentials, sqlClient },
 ) => {
-  await envValidators.environmentExists(environmentId);
-  await envValidators.userAccessEnvironment(credentials, environmentId);
-  await envValidators.environmentHasService(environmentId, 'cli');
+  await envValidators(sqlClient).environmentExists(environmentId);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    environmentId,
+  );
+  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
 
   const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
 curl -sS "$TASK_API_HOST"/graphql \
@@ -288,7 +291,7 @@ curl -sS "$TASK_API_HOST"/graphql \
 -F 0=@$file; rm -rf $file;
 `;
 
-  const taskData = await Helpers.addTask({
+  const taskData = await Helpers(sqlClient).addTask({
     name: 'Drush archive-dump',
     environment: environmentId,
     service: 'cli',
@@ -301,16 +304,15 @@ curl -sS "$TASK_API_HOST"/graphql \
 
 const taskDrushSqlDump = async (
   root,
-  {
-    environment: environmentId,
-  },
-  {
-    credentials,
-  },
+  { environment: environmentId },
+  { credentials, sqlClient },
 ) => {
-  await envValidators.environmentExists(environmentId);
-  await envValidators.userAccessEnvironment(credentials, environmentId);
-  await envValidators.environmentHasService(environmentId, 'cli');
+  await envValidators(sqlClient).environmentExists(environmentId);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    environmentId,
+  );
+  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
 
   const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
 curl -sS "$TASK_API_HOST"/graphql \
@@ -320,7 +322,7 @@ curl -sS "$TASK_API_HOST"/graphql \
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
-  const taskData = await Helpers.addTask({
+  const taskData = await Helpers(sqlClient).addTask({
     name: 'Drush sql-dump',
     environment: environmentId,
     service: 'cli',
@@ -333,29 +335,28 @@ curl -sS "$TASK_API_HOST"/graphql \
 
 const taskDrushCacheClear = async (
   root,
-  {
-    environment: environmentId,
-  },
-  {
-    credentials,
-  },
+  { environment: environmentId },
+  { credentials, sqlClient },
 ) => {
-  await envValidators.environmentExists(environmentId);
-  await envValidators.userAccessEnvironment(credentials, environmentId);
-  await envValidators.environmentHasService(environmentId, 'cli');
+  await envValidators(sqlClient).environmentExists(environmentId);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    environmentId,
+  );
+  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
 
-  const command = 'drupal_version=$(drush status drupal-version --format=list) && \
+  const command =
+    'drupal_version=$(drush status drupal-version --format=list) && \
   if [ ${drupal_version%.*.*} == "8" ]; then \
     drush cr; \
   elif [ ${drupal_version%.*} == "7" ]; then \
     drush cc all; \
   else \
-    echo \"could not clear cache for found Drupal Version ${drupal_version}\"; \
+    echo "could not clear cache for found Drupal Version ${drupal_version}"; \
     exit 1; \
   fi';
 
-
-  const taskData = await Helpers.addTask({
+  const taskData = await Helpers(sqlClient).addTask({
     name: 'Drush cache-clear',
     environment: environmentId,
     service: 'cli',
@@ -372,21 +373,35 @@ const taskDrushSqlSync = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  {
-    credentials,
-  },
+  { credentials, sqlClient },
 ) => {
-  await envValidators.environmentExists(sourceEnvironmentId);
-  await envValidators.environmentExists(destinationEnvironmentId);
-  await envValidators.environmentsHaveSameProject([sourceEnvironmentId, destinationEnvironmentId]);
-  await envValidators.userAccessEnvironment(credentials, sourceEnvironmentId);
-  await envValidators.userAccessEnvironment(credentials, destinationEnvironmentId);
-  await envValidators.environmentHasService(sourceEnvironmentId, 'cli');
+  await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
+  await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
+  await envValidators(sqlClient).environmentsHaveSameProject([
+    sourceEnvironmentId,
+    destinationEnvironmentId,
+  ]);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    sourceEnvironmentId,
+  );
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    destinationEnvironmentId,
+  );
+  await envValidators(sqlClient).environmentHasService(
+    sourceEnvironmentId,
+    'cli',
+  );
 
-  const sourceEnvironment = await environmentHelpers.getEnvironmentById(sourceEnvironmentId);
-  const destinationEnvironment = await environmentHelpers.getEnvironmentById(destinationEnvironmentId);
+  const sourceEnvironment = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentById(sourceEnvironmentId);
+  const destinationEnvironment = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentById(destinationEnvironmentId);
 
-  const taskData = await Helpers.addTask({
+  const taskData = await Helpers(sqlClient).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
@@ -403,22 +418,38 @@ const taskDrushRsyncFiles = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  {
-    credentials,
-  },
+  { credentials, sqlClient },
 ) => {
-  await envValidators.environmentExists(sourceEnvironmentId);
-  await envValidators.environmentExists(destinationEnvironmentId);
-  await envValidators.environmentsHaveSameProject([sourceEnvironmentId, destinationEnvironmentId]);
-  await envValidators.userAccessEnvironment(credentials, sourceEnvironmentId);
-  await envValidators.userAccessEnvironment(credentials, destinationEnvironmentId);
-  await envValidators.environmentHasService(sourceEnvironmentId, 'cli');
+  await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
+  await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
+  await envValidators(sqlClient).environmentsHaveSameProject([
+    sourceEnvironmentId,
+    destinationEnvironmentId,
+  ]);
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    sourceEnvironmentId,
+  );
+  await envValidators(sqlClient).userAccessEnvironment(
+    credentials,
+    destinationEnvironmentId,
+  );
+  await envValidators(sqlClient).environmentHasService(
+    sourceEnvironmentId,
+    'cli',
+  );
 
-  const sourceEnvironment = await environmentHelpers.getEnvironmentById(sourceEnvironmentId);
-  const destinationEnvironment = await environmentHelpers.getEnvironmentById(destinationEnvironmentId);
+  const sourceEnvironment = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentById(sourceEnvironmentId);
+  const destinationEnvironment = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentById(destinationEnvironmentId);
 
-  const taskData = await Helpers.addTask({
-    name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
+  const taskData = await Helpers(sqlClient).addTask({
+    name: `Sync files ${sourceEnvironment.name} -> ${
+      destinationEnvironment.name
+    }`,
     environment: destinationEnvironmentId,
     service: 'cli',
     command: `drush -y rsync @${sourceEnvironment.name}:%files @self:%files`,
@@ -428,12 +459,10 @@ const taskDrushRsyncFiles = async (
   return taskData;
 };
 
-const taskSubscriber = createEnvironmentFilteredSubscriber(
-  [
-    EVENTS.TASK.ADDED,
-    EVENTS.TASK.UPDATED,
-  ],
-);
+const taskSubscriber = createEnvironmentFilteredSubscriber([
+  EVENTS.TASK.ADDED,
+  EVENTS.TASK.UPDATED,
+]);
 
 const Resolvers /* : ResolversObj */ = {
   getTasksByEnvironmentId,
@@ -448,6 +477,5 @@ const Resolvers /* : ResolversObj */ = {
   taskDrushRsyncFiles,
   taskSubscriber,
 };
-
 
 module.exports = Resolvers;

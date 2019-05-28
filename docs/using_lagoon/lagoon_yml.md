@@ -10,6 +10,7 @@ The `.lagoon.yml` is the central file to setup your project:
 The `.lagoon.yml` file must be placed at the root of your git repository.
 
 ## Example `.lagoon.yml`
+This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your needs.
 
 ```
 docker-compose-yaml: docker-compose.yml
@@ -67,7 +68,7 @@ environments:
 ##### `docker-compose-yaml`
 Tells the build script which docker-compose yaml file should be used in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml` but could be used for a specific lagoon docker-compose yaml file if you need something like that.
 
-#### `routes.autogenerate.generate`
+#### `routes.autogenerate.enabled`
 This allows you to disable the automatic created routes (NOT the custom routes per environment, see below for them) all together.
 
 #### `routes.autogenerate.insecure`
@@ -159,7 +160,7 @@ environments:
 ```
 
 #### `environments.[name].templates`
-The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-templates))
+The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-templates))
 
 Sometimes though you would like to override the template just for a single environment and not for all of them:
 
@@ -178,14 +179,14 @@ environments:
 ```
 
 #### `environments.[name].rollouts`
-The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
+The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-deploymentconfig-templates))
 
 Sometimes though you would like to override the rollout type just for a single environment, especially if you also overwrote the template type for the environment
 
 `service-name: rollout-type`
 
 * `service-name` - is the name of the service from `docker-compose.yml` you would like to override
-* `rollout-type` - the type of rollout, see [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-rollout-monitor-types)) for possible values
+* `rollout-type` - the type of rollout, see [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-rollout-monitor-types)) for possible values
 
 Example:
 

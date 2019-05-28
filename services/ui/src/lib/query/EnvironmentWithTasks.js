@@ -3,7 +3,7 @@ import TaskFragment from 'lib/fragment/Task';
 
 export default gql`
   query getEnvironment($openshiftProjectName: String!) {
-    environmentByOpenshiftProjectName(
+    environment: environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
       id

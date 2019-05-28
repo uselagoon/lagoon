@@ -4,7 +4,6 @@ const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createRemoveTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
-const sqlClient = require('../../clients/sqlClient');
 const {
   ifNotAdmin,
   inClauseOr,
@@ -44,6 +43,7 @@ const getEnvironmentByName = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const str = `
@@ -75,6 +75,7 @@ const getEnvironmentsByProjectId = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const args = R.compose(R.over(R.lensProp('type'), envTypeToString))(
@@ -109,6 +110,7 @@ const getEnvironmentByDeploymentId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -140,6 +142,7 @@ const getEnvironmentByTaskId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -166,7 +169,7 @@ const getEnvironmentByTaskId = async (
 const getEnvironmentStorageByEnvironmentId = async (
   { id: eid },
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized');
@@ -186,7 +189,11 @@ const getEnvironmentStorageByEnvironmentId = async (
   return rows;
 };
 
-const getEnvironmentStorageMonthByEnvironmentId = async ({ id: eid }, args) => {
+const getEnvironmentStorageMonthByEnvironmentId = async (
+  { id: eid },
+  args,
+  { sqlClient },
+) => {
   const str = `
     SELECT
       SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
@@ -205,7 +212,11 @@ const getEnvironmentStorageMonthByEnvironmentId = async ({ id: eid }, args) => {
   return rows[0];
 };
 
-const getEnvironmentHoursMonthByEnvironmentId = async ({ id: eid }, args) => {
+const getEnvironmentHoursMonthByEnvironmentId = async (
+  { id: eid },
+  args,
+  { sqlClient },
+) => {
   const str = `
     SELECT
       e.created, e.deleted
@@ -298,8 +309,10 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   args,
 ) => {
   const interested_date = args.month ? new Date(args.month) : new Date();
+  const year = interested_date.getFullYear();
+  const month = interested_date.getMonth() + 1;
   // This generates YYYY-MM
-  const interested_year_month = `${interested_date.getFullYear()}-${(`0${interested_date.getMonth() + 1}`).slice(-2)}`;
+  const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -337,7 +350,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   } catch (e) {
     if (
       e.body.error.type &&
-      (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')
+      (e.body.error.type === 'index_not_found_exception' ||
+        e.body.error.type === 'security_exception')
     ) {
       return { total: 0 };
     }
@@ -348,7 +362,7 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
 const getEnvironmentServicesByEnvironmentId = async (
   { id: eid },
   args,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   const rows = await query(sqlClient, Sql.selectServicesByEnvironmentId(eid));
 
@@ -363,6 +377,7 @@ const getEnvironmentByOpenshiftProjectName = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const str = `
@@ -394,11 +409,14 @@ const addOrUpdateEnvironment = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   const input = R.compose(
     R.over(R.lensProp('environmentType'), envTypeToString),
     R.over(R.lensProp('deployType'), deployTypeToString),
+    R.over(R.lensProp('deployHeadRef'), R.defaultTo(null)),
+    R.over(R.lensProp('deployTitle'), R.defaultTo(null)),
   )(unformattedInput);
 
   const pid = input.project.toString();
@@ -414,6 +432,9 @@ const addOrUpdateEnvironment = async (
         :name,
         :project,
         :deploy_type,
+        :deploy_base_ref,
+        :deploy_head_ref,
+        :deploy_title,
         :environment_type,
         :openshift_project_name
       );
@@ -429,7 +450,7 @@ const addOrUpdateEnvironment = async (
 const addOrUpdateEnvironmentStorage = async (
   root,
   { input },
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('EnvironmentStorage creation unauthorized.');
@@ -476,18 +497,20 @@ const addOrUpdateEnvironmentStorage = async (
 
 const deleteEnvironment = async (
   root,
+  { input, input: { project: projectName, name, execute } },
   {
-    input,
-    input: {
-      project: projectName,
-      name,
-      execute,
+    credentials: {
+      role,
+      permissions: { customers, projects },
     },
+    sqlClient,
   },
-  { credentials: { role, permissions: { customers, projects } } },
 ) => {
   if (role !== 'admin') {
-    const prep = prepare(sqlClient, 'SELECT `id` AS `pid`, `customer` AS `cid` FROM project WHERE `name` = :name');
+    const prep = prepare(
+      sqlClient,
+      'SELECT `id` AS `pid`, `customer` AS `cid` FROM project WHERE `name` = :name',
+    );
     const rows = await query(sqlClient, prep({ name: projectName }));
 
     if (
@@ -498,7 +521,9 @@ const deleteEnvironment = async (
     }
   }
 
-  const projectId = await projectHelpers.getProjectIdByName(projectName);
+  const projectId = await projectHelpers(sqlClient).getProjectIdByName(
+    projectName,
+  );
 
   const projectRows = await query(
     sqlClient,
@@ -513,11 +538,15 @@ const deleteEnvironment = async (
   const environment = environmentRows[0];
 
   if (!environment) {
-    throw new Error(`Environment "${name}" does not exist in project "${projectId}"`);
+    throw new Error(
+      `Environment "${name}" does not exist in project "${projectId}"`,
+    );
   }
 
   if (role !== 'admin' && environment.environmentType === 'production') {
-    throw new Error('Unauthorized - You may not delete a production environment');
+    throw new Error(
+      'Unauthorized - You may not delete a production environment',
+    );
   }
 
   // Deleting environment in api w/o executing the openshift remove.
@@ -558,14 +587,26 @@ const deleteEnvironment = async (
       break;
 
     default:
-      sendToLagoonLogs('error', data.projectName, '', 'api:deleteEnvironment:error', meta,
-        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``,
+      sendToLagoonLogs(
+        'error',
+        data.projectName,
+        '',
+        'api:deleteEnvironment:error',
+        meta,
+        `*[${data.projectName}]* Unknown deploy type ${
+          environment.deployType
+        } \`${environment.name}\``,
       );
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
   await createRemoveTask(data);
-  sendToLagoonLogs('info', data.projectName, '', 'api:deleteEnvironment', meta,
+  sendToLagoonLogs(
+    'info',
+    data.projectName,
+    '',
+    'api:deleteEnvironment',
+    meta,
     `*[${data.projectName}]* Deleting environment \`${environment.name}\``,
   );
 
@@ -575,7 +616,7 @@ const deleteEnvironment = async (
 const updateEnvironment = async (
   root,
   { input: unformattedInput },
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   const input = R.compose(
     R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
@@ -601,7 +642,7 @@ const updateEnvironment = async (
 const getAllEnvironments = async (
   root,
   unformattedArgs,
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   const args = R.compose(R.over(R.lensProp('type'), envTypeToString))(
     unformattedArgs,
@@ -622,7 +663,11 @@ const getAllEnvironments = async (
   return rows;
 };
 
-const deleteAllEnvironments = async (root, args, { credentials: { role } }) => {
+const deleteAllEnvironments = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -636,7 +681,13 @@ const deleteAllEnvironments = async (root, args, { credentials: { role } }) => {
 const setEnvironmentServices = async (
   root,
   { input: { environment, services } },
-  { credentials: { role, permissions: { customers, projects } } },
+  {
+    credentials: {
+      role,
+      permissions: { customers, projects },
+    },
+    sqlClient,
+  },
 ) => {
   if (role !== 'admin') {
     const rows = await query(

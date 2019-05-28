@@ -197,7 +197,7 @@ const messageConsumer = async msg => {
       }
 
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. $<${logLink}|Logs>`
+        `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. <${logLink}|Logs>`
       )
       break;
 

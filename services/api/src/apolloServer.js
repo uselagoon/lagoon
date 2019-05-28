@@ -11,6 +11,7 @@ const {
   getCredentialsForLegacyToken,
   getCredentialsForKeycloakToken,
 } = require('./util/auth');
+const { getSqlClient } = require('./clients/sqlClient');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
@@ -61,7 +62,10 @@ const apolloServer = new ApolloServer({
       }
 
       try {
-        credentials = await getCredentialsForKeycloakToken(token);
+        credentials = await getCredentialsForKeycloakToken(
+          getSqlClient(),
+          token,
+        );
       } catch (e) {
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
@@ -69,7 +73,10 @@ const apolloServer = new ApolloServer({
 
       try {
         if (!credentials) {
-          credentials = await getCredentialsForLegacyToken(token);
+          credentials = await getCredentialsForLegacyToken(
+            getSqlClient(),
+            token,
+          );
         }
       } catch (e) {
         throw new AuthenticationError(e.message);
@@ -83,7 +90,10 @@ const apolloServer = new ApolloServer({
     // Websocket requests
     if (connection) {
       // onConnect must always provide connection.context.
-      return connection.context;
+      return {
+        ...connection.context,
+        sqlClient: getSqlClient(),
+      };
     }
 
     // HTTP requests
@@ -91,6 +101,7 @@ const apolloServer = new ApolloServer({
       return {
         // Express middleware must always provide req.credentials.
         credentials: req.credentials,
+        sqlClient: getSqlClient(),
       };
     }
   },
@@ -102,6 +113,17 @@ const apolloServer = new ApolloServer({
       path: error.path,
     };
   },
+  plugins: [
+    {
+      requestDidStart: () => ({
+        willSendResponse: response => {
+          if (response.context.sqlClient) {
+            response.context.sqlClient.end();
+          }
+        },
+      }),
+    },
+  ],
 });
 
 module.exports = apolloServer;

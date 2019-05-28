@@ -9,14 +9,14 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks /deploy POST for just git branch on {{ project }}, which should deploy the first commit"
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - include: check-deployed.yaml
   vars:
@@ -32,14 +32,14 @@
   - set_fact:
       second_commit_hash: "{{ current_head }}"
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}, which should deploy the second commit"
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - include: check-deployed.yaml
   vars:

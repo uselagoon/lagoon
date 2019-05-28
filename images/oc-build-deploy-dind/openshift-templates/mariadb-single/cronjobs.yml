@@ -1,3 +1,0 @@
-- name: backup
-  schedule: "M 1 * * *"
-  command: /lagoon/mysql-backup.sh 127.0.0.1

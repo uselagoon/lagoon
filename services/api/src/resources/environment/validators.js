@@ -1,11 +1,14 @@
 // @flow
 
+/* ::
+import type MariaSQL from 'mariasql';
+*/
+
 const R = require('ramda');
 const { prepare, query } = require('../../util/db');
-const sqlClient = require('../../clients/sqlClient');
 const Sql = require('./sql');
 
-const Validators = {
+const Validators = (sqlClient /* : MariaSQL */) => ({
   environmentExists: async (environmentId /* : number */) => {
     const env = await query(
       sqlClient,
@@ -35,8 +38,14 @@ const Validators = {
       );
     }
   },
-  environmentHasService: async (environmentId /* : number */, service /* : string */) => {
-    const rows = await query(sqlClient, Sql.selectServicesByEnvironmentId(environmentId));
+  environmentHasService: async (
+    environmentId /* : number */,
+    service /* : string */,
+  ) => {
+    const rows = await query(
+      sqlClient,
+      Sql.selectServicesByEnvironmentId(environmentId),
+    );
 
     if (!R.contains(service, R.pluck('name', rows))) {
       throw new Error(`Environment ${environmentId} has no service ${service}`);
@@ -67,6 +76,6 @@ const Validators = {
       throw new Error(`No access to environment ${environmentId}.`);
     }
   },
-};
+});
 
 module.exports = Validators;

@@ -27,6 +27,13 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
       body,
     } = webhook;
 
+    const headRepoId = body.pull_request.head.repo.id
+    const headBranchName = body.pull_request.head.ref
+    const headSha = body.pull_request.head.sha
+    const baseRepoId = body.pull_request.base.repo.id
+    const baseBranchName = body.pull_request.base.ref
+    const baseSha = body.pull_request.base.sha
+
     const meta = {
       projectName: project.name,
       pullrequestTitle: body.pull_request.title,
@@ -44,10 +51,13 @@ async function githubPullRequestSynchronize(webhook: WebhookRequestData, project
       return;
     }
 
-    const headBranchName = body.pull_request.head.ref
-    const headSha = body.pull_request.head.sha
-    const baseBranchName = body.pull_request.base.ref
-    const baseSha = body.pull_request.base.sha
+    // Don't trigger deploy if the head and base repos are different
+    if (!R.equals(headRepoId, baseRepoId)) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* PR ${body.number} updated. No deploy task created, reason: Head/Base not same repo`
+      )
+      return;
+    }
 
     const data: deployData = {
       repoName: body.repository.full_name,

@@ -32,6 +32,7 @@ RUN fix-permissions /home
 
 COPY update-push-images.sh /update-push-images.sh
 COPY prune-images.sh /prune-images.sh
+COPY remove-exited.sh /remove-exited.sh
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 

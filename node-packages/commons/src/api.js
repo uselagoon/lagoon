@@ -212,7 +212,10 @@ const restoreFragment = graphqlapi.createFragment(`
   }
   `);
 
-const updateRestore = (backupId: string, patch: RestorePatch): Promise<Object> =>
+const updateRestore = (
+  backupId: string,
+  patch: RestorePatch,
+): Promise<Object> =>
   graphqlapi.mutate(
     `
   ($backupId: String!, $patch: UpdateRestorePatchInput!) {
@@ -460,16 +463,18 @@ const addProject = (
   customer: number,
   gitUrl: string,
   openshift: number,
+  productionenvironment: string,
   id: ?number = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-    ($name: String!, $customer: Int!, $gitUrl: String!, $openshift: Int!, $id: Int) {
+    ($name: String!, $customer: Int!, $gitUrl: String!, $openshift: Int!, $productionenvironment: String!, $id: Int) {
       addProject(input: {
         name: $name,
         customer: $customer,
         gitUrl: $gitUrl,
         openshift: $openshift,
+        productionEnvironment: $productionenvironment,
         id: $id,
       }) {
         ...${projectFragment}
@@ -683,34 +688,52 @@ const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
   deployType: string,
+  deployBaseRef: string,
   environmentType: string,
   openshiftProjectName: string,
+  deployHeadRef: ?string = null,
+  deployTitle: ?string = null,
 ): Promise<Object> =>
-  graphqlapi.query(`
-  mutation {
-    addOrUpdateEnvironment(input: {
-        name: "${name}",
-        project: ${projectId},
-        deployType: ${deployType},
-        environmentType: ${environmentType},
-        openshiftProjectName: "${openshiftProjectName}"
-    }) {
-      id
+  graphqlapi.mutate(
+    `
+($name: String!, $project: Int!, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
+  addOrUpdateEnvironment(input: {
+    name: $name,
+    project: $project,
+    deployType: $deployType,
+    deployBaseRef: $deployBaseRef,
+    deployHeadRef: $deployHeadRef,
+    deployTitle: $deployTitle,
+    environmentType: $environmentType,
+    openshiftProjectName: $openshiftProjectName
+  }) {
+    id
+    name
+    project {
       name
-      project {
-        name
-      }
-      deployType
-      environmentType
-      openshiftProjectName
-      envVariables {
-        name
-        value
-        scope
-      }
+    }
+    deployType
+    environmentType
+    openshiftProjectName
+    envVariables {
+      name
+      value
+      scope
     }
   }
-`);
+}
+`,
+    {
+      name,
+      project: projectId,
+      deployType,
+      deployBaseRef,
+      deployHeadRef,
+      deployTitle,
+      environmentType,
+      openshiftProjectName,
+    },
+  );
 
 const updateEnvironment = (
   environmentId: number,
