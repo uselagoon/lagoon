@@ -207,7 +207,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     restore: getRestoreByBackupId,
   },
   Query: {
-    userByEmail: getUserIdByEmail,
+    userIdByEmail: getUserIdByEmail,
     userBySshKey: getUserBySshKey,
     customerByName: getCustomerByName,
     projectByGitUrl: getProjectByGitUrl,

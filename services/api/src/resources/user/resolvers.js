@@ -21,10 +21,7 @@ const getUserIdByEmail = async (
   { email: userEmail },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
+    credentials: {role},
     sqlClient,
   },
 ) => {

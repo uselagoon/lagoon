@@ -15,8 +15,7 @@ const Sql /* : SqlObj */ = {
       .toString(),
   selectUserIdByEmail: (email /* : string */) =>
     knex('user')
-      .where('email', '=', email)
-      .select('id')
+      .where('email', 'like', email)
       .toString(),
   selectAllUsers: () => knex('user').toString(),
   selectAllUserEmails: () =>
