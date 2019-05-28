@@ -1,6 +1,7 @@
 #!/bin/bash
 set -x
 set -eo pipefail
+set -o noglob
 
 OPENSHIFT_REGISTRY=docker-registry.default.svc:5000
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)

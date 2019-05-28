@@ -78,6 +78,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
               # Will also skip on any continue conditions
               NO_PROCESSES=false
               NO_BUILDS=false
+              NO_CRONJOBS=false
 
               # Check for any running processes
               RUNNING_PROCESSES=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig sh -c "pgrep -P 0 | tail -n +3 | wc -l | tr -d ' '")
@@ -90,6 +91,18 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
                 NO_PROCESSES=true
               else
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has $RUNNING_PROCESSES running processes, skipping"
+              fi
+
+              # Check for cronjobs present
+              CRONJOBS_PRESENT=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig sh -c "echo \$CRONJOBS")
+              if [ ! $? -eq 0 ]; then
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: error checking if pod has cronjob"
+                continue
+              elif [ -z "$CRONJOBS_PRESENT" ]; then
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: no cronjobs"
+                NO_CRONJOBS=true
+              else
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has cronjobs defined, skipping"
               fi
 
               # Check for any running builds
@@ -106,7 +119,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
               fi
 
               ## If there are no builds AND no processes, then we can idle the pods
-              if [[ "$NO_BUILDS" == "true" && "$NO_PROCESSES" == "true" ]]; then
+              if [[ "$NO_BUILDS" == "true" && "$NO_PROCESSES" == "true" && "$NO_CRONJOBS" == "true" ]]; then
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: not busy, scaling to 0"
                 oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" scale --replicas=0 $deploymentconfig
               fi
