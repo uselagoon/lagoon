@@ -52,6 +52,8 @@ RUN apk del --no-cache curl libcurl \
         libxml2-dev \
         # for xsl
         libxslt-dev \
+        # for webp
+        libwebp-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
@@ -67,7 +69,7 @@ RUN apk del --no-cache curl libcurl \
        fi \
     && yes '' | pecl install -f redis \
     && docker-php-ext-enable apcu redis xdebug \
-    && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-configure gd --with-webp-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
     && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
         docker-php-ext-install mcrypt; \

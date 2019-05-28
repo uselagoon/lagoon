@@ -204,6 +204,12 @@ const Project = ({ project }) => {
               }
             }
 
+            &.envlimit {
+              &::before {
+                background-image: url('/static/images/environments-in-use.svg');
+              }
+            }
+
             &.members {
               &::before {
                 background-image: url('/static/images/members.svg');

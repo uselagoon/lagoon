@@ -160,6 +160,10 @@ const Task = ({ task }) => (
           }
 
           &.files {
+            &::before {
+              background-image: url('/static/images/files.svg');
+            }
+
             ul.field {
               margin: 0;
 
