@@ -18,19 +18,16 @@ import type {ResolversObj} from '../';
 */
 
 const getUserIdByEmail = async (
-  { email: userEmail },
-  args,
-  {
-    credentials: {role},
-    sqlClient,
-  },
+  root,
+  { email },
+  { credentials: { role }, sqlClient },
 ) => {
   const rows = await query(
     sqlClient,
-    Sql.selectUserIdByEmail({ userEmail }),
+    Sql.selectUserIdByEmail(email),
   );
 
-  return rows;
+  return rows[0];
 };
 
 const getUsersByProjectId = async (
@@ -75,6 +72,8 @@ const getUserBySshKey = async (
     R.split(' '),
     R.defaultTo(''),
   )(sshKey);
+
+  console.warn(Sql.selectUserBySshKey({ keyType, keyValue }))
 
   const rows = await query(
     sqlClient,

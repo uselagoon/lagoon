@@ -445,7 +445,7 @@ const typeDefs = gql`
 
   type Query {
     """
-    Returns User Id for a given email
+    Returns User object for a given email. Will only include id and email in output
     """
     userIdByEmail(email: String!): User
     """
