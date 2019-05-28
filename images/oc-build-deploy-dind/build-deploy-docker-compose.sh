@@ -11,6 +11,27 @@ function outputToYaml() {
   set -x
 }
 
+function cronScheduleMoreOftenThan15Minutes() {
+  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+  MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
+  if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
+    # Match found for M/xx, H/xx or */xx
+    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    STEP=${BASH_REMATCH[2]}
+    if [ $STEP -le 15 ]; then
+      return 0
+    else
+      return 1
+    fi
+  elif [[ $MINUTE =~ ^\*$ ]]; then
+    # We are running every minute
+    return 0
+  else
+    # all other cases are more often than 15 minutes
+    return 1
+  fi
+}
+
 ##############################################
 ### PREPARATION
 ##############################################
@@ -735,7 +756,7 @@ do
   fi
 
   CRONJOB_COUNTER=0
-  CRONJOBS_ARRAY=()
+  CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
   while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
   do
 
@@ -748,41 +769,46 @@ do
       # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
       NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+        # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
+        CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      else
+        # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
+        OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
 
+        if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+          echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
+        else
+
+          # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+          NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+          . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+
+          # restore template parameters without any cronjobs in them (allows to create a secondary cronjob, plus also any other templates)
+          TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
+
+        fi
+      fi
     fi
 
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
   done
 
-  # Generate cronjobs if service type defines them
-  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
-  if [ -f $SERVICE_CRONJOB_FILE ]; then
-    CRONJOB_COUNTER=0
-    while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
-    do
 
-      CRONJOB_NAME=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
-
-      CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
-      # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
-      CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
-
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
-      let CRONJOB_COUNTER=CRONJOB_COUNTER+1
-    done
-  fi
-
-  if [[ ${#CRONJOBS_ARRAY[@]} -ge 1 ]]; then
-    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY[@]}")
+  # if there are cronjobs running inside pods, add them to the deploymentconfig.
+  if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_INSIDE_POD[@]}")
     TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
   fi
 
@@ -891,17 +917,6 @@ do
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
-  fi
-done
-
-##############################################
-### CLEANUP NATIVE CRONJOBS NOW RUNNING WITHIN CONTAINERS DIRECTLY
-##############################################
-
-for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
-do
-  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get cronjob ${CRONJOB}; then
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
   fi
 done
 

@@ -1,3 +1,0 @@
-- name: backup
-  schedule: "M 1 * * *"
-  command: /lagoon/postgres-backup.sh localhost

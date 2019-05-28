@@ -53,6 +53,15 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_NATIVE' which is added via a cronjob"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_content: "CRONJOB_NATIVE"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
