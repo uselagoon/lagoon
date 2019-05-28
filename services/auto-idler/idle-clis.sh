@@ -7,8 +7,8 @@ API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
 # Load all projects and their environments
-GRAPHQL='query developmentEnvironments {
-  developmentEnvironments:allProjects {
+GRAPHQL='query environments {
+  environments:allProjects {
     name
     autoIdle
     openshift {
@@ -16,7 +16,7 @@ GRAPHQL='query developmentEnvironments {
       token
       name
     }
-    environments(type: DEVELOPMENT) {
+    environments {
       openshiftProjectName
       name
     }
@@ -28,7 +28,7 @@ ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARE
 
 # Filter only projects that actually have an environment
 # Loop through each found project
-echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.environments|length)>=1)' | while read project
+echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
