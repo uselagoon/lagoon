@@ -73,8 +73,6 @@ const getUserBySshKey = async (
     R.defaultTo(''),
   )(sshKey);
 
-  console.warn(Sql.selectUserBySshKey({ keyType, keyValue }))
-
   const rows = await query(
     sqlClient,
     Sql.selectUserBySshKey({ keyType, keyValue }),
