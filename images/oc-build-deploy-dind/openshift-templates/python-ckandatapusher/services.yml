@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: lagoon-openshift-template-rabbitmq
+  name: lagoon-openshift-template-python-ckandatapusher
 parameters:
   - name: SERVICE_NAME
     description: Name of this service
@@ -33,14 +33,21 @@ parameters:
     required: true
 objects:
 - apiVersion: v1
-  kind: PersistentVolumeClaim
+  kind: Service
   metadata:
-    annotations:
-      appuio.ch/backup: "false"
-    name: ${SERVICE_NAME}-volume
+    creationTimestamp: null
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+    name: ${SERVICE_NAME}
   spec:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
+    ports:
+    - name: http
+      port: 8800
+      protocol: TCP
+      targetPort: 8800
+    selector:
+      service: ${SERVICE_NAME}
+  status:
+    loadBalancer: {}
