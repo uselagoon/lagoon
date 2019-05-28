@@ -18,7 +18,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # Match found for M/xx, H/xx or */xx
     # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -le 15 ]; then
+    if [ $STEP -lt 15 ]; then
       return 0
     else
       return 1
