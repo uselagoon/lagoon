@@ -704,6 +704,9 @@ do
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
@@ -751,7 +754,17 @@ do
     OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
     if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
       OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+
+      # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+      NO_SERVICE_NAME_UPPERCASE_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+
+      # prebackuppod templates need SERVICE_NAME_UPPERCASE
+      TEMPLATE_PARAMETERS+=(-p SERVICE_NAME_UPPERCASE="${SERVICE_NAME_UPPERCASE}")
+
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+
+      # restore TEMPLATE_PARAMETERS
+      TEMPLATE_PARAMETERS=(${NO_SERVICE_NAME_UPPERCASE_PARAMETERS[@]})
     fi
   fi
 
