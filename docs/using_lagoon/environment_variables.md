@@ -9,9 +9,10 @@ As there can be environment variables defined in either the Dockerfile of during
 1. Environment variables (defined via Lagoon API) - Environment specific
 2. Environment variables (defined via Lagoon API) - Project wide
 3. Environment variables defined in Dockerfile (`ENV` command)
-4. Environment variables defined in `.lagoon.env.$BRANCHNAME` (if file exists and where $BRANCHNAME is the Branch this Dockerimage has been uilt for), use this for overwriting variables for only specific branches
-5. Environment variables defined in `.env`
-6. Environment variables defined in `.env.defaults`
+4. Environment variables defined in `.lagoon.env` (if exists), use this for overwriting variables for all branches
+5. Environment variables defined in `.lagoon.env.$BRANCHNAME` (if file exists and where $BRANCHNAME is the Branch this Dockerimage has been uilt for), use this for overwriting variables for only specific branches
+6. Environment variables defined in `.env`
+7. Environment variables defined in `.env.defaults`
 
 ## Environment Variables (Lagoon API)
 
