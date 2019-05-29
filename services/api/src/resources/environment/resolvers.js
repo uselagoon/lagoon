@@ -663,7 +663,6 @@ const getAllEnvironments = async (
   const prep = prepare(sqlClient, `SELECT * FROM environment ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
 
-  console.warn(rows)
   return rows;
 };
 
