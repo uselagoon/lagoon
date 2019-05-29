@@ -28,7 +28,7 @@ set -a
 [ -f .env.defaults ] && . ./.env.defaults  || true
 [ -f .env ] && . ./.env  || true
 # Provide a file that adds variables to all Lagoon envs, but is overridable in a specific env below
-[ -f .env ] && . ./.lagoon.env  || true
+[ -f .lagoon.env ] && . ./.lagoon.env  || true
 [ -f .lagoon.env.$LAGOON_GIT_BRANCH ] && . ./.lagoon.env.$LAGOON_GIT_BRANCH  || true
 # Branch names can have weird special chars in them which are not allowed in File names, so we also try the Branch name with special chars replaced by dashes.
 [ -f .lagoon.env.$LAGOON_GIT_SAFE_BRANCH ] && . ./.lagoon.env.$LAGOON_GIT_SAFE_BRANCH  || true
