@@ -658,8 +658,12 @@ const getAllEnvironments = async (
     'deleted = "0000-00-00 00:00:00"',
   ]);
 
-  const prep = prepare(sqlClient, `SELECT * FROM environment ${where}`);
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
+
+  const prep = prepare(sqlClient, `SELECT * FROM environment ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
+
+  console.warn(rows)
   return rows;
 };
 
