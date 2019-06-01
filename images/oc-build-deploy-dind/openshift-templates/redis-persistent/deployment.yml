@@ -95,7 +95,7 @@ objects:
             tcpSocket:
               port: 6379
             initialDelaySeconds: 120
-            periodSeconds: 5
+            periodSeconds: 10
           envFrom:
           - configMapRef:
               name: lagoon-env
