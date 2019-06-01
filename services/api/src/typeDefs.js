@@ -66,6 +66,16 @@ const typeDefs = gql`
     FAILED
   }
 
+  enum EnvOrderType {
+    NAME
+    UPDATED
+  }
+
+  enum ProjectOrderType {
+    NAME
+    CREATED
+  }
+
   type File {
     id: Int
     filename: String
@@ -472,7 +482,7 @@ const typeDefs = gql`
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
-    allProjects(createdAfter: String, gitUrl: String): [Project]
+    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
     """
     Returns all Customer Objects matching given filter (all if no filter defined)
     """
@@ -484,7 +494,7 @@ const typeDefs = gql`
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
-    allEnvironments(createdAfter: String, type: EnvType): [Environment]
+    allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
   }
 
   # Must provide id OR name
