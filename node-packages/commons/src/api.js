@@ -44,7 +44,7 @@ const options = {
   headers: {
     Authorization: `Bearer ${apiAdminToken}`,
   },
-  timeout: 30000,
+  timeout: 60000,
 };
 
 const transport = new Transport(`${API_HOST}/graphql`, options);

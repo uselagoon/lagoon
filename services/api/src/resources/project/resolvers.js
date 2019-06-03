@@ -2,7 +2,7 @@
 
 const R = require('ramda');
 const validator = require('validator');
-const keycloakClient = require('../../clients/keycloakClient');
+const { keycloakAdminClient } = require('../../clients/keycloakClient');
 const searchguardClient = require('../../clients/searchguardClient');
 const logger = require('../../logger');
 const {
@@ -46,7 +46,9 @@ const getAllProjects = async (
     ),
   ]);
 
-  const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
+
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
 
   return rows;
@@ -327,7 +329,7 @@ const updateProject = async (
         keycloakGroupId,
         keycloakGroupName,
       }) => {
-        await keycloakClient.users.delFromGroup({
+        await keycloakAdminClient.users.delFromGroup({
           id: keycloakUserId,
           groupId: keycloakGroupId,
         });
@@ -365,7 +367,7 @@ const updateProject = async (
   if (typeof name === 'string' && name !== originalName) {
     const groupId = await KeycloakOperations.findGroupIdByName(originalName);
 
-    await keycloakClient.groups.update({ id: groupId }, { name });
+    await keycloakAdminClient.groups.update({ id: groupId }, { name });
     logger.debug(
       `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
     );
@@ -382,7 +384,7 @@ const updateProject = async (
         keycloakGroupId,
         keycloakGroupName,
       }) => {
-        await keycloakClient.users.addToGroup({
+        await keycloakAdminClient.users.addToGroup({
           id: keycloakUserId,
           groupId: keycloakGroupId,
         });

@@ -11,8 +11,9 @@
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start": "flow-node -r dotenv-extended/config src",
-    "dev": "NODE_ENV=development nodemon --watch src --exec 'flow-node -r dotenv-extended/config' -- src"
+    "build": "tsc",
+    "start": "flow-node -r dotenv-extended/config dist",
+    "dev": "NODE_ENV=development nodemon --watch src -e js,json,ts --exec 'tsc && flow-node -r dotenv-extended/config' -- dist"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -21,7 +22,6 @@
     "@lagoon/commons": "4.0.0",
     "apollo-server-express": "^2.2.5",
     "aws-sdk": "^2.378.0",
-    "axios": "^0.18.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",
@@ -41,8 +41,8 @@
     "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
-    "jwk-to-pem": "^2.0.0",
     "keycloak-admin": "^1.8.0",
+    "keycloak-connect": "^5.0.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "moment": "^2.22.2",
@@ -57,6 +57,7 @@
     "jest": "^23.6.0",
     "nodemon": "^1.12.1",
     "prettier": "^1.14.2",
-    "prettier-eslint-cli": "^4.7.1"
+    "prettier-eslint-cli": "^4.7.1",
+    "typescript": "^3.4.4"
   }
 }

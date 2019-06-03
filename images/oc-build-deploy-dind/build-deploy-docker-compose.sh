@@ -18,7 +18,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # Match found for M/xx, H/xx or */xx
     # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -le 15 ]; then
+    if [ $STEP -lt 15 ]; then
       return 0
     else
       return 1
@@ -594,10 +594,19 @@ do
 
     mariadb-shared)
         # ServiceBrokers take a bit, wait until the credentials secret is available
+	# We added a timeout of 10 minutes (120 retries) before exit
+	SERVICE_BROKER_COUNTER=1
+	SERVICE_BROKER_TIMEOUT=180
         until oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials
         do
-          echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
-          sleep 5
+	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
+		  let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
+		  echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
+		  sleep 5
+	  else
+		  echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-servicebroker-credentials reached"
+		  exit 1
+	  fi
         done
         # Load credentials out of secret
         oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials -o yaml > /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml
@@ -695,6 +704,9 @@ do
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
@@ -742,7 +754,17 @@ do
     OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
     if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
       OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+
+      # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+      NO_SERVICE_NAME_UPPERCASE_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+
+      # prebackuppod templates need SERVICE_NAME_UPPERCASE
+      TEMPLATE_PARAMETERS+=(-p SERVICE_NAME_UPPERCASE="${SERVICE_NAME_UPPERCASE}")
+
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+
+      # restore TEMPLATE_PARAMETERS
+      TEMPLATE_PARAMETERS=(${NO_SERVICE_NAME_UPPERCASE_PARAMETERS[@]})
     fi
   fi
 
