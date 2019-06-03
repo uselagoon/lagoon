@@ -12,7 +12,7 @@ OC="oc"
 echo "${OPENSHIFT_PROJECT}: starting =================================================================="
 
 # Remove any backupcommand from nginx pods if they exit
-if oc -n ${OPENSHIFT_PROJECT} get deploymentconfig nginx -o json &> /dev/null; then
+if oc -n ${OPENSHIFT_PROJECT} get deploymentconfig nginx -o yaml --ignore-not-found | grep -q php &> /dev/null; then
   oc -n ${OPENSHIFT_PROJECT} patch dc/nginx --patch '{"spec":{"template":{"spec":{"containers":[{"name":"php","livenessProbe":{"$patch":"replace","tcpSocket":{"port":9000},"initialDelaySeconds":60,"periodSeconds":10},"readinessProbe":{"$patch":"replace","tcpSocket":{"port":9000},"initialDelaySeconds":2,"periodSeconds":10}}]}}}}' || true
   oc -n ${OPENSHIFT_PROJECT} rollout status --watch dc/nginx
 fi
