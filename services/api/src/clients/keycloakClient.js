@@ -1,11 +1,13 @@
 // @flow
 
-const KeycloakAdminClient = require('keycloak-admin').default;
+const KeycloakAdmin = require('keycloak-admin').default;
 
 // Must be initialized with `waitAndInitKeycloak`
-const keycloakClient = new KeycloakAdminClient({
+const keycloakAdminClient = new KeycloakAdmin({
   baseUrl: 'http://keycloak:8080/auth',
   realmName: 'master',
 });
 
-module.exports = keycloakClient;
+module.exports = {
+  keycloakAdminClient,
+};
