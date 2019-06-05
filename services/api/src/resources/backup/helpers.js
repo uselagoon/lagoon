@@ -23,6 +23,13 @@ const makeS3TempLink = async (restore /* : Object */) => {
       process.env,
     );
 
+    let awsS3Parts = '';
+    const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
+
+    if (R.test(awsLinkMatch, restoreLocation)) {
+      awsS3Parts = R.match(awsLinkMatch, restoreLocation);
+    }
+
     // We have to generate a new client every time because the endpoint is parsed
     // from the s3 url.
     const s3Client = new S3({
@@ -31,6 +38,7 @@ const makeS3TempLink = async (restore /* : Object */) => {
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
       endpoint: `https://${R.prop(1, s3Parts)}`,
+      region: (awsS3Parts ? R.prop(1, awsS3Parts) : ''),
     });
 
     const tempUrl = s3Client.getSignedUrl('getObject', {
