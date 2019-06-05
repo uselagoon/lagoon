@@ -61,9 +61,11 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError('Auth token missing.');
       }
 
+      const sqlClient = getSqlClient();
+
       try {
         credentials = await getCredentialsForKeycloakToken(
-          getSqlClient(),
+          sqlClient,
           token,
         );
       } catch (e) {
@@ -74,7 +76,7 @@ const apolloServer = new ApolloServer({
       try {
         if (!credentials) {
           credentials = await getCredentialsForLegacyToken(
-            getSqlClient(),
+            sqlClient,
             token,
           );
         }
@@ -83,7 +85,12 @@ const apolloServer = new ApolloServer({
       }
 
       // Add credentials to context.
-      return { credentials };
+      return { credentials, sqlClient };
+    },
+    onDisconnect: (websocket, context) => {
+      if (context.sqlClient) {
+        context.sqlClient.end();
+      }
     },
   },
   context: ({ req, connection }) => {
@@ -92,7 +99,6 @@ const apolloServer = new ApolloServer({
       // onConnect must always provide connection.context.
       return {
         ...connection.context,
-        sqlClient: getSqlClient(),
       };
     }
 
