@@ -5,12 +5,13 @@ import Head from 'next/head';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/main';
 import ProjectByNameQuery from 'lib/query/ProjectByName';
-import LoadingPage from 'pages/_loading';
-import ErrorPage from 'pages/_error';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import ProjectDetailsSidebar from 'components/ProjectDetailsSidebar';
 import Environments from 'components/Environments';
+import withQueryLoading from 'lib/withQueryLoading';
+import withQueryError from 'lib/withQueryError';
+import { withProjectRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
 
 const PageProject = ({ router }) => (
@@ -22,24 +23,11 @@ const PageProject = ({ router }) => (
       query={ProjectByNameQuery}
       variables={{ name: router.query.projectName }}
     >
-      {({ loading, error, data: { projectByName: project } }) => {
-        if (loading) {
-          return <LoadingPage />;
-        }
-
-        if (error) {
-          return <ErrorPage statusCode={500} errorMessage={error.toString()} />;
-        }
-
-        if (!project) {
-          return (
-            <ErrorPage
-              statusCode={404}
-              errorMessage={`Project "${router.query.projectName}" not found`}
-            />
-          );
-        }
-
+      {R.compose(
+        withQueryLoading,
+        withQueryError,
+        withProjectRequired
+      )(({ data: { project } }) => {
         // Sort alphabetically by environmentType and then deployType
         const environments = R.sortWith(
           [
@@ -106,7 +94,7 @@ const PageProject = ({ router }) => (
             `}</style>
           </MainLayout>
         );
-      }}
+      })}
     </Query>
   </>
 );

@@ -1,8 +1,7 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
-const { s3Client, s3Bucket } = require('../../clients/aws');
+const { s3Client } = require('../../clients/aws');
 const { query } = require('../../util/db');
 const Sql = require('./sql');
 const taskSql = require('../task/sql');
@@ -15,9 +14,8 @@ import type {ResolversObj} from '../';
 
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {
-    Bucket: s3Bucket,
     Key: file.s3Key,
-    Expires: 900, // 15 minutes
+    Expires: 300, // 5 minutes
   });
 
   return {
@@ -36,6 +34,7 @@ const getFilesByTaskId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -66,6 +65,7 @@ const uploadFilesForTask = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -83,7 +83,6 @@ const uploadFilesForTask = async (
   const uploadAndTrackFiles = resolvedFiles.map(async newFile => {
     const s3_key = `tasks/${task}/${newFile.filename}`;
     const params = {
-      Bucket: s3Bucket,
       Key: s3_key,
       Body: newFile.stream,
       ACL: 'private',
@@ -120,7 +119,7 @@ const uploadFilesForTask = async (
 const deleteFilesForTask = async (
   root,
   { input: { id } },
-  { credentials: { role } },
+  { credentials: { role }, sqlClient },
 ) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
@@ -130,7 +129,6 @@ const deleteFilesForTask = async (
   const deleteObjects = R.map(file => ({ Key: file.s3Key }), rows);
 
   const params = {
-    Bucket: s3Bucket,
     Delete: {
       Objects: deleteObjects,
       Quiet: false,

@@ -1,5 +1,0 @@
-# Clair
-
----
-
-This document describes ...

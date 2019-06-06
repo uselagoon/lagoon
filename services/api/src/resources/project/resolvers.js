@@ -4,7 +4,6 @@ const R = require('ramda');
 const validator = require('validator');
 const keycloakClient = require('../../clients/keycloakClient');
 const searchguardClient = require('../../clients/searchguardClient');
-const sqlClient = require('../../clients/sqlClient');
 const logger = require('../../logger');
 const {
   ifNotAdmin,
@@ -34,6 +33,7 @@ const getAllProjects = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   // We need one "WHERE" keyword, but we have multiple optional conditions
@@ -46,7 +46,9 @@ const getAllProjects = async (
     ),
   ]);
 
-  const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
+
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
 
   return rows;
@@ -60,6 +62,7 @@ const getProjectByEnvironmentId = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const prep = prepare(
@@ -90,6 +93,7 @@ const getProjectByGitUrl = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const str = `
@@ -121,6 +125,7 @@ const getProjectByName = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const str = `
@@ -151,6 +156,7 @@ const addProject = async (
       role,
       permissions: { customers },
     },
+    sqlClient,
   },
 ) => {
   const cid = input.customer.toString();
@@ -160,7 +166,9 @@ const addProject = async (
   }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
-    throw new Error('Only lowercase characters, numbers and dashes allowed for name!');
+    throw new Error(
+      'Only lowercase characters, numbers and dashes allowed for name!',
+    );
   }
 
   const prep = prepare(
@@ -213,9 +221,9 @@ const addProject = async (
   const project = R.path([0, 0], rows);
 
   await KeycloakOperations.addGroup(project);
-  await SearchguardOperations.addProject(project);
+  await SearchguardOperations(sqlClient).addProject(project);
 
-  await Helpers.addProjectUsersToKeycloakGroup(project);
+  await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
 
   return project;
 };
@@ -228,10 +236,11 @@ const deleteProject = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   // Will throw on invalid conditions
-  const pid = await Helpers.getProjectIdByName(project);
+  const pid = await Helpers(sqlClient).getProjectIdByName(project);
 
   if (role !== 'admin') {
     if (!R.contains(pid, projects)) {
@@ -285,6 +294,7 @@ const updateProject = async (
       role,
       permissions: { projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin' && !R.contains(id.toString(), projects)) {
@@ -297,18 +307,20 @@ const updateProject = async (
 
   if (typeof name === 'string') {
     if (validator.matches(name, /[^0-9a-z-]/)) {
-      throw new Error('Only lowercase characters, numbers and dashes allowed for name!');
+      throw new Error(
+        'Only lowercase characters, numbers and dashes allowed for name!',
+      );
     }
   }
 
-  const originalProject = await Helpers.getProjectById(id);
+  const originalProject = await Helpers(sqlClient).getProjectById(id);
   const originalName = R.prop('name', originalProject);
   const originalCustomer = parseInt(R.prop('customer', originalProject));
 
   // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
   if (typeof customer === 'number' && customer !== originalCustomer) {
     // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-    await Helpers.mapIfNoDirectProjectAccess(
+    await Helpers(sqlClient).mapIfNoDirectProjectAccess(
       id,
       originalCustomer,
       async ({
@@ -363,7 +375,7 @@ const updateProject = async (
 
   if (typeof customer === 'number' && customer !== originalCustomer) {
     // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-    await Helpers.mapIfNoDirectProjectAccess(
+    await Helpers(sqlClient).mapIfNoDirectProjectAccess(
       id,
       customer,
       async ({
@@ -383,15 +395,14 @@ const updateProject = async (
     );
   }
 
-  return Helpers.getProjectById(id);
+  return Helpers(sqlClient).getProjectById(id);
 };
 
-
-const createAllProjectsInKeycloak = async (root, args, {
-  credentials: {
-    role,
-  },
-}) => {
+const createAllProjectsInKeycloak = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -402,15 +413,14 @@ const createAllProjectsInKeycloak = async (root, args, {
     await KeycloakOperations.addGroup(project);
   }
 
-
   return 'success';
 };
 
-const createAllProjectsInSearchguard = async (root, args, {
-  credentials: {
-    role,
-  },
-}) => {
+const createAllProjectsInSearchguard = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -418,23 +428,22 @@ const createAllProjectsInSearchguard = async (root, args, {
   const projects = await query(sqlClient, Sql.selectAllProjects());
 
   for (const project of projects) {
-    await SearchguardOperations.addProject(project);
+    await SearchguardOperations(sqlClient).addProject(project);
   }
 
   return 'success';
 };
 
-
-const deleteAllProjects = async (root, args, {
-  credentials: {
-    role,
-  },
-}) => {
+const deleteAllProjects = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
 
-  const projectNames = await Helpers.getAllProjectNames();
+  const projectNames = await Helpers(sqlClient).getAllProjectNames();
 
   await query(sqlClient, Sql.truncateProject());
 

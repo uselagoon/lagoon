@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 
 export default gql`
   query getProject($name: String!){
-    projectByName (name: $name){
+    project: projectByName (name: $name){
       id
       name
       branches

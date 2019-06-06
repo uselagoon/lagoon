@@ -85,8 +85,11 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
       // TODO: figure out openshift id
       const openshift = 1;
 
+      // set production environment to default master
+      const productionenvironment = "master";
+
       // Project was transferred from a non-group namespace to a group namespace
-      await addProject(name, namespace.id, gitUrl, openshift, id);
+      await addProject(name, namespace.id, gitUrl, openshift, productionenvironment, id);
 
       sendToLagoonLogs(
         'info',

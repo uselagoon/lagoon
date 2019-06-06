@@ -4,9 +4,12 @@ const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
 const { query, isPatchEmpty } = require('../../util/db');
-const { pubSub, createEnvironmentFilteredSubscriber } = require('../../clients/pubSub');
-const sqlClient = require('../../clients/sqlClient');
+const {
+  pubSub,
+  createEnvironmentFilteredSubscriber,
+} = require('../../clients/pubSub');
 const Sql = require('./sql');
+const Helpers = require('./helpers');
 const projectSql = require('../project/sql');
 const environmentSql = require('../environment/sql');
 const EVENTS = require('./events');
@@ -27,12 +30,7 @@ const restoreStatusTypeToString = R.cond([
 const getBackupsByEnvironmentId = async (
   { id: environmentId },
   { includeDeleted },
-  {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
-  },
+  { sqlClient },
 ) => {
   const rows = await query(
     sqlClient,
@@ -51,6 +49,7 @@ const addBackup = async (
       id, environment, source, backupId, created,
     },
   },
+  { sqlClient },
 ) => {
   const {
     info: { insertId },
@@ -80,6 +79,7 @@ const deleteBackup = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   if (role !== 'admin') {
@@ -101,7 +101,11 @@ const deleteBackup = async (
   return 'success';
 };
 
-const deleteAllBackups = async (root, args, { credentials: { role } }) => {
+const deleteAllBackups = async (
+  root,
+  args,
+  { credentials: { role }, sqlClient },
+) => {
   if (role !== 'admin') {
     throw new Error('Unauthorized.');
   }
@@ -116,14 +120,15 @@ const addRestore = async (
   root,
   {
     input: {
-      id, backupId, status: unformattedStatus, restoreLocation, created, execute,
+      id,
+      backupId,
+      status: unformattedStatus,
+      restoreLocation,
+      created,
+      execute,
     },
   },
-  {
-    credentials: {
-      role,
-    },
-  }
+  { credentials: { role }, sqlClient },
 ) => {
   const status = restoreStatusTypeToString(unformattedStatus);
   const {
@@ -139,7 +144,7 @@ const addRestore = async (
     }),
   );
   let rows = await query(sqlClient, Sql.selectRestore(insertId));
-  const restoreData = R.prop(0, rows);
+  const restoreData = Helpers.makeS3TempLink(R.prop(0, rows));
 
   rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
@@ -151,10 +156,16 @@ const addRestore = async (
     return restoreData;
   }
 
-  rows = await query(sqlClient, environmentSql.selectEnvironmentById(backupData.environment));
+  rows = await query(
+    sqlClient,
+    environmentSql.selectEnvironmentById(backupData.environment),
+  );
   const environmentData = R.prop(0, rows);
 
-  rows = await query(sqlClient, projectSql.selectProject(environmentData.project));
+  rows = await query(
+    sqlClient,
+    projectSql.selectProject(environmentData.project),
+  );
   const projectData = R.prop(0, rows);
 
   const data = {
@@ -186,11 +197,7 @@ const updateRestore = async (
     input: {
       backupId,
       patch,
-      patch: {
-        status: unformattedStatus,
-        created,
-        restoreLocation,
-      },
+      patch: { status: unformattedStatus, created, restoreLocation },
     },
   },
   {
@@ -198,13 +205,17 @@ const updateRestore = async (
       role,
       permissions: { customers, projects },
     },
+    sqlClient,
   },
 ) => {
   const status = restoreStatusTypeToString(unformattedStatus);
 
   if (role !== 'admin') {
     // Check access to modify restore as it currently stands
-    const rowsCurrent = await query(sqlClient, Sql.selectPermsForRestore(backupId));
+    const rowsCurrent = await query(
+      sqlClient,
+      Sql.selectPermsForRestore(backupId),
+    );
 
     if (
       !R.contains(R.path(['0', 'pid'], rowsCurrent), projects) &&
@@ -214,10 +225,7 @@ const updateRestore = async (
     }
 
     // Check access to modify restor as it will be updated
-    const rowsNew = await query(
-      sqlClient,
-      Sql.selectPermsForBackup(backupId),
-    );
+    const rowsNew = await query(sqlClient, Sql.selectPermsForBackup(backupId));
 
     if (
       !R.contains(R.path(['0', 'pid'], rowsNew), projects) &&
@@ -244,7 +252,7 @@ const updateRestore = async (
   );
 
   let rows = await query(sqlClient, Sql.selectRestoreByBackupId(backupId));
-  const restoreData = R.prop(0, rows);
+  const restoreData = Helpers.makeS3TempLink(R.prop(0, rows));
 
   rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
@@ -255,23 +263,17 @@ const updateRestore = async (
 };
 
 // Data protected by environment auth
-const getRestoreByBackupId = async (
-  { backupId },
-) => {
-  const rows = await query(
-    sqlClient,
-    Sql.selectRestoreByBackupId(backupId),
-  );
-  return R.prop(0, rows);
+const getRestoreByBackupId = async ({ backupId }, args, { sqlClient }) => {
+  const rows = await query(sqlClient, Sql.selectRestoreByBackupId(backupId));
+
+  return Helpers.makeS3TempLink(R.prop(0, rows));
 };
 
-const backupSubscriber = createEnvironmentFilteredSubscriber(
-  [
-    EVENTS.BACKUP.ADDED,
-    EVENTS.BACKUP.UPDATED,
-    EVENTS.BACKUP.DELETED,
-  ]
-);
+const backupSubscriber = createEnvironmentFilteredSubscriber([
+  EVENTS.BACKUP.ADDED,
+  EVENTS.BACKUP.UPDATED,
+  EVENTS.BACKUP.DELETED,
+]);
 
 const Resolvers /* : ResolversObj */ = {
   addBackup,

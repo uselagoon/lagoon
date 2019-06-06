@@ -145,17 +145,15 @@ objects:
                 - containerPort: 9000
                   protocol: TCP
               readinessProbe:
-                exec:
-                  command:
-                    - /usr/sbin/check_fcgi
+                tcpSocket:
+                  port: 9000
                 initialDelaySeconds: 2
-                periodSeconds: 5
+                periodSeconds: 10
               livenessProbe:
-                exec:
-                  command:
-                    - /usr/sbin/check_fcgi
+                tcpSocket:
+                  port: 9000
                 initialDelaySeconds: 60
-                periodSeconds: 5
+                periodSeconds: 10
               envFrom:
                 - configMapRef:
                     name: lagoon-env
@@ -191,7 +189,7 @@ objects:
                 tcpSocket:
                   port: 6379
                 initialDelaySeconds: 120
-                periodSeconds: 5
+                periodSeconds: 10
               envFrom:
               - configMapRef:
                   name: lagoon-env

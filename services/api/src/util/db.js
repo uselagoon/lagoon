@@ -92,7 +92,7 @@ const query = (sqlClient /* : MariaSQL */, sql /* : string */) =>
     });
     setTimeout(() => {
       reject('Timeout while talking to the Database');
-    }, 30000);
+    }, 60000);
   });
 
 // Snakecase any input
