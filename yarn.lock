@@ -6717,6 +6717,13 @@ keycloak-admin@^1.8.0:
     url-join "^4.0.0"
     url-template "^2.0.8"
 
+keycloak-connect@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/keycloak-connect/-/keycloak-connect-5.0.0.tgz#fa0ebfe1e1236381d0e1b94bfb1594dab5a21497"
+  integrity sha512-9SDZc6bbNzWY1di1qEQAW4RY94t/z6hWvkj6RNro3sWV3PSuT/DNXsCyfZpEJlj5Vz60w8p496HuNdMyqsV7AQ==
+  dependencies:
+    jwk-to-pem "^2.0.0"
+
 keyv@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-3.1.0.tgz#ecc228486f69991e49e9476485a5be1e8fc5c4d9"

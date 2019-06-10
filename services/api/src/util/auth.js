@@ -1,10 +1,8 @@
-const util = require('util');
 const R = require('ramda');
 const jwt = require('jsonwebtoken');
-const jwkToPem = require('jwk-to-pem');
-const axios = require('axios');
 const logger = require('../logger');
 const { query, prepare } = require('../util/db');
+const { keycloakGrantManager } = require('../clients/keycloakClient');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
@@ -59,58 +57,17 @@ const getPermissionsForUser = async (sqlClient, userId) => {
   return permissions;
 };
 
-// Attempt to load signing key from Keycloak API.
-const fetchKeycloakKey = async (header, cb) => {
-  const lagoonRoutes =
-    (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];
-
-  const lagoonKeycloakRoute = lagoonRoutes.find(routes =>
-    routes.includes('keycloak-'),
-  );
-
-  const authServerUrl = lagoonKeycloakRoute
-    ? `${lagoonKeycloakRoute}/auth`
-    : 'http://docker.for.mac.localhost:8088/auth';
-
-  try {
-    const response = await axios.get(
-      `${authServerUrl}/realms/lagoon/protocol/openid-connect/certs`,
-    );
-    const jwks = response.data.keys;
-
-    const jwk = jwks.find(key => key.kid === header.kid);
-
-    if (!jwk) {
-      throw new Error('No keycloak key found for realm lagoon.');
-    }
-
-    cb(null, jwkToPem(jwk));
-  } catch (e) {
-    cb(e);
-  }
-};
-
 const getCredentialsForKeycloakToken = async (sqlClient, token) => {
-  const decodeToken = util.promisify(jwt.verify);
-
-  // Check for a valid keycloak token before cryptographically verifying it to
-  // save a network request.
-  const { azp } = jwt.decode(token);
-  if (!azp || azp !== 'lagoon-ui') {
-    throw new Error('Not a recognized Keycloak token.');
-  }
-
-  let decoded = '';
+  let grant = '';
   try {
-    decoded = await decodeToken(token, fetchKeycloakKey);
-
-    if (decoded == null) {
-      throw new Error('Decoding token resulted in "null" or "undefined".');
-    }
+    grant = await keycloakGrantManager.createGrant({
+      access_token: token,
+    });
   } catch (e) {
     throw new Error(`Error decoding token: ${e.message}`);
   }
 
+  const decoded = grant.access_token.content;
   let nonAdminCreds = {};
 
   if (!R.contains('admin', decoded.realm_access.roles)) {
