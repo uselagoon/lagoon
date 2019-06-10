@@ -148,9 +148,9 @@ const getProjectByName = async (
   return rows[0];
 };
 
-const addProject = async (
-  root,
-  { input },
+const getProjectsByCustomerId = async (
+  { id: customerId },
+  args,
   {
     credentials: {
       role,
@@ -159,11 +159,26 @@ const addProject = async (
     sqlClient,
   },
 ) => {
-  const cid = input.customer.toString();
-
-  if (role !== 'admin' && !R.contains(cid, customers)) {
-    throw new Error('Project creation unauthorized.');
+  if (role !== 'admin' && !R.contains(customerId, customers)) {
+    throw new Error('Unauthorized.');
   }
+
+  const rows = await query(
+    sqlClient,
+    Sql.selectProjectsByCustomerId({ customerId }),
+  );
+  return rows;
+};
+
+const addProject = async (
+  root,
+  { input },
+  {
+    hasPermission,
+    sqlClient,
+  },
+) => {
+  await hasPermission('project', 'add');
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
@@ -176,7 +191,6 @@ const addProject = async (
     `CALL CreateProject(
         :id,
         :name,
-        :customer,
         :git_url,
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
@@ -220,10 +234,10 @@ const addProject = async (
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
-  await KeycloakOperations.addGroup(project);
-  await SearchguardOperations(sqlClient).addProject(project);
+  // await KeycloakOperations.addGroup(project);
+  // await SearchguardOperations(sqlClient).addProject(project);
 
-  await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
+  // await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
 
   return project;
 };
@@ -461,6 +475,7 @@ const Resolvers /* : ResolversObj */ = {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByCustomerId,
   getAllProjects,
   updateProject,
   deleteAllProjects,

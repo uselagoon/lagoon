@@ -6,6 +6,7 @@ import type { $Request, $Response, NextFunction } from 'express';
 class Request extends express$Request {
   credentials: any
   authToken: string
+  kauth: object
 };
 */
 
@@ -73,12 +74,13 @@ const keycloak = async (
   const sqlClient = getSqlClient();
 
   try {
-    const credentials = await getCredentialsForKeycloakToken(
+    const auth = await getCredentialsForKeycloakToken(
       sqlClient,
       req.authToken,
     );
 
-    req.credentials = credentials;
+    req.credentials = auth.credentials;
+    req.kauth = { grant: auth.grant };
   } catch (e) {
     // It might be a legacy token, so continue on.
     logger.debug(`Keycloak token auth failed: ${e.message}`);

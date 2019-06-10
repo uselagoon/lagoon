@@ -64,7 +64,7 @@ const Sql /* : SqlObj */ = {
       .toString(),
   selectPermsForTask: (id /* : number */) =>
     knex('task')
-      .select({ pid: 'project.id', cid: 'project.customer' })
+      .select({ pid: 'project.id' })
       .join('environment', 'task.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')
       .where('task.id', id)

@@ -10,11 +10,16 @@ const { applyMiddleware } = require('graphql-middleware');
 const {
   getCredentialsForLegacyToken,
   getCredentialsForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
+
+const User = require('./models/user');
+const Group = require('./models/group');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -86,6 +91,10 @@ const apolloServer = new ApolloServer({
       return { credentials };
     },
   },
+  dataSources: () => ({
+    UserModel: User.User(),
+    GroupModel: Group.Group(),
+  }),
   context: ({ req, connection }) => {
     // Websocket requests
     if (connection) {
@@ -102,6 +111,9 @@ const apolloServer = new ApolloServer({
         // Express middleware must always provide req.credentials.
         credentials: req.credentials,
         sqlClient: getSqlClient(),
+        hasPermission: req.kauth ?
+          keycloakHasPermission(req.kauth.grant) :
+          legacyHasPermission(req.credentials),
       };
     }
   },
