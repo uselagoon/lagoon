@@ -148,6 +148,28 @@ const getProjectByName = async (
   return rows[0];
 };
 
+const getProjectsByCustomerId = async (
+  { id: customerId },
+  args,
+  {
+    credentials: {
+      role,
+      permissions: { customers },
+    },
+    sqlClient,
+  },
+) => {
+  if (role !== 'admin' && !R.contains(customerId, customers)) {
+    throw new Error('Unauthorized.');
+  }
+
+  const rows = await query(
+    sqlClient,
+    Sql.selectProjectsByCustomerId({ customerId }),
+  );
+  return rows;
+};
+
 const addProject = async (
   root,
   { input },
@@ -461,6 +483,7 @@ const Resolvers /* : ResolversObj */ = {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByCustomerId,
   getAllProjects,
   updateProject,
   deleteAllProjects,

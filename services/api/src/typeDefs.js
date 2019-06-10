@@ -127,7 +127,6 @@ const typeDefs = gql`
     \`\`\`
     """
     privateKey: String
-    users: [User]
     created: String
     projects: [Project]
   }
@@ -252,10 +251,6 @@ const typeDefs = gql`
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
     openshiftProjectPattern: String
-    """
-    Which Developer SSH keys should have access to this project
-    """
-    users: [User]
     """
     How many environments can be deployed at one timeout
     """
@@ -742,26 +737,6 @@ const typeDefs = gql`
     id: Int!
   }
 
-  input AddUserToProjectInput {
-    project: String!
-    userId: Int!
-  }
-
-  input RemoveUserFromProjectInput {
-    project: String!
-    userId: Int!
-  }
-
-  input AddUserToCustomerInput {
-    customer: String!
-    userId: Int!
-  }
-
-  input RemoveUserFromCustomerInput {
-    customer: String!
-    userId: Int!
-  }
-
   input DeleteProjectInput {
     project: String!
   }
@@ -980,11 +955,7 @@ const typeDefs = gql`
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    addUserToCustomer(input: AddUserToCustomerInput!): Customer
-    removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
     removeAllUsersFromAllCustomers: String
-    addUserToProject(input: AddUserToProjectInput!): Project
-    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
     removeAllUsersFromAllProjects: String
     addDeployment(input: DeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
