@@ -16,6 +16,8 @@ const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
+const User = require('./models/user');
+
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const operationBlacklist = R.split(
@@ -86,6 +88,9 @@ const apolloServer = new ApolloServer({
       return { credentials };
     },
   },
+  dataSources: () => ({
+    UserModel: User.User(),
+  }),
   context: ({ req, connection }) => {
     // Websocket requests
     if (connection) {

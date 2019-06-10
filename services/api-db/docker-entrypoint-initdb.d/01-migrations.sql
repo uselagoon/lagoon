@@ -645,6 +645,26 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  convert_user_ssh_key_usid_to_char()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'user_ssh_key'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'usid';
+
+    IF (column_type = 'int') THEN
+      ALTER TABLE user_ssh_key
+      MODIFY usid char(36) NOT NULL;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -678,6 +698,7 @@ CALL convert_task_command_to_text();
 CALL add_key_fingerprint_to_ssh_key();
 CALL add_autoidle_to_environment();
 CALL add_deploy_base_head_ref_title_to_environment();
+CALL convert_user_ssh_key_usid_to_char();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

@@ -77,6 +77,9 @@ function configure_api_client {
         return 0
     fi
 
+    # Enable username edit
+    /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -s editUsernameAllowed=true
+
     # Setup composite roles. Each role will include the roles to the left of it
     composite_role_names=(guest reporter developer maintainer owner)
     composites_add=()

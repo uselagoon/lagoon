@@ -93,7 +93,7 @@ const typeDefs = gql`
   }
 
   type User {
-    id: Int
+    id: String
     email: String
     firstName: String
     lastName: String
@@ -712,7 +712,6 @@ const typeDefs = gql`
   }
 
   input AddUserInput {
-    id: Int
     email: String!
     firstName: String
     lastName: String
@@ -729,12 +728,12 @@ const typeDefs = gql`
   }
 
   input UpdateUserInput {
-    id: Int!
+    id: String!
     patch: UpdateUserPatchInput!
   }
 
   input DeleteUserInput {
-    id: Int!
+    id: String!
   }
 
   input DeleteProjectInput {
@@ -968,7 +967,6 @@ const typeDefs = gql`
     createAllProjectsInKeycloak: String
     createAllProjectsInSearchguard: String
     resyncCustomersWithSearchguard: String
-    createAllUsersInKeycloak: String
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task

@@ -114,13 +114,11 @@ const {
 } = require('./resources/sshKey/resolvers');
 
 const {
-  getUsersByProjectId,
   getUserBySshKey,
   addUser,
   updateUser,
   deleteUser,
   deleteAllUsers,
-  createAllUsersInKeycloak,
 } = require('./resources/user/resolvers');
 
 const {
@@ -150,7 +148,6 @@ import type {ResolversObj} from './resources';
 const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   Project: {
     customer: getCustomerByProjectId,
-    users: getUsersByProjectId,
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
@@ -260,7 +257,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     createAllProjectsInKeycloak,
     createAllProjectsInSearchguard,
     resyncCustomersWithSearchguard,
-    createAllUsersInKeycloak,
     addEnvVariable,
     deleteEnvVariable,
     addTask,
