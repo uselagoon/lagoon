@@ -1,7 +1,7 @@
 // @flow
 
 const R = require('ramda');
-const keycloakClient = require('../../clients/keycloakClient');
+const { keycloakAdminClient } = require('../../clients/keycloakClient');
 const logger = require('../../logger');
 const sleep = require('es7-sleep');
 
@@ -142,7 +142,7 @@ const updateUser = async (
       originalEmail,
     );
 
-    const groups = await keycloakClient.users.listGroups({
+    const groups = await keycloakAdminClient.users.listGroups({
       id: keycloakUserId,
     });
 

@@ -6,7 +6,7 @@ import type MariaSQL from 'mariasql';
 
 const R = require('ramda');
 const { asyncPipe } = require('@lagoon/commons/src/util');
-const keycloakClient = require('../../clients/keycloakClient');
+const { keycloakAdminClient } = require('../../clients/keycloakClient');
 const { query } = require('../../util/db');
 const logger = require('../../logger');
 
@@ -158,7 +158,7 @@ const Helpers = (sqlClient /* : MariaSQL */) => {
           sqlClient,
         ).getKeycloakUserIdByUsername(email);
 
-        await keycloakClient.users.addToGroup({
+        await keycloakAdminClient.users.addToGroup({
           id: keycloakUserId,
           groupId: keycloakGroupId,
         });
