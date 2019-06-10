@@ -3,7 +3,7 @@ import { keycloakAdminClient } from '../clients/keycloakClient';
 import pickNonNil from '../util/pickNonNil';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 
-interface User {
+export interface User {
   email: string;
   username: string;
   id?: string;
@@ -26,6 +26,8 @@ interface UserEdit {
 interface UserModel {
   loadAllUsers: () => Promise<User[]>;
   loadUserById: (id: string) => Promise<User>;
+  loadUserByUsername: (username: string) => Promise<User>;
+  loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
@@ -69,7 +71,7 @@ const fetchGitlabId = async (user: User): Promise<string> => {
   return R.defaultTo('', R.prop('userId', gitlabIdentity));
 };
 
-const transformKeycloakUsers = async (
+export const transformKeycloakUsers = async (
   keycloakUsers: UserRepresentation[],
 ): Promise<User[]> => {
   // Map from keycloak object to user object
@@ -149,6 +151,32 @@ const loadUserById = async (id: string): Promise<User> => {
   const users = await transformKeycloakUsers([keycloakUser]);
 
   return users[0];
+};
+
+const loadUserByUsername = async (username: string): Promise<User> => {
+  const keycloakUsers = await keycloakAdminClient.users.find({
+    username,
+  });
+
+  if (R.isEmpty(keycloakUsers)) {
+    throw new UserNotFoundError(`User not found: ${username}`);
+  }
+
+  const users = await transformKeycloakUsers(keycloakUsers);
+
+  return users[0];
+};
+
+const loadUserByIdOrUsername = async (userInput: UserEdit): Promise<User> => {
+  if (R.prop('id', userInput)) {
+    return loadUserById(R.prop('id', userInput));
+  }
+
+  if (R.prop('username', userInput)) {
+    return loadUserByUsername(R.prop('username', userInput));
+  }
+
+  throw new Error(`You must provide a user id or username`);
 };
 
 const loadAllUsers = async (): Promise<User[]> => {
@@ -249,6 +277,8 @@ const deleteUser = async (id: string): Promise<void> => {
 export const User = (): UserModel => ({
   loadAllUsers,
   loadUserById,
+  loadUserByUsername,
+  loadUserByIdOrUsername,
   addUser,
   updateUser,
   deleteUser,

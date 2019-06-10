@@ -59,7 +59,7 @@ type SubscribeObj = {
 };
 
 export type ResolversObj = {
-  [string]: ResolverFn | SubscribeObj
+  [string]: ResolverFn | SubscribeObj | string
 };
 
 type SqlFn = (...args: Array<any>) => string;

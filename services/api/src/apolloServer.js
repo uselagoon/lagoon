@@ -17,6 +17,7 @@ const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
 const User = require('./models/user');
+const Group = require('./models/group');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -90,6 +91,7 @@ const apolloServer = new ApolloServer({
   },
   dataSources: () => ({
     UserModel: User.User(),
+    GroupModel: Group.Group(),
   }),
   context: ({ req, connection }) => {
     // Websocket requests

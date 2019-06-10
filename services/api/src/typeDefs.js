@@ -76,6 +76,14 @@ const typeDefs = gql`
     CREATED
   }
 
+  enum GroupRole {
+    GUEST
+    REPORTER
+    DEVELOPER
+    MAINTAINER
+    OWNER
+  }
+
   type File {
     id: Int
     filename: String
@@ -100,6 +108,18 @@ const typeDefs = gql`
     comment: String
     gitlabId: Int
     sshKeys: [SshKey]
+  }
+
+  type GroupMembership {
+    user: User
+    role: GroupRole
+  }
+
+  type Group {
+    id: String
+    name: String
+    groups: [Group]
+    members: [GroupMembership]
   }
 
   """
@@ -895,6 +915,51 @@ const typeDefs = gql`
     destinationEnvironment: String!
   }
 
+  input GroupInput {
+    id: String
+    name: String
+  }
+
+  input AddGroupInput {
+    id: String
+    name: String!
+    parentGroup: GroupInput
+  }
+
+  input UpdateGroupPatchInput {
+    name: String
+  }
+
+  input UpdateGroupInput {
+    id: String!
+    patch: UpdateGroupPatchInput!
+  }
+
+  input DeleteGroupInput {
+    id: String!
+  }
+
+  input UserInput {
+    id: String
+    email: String
+  }
+
+  input UserGroupInput {
+    user: UserInput!
+    group: GroupInput!
+  }
+
+  input UserGroupRoleInput {
+    user: UserInput!
+    group: GroupInput!
+    role: GroupRole!
+  }
+
+  input ProjectGroupsInput {
+    project: ProjectInput!
+    groups: [GroupInput!]!
+  }
+
   type Mutation {
     addCustomer(input: AddCustomerInput!): Customer
     updateCustomer(input: UpdateCustomerInput!): Customer
@@ -990,6 +1055,14 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    addGroup(input: AddGroupInput!): Group
+    updateGroup(input: UpdateGroupInput!): Group
+    deleteGroup(input: DeleteGroupInput!): String
+    deleteAllGroups: String
+    addUserToGroup(input: UserGroupRoleInput!): Group
+    removeUserFromGroup(input: UserGroupInput!): Group
+    addGroupsToProject(input: ProjectGroupsInput): Project
+    removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 
   type Subscription {

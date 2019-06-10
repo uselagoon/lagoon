@@ -122,6 +122,17 @@ const {
 } = require('./resources/user/resolvers');
 
 const {
+  addGroup,
+  updateGroup,
+  deleteGroup,
+  deleteAllGroups,
+  addUserToGroup,
+  removeUserFromGroup,
+  addGroupsToProject,
+  removeGroupsFromProject,
+} = require('./resources/group/resolvers');
+
+const {
   addBackup,
   getBackupsByEnvironmentId,
   deleteBackup,
@@ -146,6 +157,13 @@ import type {ResolversObj} from './resources';
 */
 
 const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
+  GroupRole: {
+    GUEST: 'guest',
+    REPORTER: 'reporter',
+    DEVELOPER: 'developer',
+    MAINTAINER: 'maintainer',
+    OWNER: 'owner',
+  },
   Project: {
     customer: getCustomerByProjectId,
     notifications: getNotificationsByProjectId,
@@ -274,6 +292,14 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
+    addGroup,
+    updateGroup,
+    deleteGroup,
+    deleteAllGroups,
+    addUserToGroup,
+    removeUserFromGroup,
+    addGroupsToProject,
+    removeGroupsFromProject,
   },
   Subscription: {
     backupChanged: backupSubscriber,
