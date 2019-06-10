@@ -3,17 +3,6 @@
 const GraphQLDate = require('graphql-iso-date');
 
 const {
-  addCustomer,
-  deleteCustomer,
-  getAllCustomers,
-  getCustomerByProjectId,
-  updateCustomer,
-  getCustomerByName,
-  deleteAllCustomers,
-  resyncCustomersWithSearchguard,
-} = require('./resources/customer/resolvers');
-
-const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
@@ -96,7 +85,6 @@ const {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
-  getProjectsByCustomerId,
   getAllProjects,
   updateProject,
   deleteAllProjects,
@@ -165,7 +153,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     OWNER: 'owner',
   },
   Project: {
-    customer: getCustomerByProjectId,
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
@@ -203,9 +190,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
       }
     },
   },
-  Customer: {
-    projects: getProjectsByCustomerId,
-  },
   User: {
     sshKeys: getUserSshKeys,
   },
@@ -214,7 +198,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Query: {
     userBySshKey: getUserBySshKey,
-    customerByName: getCustomerByName,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
     environmentByName: getEnvironmentByName,
@@ -222,15 +205,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     allProjects: getAllProjects,
-    allCustomers: getAllCustomers,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
   },
   Mutation: {
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    deleteAllCustomers,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -274,7 +252,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateRestore,
     createAllProjectsInKeycloak,
     createAllProjectsInSearchguard,
-    resyncCustomersWithSearchguard,
     addEnvVariable,
     deleteEnvVariable,
     addTask,

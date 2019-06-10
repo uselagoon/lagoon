@@ -122,35 +122,6 @@ const typeDefs = gql`
     members: [GroupMembership]
   }
 
-  """
-  Lagoon Customer (used for grouping multiple Projects)
-  """
-  type Customer {
-    """
-    Internal ID of this customer
-    """
-    id: Int
-    """
-    Name of customer
-    """
-    name: String
-    """
-    Arbitrary String for some comment
-    """
-    comment: String
-    """
-    SSH Private Key of Customer
-    Will be used to authenticate against the Git Repos of the Project that are assigned to this project
-    Needs to be in single string separated by \`\n\`, example:
-    \`\`\`
-    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
-    \`\`\`
-    """
-    privateKey: String
-    created: String
-    projects: [Project]
-  }
-
   type Openshift {
     id: Int
     name: String
@@ -197,10 +168,6 @@ const typeDefs = gql`
     Name of project
     """
     name: String
-    """
-    Reference to customer object
-    """
-    customer: Customer
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@192.168.99.1/project1.git
@@ -474,10 +441,6 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
-    Returns Customer Object by a given name
-    """
-    customerByName(name: String!): Customer
-    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
@@ -498,10 +461,6 @@ const typeDefs = gql`
     Returns all Project Objects matching given filters (all if no filter defined)
     """
     allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
-    """
-    Returns all Customer Objects matching given filter (all if no filter defined)
-    """
-    allCustomers(createdAfter: String): [Customer]
     """
     Returns all OpenShift Objects
     """
@@ -540,7 +499,6 @@ const typeDefs = gql`
   input AddProjectInput {
     id: Int
     name: String!
-    customer: Int!
     gitUrl: String!
     subfolder: String
     openshift: Int!
@@ -608,12 +566,6 @@ const typeDefs = gql`
     restoreLocation: String
   }
 
-  input AddCustomerInput {
-    id: Int
-    name: String!
-    comment: String
-    privateKey: String
-  }
 
   input DeploymentInput {
     id: Int
@@ -695,10 +647,6 @@ const typeDefs = gql`
     name: String!
   }
 
-  input DeleteCustomerInput {
-    name: String!
-  }
-
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
@@ -762,7 +710,6 @@ const typeDefs = gql`
 
   input UpdateProjectPatchInput {
     name: String
-    customer: Int
     gitUrl: String
     subfolder: String
     activeSystemsDeploy: String
@@ -781,18 +728,6 @@ const typeDefs = gql`
   input UpdateProjectInput {
     id: Int!
     patch: UpdateProjectPatchInput!
-  }
-
-  input UpdateCustomerPatchInput {
-    name: String
-    comment: String
-    privateKey: String
-    created: String
-  }
-
-  input UpdateCustomerInput {
-    id: Int!
-    patch: UpdateCustomerPatchInput!
   }
 
   input UpdateOpenshiftPatchInput {
@@ -961,10 +896,6 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    addCustomer(input: AddCustomerInput!): Customer
-    updateCustomer(input: UpdateCustomerInput!): Customer
-    deleteCustomer(input: DeleteCustomerInput!): String
-    deleteAllCustomers: String
     """
     Add Environment or update if it is already existing
     """
@@ -1019,7 +950,6 @@ const typeDefs = gql`
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    removeAllUsersFromAllCustomers: String
     removeAllUsersFromAllProjects: String
     addDeployment(input: DeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
@@ -1031,7 +961,6 @@ const typeDefs = gql`
     updateRestore(input: UpdateRestoreInput!): Restore
     createAllProjectsInKeycloak: String
     createAllProjectsInSearchguard: String
-    resyncCustomersWithSearchguard: String
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
