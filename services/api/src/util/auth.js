@@ -1,4 +1,5 @@
 const R = require('ramda');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const logger = require('../logger');
 const { query, prepare } = require('../util/db');
@@ -89,9 +90,12 @@ const getCredentialsForKeycloakToken = async (sqlClient, token) => {
   }
 
   return {
-    role: 'admin',
-    permissions: {},
-    ...nonAdminCreds,
+    credentials: {
+      role: 'admin',
+      permissions: {},
+      ...nonAdminCreds,
+    },
+    grant,
   };
 };
 
@@ -151,8 +155,72 @@ const getCredentialsForLegacyToken = async (sqlClient, token) => {
   );
 };
 
+// Legacy tokens should only be granted by services, which will have admin role.
+const legacyHasPermission = (credentials) => {
+  const { role } = credentials;
+
+  return async (resource, scope) => {
+    if (role !== 'admin') {
+      throw new Error('Unauthorized');
+    }
+  };
+};
+
+const keycloakHasPermission = (grant) => {
+  return async (resource, scopeInput, attributes = {}) => {
+    const scopes = (typeof scope === 'string') ? [scopeInput] : scopeInput;
+
+    // Check the current token for permissions.
+    for (const scope of scopes) {
+      if (grant.access_token.hasPermission(resource, scope)) {
+        return;
+      }
+    }
+
+    const claims = {
+      organization: ['acme'],
+    };
+
+    // Ask keycloak for a new token (RPT).
+    const authzRequest = {
+      claim_token: Buffer.from(JSON.stringify(grant.access_token.content)).toString('base64'),
+      claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+      permissions: [
+        {
+          id: resource,
+          scopes,
+        },
+      ],
+    };
+    const request = {
+      headers: {},
+      kauth: {
+        grant,
+      },
+    };
+
+    try {
+      const newGrant = await keycloakGrantManager.checkPermissions(authzRequest, request);
+
+      for (const scope of scopes) {
+        if (newGrant.access_token.hasPermission(resource, scope)) {
+          return;
+        }
+      }
+    } catch (err) {
+      // Keycloak library doesn't distinguish between a request error or access
+      // denied conditions.
+      throw new Error('Unauthorized');
+    }
+
+    throw new Error('Unauthorized');
+  };
+};
+
 module.exports = {
   splitCommaSeparatedPermissions,
   getCredentialsForLegacyToken,
   getCredentialsForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
 };

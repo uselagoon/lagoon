@@ -10,6 +10,8 @@ const { applyMiddleware } = require('graphql-middleware');
 const {
   getCredentialsForLegacyToken,
   getCredentialsForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
 const logger = require('./logger');
@@ -109,6 +111,9 @@ const apolloServer = new ApolloServer({
         // Express middleware must always provide req.credentials.
         credentials: req.credentials,
         sqlClient: getSqlClient(),
+        hasPermission: req.kauth ?
+          keycloakHasPermission(req.kauth.grant) :
+          legacyHasPermission(req.credentials),
       };
     }
   },

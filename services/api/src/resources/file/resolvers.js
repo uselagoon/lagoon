@@ -30,23 +30,15 @@ const getFilesByTaskId = async (
   { id: tid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(tid));
+  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(tid));
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   const rows = await query(sqlClient, Sql.selectTaskFiles(tid));
 
@@ -61,23 +53,15 @@ const uploadFilesForTask = async (
   root,
   { input: { task, files } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(task));
+  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(task));
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('task', 'update', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   const resolvedFiles = await Promise.all(files);
   const uploadAndTrackFiles = resolvedFiles.map(async newFile => {
@@ -119,11 +103,13 @@ const uploadFilesForTask = async (
 const deleteFilesForTask = async (
   root,
   { input: { id } },
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(id));
+
+  await hasPermission('task', 'delete', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   const rows = await query(sqlClient, Sql.selectTaskFiles(id));
   const deleteObjects = R.map(file => ({ Key: file.s3Key }), rows);

@@ -5,11 +5,9 @@ import Sql from './sql';
 export const getUserBySshKey = async (
   _root,
   { sshKey },
-  { credentials: { role }, sqlClient, dataSources },
+  { sqlClient, dataSources, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('user', 'getBySshKey');
 
   const [keyType, keyValue] = R.compose(
     R.split(' '),
@@ -28,7 +26,13 @@ export const getUserBySshKey = async (
   return user;
 };
 
-export const addUser = async (_root, { input }, { dataSources }) => {
+export const addUser = async (
+  _root,
+  { input },
+  { dataSources, hasPermission },
+) => {
+  await hasPermission('user', 'add');
+
   const user = await dataSources.UserModel.addUser({
     email: input.email,
     username: input.email,
@@ -44,15 +48,15 @@ export const addUser = async (_root, { input }, { dataSources }) => {
 export const updateUser = async (
   _root,
   { input: { id, patch } },
-  { credentials: { role, userId }, dataSources },
+  { credentials: { userId }, dataSources, hasPermission },
 ) => {
-  if (role !== 'admin' && !R.equals(userId, id)) {
-    throw new Error('Unauthorized.');
-  }
-
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
   }
+
+  await hasPermission('user', 'update', {
+    user: userId,
+  });
 
   const user = await dataSources.UserModel.updateUser({
     id,
@@ -70,11 +74,11 @@ export const updateUser = async (
 export const deleteUser = async (
   _root,
   { input: { id } },
-  { credentials: { role, userId }, dataSources },
+  { credentials: { userId }, dataSources, hasPermission },
 ) => {
-  if (role !== 'admin' && !R.equals(userId, id)) {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('user', 'delete', {
+    user: userId,
+  });
 
   await dataSources.UserModel.deleteUser(id);
 
@@ -84,11 +88,9 @@ export const deleteUser = async (
 export const deleteAllUsers = async (
   _root,
   _args,
-  { credentials: { role }, dataSources },
+  { dataSources, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('user', 'deleteAll');
 
   const users = await dataSources.UserModel.loadAllUsers();
   const userIds = R.pluck('id', users);
@@ -102,7 +104,7 @@ export const deleteAllUsers = async (
     // in the tests right now and the number of users for that use case is low.
     await Promise.all(deleteUsers);
   } catch (err) {
-    throw new Error(`Could not delete all users: ${err.message}`)
+    throw new Error(`Could not delete all users: ${err.message}`);
   }
 
   return 'success';

@@ -174,18 +174,11 @@ const addProject = async (
   root,
   { input },
   {
-    credentials: {
-      role,
-      permissions: { customers },
-    },
+    hasPermission,
     sqlClient,
   },
 ) => {
-  const cid = input.customer.toString();
-
-  if (role !== 'admin' && !R.contains(cid, customers)) {
-    throw new Error('Project creation unauthorized.');
-  }
+  await hasPermission('project', 'add');
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
@@ -198,7 +191,6 @@ const addProject = async (
     `CALL CreateProject(
         :id,
         :name,
-        :customer,
         :git_url,
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
@@ -242,10 +234,10 @@ const addProject = async (
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
-  await KeycloakOperations.addGroup(project);
-  await SearchguardOperations(sqlClient).addProject(project);
+  // await KeycloakOperations.addGroup(project);
+  // await SearchguardOperations(sqlClient).addProject(project);
 
-  await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
+  // await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
 
   return project;
 };
