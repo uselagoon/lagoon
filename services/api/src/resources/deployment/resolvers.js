@@ -271,7 +271,7 @@ const updateDeployment = async (
     project: R.path(['0', 'pid'], permsDeployment),
   });
   // Check access to modify deployment as it will be updated
-  await hasPermission('environment', ['view', `type:${permsEnv.environment_type}`], {
+  await hasPermission('environment', 'view', {
     project: permsEnv.project,
   });
 
@@ -649,7 +649,7 @@ const deployEnvironmentPromote = async (
 
   const sourceEnvironment = R.prop(0, activeEnvironments);
 
-  await hasPermission('environment', ['view', `type:${sourceEnvironment.environment_type}`], {
+  await hasPermission('environment', 'view', {
     project: sourceEnvironment.project,
   });
 

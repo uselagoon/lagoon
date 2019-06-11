@@ -3,7 +3,9 @@ import validator from 'validator';
 import { isPatchEmpty } from '../../util/db';
 import * as projectHelpers from '../project/helpers';
 
-export const addGroup = async (_root, { input }, { dataSources }) => {
+export const addGroup = async (_root, { input }, { dataSources, hasPermission }) => {
+  await hasPermission('group', 'add');
+
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!',
@@ -33,11 +35,11 @@ export const addGroup = async (_root, { input }, { dataSources }) => {
 export const updateGroup = async (
   _root,
   { input: { id, patch } },
-  { credentials: { role, userId }, dataSources },
+  { dataSources, hasPermission },
 ) => {
-  if (role !== 'admin' && !R.equals(userId, id)) {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('group', 'update', {
+    group: id,
+  });
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -62,11 +64,11 @@ export const updateGroup = async (
 export const deleteGroup = async (
   _root,
   { input: { id } },
-  { credentials: { role, userId }, dataSources },
+  { dataSources, hasPermission },
 ) => {
-  if (role !== 'admin' && !R.equals(userId, id)) {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('group', 'delete', {
+    group: id,
+  });
 
   await dataSources.GroupModel.deleteGroup(id);
 
@@ -76,11 +78,9 @@ export const deleteGroup = async (
 export const deleteAllGroups = async (
   _root,
   _args,
-  { credentials: { role }, dataSources },
+  { dataSources, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('group', 'deleteAll');
 
   const groups = await dataSources.GroupModel.loadAllGroups();
   const groupIds = R.pluck('id', groups);
@@ -103,7 +103,7 @@ export const deleteAllGroups = async (
 export const addUserToGroup = async (
   _root,
   { input: { user: userInput, group: groupInput, role } },
-  { dataSources },
+  { dataSources, hasPermission },
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -119,6 +119,10 @@ export const addUserToGroup = async (
   }
 
   const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
+
+  await hasPermission('group', 'addUser', {
+    group: group.id,
+  });
 
   await dataSources.GroupModel.removeUserFromGroup(user, group);
   const updatedGroup = await dataSources.GroupModel.addUserToGroup(
@@ -133,7 +137,7 @@ export const addUserToGroup = async (
 export const removeUserFromGroup = async (
   _root,
   { input: { user: userInput, group: groupInput } },
-  { dataSources },
+  { dataSources, hasPermission },
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -150,6 +154,10 @@ export const removeUserFromGroup = async (
 
   const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
 
+  await hasPermission('group', 'removeUser', {
+    group: group.id,
+  });
+
   const updatedGroup = await dataSources.GroupModel.removeUserFromGroup(
     user,
     group,
@@ -161,11 +169,15 @@ export const removeUserFromGroup = async (
 export const addGroupsToProject = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { dataSources, sqlClient },
+  { dataSources, sqlClient, hasPermission },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+
+  await hasPermission('project', 'addGroup', {
+    project: project.id,
+  });
 
   if (R.isEmpty(groupsInput)) {
     throw new Error('You must provide groups');
@@ -188,11 +200,15 @@ export const addGroupsToProject = async (
 export const removeGroupsFromProject = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { dataSources, sqlClient },
+  { dataSources, sqlClient, hasPermission },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+
+  await hasPermission('project', 'removeGroup', {
+    project: project.id,
+  });
 
   if (R.isEmpty(groupsInput)) {
     throw new Error('You must provide groups');

@@ -33,7 +33,6 @@ const Sql /* : SqlObj */ = {
       .toString();
   },
   deleteProjectNotification: (
-    { role, permissions: { projects } } /* : Cred */,
     input /* : Object */,
   ) => {
     const { project, notificationType, notificationName } = input;
@@ -44,10 +43,6 @@ const Sql /* : SqlObj */ = {
         [notificationType],
       )
       .leftJoin('project AS p', 'pn.pid', '=', 'p.id');
-
-    if (role !== 'admin') {
-      deleteQuery.whereIn('pn.pid', projects);
-    }
 
     return deleteQuery
       .where('p.name', project)
@@ -89,7 +84,6 @@ const Sql /* : SqlObj */ = {
       .toString();
   },
   selectNotificationsByTypeByProjectId: (
-    { credentials: { role, permissions: { projects } } /* : Cred */ },
     input /* : Object */,
   ) => {
     const { type, pid } = input;
@@ -97,10 +91,6 @@ const Sql /* : SqlObj */ = {
       `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
       [type],
     );
-
-    if (role !== 'admin') {
-      selectQuery.whereIn('pn.pid', projects);
-    }
 
     return selectQuery
       .where('pn.pid', '=', pid)
