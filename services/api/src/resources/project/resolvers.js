@@ -29,21 +29,16 @@ const getAllProjects = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('project', 'viewAll');
+
   // We need one "WHERE" keyword, but we have multiple optional conditions
   const where = whereAnd([
     args.createdAfter ? 'created >= :created_after' : '',
     args.gitUrl ? 'git_url = :git_url' : '',
-    ifNotAdmin(
-      role,
-      `(${inClauseOr([['customer', customers], ['project.id', projects]])})`,
-    ),
   ]);
 
   const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
@@ -58,11 +53,8 @@ const getProjectByEnvironmentId = async (
   { id: eid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const prep = prepare(
@@ -72,28 +64,27 @@ const getProjectByEnvironmentId = async (
       FROM environment e
       JOIN project p ON e.project = p.id
       WHERE e.id = :eid
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
       LIMIT 1
     `,
   );
 
   const rows = await query(sqlClient, prep({ eid }));
 
-  return rows ? rows[0] : null;
+  const project = rows[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id,
+  });
+
+  return project;
 };
 
 const getProjectByGitUrl = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const str = `
@@ -101,31 +92,27 @@ const getProjectByGitUrl = async (
         *
       FROM project
       WHERE git_url = :git_url
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([
-      ['customer', customers],
-      ['project.id', projects],
-    ])})`,
-  )}
       LIMIT 1
     `;
 
   const prep = prepare(sqlClient, str);
   const rows = await query(sqlClient, prep(args));
 
-  return rows ? rows[0] : null;
+  const project = rows[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id,
+  });
+
+  return project;
 };
 
 const getProjectByName = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const str = `
@@ -133,41 +120,18 @@ const getProjectByName = async (
         *
       FROM project
       WHERE name = :name
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([
-      ['customer', customers],
-      ['project.id', projects],
-    ])})`,
-  )}
     `;
 
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-  return rows[0];
-};
+  const project = rows[0];
 
-const getProjectsByCustomerId = async (
-  { id: customerId },
-  args,
-  {
-    credentials: {
-      role,
-      permissions: { customers },
-    },
-    sqlClient,
-  },
-) => {
-  if (role !== 'admin' && !R.contains(customerId, customers)) {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('project', 'view', {
+    project: project.id,
+  });
 
-  const rows = await query(
-    sqlClient,
-    Sql.selectProjectsByCustomerId({ customerId }),
-  );
-  return rows;
+  return project;
 };
 
 const addProject = async (
@@ -234,6 +198,7 @@ const addProject = async (
   const rows = await query(sqlClient, prep(input));
   const project = R.path([0, 0], rows);
 
+  // TODO
   // await KeycloakOperations.addGroup(project);
   // await SearchguardOperations(sqlClient).addProject(project);
 
@@ -246,34 +211,30 @@ const deleteProject = async (
   root,
   { input: { project } },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClient).getProjectIdByName(project);
 
-  if (role !== 'admin') {
-    if (!R.contains(pid, projects)) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('project', 'delete', {
+    project: pid,
+  });
 
   const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
   await query(sqlClient, prep({ project }));
 
-  await KeycloakOperations.deleteGroup(project);
+  // TODO searchguard
+  //await KeycloakOperations.deleteGroup(project);
 
-  try {
-    // Delete SearchGuard Role for this project with the same name as the Project
-    await searchguardClient.delete(`roles/${project}`);
-  } catch (err) {
-    logger.error(`SearchGuard delete role error: ${err}`);
-    throw new Error(`SearchGuard delete role error: ${err}`);
-  }
+  // try {
+  //   // Delete SearchGuard Role for this project with the same name as the Project
+  //   await searchguardClient.delete(`roles/${project}`);
+  // } catch (err) {
+  //   logger.error(`SearchGuard delete role error: ${err}`);
+  //   throw new Error(`SearchGuard delete role error: ${err}`);
+  // }
   // TODO: maybe check rows for changed result
   return 'success';
 };
@@ -286,7 +247,6 @@ const updateProject = async (
       patch,
       patch: {
         name,
-        customer,
         gitUrl,
         subfolder,
         activeSystemsDeploy,
@@ -304,16 +264,13 @@ const updateProject = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin' && !R.contains(id.toString(), projects)) {
-    throw new Error('Unauthorized');
-  }
+  await hasPermission('project', 'update', {
+    project: id,
+  });
 
   if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -327,9 +284,9 @@ const updateProject = async (
     }
   }
 
-  const originalProject = await Helpers(sqlClient).getProjectById(id);
-  const originalName = R.prop('name', originalProject);
-  const originalCustomer = parseInt(R.prop('customer', originalProject));
+  // const originalProject = await Helpers(sqlClient).getProjectById(id);
+  // const originalName = R.prop('name', originalProject);
+  // const originalCustomer = parseInt(R.prop('customer', originalProject));
 
   // // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
   // if (typeof customer === 'number' && customer !== originalCustomer) {
@@ -360,7 +317,6 @@ const updateProject = async (
       id,
       patch: {
         name,
-        customer,
         gitUrl,
         subfolder,
         activeSystemsDeploy,
@@ -378,14 +334,14 @@ const updateProject = async (
     }),
   );
 
-  if (typeof name === 'string' && name !== originalName) {
-    const groupId = await KeycloakOperations.findGroupIdByName(originalName);
+  // if (typeof name === 'string' && name !== originalName) {
+  //   const groupId = await KeycloakOperations.findGroupIdByName(originalName);
 
-    await keycloakAdminClient.groups.update({ id: groupId }, { name });
-    logger.debug(
-      `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
-    );
-  }
+  //   await keycloakAdminClient.groups.update({ id: groupId }, { name });
+  //   logger.debug(
+  //     `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
+  //   );
+  // }
 
   // if (typeof customer === 'number' && customer !== originalCustomer) {
   //   // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
@@ -412,50 +368,49 @@ const updateProject = async (
   return Helpers(sqlClient).getProjectById(id);
 };
 
+// TODO searchguard
 const createAllProjectsInKeycloak = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  // if (role !== 'admin') {
+  //   throw new Error('Unauthorized.');
+  // }
 
-  const projects = await query(sqlClient, Sql.selectAllProjects());
+  // const projects = await query(sqlClient, Sql.selectAllProjects());
 
-  for (const project of projects) {
-    await KeycloakOperations.addGroup(project);
-  }
+  // for (const project of projects) {
+  //   await KeycloakOperations.addGroup(project);
+  // }
 
-  return 'success';
+  // return 'success';
 };
 
 const createAllProjectsInSearchguard = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  // if (role !== 'admin') {
+  //   throw new Error('Unauthorized.');
+  // }
 
-  const projects = await query(sqlClient, Sql.selectAllProjects());
+  // // const projects = await query(sqlClient, Sql.selectAllProjects());
 
-  for (const project of projects) {
-    await SearchguardOperations(sqlClient).addProject(project);
-  }
+  // // for (const project of projects) {
+  // //   await SearchguardOperations(sqlClient).addProject(project);
+  // // }
 
-  return 'success';
+  // return 'success';
 };
 
 const deleteAllProjects = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('project', 'deleteAll');
 
   const projectNames = await Helpers(sqlClient).getAllProjectNames();
 
@@ -475,7 +430,6 @@ const Resolvers /* : ResolversObj */ = {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
-  getProjectsByCustomerId,
   getAllProjects,
   updateProject,
   deleteAllProjects,

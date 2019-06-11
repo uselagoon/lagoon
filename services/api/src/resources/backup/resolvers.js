@@ -68,7 +68,7 @@ const addBackup = async (
     sqlClient,
     Sql.insertBackup({
       id,
-      environmentId,
+      environment: environmentId,
       source,
       backupId,
       created,
@@ -215,10 +215,6 @@ const updateRestore = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
     hasPermission,
   },

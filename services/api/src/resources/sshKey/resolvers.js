@@ -19,32 +19,17 @@ const sshKeyTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const getCustomerSshKeys = async (
-  root,
-  args,
-  { credentials: { role }, sqlClient },
-) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-  const rows = await query(
-    sqlClient,
-    Sql.selectAllCustomerSshKeys({ credentials: { role } }),
-  );
-  return R.map(R.prop('sshKey'), rows);
-};
-
+// TODO
 const getProjectSshKeys = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  await hasPermission('ssh_key', 'view:project');
+
   const rows = await query(
     sqlClient,
-    Sql.selectAllProjectSshKeys({ credentials: { role } }),
+    Sql.selectAllProjectSshKeys(),
   );
   return R.map(R.prop('sshKey'), rows);
 };
@@ -52,11 +37,11 @@ const getProjectSshKeys = async (
 const getUserSshKeys = async (
   { id: userId },
   args,
-  { credentials: { role, userId: credentialsUserId }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin' && !R.equals(credentialsUserId, userId)) {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('ssh_key', 'view:user', {
+    users: userId,
+  });
 
   const queryString = Sql.selectSshKeysByUserId(userId);
   const rows = await query(sqlClient, queryString);
@@ -70,7 +55,7 @@ const addSshKey = async (
       id, name, keyValue, keyType: unformattedKeyType, userId,
     },
   },
-  { credentials: { role, userId: credentialsUserId }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
   const keyFormatted = formatSshKey({ keyType, keyValue });
@@ -79,9 +64,9 @@ const addSshKey = async (
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
-  if (role !== 'admin' && !R.equals(credentialsUserId, userId)) {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('ssh_key', 'add', {
+    users: userId,
+  });
 
   const {
     info: { insertId },
@@ -110,23 +95,16 @@ const updateSshKey = async (
       patch: { name, keyType: unformattedKeyType, keyValue },
     },
   },
-  { credentials: { role, userId }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
 
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(
-      R.pipe(
-        R.prop('skid'),
-        parseInt,
-      ),
-      rows,
-    );
-    if (!R.contains(id, sshKeyIds)) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  const perms = await query(sqlClient, Sql.selectUserIdsBySshKeyId(id));
+  const userIds = R.map(R.prop('usid'), perms);
+
+  await hasPermission('ssh_key', 'update', {
+    users: userIds.join(','),
+  });
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -162,31 +140,28 @@ const updateSshKey = async (
 const deleteSshKey = async (
   root,
   { input: { name } },
-  { credentials: { role, userId }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    // Map from sshKey name to id and throw on several error cases
-    const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(name));
+  // Map from sshKey name to id and throw on several error cases
+  const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(name));
 
-    const amount = R.length(skidResult);
-    if (amount > 1) {
-      throw new Error(
-        `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`,
-      );
-    }
-
-    if (amount === 0) {
-      throw new Error(`Not found: '${name}'`);
-    }
-
-    const skid = R.path(['0', 'id'], skidResult);
-
-    const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(R.prop('skid'), rows);
-    if (!R.contains(skid, sshKeyIds)) {
-      throw new Error('Unauthorized.');
-    }
+  const amount = R.length(skidResult);
+  if (amount > 1) {
+    throw new Error(
+      `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`,
+    );
   }
+
+  if (amount === 0) {
+    throw new Error(`Not found: '${name}'`);
+  }
+
+  const perms = await query(sqlClient, Sql.selectUserIdsBySshKeyId(R.path(['0', 'id'], skidResult)));
+  const userIds = R.map(R.prop('usid'), perms);
+
+  await hasPermission('ssh_key', 'delete', {
+    users: userIds.join(','),
+  });
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
   await query(sqlClient, prep({ name }));
@@ -197,11 +172,9 @@ const deleteSshKey = async (
 const deleteAllSshKeys = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('ssh_key', 'deleteAll');
 
   await query(sqlClient, Sql.truncateSshKey());
 
@@ -212,11 +185,9 @@ const deleteAllSshKeys = async (
 const removeAllSshKeysFromAllUsers = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('ssh_key', 'removeAll');
 
   await query(sqlClient, Sql.truncateUserSshKey());
 
@@ -225,7 +196,6 @@ const removeAllSshKeysFromAllUsers = async (
 };
 
 const Resolvers /* : ResolversObj */ = {
-  getCustomerSshKeys,
   getProjectSshKeys,
   getUserSshKeys,
   addSshKey,

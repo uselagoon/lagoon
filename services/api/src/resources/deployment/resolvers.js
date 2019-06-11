@@ -204,7 +204,7 @@ const addDeployment = async (
       created,
       started,
       completed,
-      environmentId,
+      environment: environmentId,
       remoteId,
     }),
   );
