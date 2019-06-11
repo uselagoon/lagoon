@@ -6,7 +6,6 @@ const sshpk = require('sshpk');
 const bodyParser = require('body-parser');
 const { getSqlClient } = require('../clients/sqlClient');
 const {
-  getCustomerSshKeys,
   getProjectSshKeys,
 } = require('../resources/sshKey/resolvers');
 
@@ -37,15 +36,6 @@ const keysRoute = async (
 
   const sqlClient = getSqlClient();
 
-  const customerSshKeys = await getCustomerSshKeys(
-    // $FlowFixMe
-    {},
-    // $FlowFixMe
-    {},
-    // $FlowFixMe
-    { credentials: { role }, sqlClient },
-  );
-
   const projectSshKeys = await getProjectSshKeys(
     // $FlowFixMe
     {},
@@ -66,7 +56,7 @@ const keysRoute = async (
     R.reject(([sshKeyFingerprint]) => sshKeyFingerprint === undefined),
     // Transform from single-level array to array of pairs, with the SSH key fingerprint as the first value
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
-  )(R.concat(customerSshKeys, projectSshKeys));
+  )(projectSshKeys);
 
   const result = R.propOr('', fingerprint, fingerprintKeyMap);
 

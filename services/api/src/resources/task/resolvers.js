@@ -138,14 +138,14 @@ const addTask = async (
       execute: executeRequest,
     },
   },
-  { credentials, credentials: { role }, sqlClient },
+  { credentials: { role }, sqlClient, hasPermission },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
   const execute = role === 'admin' ? executeRequest : true;
 
   await envValidators(sqlClient).environmentExists(environment);
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     environment,
   );
 
@@ -213,12 +213,12 @@ const updateTask = async (
     },
   },
   {
-    credentials,
     credentials: {
       role,
       permissions: { customers, projects },
     },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
@@ -237,7 +237,7 @@ const updateTask = async (
 
   // Check access to modify task as it will be updated
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     environment,
   );
 
@@ -274,11 +274,11 @@ const updateTask = async (
 const taskDrushArchiveDump = async (
   root,
   { environment: environmentId },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     environmentId,
   );
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -305,11 +305,11 @@ curl -sS "$TASK_API_HOST"/graphql \
 const taskDrushSqlDump = async (
   root,
   { environment: environmentId },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     environmentId,
   );
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -336,11 +336,11 @@ curl -sS "$TASK_API_HOST"/graphql \
 const taskDrushCacheClear = async (
   root,
   { environment: environmentId },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     environmentId,
   );
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -373,7 +373,7 @@ const taskDrushSqlSync = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
@@ -382,11 +382,11 @@ const taskDrushSqlSync = async (
     destinationEnvironmentId,
   ]);
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     sourceEnvironmentId,
   );
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     destinationEnvironmentId,
   );
   await envValidators(sqlClient).environmentHasService(
@@ -418,7 +418,7 @@ const taskDrushRsyncFiles = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
@@ -427,11 +427,11 @@ const taskDrushRsyncFiles = async (
     destinationEnvironmentId,
   ]);
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     sourceEnvironmentId,
   );
   await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
+    hasPermission,
     destinationEnvironmentId,
   );
   await envValidators(sqlClient).environmentHasService(

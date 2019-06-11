@@ -68,32 +68,13 @@ const getCredentialsForKeycloakToken = async (sqlClient, token) => {
     throw new Error(`Error decoding token: ${e.message}`);
   }
 
-  const decoded = grant.access_token.content;
-  let nonAdminCreds = {};
-
-  if (!R.contains('admin', decoded.realm_access.roles)) {
-    const {
-      lagoon: { user_id: userId },
-    } = decoded;
-    const permissions = await getPermissionsForUser(sqlClient, userId);
-
-    if (R.isEmpty(permissions)) {
-      throw new Error(`No permissions for user id ${userId}.`);
-    }
-
-    nonAdminCreds = {
-      userId,
-      role: 'none',
-      // Read and write permissions
-      permissions,
-    };
-  }
-
   return {
     credentials: {
-      role: 'admin',
-      permissions: {},
-      ...nonAdminCreds,
+      role: 'none',
+      permissions: {
+        projects: [],
+        customers: [],
+      },
     },
     grant,
   };
@@ -168,23 +149,21 @@ const legacyHasPermission = (credentials) => {
 
 const keycloakHasPermission = (grant) => {
   return async (resource, scopeInput, attributes = {}) => {
-    const scopes = (typeof scope === 'string') ? [scopeInput] : scopeInput;
+    const scopes = (typeof scopeInput === 'string') ? [scopeInput] : scopeInput;
 
-    // Check the current token for permissions.
-    for (const scope of scopes) {
-      if (grant.access_token.hasPermission(resource, scope)) {
-        return;
-      }
-    }
+    const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
-    const claims = {
-      organization: ['acme'],
-    };
+    // Add current userId, user project ids
+    // Add max project role
+    // Add max group role
+    // const claims = {
+    //   foo: ['baz'],
+    // };
 
     // Ask keycloak for a new token (RPT).
     const authzRequest = {
-      claim_token: Buffer.from(JSON.stringify(grant.access_token.content)).toString('base64'),
-      claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+      // claim_token: Buffer.from(JSON.stringify(claims)).toString('base64'),
+      // claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
       permissions: [
         {
           id: resource,
@@ -195,7 +174,7 @@ const keycloakHasPermission = (grant) => {
     const request = {
       headers: {},
       kauth: {
-        grant,
+        grant: serviceAccount,
       },
     };
 
