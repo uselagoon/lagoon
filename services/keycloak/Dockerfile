@@ -53,6 +53,7 @@ VOLUME /opt/jboss/keycloak/standalone/data
 
 COPY start.sh /opt/jboss/tools/start.sh
 COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
+COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["/opt/jboss/tools/start.sh"]

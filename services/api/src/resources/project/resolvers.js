@@ -331,28 +331,28 @@ const updateProject = async (
   const originalName = R.prop('name', originalProject);
   const originalCustomer = parseInt(R.prop('customer', originalProject));
 
-  // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
-  if (typeof customer === 'number' && customer !== originalCustomer) {
-    // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-    await Helpers(sqlClient).mapIfNoDirectProjectAccess(
-      id,
-      originalCustomer,
-      async ({
-        keycloakUserId,
-        keycloakUsername,
-        keycloakGroupId,
-        keycloakGroupName,
-      }) => {
-        await keycloakAdminClient.users.delFromGroup({
-          id: keycloakUserId,
-          groupId: keycloakGroupId,
-        });
-        logger.debug(
-          `Removed Keycloak user ${keycloakUsername} from group "${keycloakGroupName}"`,
-        );
-      },
-    );
-  }
+  // // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
+  // if (typeof customer === 'number' && customer !== originalCustomer) {
+  //   // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+  //   await Helpers(sqlClient).mapIfNoDirectProjectAccess(
+  //     id,
+  //     originalCustomer,
+  //     async ({
+  //       keycloakUserId,
+  //       keycloakUsername,
+  //       keycloakGroupId,
+  //       keycloakGroupName,
+  //     }) => {
+  //       await keycloakAdminClient.users.delFromGroup({
+  //         id: keycloakUserId,
+  //         groupId: keycloakGroupId,
+  //       });
+  //       logger.debug(
+  //         `Removed Keycloak user ${keycloakUsername} from group "${keycloakGroupName}"`,
+  //       );
+  //     },
+  //   );
+  // }
 
   await query(
     sqlClient,
@@ -387,27 +387,27 @@ const updateProject = async (
     );
   }
 
-  if (typeof customer === 'number' && customer !== originalCustomer) {
-    // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-    await Helpers(sqlClient).mapIfNoDirectProjectAccess(
-      id,
-      customer,
-      async ({
-        keycloakUserId,
-        keycloakUsername,
-        keycloakGroupId,
-        keycloakGroupName,
-      }) => {
-        await keycloakAdminClient.users.addToGroup({
-          id: keycloakUserId,
-          groupId: keycloakGroupId,
-        });
-        logger.debug(
-          `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
-        );
-      },
-    );
-  }
+  // if (typeof customer === 'number' && customer !== originalCustomer) {
+  //   // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+  //   await Helpers(sqlClient).mapIfNoDirectProjectAccess(
+  //     id,
+  //     customer,
+  //     async ({
+  //       keycloakUserId,
+  //       keycloakUsername,
+  //       keycloakGroupId,
+  //       keycloakGroupName,
+  //     }) => {
+  //       await keycloakAdminClient.users.addToGroup({
+  //         id: keycloakUserId,
+  //         groupId: keycloakGroupId,
+  //       });
+  //       logger.debug(
+  //         `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
+  //       );
+  //     },
+  //   );
+  // }
 
   return Helpers(sqlClient).getProjectById(id);
 };
