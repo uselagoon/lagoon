@@ -1,7 +1,10 @@
 // @flow
 
+const querystring = require('querystring');
+const R = require('ramda');
 const express = require('express');
 const morgan = require('morgan');
+const axios = require('axios');
 const logger = require('./logger');
 const { generateRoute } = require('./routes');
 
@@ -19,11 +22,41 @@ app.use(
 );
 
 const port = process.env.PORT || 3000;
-const jwtSecret = process.env.JWTSECRET || '';
-const issuer = process.env.JWTISSUER || 'auth.amazee.io';
-const audience = process.env.JWTAUDIENCE || 'api.amazee.io';
+const lagoonKeycloakRoute = R.compose(
+  R.defaultTo('http://keycloak:8080'),
+  R.find(R.test(/keycloak-/)),
+  R.split(','),
+  R.propOr('', 'LAGOON_ROUTES'),
+)(process.env);
 
-app.post('/generate', ...generateRoute({ jwtSecret, issuer, audience }));
+const getUserToken = async (userId: string): Promise<string> => {
+  try {
+    const data = {
+      grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+      client_id: 'auth-server',
+      client_secret: R.propOr(
+        'no-client-secret-configured',
+        'KEYCLOAK_AUTH_SERVER_CLIENT_SECRET',
+        process.env,
+      ),
+      requested_subject: userId,
+    };
+
+    const response = await axios.post(
+      `${lagoonKeycloakRoute}/auth/realms/lagoon/protocol/openid-connect/token`,
+      querystring.stringify(data),
+    );
+
+    return response.data.access_token;
+  } catch (err) {
+    if (err.response) {
+      const msg = R.pathOr('Unknown error', ['response', 'data', 'error_description'], err);
+      throw new Error(`Could not get user token: ${msg}`)
+    }
+  }
+};
+
+app.post('/generate', ...generateRoute(getUserToken));
 
 app.use((err: LagoonErrorWithStatus, req: $Request, res: $Response) => {
   logger.error(err.toString());
