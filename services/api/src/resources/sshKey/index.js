@@ -19,7 +19,11 @@ const getSshKeyFingerprint = (key /* : string */) /* : string */ => {
   return parsed.fingerprint('sha256', 'ssh').toString();
 };
 
+const generatePrivateKey = (type = 'ed25519') =>
+  sshpk.generatePrivateKey(type);
+
 module.exports = {
   validateSshKey,
   getSshKeyFingerprint,
+  generatePrivateKey,
 };

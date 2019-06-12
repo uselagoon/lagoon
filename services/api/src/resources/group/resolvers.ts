@@ -23,13 +23,12 @@ export const addGroup = async (_root, { input }, { dataSources, hasPermission })
   }
 
 
-  const user = await dataSources.GroupModel.addGroup({
-    id: input.id,
+  const group = await dataSources.GroupModel.addGroup({
     name: input.name,
     parentGroupId,
   });
 
-  return user;
+  return group;
 };
 
 export const updateGroup = async (
@@ -91,7 +90,7 @@ export const deleteAllGroups = async (
 
   try {
     // Deleting all groups in parallel may cause problems, but this is only used
-    // in the tests right now and the number of users for that use case is low.
+    // in the tests right now and the number of groups for that use case is low.
     await Promise.all(deleteGroups);
   } catch (err) {
     throw new Error(`Could not delete all groups: ${err.message}`);
