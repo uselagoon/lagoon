@@ -27,20 +27,21 @@ async function gitlabUserUpdate(webhook: WebhookRequestData) {
       lastName = R.tail(nameParts).join(' ');
     }
 
-    await updateUser(id, {
-      email,
-      firstName,
-      lastName
-    });
+    // @TODO: Update User by Gitlab ID
+    // await updateUser(id, {
+    //   email,
+    //   firstName,
+    //   lastName
+    // });
 
-    sendToLagoonLogs(
-      'info',
-      '',
-      uuid,
-      `${webhooktype}:${event}:handled`,
-      meta,
-      `Updated user ${name}`
-    );
+    // sendToLagoonLogs(
+    //   'info',
+    //   '',
+    //   uuid,
+    //   `${webhooktype}:${event}:handled`,
+    //   meta,
+    //   `Updated user ${name}`
+    // );
 
     return;
   } catch (error) {

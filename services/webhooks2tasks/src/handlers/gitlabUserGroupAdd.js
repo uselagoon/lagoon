@@ -2,25 +2,29 @@
 const retry = require('async-retry')
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { addUserToCustomer } = require('@lagoon/commons/src/api');
+const { addUserToGroup } = require('@lagoon/commons/src/api');
+const { logger } = require('@lagoon/commons/src/local-logging');
 
 import type { WebhookRequestData } from '../types';
 
-async function gitlabUserCustomerAdd(webhook: WebhookRequestData) {
+async function gitlabUserGroupAdd(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { group_path: customer, user_id: user } = body;
+    const { group_path: groupName, user_id: gitlabUserId, user_email: userEmail, group_access: role } = body;
 
     const meta = {
       data: body,
-      user,
-      customer,
+      userEmail,
+      gitlabUserId,
+      groupName,
+      role,
     };
 
     // Retry adding the User to the Customer 5 times as during the creation of a new Group the customer is immediatelly added and the webhook sent at the same time
     await retry(async () => {
-      await addUserToCustomer(user, customer);
+      // Gitlab Group Access matches the Lagoon Roles, just need them Uppercase
+      await addUserToGroup(userEmail, groupName, role.toUpperCase());
     }, {
       retries: 5,
     })
@@ -31,7 +35,7 @@ async function gitlabUserCustomerAdd(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Added user ${user} to customer ${customer}`
+      `Added user ${gitlabUserId} ${userEmail} to group ${groupName}`
     );
 
     return;
@@ -42,11 +46,11 @@ async function gitlabUserCustomerAdd(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not add user to customer, reason: ${error}`
+      `Could not add user to group , reason: ${error}`
     );
 
     return;
   }
 }
 
-module.exports = gitlabUserCustomerAdd;
+module.exports = gitlabUserGroupAdd;

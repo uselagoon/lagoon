@@ -1,22 +1,23 @@
 // @flow
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { removeUserFromCustomer } = require('@lagoon/commons/src/api');
+const { removeUserFromGroup } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
-async function gitlabUserCustomerRemove(webhook: WebhookRequestData) {
+async function gitlabUserGroupRemove(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { group_path: customer, user_id: user } = body;
+    const { group_path: groupName, user_id: gitlabUserId, user_email: userEmail } = body;
 
     const meta = {
       data: body,
-      user,
-      customer,
+      userEmail,
+      gitlabUserId,
+      groupName,
     };
 
-    await removeUserFromCustomer(user, customer);
+    await removeUserFromGroup(userEmail, groupName);
 
     sendToLagoonLogs(
       'info',
@@ -24,7 +25,7 @@ async function gitlabUserCustomerRemove(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Removed user ${user} from customer ${customer}`
+      `Removed user ${gitlabUserId} ${userEmail} from group ${groupName}`
     );
 
     return;
@@ -35,11 +36,11 @@ async function gitlabUserCustomerRemove(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not remove user from customer, reason: ${error}`
+      `Could not remove user from group, reason: ${error}`
     );
 
     return;
   }
 }
 
-module.exports = gitlabUserCustomerRemove;
+module.exports = gitlabUserGroupRemove;

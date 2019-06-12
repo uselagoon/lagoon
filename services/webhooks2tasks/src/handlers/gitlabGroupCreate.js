@@ -2,9 +2,8 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
-const { addCustomer } = require('@lagoon/commons/src/api');
+const { addGroup, addGroupWithParent } = require('@lagoon/commons/src/api');
 
-const GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY = process.env.GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY || null;
 import type { WebhookRequestData } from '../types';
 
 async function gitlabGroupCreate(webhook: WebhookRequestData) {
@@ -12,14 +11,22 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
 
   try {
     const group = await getGroup(body.group_id);
-    const { id, path: name, description: comment } = group;
+    const { id, path: name, description: comment, full_path: hierarchy } = group;
 
     const meta = {
       data: group,
-      customer: id
+      gitlab_group_id: id
     };
 
-    await addCustomer(name, id, comment, GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY);
+    const hierarchyArray = hierarchy.split("/");
+    // if the array has more then one entry, we have a hierarchy of groups,
+    // Keycloak only needs to know the direct parent of the group, loading that one
+    if (hierarchyArray.length > 1) {
+      const groupParentName = hierarchyArray.slice(-2)[0]; // load second last entry of the array
+      await addGroupWithParent(name, groupParentName);
+    } else {
+      await addGroup(name);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -27,7 +34,7 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Created customer ${name}`
+      `Created group ${name}`
     );
 
     return;
@@ -38,7 +45,7 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not create customer, reason: ${error}`
+      `Could not create group, reason: ${error}`
     );
 
     return;

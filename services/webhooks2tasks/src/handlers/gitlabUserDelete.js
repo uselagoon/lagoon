@@ -15,16 +15,17 @@ async function gitlabUserDelete(webhook: WebhookRequestData) {
       user: id
     };
 
-    await deleteUser(id);
+    // @TODO: Delete User by Gitlab ID
+    // await deleteUser(id);
 
-    sendToLagoonLogs(
-      'info',
-      '',
-      uuid,
-      `${webhooktype}:${event}:handled`,
-      meta,
-      `Deleted user ${id}`
-    );
+    // sendToLagoonLogs(
+    //   'info',
+    //   '',
+    //   uuid,
+    //   `${webhooktype}:${event}:handled`,
+    //   meta,
+    //   `Deleted user ${id}`
+    // );
 
     return;
   } catch (error) {

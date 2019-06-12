@@ -21,11 +21,8 @@ export type Project = {
   openshift: Object,
 };
 
-export type CustomerPatch = {
+export type GroupPatch = {
   name: ?string,
-  comment: ?string,
-  privateKey: ?string,
-  created: ?string,
 };
 
 export type UserPatch = {
@@ -37,7 +34,6 @@ export type UserPatch = {
 
 export type ProjectPatch = {
   name: ?string,
-  customer: ?number,
   giturl: ?string,
   subfolder: ?string,
   activesystemsdeploy: ?string,

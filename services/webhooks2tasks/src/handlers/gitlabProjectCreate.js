@@ -2,7 +2,7 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getProject } = require('@lagoon/commons/src/gitlabApi');
-const { addProject } = require('@lagoon/commons/src/api');
+const { addProject, addGroupToProject } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -11,7 +11,7 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
 
   try {
     const project = await getProject(body.project_id);
-    const { id, path: name, ssh_url_to_repo: gitUrl, namespace } = project;
+    const { id, path: projectName, ssh_url_to_repo: gitUrl, namespace } = project;
 
     // TODO: figure out openshift id
     const openshift = 1;
@@ -21,7 +21,7 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
 
     const meta = {
       data: project,
-      project: name
+      project: projectName
     };
 
     if (namespace.kind != 'group') {
@@ -31,13 +31,17 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
         uuid,
         `${webhooktype}:${event}:unhandled`,
         meta,
-        `Skipping creation of project ${name}: not in group namespace`
+        `Skipping creation of project ${projectName}: not in group namespace`
       );
 
       return;
     }
 
-    await addProject(name, namespace.id, gitUrl, openshift, productionenvironment, id);
+    await addProject(projectName, gitUrl, openshift, productionenvironment);
+
+    // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
+    // We add this owner Group to the Project.
+    await addGroupToProject(projectName, namespace.path);
 
     sendToLagoonLogs(
       'info',
@@ -45,7 +49,7 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Created project ${name}`
+      `Created project ${projectName}`
     );
 
     return;
