@@ -48,14 +48,14 @@ export const addUser = async (
 export const updateUser = async (
   _root,
   { input: { id, patch } },
-  { credentials: { userId }, dataSources, hasPermission },
+  { dataSources, hasPermission },
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
   }
 
   await hasPermission('user', 'update', {
-    user: userId,
+    user: id,
   });
 
   const user = await dataSources.UserModel.updateUser({
@@ -74,10 +74,10 @@ export const updateUser = async (
 export const deleteUser = async (
   _root,
   { input: { id } },
-  { credentials: { userId }, dataSources, hasPermission },
+  { dataSources, hasPermission },
 ) => {
   await hasPermission('user', 'delete', {
-    user: userId,
+    user: id,
   });
 
   await dataSources.UserModel.deleteUser(id);

@@ -1339,7 +1339,7 @@ mutation PopulateApi {
   CILimitGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-env-list"
+        name: "ci-env-limit"
       }
       groups: [
         {

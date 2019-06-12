@@ -47,11 +47,8 @@ const createEnvironmentFilteredSubscriber = (events) => ({
   subscribe: async (rootValue, args, context, info) => {
     const { environment } = args;
     const {
-      credentials: {
-        role,
-        permissions: { projects },
-      },
       sqlClient,
+      hasPermission,
     } = context;
 
     const rows = await query(
@@ -60,8 +57,12 @@ const createEnvironmentFilteredSubscriber = (events) => ({
     );
     const project = R.path([0, 'project'], rows);
 
-    if (role !== 'admin' && !R.contains(String(project), projects)) {
-      throw new ForbiddenError(`No access to project ${project}.`);
+    try {
+      await hasPermission('environment', 'view', {
+        project,
+      });
+    } catch (err) {
+      throw new ForbiddenError(err.message);
     }
 
     const filtered = withFilter(

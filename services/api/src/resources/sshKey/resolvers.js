@@ -19,21 +19,6 @@ const sshKeyTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-// TODO
-const getProjectSshKeys = async (
-  root,
-  args,
-  { sqlClient, hasPermission },
-) => {
-  await hasPermission('ssh_key', 'view:project');
-
-  const rows = await query(
-    sqlClient,
-    Sql.selectAllProjectSshKeys(),
-  );
-  return R.map(R.prop('sshKey'), rows);
-};
-
 const getUserSshKeys = async (
   { id: userId },
   args,
@@ -196,7 +181,6 @@ const removeAllSshKeysFromAllUsers = async (
 };
 
 const Resolvers /* : ResolversObj */ = {
-  getProjectSshKeys,
   getUserSshKeys,
   addSshKey,
   updateSshKey,
