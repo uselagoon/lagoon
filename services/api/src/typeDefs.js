@@ -950,7 +950,6 @@ const typeDefs = gql`
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    removeAllUsersFromAllProjects: String
     addDeployment(input: DeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
