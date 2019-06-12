@@ -180,7 +180,7 @@ services:
       - ./services/ui/.env.schema:/app/services/ui/.env.schema
       - ./services/ui/package.json:/app/services/ui/package.json
     ports:
-      - '8888:3003'
+      - '8888:3000'
     labels:
       lagoon.type: custom
       lagoon.template: services/ui/.lagoon.app.yml
