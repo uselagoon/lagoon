@@ -27,6 +27,7 @@ async function waitAndInitKeycloak(
 
   do {
     try {
+      keycloakAdminClient.setConfig({ realmName: 'master' });
       await keycloakAdminClient.auth(userSettings);
 
       if (!(await keycloakAdminClient.realms.findOne({ realm: 'lagoon' }))) {
@@ -34,10 +35,15 @@ async function waitAndInitKeycloak(
       }
 
       keycloakAdminClient.setConfig({ realmName: 'lagoon' });
+      const clients = await keycloakAdminClient.clients.find({ clientId: 'api' });
+      if (!clients.length) {
+        throw new Error('The "api" client has not been created yet.');
+      }
+
       keycloakReady = true;
     } catch (err) {
       logger.debug(`Waiting for Keycloak to start... (error was ${err})`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
     }
   } while (!keycloakReady);
 

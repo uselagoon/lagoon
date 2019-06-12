@@ -4,7 +4,7 @@
 import type { $Request, $Response, NextFunction } from 'express';
 
 class Request extends express$Request {
-  credentials: any
+  legacyCredentials: any
   authToken: string
   kauth: object
 };
@@ -14,7 +14,7 @@ const R = require('ramda');
 const logger = require('./logger');
 const { getSqlClient } = require('./clients/sqlClient');
 const {
-  getCredentialsForKeycloakToken,
+  getGrantForKeycloakToken,
   getCredentialsForLegacyToken,
 } = require('./util/auth');
 
@@ -74,12 +74,11 @@ const keycloak = async (
   const sqlClient = getSqlClient();
 
   try {
-    const auth = await getCredentialsForKeycloakToken(
+    const auth = await getGrantForKeycloakToken(
       sqlClient,
       req.authToken,
     );
 
-    req.credentials = auth.credentials;
     req.kauth = { grant: auth.grant };
   } catch (e) {
     // It might be a legacy token, so continue on.
@@ -103,7 +102,7 @@ const legacy = async (
   }
 
   // Allow keycloak authenticated sessions
-  if (req.credentials) {
+  if (req.kauth) {
     next();
     return;
   }
@@ -111,12 +110,12 @@ const legacy = async (
   const sqlClient = getSqlClient();
 
   try {
-    const credentials = await getCredentialsForLegacyToken(
+    const legacyCredentials = await getCredentialsForLegacyToken(
       sqlClient,
       req.authToken,
     );
 
-    req.credentials = credentials;
+    req.legacyCredentials = legacyCredentials;
     sqlClient.end();
 
     next();

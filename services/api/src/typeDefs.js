@@ -175,6 +175,15 @@ const typeDefs = gql`
     """
     gitUrl: String
     """
+    SSH Private Key for Project
+    Will be used to authenticate against the Git Repo of the Project
+    Needs to be in single string separated by \`\n\`, example:
+    \`\`\`
+    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
+    \`\`\`
+    """
+    privateKey: String
+    """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
     """
@@ -513,7 +522,7 @@ const typeDefs = gql`
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int
-
+    privateKey: String
   }
 
   input AddEnvironmentInput {
@@ -711,6 +720,7 @@ const typeDefs = gql`
   input UpdateProjectPatchInput {
     name: String
     gitUrl: String
+    privateKey: String
     subfolder: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
@@ -856,7 +866,6 @@ const typeDefs = gql`
   }
 
   input AddGroupInput {
-    id: String
     name: String!
     parentGroup: GroupInput
   }

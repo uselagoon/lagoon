@@ -9,7 +9,7 @@ const {
 const { applyMiddleware } = require('graphql-middleware');
 const {
   getCredentialsForLegacyToken,
-  getCredentialsForKeycloakToken,
+  getGrantForKeycloakToken,
   legacyHasPermission,
   keycloakHasPermission,
 } = require('./util/auth');
@@ -23,62 +23,30 @@ const Group = require('./models/group');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-const operationBlacklist = R.split(
-  ',',
-  R.propOr('', 'LAGOON_API_OPERATION_BLACKLIST', process.env),
-);
-
-const evaluateOperationsBlacklist = async (
-  resolve,
-  parent,
-  args,
-  context,
-  info,
-) => {
-  const {
-    credentials: { role },
-  } = context;
-
-  if (role !== 'admin' && R.contains(info.fieldName, operationBlacklist)) {
-    throw new Error('Unauthorized.');
-  }
-
-  const result = await resolve(parent, args, context, info);
-  return result;
-};
-
-const schemaWithMiddleware = applyMiddleware(schema, {
-  Query: evaluateOperationsBlacklist,
-  Mutation: evaluateOperationsBlacklist,
-  Subscription: evaluateOperationsBlacklist,
-});
-
 const apolloServer = new ApolloServer({
-  schema: schemaWithMiddleware,
+  schema,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let credentials;
+      let grant;
+      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
       }
 
       try {
-        credentials = await getCredentialsForKeycloakToken(
-          getSqlClient(),
-          token,
-        );
+        grant = await getGrantForKeycloakToken(getSqlClient(), token);
       } catch (e) {
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
       try {
-        if (!credentials) {
-          credentials = await getCredentialsForLegacyToken(
+        if (!grant) {
+          legacyCredentials = await getCredentialsForLegacyToken(
             getSqlClient(),
             token,
           );
@@ -88,7 +56,11 @@ const apolloServer = new ApolloServer({
       }
 
       // Add credentials to context.
-      return { credentials };
+      return {
+        hasPermission: grant
+          ? keycloakHasPermission(grant)
+          : legacyHasPermission(legacyCredentials),
+      };
     },
   },
   dataSources: () => ({
@@ -108,12 +80,10 @@ const apolloServer = new ApolloServer({
     // HTTP requests
     if (!connection) {
       return {
-        // Express middleware must always provide req.credentials.
-        credentials: req.credentials,
         sqlClient: getSqlClient(),
-        hasPermission: req.kauth ?
-          keycloakHasPermission(req.kauth.grant) :
-          legacyHasPermission(req.credentials),
+        hasPermission: req.kauth
+          ? keycloakHasPermission(req.kauth.grant)
+          : legacyHasPermission(req.legacyCredentials),
       };
     }
   },

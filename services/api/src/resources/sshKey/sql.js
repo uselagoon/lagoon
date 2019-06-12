@@ -34,6 +34,12 @@ const Sql /* : SqlObj */ = {
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
       .where('usk.skid', '=', keyId)
       .toString(),
+  selectUserIdsBySshKeyFingerprint: (fingerprint /* : string */) =>
+    knex('ssh_key as sk')
+      .select('usk.usid')
+      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
+      .where('sk.key_fingerprint', '=', fingerprint)
+      .toString(),
   selectAllProjectSshKeys: () =>
     knex('ssh_key AS sk')
       .join('user_ssh_key AS usk', 'sk.id', '=', 'usk.skid')

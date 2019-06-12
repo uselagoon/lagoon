@@ -773,10 +773,8 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
           projectUser
           routerPattern
         }
-        customer {
-          privateKey
-        }
         gitUrl
+        privateKey
         subfolder
         openshiftProjectPattern
         productionEnvironment
