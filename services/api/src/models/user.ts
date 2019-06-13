@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { keycloakAdminClient } from '../clients/keycloakClient';
 import pickNonNil from '../util/pickNonNil';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
+import { Group, isRoleSubgroup } from './group';
 
 export interface User {
   email: string;
@@ -28,6 +29,11 @@ interface UserModel {
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
+  getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
+  getUserRolesForProject: (
+    userInput: User,
+    projectId: number,
+  ) => Promise<string[]>;
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
@@ -176,7 +182,7 @@ const loadUserByIdOrUsername = async (userInput: UserEdit): Promise<User> => {
     return loadUserByUsername(R.prop('username', userInput));
   }
 
-  throw new Error(`You must provide a user id or username`);
+  throw new Error('You must provide a user id or username');
 };
 
 const loadAllUsers = async (): Promise<User[]> => {
@@ -187,8 +193,95 @@ const loadAllUsers = async (): Promise<User[]> => {
   return users;
 };
 
+// Recursive function to load projects from group chain
+const getProjectsFromGroupAndParents = async (
+  group: Group,
+): Promise<number[]> => {
+  const GroupModel = Group();
+  const projectIds = R.pipe(
+    R.pathOr('', ['attributes', 'lagoon-projects', 0]),
+    R.split(','),
+    R.reject(R.isEmpty),
+  )(group);
+
+  const parentGroup = await GroupModel.loadParentGroup(group);
+  const parentProjectIds = parentGroup
+    ? await getProjectsFromGroupAndParents(parentGroup)
+    : [];
+
+  return [
+    // @ts-ignore
+    ...projectIds,
+    ...parentProjectIds,
+  ];
+};
+
+const getAllProjectsIdsForUser = async (userInput: User): Promise<number[]> => {
+  const GroupModel = Group();
+  let projects = [];
+
+  const roleSubgroups = await keycloakAdminClient.users.listGroups({
+    id: userInput.id,
+  });
+
+  for (const roleSubgroup of roleSubgroups) {
+    const fullRoleSubgroup = await GroupModel.loadGroupById(roleSubgroup.id);
+    if (!isRoleSubgroup(fullRoleSubgroup)) {
+      continue;
+    }
+
+    const roleSubgroupParent = await GroupModel.loadParentGroup(
+      fullRoleSubgroup,
+    );
+
+    const projectIds = await getProjectsFromGroupAndParents(roleSubgroupParent);
+    projects = [...projects, ...projectIds];
+  }
+
+  return R.uniq(projects);
+};
+
+const getUserRolesForProject = async (
+  userInput: User,
+  projectId: number,
+): Promise<string[]> => {
+  const GroupModel = Group();
+  const projects = [];
+
+  const roleSubgroups = await keycloakAdminClient.users.listGroups({
+    id: userInput.id,
+  });
+
+  let roles = [];
+  for (const roleSubgroup of roleSubgroups) {
+    const fullRoleSubgroup = await GroupModel.loadGroupById(roleSubgroup.id);
+    if (!isRoleSubgroup(fullRoleSubgroup)) {
+      continue;
+    }
+
+    const roleSubgroupParent = await GroupModel.loadParentGroup(
+      fullRoleSubgroup,
+    );
+
+    const projectIds = await getProjectsFromGroupAndParents(roleSubgroupParent);
+
+    if (projectIds.includes(projectId)) {
+      const groupRoles = R.pipe(
+        R.filter(membership =>
+          R.pathEq(['user', 'id'], userInput.id, membership),
+        ),
+        R.pluck('role'),
+      )(roleSubgroupParent.members);
+
+      roles = [...roles, ...groupRoles];
+    }
+  }
+
+  return R.uniq(roles);
+};
+
 const addUser = async (userInput: User): Promise<User> => {
-  let response: { id: string; };
+  let response: { id: string };
   try {
     response = await keycloakAdminClient.users.create({
       ...pickNonNil(['email', 'username', 'firstName', 'lastName'], userInput),
@@ -279,6 +372,8 @@ export const User = (): UserModel => ({
   loadUserById,
   loadUserByUsername,
   loadUserByIdOrUsername,
+  getAllProjectsIdsForUser,
+  getUserRolesForProject,
   addUser,
   updateUser,
   deleteUser,
