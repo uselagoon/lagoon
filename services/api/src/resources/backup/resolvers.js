@@ -58,7 +58,7 @@ const addBackup = async (
   { sqlClient, hasPermission },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('backukp', 'add', {
+  await hasPermission('backup', 'add', {
     project: environment.project,
   });
 
