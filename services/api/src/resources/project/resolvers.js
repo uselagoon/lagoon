@@ -7,8 +7,7 @@ const { keycloakAdminClient } = require('../../clients/keycloakClient');
 const searchguardClient = require('../../clients/searchguardClient');
 const logger = require('../../logger');
 const {
-  ifNotAdmin,
-  inClauseOr,
+  inClause,
   prepare,
   query,
   whereAnd,
@@ -36,15 +35,34 @@ const getAllProjects = async (
   {
     sqlClient,
     hasPermission,
+    dataSources,
+    keycloakGrant,
   },
 ) => {
-  await hasPermission('project', 'viewAll');
+  let where;
+  try {
+    await hasPermission('project', 'viewAll');
 
-  // We need one "WHERE" keyword, but we have multiple optional conditions
-  const where = whereAnd([
-    args.createdAfter ? 'created >= :created_after' : '',
-    args.gitUrl ? 'git_url = :git_url' : '',
-  ]);
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      args.gitUrl ? 'git_url = :git_url' : '',
+    ]);
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    const userProjectIds = await dataSources.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      args.gitUrl ? 'git_url = :git_url' : '',
+      inClause('id', userProjectIds),
+    ]);
+  }
 
   const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
 
