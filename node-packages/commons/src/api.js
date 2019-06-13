@@ -127,14 +127,12 @@ fragment on Backup {
 
 const addGroup = (
   name: string,
-  id: ?string = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($name: String!, $id: String) {
+  ($name: String!) {
     addGroup(input: {
         name: $name
-        id: $id
     }) {
       ...${groupFragment}
     }
@@ -142,22 +140,19 @@ const addGroup = (
 `,
     {
       name,
-      id,
     },
   );
 
 const addGroupWithParent = (
   name: string,
   parentGroupName: string,
-  id: ?string = null,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-    ($name: String!, $parentGroupName: String, $id: String) {
+    ($name: String!, $parentGroupName: String) {
       addGroup(input: {
           name: $name
           parentGroup: { name: $parentGroupName }
-          id: $id
       }) {
         ...${groupFragment}
       }
@@ -166,7 +161,6 @@ const addGroupWithParent = (
     {
       name,
       parentGroupName,
-      id,
     },
   );
 
