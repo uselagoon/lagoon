@@ -70,6 +70,20 @@ const keycloakHasPermission = (grant) => {
 
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
+    const usersAttribute = R.prop('users', attributes);
+    if (usersAttribute && usersAttribute.length) {
+      claims = {
+        ...claims,
+        usersQuery: [
+          R.compose(
+            R.join('|'),
+            R.prop('users'),
+          )(attributes),
+        ],
+        currentUser: [grant.access_token.content.sub],
+      };
+    }
+
     if (R.prop('project', attributes)) {
       try {
         claims = {
@@ -128,13 +142,6 @@ const keycloakHasPermission = (grant) => {
         logger.error(`Could not submit project (${R.prop('project', attributes)}) claims for authz request: ${err.message}`);
       }
     }
-
-    // Add current userId, user project ids
-    // Add max project role
-    // Add max group role
-    // const claims = {
-    //   foo: ['baz'],
-    // };
 
     // Ask keycloak for a new token (RPT).
     let authzRequest = {

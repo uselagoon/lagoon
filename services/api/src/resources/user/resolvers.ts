@@ -55,7 +55,7 @@ export const updateUser = async (
   }
 
   await hasPermission('user', 'update', {
-    user: id,
+    users: [id],
   });
 
   const user = await dataSources.UserModel.updateUser({
@@ -77,7 +77,7 @@ export const deleteUser = async (
   { dataSources, hasPermission },
 ) => {
   await hasPermission('user', 'delete', {
-    user: id,
+    users: [id],
   });
 
   await dataSources.UserModel.deleteUser(id);
