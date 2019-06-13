@@ -84,6 +84,9 @@ const apolloServer = new ApolloServer({
         hasPermission: req.kauth
           ? keycloakHasPermission(req.kauth.grant)
           : legacyHasPermission(req.legacyCredentials),
+        keycloakGrant: req.kauth
+          ? req.kauth.grant
+          : null,
       };
     }
   },
