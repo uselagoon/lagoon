@@ -25,7 +25,7 @@ const getUserSshKeys = async (
   { sqlClient, hasPermission },
 ) => {
   await hasPermission('ssh_key', 'view:user', {
-    users: userId,
+    users: [userId],
   });
 
   const queryString = Sql.selectSshKeysByUserId(userId);
@@ -50,7 +50,7 @@ const addSshKey = async (
   }
 
   await hasPermission('ssh_key', 'add', {
-    users: userId,
+    users: [userId],
   });
 
   const {

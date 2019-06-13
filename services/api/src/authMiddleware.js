@@ -74,12 +74,12 @@ const keycloak = async (
   const sqlClient = getSqlClient();
 
   try {
-    const auth = await getGrantForKeycloakToken(
+    const grant = await getGrantForKeycloakToken(
       sqlClient,
       req.authToken,
     );
 
-    req.kauth = { grant: auth.grant };
+    req.kauth = { grant };
   } catch (e) {
     // It might be a legacy token, so continue on.
     logger.debug(`Keycloak token auth failed: ${e.message}`);

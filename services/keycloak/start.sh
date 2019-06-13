@@ -124,7 +124,7 @@ function configure_api_client {
     OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
 
     # Resource Scopes
-    resource_scope_names=(add add:user addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeUser storage task:destination task:source token type:development type:production udpate view view:project view:user viewAll viewPrivateKey)
+    resource_scope_names=(add addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser storage task:destination task:source token type:development type:production udpate view view:project view:user viewAll viewPrivateKey)
     for rsn_key in ${!resource_scope_names[@]}; do
         echo Creating resource scope ${resource_scope_names[$rsn_key]}
         /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
@@ -148,13 +148,13 @@ function configure_api_client {
     echo Creating resource environment
     echo '{"name":"environment","displayName":"environment","scopes":[{"name":"view"},{"name":"deploy"},{"name":"type:production"},{"name":"type:development"},{"name":"addOrUpdate"},{"name":"storage"},{"name":"delete"},{"name":"deleteNoExec"},{"name":"update"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource project
-    echo '{"name":"project","displayName":"project","scopes":[{"name":"add"},{"name":"deploy"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"project","displayName":"project","scopes":[{"name":"update"},{"name":"add"},{"name":"deploy"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"removeNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource group
     echo '{"name":"group","displayName":"group","scopes":[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource notification
     echo '{"name":"notification","displayName":"notification","scopes":[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource ssh_key
-    echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add:user"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
     echo Creating api authz policies

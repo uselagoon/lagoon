@@ -1,13 +1,15 @@
 import * as R from 'ramda';
+import { asyncPipe } from '@lagoon/commons/src/util';
 import { keycloakAdminClient } from '../clients/keycloakClient';
 import pickNonNil from '../util/pickNonNil';
 import * as logger from '../logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User, transformKeycloakUsers } from './user';
 
-interface Group {
+export interface Group {
   name: string;
   id?: string;
+  path?: string;
   parentGroupId?: string;
   // Only groups that aren't role subgroups.
   groups?: Group[];
@@ -33,6 +35,7 @@ interface GroupModel {
   loadGroupById: (id: string) => Promise<Group>;
   loadGroupByName: (name: string) => Promise<Group>;
   loadGroupByIdOrName: (groupInput: GroupEdit) => Promise<Group>;
+  loadParentGroup: (groupInput: Group) => Promise<Group>;
   addGroup: (groupInput: Group) => Promise<Group>;
   updateGroup: (groupInput: GroupEdit) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;
@@ -66,7 +69,7 @@ const attrLagoonProjectsLens = R.compose(
   R.lensPath([0]),
 );
 
-const isRoleSubgroup = R.pathEq(['attributes', 'type', 0], 'role-subgroup');
+export const isRoleSubgroup = R.pathEq(['attributes', 'type', 0], 'role-subgroup');
 
 const transformKeycloakGroups = async (
   keycloakGroups: GroupRepresentation[],
@@ -76,6 +79,7 @@ const transformKeycloakGroups = async (
     (keycloakGroup: GroupRepresentation): Group => ({
       id: keycloakGroup.id,
       name: keycloakGroup.name,
+      path: keycloakGroup.path,
       attributes: keycloakGroup.attributes,
       subGroups: keycloakGroup.subGroups,
     }),
@@ -154,6 +158,16 @@ const loadAllGroups = async (): Promise<Group[]> => {
 
   return groups;
 };
+
+const loadParentGroup = async (groupInput: Group): Promise<Group> => asyncPipe(
+  R.prop('path'),
+  R.split('/'),
+  R.nth(-2),
+  R.cond([
+    [R.isEmpty, R.always(null)],
+    [R.T, loadGroupByName],
+  ]),
+)(groupInput);
 
 const getGroupMembership = async (group: Group): Promise<GroupMembership[]> => {
   const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
@@ -408,6 +422,7 @@ export const Group = (): GroupModel => ({
   loadGroupById,
   loadGroupByName,
   loadGroupByIdOrName,
+  loadParentGroup,
   addGroup,
   updateGroup,
   deleteGroup,

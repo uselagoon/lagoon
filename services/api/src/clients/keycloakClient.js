@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const R = require('ramda');
 const KeycloakAdmin = require('keycloak-admin').default;
 const KeycloakConfig = require('keycloak-connect/middleware/auth-utils/config');
-const KeycloakGrantManager = require('keycloak-connect/middleware/auth-utils/grant-manager');
+const KeycloakGrantManager = require('../lib/keycloak-grant-manager');
 
 // Must be initialized with `waitAndInitKeycloak`
 const keycloakAdminClient = new KeycloakAdmin({

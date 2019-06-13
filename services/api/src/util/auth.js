@@ -1,8 +1,32 @@
+const R = require('ramda');
 const jwt = require('jsonwebtoken');
 const logger = require('../logger');
 const { keycloakGrantManager } = require('../clients/keycloakClient');
+const User = require('../models/user');
+const Group = require('../models/group');
+
+const UserModel = User.User();
+const GroupModel = Group.Group();
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
+
+const sortRolesByWeight = (a, b) => {
+  const roleWeights = {
+    guest: 1,
+    reporter: 2,
+    developer: 3,
+    maintainer: 4,
+    owner: 5,
+  };
+
+  if (roleWeights[a] < roleWeights[b]) {
+    return -1;
+  } else if (roleWeights[a] > roleWeights[b]) {
+    return 1;
+  }
+
+  return 0;
+};
 
 const getGrantForKeycloakToken = async (sqlClient, token) => {
   let grant = '';
@@ -62,20 +86,98 @@ const legacyHasPermission = (legacyCredentials) => {
 const keycloakHasPermission = (grant) => {
   return async (resource, scopeInput, attributes = {}) => {
     const scopes = (typeof scopeInput === 'string') ? [scopeInput] : scopeInput;
+    const currentUserId = grant.access_token.content.sub;
+    let claims = {};
 
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
-    // Add current userId, user project ids
-    // Add max project role
-    // Add max group role
-    // const claims = {
-    //   foo: ['baz'],
-    // };
+    const usersAttribute = R.prop('users', attributes);
+    if (usersAttribute && usersAttribute.length) {
+      claims = {
+        ...claims,
+        usersQuery: [
+          R.compose(
+            R.join('|'),
+            R.prop('users'),
+          )(attributes),
+        ],
+        currentUser: [currentUserId],
+      };
+    }
+
+    if (R.prop('project', attributes)) {
+      try {
+        claims = {
+          ...claims,
+          projectQuery: [R.prop('project', attributes)],
+        };
+
+        const userProjects = await UserModel.getAllProjectsIdsForUser({
+          id: currentUserId,
+        });
+
+        if (userProjects.length) {
+          claims = {
+            ...claims,
+            userProjects: [userProjects.join('-')],
+          };
+        }
+
+        const roles = await UserModel.getUserRolesForProject({
+          id: currentUserId,
+        }, R.prop('project', attributes));
+
+        const highestRoleForProject = R.pipe(
+          R.uniq,
+          R.reject(R.isEmpty),
+          R.reject(R.isNil),
+          R.sort(sortRolesByWeight),
+          R.last,
+        )(roles);
+
+        if (highestRoleForProject) {
+          claims = {
+            ...claims,
+            userProjectRole: [highestRoleForProject],
+          };
+        }
+      } catch (err) {
+        logger.error(`Could not submit project (${R.prop('project', attributes)}) claims for authz request: ${err.message}`);
+      }
+    }
+
+    if (R.prop('group', attributes)) {
+      try {
+        const group = await GroupModel.loadGroupById(R.prop('group', attributes));
+
+        const groupRoles = R.pipe(
+          R.filter(membership =>
+            R.pathEq(['user', 'id'], currentUserId, membership),
+          ),
+          R.pluck('role'),
+        )(group.members);
+
+        const highestRoleForGroup = R.pipe(
+          R.uniq,
+          R.reject(R.isEmpty),
+          R.reject(R.isNil),
+          R.sort(sortRolesByWeight),
+          R.last,
+        )(groupRoles);
+
+        if (highestRoleForGroup) {
+          claims = {
+            ...claims,
+            userGroupRole: [highestRoleForGroup],
+          };
+        }
+      } catch (err) {
+        logger.error(`Could not submit group (${R.prop('group', attributes)}) claims for authz request: ${err.message}`);
+      }
+    }
 
     // Ask keycloak for a new token (RPT).
-    const authzRequest = {
-      // claim_token: Buffer.from(JSON.stringify(claims)).toString('base64'),
-      // claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+    let authzRequest = {
       permissions: [
         {
           id: resource,
@@ -83,6 +185,15 @@ const keycloakHasPermission = (grant) => {
         },
       ],
     };
+
+    if (!R.isEmpty(claims)) {
+      authzRequest = {
+        ...authzRequest,
+        claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+        claim_token: Buffer.from(JSON.stringify(claims)).toString('base64'),
+      };
+    }
+
     const request = {
       headers: {},
       kauth: {
@@ -101,10 +212,9 @@ const keycloakHasPermission = (grant) => {
     } catch (err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
-      throw new Error('Unauthorized');
     }
 
-    throw new Error('Unauthorized');
+    throw new Error(`Unauthorized: You don't have permission to "${scopes.join(',')}" on "${resource}".`);
   };
 };
 
