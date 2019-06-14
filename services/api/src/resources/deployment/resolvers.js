@@ -189,7 +189,7 @@ const addDeployment = async (
   const status = deploymentStatusTypeToString(unformattedStatus);
 
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('environment', ['deploy', `type:${environment.environment_type}`], {
+  await hasPermission('environment', ['deploy', `type:${environment.environmentType}`], {
     project: environment.project,
   });
 
@@ -324,7 +324,7 @@ const deployEnvironmentLatest = async (
     environment.project,
   );
 
-  await hasPermission('environment', ['deploy', `type:${environment.environment_type}`], {
+  await hasPermission('environment', ['deploy', `type:${environment.environmentType}`], {
     project: project.id,
   });
 

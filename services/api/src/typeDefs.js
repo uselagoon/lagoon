@@ -464,6 +464,9 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    userCanSshToEnvironment(
+      openshiftProjectName: String
+    ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
     """

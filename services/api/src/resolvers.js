@@ -53,6 +53,7 @@ const {
   updateEnvironment,
   getAllEnvironments,
   deleteAllEnvironments,
+  userCanSshToEnvironment,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -202,6 +203,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     projectByName: getProjectByName,
     environmentByName: getEnvironmentByName,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
+    userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     allProjects: getAllProjects,

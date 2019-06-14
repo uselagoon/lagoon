@@ -276,6 +276,7 @@ const addProject = async (
       name: `project-${project.name}`,
       attributes: {
         type: ['project-default-group'],
+        'lagoon-projects': [project.id],
       },
     });
   } catch (err) {

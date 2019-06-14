@@ -54,6 +54,10 @@ const getEnvironmentByName = async (
   const rows = await query(sqlClient, prep(args));
   const environment = rows[0];
 
+  if (!environment) {
+    return null;
+  }
+
   await hasPermission('environment', 'view', {
     project: args.project,
   });
@@ -117,6 +121,10 @@ const getEnvironmentByDeploymentId = async (
 
   const environment = rows[0];
 
+  if (!environment) {
+    return null;
+  }
+
   await hasPermission('environment', 'view', {
     project: environment.project,
   });
@@ -147,6 +155,10 @@ const getEnvironmentByTaskId = async (
   const rows = await query(sqlClient, prep({ task_id }));
 
   const environment = rows[0];
+
+  if (!environment) {
+    return null;
+  }
 
   await hasPermission('environment', 'view', {
     project: environment.project,
@@ -391,6 +403,10 @@ const getEnvironmentByOpenshiftProjectName = async (
 
   const environment = rows[0];
 
+  if (!environment) {
+    return null;
+  }
+
   await hasPermission('environment', 'view', {
     project: environment.project,
   });
@@ -415,7 +431,7 @@ const addOrUpdateEnvironment = async (
 
   const pid = input.project.toString();
 
-  await hasPermission('environment', ['addOrUpdate', `type:${input.environment_type}`], {
+  await hasPermission('environment', ['addOrUpdate', `type:${input.environmentType}`], {
     project: pid,
   });
 
@@ -617,7 +633,7 @@ const updateEnvironment = async (
   const id = input.id;
   const curEnv = await Helpers(sqlClient).getEnvironmentById(id);
 
-  await hasPermission('environment', ['update', `type:${curEnv.environment_type}`], {
+  await hasPermission('environment', ['update', `type:${curEnv.environmentType}`], {
     project: curEnv.project,
   });
 
@@ -682,7 +698,7 @@ const setEnvironmentServices = async (
   },
 ) => {
   const environment = await Helpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('environment', ['update', `type:${environment.environment_type}`], {
+  await hasPermission('environment', ['update', `type:${environment.environmentType}`], {
     project: environment.project,
   });
 
@@ -693,6 +709,44 @@ const setEnvironmentServices = async (
   }
 
   return query(sqlClient, Sql.selectServicesByEnvironmentId(environmentId));
+};
+
+const userCanSshToEnvironment = async (
+  root,
+  args,
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const str = `
+    SELECT
+      e.*
+    FROM
+      environment e
+      JOIN project p ON e.project = p.id
+    WHERE e.openshift_project_name = :openshift_project_name
+  `;
+
+  const prep = prepare(sqlClient, str);
+
+  const rows = await query(sqlClient, prep(args));
+
+  const environment = rows[0];
+
+  if (!environment) {
+    return null;
+  }
+
+  try {
+    await hasPermission('environment', ['ssh', `type:${environment.environmentType}`], {
+      project: environment.project,
+    });
+
+    return environment;
+  } catch (err) {
+    return null;
+  }
 };
 
 const Resolvers /* : ResolversObj */ = {
@@ -713,6 +767,7 @@ const Resolvers /* : ResolversObj */ = {
   updateEnvironment,
   getAllEnvironments,
   deleteAllEnvironments,
+  userCanSshToEnvironment,
 };
 
 module.exports = Resolvers;

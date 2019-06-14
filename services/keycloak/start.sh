@@ -124,7 +124,7 @@ function configure_api_client {
     OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
 
     # Resource Scopes
-    resource_scope_names=(add addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser storage task:destination task:source token type:development type:production udpate view view:user viewAll viewPrivateKey)
+    resource_scope_names=(add addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser ssh storage task:destination task:source token type:development type:production udpate view view:user viewAll viewPrivateKey)
     for rsn_key in ${!resource_scope_names[@]}; do
         echo Creating resource scope ${resource_scope_names[$rsn_key]}
         /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
@@ -146,7 +146,7 @@ function configure_api_client {
     echo Creating resource user
     echo '{"name":"user","displayName":"user","scopes":[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource environment
-    echo '{"name":"environment","displayName":"environment","scopes":[{"name":"view"},{"name":"deploy"},{"name":"type:production"},{"name":"type:development"},{"name":"addOrUpdate"},{"name":"storage"},{"name":"delete"},{"name":"deleteNoExec"},{"name":"update"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"environment","displayName":"environment","scopes":[{"name":"ssh"},{"name":"view"},{"name":"deploy"},{"name":"type:production"},{"name":"type:development"},{"name":"addOrUpdate"},{"name":"storage"},{"name":"delete"},{"name":"deleteNoExec"},{"name":"update"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource project
     echo '{"name":"project","displayName":"project","scopes":[{"name":"update"},{"name":"add"},{"name":"deploy"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"removeNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource group
@@ -1155,6 +1155,30 @@ EOF
   "resources": ["environment"],
   "scopes": ["update","type:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "User can SSH to Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["ssh","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "User can SSH to Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["ssh","type:development"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
