@@ -124,7 +124,7 @@ function configure_api_client {
     OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
 
     # Resource Scopes
-    resource_scope_names=(add addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser storage task:destination task:source token type:development type:production udpate view view:project view:user viewAll viewPrivateKey)
+    resource_scope_names=(add addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser storage task:destination task:source token type:development type:production udpate view view:user viewAll viewPrivateKey)
     for rsn_key in ${!resource_scope_names[@]}; do
         echo Creating resource scope ${resource_scope_names[$rsn_key]}
         /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
@@ -157,25 +157,1007 @@ function configure_api_client {
     echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
-    echo Creating api authz policies
+    echo Creating api authz role policies
     echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Admin Role Policy","description":"User has admin role","roles":[{"id":"'$ADMIN_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    ADMIN_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy?name=Admin+Role+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Guest Role Policy","description":"User has guest role","roles":[{"id":"'$GUEST_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    GUEST_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy?name=Guest+Role+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Reporter Role Policy","description":"User has reporter role","roles":[{"id":"'$REPORTER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    REPORTER_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy?name=Reporter+Role+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Developer Role Policy","description":"User has developer role","roles":[{"id":"'$DEVELOPER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    DEVELOPER_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy?name=Developer+Role+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Maintainer Role Policy","description":"User has maintainer role","roles":[{"id":"'$MAINTAINER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    MAINTAINER_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy?name=Maintainer+Role+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Owner Role Policy","description":"User has owner role","roles":[{"id":"'$OWNER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    OWNER_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy?name=Owner+Role+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+
+    echo Creating api authz js policies
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for group is Developer",
+  "description": "Checks the users role for a group is Developer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for project is Developer",
+  "description": "Checks the users role for a project is Developer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "User has access to project",
+  "description": "Checks that the user has access to a project via groups",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('projectQuery') || !ctxAttr.exists('userProjects')) {\n    $evaluation.deny();\n} else {\n    var project = ctxAttr.getValue('projectQuery').asString(0);\n    var projects = ctxAttr.getValue('userProjects').asString(0);\n    var projectsArr = projects.split('-');\n    var grant = false;\n\n    for (var i=0; i<projectsArr.length; i++) {\n        if (project == projectsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for project is Reporter",
+  "description": "Checks the users role for a project is Reporter or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "User has access to own data",
+  "description": "Checks that the current user is same as queried",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('usersQuery') || !ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n    var users = ctxAttr.getValue('usersQuery').asString(0);\n    var usersArr = users.split('|');\n    var grant = false;\n    \n    for (var i=0; i<usersArr.length; i++) {\n        if (currentUser == usersArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for group is Guest",
+  "description": "Checks the users role for a group is Guest or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for group is Maintainer",
+  "description": "Checks the users role for a group is Maintainer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for project is Guest",
+  "description": "Checks the users role for a project is Guest or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for project is Maintainer",
+  "description": "Checks the users role for a project is Maintainer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for group is Reporter",
+  "description": "Checks the users role for a group is Reporter or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for group is Owner",
+  "description": "Checks the users role for a group is Owner or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for project is Owner",
+  "description": "Checks the users role for a project is Owner or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
 
     #Authorization permissions
     echo Creating api authz permissions
     DEFAULT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Default+Permission --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$DEFAULT_PERMISSION_ID --config $CONFIG_PATH
-    echo '{"type":"resource","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Admins Allowed Permission","description":"Admins granted access to all resources/scopes","resourceType":"urn:api:resources:default","policies":["'$ADMIN_POLICY_ID'"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/resource --config $CONFIG_PATH -r lagoon -f -
+    echo '{"type":"resource","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Admins Allowed Permission","description":"Admins granted access to all resources/scopes","resourceType":"urn:api:resources:default","policies":["Admin Role Policy"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/resource --config $CONFIG_PATH -r lagoon -f -
+
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:view","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["update"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Environment Variable to Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:add","type:production"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["delete","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Backup",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["backup"],
+  "scopes": ["delete"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush sql-sync from Any Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["task:source","type:production","drushSqlSync","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Group",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["update"],
+  "policies": ["Users role for group is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Environment Variable to Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:add","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Backups",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["backup"],
+  "scopes": ["view"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Restore",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["restore"],
+  "scopes": ["update"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Deployment to Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["type:production","deploy"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add or Update Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["type:production","addOrUpdate"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All Backups",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["backup"],
+  "scopes": ["deleteAll"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Deployments",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["deployment"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add User",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["add"],
+  "policies": ["Default Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add or Update Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["type:development","addOrUpdate"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Notification",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["notification"],
+  "scopes": ["view"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Projects",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["viewAll"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["type:production","delete"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Notification to Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["addNotification"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["delete"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Group",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["add"],
+  "policies": ["Default Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:view"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Project Private Key",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["viewPrivateKey"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All Groups",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["deleteAll"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All Users",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["deleteAll"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Openshift",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["openshift"],
+  "scopes": ["viewAll","delete","update","deleteAll","add"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete SSH Key",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["ssh_key"],
+  "scopes": ["delete"],
+  "policies": ["User has access to own data"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Environment Variable to Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:add"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["add"],
+  "policies": ["Default Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Get SSH Keys for User",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["ssh_key"],
+  "scopes": ["view:user"],
+  "policies": ["User has access to own data"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Openshift",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["openshift"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush rsync from Any Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["task:source","type:production","drushRsync","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All SSH Keys",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["ssh_key"],
+  "scopes": ["removeAll","delete"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Metrics",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["storage"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush sql-sync to Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["drushSqlSync","task:destination","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush cache-clear",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["type:production","type:development","drushCacheClear"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add User to Group",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["addUser"],
+  "policies": ["Users role for group is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Backup",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["backup"],
+  "scopes": ["add"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush sql-sync to Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["type:production","drushSqlSync","task:destination"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["type:production","update"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush rsync to Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["drushRsync","task:destination","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update SSH Key",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["ssh_key"],
+  "scopes": ["update"],
+  "policies": ["User has access to own data"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["type:production","add","type:development"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add SSH Key",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["ssh_key"],
+  "scopes": ["add"],
+  "policies": ["User has access to own data"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "CUD Notification",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["notification"],
+  "scopes": ["removeAll","delete","update","deleteAll","add"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Groups to Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["addGroup"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Deployment to Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["type:development","deploy"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All Environments",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["deleteAll"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Deployment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["update"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["update"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Remove Notification from Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["removeNotification"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete User",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["delete"],
+  "policies": ["User has access to own data"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All Projects",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["deleteAll"],
+  "policies": ["Admin Role Policy"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Remove User from Group",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["removeUser"],
+  "policies": ["Users role for group is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Group",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["delete"],
+  "policies": ["Users role for group is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Restore",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["restore"],
+  "scopes": ["add"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush archive-dump",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["drushArchiveDump","type:production","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update User",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["update"],
+  "policies": ["User has access to own data"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Deployment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["delete"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Deploy Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["deploy"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Remove Groups from Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["removeGroup"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush rsync to Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["type:production","drushRsync","task:destination"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush sql-dump",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["type:production","type:development","drushSqlDump"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["type:production","environment:view"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["delete"],
+  "policies": ["User has access to project","Users role for project is Maintainer"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["delete"],
+  "policies": ["Users role for project is Owner","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["update","type:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
 
     # http://localhost:8088/auth/admin/realms/lagoon/clients/1329f641-a440-44a7-996f-ed1c560e2edd/authz/resource-server/permission/scope
     # {"type":"scope","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Backup View","resources":["2ebb5852-6624-4dc6-8374-e1e54a7fd9c5"],"scopes":["8e78b877-f930-43ff-995f-c907af64f69f"],"policies":["d4fae4e2-ddc7-462c-b712-d68aaeb269e1"]}
