@@ -135,6 +135,10 @@ const loadGroupByName = async (name: string): Promise<Group> => {
     R.path(['0', 'id'])
   )(keycloakGroups);
 
+  if (R.isNil(groupId)) {
+    throw new GroupNotFoundError(`Group not found: ${name}`);
+  }
+
   // @ts-ignore
   return await loadGroupById(groupId);
 };
