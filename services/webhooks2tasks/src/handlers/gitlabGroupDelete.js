@@ -17,20 +17,18 @@ async function gitlabGroupDelete(webhook: WebhookRequestData) {
     };
 
 
-    // @TODO: Implement Group Deletion by Name
+    await deleteGroup(name);
+
+    sendToLagoonLogs(
+      'info',
+      '',
+      uuid,
+      `${webhooktype}:${event}:handled`,
+      meta,
+      `Deleted group ${name}`
+    );
+
     return;
-    // await deleteGroup(name);
-
-    // sendToLagoonLogs(
-    //   'info',
-    //   '',
-    //   uuid,
-    //   `${webhooktype}:${event}:handled`,
-    //   meta,
-    //   `Deleted group ${name}`
-    // );
-
-    // return;
   } catch (error) {
     sendToLagoonLogs(
       'error',

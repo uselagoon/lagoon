@@ -33,11 +33,13 @@ export const addGroup = async (_root, { input }, { dataSources, hasPermission })
 
 export const updateGroup = async (
   _root,
-  { input: { id, patch } },
+  { input: { group: groupInput, patch } },
   { dataSources, hasPermission },
 ) => {
+  const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
+
   await hasPermission('group', 'update', {
-    group: id,
+    group: group.id,
   });
 
   if (isPatchEmpty({ patch })) {
@@ -52,24 +54,26 @@ export const updateGroup = async (
     }
   }
 
-  const group = await dataSources.GroupModel.updateGroup({
-    id,
+  const updatedGroup = await dataSources.GroupModel.updateGroup({
+    id: group.id,
     name: patch.name,
   });
 
-  return group;
+  return updatedGroup;
 };
 
 export const deleteGroup = async (
   _root,
-  { input: { id } },
+  { input: { group: groupInput } },
   { dataSources, hasPermission },
 ) => {
+  const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
+
   await hasPermission('group', 'delete', {
-    group: id,
+    group: group.id,
   });
 
-  await dataSources.GroupModel.deleteGroup(id);
+  await dataSources.GroupModel.deleteGroup(group.id);
 
   return 'success';
 };

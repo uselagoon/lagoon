@@ -253,31 +253,35 @@ const getAllEnvironmentBackups = (): Promise<Project[]> =>
 `,
   );
 
-const updateGroup = (id: number, patch: GroupPatch): Promise<Object> =>
+const updateGroup = (name: string, patch: GroupPatch): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: Int!, $patch: UpdateGroupPatchInput!) {
+  ($name: String!, $patch: UpdateGroupPatchInput!) {
     updateGroup(input: {
-      id: $id
+      group: {
+        name: $name
+      }
       patch: $patch
     }) {
       ...${groupFragment}
     }
   }
   `,
-    { id, patch },
+    { name, patch },
   );
 
-const deleteGroup = (id: number): Promise<Object> =>
+const deleteGroup = (name: string): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: String!) {
+  ($name: String!) {
     deleteGroup(input: {
-      id: $id
+      group: {
+        name: $name
+      }
     })
   }
   `,
-    { id },
+    { name },
   );
 
 const getUserBySshKey = (sshKey: string): Promise<Object> =>
@@ -322,31 +326,35 @@ const addUser = (
     },
   );
 
-const updateUser = (id: number, patch: UserPatch): Promise<Object> =>
+const updateUser = (email: string, patch: UserPatch): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: Int!, $patch: UpdateUserPatchInput!) {
+  ($email: String!, $patch: UpdateUserPatchInput!) {
     updateUser(input: {
-      id: $id
+      user: {
+        email: $email
+      }
       patch: $patch
     }) {
       ...${userFragment}
     }
   }
   `,
-    { id, patch },
+    { email, patch },
   );
 
-const deleteUser = (id: number): Promise<Object> =>
+const deleteUser = (email: string): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: Int!) {
+  ($email: Int!) {
     deleteUser(input: {
-      id: $id
+      user: {
+        email: $email
+      }
     })
   }
   `,
-    { id },
+    { email },
   );
 
 const addUserToGroup = (userEmail: string, groupName: string, role: string): Promise<Object> =>
@@ -402,17 +410,19 @@ const addSshKey = (
   name: string,
   keyValue: string,
   keyType: string,
-  userId: number,
+  userEmail: string,
 ): Promise<Object> =>
   graphqlapi.mutate(
     `
-  ($id: Int, $name: String!, $keyValue: String!, $keyType: SshKeyType!, $userId: Int!) {
+  ($id: Int, $name: String!, $keyValue: String!, $keyType: SshKeyType!, $userEmail: String!) {
     addSshKey(input: {
       id: $id
       name: $name
       keyValue: $keyValue
       keyType: $keyType
-      userId: $userId
+      user: {
+        email: $userEmail
+      }
     }) {
       ...${sshKeyFragment}
     }
@@ -422,7 +432,7 @@ const addSshKey = (
       id,
       name,
       keyValue,
-      userId,
+      userEmail,
       keyType,
     },
   );

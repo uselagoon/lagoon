@@ -9,23 +9,22 @@ async function gitlabUserDelete(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { user_id: id } = body;
+    const { user_id: id, email } = body;
 
     const meta = {
       user: id
     };
 
-    // @TODO: Delete User by Gitlab ID
-    // await deleteUser(id);
+    await deleteUser(email);
 
-    // sendToLagoonLogs(
-    //   'info',
-    //   '',
-    //   uuid,
-    //   `${webhooktype}:${event}:handled`,
-    //   meta,
-    //   `Deleted user ${id}`
-    // );
+    sendToLagoonLogs(
+      'info',
+      '',
+      uuid,
+      `${webhooktype}:${event}:handled`,
+      meta,
+      `Deleted user ${id}`
+    );
 
     return;
   } catch (error) {

@@ -501,7 +501,7 @@ const typeDefs = gql`
     name: String!
     keyValue: String!
     keyType: SshKeyType!
-    userId: Int!
+    user: UserInput!
   }
 
   input DeleteSshKeyInput {
@@ -708,12 +708,12 @@ const typeDefs = gql`
   }
 
   input UpdateUserInput {
-    id: String!
+    user: UserInput!
     patch: UpdateUserPatchInput!
   }
 
   input DeleteUserInput {
-    id: String!
+    user: UserInput!
   }
 
   input DeleteProjectInput {
@@ -878,12 +878,12 @@ const typeDefs = gql`
   }
 
   input UpdateGroupInput {
-    id: String!
+    group: GroupInput!
     patch: UpdateGroupPatchInput!
   }
 
   input DeleteGroupInput {
-    id: String!
+    group: GroupInput!
   }
 
   input UserInput {

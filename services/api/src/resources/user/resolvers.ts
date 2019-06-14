@@ -47,19 +47,24 @@ export const addUser = async (
 
 export const updateUser = async (
   _root,
-  { input: { id, patch } },
+  { input: { user: userInput, patch } },
   { dataSources, hasPermission },
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  await hasPermission('user', 'update', {
-    users: [id],
+  const user = await dataSources.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
   });
 
-  const user = await dataSources.UserModel.updateUser({
-    id,
+  await hasPermission('user', 'update', {
+    users: [user.id],
+  });
+
+  const updatedUser = await dataSources.UserModel.updateUser({
+    id: user.id,
     email: patch.email,
     username: patch.email,
     firstName: patch.firstName,
@@ -68,19 +73,24 @@ export const updateUser = async (
     gitlabId: patch.gitlabId,
   });
 
-  return user;
+  return updatedUser;
 };
 
 export const deleteUser = async (
   _root,
-  { input: { id } },
+  { input: { user: userInput } },
   { dataSources, hasPermission },
 ) => {
-  await hasPermission('user', 'delete', {
-    users: [id],
+  const user = await dataSources.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
   });
 
-  await dataSources.UserModel.deleteUser(id);
+  await hasPermission('user', 'delete', {
+    users: [user.id],
+  });
+
+  await dataSources.UserModel.deleteUser(user.id);
 
   return 'success';
 };

@@ -12,29 +12,27 @@ async function gitlabGroupUpdate(webhook: WebhookRequestData) {
   try {
     const group = await getGroup(body.group_id);
     const { id, path: name, description: comment } = group;
+    const { old_path: oldName } = body;
 
     const meta = {
       data: group,
       group: id
     };
 
-    // @TODO: Implement Group Update by Name
+    await updateGroup(oldName, {
+      name
+    });
+
+    sendToLagoonLogs(
+      'info',
+      '',
+      uuid,
+      `${webhooktype}:${event}:handled`,
+      meta,
+      `Updated group ${name}`
+    );
+
     return;
-
-    // await updateGroup(id, {
-    //   name
-    // });
-
-    // sendToLagoonLogs(
-    //   'info',
-    //   '',
-    //   uuid,
-    //   `${webhooktype}:${event}:handled`,
-    //   meta,
-    //   `Updated group ${name}`
-    // );
-
-    // return;
   } catch (error) {
     sendToLagoonLogs(
       'error',

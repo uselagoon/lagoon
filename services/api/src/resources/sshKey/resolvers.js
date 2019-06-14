@@ -37,10 +37,10 @@ const addSshKey = async (
   root,
   {
     input: {
-      id, name, keyValue, keyType: unformattedKeyType, userId,
+      id, name, keyValue, keyType: unformattedKeyType, user: userInput
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, dataSources },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
   const keyFormatted = formatSshKey({ keyType, keyValue });
@@ -49,8 +49,13 @@ const addSshKey = async (
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
+  const user = await dataSources.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
   await hasPermission('ssh_key', 'add', {
-    users: [userId],
+    users: [user.id],
   });
 
   const {
@@ -65,7 +70,7 @@ const addSshKey = async (
       keyFingerprint: getSshKeyFingerprint(keyFormatted),
     }),
   );
-  await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: insertId, userId }));
+  await query(sqlClient, Sql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }));
   const rows = await query(sqlClient, Sql.selectSshKey(insertId));
 
   return R.prop(0, rows);
