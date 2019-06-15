@@ -27,7 +27,7 @@ USER_ID=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" 
 header="Content-Type: application/json"
 
 # Prepare the post (containing the user id) as a JSON object.
-data="{\"userId\": $USER_ID}"
+data="{\"userId\": \"$USER_ID\"}"
 
 # Submit the token request as a POST request with the JSON data
 # containing the key.

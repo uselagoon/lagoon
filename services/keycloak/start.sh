@@ -81,7 +81,7 @@ function configure_api_client {
     /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -s editUsernameAllowed=true
 
     echo Creating client auth-server
-    echo '{"clientId": "auth-server", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"clientId": "auth-server", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     AUTH_SERVER_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=auth-server --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo Enable auth-server token exchange
@@ -114,7 +114,7 @@ function configure_api_client {
 
     # Configure keycloak for api
     echo Creating client api
-    echo '{"clientId": "api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "authorizationServicesEnabled": true}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"clientId": "api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "authorizationServicesEnabled": true, "secret": "'$KEYCLOAK_API_CLIENT_SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     ADMIN_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/admin --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
     GUEST_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/guest --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')

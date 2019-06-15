@@ -19,7 +19,7 @@ export const getUserBySshKey = async (
     sqlClient,
     Sql.selectUserIdBySshKey({ keyType, keyValue }),
   );
-  const userId = R.prop(0, rows);
+  const userId = R.map(R.prop('usid'), rows);
 
   const user = await dataSources.UserModel.loadUserById(userId);
 
