@@ -3,6 +3,7 @@
 export USER_ID=$(id -u)
 
 ep /home/token.sh
+ep /home/grant.sh
 
 ep /etc/libnss-mysql.cfg
 

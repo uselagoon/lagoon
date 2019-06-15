@@ -10,6 +10,10 @@ const { generateRoute } = require('./routes');
 
 import type { LagoonErrorWithStatus, $Request, $Response } from 'express';
 
+declare type keycloakGrant = {
+  access_token: string,
+}
+
 const app = express();
 
 // Add custom configured logger (morgan through winston).
@@ -29,7 +33,7 @@ const lagoonKeycloakRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env);
 
-const getUserToken = async (userId: string): Promise<string> => {
+const getUserGrant = async (userId: string): Promise<keycloakGrant> => {
   try {
     const data = {
       grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
@@ -47,16 +51,16 @@ const getUserToken = async (userId: string): Promise<string> => {
       querystring.stringify(data),
     );
 
-    return response.data.access_token;
+    return response.data;
   } catch (err) {
     if (err.response) {
       const msg = R.pathOr('Unknown error', ['response', 'data', 'error_description'], err);
-      throw new Error(`Could not get user token: ${msg}`)
+      throw new Error(`Could not get user grant: ${msg}`);
     }
   }
 };
 
-app.post('/generate', ...generateRoute(getUserToken));
+app.post('/generate', ...generateRoute(getUserGrant));
 
 app.use((err: LagoonErrorWithStatus, req: $Request, res: $Response) => {
   logger.error(err.toString());

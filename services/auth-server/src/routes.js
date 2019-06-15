@@ -5,29 +5,38 @@ const { parseJson } = require('./util/routing');
 
 import type { $Request, $Response } from 'express';
 
-const generateRoute = (getUserToken: (userId: string) => Promise<string>) => {
+declare type keycloakGrant = {
+  access_token: string,
+}
+
+const generateRoute = (getUserGrant: (userId: string) => Promise<keycloakGrant>) => {
   const route = async (req: $Request, res: $Response) => {
     const userId = R.path(['body', 'userId'], req);
     const verbose = R.pathOr(false, ['body', 'verbose'], req);
+    const returnGrant = R.pathOr(false, ['body', 'grant'], req);
 
     if (userId == null) {
       return res.status(500).send('Missing parameter "userId"');
     }
 
     try {
-      const token = await getUserToken(userId);
+      const grant = await getUserGrant(userId);
+      const { access_token: token } = grant;
+
+      const data = {
+        payload: {
+          userId,
+        },
+        token,
+        grant,
+      };
 
       // Verbose mode will send back all the information
       // which was being used for creating the token
       if (verbose) {
-        res.json({
-          payload: {
-            userId,
-          },
-          token,
-        });
+        res.json(data);
       } else {
-        res.send(token);
+        res.send(returnGrant ? grant : token);
       }
     } catch (e) {
       res.status(500).send(e.message);
