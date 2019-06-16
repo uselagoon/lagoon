@@ -264,16 +264,19 @@ const updateDeployment = async (
   }
 
   const permsDeployment = await query(sqlClient, Sql.selectPermsForDeployment(id));
-  const permsEnv = await environmentHelpers(sqlClient).getEnvironmentById(environment);
 
   // Check access to modify deployment as it currently stands
   await hasPermission('deployment', 'update', {
     project: R.path(['0', 'pid'], permsDeployment),
   });
-  // Check access to modify deployment as it will be updated
-  await hasPermission('environment', 'view', {
-    project: permsEnv.project,
-  });
+
+  if (environment) {
+    const permsEnv = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    // Check access to modify deployment as it will be updated
+    await hasPermission('environment', 'view', {
+      project: permsEnv.project,
+    });
+  }
 
   await query(
     sqlClient,

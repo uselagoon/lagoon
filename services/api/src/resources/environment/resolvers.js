@@ -546,6 +546,10 @@ const deleteEnvironment = async (
       await hasPermission('environment', ['deleteNoExec', `type:${environment.environmentType}`], {
         project: projectId,
       });
+
+      const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
+      await query(sqlClient, prep({ name, project: projectId }));
+
       return 'success';
     } catch (err) {
       // Not allowed to stop execution.
