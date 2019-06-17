@@ -10125,7 +10125,7 @@ srcset@^1.0.0:
     array-uniq "^1.0.2"
     number-is-nan "^1.0.0"
 
-sshpk@^1.14.1, sshpk@^1.14.2, sshpk@^1.7.0:
+sshpk@^1.14.1, sshpk@^1.14.2, sshpk@^1.16.1, sshpk@^1.7.0:
   version "1.16.1"
   resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.16.1.tgz#fb661c0bef29b39db40769ee39fa70093d6f6877"
   integrity sha512-HXXqVUq7+pcKeLqqZj6mHFUMvXtOJt1uoUx09pFW6011inTMxqI8BA8PM95myrIyyKwdnzjdFjLiE6KBPVtJIg==

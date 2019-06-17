@@ -6,10 +6,9 @@ import type { WebhookRequestData } from '../types';
 
 async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
+  const { project_path: projectName, user_id: userId, user_email: userEmail, access_level: role } = body;
 
   try {
-    const { project_path: projectName, user_id: userId, user_email: userEmail, access_level: role } = body;
-
     const meta = {
       data: body,
       userId,

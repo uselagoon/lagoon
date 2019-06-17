@@ -55,6 +55,23 @@ const getRequest = async (url: string): Object => {
   }
 };
 
+const postRequest = async (url: string, body: object): Object => {
+  try {
+    const response = await gitlabapi.post(url, body);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new APIError(
+        R.pathOr(error.message, ['data', 'message'], error.response),
+      );
+    } else if (error.request) {
+      throw new NetworkError(error.message);
+    } else {
+      throw error;
+    }
+  }
+};
+
 const getUserByUsername = async (username: string): Object => {
   try {
     const response = await gitlabapi.get('users', {
@@ -89,10 +106,18 @@ const getUser = async (userId: number): Object => getRequest(`users/${userId}`);
 const getSshKey = async (keyId: number): Object =>
   getRequest(`keys/${keyId}`);
 
+const addDeployKeyToProject = async (projectId: Number, key: string): Object =>
+  postRequest(`projects/${projectId}/deploy_keys`, {
+    title: 'Lagoon Project Key',
+    key,
+    can_push: false,
+  });
+
 module.exports = {
   getGroup,
   getProject,
   getUser,
   getSshKey,
   getUserByUsername,
+  addDeployKeyToProject,
 };

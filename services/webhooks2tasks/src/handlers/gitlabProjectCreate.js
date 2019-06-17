@@ -1,7 +1,9 @@
 // @flow
 
+const R = require('ramda');
+const sshpk = require('sshpk');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { getProject } = require('@lagoon/commons/src/gitlabApi');
+const { getProject, addDeployKeyToProject } = require('@lagoon/commons/src/gitlabApi');
 const { addProject, addGroupToProject } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
@@ -37,7 +39,26 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
       return;
     }
 
-    await addProject(projectName, gitUrl, openshift, productionenvironment);
+    const lagoonProject = await addProject(projectName, gitUrl, openshift, productionenvironment);
+
+    try {
+      const privateKey = R.pipe(
+        R.path(['addProject', 'privateKey']),
+        sshpk.parsePrivateKey,
+      )(lagoonProject);
+      const publicKey = privateKey.toPublic();
+
+      await addDeployKeyToProject(id, publicKey.toString());
+    } catch (err) {
+      sendToLagoonLogs(
+        'error',
+        '',
+        uuid,
+        `${webhooktype}:${event}:deploy_key`,
+        { data: body },
+        `Could not add deploy_key to gitlab project ${id}, reason: ${err}`
+      );
+    }
 
     // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
     // We add this owner Group to the Project.

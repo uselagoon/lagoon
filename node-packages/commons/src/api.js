@@ -110,6 +110,7 @@ fragment on Project {
   id
   name
   gitUrl
+  privateKey
 }
 `);
 
