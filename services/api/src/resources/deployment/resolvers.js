@@ -14,8 +14,6 @@ const {
 } = require('../../clients/pubSub');
 const {
   knex,
-  ifNotAdmin,
-  inClauseOr,
   prepare,
   query,
   isPatchEmpty,
@@ -23,7 +21,6 @@ const {
 const Sql = require('./sql');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
-const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
 
 /* ::
@@ -464,8 +461,9 @@ const deployEnvironmentBranch = async (
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('project', 'deploy', {
+  await hasPermission('environment', ['deploy', `type:${envType}`], {
     project: project.id,
   });
 
@@ -545,11 +543,13 @@ const deployEnvironmentPullrequest = async (
     hasPermission,
   },
 ) => {
+  const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('project', 'deploy', {
+  await hasPermission('environment', ['deploy', `type:${envType}`], {
     project: project.id,
   });
 
@@ -562,7 +562,7 @@ const deployEnvironmentPullrequest = async (
     headSha: headBranchRef,
     baseBranchName,
     baseSha: baseBranchRef,
-    branchName: `pr-${number}`,
+    branchName,
   };
 
   const meta = {
@@ -633,8 +633,9 @@ const deployEnvironmentPromote = async (
   const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+  const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('project', 'deploy', {
+  await hasPermission('environment', ['deploy', `type:${envType}`], {
     project: destProject.id,
   });
 
