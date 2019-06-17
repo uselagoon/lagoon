@@ -23,6 +23,10 @@ case $ACTION in
     ./grant.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
     ;;
 
+  'token-debug')
+    ./token-debug.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
+    ;;
+
   'rsh')
     ./rsh.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY" "$@"
     ;;
