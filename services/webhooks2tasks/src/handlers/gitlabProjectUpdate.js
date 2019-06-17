@@ -5,7 +5,8 @@ const { getProject } = require('@lagoon/commons/src/gitlabApi');
 const {
   addProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  addGroupToProject,
 } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
