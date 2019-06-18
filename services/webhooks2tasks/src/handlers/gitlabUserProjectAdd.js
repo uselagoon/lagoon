@@ -14,13 +14,13 @@ async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
       userId,
       userEmail,
       projectName,
-      access_level,
+      role,
     };
 
     // In Gitlab you can add Users to Projects, in Lagoon this is not directly possible, but instead
     // Lagoon automatically creates a group for each project in this form: `project-$projectname`
     // So if a User is added to a Project in Gitlab, we add the user to this group
-    await addUserToGroup(userEmail, `project-${projectName}`, access_level.toUpperCase());
+    await addUserToGroup(userEmail, `project-${projectName}`, role.toUpperCase());
 
     sendToLagoonLogs(
       'info',
