@@ -12,7 +12,6 @@ async function gitlabUserProjectRemove(webhook: WebhookRequestData) {
 
     const meta = {
       data: body,
-      user,
       projectName,
       userId,
       userEmail
