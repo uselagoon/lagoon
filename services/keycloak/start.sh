@@ -1178,7 +1178,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["ssh","type:development"],
+  "scopes": ["ssh","type:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
