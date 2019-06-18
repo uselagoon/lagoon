@@ -1077,18 +1077,6 @@ EOF
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Deploy Environment",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["environment"],
-  "scopes": ["deploy"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
   "name": "Remove Groups from Project",
   "type": "scope",
   "logic": "POSITIVE",
