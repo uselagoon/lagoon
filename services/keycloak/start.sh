@@ -349,7 +349,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["environment:add","type:production"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -373,7 +373,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["backup"],
   "scopes": ["delete"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -445,7 +445,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["type:production","deploy"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -457,7 +457,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["type:production","addOrUpdate"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -602,7 +602,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["project:view"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -614,7 +614,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["viewPrivateKey"],
-  "policies": ["User has access to project","Users role for project is Maintainer"]
+  "policies": ["User has access to project","Users role for project is Owner"]
 }
 EOF
 
@@ -818,7 +818,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["type:production","update"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -848,15 +848,28 @@ EOF
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Add Task",
+  "name": "Add Task to Production Environment",
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:production","add","type:development"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "scopes": ["type:production","add"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Task to Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["type:development","add"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
@@ -926,7 +939,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["update"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -1052,7 +1065,7 @@ EOF
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Delete Deployment",
+  "name": "Delete Environment",
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
@@ -1070,7 +1083,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["deploy"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -1118,7 +1131,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["type:production","environment:view"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -1130,7 +1143,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["delete"],
-  "policies": ["User has access to project","Users role for project is Maintainer"]
+  "policies": ["User has access to project","Users role for project is Owner"]
 }
 EOF
 
@@ -1142,7 +1155,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["delete"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
