@@ -186,7 +186,7 @@ const addDeployment = async (
   const status = deploymentStatusTypeToString(unformattedStatus);
 
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('environment', ['deploy', `type:${environment.environmentType}`], {
+  await hasPermission('environment', `deploy:${environment.environmentType}`, {
     project: environment.project,
   });
 
@@ -324,7 +324,7 @@ const deployEnvironmentLatest = async (
     environment.project,
   );
 
-  await hasPermission('environment', ['deploy', `type:${environment.environmentType}`], {
+  await hasPermission('environment', `deploy:${environment.environmentType}`, {
     project: project.id,
   });
 
@@ -463,7 +463,7 @@ const deployEnvironmentBranch = async (
   );
   const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('environment', ['deploy', `type:${envType}`], {
+  await hasPermission('environment', `deploy:${envType}`, {
     project: project.id,
   });
 
@@ -549,7 +549,7 @@ const deployEnvironmentPullrequest = async (
   );
   const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('environment', ['deploy', `type:${envType}`], {
+  await hasPermission('environment', `deploy:${envType}`, {
     project: project.id,
   });
 
@@ -635,7 +635,7 @@ const deployEnvironmentPromote = async (
   );
   const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('environment', ['deploy', `type:${envType}`], {
+  await hasPermission('environment', `deploy:${envType}`, {
     project: destProject.id,
   });
 

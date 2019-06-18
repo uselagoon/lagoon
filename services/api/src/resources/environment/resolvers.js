@@ -431,7 +431,7 @@ const addOrUpdateEnvironment = async (
 
   const pid = input.project.toString();
 
-  await hasPermission('environment', ['addOrUpdate', `type:${input.environmentType}`], {
+  await hasPermission('environment', `addOrUpdate:${input.environmentType}`, {
     project: pid,
   });
 
@@ -535,7 +535,7 @@ const deleteEnvironment = async (
     );
   }
 
-  await hasPermission('environment', ['delete', `type:${environment.environmentType}`], {
+  await hasPermission('environment', `delete:${environment.environmentType}`, {
     project: projectId,
   });
 
@@ -543,7 +543,7 @@ const deleteEnvironment = async (
   // This gets called by openshiftremove service after successful remove.
   if (execute === false) {
     try {
-      await hasPermission('environment', ['deleteNoExec', `type:${environment.environmentType}`], {
+      await hasPermission('environment', 'deleteNoExec', {
         project: projectId,
       });
 
@@ -558,7 +558,7 @@ const deleteEnvironment = async (
 
   let canDeleteProduction;
   try {
-    await hasPermission('environment', ['delete', 'type:production'], {
+    await hasPermission('environment', 'delete:production', {
       project: projectId,
     });
     canDeleteProduction = true;
@@ -637,14 +637,14 @@ const updateEnvironment = async (
   const id = input.id;
   const curEnv = await Helpers(sqlClient).getEnvironmentById(id);
 
-  await hasPermission('environment', ['update', `type:${curEnv.environmentType}`], {
+  await hasPermission('environment', `update:${curEnv.environmentType}`, {
     project: curEnv.project,
   });
 
   const newType = R.pathOr(curEnv.environment_type, ['patch', 'environmentType'], input);
   const newProject = R.pathOr(curEnv.project, ['patch', 'project'], input);
 
-  await hasPermission('environment', ['update', `type:${newType}`], {
+  await hasPermission('environment', `update:${newType}`, {
     project: newProject,
   });
 
@@ -702,7 +702,7 @@ const setEnvironmentServices = async (
   },
 ) => {
   const environment = await Helpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('environment', ['update', `type:${environment.environmentType}`], {
+  await hasPermission('environment', `update:${environment.environmentType}`, {
     project: environment.project,
   });
 
@@ -743,7 +743,7 @@ const userCanSshToEnvironment = async (
   }
 
   try {
-    await hasPermission('environment', ['ssh', `type:${environment.environmentType}`], {
+    await hasPermission('environment', `ssh:${environment.environmentType}`, {
       project: environment.project,
     });
 

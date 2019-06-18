@@ -124,7 +124,7 @@ function configure_api_client {
     OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
 
     # Resource Scopes
-    resource_scope_names=(add addGroup addNoExec addNotification addOrUpdate addUser delete deleteAll deleteNoExec deploy drushArchiveDump drushCacheClear drushRsync drushSqlDump drushSqlSync environment:add environment:view getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser ssh storage task:destination task:source token type:development type:production udpate view view:user viewAll viewPrivateKey)
+    resource_scope_names=(add add:development add:production addGroup addNoExec addNotification addOrUpdate:development addOrUpdate:production addUser delete delete:development delete:production deleteAll deleteNoExec deploy:development deploy:production drushArchiveDump:development drushArchiveDump:production drushCacheClear:development drushCacheClear:production drushRsync:destination:development drushRsync:destination:production drushRsync:source:development drushRsync:source:production drushSqlDump:development drushSqlDump:production drushSqlSync:destination:development drushSqlSync:destination:production drushSqlSync:source:development drushSqlSync:source:production environment:add:development environment:add:production environment:view:development environment:view:production getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser ssh:development ssh:production storage update update:development update:production view view:token view:user viewAll viewPrivateKey)
     for rsn_key in ${!resource_scope_names[@]}; do
         echo Creating resource scope ${resource_scope_names[$rsn_key]}
         /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
@@ -138,17 +138,17 @@ function configure_api_client {
     echo Creating resource deployment
     echo '{"name":"deployment","displayName":"deployment","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource env_var
-    echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"environment:view"},{"name":"environment:add"},{"name":"type:production"},{"name":"type:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource task
-    echo '{"name":"task","displayName":"task","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add"},{"name":"addNoExec"},{"name":"drushArchiveDump"},{"name":"drushSqlDump"},{"name":"drushCacheClear"},{"name":"drushSqlSync"},{"name":"drushRsync"},{"name":"type:production"},{"name":"type:development"},{"name":"task:source"},{"name":"task:destination"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"task","displayName":"task","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource openshift
-    echo '{"name":"openshift","displayName":"openshift","scopes":[{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"token"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"openshift","displayName":"openshift","scopes":[{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"view:token"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource user
     echo '{"name":"user","displayName":"user","scopes":[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource environment
-    echo '{"name":"environment","displayName":"environment","scopes":[{"name":"ssh"},{"name":"view"},{"name":"deploy"},{"name":"type:production"},{"name":"type:development"},{"name":"addOrUpdate"},{"name":"storage"},{"name":"delete"},{"name":"deleteNoExec"},{"name":"update"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"environment","displayName":"environment","scopes":[{"name":"ssh:production"},{"name":"ssh:development"},{"name":"view"},{"name":"deploy:production"},{"name":"deploy:development"},{"name":"addOrUpdate:production"},{"name":"addOrUpdate:development"},{"name":"storage"},{"name":"delete:production"},{"name":"delete:development"},{"name":"deleteNoExec"},{"name":"update:production"},{"name":"update:development"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource project
-    echo '{"name":"project","displayName":"project","scopes":[{"name":"update"},{"name":"add"},{"name":"deploy"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"removeNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"project","displayName":"project","scopes":[{"name":"update"},{"name":"add"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"removeNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource group
     echo '{"name":"group","displayName":"group","scopes":[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource notification
@@ -324,7 +324,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
-  "scopes": ["environment:view","type:development"],
+  "scopes": ["environment:view:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -348,7 +348,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
-  "scopes": ["environment:add","type:production"],
+  "scopes": ["environment:add:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -360,7 +360,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["delete","type:development"],
+  "scopes": ["delete:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -384,7 +384,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["task:source","type:production","drushSqlSync","type:development"],
+  "scopes": ["drushSqlSync:source:production","drushSqlSync:source:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -408,7 +408,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
-  "scopes": ["environment:add","type:development"],
+  "scopes": ["environment:add:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -444,7 +444,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["type:production","deploy"],
+  "scopes": ["deploy:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -456,7 +456,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["type:production","addOrUpdate"],
+  "scopes": ["addOrUpdate:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -504,7 +504,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["type:development","addOrUpdate"],
+  "scopes": ["addOrUpdate:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -541,7 +541,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["type:production","delete"],
+  "scopes": ["delete:production"],
   "policies": ["Users role for project is Owner","User has access to project"]
 }
 EOF
@@ -649,7 +649,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["openshift"],
-  "scopes": ["viewAll","delete","update","deleteAll","add"],
+  "scopes": ["viewAll","delete","update","deleteAll","add","view:token"],
   "policies": ["Admin Role Policy"]
 }
 EOF
@@ -721,7 +721,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["task:source","type:production","drushRsync","type:development"],
+  "scopes": ["drushRsync:source:production","drushRsync:source:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -757,7 +757,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["drushSqlSync","task:destination","type:development"],
+  "scopes": ["drushSqlSync:destination:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -769,7 +769,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:production","type:development","drushCacheClear"],
+  "scopes": ["drushCacheClear:production","drushCacheClear:development"],
   "policies": ["User has access to project","Users role for project is Guest"]
 }
 EOF
@@ -805,7 +805,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:production","drushSqlSync","task:destination"],
+  "scopes": ["drushSqlSync:destination:production"],
   "policies": ["User has access to project","Users role for project is Maintainer"]
 }
 EOF
@@ -817,7 +817,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["type:production","update"],
+  "scopes": ["update:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -829,7 +829,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["drushRsync","task:destination","type:development"],
+  "scopes": ["drushRsync:destination:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -853,7 +853,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:production","add"],
+  "scopes": ["add:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -865,7 +865,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:development","add"],
+  "scopes": ["add:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -914,7 +914,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["type:development","deploy"],
+  "scopes": ["deploy:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -1046,7 +1046,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["drushArchiveDump","type:production","type:development"],
+  "scopes": ["drushArchiveDump:production","drushArchiveDump:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -1094,7 +1094,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:production","drushRsync","task:destination"],
+  "scopes": ["drushRsync:destination:production"],
   "policies": ["User has access to project","Users role for project is Maintainer"]
 }
 EOF
@@ -1106,7 +1106,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
-  "scopes": ["type:production","type:development","drushSqlDump"],
+  "scopes": ["drushSqlDump:production","drushSqlDump:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -1118,7 +1118,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
-  "scopes": ["type:production","environment:view"],
+  "scopes": ["environment:view:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -1154,7 +1154,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["update","type:development"],
+  "scopes": ["update:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -1166,7 +1166,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["ssh","type:development"],
+  "scopes": ["ssh:development"],
   "policies": ["Users role for project is Developer","User has access to project"]
 }
 EOF
@@ -1178,7 +1178,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
-  "scopes": ["ssh","type:production"],
+  "scopes": ["ssh:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF

@@ -132,7 +132,7 @@ const addTask = async (
 
   await envValidators(sqlClient).environmentExists(environment);
   const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
-  await hasPermission('task', ['add', `type:${envPerm.environmentType}`], {
+  await hasPermission('task', `add:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
 
@@ -257,7 +257,7 @@ const taskDrushArchiveDump = async (
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
   const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('task', ['drushArchiveDump', `type:${envPerm.environmentType}`], {
+  await hasPermission('task', `drushArchiveDump:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
 
@@ -288,7 +288,7 @@ const taskDrushSqlDump = async (
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
   const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('task', ['drushSqlDump', `type:${envPerm.environmentType}`], {
+  await hasPermission('task', `drushSqlDump:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
 
@@ -319,7 +319,7 @@ const taskDrushCacheClear = async (
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
   const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-  await hasPermission('task', ['drushCacheClear', `type:${envPerm.environmentType}`], {
+  await hasPermission('task', `drushCacheClear:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
 
@@ -371,10 +371,10 @@ const taskDrushSqlSync = async (
     sqlClient,
   ).getEnvironmentById(destinationEnvironmentId);
 
-  await hasPermission('task', ['drushSqlSync', 'task:source', `type:${sourceEnvironment.environmentType}`], {
+  await hasPermission('task', `drushSqlSync:source:${sourceEnvironment.environmentType}`, {
     project: sourceEnvironment.project,
   });
-  await hasPermission('task', ['drushSqlSync', 'task:destination', `type:${destinationEnvironment.environmentType}`], {
+  await hasPermission('task', `drushSqlSync:destination:${destinationEnvironment.environmentType}`, {
     project: destinationEnvironment.project,
   });
 
@@ -415,10 +415,10 @@ const taskDrushRsyncFiles = async (
     sqlClient,
   ).getEnvironmentById(destinationEnvironmentId);
 
-  await hasPermission('task', ['drushRsync', 'task:source', `type:${sourceEnvironment.environmentType}`], {
+  await hasPermission('task', `drushRsync:source:${sourceEnvironment.environmentType}`, {
     project: sourceEnvironment.project,
   });
-  await hasPermission('task', ['drushRsync', 'task:destination', `type:${destinationEnvironment.environmentType}`], {
+  await hasPermission('task', `drushRsync:destination:${destinationEnvironment.environmentType}`, {
     project: destinationEnvironment.project,
   });
 

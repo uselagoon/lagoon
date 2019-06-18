@@ -84,8 +84,7 @@ const legacyHasPermission = (legacyCredentials) => {
 };
 
 const keycloakHasPermission = (grant) => {
-  return async (resource, scopeInput, attributes = {}) => {
-    const scopes = (typeof scopeInput === 'string') ? [scopeInput] : scopeInput;
+  return async (resource, scope, attributes = {}) => {
     const currentUserId = grant.access_token.content.sub;
     let claims = {};
 
@@ -181,7 +180,7 @@ const keycloakHasPermission = (grant) => {
       permissions: [
         {
           id: resource,
-          scopes,
+          scopes: [scope],
         },
       ],
     };
@@ -204,17 +203,15 @@ const keycloakHasPermission = (grant) => {
     try {
       const newGrant = await keycloakGrantManager.checkPermissions(authzRequest, request);
 
-      for (const scope of scopes) {
-        if (newGrant.access_token.hasPermission(resource, scope)) {
-          return;
-        }
+      if (newGrant.access_token.hasPermission(resource, scope)) {
+        return;
       }
     } catch (err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
     }
 
-    throw new Error(`Unauthorized: You don't have permission to "${scopes.join(',')}" on "${resource}".`);
+    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
 

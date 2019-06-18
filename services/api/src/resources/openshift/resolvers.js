@@ -20,7 +20,7 @@ import type {ResolversObj} from '../';
 // $FlowFixMe
 const attrFilter = async (hasPermission, entity) => {
   try {
-    await hasPermission('openshift', ['view', 'token']);
+    await hasPermission('openshift', 'view:token');
     return entity;
   } catch (err) {
     return R.omit(['token'], entity);
