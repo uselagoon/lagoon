@@ -40,7 +40,7 @@ async function gitlabUserProjectRemove(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not remove user ${userEmail} ${userId} from group project-${projectName}, reason: ${error}`
+      `Could not remove user from group project, reason: ${error}`
     );
 
     return;

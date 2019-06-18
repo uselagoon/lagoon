@@ -39,7 +39,7 @@ async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not add user ${userEmail} ${userId} to group project-${projectName}, reason: ${error}`
+      `Could not add user to group project, reason: ${error}`
     );
 
     return;

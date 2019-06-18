@@ -36,7 +36,7 @@ async function gitlabGroupDelete(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not delete group ${name}, reason: ${error}`
+      `Could not delete group, reason: ${error}`
     );
 
     return;
