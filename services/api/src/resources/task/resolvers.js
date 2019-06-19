@@ -213,11 +213,13 @@ const updateTask = async (
     project: R.path(['0', 'pid'], curPerms),
   });
 
-  // Check access to modify task as it will be updated
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
-  await hasPermission('task', 'update', {
-    project: envPerm.project,
-  });
+  if (environment) {
+    // Check access to modify task as it will be updated
+    const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    await hasPermission('task', 'update', {
+      project: envPerm.project,
+    });
+  }
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
