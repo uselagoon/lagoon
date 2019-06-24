@@ -20,6 +20,5 @@ const getSqlClient = () => {
 };
 
 module.exports = {
-  sqlClient: getSqlClient(),
   getSqlClient,
 };

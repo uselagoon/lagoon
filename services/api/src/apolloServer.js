@@ -61,29 +61,41 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError('Auth token missing.');
       }
 
+
       try {
+        var sqlClientKeycloak = getSqlClient();
         credentials = await getCredentialsForKeycloakToken(
-          getSqlClient(),
+          sqlClientKeycloak,
           token,
         );
+        sqlClientKeycloak.end();
       } catch (e) {
+        sqlClientKeycloak.end();
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
       try {
         if (!credentials) {
+          var sqlClientLegacy = getSqlClient();
           credentials = await getCredentialsForLegacyToken(
-            getSqlClient(),
+            sqlClientLegacy,
             token,
           );
+          sqlClientLegacy.end();
         }
       } catch (e) {
+        sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
-
       // Add credentials to context.
-      return { credentials };
+      const sqlClient = getSqlClient();
+      return { credentials, sqlClient };
+    },
+    onDisconnect: (websocket, context) => {
+      if (context.sqlClient) {
+        context.sqlClient.end();
+      }
     },
   },
   context: ({ req, connection }) => {
@@ -92,7 +104,6 @@ const apolloServer = new ApolloServer({
       // onConnect must always provide connection.context.
       return {
         ...connection.context,
-        sqlClient: getSqlClient(),
       };
     }
 
