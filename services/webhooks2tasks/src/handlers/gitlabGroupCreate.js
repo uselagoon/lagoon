@@ -2,7 +2,7 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
-const { addGroup, addGroupWithParent } = require('@lagoon/commons/src/api');
+const { addGroup, addGroupWithParent, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -11,21 +11,19 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
 
   try {
     const group = await getGroup(body.group_id);
-    const { id, path: name, description: comment, full_path: hierarchy } = group;
+    const { id, path: name, description: comment, full_path, parent_id } = group;
 
     const meta = {
       data: group,
       gitlab_group_id: id
     };
 
-    const hierarchyArray = hierarchy.split("/");
-    // if the array has more then one entry, we have a hierarchy of groups,
-    // Keycloak only needs to know the direct parent of the group, loading that one
-    if (hierarchyArray.length > 1) {
-      const groupParentName = hierarchyArray.slice(-2)[0]; // load second last entry of the array
-      await addGroupWithParent(name, groupParentName);
+    const groupName = sanitizeGroupName(full_path);
+    if (group.parent_id) {
+      const parentGroup = await getGroup(group.parent_id);
+      await addGroupWithParent(groupName, sanitizeGroupName(parentGroup.full_path));
     } else {
-      await addGroup(name);
+      await addGroup(groupName);
     }
 
     sendToLagoonLogs(

@@ -1,7 +1,7 @@
 // @flow
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { deleteGroup } = require('@lagoon/commons/src/api');
+const { deleteGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -9,15 +9,14 @@ async function gitlabGroupDelete(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { path: name, group_id: id } = body;
+    const { path: name, group_id: id, full_path } = body;
 
     const meta = {
       path: name,
       group_id: id,
     };
 
-
-    await deleteGroup(name);
+    await deleteGroup(sanitizeGroupName(full_path));
 
     sendToLagoonLogs(
       'info',

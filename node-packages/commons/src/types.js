@@ -30,6 +30,7 @@ export type UserPatch = {
   firstName: ?string,
   lastName: ?string,
   comment: ?string,
+  gitlabId: ?number,
 };
 
 export type ProjectPatch = {

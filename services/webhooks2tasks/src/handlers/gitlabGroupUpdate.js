@@ -2,7 +2,7 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
-const { updateGroup } = require('@lagoon/commons/src/api');
+const { updateGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -11,16 +11,16 @@ async function gitlabGroupUpdate(webhook: WebhookRequestData) {
 
   try {
     const group = await getGroup(body.group_id);
-    const { id, path: name, description: comment } = group;
-    const { old_path: oldName } = body;
+    const { id, path: name, full_path } = group;
+    const { old_full_path } = body;
 
     const meta = {
       data: group,
       group: id
     };
 
-    await updateGroup(oldName, {
-      name
+    await updateGroup(sanitizeGroupName(old_full_path), {
+      name: sanitizeGroupName(full_path)
     });
 
     sendToLagoonLogs(
