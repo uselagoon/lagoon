@@ -380,7 +380,22 @@ const addGroupToProject = (project: string, group: string): Promise<Object> =>
   ($project: String!, $group: String!) {
     addGroupsToProject(input: {
       project: { name: $project}
-      groups: {name: $group}
+      groups: [{name: $group}]
+    }) {
+      ...${projectFragment}
+    }
+  }
+  `,
+    { project, group },
+  );
+
+const removeGroupFromProject = (project: string, group: string): Promise<Object> =>
+  graphqlapi.mutate(
+    `
+  ($project: String!, $group: String!) {
+    removeGroupsFromProject(input: {
+      project: { name: $project}
+      groups: [{name: $group}]
     }) {
       ...${projectFragment}
     }
@@ -945,6 +960,8 @@ const updateTask = (id: number, patch: TaskPatch): Promise<Object> =>
     { id, patch },
   );
 
+const sanitizeGroupName = R.replace(/[^\w\d-_]/g, '-');
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -983,4 +1000,6 @@ module.exports = {
   getEnvironmentByOpenshiftProjectName,
   updateTask,
   addGroupToProject,
+  removeGroupFromProject,
+  sanitizeGroupName,
 };

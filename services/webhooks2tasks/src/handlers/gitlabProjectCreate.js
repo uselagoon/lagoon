@@ -4,7 +4,7 @@ const R = require('ramda');
 const sshpk = require('sshpk');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getProject, addDeployKeyToProject } = require('@lagoon/commons/src/gitlabApi');
-const { addProject, addGroupToProject } = require('@lagoon/commons/src/api');
+const { addProject, addGroupToProject, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -62,7 +62,7 @@ async function gitlabProjectCreate(webhook: WebhookRequestData) {
 
     // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
     // We add this owner Group to the Project.
-    await addGroupToProject(projectName, namespace.path);
+    await addGroupToProject(projectName, sanitizeGroupName(namespace.full_path));
 
     sendToLagoonLogs(
       'info',

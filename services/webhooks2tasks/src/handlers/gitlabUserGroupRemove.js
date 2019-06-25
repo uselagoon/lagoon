@@ -1,11 +1,24 @@
 // @flow
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { removeUserFromGroup } = require('@lagoon/commons/src/api');
+const { removeUserFromGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
+const { getGroup } = require('@lagoon/commons/src/gitlabApi');
 
 import type { WebhookRequestData } from '../types';
 
 async function gitlabUserGroupRemove(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
+
+  let group;
+  try {
+    group = await getGroup(body.group_id);
+  } catch (err) {
+    if (err.message === '404 Group Not Found') {
+      // Group was deleted, no need to manually remove user
+      return;
+    }
+
+    throw err;
+  }
 
   try {
     const { group_path: groupName, user_id: gitlabUserId, user_email: userEmail } = body;
@@ -17,7 +30,7 @@ async function gitlabUserGroupRemove(webhook: WebhookRequestData) {
       groupName,
     };
 
-    await removeUserFromGroup(userEmail, groupName);
+    await removeUserFromGroup(userEmail, sanitizeGroupName(group.full_path));
 
     sendToLagoonLogs(
       'info',

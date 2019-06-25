@@ -1,5 +1,6 @@
 // @flow
 
+const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getProject } = require('@lagoon/commons/src/gitlabApi');
 const {
@@ -7,6 +8,8 @@ const {
   updateProject,
   deleteProject,
   addGroupToProject,
+  removeGroupFromProject,
+  sanitizeGroupName,
 } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
@@ -66,10 +69,44 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
 
   try {
     const response = await updateProject(id, {
-      projectName,
+      name: projectName,
       gitUrl,
-      customer: namespace.id
     });
+
+    if (event === 'project_transfer' && body.path_with_namespace !== body.old_path_with_namespace) {
+      const oldGroupName = R.pipe(
+        R.split('/'),
+        R.init(),
+        R.join('/'),
+        sanitizeGroupName,
+      )(body.old_path_with_namespace);
+
+      try {
+        await removeGroupFromProject(projectName, oldGroupName);
+      } catch (err) {
+        sendToLagoonLogs(
+          'error',
+          '',
+          uuid,
+          `${webhooktype}:${event}:unhandled`,
+          meta,
+          `Could not remove group "${oldGroupName}" from project "${projectName}", reason: ${error}`
+        );
+      }
+
+      try {
+        await addGroupToProject(projectName, sanitizeGroupName(project.namespace.full_path));
+      } catch (err) {
+        sendToLagoonLogs(
+          'error',
+          '',
+          uuid,
+          `${webhooktype}:${event}:unhandled`,
+          meta,
+          `Could not add group "${sanitizeGroupName(project.namespace.full_path)}" to project "${projectName}", reason: ${error}`
+        );
+      }
+    }
 
     sendToLagoonLogs(
       'info',
@@ -94,7 +131,7 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
 
       // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
       // We add this owner Group to the Project.
-      await addGroupToProject(projectName, namespace.path);
+      await addGroupToProject(projectName, sanitizeGroupName(namespace.full_path));
 
       sendToLagoonLogs(
         'info',
