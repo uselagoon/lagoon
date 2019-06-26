@@ -28,6 +28,7 @@ interface GroupMembership {
 interface GroupEdit {
   id: string;
   name: string;
+  attributes?: object;
 }
 
 interface GroupModel {
@@ -263,8 +264,9 @@ const updateGroup = async (groupInput: GroupEdit): Promise<Group> => {
       {
         id: groupInput.id,
       },
+      //@ts-ignore
       {
-        name: R.prop('name', groupInput),
+        ...pickNonNil(['name', 'attributes'], groupInput),
       },
     );
   } catch (err) {
@@ -309,9 +311,10 @@ const deleteGroup = async (id: string): Promise<void> => {
 
 const addUserToGroup = async (
   user: User,
-  group: Group,
+  groupInput: Group,
   roleName: string,
 ): Promise<Group> => {
+  const group = await loadGroupById(groupInput.id);
   // Load or create the role subgroup.
   let roleSubgroup: Group;
   // @ts-ignore
@@ -374,8 +377,9 @@ const removeUserFromGroup = async (
 
 const addProjectToGroup = async (
   projectId: number,
-  group: Group,
+  groupInput: Group,
 ): Promise<void> => {
+  const group = await loadGroupById(groupInput.id);
   const newGroupProjects = R.pipe(
     R.view(attrLagoonProjectsLens),
     R.defaultTo(`${projectId}`),
