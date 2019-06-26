@@ -547,6 +547,26 @@ async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   return result.allProjects;
 }
 
+async function getProjectByName(
+  project: string,
+): Promise<Object> {
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        ...${projectFragment}
+      }
+    }
+  `);
+
+  if (!result || !result.project) {
+    throw new ProjectNotFound(
+      `Cannot find project ${project}`,
+    );
+  }
+
+  return result.project;
+}
+
 async function getRocketChatInfoForProject(
   project: string,
 ): Promise<Array<Object>> {
@@ -983,6 +1003,7 @@ module.exports = {
   updateProject,
   deleteProject,
   getProjectsByGitUrl,
+  getProjectByName,
   getRocketChatInfoForProject,
   getSlackinfoForProject,
   getActiveSystemForProject,

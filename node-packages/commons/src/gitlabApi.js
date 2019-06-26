@@ -72,6 +72,45 @@ const postRequest = async (url: string, body: object): Object => {
   }
 };
 
+const getAllPagesRequest = async (url: string): Promise<Array<Object>> => {
+  let page = 1;
+  let moreResults = true;
+  let results = [];
+
+  do {
+    try {
+      const response = await gitlabapi.get(url, {
+        params: {
+          per_page: 100,
+          page,
+        },
+      });
+
+      if (response.data.length === 0) {
+        moreResults = false;
+      } else {
+        page++;
+        results = [
+          ...results,
+          ...response.data,
+        ];
+      }
+    } catch (error) {
+      if (error.response) {
+        throw new APIError(
+          R.pathOr(error.message, ['data', 'message'], error.response),
+        );
+      } else if (error.request) {
+        throw new NetworkError(error.message);
+      } else {
+        throw error;
+      }
+    }
+  } while (moreResults);
+
+  return results;
+};
+
 const getUserByUsername = async (username: string): Object => {
   try {
     const response = await gitlabapi.get('users', {
@@ -98,13 +137,22 @@ const getUserByUsername = async (username: string): Object => {
   }
 };
 
+const getAllGroups = async () => getAllPagesRequest('groups');
 const getGroup = async (groupId: number): Object =>
   getRequest(`groups/${groupId}`);
+const getGroupMembers = async (groupId: number): Promise<Array<Object>> =>
+  getRequest(`groups/${groupId}/members`);
+const getAllProjects = async (): Object =>
+  getRequest('projects');
 const getProject = async (projectId: number): Object =>
   getRequest(`projects/${projectId}`);
+const getProjectMembers = async (projectId: number): Promise<Array<Object>> =>
+  getRequest(`projects/${projectId}/members`);
+const getAllUsers = async () => getAllPagesRequest('users');
 const getUser = async (userId: number): Object => getRequest(`users/${userId}`);
 const getSshKey = async (keyId: number): Object =>
   getRequest(`keys/${keyId}`);
+
 
 const addDeployKeyToProject = async (projectId: Number, key: string): Object =>
   postRequest(`projects/${projectId}/deploy_keys`, {
@@ -115,8 +163,13 @@ const addDeployKeyToProject = async (projectId: Number, key: string): Object =>
 
 module.exports = {
   getGroup,
+  getGroupMembers,
+  getAllGroups,
   getProject,
+  getProjectMembers,
+  getAllProjects,
   getUser,
+  getAllUsers,
   getSshKey,
   getUserByUsername,
   addDeployKeyToProject,
