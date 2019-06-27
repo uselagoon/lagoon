@@ -607,8 +607,10 @@ $(publish-amazeeio-baseimages-with-versions):
 #   The underline is a placeholder for a colon, replace that
 		$(eval image = $(subst __,:,$(image)))
 #		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
-#		Therefore they don't have any latest tag
+#		We push a version without the `-latest` suffix
 		$(call docker_publish_amazeeio,$(image),$(image))
+#		Plus a version with the `-latest` suffix, this makes it easier for people with automated testing
+		$(call docker_publish_amazeeio,$(image),$(image)-latest)
 #		We add the Lagoon Version just as a dash
 		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
 
