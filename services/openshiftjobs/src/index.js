@@ -3,7 +3,6 @@
 const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
 const R = require('ramda');
-const { createJWTWithoutUserId } = require('@lagoon/commons/src/jwt');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   getOpenShiftInfoForProject,
@@ -24,6 +23,15 @@ const lagoonApiRoute = R.compose(
   // connect to docker-for-mac containers.
   R.defaultTo('http://10.0.2.2:3000'),
   R.find(R.test(/api-/)),
+  R.split(','),
+  R.propOr('', 'LAGOON_ROUTES')
+)(process.env);
+
+const lagoonSshRoute = R.compose(
+  // Default to the gateway IP in virtualbox, so pods running in minishift can
+  // connect to docker-for-mac containers.
+  R.defaultTo('10.0.2.2'),
+  R.find(R.test(/ssh-/)),
   R.split(','),
   R.propOr('', 'LAGOON_ROUTES')
 )(process.env);
@@ -163,23 +171,6 @@ const messageConsumer = async msg => {
       return;
     }
 
-    // Create an API token that this task pod can use. It only has permissions
-    // for the tasks project, and only has access for 1 day.
-    const apiToken = createJWTWithoutUserId ({
-      payload: {
-        role: 'none',
-        permissions: {
-          projects: [project.id],
-          customers: [],
-        },
-        aud: process.env.JWTAUDIENCE,
-        iss: 'openshiftjobs',
-        sub: 'openshiftjobs',
-      },
-      expiresIn: '1d',
-      jwtSecret: process.env.JWTSECRET,
-    });
-
     const cronjobEnvVars = env => env.name === 'CRONJOBS';
     const containerEnvLens = R.lensPath(['containers', 0, 'env']);
     const removeCronjobs = R.over(containerEnvLens, R.reject(cronjobEnvVars));
@@ -189,8 +180,8 @@ const messageConsumer = async msg => {
         value: lagoonApiRoute,
       },
       {
-        name: 'TASK_API_AUTH',
-        value: apiToken,
+        name: 'TASK_SSH_HOST',
+        value: lagoonSshRoute,
       },
       {
         name: 'TASK_DATA_ID',
