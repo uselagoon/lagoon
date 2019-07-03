@@ -1,7 +1,8 @@
 ARG PHP_VERSION
+ARG PHP_IMAGE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_VERSION}-fpm-alpine
+FROM php:${PHP_IMAGE_VERSION}-fpm-alpine
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
