@@ -27,14 +27,8 @@ const lagoonApiRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES')
 )(process.env);
 
-const lagoonSshRoute = R.compose(
-  // Default to the gateway IP in virtualbox, so pods running in minishift can
-  // connect to docker-for-mac containers.
-  R.defaultTo('10.0.2.2'),
-  R.find(R.test(/ssh-/)),
-  R.split(','),
-  R.propOr('', 'LAGOON_ROUTES')
-)(process.env);
+const lagoonSshHost = R.propOr('ssh.lagoon.svc', 'LAGOON_SSH_HOST', process.env);
+const lagoonSshPort = R.propOr('2020', 'LAGOON_SSH_PORT', process.env);
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -181,7 +175,11 @@ const messageConsumer = async msg => {
       },
       {
         name: 'TASK_SSH_HOST',
-        value: lagoonSshRoute,
+        value: lagoonSshHost,
+      },
+      {
+        name: 'TASK_SSH_PORT',
+        value: lagoonSshPort,
       },
       {
         name: 'TASK_DATA_ID',

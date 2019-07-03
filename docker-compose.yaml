@@ -89,6 +89,10 @@ services:
     volumes:
       - ./services/openshiftjobs/src:/app/services/openshiftjobs/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      # Gateway IP in virtualbox, so pods running in minishift can connect to
+      # docker-for-mac containers.
+      - LAGOON_SSH_HOST=10.0.2.2
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftjobs/.lagoon.app.yml
