@@ -256,6 +256,8 @@ const addGroup = async (groupInput: Group): Promise<Group> => {
 };
 
 const updateGroup = async (groupInput: GroupEdit): Promise<Group> => {
+  const oldGroup = await loadGroupById(groupInput.id);
+
   try {
     await keycloakAdminClient.groups.update(
       {
@@ -275,9 +277,22 @@ const updateGroup = async (groupInput: GroupEdit): Promise<Group> => {
     }
   }
 
-  const group = await loadGroupById(groupInput.id);
+  let newGroup = await loadGroupById(groupInput.id);
 
-  return group;
+  if (oldGroup.name != newGroup.name) {
+    const roleSubgroups = newGroup.subGroups.filter(isRoleSubgroup);
+
+    for (const roleSubgroup of roleSubgroups) {
+      await updateGroup({
+        id: roleSubgroup.id,
+        name: R.replace(oldGroup.name, newGroup.name, roleSubgroup.name),
+      });
+    }
+
+
+  }
+
+  return newGroup;
 };
 
 const deleteGroup = async (id: string): Promise<void> => {
