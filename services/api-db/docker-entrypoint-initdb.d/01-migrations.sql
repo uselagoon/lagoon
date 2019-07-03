@@ -649,7 +649,7 @@ CREATE OR REPLACE PROCEDURE
   convert_env_vars_from_varchar_to_text()
 
   BEGIN
-    DECLARE column_type varchar(50);
+    DECLARE column_type varchar(300);
 
     SELECT DATA_TYPE INTO column_type
     FROM INFORMATION_SCHEMA.COLUMNS
