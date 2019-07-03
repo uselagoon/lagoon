@@ -343,10 +343,12 @@ const deleteProject = async (
   {
     sqlClient,
     hasPermission,
+    dataSources,
   },
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClient).getProjectIdByName(project);
+  const project = await Helpers(sqlClient).getProjectById(pid);
 
   await hasPermission('project', 'delete', {
     project: pid,
@@ -354,6 +356,21 @@ const deleteProject = async (
 
   const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
   await query(sqlClient, prep({ project }));
+
+  // Remove the default group and user
+  try {
+    const group = await dataSources.GroupModel.loadGroupByName(`project-${project.name}`);
+    await dataSources.GroupModel.deleteGroup(group.id);
+  } catch (err) {
+    logger.error(`Could not delete default group for project ${project.name}: ${err.message}`);
+  }
+
+  try {
+    const user = await dataSources.UserModel.loadUserByUsername(`default-user@${project.name}`);
+    await dataSources.UserModel.deleteUser(user.id);
+  } catch (err) {
+    logger.error(`Could not delete default user for project ${project.name}: ${err.message}`);
+  }
 
   // TODO searchguard
   // await KeycloakOperations.deleteGroup(project);
