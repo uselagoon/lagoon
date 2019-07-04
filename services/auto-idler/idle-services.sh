@@ -58,21 +58,21 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
             continue
           fi
           # Check if this environment has hits
-          HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d'
+          HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d"
           {
-            "size": 0,
-            "query": {
-              "bool": {
-                "filter": {
-                  "range": {
-                    "@timestamp": {
-                      "gte": "now-4h"
+            \"size\": 0,
+            \"query\": {
+              \"bool\": {
+                \"filter\": {
+                  \"range\": {
+                    \"@timestamp\": {
+                      \"gte\": \"now-${ROUTER_LOG_INTERVAL}\"
                     }
                   }
                 }
               }
             }
-          }'| jq ".hits.total")
+          }" | jq ".hits.total")
 
           if [ ! $? -eq 0 ]; then
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
