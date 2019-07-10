@@ -248,6 +248,17 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  DeleteSshKeyById
+  (
+    IN s_id int
+  )
+  BEGIN
+    DELETE FROM user_ssh_key WHERE skid = s_id;
+    DELETE FROM ssh_key WHERE id = s_id;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   CreateOpenshift
   (
     IN id              int,

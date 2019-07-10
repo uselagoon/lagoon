@@ -517,6 +517,10 @@ const typeDefs = gql`
     name: String!
   }
 
+  input DeleteSshKeyByIdInput {
+    name: Int!
+  }
+
   input AddProjectInput {
     id: Int
     name: String!
@@ -965,6 +969,7 @@ const typeDefs = gql`
     addSshKey(input: AddSshKeyInput!): SshKey
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
+    deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
     deleteAllSshKeys: String
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
