@@ -33,7 +33,7 @@ ENDPOINT="https://api-lagoon-master.lagoon.ch.amazee.io/graphql"
 GHENDPOINT="https://api.github.com"
 AMZTKN=""
 AMZBEARERTKN="Authorization: bearer $AMZTKN"
-GHTKN="513e8a43bbb052da3bffdddc01e32142671e1f28"
+GHTKN=""
 GHBEARERTKN="Authorization: bearer $GHTKN"
 
 # Some basic Lagoon GraphQL queries:
@@ -162,8 +162,8 @@ main () {
 		usage
 	fi
 	# Script body
-	if [ -z "$AMZTKN" ]; then
-		echo "Create a JWT token and set AMZTKN variable"
+	if [ -z "$AMZTKN" -o -z "$GHUTKN" ]; then
+		echo "Lagoon JWT token or Github Token are not set"
 		exit 1
 	fi
 	allproject_query $1
