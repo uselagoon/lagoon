@@ -1,6 +1,10 @@
 const express = require('express')
 const app = express()
 
+// Adds a 1 sec delay for all requests
+app.use((req, res, next) => setTimeout(next, 1000))
+
+
 app.get('/', function (req, res) {
   let result = []
   Object.keys(process.env).map(key => {
