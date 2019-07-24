@@ -76,23 +76,24 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
           fi
 
           # check if any deploymentconfigs have any running pods, and if those pods have been running greater than the $POD_RUN_INTERVAL in seconds (4hrs = 14400seconds) since the current time
-          DEPLOYMENTCONFIGS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get dc -o name -l "service notin (mariadb,postgres)" | sed 's/deploymentconfigs\///')
-          CUR_TIME=$(date +"%s")
+          DEPLOYMENTCONFIGS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get dc -o name -l "service notin (mariadb,postgres,cli)" | sed 's/deploymentconfigs\///')
           for deployment in $DEPLOYMENTCONFIGS
           do
             RUNNING_PODS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get pods -l deploymentconfig=${deployment} --show-labels=false -o json | jq -r '.items | .[] | .status.containerStatuses | .[] | .state.running.startedAt')
             if [ "$RUNNING_PODS" != "0" ]; then
               for pod in $RUNNING_PODS
               do
-                RUNTIME="$(($(date -u +%s)-$(date -u -d "$pod" +%s)))"
-                if [ $RUNTIME -gt $POD_RUN_INTERVAL ]; then
+                FIX_TIME=$(echo $pod | sed 's/T/ /g; s/Z//g') #busybox `date` doesn't like ISO 8601 passed to it, we have to strip the T and Z from it
+                RUNTIME="$(($(date -u +%s)-$(date -u -d "$FIX_TIME" +%s)))" #get a rough runtime from the pod running time
+                if [[ $RUNTIME -gt $POD_RUN_INTERVAL ]]; then
+                  echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME - $deployment running longer than interval, proceeding to check router-logs"
                   PODS_RUNNING=true
                 fi
               done
             fi
           done
 
-          # if no running builds, and any pods notin (mariadb,postgres) have been running greater than $POD_RUN_INTERVAL, then we want to check router-logs then proceed to idle
+          # if no running builds, and any deploymentconfigs notin (mariadb,postgres,cli) have been running greater than $POD_RUN_INTERVAL, then we want to check router-logs then proceed to idle
           if [[ "$NO_BUILDS" == "true" && "$PODS_RUNNING" == "true" ]]; then
             # Check if this environment has hits
             HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d"
