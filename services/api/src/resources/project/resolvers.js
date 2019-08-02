@@ -46,7 +46,9 @@ const getAllProjects = async (
     ),
   ]);
 
-  const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
+
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
 
   return rows;

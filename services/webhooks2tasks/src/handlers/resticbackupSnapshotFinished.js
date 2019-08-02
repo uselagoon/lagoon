@@ -66,7 +66,7 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
     const newSnapshots = R.pipe(
       R.reject(snapshot => R.contains(snapshot.id, existingBackupIds)),
       // Remove pod names suffix from hostnames.
-      R.map(R.over(R.lensProp('hostname'), R.replace(/(-cli|-mariadb|-nginx|-solr|-node|-elasticsearch|-redis)$/, ''))),
+      R.map(R.over(R.lensProp('hostname'), R.replace(/(-cli|-mariadb|-nginx|-solr|-node|-elasticsearch|-redis|-[\w]+-prebackuppod)$/, ''))),
       R.groupBy(snapshot => snapshot.hostname),
       R.toPairs()
     )(incomingSnapshots);

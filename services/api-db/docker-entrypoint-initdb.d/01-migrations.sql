@@ -645,6 +645,26 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  convert_env_vars_from_varchar_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(300);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'env_vars'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'value';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE `env_vars`
+      MODIFY `value` text NOT NULL;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -678,6 +698,7 @@ CALL convert_task_command_to_text();
 CALL add_key_fingerprint_to_ssh_key();
 CALL add_autoidle_to_environment();
 CALL add_deploy_base_head_ref_title_to_environment();
+CALL convert_env_vars_from_varchar_to_text();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

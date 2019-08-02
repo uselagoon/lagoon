@@ -58,6 +58,7 @@ const createEnvironmentFilteredSubscriber = (events: string[]) => ({
       sqlClient,
       environmentSql.selectEnvironmentById(environment),
     );
+    sqlClient.end();
     const project = R.path([0, 'project'], rows);
 
     if (role !== 'admin' && !R.contains(String(project), projects)) {
