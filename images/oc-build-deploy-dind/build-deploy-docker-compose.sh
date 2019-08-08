@@ -779,8 +779,6 @@ do
     if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
       CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
       CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
 
@@ -794,6 +792,9 @@ do
       else
         # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
         OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+
+        # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
         if [ ! -f $OPENSHIFT_TEMPLATE ]; then
           echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
@@ -935,17 +936,17 @@ done
 
 
 ##############################################
-### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml
+### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
 ##############################################
 
-CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs | grep -v SCHEDULE | cut -d " " -f 1)
+CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d " " -f 1)
 
 IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< ${CURRENT_CRONJOBS}
 
-for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
+for SINGLE_NATIVE_CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
 do
-  if [[ ! " ${SPLIT_CURRENT_CRONJOBS[@]} " =~ " ${CRONJOB} " ]]; then
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
+  if [[ ! " ${SPLIT_CURRENT_CRONJOBS[@]} " =~ " ${SINGLE_NATIVE_CRONJOB} " ]]; then
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
 
