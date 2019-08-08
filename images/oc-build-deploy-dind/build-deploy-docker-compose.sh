@@ -933,6 +933,23 @@ do
   fi
 done
 
+
+##############################################
+### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml
+##############################################
+
+CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs | grep -v SCHEDULE | cut -d " " -f 1)
+
+IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< ${CURRENT_CRONJOBS}
+
+for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
+do
+  if [[ ! " ${SPLIT_CURRENT_CRONJOBS[@]} " =~ " ${CRONJOB} " ]]; then
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
+  fi
+done
+
+
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
