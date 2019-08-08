@@ -23,7 +23,7 @@ RUN apk add --no-cache git \
         postgresql-client \
         openssh-sftp-server \
         findutils \
-    && apk add --no-cache "mariadb-client=10.2.24-r0" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
+    && apk add --no-cache "mariadb-client=10.2.26-r0" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
     && apk add --no-cache nodejs-current nodejs-npm yarn --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
