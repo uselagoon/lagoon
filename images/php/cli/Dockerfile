@@ -1,5 +1,6 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
+ARG PHP_IMAGE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
 LABEL maintainer="amazee.io"
