@@ -38,6 +38,9 @@ tasks:
 routes:
   insecure: Redirect
 
+build:
+  tag: 1.2.34
+  
 environments:
   master:
     monitoring_urls:
@@ -80,6 +83,9 @@ This allows you to define the behaviour of the automatic creates routes (NOT the
 
 ### `environment_variables.git_sha`
 This setting allows you to enable injecting the deployed git SHA into your project as an environment variable. By default this is disabled, setting the value to `true` then sets the SHA as the environment variable `LAGOON_GIT_SHA`.
+
+#### `build.tag`
+Make a --build-arg available to your Dockerfile(s) that can be used instead of hardcoding a tag, or using the default "latest". Use it in a Dockerfile with `ARG LAGOON_IMAGE_TAG` before `FROM`. You are not likely to use this if you using Amazee images as it may be inoperable with build arguments like `PHP_IMAGE_VERSION` and `LAGOON_PHP_IMAGE_VERSION`.
 
 ## Tasks
 
