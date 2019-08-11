@@ -3,11 +3,10 @@
 const http = require('http');
 const util = require('util');
 const logger = require('./logger');
-const createApp = require('./app');
+const app = require('./app');
+const apolloServer = require('./apolloServer');
 
-import type { CreateAppArgs } from './app';
-
-const normalizePort = (value) => {
+const normalizePort = value => {
   const port = parseInt(value, 10);
 
   if (!isNaN(port) && port > 0) {
@@ -17,21 +16,21 @@ const normalizePort = (value) => {
   return false;
 };
 
-const createServer = async (args: CreateAppArgs): Promise<Server> => {
+const createServer = async () => {
   logger.debug('Starting to boot the server.');
 
-  const port = normalizePort(process.env.PORT || '8080');
-  const server = http.createServer(createApp(args));
+  const port = normalizePort(process.env.PORT || '3000');
+  const server = http.createServer(app);
 
-  // $FlowIgnore https://github.com/facebook/flow/pull/4176
+  apolloServer.installSubscriptionHandlers(server);
+
   const listen = util.promisify(server.listen).bind(server);
   await listen(port);
 
   logger.debug(
-    `Finished booting the server. The server is reachable at Port ${port.toString()}.`
+    `Finished booting the server. The server is reachable at port ${port.toString()}.`,
   );
 
-  // eslint-disable-line
   return server;
 };
 

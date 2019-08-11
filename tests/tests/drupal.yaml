@@ -1,8 +1,55 @@
 ---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer"
+    testname: "Drupal 8 composer PHP 7.0 - MARIADB"
     drupal_version: 8
+    db: mariadb
+    php_version: 7.0
     git_repo_name: drupal.git
-    sitegroup: ci-drupal
-    branch: drupal8-composer
+    project: ci-drupal
+    branch: drupal8-composer-70-mariadb
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.1 - MARIADB"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.1
+    git_repo_name: drupal.git
+    project: ci-drupal
+    branch: drupal8-composer-71-mariadb
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.2 - MARIADB"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.2
+    git_repo_name: drupal.git
+    project: ci-drupal
+    branch: drupal8-composer-72-mariadb
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.3 - MARIADB"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.3
+    git_repo_name: drupal.git
+    project: ci-drupal
+    branch: drupal8-composer-73-mariadb
+
+
+- include: drupal/drush.yaml
+  vars:
+    testname: "DRUSH"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.1
+    git_repo_name: drupal.git
+    project: ci-drupal

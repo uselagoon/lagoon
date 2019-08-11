@@ -1,3 +1,8 @@
+- name: "{{ testname }} - make sure we are on the branch {{ branch }}"
+  shell: git checkout -b {{ branch }} || git checkout {{ branch }}
+  args:
+    chdir: /{{git_repo_name}}
+
 - name: "{{ testname }} - create empty commit in {{git_repo_name}}"
   command: git commit -m "empty commit" --allow-empty
   args:

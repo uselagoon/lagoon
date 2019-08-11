@@ -17,10 +17,17 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/gitlab.git && \
 	git --bare init /git/bitbucket.git && \
 	git --bare init /git/rest.git && \
-	git --bare init /git/multisitegroup.git && \
+	git --bare init /git/api.git && \
+	git --bare init /git/multiproject.git && \
 	git --bare init /git/node.git && \
 	git --bare init /git/drupal.git && \
-	git --bare init /git/hiera.git
+	git --bare init /git/drupal-galera.git && \
+	git --bare init /git/drupal-postgres.git && \
+	git --bare init /git/nginx.git && \
+	git --bare init /git/features.git && \
+	git --bare init /git/features-subfolder.git && \
+  git --bare init /git/elasticsearch.git && \
+  git --bare init /git/solr.git
 
 USER root
 

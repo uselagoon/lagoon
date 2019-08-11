@@ -1,7 +1,0 @@
-#!/bin/bash
-
-ep /etc/php.ini
-ep /etc/php-fpm.conf
-ep /etc/php-fpm.d/*
-
-exec "$@"

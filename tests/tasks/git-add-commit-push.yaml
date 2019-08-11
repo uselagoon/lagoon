@@ -1,5 +1,5 @@
 - name: "{{ testname }} - create new branch {{ branch }} in {{git_repo_name}}"
-  command: git checkout -b {{ branch }}
+  shell: git checkout -b {{ branch }} || git checkout {{ branch }}
   args:
     chdir: /{{git_repo_name}}
 
@@ -7,6 +7,12 @@
   synchronize:
     src: /ansible/files/{{git_files}}
     dest: /{{git_repo_name}}/
+
+- name: "{{ testname }} - copying all files from {{docker_files}} into git repo {{git_repo_name}}"
+  copy:
+    src: /ansible/files/{{docker_files}}
+    dest: /{{git_repo_name}}/
+  when: docker_files is defined
 
 - name: "{{ testname }} - git adding all files from {{git_files}} to git repo {{git_repo_name}}"
   command: git add .

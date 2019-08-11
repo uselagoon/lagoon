@@ -4,17 +4,30 @@ const logger = require('../logger');
 const R = require('ramda');
 const sshpk = require('sshpk');
 const bodyParser = require('body-parser');
+const { getSqlClient } = require('../clients/sqlClient');
+const {
+  getCustomerSshKeys,
+  getProjectSshKeys,
+} = require('../resources/sshKey/resolvers');
 
-const getContext = require('../getContext');
-const getCredentials = require('../getCredentials');
+const toFingerprint = sshKey => {
+  try {
+    return sshpk
+      .parseKey(sshKey, 'ssh')
+      .fingerprint()
+      .toString();
+  } catch (e) {
+    logger.error(`Invalid ssh key: ${sshKey}`);
+  }
+};
 
-import type { $Request, $Response } from 'express';
-
-const toFingerprint = (sshKey: string): string =>
-  sshpk.parseKey(sshKey, 'ssh').fingerprint().toString();
-
-const keysRoute = (req: $Request, res: $Response) => {
-  const { fingerprint } = (req.body: any);
+const keysRoute = async (
+  { body: { fingerprint }, credentials: { role } } /* : Object */,
+  res /* : Object */,
+) => {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
 
   if (!fingerprint) {
     return res.status(500).send('Missing parameter "fingerprint"');
@@ -22,27 +35,38 @@ const keysRoute = (req: $Request, res: $Response) => {
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
-  const context = getContext(req);
+  const sqlClient = getSqlClient();
 
-  const credentials = getCredentials(req);
+  const customerSshKeys = await getCustomerSshKeys(
+    // $FlowFixMe
+    {},
+    // $FlowFixMe
+    {},
+    // $FlowFixMe
+    { credentials: { role }, sqlClient },
+  );
 
-  const { getState } = context.store;
-  const {
-    getAllClients,
-    getSshKeysFromClients,
-    toSshKeyStr,
-  } = context.selectors;
+  const projectSshKeys = await getProjectSshKeys(
+    // $FlowFixMe
+    {},
+    // $FlowFixMe
+    {},
+    // $FlowFixMe
+    { credentials: { role }, sqlClient },
+  );
 
-  const clients = getAllClients(getState());
+  sqlClient.end();
 
-  // Creates a fingerprint => sshKey mapping
+  // Object of fingerprints mapping to SSH keys
+  // Ex. { <fingerprint>: <key> }
   const fingerprintKeyMap = R.compose(
+    // Transform back to object from pairs
     R.fromPairs,
+    // Remove undefined fingerprints
+    R.reject(([sshKeyFingerprint]) => sshKeyFingerprint === undefined),
+    // Transform from single-level array to array of pairs, with the SSH key fingerprint as the first value
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
-    R.map(toSshKeyStr),
-    getSshKeysFromClients,
-    R.filter(client => R.contains(client.clientName, credentials.clients))
-  )(clients);
+  )(R.concat(customerSshKeys, projectSshKeys));
 
   const result = R.propOr('', fingerprint, fingerprintKeyMap);
 

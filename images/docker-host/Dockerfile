@@ -1,0 +1,39 @@
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/commons as commons
+FROM docker:stable-dind
+
+LABEL maintainer="amazee.io"
+ENV LAGOON=docker-host
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
+# Copy commons files
+COPY --from=commons /lagoon /lagoon
+COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /sbin/tini /sbin/
+COPY --from=commons /home /home
+
+ENV TMPDIR=/tmp \
+    TMP=/tmp \
+    HOME=/home \
+    # When Bash is invoked via `sh` it behaves like the old Bourne Shell and sources a file that is given in `ENV`
+    ENV=/home/.bashrc \
+    # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
+    BASH_ENV=/home/.bashrc
+
+RUN apk add --no-cache bash
+
+ENV DOCKER_HOST=docker-host \
+    OPENSHIFT_REGISTRY=docker-registry.default.svc:5000 \
+    REPOSITORY_TO_UPDATE=amazeeio
+
+RUN fix-permissions /home
+
+COPY update-push-images.sh /update-push-images.sh
+COPY prune-images.sh /prune-images.sh
+COPY remove-exited.sh /remove-exited.sh
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
+
+CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${OPENSHIFT_REGISTRY} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1"]

@@ -1,0 +1,22 @@
+# Keep this file in the root of the project to enable proper module resolution.
+# https://twitter.com/ryyppy/status/917287307912339456
+# https://github.com/thejameskyle/__flow-with-yarn-workspaces
+#
+[ignore]
+.*node_modules/fbjs.*
+.*node_modules/node-uuid.*
+<PROJECT_ROOT>/images/
+<PROJECT_ROOT>/tests/
+# Too many errors for now (as of June 2018). Enable again when errors fixed.
+<PROJECT_ROOT>/services/logs2slack/
+<PROJECT_ROOT>/services/openshiftbuilddeploy/
+<PROJECT_ROOT>/services/openshiftbuilddeploymonitor/
+<PROJECT_ROOT>/services/openshiftremove/
+<PROJECT_ROOT>/services/rest2tasks/
+<PROJECT_ROOT>/services/webhook-handler/
+<PROJECT_ROOT>/services/webhooks2tasks/
+
+[include]
+
+[libs]
+flow-typed

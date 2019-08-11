@@ -1,6 +1,0 @@
-#!/bin/bash
-
-ep /etc/nginx/* 
-ep /etc/nginx/sites/*
-
-exec "$@"

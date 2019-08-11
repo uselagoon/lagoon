@@ -1,240 +1,379 @@
 // @flow
 
-const sleep = require("es7-sleep");
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { Jenkins } = require('jenkins');
-const { sendToAmazeeioLogs, initSendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { consumeTasks, initSendToAmazeeioTasks } = require('@amazeeio/lagoon-commons/src/tasks');
+const promisify = require('util').promisify;
+const OpenShiftClient = require('openshift-client');
+const { ServiceCatalog } = require('@lagoon/commons/src/openshiftApi');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const {
+  sendToLagoonLogs,
+  initSendToLagoonLogs
+} = require('@lagoon/commons/src/logs');
+const {
+  consumeTasks,
+  initSendToLagoonTasks
+} = require('@lagoon/commons/src/tasks');
+const {
+  getOpenShiftInfoForProject,
+  deleteEnvironment
+} = require('@lagoon/commons/src/api');
 
-const { getOpenShiftInfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
+initSendToLagoonLogs();
+initSendToLagoonTasks();
 
-initSendToAmazeeioLogs();
-initSendToAmazeeioTasks();
+const ocsafety = string =>
+  string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
-const amazeeioapihost = process.env.AMAZEEIO_API_HOST || "http://api:3000"
-const jenkinsurl = process.env.JENKINS_URL || "http://admin:admin@jenkins:8080"
+const pause = duration => new Promise(res => setTimeout(res, duration));
 
-const jenkins = Jenkins({ baseUrl: `${jenkinsurl}`, promisify: true});
-
-const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+const retry = (retries, fn, delay = 1000) =>
+  fn().catch(
+    err =>
+      retries > 1
+        ? pause(delay).then(() => retry(retries - 1, fn, delay))
+        : Promise.reject(err)
+  );
 
 const messageConsumer = async function(msg) {
-  const {
-    siteGroupName,
-    branch,
-    pullrequest,
-    type
-  } = JSON.parse(msg.content.toString())
+  const { projectName, branch, pullrequestNumber, type } = JSON.parse(
+    msg.content.toString()
+  );
 
-  logger.verbose(`Received RemoveOpenshift task for sitegroup ${siteGroupName}, type ${type}, branch ${branch}, pullrequest ${pullrequest}`);
+  logger.verbose(
+    `Received RemoveOpenshift task for project ${projectName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`
+  );
 
-  const siteGroupOpenShift = await getOpenShiftInfoForSiteGroup(siteGroupName);
+  const result = await getOpenShiftInfoForProject(projectName);
+  const projectOpenShift = result.project;
 
   try {
-    var safeSiteGroupName = ocsafety(siteGroupName)
-    var openshiftConsole = siteGroupOpenShift.siteGroup.openshift.console
-    var openshiftIsAppuio = openshiftConsole === "https://console.appuio.ch" ? true : false
-    var openshiftToken = siteGroupOpenShift.siteGroup.openshift.token || ""
-    var openshiftUsername = siteGroupOpenShift.siteGroup.openshift.username || ""
-    var openshiftPassword = siteGroupOpenShift.siteGroup.openshift.password || ""
+    var safeProjectName = ocsafety(projectName);
+    var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
+      /\/$/,
+      ''
+    );
+    var openshiftToken = projectOpenShift.openshift.token || '';
 
-    var openshiftProject
+    var openshiftProject;
+    var environmentName;
 
     switch (type) {
       case 'pullrequest':
-        //@TODO
+        environmentName = `pr-${pullrequestNumber}`;
+        openshiftProject = `${safeProjectName}-pr-${pullrequestNumber}`;
         break;
 
       case 'branch':
-        const safeBranchName = ocsafety(branch)
-        openshiftProject = openshiftIsAppuio ? `amze-${safeSiteGroupName}-${safeBranchName}` : `${safeSiteGroupName}-${safeBranchName}`
+        const safeBranchName = ocsafety(branch);
+        environmentName = branch;
+        openshiftProject = `${safeProjectName}-${safeBranchName}`;
+        break;
+
+      case 'promote':
+        environmentName = branch;
+        openshiftProject = `${projectName}-${branch}`;
         break;
     }
-
-  } catch(error) {
-    logger.warn(`Error while loading openshift information for sitegroup ${siteGroupName}, error ${error}`)
-    throw(error)
+  } catch (error) {
+    logger.warn(
+      `Error while loading openshift information for project ${projectName}, error ${error}`
+    );
+    throw error;
   }
 
-  logger.info(`Will remove OpenShift Project ${openshiftProject} on ${openshiftConsole}`);
+  logger.info(
+    `Will remove OpenShift Project ${openshiftProject} on ${openshiftConsole}`
+  );
 
-  var folderxml =
-  `<?xml version='1.0' encoding='UTF-8'?>
-  <com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder@5.13">
-    <actions/>
-    <description></description>
-    <properties/>
-    <views>
-      <hudson.model.AllView>
-        <owner class="com.cloudbees.hudson.plugins.folder.Folder" reference="../../.."/>
-        <name>All</name>
-        <filterExecutors>false</filterExecutors>
-        <filterQueue>false</filterQueue>
-        <properties class="hudson.model.View$PropertyList"/>
-      </hudson.model.AllView>
-    </views>
-    <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
-    <healthMetrics/>
-    <icon class="com.cloudbees.hudson.plugins.folder.icons.StockFolderIcon"/>
-  </com.cloudbees.hudson.plugins.folder.Folder>
-  `
-
-  var jobdsl =
-  `
-  node {
-
-    stage ('oc delete') {
-      sh """
-        docker run --rm -e OPENSHIFT_CONSOLE=${openshiftConsole} -e OPENSHIFT_TOKEN="${openshiftToken}" -e OPENSHIFT_USERNAME="${openshiftUsername}" -e OPENSHIFT_PASSWORD="${openshiftPassword}" amazeeio/oc oc --insecure-skip-tls-verify delete project ${openshiftProject} || true
-      """
+  // OpenShift API object
+  const openshift = new OpenShiftClient.OApi({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
     }
-  }
-  `
+  });
 
-  var jobxml =
-  `<?xml version='1.0' encoding='UTF-8'?>
-  <flow-definition plugin="workflow-job@2.7">
-    <actions/>
-    <description>${openshiftProject}</description>
-    <keepDependencies>false</keepDependencies>
-    <properties>
-      <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
-    </properties>
-    <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.21">
-      <script>${jobdsl}</script>
-      <sandbox>true</sandbox>
-    </definition>
-    <triggers/>
-    <quietPeriod>0</quietPeriod>
-  </flow-definition>
-  `
+  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
+  // the OpenShift API does not support them.
+  const kubernetes = new OpenShiftClient.Core({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
+    }
+  });
 
-  var foldername = `${siteGroupName}`
+  const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
 
-  var jobname = `${foldername}/remove-${openshiftProject}`
+  const serviceCatalog = new ServiceCatalog({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
+    }
+  });
+
+  const serviceInstancesGet = promisify(
+    serviceCatalog.ns(openshiftProject).serviceinstances.get
+  );
+
+  const serviceInstanceDelete = async name => {
+    const deleteFn = promisify(
+      serviceCatalog.ns(openshiftProject).serviceinstances(name).delete
+    );
+
+    return deleteFn({
+      body: {
+        kind: 'DeleteOptions',
+        apiVersion: 'servicecatalog.k8s.io/v1beta1'
+      }
+    });
+  };
+
+  const serviceBindingsGet = promisify(
+    serviceCatalog.ns(openshiftProject).servicebindings.get
+  );
+
+  const serviceBindingDelete = async name => {
+    const deleteFn = promisify(serviceCatalog.ns(openshiftProject).servicebindings(name).delete);
+
+    return deleteFn({
+      body: {
+        kind: 'DeleteOptions',
+        apiVersion: 'servicecatalog.k8s.io/v1beta1'
+      }
+    });
+  };
 
 
-  // First check if the Folder exists (hint: Folders are also called "job" in Jenkins)
-  if (await jenkins.job.exists(foldername)) {
-    // Folder exists, update current config.
-    await jenkins.job.config(foldername, folderxml)
-  } else {
-    // Folder does not exist, create it.
-    await jenkins.job.create(foldername, folderxml)
-  }
-
-  if (await jenkins.job.exists(jobname)) {
-    // Update existing job
-    logger.verbose("Job '%s' already existed, updating", jobname)
-    await jenkins.job.config(jobname, jobxml)
-  } else {
-    // Job does not exist yet, create new one
-    logger.verbose("New Job '%s' created", jobname)
-    await jenkins.job.create(jobname, jobxml)
-  }
-
-  logger.verbose(`Queued job build: ${jobname}`)
-  let jenkinsJobBuildResponse = await jenkins.job.build(jobname)
-
-
-  let getJenkinsJobID = async jenkinsJobBuildResponse => {
-    while (true) {
-      let jenkinsQueueItem = await jenkins.queue.item(jenkinsJobBuildResponse)
-      if (jenkinsQueueItem.blocked == false) {
-        if (jenkinsQueueItem.executable) {
-          return jenkinsQueueItem.executable.number
-        } else {
-          logger.warn(`weird response from Jenkins. Trying again in 2 Secs. Reponse was: ${JSON.stringify(jenkinsQueueItem)}`)
-          await sleep(2000);
-        }
+  const hasZeroPods = () =>
+    new Promise(async (resolve, reject) => {
+      const pods = await podsGet();
+      if (pods.items.length === 0) {
+        logger.info(`${openshiftProject}: All Pods deleted`);
+        resolve();
       } else {
-        logger.verbose(`Job Build blocked, will try in 5 secs. Reason: ${jenkinsQueueItem.why}`)
-        await sleep(5000);
+        logger.info(
+          `${openshiftProject}: Pods not deleted yet, will try again in 2sec`
+        );
+        reject();
       }
+    });
+
+  const hasZeroServiceBindings = () =>
+    new Promise(async (resolve, reject) => {
+      const serviceBindings = await serviceBindingsGet();
+      if (serviceBindings.items.length === 0) {
+        logger.info(`${openshiftProject}: All ServiceBindings deleted`);
+        resolve();
+      } else {
+        logger.info(
+          `${openshiftProject}: ServiceBindings not deleted yet, will try again in 2sec`
+        );
+        reject();
+      }
+    });
+
+  const hasZeroServiceInstances = () =>
+    new Promise(async (resolve, reject) => {
+      const serviceInstances = await serviceInstancesGet();
+      if (serviceInstances.items.length === 0) {
+        logger.info(`${openshiftProject}: All ServiceInstances deleted`);
+        resolve();
+      } else {
+        logger.info(
+          `${openshiftProject}: ServiceInstances not deleted yet, will try again in 10sec`
+        );
+        reject();
+      }
+    });
+
+  const meta = {
+    projectName: projectName,
+    openshiftProject: openshiftProject
+  };
+
+  // Check if project exists
+  try {
+    const projectsGet = promisify(openshift.projects(openshiftProject).get);
+    await projectsGet();
+  } catch (err) {
+    // a non existing project also throws an error, we check if it's a 404, means it does not exist, and we assume it's already removed
+    if (err.code == 404) {
+      logger.info(
+        `${openshiftProject} does not exist, assuming it was removed`
+      );
+      sendToLagoonLogs(
+        'success',
+        projectName,
+        '',
+        'task:remove-openshift:finished',
+        meta,
+        `*[${projectName}]* remove \`${openshiftProject}\``
+      );
+      // Update GraphQL API that the Environment has been deleted
+      try {
+        await deleteEnvironment(environmentName, projectName, false);
+        logger.info(
+          `${openshiftProject}: Deleted Environment '${environmentName}' in API`
+        );
+      } catch (err) {
+        logger.error(err);
+        throw new Error();
+      }
+      return; // we are done here
+    } else {
+      logger.error(err);
+      throw new Error();
     }
   }
 
-  let jenkinsJobID = await getJenkinsJobID(jenkinsJobBuildResponse)
+  // Project exists, let's remove it
+  try {
+    const deploymentconfigsGet = promisify(
+      openshift.ns(openshiftProject).deploymentconfigs.get
+    );
+    const deploymentconfigs = await deploymentconfigsGet();
 
-  logger.verbose(`Running job build: ${jobname}, job id: ${jenkinsJobID}`)
-
-
-  sendToAmazeeioLogs('start', siteGroupName, "", "task:remove-openshift:start", {},
-    `*[${siteGroupName}]* remove \`${openshiftProject}\``
-  )
-
-  let log = jenkins.build.logStream(jobname, jenkinsJobID)
-
-  return new Promise((resolve, reject) => {
-    log.on('data', text => {
-      logger.silly(text)
-    });
-
-    log.on('error', error =>  {
-      logger.error(error)
-      reject(error)
-    });
-
-    log.on('end', async () => {
-      try {
-        const result = await jenkins.build.get(jobname, jenkinsJobID)
-
-        if (result.result === "SUCCESS") {
-          sendToAmazeeioLogs('success', siteGroupName, "", "task:remove-openshift:finished",  {},
-            `*[${siteGroupName}]* remove \`${openshiftProject}\``
-          )
-          logger.verbose(`Finished job build: ${jobname}, job id: ${jenkinsJobID}`)
-        } else {
-          sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift:error",  {}, `*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR`)
-          logger.error(`Finished FAILURE job removal: ${jobname}, job id: ${jenkinsJobID}`)
+    for (let deploymentconfig of deploymentconfigs.items) {
+      const deploymentconfigsDelete = promisify(
+        openshift
+          .ns(openshiftProject)
+          .deploymentconfigs(deploymentconfig.metadata.name).delete
+      );
+      await deploymentconfigsDelete({
+        body: {
+          kind: 'DeleteOptions',
+          apiVersion: 'v1',
+          propagationPolicy: 'Foreground'
         }
-        resolve()
-      } catch(error) {
-        reject(error)
+      });
+      logger.info(
+        `${openshiftProject}: Deleted DeploymentConfig ${
+          deploymentconfig.metadata.name
+        }`
+      );
+    }
+
+    const pods = await podsGet();
+    for (let pod of pods.items) {
+      const podDelete = promisify(
+        kubernetes.ns(openshiftProject).pods(pod.metadata.name).delete
+      );
+      await podDelete({
+        body: {
+          kind: 'DeleteOptions',
+          apiVersion: 'v1',
+          propagationPolicy: 'Foreground'
+        }
+      });
+      logger.info(`${openshiftProject}: Deleted Pod ${pod.metadata.name}`);
+    }
+
+    const serviceBindings = await serviceBindingsGet();
+    for (let serviceBinding of serviceBindings.items) {
+      await serviceBindingDelete(serviceBinding.metadata.name);
+
+      logger.info(
+        `${openshiftProject}: Deleting ServiceBinding ${
+          serviceBinding.metadata.name
+        }`
+      );
+    }
+
+    // ServiceBindings are deleted quickly, but we still have to wait before
+    // we attempt to delete the ServiceInstance.
+    try {
+      await retry(10, hasZeroServiceBindings, 2000);
+    } catch (err) {
+      throw new Error(
+        `${openshiftProject}: ServiceBindings not deleted`
+      );
+    }
+
+    const serviceInstances = await serviceInstancesGet();
+    for (let serviceInstance of serviceInstances.items) {
+      await serviceInstanceDelete(serviceInstance.metadata.name);
+
+      logger.info(
+        `${openshiftProject}: Deleting ServiceInstance ${
+          serviceInstance.metadata.name
+        }`
+      );
+    }
+
+    // Confirm all pods and ServiceInstances are deleted.
+    try {
+      await Promise.all([
+        retry(10, hasZeroPods, 2000),
+        retry(12, hasZeroServiceInstances, 10000)
+      ]);
+    } catch (err) {
+      throw new Error(
+        `${openshiftProject}: Pods or ServiceInstances not deleted`
+      );
+    }
+
+    const projectsDelete = promisify(
+      openshift.projects(openshiftProject).delete
+    );
+    await projectsDelete({
+      body: {
+        kind: 'DeleteOptions',
+        apiVersion: 'v1',
+        propagationPolicy: 'Foreground'
       }
     });
-  })
+    logger.info(`${openshiftProject}: Project deleted`);
+    sendToLagoonLogs(
+      'success',
+      projectName,
+      '',
+      'task:remove-openshift:finished',
+      meta,
+      `*[${projectName}]* remove \`${openshiftProject}\``
+    );
+  } catch (err) {
+    logger.error(err);
+    throw new Error();
+  }
 
-  logger.info(`Removed OpenShift Resources with app name ${openshiftProject} on ${openshiftConsole}`);
-}
+  // Update GraphQL API that the Environment has been deleted
+  try {
+    await deleteEnvironment(environmentName, projectName, false);
+    logger.info(
+      `${openshiftProject}: Deleted Environment '${environmentName}' in API`
+    );
+  } catch (err) {
+    logger.error(err);
+    throw new Error();
+  }
+};
 
 const deathHandler = async (msg, lastError) => {
+  const { projectName, branch, pullrequestNumber, type } = JSON.parse(
+    msg.content.toString()
+  );
 
-  const {
-    siteGroupName,
-    branch,
-    pullrequest,
-    type
-  } = JSON.parse(msg.content.toString())
+  const openshiftProject = ocsafety(
+    `${projectName}-${branch || pullrequestNumber}`
+  );
 
-  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequest}`)
-
-  sendToAmazeeioLogs('error', siteGroupName, "", "task:remove-openshift:error",  {},
-`*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
+  sendToLagoonLogs(
+    'error',
+    projectName,
+    '',
+    'task:remove-openshift:error',
+    {},
+    `*[${projectName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
-  )
-
-}
+  );
+};
 
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
-  const {
-    siteGroupName,
-    branch,
-    pullrequest,
-    type
-  } = JSON.parse(msg.content.toString())
+  return;
+};
 
-  const openshiftProject = ocsafety(`${siteGroupName}-${branch || pullrequest}`)
-
-  sendToAmazeeioLogs('warn', siteGroupName, "", "task:remove-openshift:retry", {error: error, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
-`*[${siteGroupName}]* remove \`${openshiftProject}\` ERROR:
-\`\`\`
-${error}
-\`\`\`
-Retrying in ${retryExpirationSecs} secs`
-  )
-}
-
-consumeTasks('remove-openshift', messageConsumer, retryHandler, deathHandler)
+consumeTasks('remove-openshift', messageConsumer, retryHandler, deathHandler);

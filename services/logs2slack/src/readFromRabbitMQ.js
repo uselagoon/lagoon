@@ -1,8 +1,8 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
+const { logger } = require('@lagoon/commons/src/local-logging');
 
-const { getSlackinfoForSiteGroup } = require('@amazeeio/lagoon-commons/src/api');
+const { getSlackinfoForProject } = require('@lagoon/commons/src/api');
 
 var IncomingWebhook = require('@slack/client').IncomingWebhook;
 
@@ -16,9 +16,9 @@ export type RabbitMQMsg = {
   properties: Object,
 };
 
-export type SiteGroup = {
+export type Project = {
   slack: Object,
-  siteGroupName: string,
+  name: string,
 };
 
 async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
@@ -32,7 +32,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
   const {
     severity,
-    sitegroup,
+    project,
     uuid,
     event,
     meta,
@@ -41,75 +41,88 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
   const appId = msg.properties.appId || ""
 
- logger.verbose(`received ${event}`, logMessage)
+ logger.verbose(`received ${event} for project ${project}`)
 
   switch (event) {
 
     case "github:pull_request:closed:handled":
+    case "github:pull_request:opened:handled":
+    case "github:pull_request:synchronize:handled":
     case "github:delete:handled":
     case "github:push:handled":
     case "bitbucket:repo:push:handled":
+    case "bitbucket:pullrequest:created:handled":
+    case "bitbucket:pullrequest:updated:handled":
+    case "bitbucket:pullrequest:fulfilled:handled":
+    case "bitbucket:pullrequest:rejected:handled":
     case "gitlab:push:handled":
+    case "gitlab:merge_request:opened:handled":
+    case "gitlab:merge_request:updated:handled":
+    case "gitlab:merge_request:closed:handled":
     case "rest:deploy:receive":
     case "rest:remove:receive":
-      sendToSlack(sitegroup, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+    case "rest:promote:receive":
+    case "github:push:skipped":
+    case "gitlab:push:skipped":
+    case "bitbucket:push:skipped":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:finished":
     case "task:remove-openshift:finished":
     case "task:remove-openshift-resources:finished":
-      sendToSlack(sitegroup, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
+    case "task:builddeploy-openshift:complete":
+      sendToSlack(project, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
-      sendToSlack(sitegroup, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
-      case "task:deploy-openshift:error":
-      case "task:remove-openshift:error":
-      case "task:remove-openshift-resources:error":
-      sendToSlack(sitegroup, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
+    case "task:deploy-openshift:error":
+    case "task:remove-openshift:error":
+    case "task:remove-openshift-resources:error":
+    case "task:builddeploy-openshift:failed":
+      sendToSlack(project, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
 
-    case "unresolvedSitegroup:webhooks2tasks":
-    case "unhandledWebhook":
-    case "webhooks:receive":
-    case "task:deploy-openshift:start":
-    case "task:remove-openshift:start":
-    case "task:remove-openshift-resources:start":
-      // known logs entries that should never go to slack
-      channelWrapperLogs.ack(msg)
+    case "github:pull_request:closed:CannotDeleteProductionEnvironment":
+    case "github:push:CannotDeleteProductionEnvironment":
+    case "bitbucket:repo:push:CannotDeleteProductionEnvironment":
+    case "gitlab:push:CannotDeleteProductionEnvironment":
+    case "rest:remove:CannotDeleteProductionEnvironment":
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
     default:
-      logger.warn(`unhandled log message ${event} ${JSON.stringify(logMessage)}`)
       return channelWrapperLogs.ack(msg)
   }
 
 }
 
-const sendToSlack = async (sitegroup, message, color, emoji, channelWrapperLogs, msg, appId) => {
+const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
 
-  let sitegroupSlack;
+  let projectSlacks;
   try {
-    sitegroupSlack = await getSlackinfoForSiteGroup(sitegroup)
+    projectSlacks = await getSlackinfoForProject(project)
   }
   catch (error) {
     logger.error(`No Slack information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
-
-  await new IncomingWebhook(sitegroupSlack.slack.webhook, {
-    channel: sitegroupSlack.slack.channel,
-  }).send({
-    attachments: [{
-      text: `${emoji} ${message}`,
-      color: color,
-      "mrkdwn_in": ["pretext", "text", "fields"],
-      footer: appId
-    }]
+  projectSlacks.forEach(async (projectSlack) => {
+    await new IncomingWebhook(projectSlack.webhook, {
+      channel: projectSlack.channel,
+    }).send({
+      attachments: [{
+        text: `${emoji} ${message}`,
+        color: color,
+        "mrkdwn_in": ["pretext", "text", "fields"],
+        footer: appId
+      }]
+    });
   });
   channelWrapperLogs.ack(msg)
   return

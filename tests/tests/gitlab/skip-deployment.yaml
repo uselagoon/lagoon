@@ -1,0 +1,60 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "node{{ node_version }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+  - set_fact:
+      first_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - webhook gitlab push first commit hash to repo"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_hash_push: "{{ first_commit_hash }}"
+    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-gitlab/push.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ first_commit_hash }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+
+- name: "{{ testname }} - second commit (empty) and git push into same git repo"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+  - set_fact:
+      second_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - [skip deployment] commit and git push into same git repo - this should not trigger a deployment"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_hash_push: "{{ second_commit_hash }}"
+    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-gitlab/push-skipdeploy.yaml
+
+- name: "{{ testname }} - wait for 60 seconds to give an eventual running deployment time to run, after that check again if the first commit is still there"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "60"
+  tasks:
+  - include: ../../tasks/pause.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ first_commit_hash }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+    url: "{{ check_url }}"

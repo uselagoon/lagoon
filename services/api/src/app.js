@@ -3,59 +3,39 @@
 const express = require('express');
 const morgan = require('morgan');
 const compression = require('compression');
+const cors = require('cors');
 const { json } = require('body-parser');
-const selectors = require('./selectors');
 const logger = require('./logger');
 const createRouter = require('./routes');
-const { createAuthMiddleware } = require('./auth');
+const authMiddleware = require('./authMiddleware');
+const apolloServer = require('./apolloServer');
 
-import type { $Application } from 'express';
-import type { ApiStore } from './createStore';
+const app = express();
 
-export type CreateAppArgs = {
-  store: ApiStore,
-  jwtSecret: string,
-  jwtAudience?: string,
-};
+// Use compression (gzip) for responses.
+app.use(compression());
 
-const createApp = (args: CreateAppArgs): $Application => {
-  const { store, jwtSecret, jwtAudience } = args;
-  const app = express();
+// Automatically decode json.
+app.use(json());
 
-  // Set the global app context (make the state accessible
-  // to the routes and graphql).
-  app.set('context', {
-    selectors,
-    store,
-  });
+// Add custom configured logger (morgan through winston).
+app.use(
+  morgan('combined', {
+    stream: {
+      write: message => logger.info(message),
+    },
+  }),
+);
 
-  // Use compression (gzip) for responses.
-  app.use(compression());
+// TODO: Restrict requests to lagoon domains?
+app.use(cors());
 
-  // Automatically decode json.
-  app.use(json());
+// $FlowFixMe
+app.use(authMiddleware);
 
-  // Add custom configured logger (morgan through winston).
-  app.use(
-    morgan('combined', {
-      stream: {
-        write: message => logger.info(message),
-      },
-    })
-  );
+// Add routes.
+app.use('/', createRouter());
 
-  app.use(
-    createAuthMiddleware({
-      baseUri: 'http://auth-server:3000',
-      jwtSecret,
-      jwtAudience,
-    })
-  );
+apolloServer.applyMiddleware({ app });
 
-  // Add routes.
-  app.use('/', createRouter());
-
-  return app;
-};
-
-module.exports = createApp;
+module.exports = app;

@@ -1,12 +1,12 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { createRemoveTask } = require('@amazeeio/lagoon-commons/src/tasks');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createRemoveTask } = require('@lagoon/commons/src/tasks');
 
-import type { WebhookRequestData, removeData, ChannelWrapper, SiteGroup } from '../types';
+import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
 
-async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function githubPullRequestClosed(webhook: WebhookRequestData, project: Project) {
 
     const {
       webhooktype,
@@ -17,29 +17,43 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, siteGroup: S
     } = webhook;
 
     const meta = {
-      pullrequest: body.number
+      projectName: project.name,
+      pullrequestTitle: body.pull_request.title,
+      pullrequestNumber: body.number,
+      pullrequestUrl: body.pull_request.html_url,
+      repoName: body.repository.full_name,
+      repoUrl: body.repository.html_url,
     }
 
     const data: removeData = {
-      siteGroupName: siteGroup.siteGroupName,
-      pullrequest: body.number,
+      projectName: project.name,
+      pullrequestNumber: body.number,
+      pullrequestTitle: body.pull_request.title,
       type: 'pullrequest'
     }
 
     try {
       const taskResult = await createRemoveTask(data);
-      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:closed:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:closed:handled`, meta,
+        `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> closed in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
+      meta.error = error
       switch (error.name) {
-        case "SiteGroupNotFound":
+        case "ProjectNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* PR ${body.number} closed. No remove task created, reason: ${error}`
+          sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${project.name}]* PR ${body.number} closed. No remove task created, reason: ${error}`
+          )
+          return;
+
+        case "CannotDeleteProductionEnvironment":
+          // These are not real errors and also they will happen many times. We just log them locally but not throw an error
+          sendToLagoonLogs('warning', project.name, uuid, `${webhooktype}:${event}:CannotDeleteProductionEnvironment`, meta,
+            `*[${project.name}]* \`${meta.branch}\` not deleted. ${error}`
           )
           return;
 

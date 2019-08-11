@@ -1,1 +1,0 @@
-FROM amazeeio/centos7-couchdb:1.6.1

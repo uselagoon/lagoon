@@ -1,7 +1,6 @@
 // @flow
 
 const winston = require('winston');
-const path = require('path');
 
 const logger = new winston.Logger({
   exitOnError: false,

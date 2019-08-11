@@ -1,12 +1,12 @@
 // @flow
 
-const { logger } = require('@amazeeio/lagoon-commons/src/local-logging');
-const { sendToAmazeeioLogs } = require('@amazeeio/lagoon-commons/src/logs');
-const { createDeployTask } = require('@amazeeio/lagoon-commons/src/tasks');
+const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { createDeployTask } = require('@lagoon/commons/src/tasks');
 
-import type { WebhookRequestData, deployData, ChannelWrapper, SiteGroup  } from '../types';
+import type { WebhookRequestData, deployData, ChannelWrapper, Project  } from '../types';
 
-async function bitbucketPush(webhook: WebhookRequestData, siteGroup: SiteGroup) {
+async function bitbucketPush(webhook: WebhookRequestData, project: project) {
 
     const {
       webhooktype,
@@ -18,17 +18,28 @@ async function bitbucketPush(webhook: WebhookRequestData, siteGroup: SiteGroup) 
 
     const branchName = body.push.changes[0].new.name.toLowerCase()
     const sha = body.push.changes[0].commits[0].hash
+    var skip_deploy = false
+
+    if (body.push.commits) {
+      skip_deploy = body.push.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
+    }
 
     const meta = {
       branch: branchName,
-      sha: sha
+      branchName: branchName,
+      commitUrl: body.push.changes[0].new.target.links.html.href,
+      projectName: project.name,
+      repoFullName:body.repository.full_name,
+      repoUrl: body.repository.links.html.href,
+      sha: sha,
+      shortSha: sha.substring(0, 7),
     }
 
     const data: deployData = {
-      siteGroupName: siteGroup.siteGroupName,
+      projectName: project.name,
       type: 'branch',
       branchName: branchName,
-      sha: sha
+      sha: sha,
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``
@@ -37,21 +48,28 @@ async function bitbucketPush(webhook: WebhookRequestData, siteGroup: SiteGroup) 
       logMessage = `${logMessage} (<${body.push.changes[0].new.target.links.html.href}|${shortSha}>)`
     }
 
+    if (skip_deploy) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:skipped`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.html_url}|${body.repository.full_name}> *deployment skipped*`
+      )
+      return;
+    }
+
     try {
       const taskResult = await createDeployTask(data);
-      sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handled`, meta,
-        `*[${siteGroup.siteGroupName}]* ${logMessage} pushed in <${body.repository.links.html.href}|${body.repository.full_name}>`
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handled`, meta,
+        `*[${project.name}]* ${logMessage} pushed in <${body.repository.links.html.href}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
       switch (error.name) {
-        case "SiteGroupNotFound":
+        case "ProjectNotFound":
         case "NoActiveSystemsDefined":
         case "UnknownActiveSystem":
         case "NoNeedToDeployBranch":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
-          sendToAmazeeioLogs('info', siteGroup.siteGroupName, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${siteGroup.siteGroupName}]* ${logMessage}. No deploy task created, reason: ${error}`
+          sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+            `*[${project.name}]* ${logMessage}. No deploy task created, reason: ${error}`
           )
           return;
 

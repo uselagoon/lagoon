@@ -5,8 +5,7 @@
  */
 
 import fs from 'fs';
-// Polyfill for Node 8's util.promisify
-import promisify from 'util.promisify';
+import util from 'util';
 
 import type { Stats } from 'fs';
 
@@ -18,13 +17,13 @@ type WriteFileFn = (
 ) => Promise<void>;
 type UnlinkFn = (filename: string) => Promise<void>;
 
-export const readFile: ReadFileFn = promisify(fs.readFile);
-export const writeFile: WriteFileFn = promisify(fs.writeFile);
-export const unlink: UnlinkFn = promisify(fs.unlink);
+export const readFile: ReadFileFn = util.promisify(fs.readFile);
+export const writeFile: WriteFileFn = util.promisify(fs.writeFile);
+export const unlink: UnlinkFn = util.promisify(fs.unlink);
 
 export async function fileExists(path: string): Promise<boolean> {
   try {
-    const stats: Stats = await promisify(fs.lstat)(path);
+    const stats: Stats = await util.promisify(fs.lstat)(path);
 
     if (stats.isFile()) {
       return true;

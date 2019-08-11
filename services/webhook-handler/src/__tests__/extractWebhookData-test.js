@@ -1,9 +1,7 @@
 // @flow
 
 // prevent uuid side-effects (this needs to called before any require statement)
-jest.mock('uuid4', () => {
-  return () => 'uuid';
-});
+jest.mock('uuid4', () => () => 'uuid');
 
 const extractWebhookData = require('../extractWebhookData');
 
@@ -12,15 +10,15 @@ it('should return github related webhook data', () => {
     method: 'POST',
     headers: {
       'x-github-event': 'gh',
-      'x-github-delivery': '123'
+      'x-github-delivery': '123',
     },
-    url: 'url'
+    url: 'url',
   };
 
   const body = {
     repository: {
-      ssh_url: 'sshurl'
-    }
+      ssh_url: 'sshurl',
+    },
   };
 
   const result = extractWebhookData(req, JSON.stringify(body));
@@ -30,7 +28,7 @@ it('should return github related webhook data', () => {
     event: 'gh',
     uuid: '123',
     giturl: 'sshurl',
-    body
+    body,
   });
 });
 
@@ -39,9 +37,9 @@ it('should return gitlab related webhook data', () => {
     method: 'POST',
     headers: {
       'x-gitlab-event': 'something',
-      'x-gitlab-delivery': '123'
+      'x-gitlab-delivery': '123',
     },
-    url: 'url'
+    url: 'url',
   };
 
   const body = JSON.stringify({
@@ -55,8 +53,8 @@ it('should return gitlab related webhook data', () => {
     event: 'gl',
     uuid: 'uuid',
     body: {
-      object_kind: 'gl'
-    }
+      object_kind: 'gl',
+    },
   });
 });
 
@@ -64,17 +62,29 @@ it('should return bitbucket related webhook data', () => {
   const req = {
     method: 'POST',
     headers: {
-      'x-event-key': 'bb'
+      'x-event-key': 'bb',
     },
-    url: 'url'
+    url: 'url',
   };
 
-  const result = extractWebhookData(req);
+  const body = {
+    repository: {
+      links: {
+        html: {
+          href: 'https://bitbucket.org/teamawesome/repository',
+        },
+      },
+      full_name: 'teamawesome/repository',
+    },
+  };
+
+  const result = extractWebhookData(req, JSON.stringify(body));
 
   expect(result).toEqual({
     webhooktype: 'bitbucket',
     event: 'bb',
-    body: {}
+    giturl: 'git@bitbucket.org:teamawesome/repository.git',
+    body,
   });
 });
 
@@ -82,11 +92,11 @@ it('should throw an error on missing webhook header data', () => {
   const req = {
     method: 'POST',
     headers: {},
-    url: 'url'
+    url: 'url',
   };
 
   expect(() => extractWebhookData(req)).toThrow(
-    'No supported event header found on POST request'
+    'No supported event header found on POST request',
   );
 });
 
@@ -95,9 +105,9 @@ it('should parse body on POST', () => {
     method: 'POST',
     headers: {
       'x-github-event': 'gh',
-      'x-github-delivery': '123'
+      'x-github-delivery': '123',
     },
-    url: 'url'
+    url: 'url',
   };
 
   const body = '{ "content": true }';
@@ -112,9 +122,9 @@ it('should throw on invalid POST body', () => {
     method: 'POST',
     headers: {
       'x-github-event': 'gh',
-      'x-github-delivery': '123'
+      'x-github-delivery': '123',
     },
-    url: 'url'
+    url: 'url',
   };
 
   const body = 'non-json';
@@ -126,7 +136,7 @@ it('should return custom webhook data on GET (with x-sha)', () => {
   const req = {
     method: 'GET',
     headers: {},
-    url: 'url?url=utest&branch=btest&sha=stest'
+    url: 'url?url=utest&branch=btest&sha=stest',
   };
 
   const result = extractWebhookData(req);
@@ -138,9 +148,9 @@ it('should return custom webhook data on GET (with x-sha)', () => {
     body: {
       url: 'utest',
       branch: 'btest',
-      sha: 'stest'
+      sha: 'stest',
     },
-    giturl: 'url?url=utest&branch=btest&sha=stest'
+    giturl: 'url?url=utest&branch=btest&sha=stest',
   });
 });
 
@@ -148,7 +158,7 @@ it('should return custom webhook data on GET (without x-sha)', () => {
   const req = {
     method: 'GET',
     headers: {},
-    url: 'url?url=utest&branch=btest'
+    url: 'url?url=utest&branch=btest',
   };
 
   const result = extractWebhookData(req);
@@ -160,9 +170,9 @@ it('should return custom webhook data on GET (without x-sha)', () => {
     body: {
       url: 'utest',
       branch: 'btest',
-      sha: ''
+      sha: '',
     },
-    giturl: 'url?url=utest&branch=btest'
+    giturl: 'url?url=utest&branch=btest',
   });
 });
 
@@ -170,20 +180,20 @@ it('should throw on missing url / branch query param on GET', () => {
   const req1 = {
     method: 'GET',
     headers: {},
-    url: 'url?branch=btest'
+    url: 'url?branch=btest',
   };
 
   const req2 = {
     method: 'GET',
     headers: {},
-    url: 'url?url=utest'
+    url: 'url?url=utest',
   };
 
   expect(() => extractWebhookData(req1)).toThrowError(
-    "Query param 'url' not found!"
+    "Query param 'url' not found!",
   );
   expect(() => extractWebhookData(req2)).toThrowError(
-    "Query param 'branch' not found!"
+    "Query param 'branch' not found!",
   );
 });
 
@@ -191,20 +201,20 @@ it('should throw on empty url / branch query parameter on GET', () => {
   const req1 = {
     method: 'GET',
     headers: {},
-    url: 'url?url=&branch=test'
+    url: 'url?url=&branch=test',
   };
 
   const req2 = {
     method: 'GET',
     headers: {},
-    url: 'url?url=test&branch='
+    url: 'url?url=test&branch=',
   };
 
   expect(() => extractWebhookData(req1)).toThrowError(
-    "Query param 'url' is empty!"
+    "Query param 'url' is empty!",
   );
   expect(() => extractWebhookData(req2)).toThrowError(
-    "Query param 'branch' is empty!"
+    "Query param 'branch' is empty!",
   );
 });
 
@@ -212,10 +222,10 @@ it('should throw on unknown http method', async () => {
   const req = {
     method: 'PUT',
     headers: {},
-    url: 'url'
+    url: 'url',
   };
 
   expect(() => extractWebhookData(req)).toThrow(
-    'Unsupported request method: PUT'
+    'Unsupported request method: PUT',
   );
 });

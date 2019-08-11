@@ -1,93 +1,67 @@
 // @flow
 
-import os from 'os';
-import path from 'path';
 import { green } from 'chalk';
-import { utils } from 'ssh2-streams';
-import untildify from 'untildify';
-import {
-  getPrivateKeyPath,
-  getPrivateKeyPassphrase,
-  sshConnect,
-  sshExec,
-} from '../util/ssh';
-import { fileExists, readFile, writeFile } from '../util/fs';
-import { printErrors } from '../printErrors';
+import { getSshConfig } from '../config/getSshConfig';
+import { runSshCommand } from '../util/runSshCommand';
+import { writeFile } from '../util/fs';
+import { printErrors } from '../util/printErrors';
 
 import typeof Yargs from 'yargs';
-import type { BaseArgs } from '.';
+import type { CommandHandlerArgsWithOptions } from '../types/Command';
 
-const name = 'login';
-const description = 'Authenticate with amazee.io via an SSH key';
+export const command = 'login';
+export const description = 'Authenticate with lagoon via an SSH key';
 
-export async function setup(yargs: Yargs): Promise<Object> {
-  return yargs.usage(`$0 ${name} - ${description}`).options({
+const IDENTITY: 'identity' = 'identity';
+const TOKEN: 'token' = 'token';
+
+export const commandOptions = {
+  [IDENTITY]: IDENTITY,
+  [TOKEN]: TOKEN,
+};
+
+export function builder(yargs: Yargs) {
+  return yargs.usage(`$0 ${command} - ${description}`).options({
     identity: {
       describe: 'Path to identity (private key)',
       type: 'string',
-      alias: 'i',
     },
-  }).argv;
+  });
 }
 
-type Args = BaseArgs & {
-  identity: string,
-};
+type Args = CommandHandlerArgsWithOptions<{
+  +identity: string,
+  +token: string,
+}>;
 
-export async function run({
+export async function handler({
   clog,
   cerr,
-  identity: identityOption,
-}: Args): Promise<number> {
-  if (identityOption != null && !await fileExists(identityOption)) {
-    return printErrors(cerr, 'File does not exist at identity option path!');
-  }
+  options: { identity, token: tokenFilePath },
+}:
+Args): Promise<number> {
+  const { username, host, port } = getSshConfig();
 
-  const homeDir = os.homedir();
-  const defaultPrivateKeyPath = path.join(homeDir, '.ssh', 'id_rsa');
-  const fileExistsAtDefaultPath = await fileExists(defaultPrivateKeyPath);
+  console.log(`Logging in to lagoon at ${username}@${host}:${port}...`);
 
-  const privateKeyPath = await getPrivateKeyPath({
-    fileExistsAtDefaultPath,
-    defaultPrivateKeyPath,
-    identityOption,
-    cerr,
-  });
+  let token;
 
-  const privateKey = await readFile(untildify(privateKeyPath));
-  const passphrase = await getPrivateKeyPassphrase(
-    utils.parseKey(privateKey).encryption,
-  );
-
-  let connection;
   try {
-    connection = await sshConnect({
-      host: process.env.SSH_AUTH_HOST || 'auth.amazee.io',
-      port: Number(process.env.SSH_AUTH_PORT) || 2020,
-      username: process.env.SSH_AUTH_USER || 'api',
-      privateKey,
-      passphrase,
-    });
+    token = await runSshCommand({ command: 'token', identity });
   } catch (err) {
     return printErrors(cerr, err);
   }
 
-  const output = await sshExec(connection, 'login');
-  const token = output.toString().replace(/(\r\n|\n|\r)/gm, '');
-  const tokenFilePath = path.join(homeDir, '.ioauth');
+  if (!token) {
+    return printErrors(
+      cerr,
+      'Empty token returned from Lagoon authentication server.',
+    );
+  }
+
   await writeFile(tokenFilePath, token);
 
   clog(green('Logged in successfully.'));
 
-  // Be responsible and close the connection after our transaction.
-  connection.end();
-
   return 0;
 }
-
-export default {
-  setup,
-  name,
-  description,
-  run,
-};

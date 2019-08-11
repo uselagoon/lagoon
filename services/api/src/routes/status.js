@@ -1,12 +1,6 @@
 // @flow
 
-const logger = require('../logger');
-
-import type { $Request, $Response } from 'express';
-
-const statusRoute = (req: $Request, res: $Response) => {
-  logger.debug('Fetching status.');
-
+const statusRoute = (req /* : Object */, res /* : Object */) => {
   // @todo Add logic to fetch the status.
   const status = {};
 

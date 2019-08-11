@@ -47,7 +47,7 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       giturl = R.path(['repository', 'ssh_url'], bodyObj);
     } else if ('x-gitlab-event' in req.headers) {
       webhooktype = 'gitlab';
-      event = bodyObj.object_kind;
+      event = bodyObj.object_kind || bodyObj.event_name;
       uuid = uuid4();
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
     } else if ('x-event-key' in req.headers) {
@@ -57,9 +57,47 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       // Bitbucket does not provide a git-ssh URI to the repo in the webhook payload
       // We the html repo link (example https://bitbucket.org/teamawesome/repository) to extract the correct target domain (bitbucket.org)
       // this could be bitbuck.org(.com) or a private bitbucket server
-      const domain = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)\//i)
-      // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
-      giturl = `git@${domain[1]}:${bodyObj.repository.full_name}.git`
+      // Also the git server could be running on another port than 22, so there is a second regex match for `:[0-9]`
+      const regexmatch = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)(:[0-9]*)?\//i)
+      // The first match is the domain
+      const domain = regexmatch[1]
+      if (!regexmatch[2]) {
+        // If there is no 2nd regex match, ther is no port found and it's not added to the URL
+        // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
+        giturl = `git@${domain}:${bodyObj.repository.full_name}.git`
+      } else {
+        // If there is a second regex match, we add the port to the url and also format the url with `ssh://` in front which is needed for requests with anoter port
+        const port = regexmatch[2]
+        giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
+      }
+    } else if (bodyObj.backup_metrics) {
+      webhooktype = 'resticbackup';
+      event = 'snapshot:finished'
+      uuid = uuid4();
+    } else if (R.allPass([ R.is(Array), R.compose(R.not(), R.isEmpty()), R.compose(R.has('hostname'), R.prop(0)) ])(bodyObj)) {
+      // Check for a body that matches
+      // [
+      //   {
+      //       "id": "80b698920f97e36616f638cb59c379787967ff45416c9ba23c1807e4e0703414",
+      //       "time": "2018-11-12T04:16:28.320904074Z",
+      //       "tree": "e100116d5477c1746402649fde5219ae506a8d6605ed2600f6ada5dd340b5c23",
+      //       "paths": [
+      //           "/data/solr"
+      //       ],
+      //       "hostname": "ci-local",
+      //       "username": "",
+      //       "uid": 0,
+      //       "gid": 0,
+      //       "tags": null
+      //   }
+      // ]
+      webhooktype = 'resticbackup';
+      event = 'snapshot:pruned'
+      uuid = uuid4();
+    } else if (bodyObj.restore_location) {
+      webhooktype = 'resticbackup';
+      event = 'restore:finished';
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }

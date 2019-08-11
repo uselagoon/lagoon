@@ -1,6 +1,6 @@
 node_modules/
-dist/
+build/
 .npmrc
 .DS_Store
-.amazeeio.yml
+.lagoon.yml
 npm-debug.log*
