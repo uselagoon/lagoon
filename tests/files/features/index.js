@@ -19,6 +19,15 @@ app.get('/', async function (req, res) {
 
 })
 
+app.get('/ts', async function (req, res) {
+  const getFileUpdatedDate = (path) => {
+    const stats = fs.statSync(path)
+    return stats.mtime
+  }
+
+  res.send(getFileUpdatedDate("/files/cron_test.txt").getTime())
+})
+
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!')
 })

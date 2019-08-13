@@ -1,0 +1,11 @@
+---
+- name: "{{ testname }} - Check if URL {{url}} returns a timestamp that is more than 90 seconds less than the current time."
+  uri:
+    url: "{{ url }}"
+    return_content: yes
+    validate_certs: no
+  register: result|int
+  until: ((ansible_date_time.epoch|int) - result) >= 90
+  retries: 10
+  delay: 20
+- debug: msg="Success!!!"
