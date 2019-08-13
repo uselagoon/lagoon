@@ -3,7 +3,7 @@ services:
   cli:
     build:
       context: .
-      dockerfile: Dockerfile.builder
+      dockerfile: builder.dockerfile
     image: builder
     labels:
       lagoon.type: cli-persistent
@@ -21,7 +21,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.varnish
+      dockerfile: varnish.dockerfile
     labels:
       lagoon.type: varnish
       lagoon.name: varnish
@@ -33,7 +33,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.nginx
+      dockerfile: nginx.dockerfile
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
@@ -50,7 +50,7 @@ services:
   php-myname:
     build:
       context: .
-      dockerfile: Dockerfile.php
+      dockerfile: php.dockerfile
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
@@ -63,13 +63,13 @@ services:
   mariadb:
     build:
       context: .
-      dockerfile: Dockerfile.mariadb
+      dockerfile: mariadb.dockerfile
     labels:
       lagoon.type: mariadb
   redis:
     build:
       context: .
-      dockerfile: Dockerfile.redis
+      dockerfile: redis.dockerfile
     labels:
       lagoon.type: redis
   solr:
@@ -78,7 +78,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.solr
+      dockerfile: solr.dockerfile
     labels:
       lagoon.type: solr
 networks:
