@@ -85,6 +85,8 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(
 # 3. Path of Docker Build context
 docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
 
+docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
+
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
@@ -97,10 +99,10 @@ docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSI
 docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
 
 # Tags an image with the `amazeeio` repository and pushes it
-docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
+docker_publish_amazeeio = echo docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && echo docker push amazeeio/$(2) | cat
 
 # Tags an image with the `amazeeiolagoon` repository and pushes it
-docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2) | cat
+docker_publish_amazeeiolagoon = echo docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && echo docker push amazeeiolagoon/$(2) | cat
 
 
 #######
@@ -129,7 +131,6 @@ images :=     oc \
 							rabbitmq \
 							rabbitmq-cluster \
 							mongo \
-							elasticsearch \
 							kibana \
 							logstash \
 							athenapdf-service \
@@ -186,6 +187,30 @@ build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
 
+
+#######
+####### Elastic Images
+#######
+
+elasticimages :=  elasticsearch__6 \
+								  elasticsearch__7
+
+build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-elasticimages): build/commons
+	$(eval clean = $(subst build/,,$@))
+	$(eval tool = $(word 1,$(subst __, ,$(clean))))
+	$(eval version = $(word 2,$(subst __, ,$(clean))))
+# Call the docker build
+	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(elasticimages)
+s3-images += elasticimages
+
+build/elasticsearch__6 build/elasticsearch__7: images/commons
 
 #######
 ####### Python Images
