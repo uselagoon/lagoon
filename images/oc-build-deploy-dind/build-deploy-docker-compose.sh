@@ -794,7 +794,8 @@ do
         OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-        NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=(${"cronjob-${SERVICE_NAME}-${CRONJOB_NAME}",,})
+        # oc stores this cronjob name lowercased
 
         if [ ! -f $OPENSHIFT_TEMPLATE ]; then
           echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;

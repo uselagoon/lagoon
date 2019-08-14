@@ -68,8 +68,9 @@
   serial: 1
   vars:
     git_files: "features/"
+    lagoon_no_crons: ".lagoon-no-cronjobs.yml"
   tasks:
-  - include: ../../tasks/git-update-lagoon-commit-push.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
 
 # Run cron removal test
 - name: "{{ testname }} - check if {{ project }} had its native cronjob removed correctly"
