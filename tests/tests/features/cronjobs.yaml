@@ -72,6 +72,15 @@
   tasks:
   - include: ../../tasks/git-add-commit-push.yaml
 
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the newest changes for cron removal"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
 # Run cron removal test
 - name: "{{ testname }} - check if {{ project }} had its native cronjob removed correctly"
   hosts: localhost

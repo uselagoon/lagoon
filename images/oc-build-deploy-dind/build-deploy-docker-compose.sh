@@ -794,7 +794,7 @@ do
         OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-        NATIVE_CRONJOB_CLEANUP_ARRAY+=(${"cronjob-${SERVICE_NAME}-${CRONJOB_NAME}",,})
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
         # oc stores this cronjob name lowercased
 
         if [ ! -f $OPENSHIFT_TEMPLATE ]; then
