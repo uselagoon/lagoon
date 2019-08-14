@@ -58,7 +58,7 @@ DOCKER_BUILD_PARAMS := --quiet
 MINISHIFT_VERSION := 1.16.1
 
 MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 6GB
+MINISHIFT_MEMORY := 2GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
