@@ -39,13 +39,24 @@ RUN echo $'xpack.security.enabled: false\n\
 \n\
 node.name: "${HOSTNAME}"\n\
 node.master: "${NODE_MASTER}"\n\
+node.data: "${NODE_DATA}"\n\
+node.ingest: "${NODE_INGEST}"\n\
+node.ml: "${NODE_ML}"\n\
+xpack.ml.enabled: "${XPACK_ML_ENABLED}"\n\
+cluster.remote.connect: "${CLUSTER_REMOTE_CONNECT}"\n\
 discovery.zen.minimum_master_nodes: "${DISCOVERY_ZEN_MINIMUM_MASTER_NODES}"' >> config/elasticsearch.yml
 
 RUN fix-permissions config
 
 ENV ES_JAVA_OPTS="-Xms200m -Xmx200m" \
     DISCOVERY_ZEN_MINIMUM_MASTER_NODES=1 \
-    NODE_MASTER=true
+    NODE_MASTER=true \
+    NODE_DATA=true \
+    NODE_INGEST=true \
+    NODE_ML=true \
+    XPACK_ML_ENABLED=true \
+    CLUSTER_REMOTE_CONNECT=true
+
 
 VOLUME [ "/usr/share/elasticsearch/data" ]
 
