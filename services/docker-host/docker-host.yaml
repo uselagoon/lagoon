@@ -83,7 +83,7 @@ objects:
             - name: CRONJOBS
               value: |
                 22 1 * * * /lagoon/cronjob.sh "/prune-images.sh"
-                22 0 * * * /lagoon/cronjob.sh "/remove-exited.sh"
+                22 */4 * * * /lagoon/cronjob.sh "/remove-exited.sh"
                 */15 * * * * /lagoon/cronjob.sh "/update-push-images.sh"
           ports:
           - containerPort: 2375
