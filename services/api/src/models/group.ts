@@ -122,12 +122,11 @@ const loadGroupByName = async (name: string): Promise<Group> => {
     throw new GroupNotFoundError(`Group not found: ${name}`);
   }
 
+  // Use mutable operations to avoid running out of heap memory
   const flattenGroups = (groups, group) => {
-    return [
-      ...groups,
-      R.omit(['subGroups'], group),
-      ...group.subGroups.reduce(flattenGroups, groups),
-    ];
+    groups.push(R.omit(['subGroups'], group));
+    const flatSubGroups = group.subGroups.reduce(flattenGroups, []);
+    return groups.concat(flatSubGroups);
   };
 
   const groupId = R.pipe(
@@ -247,6 +246,8 @@ const addGroup = async (groupInput: Group): Promise<Group> => {
         throw new GroupNotFoundError(
           `Parent group not found ${R.prop('parentGroupId', groupInput)}`,
         );
+      } else if (err.message.includes('location header is not found in request')) {
+        // This is a bug in the keycloak client, ignore
       } else {
         logger.error(`Could not set parent group: ${err.message}`);
       }
