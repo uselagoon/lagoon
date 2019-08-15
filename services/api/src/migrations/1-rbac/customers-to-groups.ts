@@ -29,6 +29,8 @@ const keycloakAuth = {
   const customerRecords = await query(sqlClient, 'SELECT * FROM `customer`');
 
   for (const customer of customerRecords) {
+    logger.debug(`Processing ${customer.name}`);
+
     // Add or update group
     let keycloakGroup;
     try {
@@ -114,6 +116,8 @@ const keycloakAuth = {
       }
     }
   }
+
+  logger.info('Migration completed');
 
   sqlClient.destroy();
 })();

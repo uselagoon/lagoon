@@ -51,6 +51,8 @@ const keycloakAuth = {
   const projectRecords = await query(sqlClient, 'SELECT * FROM `project`');
 
   for (const project of projectRecords) {
+    logger.debug(`Processing ${project.name}`);
+
     // Add or update group
     const projectGroupName = `project-${project.name}`;
     let keycloakGroup;
@@ -214,6 +216,8 @@ const keycloakAuth = {
       );
     }
   }
+
+  logger.info('Migration completed');
 
   sqlClient.destroy();
 })();

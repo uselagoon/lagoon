@@ -27,6 +27,8 @@ const keycloakAuth = {
   const userRecords = await query(sqlClient, 'SELECT * FROM `user`');
 
   for (const user of userRecords) {
+    logger.debug(`Processing ${user.email}`);
+
     // Add or update user
     let keycloakUser;
     try {
@@ -76,6 +78,8 @@ const keycloakAuth = {
       }),
     );
   }
+
+  logger.info('Migration completed');
 
   sqlClient.destroy();
 })();
