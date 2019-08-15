@@ -85,11 +85,11 @@ This setting allows you to enable injecting the deployed git SHA into your proje
 
 There are different type of tasks you can define, they differ when exactly they are executed in a build flow:
 
-### `pre_rollout.[i].run`
+### Pre-Rollout Tasks - `pre_rollout.[i].run`
 The task defined as `pre_rollout` tasks will run against your project _after_ the new images have been built successfully and _before_ the project gets altered in any way.
 This feature enables you for example to create a database dump before the rollout is running. This will make it easier to roll-back in case of an issue with the rollout.
 
-#### `post_rollout.[i].run`
+#### Post-Rollout Tasks - `post_rollout.[i].run`
 Here you can specify tasks which need to run against your project, _after_:
 
 - all Images have been successfully built
@@ -119,6 +119,8 @@ The simplest route is the `example.com` example above. This will assume that you
 
 In the `"www.example.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
 
+#### SSL Configuration - `tls-acme`
+
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route, this is the default. If you don't like a Let's Encrypt set this to `tls-acme: 'false'`
 * `insecure` can be set to `None`, `Allow` or `Redirect`.
     * `Allow` simply sets up both routes for http and https (this is the default).
@@ -126,7 +128,11 @@ In the `"www.example.com"` example, we see two more options (also see the `:` at
     * `None` will mean a route for http will _not_ be created, and no redirect will take place
 * `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
-#### `environments.[name].cronjobs`
+!!! Hint
+    If you plan to switch from a SSL certificate signed by a Certificate Authority (CA) to a Let's Encrypt certificate best get in touch with your Lagoon administrator to oversee the transition as there are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. Workaround would be manually removing the CA certificate and then trigger the Let's Encrypt process.
+
+
+#### Cronjobs - `environments.[name].cronjobs`
 As most of the time it is not desirable to run the same cronjobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
 * `name:`
