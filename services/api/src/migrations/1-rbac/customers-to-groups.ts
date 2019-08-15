@@ -17,6 +17,20 @@ const keycloakAuth = {
   clientId: 'admin-cli',
 };
 
+const refreshToken = async keycloakAdminClient => {
+  const tokenRaw = new Buffer(keycloakAdminClient.accessToken.split('.')[1], 'base64');
+  const token = JSON.parse(tokenRaw.toString());
+  const date = new Date();
+  const now = Math.floor(date.getTime() / 1000);
+
+  if (token.exp <= now) {
+    logger.debug('Refreshing keycloak token');
+    keycloakAdminClient.setConfig({ realmName: 'master' });
+    await keycloakAdminClient.auth(keycloakAuth);
+    keycloakAdminClient.setConfig({ realmName: 'lagoon' });
+  }
+}
+
 (async () => {
   keycloakAdminClient.setConfig({ realmName: 'master' });
   await keycloakAdminClient.auth(keycloakAuth);
@@ -29,6 +43,7 @@ const keycloakAuth = {
   const customerRecords = await query(sqlClient, 'SELECT * FROM `customer`');
 
   for (const customer of customerRecords) {
+    await refreshToken(keycloakAdminClient);
     logger.debug(`Processing ${customer.name}`);
 
     // Add or update group
@@ -80,6 +95,8 @@ const keycloakAuth = {
     );
 
     for (const customerUser of customerUserRecords) {
+      await refreshToken(keycloakAdminClient);
+
       try {
         const user = await UserModel.loadUserByUsername(customerUser.email);
         await GroupModel.addUserToGroup(user, keycloakGroup, 'owner');
@@ -105,6 +122,8 @@ const keycloakAuth = {
     );
 
     for (const customerProject of customerProjectRecords) {
+      await refreshToken(keycloakAdminClient);
+
       try {
         await GroupModel.addProjectToGroup(customerProject.id, keycloakGroup);
       } catch (err) {

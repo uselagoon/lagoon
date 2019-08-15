@@ -16,6 +16,20 @@ const keycloakAuth = {
   clientId: 'admin-cli',
 };
 
+const refreshToken = async keycloakAdminClient => {
+  const tokenRaw = new Buffer(keycloakAdminClient.accessToken.split('.')[1], 'base64');
+  const token = JSON.parse(tokenRaw.toString());
+  const date = new Date();
+  const now = Math.floor(date.getTime() / 1000);
+
+  if (token.exp <= now) {
+    logger.debug('Refreshing keycloak token');
+    keycloakAdminClient.setConfig({ realmName: 'master' });
+    await keycloakAdminClient.auth(keycloakAuth);
+    keycloakAdminClient.setConfig({ realmName: 'lagoon' });
+  }
+}
+
 (async () => {
   keycloakAdminClient.setConfig({ realmName: 'master' });
   await keycloakAdminClient.auth(keycloakAuth);
@@ -27,6 +41,7 @@ const keycloakAuth = {
   const userRecords = await query(sqlClient, 'SELECT * FROM `user`');
 
   for (const user of userRecords) {
+    await refreshToken(keycloakAdminClient);
     logger.debug(`Processing ${user.email}`);
 
     // Add or update user
