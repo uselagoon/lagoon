@@ -1,5 +1,6 @@
 ---
 - name: "{{ testname }} - Check if URL {{url}} returns a timestamp that is more than 90 seconds less than the current time."
+  gather_facts: true
   uri:
     url: "{{ url }}"
     return_content: yes
