@@ -33,7 +33,7 @@ app.get('/ts', async function (req, res) {
     }
   }
 
-  res.send(String(getFileUpdatedDate("/files/cron_test.txt").getTime()))
+  res.send(String(getFileUpdatedDate("/files/cron_test.txt").getTime()).slice(0,-3))
 })
 
 app.listen(3000, function () {

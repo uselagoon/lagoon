@@ -6,7 +6,7 @@
     return_content: yes
     validate_certs: no
   register: result
-  until: (( lookup('pipe','date +%s')|int ) - result.content|int) >= 90
+  until: ( lookup('pipe','date +%s')|int - result.content|int ) >= 90 
   retries: 10
   delay: 20
 - debug: msg="Success!!!"
