@@ -4,23 +4,23 @@
   vars:
     testname: "API TOKEN"
 
-# - include: features/remote-shell.yaml
-#   vars:
-#     testname: "REMOTE SHELL"
-#     node_version: 8
-#     git_repo_name: features.git
-#     project: ci-features
-#     branch: remoteshell
+- include: features/remote-shell.yaml
+  vars:
+    testname: "REMOTE SHELL"
+    node_version: 8
+    git_repo_name: features.git
+    project: ci-features
+    branch: remoteshell
 
-# - include: features/promote.yaml
-#   vars:
-#     testname: "PROMOTE"
-#     git_repo_name: features.git
-#     project: ci-features
-#     source_environment: source
-#     promote_environment: target
-#     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-#     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+- include: features/promote.yaml
+  vars:
+    testname: "PROMOTE"
+    git_repo_name: features.git
+    project: ci-features
+    source_environment: source
+    promote_environment: target
+    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
 - include: features/cronjobs.yaml
   vars:
