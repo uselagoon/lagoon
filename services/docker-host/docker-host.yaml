@@ -39,7 +39,7 @@ parameters:
     value: "Recreate"
   - name: SERVICE_IMAGE
     description: Pullable image of service
-    value: amazeeiolagoon/master-docker-host
+    value: amazeeio/docker-host:latest
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -83,7 +83,7 @@ objects:
             - name: CRONJOBS
               value: |
                 22 1 * * * /lagoon/cronjob.sh "/prune-images.sh"
-                22 0 * * * /lagoon/cronjob.sh "/remove-exited.sh"
+                22 */4 * * * /lagoon/cronjob.sh "/remove-exited.sh"
                 */15 * * * * /lagoon/cronjob.sh "/update-push-images.sh"
           ports:
           - containerPort: 2375
