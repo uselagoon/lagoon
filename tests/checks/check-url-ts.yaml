@@ -5,7 +5,7 @@
     return_content: yes
     validate_certs: no
   register: result|int
-  until: ((ansible_date_time.epoch|int) - result) >= 90
+  until: (({{ ansible_date_time.epoch|int }}) - result) >= 90
   retries: 10
   delay: 20
 - debug: msg="Success!!!"
