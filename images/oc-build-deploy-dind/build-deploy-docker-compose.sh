@@ -795,6 +795,7 @@ do
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
         NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
+        echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" #TEST
         # oc stores this cronjob name lowercased
 
         if [ ! -f $OPENSHIFT_TEMPLATE ]; then
@@ -942,7 +943,13 @@ done
 
 CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d " " -f 1)
 
+echo ${CURRENT_CRONJOBS} #TEST
+
 IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< ${CURRENT_CRONJOBS}
+
+echo ${SPLIT_CURRENT_CRONJOBS} #TEST
+
+echo ${NATIVE_CRONJOB_CLEANUP_ARRAY} #TEST
 
 for SINGLE_NATIVE_CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
 do
