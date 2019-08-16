@@ -4,8 +4,8 @@
     url: "{{ url }}"
     return_content: yes
     validate_certs: no
-  register: result|int
-  until: (({{ lookup('pipe','date +%s')|int }}) - result) >= 90
+  register: result
+  until: (({{ lookup('pipe','date +%s')|int }}) - result.content|int) >= 90
   retries: 10
   delay: 20
 - debug: msg="Success!!!"

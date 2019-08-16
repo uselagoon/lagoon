@@ -25,7 +25,7 @@ app.get('/ts', async function (req, res) {
     return stats.mtime
   }
 
-  res.send(getFileUpdatedDate("/files/cron_test.txt").getTime())
+  res.send(String(getFileUpdatedDate("/files/cron_test.txt").getTime()))
 })
 
 app.listen(3000, function () {
