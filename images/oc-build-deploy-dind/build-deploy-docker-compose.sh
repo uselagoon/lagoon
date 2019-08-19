@@ -953,7 +953,7 @@ echo ${NATIVE_CRONJOB_CLEANUP_ARRAY} #TEST
 
 for SINGLE_NATIVE_CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
 do
-  if [[ ! " ${SPLIT_CURRENT_CRONJOBS[@]} " =~ " ${SINGLE_NATIVE_CRONJOB} " ]]; then
+  if [[ ! "${SPLIT_CURRENT_CRONJOBS[@]}" =~ (^|[[:space:]])"${SINGLE_NATIVE_CRONJOB}"($|[[:space:]]) ]]; then
     oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done

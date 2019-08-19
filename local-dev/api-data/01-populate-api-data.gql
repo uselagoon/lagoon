@@ -222,8 +222,8 @@ mutation PopulateApi {
     input: {
       id: 2
       name: "ci-local"
-      consoleUrl: "https://192.168.99.100:8443/"
-      routerPattern: "${project}.${branch}.192.168.99.100.xip.io"
+      consoleUrl: "https://192.168.99.119:8443/"
+      routerPattern: "${project}.${branch}.192.168.99.119.xip.io"
       projectUser: "developer"
       sshHost: "192.168.99.1"
       sshPort: "2020"
