@@ -31,6 +31,7 @@ const convertRoleNumberToString = R.cond([
     const { id, path: projectName, ssh_url_to_repo: gitUrl, namespace } = project;
     const openshift = 1;
     const productionenvironment = "master";
+    logger.debug(`Processing ${projectName}`);
 
     if (project.namespace.kind != 'group') {
       logger.info(`Skipping creation of project ${projectName}: not in group namespace`);
@@ -83,4 +84,6 @@ const convertRoleNumberToString = R.cond([
       }
     }
   }
+
+  logger.info('Sync completed');
 })()

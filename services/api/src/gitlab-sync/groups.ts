@@ -25,6 +25,7 @@ const convertRoleNumberToString = R.cond([
 
   for (const group of sortGroupsByHierarchy(allGroups) as GitlabGroup[]) {
     const groupName = api.sanitizeGroupName(group.full_path);
+    logger.debug(`Processing ${group.name} (${groupName})`);
 
     try {
       if (group.parent_id) {
@@ -52,4 +53,6 @@ const convertRoleNumberToString = R.cond([
       }
     }
   }
+
+  logger.info('Sync completed');
 })()
