@@ -168,9 +168,17 @@ const loadUserByUsername = async (username: string): Promise<User> => {
     throw new UserNotFoundError(`User not found: ${username}`);
   }
 
-  const users = await transformKeycloakUsers(keycloakUsers);
+  const userId = R.pipe(
+    R.filter(R.propEq('username', username)),
+    R.path(['0', 'id'])
+  )(keycloakUsers);
 
-  return users[0];
+  if (R.isNil(userId)) {
+    throw new UserNotFoundError(`User not found: ${username}`);
+  }
+
+  // @ts-ignore
+  return await loadUserById(userId);
 };
 
 const loadUserByIdOrUsername = async (userInput: UserEdit): Promise<User> => {
