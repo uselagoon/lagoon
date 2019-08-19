@@ -1,3 +1,12 @@
+# Pause while the api-db container starts up
+- name: "{{ testname }} - wait for 15 seconds to give the api-db container time to start up"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "15"
+  tasks:
+  - include: ../../tasks/pause.yaml
+
 - name: "SSH AUTH - Get Token via SSH"
   hosts: localhost
   serial: 1
