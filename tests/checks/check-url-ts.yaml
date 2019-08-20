@@ -9,4 +9,5 @@
   until: ( lookup('pipe','date +%s')|int - result.content|int ) >= 90 
   retries: 10
   delay: 20
+  failed_when: false
 - debug: msg="Success!!!"
