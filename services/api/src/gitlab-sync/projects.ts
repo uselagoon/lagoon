@@ -24,63 +24,75 @@ const convertRoleNumberToString = R.cond([
   [R.equals(50), R.always('OWNER')],
 ]);
 
+const syncProject = async (project) => {
+  const { id, path, ssh_url_to_repo: gitUrl, namespace } = project;
+  const projectName = api.sanitizeProjectName(path);
+  const openshift = 1;
+  const productionenvironment = "master";
+  logger.debug(`Processing ${projectName}`);
+
+  if (project.namespace.kind != 'group') {
+    logger.info(`Skipping creation of project ${projectName}: not in group namespace`);
+    return;
+  }
+
+  let lagoonProject;
+  try {
+    const result = await api.addProject(projectName, gitUrl, openshift, productionenvironment);
+    lagoonProject = R.prop('addProject', result);
+  } catch (err) {
+    if (R.test(projectExistsRegex, err.message)) {
+      lagoonProject = await api.getProjectByName(projectName);
+    } else {
+      throw new Error(`Could not sync (add) gitlab project ${projectName}: ${err.message}`);
+    }
+  }
+
+  try {
+    const privateKey = R.pipe(
+      R.prop('privateKey'),
+      sshpk.parsePrivateKey,
+    )(lagoonProject);
+    //@ts-ignore
+    const publicKey = privateKey.toPublic();
+
+    await gitlabApi.addDeployKeyToProject(id, publicKey.toString());
+  } catch (err) {
+    if (!err.message.includes('has already been taken')) {
+      throw new Error(`Could not add deploy_key to gitlab project ${id}, reason: ${err}`);
+    }
+  }
+
+  // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
+  // We add this owner Group to the Project.
+  await api.addGroupToProject(projectName, api.sanitizeGroupName(namespace.full_path));
+
+  const projectMembers = await gitlabApi.getProjectMembers(project.id);
+
+  for (const member of projectMembers) {
+    const user = await gitlabApi.getUser(member.id);
+
+    await api.addUserToGroup(user.email, `project-${projectName}`, convertRoleNumberToString(member.access_level));
+  }
+};
+
 (async () => {
   const allProjects = await gitlabApi.getAllProjects() as GitlabProject[];
+  let projectsQueue = allProjects.map(project => ({ project, retries: 0}));
 
-  for (const project of allProjects) {
-    const { id, path: projectName, ssh_url_to_repo: gitUrl, namespace } = project;
-    const openshift = 1;
-    const productionenvironment = "master";
-    logger.debug(`Processing ${projectName}`);
+  logger.info(`Syncing ${allProjects.length} projects`);
 
-    if (project.namespace.kind != 'group') {
-      logger.info(`Skipping creation of project ${projectName}: not in group namespace`);
-      continue;
-    }
-
-    let lagoonProject;
+  while (projectsQueue.length > 0) {
+    const { project, retries } = projectsQueue.shift();
     try {
-      const result = await api.addProject(projectName, gitUrl, openshift, productionenvironment);
-      lagoonProject = R.prop('addProject', result);
+      await syncProject(project);
     } catch (err) {
-      if (R.match(projectExistsRegex, err.message)) {
-        lagoonProject = await api.getProjectByName(projectName);
-      } else {
-        logger.error(`Could not sync (add) gitlab project ${projectName}: ${err.message}`);
-        continue;
+      if (retries < 3) {
+        logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
+        projectsQueue.push({ project, retries: retries + 1 });
       }
-    }
-
-    try {
-      const privateKey = R.pipe(
-        R.prop('privateKey'),
-        sshpk.parsePrivateKey,
-      )(lagoonProject);
-      //@ts-ignore
-      const publicKey = privateKey.toPublic();
-
-      await gitlabApi.addDeployKeyToProject(id, publicKey.toString());
-    } catch (err) {
-      logger.error(`Could not add deploy_key to gitlab project ${id}, reason: ${err}`);
-    }
-
-    try {
-      // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
-      // We add this owner Group to the Project.
-      await api.addGroupToProject(projectName, api.sanitizeGroupName(namespace.full_path));
-    } catch (err) {
-      logger.error(`Could not sync (add) gitlab project ${projectName} group ${namespace.path}: ${err.message}`);
-    }
-
-    const projectMembers = await gitlabApi.getProjectMembers(project.id);
-
-    for (const member of projectMembers) {
-      const user = await gitlabApi.getUser(member.id);
-
-      try {
-        await api.addUserToGroup(user.email, `project-${projectName}`, convertRoleNumberToString(member.access_level));
-      } catch (err) {
-        logger.error(`Could not sync (add) gitlab project ${projectName} membership ${user.email}: ${err.message}`);
+      else {
+        logger.error(`Sync failed: ${err.message}`);
       }
     }
   }

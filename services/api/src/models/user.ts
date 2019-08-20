@@ -338,11 +338,7 @@ const updateUser = async (userInput: UserEdit): Promise<User> => {
       },
     );
   } catch (err) {
-    if (err.response.status && err.response.status === 409) {
-      throw new UsernameExistsError(
-        `Username ${R.prop('username', userInput)} exists`,
-      );
-    } else if (err.response.status && err.response.status === 404) {
+    if (err.response.status && err.response.status === 404) {
       throw new UserNotFoundError(`User not found: ${userInput.id}`);
     } else {
       throw new Error(`Error updating Keycloak user: ${err.message}`);

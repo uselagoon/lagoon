@@ -20,36 +20,49 @@ const convertRoleNumberToString = R.cond([
   [R.equals(50), R.always('OWNER')],
 ]);
 
+const syncGroup = async group => {
+  const groupName = api.sanitizeGroupName(group.full_path);
+  logger.debug(`Processing ${group.name} (${groupName})`);
+
+  try {
+    if (group.parent_id) {
+      const parentGroup = await gitlabApi.getGroup(group.parent_id);
+      await api.addGroupWithParent(groupName, api.sanitizeGroupName(parentGroup.full_path));
+    } else {
+      await api.addGroup(groupName);
+    }
+  } catch (err) {
+    if (!R.test(groupExistsRegex, err.message)) {
+      throw new Error(`Could not sync (add) gitlab group ${group.name} id ${group.id}: ${err.message}`);
+    }
+  }
+
+  const groupMembers = await gitlabApi.getGroupMembers(group.id);
+
+  for (const member of groupMembers) {
+    const user = await gitlabApi.getUser(member.id);
+
+    await api.addUserToGroup(user.email, groupName, convertRoleNumberToString(member.access_level));
+  }
+};
+
 (async () => {
   const allGroups = await gitlabApi.getAllGroups();
+  let groupsQueue = sortGroupsByHierarchy(allGroups).map(group => ({ group, retries: 0}));
 
-  for (const group of sortGroupsByHierarchy(allGroups) as GitlabGroup[]) {
-    const groupName = api.sanitizeGroupName(group.full_path);
-    logger.debug(`Processing ${group.name} (${groupName})`);
+  logger.info(`Syncing ${allGroups.length} groups`);
 
+  while (groupsQueue.length > 0) {
+    const { group, retries } = groupsQueue.shift();
     try {
-      if (group.parent_id) {
-        const parentGroup = await gitlabApi.getGroup(group.parent_id);
-        await api.addGroupWithParent(groupName, api.sanitizeGroupName(parentGroup.full_path));
-      } else {
-        await api.addGroup(groupName);
-      }
+      await syncGroup(group);
     } catch (err) {
-      if (!R.match(groupExistsRegex, err.message)) {
-        logger.error(`Could not sync (add) gitlab group ${group.name} id ${group.id}: ${err.message}`);
-        continue;
+      if (retries < 3) {
+        logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
+        groupsQueue.push({ group, retries: retries + 1 });
       }
-    }
-
-    const groupMembers = await gitlabApi.getGroupMembers(group.id);
-
-    for (const member of groupMembers) {
-      const user = await gitlabApi.getUser(member.id);
-
-      try {
-        await api.addUserToGroup(user.email, groupName, convertRoleNumberToString(member.access_level));
-      } catch (err) {
-        logger.error(`Could not sync (add) gitlab group ${group.name} membership ${user.email}: ${err.message}`);
+      else {
+        logger.error(`Sync failed: ${err.message}`);
       }
     }
   }

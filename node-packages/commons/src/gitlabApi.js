@@ -44,9 +44,10 @@ const getRequest = async (url: string): Object => {
     return response.data;
   } catch (error) {
     if (error.response) {
-      throw new APIError(
-        R.pathOr(error.message, ['data', 'message'], error.response),
-      );
+      const errorMessage = R.pathOr(error.message, ['data', 'message'], error.response);
+      const errorString = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+
+      throw new APIError(errorString);
     } else if (error.request) {
       throw new NetworkError(error.message);
     } else {
@@ -61,9 +62,10 @@ const postRequest = async (url: string, body: object): Object => {
     return response.data;
   } catch (error) {
     if (error.response) {
-      throw new APIError(
-        R.pathOr(error.message, ['data', 'message'], error.response),
-      );
+      const errorMessage = R.pathOr(error.message, ['data', 'message'], error.response);
+      const errorString = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+
+      throw new APIError(errorString);
     } else if (error.request) {
       throw new NetworkError(error.message);
     } else {
@@ -97,9 +99,10 @@ const getAllPagesRequest = async (url: string): Promise<Array<Object>> => {
       }
     } catch (error) {
       if (error.response) {
-        throw new APIError(
-          R.pathOr(error.message, ['data', 'message'], error.response),
-        );
+        const errorMessage = R.pathOr(error.message, ['data', 'message'], error.response);
+        const errorString = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+
+        throw new APIError(errorString);
       } else if (error.request) {
         throw new NetworkError(error.message);
       } else {
@@ -126,9 +129,10 @@ const getUserByUsername = async (username: string): Object => {
     return response.data[0];
   } catch (error) {
     if (error.response) {
-      throw new APIError(
-        R.pathOr(error.message, ['data', 'message'], error.response),
-      );
+      const errorMessage = R.pathOr(error.message, ['data', 'message'], error.response);
+      const errorString = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+
+      throw new APIError(errorString);
     } else if (error.request) {
       throw new NetworkError(error.message);
     } else {
@@ -142,8 +146,7 @@ const getGroup = async (groupId: number): Object =>
   getRequest(`groups/${groupId}`);
 const getGroupMembers = async (groupId: number): Promise<Array<Object>> =>
   getRequest(`groups/${groupId}/members`);
-const getAllProjects = async (): Object =>
-  getRequest('projects');
+const getAllProjects = async (): Object => getAllPagesRequest('projects');
 const getProject = async (projectId: number): Object =>
   getRequest(`projects/${projectId}`);
 const getProjectMembers = async (projectId: number): Promise<Array<Object>> =>

@@ -980,7 +980,8 @@ const updateTask = (id: number, patch: TaskPatch): Promise<Object> =>
     { id, patch },
   );
 
-const sanitizeGroupName = R.replace(/[^\w\d-_]/g, '-');
+const sanitizeGroupName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
+const sanitizeProjectName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 
 module.exports = {
   addGroup,
@@ -1023,4 +1024,5 @@ module.exports = {
   addGroupToProject,
   removeGroupFromProject,
   sanitizeGroupName,
+  sanitizeProjectName,
 };
