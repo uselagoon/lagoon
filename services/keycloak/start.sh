@@ -1255,7 +1255,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
-  "scopes": ["delete","environment:add:deployment","environment:add:production","environment:view:production","environment:view:development","project:add","project:view"],
+  "scopes": ["delete","environment:add:development","environment:add:production","environment:view:production","environment:view:development","project:add","project:view"],
   "policies": ["Platform Owner Policy"]
 }
 EOF
