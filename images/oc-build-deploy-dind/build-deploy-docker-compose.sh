@@ -953,9 +953,18 @@ echo ${NATIVE_CRONJOB_CLEANUP_ARRAY} #TEST
 
 for SINGLE_NATIVE_CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
 do
-  if [[ ! "${SPLIT_CURRENT_CRONJOBS[@]}" =~ (^|[[:space:]])"${SINGLE_NATIVE_CRONJOB}"($|[[:space:]]) ]]; then
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
-  fi
+  case "${SINGLE_NATIVE_CRONJOB}" in 
+    "${SPLIT_CURRENT_CRONJOBS}")
+      continue
+      ;;
+    *)
+      oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
+      ;;
+  esac
+
+  #if [[ ! "${SPLIT_CURRENT_CRONJOBS[@]}" =~ (^|[[:space:]])"${SINGLE_NATIVE_CRONJOB}"($|[[:space:]]) ]]; then
+  #  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
+  #fi
 done
 
 
