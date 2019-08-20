@@ -55,7 +55,8 @@ ENV ES_JAVA_OPTS="-Xms200m -Xmx200m" \
     NODE_INGEST=true \
     NODE_ML=true \
     XPACK_ML_ENABLED=true \
-    CLUSTER_REMOTE_CONNECT=true
+    CLUSTER_REMOTE_CONNECT=true \
+    EXTRA_OPTS=""
 
 
 VOLUME [ "/usr/share/elasticsearch/data" ]
