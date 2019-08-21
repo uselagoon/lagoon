@@ -85,7 +85,7 @@ const refreshToken = async keycloakAdminClient => {
     // Add customer users to group
     const customerUserQuery = prepare(
       sqlClient,
-      'SELECT u.email FROM customer_user cu LEFT JOIN user u on cu.usid = u.id WHERE cu.cid = :cid',
+      'SELECT u.email FROM customer_user cu INNER JOIN user u on cu.usid = u.id WHERE cu.cid = :cid',
     );
     const customerUserRecords = await query(
       sqlClient,
