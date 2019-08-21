@@ -7,7 +7,7 @@
     validate_certs: no
   register: result
   until: ( lookup('pipe','date +%s')|int - result.content|int ) >= 90 
-  retries: 10
-  delay: 20
+  retries: 90
+  delay: 10
   failed_when: false
 - debug: msg="Success!!!"
