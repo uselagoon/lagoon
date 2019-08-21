@@ -230,7 +230,6 @@ mutation PopulateApi {
     }
   ) {
     id
-
   }
 
   # Real RocketChat Hook on the amazeeio RocketChat for testing
