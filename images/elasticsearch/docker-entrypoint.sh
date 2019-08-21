@@ -2,6 +2,10 @@
 
 set -eo pipefail
 
+if [ ! -z "$EXTRA_OPTS" ]; then
+  echo -e "${EXTRA_OPTS}" >> /usr/share/elasticsearch/config/elasticsearch.yml
+fi
+
 if [ -z "$POD_NAMESPACE" ]; then
   # Single container runs in docker
   echo "POD_NAMESPACE not set, spin up single node"
