@@ -25,7 +25,7 @@ services:
       lagoon.rollout: daemonset
       lagoon.template: logs-collector/.lagoon.yml
   docker-host:
-    image: amazeeiolagoon/master-docker-host
+    image: amazeeio/docker-host:latest
     labels:
       lagoon.type: custom
       lagoon.template: docker-host/docker-host.yaml
