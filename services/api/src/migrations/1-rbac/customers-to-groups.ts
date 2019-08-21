@@ -40,6 +40,19 @@ const refreshToken = async keycloakAdminClient => {
   const GroupModel = Group();
   const UserModel = User();
 
+  try {
+    logger.debug('Removing current keycloak groups');
+    const currentGroups = await GroupModel.loadAllGroups();
+    const currentGroupIds = R.pluck('id', currentGroups);
+
+    for (const currentGroupId of currentGroupIds) {
+      await GroupModel.deleteGroup(currentGroupId);
+    }
+  } catch (err) {
+    logger.error('Could not delete current keycloak groups. Due to group/sub-group hiearchy, this could be normal. Please try again.')
+    throw new Error(err);
+  }
+
   const customerRecords = await query(sqlClient, 'SELECT * FROM `customer`');
 
   for (const customer of customerRecords) {
