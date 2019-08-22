@@ -92,6 +92,8 @@ export const deleteUser = async (
 
   await dataSources.UserModel.deleteUser(user.id);
 
+  // TODO remove user ssh keys
+
   return 'success';
 };
 
