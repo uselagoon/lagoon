@@ -949,12 +949,12 @@ do
   case ${SINGLE_NATIVE_CRONJOB} in 
     *${SPLIT_CURRENT_CRONJOBS[ * ]}*)
       echo "Single cron: ${SINGLE_NATIVE_CRONJOB}"
-      echo "Split crons: ${SPLIT_CURRENT_CRONJOBS[ * ]}"
+      echo "Split crons: ${SPLIT_CURRENT_CRONJOBS}"
       continue
       ;;
     *)
       echo "Single cron: ${SINGLE_NATIVE_CRONJOB}"
-      echo "Split crons: ${SPLIT_CURRENT_CRONJOBS[ * ]}"
+      echo "Split crons: ${SPLIT_CURRENT_CRONJOBS}"
       oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
       ;;
   esac
