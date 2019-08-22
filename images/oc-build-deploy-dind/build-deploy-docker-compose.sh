@@ -946,8 +946,8 @@ IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< ${CURRENT_CRONJOBS}
 
 for SINGLE_NATIVE_CRONJOB in ${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}
 do
-  case ${SINGLE_NATIVE_CRONJOB} in 
-    *${SPLIT_CURRENT_CRONJOBS[ * ]}*)
+  case SINGLE_NATIVE_CRONJOB in 
+    *${SPLIT_CURRENT_CRONJOBS[*]}*)
       echo "Single cron: ${SINGLE_NATIVE_CRONJOB}"
       echo "Split crons: ${SPLIT_CURRENT_CRONJOBS}"
       continue
