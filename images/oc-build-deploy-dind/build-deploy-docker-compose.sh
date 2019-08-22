@@ -944,17 +944,15 @@ CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d
 
 IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< $CURRENT_CRONJOBS
 
-echo "current crons are: ${SPLIT_CURRENT_CRONJOBS[@]}"
-
 for SINGLE_NATIVE_CRONJOB in ${SPLIT_CURRENT_CRONJOBS[@]}
 do
   re="\<$SINGLE_NATIVE_CRONJOB\>"
   text=$( IFS=' '; echo "${NATIVE_CRONJOB_CLEANUP_ARRAY[*]}")
   if [[ "$text" =~ $re ]]; then
-    echo "Single cron found: ${SINGLE_NATIVE_CRONJOB}"
+    #echo "Single cron found: ${SINGLE_NATIVE_CRONJOB}"
     continue
   else
-    echo "Single cron missing: ${SINGLE_NATIVE_CRONJOB}"
+    #echo "Single cron missing: ${SINGLE_NATIVE_CRONJOB}"
     oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
