@@ -108,7 +108,7 @@ const refreshToken = async keycloakAdminClient => {
     // Add project users to group
     const projectUserQuery = prepare(
       sqlClient,
-      'SELECT u.email FROM project_user pu LEFT JOIN user u on pu.usid = u.id WHERE pu.pid = :pid',
+      'SELECT u.email FROM project_user pu INNER JOIN user u on pu.usid = u.id WHERE pu.pid = :pid',
     );
     const projectUserRecords = await query(
       sqlClient,
