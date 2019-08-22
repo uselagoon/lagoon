@@ -940,26 +940,23 @@ done
 ### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
 ##############################################
 
-CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d " " -f 1)
+CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d " " -f 1 | xargs)
 
-IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< ${CURRENT_CRONJOBS}
+IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< $CURRENT_CRONJOBS
+
+echo "current crons are: ${SPLIT_CURRENT_CRONJOBS[@]}"
 
 for SINGLE_NATIVE_CRONJOB in ${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}
 do
-  case SINGLE_NATIVE_CRONJOB in 
-    *${SPLIT_CURRENT_CRONJOBS[*]}*)
-      echo "Single cron: ${SINGLE_NATIVE_CRONJOB}"
-      echo "Split crons: ${SPLIT_CURRENT_CRONJOBS}"
-      continue
-      ;;
-    *)
-      echo "Single cron: ${SINGLE_NATIVE_CRONJOB}"
-      echo "Split crons: ${SPLIT_CURRENT_CRONJOBS}"
-      oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
-      ;;
-  esac
+  re="\<$SINGLE_NATIVE_CRONJOB\>"
+  if [[ "$CURRENT_CRONJOBS" =~ $re ]]; then
+    echo "Single cron found: ${SINGLE_NATIVE_CRONJOB}"
+    continue
+  else
+    echo "Single cron missing: ${SINGLE_NATIVE_CRONJOB}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
+  fi
 done
-
 
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
