@@ -946,10 +946,11 @@ IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< $CURRENT_CRONJOBS
 
 echo "current crons are: ${SPLIT_CURRENT_CRONJOBS[@]}"
 
-for SINGLE_NATIVE_CRONJOB in ${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}
+for SINGLE_NATIVE_CRONJOB in ${SPLIT_CURRENT_CRONJOBS[@]}
 do
   re="\<$SINGLE_NATIVE_CRONJOB\>"
-  if [[ "$CURRENT_CRONJOBS" =~ $re ]]; then
+  text=$( IFS=' '; echo "${NATIVE_CRONJOB_CLEANUP_ARRAY[*]}")
+  if [[ "$text" =~ $re ]]; then
     echo "Single cron found: ${SINGLE_NATIVE_CRONJOB}"
     continue
   else
