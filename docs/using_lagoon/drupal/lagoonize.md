@@ -2,9 +2,9 @@
 
 ## 1. Lagoon Drupal Setting Files
 
-In order for Drupal to work with Lagoon we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens with copying specific YAML and PHP Files into your Git Repository.
+In order for Drupal to work with Lagoon we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens by copying specific YAML and PHP Files into your Git repository.
 
-You find these Files [here](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal). The easiest way is to download them as [ZIP File](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git Repository. For each Drupal Version and Database Type you will find an individual folder. A short overview of what they are:
+You find [these Files in our GitHub repository](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal); the easiest way is to [download these files as a ZIP file](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git repository. For each Drupal version and database type you will find an individual folder. A short overview of what they are:
 
 - `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults, if you would like to edit or modify, please check the specific [Documentation for .lagoon.yml](/using_lagoon/lagoon_yml.md)
 - `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` (or `Dockerfile`) - These files are used to run your Local Drupal Development environment, they tell docker which services to start and how to build them. They contain sensible defaults and many commented lines, it should be pretty much self describing. If you would like to find out more, see [Documentation for docker-compose.yml]()
