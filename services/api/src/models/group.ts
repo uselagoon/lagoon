@@ -37,6 +37,8 @@ interface GroupModel {
   loadGroupByName: (name: string) => Promise<Group>;
   loadGroupByIdOrName: (groupInput: GroupEdit) => Promise<Group>;
   loadParentGroup: (groupInput: Group) => Promise<Group>;
+  getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>,
+  getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>,
   addGroup: (groupInput: Group) => Promise<Group>;
   updateGroup: (groupInput: GroupEdit) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;
@@ -172,6 +174,51 @@ const loadParentGroup = async (groupInput: Group): Promise<Group> => asyncPipe(
     [R.T, loadGroupByName],
   ]),
 )(groupInput);
+
+// Recursive function to load projects "up" the group chain
+const getProjectsFromGroupAndParents = async (
+  group: Group,
+): Promise<number[]> => {
+  const projectIds = R.pipe(
+    R.pathOr('', ['attributes', 'lagoon-projects', 0]),
+    R.split(','),
+    R.reject(R.isEmpty),
+  )(group);
+
+  const parentGroup = await loadParentGroup(group);
+  const parentProjectIds = parentGroup
+    ? await getProjectsFromGroupAndParents(parentGroup)
+    : [];
+
+  return [
+    // @ts-ignore
+    ...projectIds,
+    ...parentProjectIds,
+  ];
+};
+
+// Recursive function to load projects "down" the group chain
+const getProjectsFromGroupAndSubgroups = async (
+  group: Group,
+): Promise<number[]> => {
+  const groupProjectIds = R.pipe(
+    R.pathOr('', ['attributes', 'lagoon-projects', 0]),
+    R.split(','),
+    R.reject(R.isEmpty),
+    )(group);
+
+  let subGroupProjectIds = [];
+  for (const subGroup of group.groups) {
+    const projectIds = await getProjectsFromGroupAndSubgroups(subGroup);
+    subGroupProjectIds = [...subGroupProjectIds, ...projectIds];
+  }
+
+  return [
+    // @ts-ignore
+    ...groupProjectIds,
+    ...subGroupProjectIds,
+  ];
+};
 
 const getGroupMembership = async (group: Group): Promise<GroupMembership[]> => {
   const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
@@ -447,6 +494,8 @@ export const Group = (): GroupModel => ({
   loadGroupByName,
   loadGroupByIdOrName,
   loadParentGroup,
+  getProjectsFromGroupAndParents,
+  getProjectsFromGroupAndSubgroups,
   addGroup,
   updateGroup,
   deleteGroup,

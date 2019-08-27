@@ -201,28 +201,7 @@ const loadAllUsers = async (): Promise<User[]> => {
   return users;
 };
 
-// Recursive function to load projects from group chain
-const getProjectsFromGroupAndParents = async (
-  group: Group,
-): Promise<number[]> => {
-  const GroupModel = Group();
-  const projectIds = R.pipe(
-    R.pathOr('', ['attributes', 'lagoon-projects', 0]),
-    R.split(','),
-    R.reject(R.isEmpty),
-  )(group);
 
-  const parentGroup = await GroupModel.loadParentGroup(group);
-  const parentProjectIds = parentGroup
-    ? await getProjectsFromGroupAndParents(parentGroup)
-    : [];
-
-  return [
-    // @ts-ignore
-    ...projectIds,
-    ...parentProjectIds,
-  ];
-};
 
 const getAllProjectsIdsForUser = async (userInput: User): Promise<number[]> => {
   const GroupModel = Group();
@@ -242,7 +221,7 @@ const getAllProjectsIdsForUser = async (userInput: User): Promise<number[]> => {
       fullRoleSubgroup,
     );
 
-    const projectIds = await getProjectsFromGroupAndParents(roleSubgroupParent);
+    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(roleSubgroupParent);
     projects = [...projects, ...projectIds];
   }
 
@@ -254,7 +233,6 @@ const getUserRolesForProject = async (
   projectId: number,
 ): Promise<string[]> => {
   const GroupModel = Group();
-  const projects = [];
 
   const roleSubgroups = await keycloakAdminClient.users.listGroups({
     id: userInput.id,
@@ -271,7 +249,7 @@ const getUserRolesForProject = async (
       fullRoleSubgroup,
     );
 
-    const projectIds = await getProjectsFromGroupAndParents(roleSubgroupParent);
+    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(roleSubgroupParent);
 
     if (projectIds.includes(projectId)) {
       const groupRoles = R.pipe(
