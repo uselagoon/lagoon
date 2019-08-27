@@ -86,9 +86,12 @@ const legacyHasPermission = (legacyCredentials) => {
 const keycloakHasPermission = (grant) => {
   return async (resource, scope, attributes = {}) => {
     const currentUserId = grant.access_token.content.sub;
-    let claims = {};
 
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
+
+    let claims = {
+      currentUser: [currentUserId],
+    };
 
     const usersAttribute = R.prop('users', attributes);
     if (usersAttribute && usersAttribute.length) {

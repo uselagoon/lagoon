@@ -114,6 +114,7 @@ function configure_api_client {
 
     # Setup platform wide roles.
     /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=platform-owner
+    /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname admin --rolename platform-owner
 
     # Configure keycloak for api
     echo Creating client api
@@ -161,16 +162,30 @@ function configure_api_client {
     echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
-    echo Creating api authz role policies
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Admin Role Policy","description":"User has admin role","roles":[{"id":"'$ADMIN_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Guest Role Policy","description":"User has guest role","roles":[{"id":"'$GUEST_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Reporter Role Policy","description":"User has reporter role","roles":[{"id":"'$REPORTER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Developer Role Policy","description":"User has developer role","roles":[{"id":"'$DEVELOPER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Maintainer Role Policy","description":"User has maintainer role","roles":[{"id":"'$MAINTAINER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Owner Role Policy","description":"User has owner role","roles":[{"id":"'$OWNER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-    echo '{"type":"role","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Platform Owner Policy","description":"User has platform-owner role","roles":[{"id":"'$PLATFORM_OWNER_ROLE_ID'","required":true}]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/role --config $CONFIG_PATH -r lagoon -f -
-
     echo Creating api authz js policies
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for realm is Platform Owner",
+  "description": "Checks the users role for the realm is Platform Owner or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for realm is Admin",
+  "description": "Checks the users role for the realm is Admin",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'admin')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
 {
   "name": "Users role for group is Developer",
@@ -178,7 +193,7 @@ function configure_api_client {
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -189,7 +204,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -200,7 +215,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('projectQuery') || !ctxAttr.exists('userProjects')) {\n    $evaluation.deny();\n} else {\n    var project = ctxAttr.getValue('projectQuery').asString(0);\n    var projects = ctxAttr.getValue('userProjects').asString(0);\n    var projectsArr = projects.split('-');\n    var grant = false;\n\n    for (var i=0; i<projectsArr.length; i++) {\n        if (project == projectsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\n// Check projects calculated by lagoon\nif (!ctxAttr.exists('projectQuery') || !ctxAttr.exists('userProjects')) {\n    $evaluation.deny();\n} else {\n    var project = ctxAttr.getValue('projectQuery').asString(0);\n    var projects = ctxAttr.getValue('userProjects').asString(0);\n    var projectsArr = projects.split('-');\n    var grant = false;\n\n    for (var i=0; i<projectsArr.length; i++) {\n        if (project == projectsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -211,7 +226,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -233,7 +248,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -244,7 +259,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -255,7 +270,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -266,7 +281,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -277,7 +292,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -288,7 +303,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -299,7 +314,7 @@ EOF
   "type": "js",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
 }
 EOF
 
@@ -307,7 +322,6 @@ EOF
     echo Creating api authz permissions
     DEFAULT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Default+Permission --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$DEFAULT_PERMISSION_ID --config $CONFIG_PATH
-    echo '{"type":"resource","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Admins Allowed Permission","description":"Admins granted access to all resources/scopes","resourceType":"urn:api:resources:default","policies":["Admin Role Policy"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/resource --config $CONFIG_PATH -r lagoon -f -
 
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
@@ -474,7 +488,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["backup"],
   "scopes": ["deleteAll"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -535,7 +549,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["viewAll"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -631,7 +645,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["group"],
   "scopes": ["deleteAll"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -643,7 +657,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["user"],
   "scopes": ["deleteAll"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -654,8 +668,20 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["openshift"],
-  "scopes": ["viewAll","delete","update","deleteAll","add","view:token"],
-  "policies": ["Admin Role Policy"]
+  "scopes": ["delete","update","deleteAll","add","view:token"],
+  "policies": ["Users role for realm is Platform Owner"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Openshifts",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["openshift"],
+  "scopes": ["viewAll"],
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -664,10 +690,10 @@ EOF
   "name": "Delete SSH Key",
   "type": "scope",
   "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
+  "decisionStrategy": "AFFIRMATIVE",
   "resources": ["ssh_key"],
   "scopes": ["delete"],
-  "policies": ["User has access to own data"]
+  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -700,10 +726,10 @@ EOF
   "name": "Get SSH Keys for User",
   "type": "scope",
   "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
+  "decisionStrategy": "AFFIRMATIVE",
   "resources": ["ssh_key"],
   "scopes": ["view:user"],
-  "policies": ["User has access to own data"]
+  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -738,8 +764,8 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["ssh_key"],
-  "scopes": ["removeAll","delete"],
-  "policies": ["Admin Role Policy"]
+  "scopes": ["removeAll","deleteAll"],
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -751,7 +777,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["storage"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -844,10 +870,10 @@ EOF
   "name": "Update SSH Key",
   "type": "scope",
   "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
+  "decisionStrategy": "AFFIRMATIVE",
   "resources": ["ssh_key"],
   "scopes": ["update"],
-  "policies": ["User has access to own data"]
+  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -881,10 +907,22 @@ EOF
   "name": "Add SSH Key",
   "type": "scope",
   "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
+  "decisionStrategy": "AFFIRMATIVE",
   "resources": ["ssh_key"],
   "scopes": ["add"],
-  "policies": ["User has access to own data"]
+  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete All Notifications",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["notification"],
+  "scopes": ["removeAll","deleteAll"],
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -895,8 +933,8 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["notification"],
-  "scopes": ["removeAll","delete","update","deleteAll","add"],
-  "policies": ["Admin Role Policy"]
+  "scopes": ["delete","update","add"],
+  "policies": ["Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -932,7 +970,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["deleteAll"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -942,8 +980,20 @@ EOF
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
-  "resources": ["environment"],
+  "resources": ["deployment"],
   "scopes": ["update"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Deployment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["deployment"],
+  "scopes": ["delete"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
@@ -977,10 +1027,10 @@ EOF
   "name": "Delete User",
   "type": "scope",
   "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
+  "decisionStrategy": "AFFIRMATIVE",
   "resources": ["user"],
   "scopes": ["delete"],
-  "policies": ["User has access to own data"]
+  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -992,7 +1042,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["deleteAll"],
-  "policies": ["Admin Role Policy"]
+  "policies": ["Users role for realm is Admin"]
 }
 EOF
 
@@ -1061,10 +1111,10 @@ EOF
   "name": "Update User",
   "type": "scope",
   "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
+  "decisionStrategy": "AFFIRMATIVE",
   "resources": ["user"],
   "scopes": ["update"],
-  "policies": ["User has access to own data"]
+  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
 }
 EOF
 
@@ -1185,114 +1235,6 @@ EOF
   "resources": ["environment"],
   "scopes": ["ssh:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Deployments",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["deployment"],
-  "scopes": ["delete","view","update"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Tasks",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["deployment"],
-  "scopes": ["drushSqlSync:destination:production","drushArchiveDump:development","view","drushRsync:source:production","drushRsync:destination:production","update","drushSqlSync:destination:development","drushArchiveDump:production","delete","add:production","drushCacheClear:development","drushSqlDump:development","drushRsync:source:development","addNoExec","drushRsync:destination:development","add:development","drushSqlSync:source:production","drushSqlDump:production","drushSqlSync:source:development","drushCacheClear:production"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Groups",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["group"],
-  "scopes": ["delete","add","addUser","update","removeUser"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Openshift",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["openshift"],
-  "scopes": ["delete","view:token","view","add","update","viewAll"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Notifications",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["notification"],
-  "scopes": ["delete","view","add","update"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Environment Variables",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["delete","environment:add:development","environment:add:production","environment:view:production","environment:view:development","project:add","project:view"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Projects",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["project"],
-  "scopes": ["addNotification","removeNotification","add","update","delete","addGroup","removeGroup","viewAll","view","viewPrivateKey"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for SSH Keys",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["ssh_key"],
-  "scopes": ["delete","view:project","view:user","update","add"],
-  "policies": ["Platform Owner Policy"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Permission for Backups",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["backup"],
-  "scopes": ["delete","view","add"],
-  "policies": ["Platform Owner Policy"]
 }
 EOF
 
