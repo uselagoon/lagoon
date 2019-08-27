@@ -89,8 +89,6 @@ const {
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  createAllProjectsInKeycloak,
-  createAllProjectsInSearchguard,
 } = require('./resources/project/resolvers');
 
 const {
@@ -252,8 +250,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deleteAllBackups,
     addRestore,
     updateRestore,
-    createAllProjectsInKeycloak,
-    createAllProjectsInSearchguard,
     addEnvVariable,
     deleteEnvVariable,
     addTask,

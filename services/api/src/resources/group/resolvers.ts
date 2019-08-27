@@ -2,8 +2,9 @@ import * as R from 'ramda';
 import validator from 'validator';
 import { isPatchEmpty } from '../../util/db';
 import * as projectHelpers from '../project/helpers';
+import { SearchguardOperations } from './searchguard';
 
-export const addGroup = async (_root, { input }, { dataSources, hasPermission }) => {
+export const addGroup = async (_root, { input }, { dataSources, sqlClient, hasPermission }) => {
   await hasPermission('group', 'add');
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
@@ -27,6 +28,9 @@ export const addGroup = async (_root, { input }, { dataSources, hasPermission })
     name: input.name,
     parentGroupId,
   });
+
+  // We don't have any projects yet. So just an empty string
+  await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(input.name, '')
 
   return group;
 };
@@ -65,7 +69,7 @@ export const updateGroup = async (
 export const deleteGroup = async (
   _root,
   { input: { group: groupInput } },
-  { dataSources, hasPermission },
+  { dataSources, sqlClient, hasPermission },
 ) => {
   const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
 
@@ -74,6 +78,8 @@ export const deleteGroup = async (
   });
 
   await dataSources.GroupModel.deleteGroup(group.id);
+
+  await SearchguardOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name)
 
   return 'success';
 };
@@ -197,6 +203,19 @@ export const addGroupsToProject = async (
     await dataSources.GroupModel.addProjectToGroup(project.id, group);
   }
 
+  const syncGroups = groupsInput.map(async (groupInput) => {
+    const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
+    // @TODO: Load ProjectIDs of subgroups as well
+    const projectIds = R.pathOr('', ['attributes', 'lagoon-projects', 0])(updatedGroup);
+    await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+  });
+
+  try {
+    await Promise.all(syncGroups);
+  } catch (err) {
+    throw new Error(`Could not sync groups with searchguard: ${err.message}`);
+  }
+
   return await projectHelpers(sqlClient).getProjectById(project.id);
 };
 
@@ -226,6 +245,19 @@ export const removeGroupsFromProject = async (
   for (const groupInput of groupsInput) {
     const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
     await dataSources.GroupModel.removeProjectFromGroup(project.id, group);
+  }
+
+  const syncGroups = groupsInput.map(async (groupInput) => {
+    const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
+    // @TODO: Load ProjectIDs of subgroups as well
+    const projectIds = R.pathOr('', ['attributes', 'lagoon-projects', 0])(updatedGroup);
+    await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+  });
+
+  try {
+    await Promise.all(syncGroups);
+  } catch (err) {
+    throw new Error(`Could not sync groups with searchguard: ${err.message}`);
   }
 
   return await projectHelpers(sqlClient).getProjectById(project.id);

@@ -970,8 +970,6 @@ const typeDefs = gql`
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
-    createAllProjectsInKeycloak: String
-    createAllProjectsInSearchguard: String
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task

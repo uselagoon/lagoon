@@ -16,7 +16,7 @@ const {
 
 const Helpers = require('./helpers');
 const KeycloakOperations = require('./keycloak');
-const SearchguardOperations = require('./searchguard');
+const { SearchguardOperations } = require('../group/searchguard');
 const Sql = require('./sql');
 const { generatePrivateKey, getSshKeyFingerprint } = require('../sshKey');
 const sshKeySql = require('../sshKey/sql');
@@ -283,6 +283,9 @@ const addProject = async (
     logger.error(`Could not create default project group for ${project.name}: ${err.message}`);
   }
 
+  await SearchguardOperations(sqlClient, dataSources).syncGroup(`project-${project.name}`, project.id);
+
+
   // Find or create a user that has the public key linked to them
   const userRows = await query(
     sqlClient,
@@ -329,10 +332,7 @@ const addProject = async (
   }
 
   // TODO
-  // await KeycloakOperations.addGroup(project);
   // await SearchguardOperations(sqlClient).addProject(project);
-
-  // await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
 
   return project;
 };
@@ -548,42 +548,6 @@ const updateProject = async (
   return Helpers(sqlClient).getProjectById(id);
 };
 
-// TODO searchguard
-const createAllProjectsInKeycloak = async (
-  root,
-  args,
-  { sqlClient },
-) => {
-  // if (role !== 'admin') {
-  //   throw new Error('Unauthorized.');
-  // }
-
-  // const projects = await query(sqlClient, Sql.selectAllProjects());
-
-  // for (const project of projects) {
-  //   await KeycloakOperations.addGroup(project);
-  // }
-
-  // return 'success';
-};
-
-const createAllProjectsInSearchguard = async (
-  root,
-  args,
-  { sqlClient },
-) => {
-  // if (role !== 'admin') {
-  //   throw new Error('Unauthorized.');
-  // }
-
-  // // const projects = await query(sqlClient, Sql.selectAllProjects());
-
-  // // for (const project of projects) {
-  // //   await SearchguardOperations(sqlClient).addProject(project);
-  // // }
-
-  // return 'success';
-};
 
 const deleteAllProjects = async (
   root,
@@ -613,8 +577,6 @@ const Resolvers /* : ResolversObj */ = {
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  createAllProjectsInKeycloak,
-  createAllProjectsInSearchguard,
 };
 
 module.exports = Resolvers;
