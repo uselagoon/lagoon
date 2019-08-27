@@ -11,7 +11,7 @@ import type {
 } from './types';
 
 const { Lokka } = require('lokka');
-const { Transport } = require('@lagoon/lokka-transport-http');
+const { Transport } = require('./lokka-transport-http-retry');
 const R = require('ramda');
 const { createJWTWithoutUserId } = require('./jwt');
 const { logger } = require('./local-logging');
@@ -252,6 +252,25 @@ const getAllEnvironmentBackups = (): Promise<Project[]> =>
     }
   }
 `,
+  );
+
+const getEnvironmentBackups = (openshiftProjectName: string): Promise<Project[]> =>
+  graphqlapi.query(
+    `
+  query environmentByOpenshiftProjectName($openshiftProjectName: String!) {
+    environmentByOpenshiftProjectName(openshiftProjectName: $openshiftProjectName) {
+      id
+      name
+      openshiftProjectName
+      project {
+        name
+      }
+      backups {
+        ...${backupFragment}
+      }
+    }
+  }
+`, { openshiftProjectName }
   );
 
 const updateGroup = (name: string, patch: GroupPatch): Promise<Object> =>
@@ -994,6 +1013,7 @@ module.exports = {
   deleteBackup,
   updateRestore,
   getAllEnvironmentBackups,
+  getEnvironmentBackups,
   updateUser,
   deleteUser,
   addUserToGroup,

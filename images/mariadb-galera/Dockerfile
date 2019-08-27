@@ -81,7 +81,7 @@ RUN apk add --no-cache --virtual .common-run-deps \
         zlib-dev && \
     cd /tmp && git clone https://github.com/libcheck/check.git && cd check && mkdir build && cd build && cmake ../ && make && make install && \
     cd /tmp && git clone -b mariadb-3.x https://github.com/MariaDB/galera.git && \
-    cd /tmp/galera && git submodule update --init --jobs=6 && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp && \
+    cd /tmp/galera && git checkout 227e96e457acb60037450bc1e81c45594782e906 && git submodule update --init --jobs=6 && sed -i s/PAGE_SIZE/PAGE_SIZE_64K/g galerautils/src/gu_alloc.cpp && sed -i '/#include <limits>/a #include <stdint.h>' galerautils/src/gu_datetime.hpp && \
     cd /tmp/galera && ./scripts/build.sh --so strict_build_flags=0 && \
     mkdir -p /usr/lib64/galera && mv /tmp/galera/libgalera_smm.so /usr/lib64/galera/libgalera_smm.so && \
     apk del --purge .galera-build-deps && \

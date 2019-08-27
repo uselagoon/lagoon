@@ -51,7 +51,7 @@ objects:
         key: repo-pw
         name: baas-repo-pw
       s3:
-        bucket: 'baas-${PROJECT}'
+        bucket: 'baas-${SAFE_PROJECT}'
     backup:
       schedule: '${BACKUP_SCHEDULE}'
     check:

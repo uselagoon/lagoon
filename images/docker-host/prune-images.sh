@@ -5,4 +5,4 @@ if ! docker -H ${DOCKER_HOST} info &> /dev/null; then
 fi
 
 # prune all images older than 7 days
-docker image prune -a --filter "until=168h"
+docker image prune -af --filter "until=168h"
