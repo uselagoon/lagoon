@@ -46,8 +46,8 @@ const refreshToken = async keycloakAdminClient => {
     await refreshToken(keycloakAdminClient);
     const loadedGroup = await GroupModel.loadGroupById(group.id);
     logger.debug(`Processing ${loadedGroup.name}`);
-    // @TODO: Load ProjectIDs of subgroups as well
-    const projectIds = R.pathOr('', ['attributes', 'lagoon-projects', 0])(loadedGroup);
+    const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(loadedGroup)
+    const projectIds = R.join(',')(projectIdsArray)
     await SearchguardOperations(sqlClient, GroupModel).syncGroup(loadedGroup.name, projectIds);
   }
 

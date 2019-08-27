@@ -205,8 +205,8 @@ export const addGroupsToProject = async (
 
   const syncGroups = groupsInput.map(async (groupInput) => {
     const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
-    // @TODO: Load ProjectIDs of subgroups as well
-    const projectIds = R.pathOr('', ['attributes', 'lagoon-projects', 0])(updatedGroup);
+    const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
+    const projectIds = R.join(',')(projectIdsArray)
     await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
@@ -250,7 +250,8 @@ export const removeGroupsFromProject = async (
   const syncGroups = groupsInput.map(async (groupInput) => {
     const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
     // @TODO: Load ProjectIDs of subgroups as well
-    const projectIds = R.pathOr('', ['attributes', 'lagoon-projects', 0])(updatedGroup);
+    const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
+    const projectIds = R.join(',')(projectIdsArray)
     await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
