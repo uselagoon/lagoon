@@ -34,7 +34,7 @@ searchguard.auth.type: "openid"\n\
 searchguard.openid.connect_url: "${KEYCLOAK_URL:-}/auth/realms/lagoon/.well-known/openid-configuration"\n\
 \n\
 # the ID of the OpenID Connect client in your IdP\n\
-searchguard.openid.client_id: "searchguard"\n\
+searchguard.openid.client_id: "lagoon-searchguard"\n\
 \n\
 # the client secret of the OpenID Connect client\n\
 searchguard.openid.client_secret: "${SEARCHGUARD_OPENID_CLIENT_SECRET}"\n\

@@ -31,14 +31,6 @@ function configure_lagoon_realm {
             /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${role}
         done
     fi
-
-    # Configure keycloak for searchguard
-    echo Creating client searchguard
-    echo '{"clientId": "searchguard", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    echo Creating mapper for searchguard "groups"
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
-    echo '{"protocol":"openid-connect","config":{"full.path":"false","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","claim.name":"groups"},"name":"groups","protocolMapper":"oidc-group-membership-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
-
     # Configure keycloak for ui
     echo Creating client lagoon-ui
     echo '{"clientId": "lagoon-ui", "publicClient": true, "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
@@ -68,6 +60,31 @@ function configure_lagoon_realm {
         /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/groups/${group_id} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
         echo "Created group '$group_name' and made user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' member of it"
     fi
+}
+
+function configure_lagoon_searchguard_client {
+
+    # delete old SearchGuard Client
+    searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=searchguard --config $CONFIG_PATH)
+    if [ "$searchguard_client_id" != "[ ]" ]; then
+        echo "Client searchguard is exising, will delete"
+        SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+        /opt/jboss/keycloak/bin/kcadm.sh delete clients/${SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+    fi
+
+    lagoon_searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH)
+    if [ "$lagoon_searchguard_client_id" != "[ ]" ]; then
+        echo "Client lagoon-searchguard is already created, skipping basic setup"
+        return 0
+    fi
+
+    # Configure keycloak for searchguard
+    echo Creating client lagoon-searchguard
+    echo '{"clientId": "lagoon-searchguard", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo Creating mapper for lagoon-searchguard "groups"
+    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n// add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  // remove the group role suffixes\n  var groupName = group.getName().replace(/-owner|-maintainer|-developer|-reporter|-guest/gi,\"\");\n  groupsAndRoles.add(groupName);\n});\n\n// add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   print(roleName)\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"},"name":"groups","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+
 }
 
 function configure_api_client {
@@ -1256,6 +1273,7 @@ function configure_keycloak {
     /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     configure_lagoon_realm
+    configure_lagoon_searchguard_client
     configure_api_client
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
