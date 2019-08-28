@@ -235,6 +235,8 @@ objects:
             total_limit_size 15GB
             flush_thread_count 8
             overflow_action block
+            retry_type periodic
+            retry_wait 10s
           </buffer>
           id_key viaq_msg_id
           remove_keys viaq_msg_id
