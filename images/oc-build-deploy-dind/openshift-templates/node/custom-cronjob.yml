@@ -82,6 +82,9 @@ objects:
                 key: appuio.ch/autoscaled
                 operator: Equal
                 value: 'true'
+              - effect: NoSchedule
+                key: lagoon/build
+                operator: Exists
             containers:
               - image: ${SERVICE_IMAGE}
                 command:

@@ -19,7 +19,7 @@
     "apollo-link-ws": "^1.0.10",
     "dotenv-extended": "^2.2.0",
     "express": "^4.16.4",
-    "git-url-parse": "^10.0.1",
+    "git-url-parse": "^11.1.2",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.10.0",
     "isomorphic-unfetch": "^2.1.1",
