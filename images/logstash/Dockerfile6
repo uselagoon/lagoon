@@ -36,6 +36,6 @@ ENV TMPDIR=/tmp \
 RUN fix-permissions /usr/share/logstash/data \
     && fix-permissions /usr/share/logstash/config
 
-ENV LS_JAVA_OPTS "-Xms200m -Xmx200m"
+ENV LS_JAVA_OPTS "-Xms400m -Xmx400m"
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint"]
