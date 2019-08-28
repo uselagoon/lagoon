@@ -7,8 +7,8 @@ LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 # Defining Versions - https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.8.6 \
-  COMPOSER_HASH_SHA256=b66f9b53db72c5117408defe8a1e00515fe749e97ce1b0ae8bdaa6a5a43dd542
+ENV COMPOSER_VERSION=1.9.0 \
+  COMPOSER_HASH_SHA256=c9dff69d092bdec14dee64df6677e7430163509798895fbd54891c166c5c0875
 
 RUN apk add --no-cache git \
         unzip \
