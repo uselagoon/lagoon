@@ -9,7 +9,8 @@ ENV NODE_OPTIONS="--max-old-space-size=2048" \
     KEYCLOAK_ADMIN_USER=admin \
     KEYCLOAK_ADMIN_PASSWORD=admin
 
-RUN echo $'xpack.security.enabled: false\n\
+RUN echo $'\n\
+xpack.security.enabled: false\n\
 xpack.reporting.encryptionKey: "${LOGSDB_UI_XPACK_REPORTING_ENCRYPTIONKEY:-lagoonrocksyou}"\n\
 \n\
 # Configure the Kibana internal server user\n\
