@@ -131,8 +131,6 @@ images :=     oc \
 							rabbitmq \
 							rabbitmq-cluster \
 							mongo \
-							kibana \
-							logstash \
 							athenapdf-service \
 							curator \
 							docker-host
@@ -178,9 +176,6 @@ build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
 build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
-build/elasticsearch: build/commons images/elasticsearch/Dockerfile
-build/logstash: build/commons images/logstash/Dockerfile
-build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
@@ -193,7 +188,11 @@ build/athenapdf-service: images/athenapdf-service/Dockerfile
 #######
 
 elasticimages :=  elasticsearch__6 \
-								  elasticsearch__7
+								  elasticsearch__7 \
+									kibana__6 \
+									kibana__7 \
+									logstash__6 \
+									logstash__7
 
 build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
 
@@ -210,7 +209,7 @@ $(build-elasticimages): build/commons
 base-images-with-versions += $(elasticimages)
 s3-images += elasticimages
 
-build/elasticsearch__6 build/elasticsearch__7: images/commons
+build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
 
 #######
 ####### Python Images
@@ -445,9 +444,9 @@ $(build-services-galera):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash
-build/logs-db: build/elasticsearch
-build/logs-db-ui: build/kibana
+build/logs2logs-db: build/logstash__6
+build/logs-db: build/elasticsearch__6
+build/logs-db-ui: build/kibana__6
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
