@@ -16,7 +16,7 @@ By default nginx only serves static files - this can be used for static sites th
 ### redirects-map.conf
 In order to create redirects we have the redirects-map.conf in place. This helps you to redirect marketing domains to subsites or do non-www to www redirects.
 If you have a lot of redirects we suggest to have the `redirects-map.conf` stored next to your code for easier maintainability.
-If you just have a few redirects there's a handy trick to create the redirects with a `RUN` command in your Dockerfile.nginx.
+If you just have a few redirects there's a handy trick to create the redirects with a `RUN` command in your `nginx.dockerfile`.
 
 
 Example for redirecting `www.example.com` to `example.com` and preserving the request.
@@ -28,7 +28,7 @@ RUN echo "~^www.example.com           http://example.com\$request_uri;" >> /etc/
 
 To get more details about the various types of redirects that can be achieved see the documentation within the [redirects-map.conf](https://github.com/amazeeio/lagoon/blob/master/images/nginx/redirects-map.conf) directly.
 
-After you put the `redirects-map.conf` in place you also need to include it in your `Dockerfile.nginx` in order to get
+After you put the `redirects-map.conf` in place you also need to include it in your `nginx.dockerfile` in order to get
 the configuration file into your build.
 
 ```
