@@ -99,10 +99,10 @@ docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSI
 docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
 
 # Tags an image with the `amazeeio` repository and pushes it
-docker_publish_amazeeio = echo docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && echo docker push amazeeio/$(2) | cat
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
 
 # Tags an image with the `amazeeiolagoon` repository and pushes it
-docker_publish_amazeeiolagoon = echo docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && echo docker push amazeeiolagoon/$(2) | cat
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2) | cat
 
 
 #######
