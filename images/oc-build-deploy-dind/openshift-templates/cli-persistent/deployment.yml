@@ -123,6 +123,8 @@ objects:
                 requests:
                   cpu: 10m
                   memory: 10Mi
+                limits:
+                  memory: 8Gi
       test: false
       triggers:
         - type: ConfigChange
