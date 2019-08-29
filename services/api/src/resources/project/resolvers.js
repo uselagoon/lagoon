@@ -283,7 +283,7 @@ const addProject = async (
     logger.error(`Could not create default project group for ${project.name}: ${err.message}`);
   }
 
-  await SearchguardOperations(sqlClient, dataSources).syncGroup(`project-${project.name}`, project.id);
+  await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(`project-${project.name}`, project.id);
 
 
   // Find or create a user that has the public key linked to them
@@ -361,6 +361,7 @@ const deleteProject = async (
   try {
     const group = await dataSources.GroupModel.loadGroupByName(`project-${project.name}`);
     await dataSources.GroupModel.deleteGroup(group.id);
+    await SearchguardOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name)
   } catch (err) {
     logger.error(`Could not delete default group for project ${project.name}: ${err.message}`);
   }
