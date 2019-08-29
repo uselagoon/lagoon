@@ -85,6 +85,8 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(
 # 3. Path of Docker Build context
 docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
 
+docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
+
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
@@ -129,9 +131,6 @@ images :=     oc \
 							rabbitmq \
 							rabbitmq-cluster \
 							mongo \
-							elasticsearch \
-							kibana \
-							logstash \
 							athenapdf-service \
 							curator \
 							docker-host
@@ -177,15 +176,40 @@ build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
 build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
-build/elasticsearch: build/commons images/elasticsearch/Dockerfile
-build/logstash: build/commons images/logstash/Dockerfile
-build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
 
+
+#######
+####### Elastic Images
+#######
+
+elasticimages :=  elasticsearch__6 \
+								  elasticsearch__7 \
+									kibana__6 \
+									kibana__7 \
+									logstash__6 \
+									logstash__7
+
+build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-elasticimages): build/commons
+	$(eval clean = $(subst build/,,$@))
+	$(eval tool = $(word 1,$(subst __, ,$(clean))))
+	$(eval version = $(word 2,$(subst __, ,$(clean))))
+# Call the docker build
+	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(elasticimages)
+s3-images += elasticimages
+
+build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
 
 #######
 ####### Python Images
@@ -420,9 +444,9 @@ $(build-services-galera):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash
-build/logs-db: build/elasticsearch
-build/logs-db-ui: build/kibana
+build/logs2logs-db: build/logstash__6
+build/logs-db: build/elasticsearch__6
+build/logs-db-ui: build/kibana__6
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
