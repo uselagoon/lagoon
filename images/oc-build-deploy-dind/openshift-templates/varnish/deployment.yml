@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ''
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    required: true
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -76,6 +79,7 @@ objects:
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
+              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
               ports:
                 - containerPort: 8080
                   protocol: TCP

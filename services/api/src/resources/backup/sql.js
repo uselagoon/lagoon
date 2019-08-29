@@ -85,7 +85,7 @@ const Sql /* : SqlObj */ = {
       .toString(),
   selectPermsForRestore: (backupId /* : string */) =>
     knex('backup_restore')
-      .select({ pid: 'project.id', cid: 'project.customer' })
+      .select({ pid: 'project.id' })
       .join('environment_backup', 'backup_restore.backup', '=', 'environment_backup.id')
       .join('environment', 'environment_backup.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')
@@ -93,7 +93,7 @@ const Sql /* : SqlObj */ = {
       .toString(),
   selectPermsForBackup: (backupId /* : string */) =>
     knex('environment_backup')
-      .select({ pid: 'project.id', cid: 'project.customer' })
+      .select({ pid: 'project.id' })
       .join(
         'environment',
         'environment_backup.environment',

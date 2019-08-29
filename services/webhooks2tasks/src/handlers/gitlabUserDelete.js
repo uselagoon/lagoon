@@ -9,13 +9,13 @@ async function gitlabUserDelete(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { user_id: id } = body;
+    const { user_id: id, email } = body;
 
     const meta = {
       user: id
     };
 
-    await deleteUser(id);
+    await deleteUser(email);
 
     sendToLagoonLogs(
       'info',

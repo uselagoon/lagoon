@@ -1,11 +1,15 @@
 // @flow
 
+const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getProject } = require('@lagoon/commons/src/gitlabApi');
 const {
   addProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  addGroupToProject,
+  removeGroupFromProject,
+  sanitizeGroupName,
 } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
@@ -15,7 +19,7 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
 
   try {
     var project = await getProject(body.project_id);
-    var { id, path: name, ssh_url_to_repo: gitUrl, namespace } = project;
+    var { id, path: projectName, ssh_url_to_repo: gitUrl, namespace } = project;
   } catch (error) {
     sendToLagoonLogs(
       'error',
@@ -23,7 +27,7 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not update project, reason: ${error}`
+      `Could not get project info from Gitlab, reason: ${error}`
     );
 
     return;
@@ -31,13 +35,13 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
 
   const meta = {
     data: project,
-    project: name
+    project: projectName
   };
 
   // Project was transferred from a group namespace to a non-group namespace
   if (namespace.kind != 'group') {
     try {
-      await deleteProject(name);
+      await deleteProject(projectName);
 
       sendToLagoonLogs(
         'info',
@@ -45,7 +49,7 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
         uuid,
         `${webhooktype}:${event}:unhandled`,
         meta,
-        `Deleted project ${name}: not in group namespace`
+        `Deleted project ${projectName}: not in group namespace anymore`
       );
 
       return;
@@ -65,10 +69,44 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
 
   try {
     const response = await updateProject(id, {
-      name,
+      name: projectName,
       gitUrl,
-      customer: namespace.id
     });
+
+    if (event === 'project_transfer' && body.path_with_namespace !== body.old_path_with_namespace) {
+      const oldGroupName = R.pipe(
+        R.split('/'),
+        R.init(),
+        R.join('/'),
+        sanitizeGroupName,
+      )(body.old_path_with_namespace);
+
+      try {
+        await removeGroupFromProject(projectName, oldGroupName);
+      } catch (err) {
+        sendToLagoonLogs(
+          'error',
+          '',
+          uuid,
+          `${webhooktype}:${event}:unhandled`,
+          meta,
+          `Could not remove group "${oldGroupName}" from project "${projectName}", reason: ${error}`
+        );
+      }
+
+      try {
+        await addGroupToProject(projectName, sanitizeGroupName(project.namespace.full_path));
+      } catch (err) {
+        sendToLagoonLogs(
+          'error',
+          '',
+          uuid,
+          `${webhooktype}:${event}:unhandled`,
+          meta,
+          `Could not add group "${sanitizeGroupName(project.namespace.full_path)}" to project "${projectName}", reason: ${error}`
+        );
+      }
+    }
 
     sendToLagoonLogs(
       'info',
@@ -76,7 +114,7 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Updated project ${name}`
+      `Updated project ${projectName}`
     );
 
     return;
@@ -88,8 +126,12 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
       // set production environment to default master
       const productionenvironment = "master";
 
-      // Project was transferred from a non-group namespace to a group namespace
-      await addProject(name, namespace.id, gitUrl, openshift, productionenvironment, id);
+      // Project was transferred from a non-group namespace to a group namespace, we add a new project
+      await addProject(projectName, gitUrl, openshift, productionenvironment);
+
+      // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
+      // We add this owner Group to the Project.
+      await addGroupToProject(projectName, sanitizeGroupName(namespace.full_path));
 
       sendToLagoonLogs(
         'info',
@@ -97,7 +139,7 @@ async function gitlabProjectUpdate(webhook: WebhookRequestData) {
         uuid,
         `${webhooktype}:${event}:handled`,
         meta,
-        `Added project ${name}: transfer to group namespace`
+        `Added project ${projectName}: transfer to group namespace`
       );
 
       return;

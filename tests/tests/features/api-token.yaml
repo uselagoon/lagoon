@@ -1,18 +1,18 @@
-- name: "SSH AUTH - Get Token via SSH"
+- name: "SSH AUTH - Get Grant via SSH"
   hosts: localhost
   serial: 1
   vars:
     ssh_host: "{{ lookup('env','SSH_HOST') }}"
     ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
   tasks:
-  - include: ../../tasks/ssh/get-jwt-token-via-ssh.yaml
+  - include: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
 
 - name: "SSH AUTH - Check if token is allowed for API request"
   hosts: localhost
   serial: 1
   vars:
     url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/"
-    bearer_token: "{{ token.stdout }}"
+    bearer_token: "{{ token }}"
     expected_content: '{"status":"success","data":{}}'
   tasks:
   - include: ../../checks/check-api-request.yaml

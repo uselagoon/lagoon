@@ -51,31 +51,6 @@ const Validators = (sqlClient /* : MariaSQL */) => ({
       throw new Error(`Environment ${environmentId} has no service ${service}`);
     }
   },
-  userAccessEnvironment: async (
-    credentials /* : Object */,
-    environmentId /* : number */,
-  ) => {
-    const {
-      role,
-      permissions: { customers, projects },
-    } = credentials;
-
-    if (role === 'admin') {
-      return;
-    }
-
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(environmentId),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error(`No access to environment ${environmentId}.`);
-    }
-  },
 });
 
 module.exports = Validators;

@@ -37,26 +37,23 @@ const getTasksByEnvironmentId = async (
   { id: eid },
   { id: filterId },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
   info,
 ) => {
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  await hasPermission('task', 'view', {
+    project: environment.project,
+  });
+
   const prep = prepare(
     sqlClient,
     `SELECT
-        t.*
+        t.*, e.project
       FROM environment e
       JOIN task t on e.id = t.environment
-      JOIN project p ON e.project = p.id
       WHERE e.id = :eid
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
     `,
   );
 
@@ -89,11 +86,8 @@ const getTaskByRemoteId = async (
   root,
   { id },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const queryString = knex('task')
@@ -107,16 +101,10 @@ const getTaskByRemoteId = async (
     return null;
   }
 
-  if (role !== 'admin') {
-    const rowsPerms = await query(sqlClient, Sql.selectPermsForTask(task.id));
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  const rowsPerms = await query(sqlClient, Sql.selectPermsForTask(task.id));
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   return Helpers(sqlClient).injectLogs(task);
 };
@@ -138,16 +126,25 @@ const addTask = async (
       execute: executeRequest,
     },
   },
-  { credentials, credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
-  const execute = role === 'admin' ? executeRequest : true;
 
   await envValidators(sqlClient).environmentExists(environment);
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    environment,
-  );
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await hasPermission('task', `add:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
+
+  let execute;
+  try {
+    await hasPermission('task', 'addNoExec', {
+      project: envPerm.project,
+    });
+    execute = executeRequest;
+  } catch (err) {
+    execute = true;
+  }
 
   const taskData = await Helpers(sqlClient).addTask({
     id,
@@ -170,23 +167,14 @@ const deleteTask = async (
   root,
   { input: { id } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectPermsForTask(id));
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  const rows = await query(sqlClient, Sql.selectPermsForTask(id));
+  await hasPermission('task', 'delete', {
+    project: R.path(['0', 'pid'], rows),
+  });
 
   await query(sqlClient, Sql.deleteTask(id));
 
@@ -213,33 +201,25 @@ const updateTask = async (
     },
   },
   {
-    credentials,
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
 
   // Check access to modify task as it currently stands
-  if (role !== 'admin') {
-    const rowsCurrent = await query(sqlClient, Sql.selectPermsForTask(id));
+  const curPerms = await query(sqlClient, Sql.selectPermsForTask(id));
+  await hasPermission('task', 'update', {
+    project: R.path(['0', 'pid'], curPerms),
+  });
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsCurrent), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsCurrent), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
+  if (environment) {
+    // Check access to modify task as it will be updated
+    const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    await hasPermission('task', 'update', {
+      project: envPerm.project,
+    });
   }
-
-  // Check access to modify task as it will be updated
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    environment,
-  );
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -274,18 +254,18 @@ const updateTask = async (
 const taskDrushArchiveDump = async (
   root,
   { environment: environmentId },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    environmentId,
-  );
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('task', `drushArchiveDump:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
 
   const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
-curl -sS "$TASK_API_HOST"/graphql \
--H "Authorization: Bearer $TASK_API_AUTH" \
+TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
+-H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
 -F map='{ "0": ["variables.files.0"] }' \
 -F 0=@$file; rm -rf $file;
@@ -305,18 +285,18 @@ curl -sS "$TASK_API_HOST"/graphql \
 const taskDrushSqlDump = async (
   root,
   { environment: environmentId },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    environmentId,
-  );
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('task', `drushSqlDump:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
 
   const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
-curl -sS "$TASK_API_HOST"/graphql \
--H "Authorization: Bearer $TASK_API_AUTH" \
+TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
+-H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
 -F map='{ "0": ["variables.files.0"] }' \
 -F 0=@$file.gz; rm -rf $file.gz
@@ -336,14 +316,14 @@ curl -sS "$TASK_API_HOST"/graphql \
 const taskDrushCacheClear = async (
   root,
   { environment: environmentId },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    environmentId,
-  );
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('task', `drushCacheClear:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
 
   const command =
     'drupal_version=$(drush status drupal-version --format=list) && \
@@ -373,7 +353,7 @@ const taskDrushSqlSync = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
@@ -381,14 +361,6 @@ const taskDrushSqlSync = async (
     sourceEnvironmentId,
     destinationEnvironmentId,
   ]);
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    sourceEnvironmentId,
-  );
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    destinationEnvironmentId,
-  );
   await envValidators(sqlClient).environmentHasService(
     sourceEnvironmentId,
     'cli',
@@ -400,6 +372,13 @@ const taskDrushSqlSync = async (
   const destinationEnvironment = await environmentHelpers(
     sqlClient,
   ).getEnvironmentById(destinationEnvironmentId);
+
+  await hasPermission('task', `drushSqlSync:source:${sourceEnvironment.environmentType}`, {
+    project: sourceEnvironment.project,
+  });
+  await hasPermission('task', `drushSqlSync:destination:${destinationEnvironment.environmentType}`, {
+    project: destinationEnvironment.project,
+  });
 
   const taskData = await Helpers(sqlClient).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
@@ -418,7 +397,7 @@ const taskDrushRsyncFiles = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { credentials, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
   await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
@@ -426,14 +405,6 @@ const taskDrushRsyncFiles = async (
     sourceEnvironmentId,
     destinationEnvironmentId,
   ]);
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    sourceEnvironmentId,
-  );
-  await envValidators(sqlClient).userAccessEnvironment(
-    credentials,
-    destinationEnvironmentId,
-  );
   await envValidators(sqlClient).environmentHasService(
     sourceEnvironmentId,
     'cli',
@@ -445,6 +416,13 @@ const taskDrushRsyncFiles = async (
   const destinationEnvironment = await environmentHelpers(
     sqlClient,
   ).getEnvironmentById(destinationEnvironmentId);
+
+  await hasPermission('task', `drushRsync:source:${sourceEnvironment.environmentType}`, {
+    project: sourceEnvironment.project,
+  });
+  await hasPermission('task', `drushRsync:destination:${destinationEnvironment.environmentType}`, {
+    project: destinationEnvironment.project,
+  });
 
   const taskData = await Helpers(sqlClient).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${

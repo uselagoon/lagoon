@@ -26,9 +26,6 @@ const Projects = ({ projects = [] }) => {
     const sortByName = key.name
       .toLowerCase()
       .includes(searchInput.toLowerCase());
-    const sortByCustomer = key.customer.name
-      .toLowerCase()
-      .includes(searchInput.toLowerCase());
     let sortByUrl = '';
     if (key.environments[0] !== void 0) {
       if (key.environments[0].route !== null) {
@@ -39,14 +36,14 @@ const Projects = ({ projects = [] }) => {
     }
     return ['name', 'environments', '__typename'].includes(key)
       ? false
-      : (true && sortByName) || sortByCustomer || sortByUrl;
+      : (true && sortByName) || sortByUrl;
   });
 
   return (
     <>
       <div className="header">
         <label>Project</label>
-        <label>Customer</label>
+        <label></label>
         <input
           aria-labelledby="search"
           className="searchInput"
@@ -98,11 +95,7 @@ const Projects = ({ projects = [] }) => {
               </div>
             </div>
             <div className="customer">
-              <Highlighter
-                searchWords={[searchInput]}
-                autoEscape={true}
-                textToHighlight={project.customer.name}
-              />
+
             </div>
           </Box>
         </ProjectLink>

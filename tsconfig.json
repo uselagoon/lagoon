@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "CommonJS",
+    "skipLibCheck": true,
+    "target": "ES6"
+  }
+}

@@ -50,7 +50,7 @@ objects:
       project: ${SAFE_PROJECT}
     name: ${SERVICE_NAME}
   spec:
-    replicas: 2
+    replicas: 1
     selector:
       service: ${SERVICE_NAME}
     strategy:

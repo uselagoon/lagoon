@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/kibana
+FROM ${IMAGE_REPO:-lagoon}/kibana:6
 
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
@@ -9,7 +9,8 @@ ENV NODE_OPTIONS="--max-old-space-size=2048" \
     KEYCLOAK_ADMIN_USER=admin \
     KEYCLOAK_ADMIN_PASSWORD=admin
 
-RUN echo $'xpack.security.enabled: false\n\
+RUN echo $'\n\
+xpack.security.enabled: false\n\
 xpack.reporting.encryptionKey: "${LOGSDB_UI_XPACK_REPORTING_ENCRYPTIONKEY:-lagoonrocksyou}"\n\
 \n\
 # Configure the Kibana internal server user\n\
@@ -34,7 +35,7 @@ searchguard.auth.type: "openid"\n\
 searchguard.openid.connect_url: "${KEYCLOAK_URL:-}/auth/realms/lagoon/.well-known/openid-configuration"\n\
 \n\
 # the ID of the OpenID Connect client in your IdP\n\
-searchguard.openid.client_id: "searchguard"\n\
+searchguard.openid.client_id: "lagoon-searchguard"\n\
 \n\
 # the client secret of the OpenID Connect client\n\
 searchguard.openid.client_secret: "${SEARCHGUARD_OPENID_CLIENT_SECRET}"\n\
@@ -51,7 +52,7 @@ searchguard.cookie.password: "${SEARCHGUARD_COOKIE_PASSWORD:-aaaaaaaaaaaaaaaaaaa
 xpack.spaces.enabled: false\n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.6.1-18.1/search-guard-kibana-plugin-6.6.1-18.1.zip
+RUN bin/kibana-plugin install https://search.maven.org/remotecontent?filepath=com/floragunn/search-guard-kibana-plugin/6.8.2-18.5/search-guard-kibana-plugin-6.8.2-18.5.zip
 
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/
