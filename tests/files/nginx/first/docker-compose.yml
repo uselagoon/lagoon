@@ -22,7 +22,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.basic-auth
+      dockerfile: basic-auth.dockerfile
     labels:
       lagoon.type: nginx
     volumes:
@@ -37,7 +37,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.basic-auth-disable
+      dockerfile: basic-auth-disable.dockerfile
     labels:
       lagoon.type: nginx
     volumes:
