@@ -11,11 +11,11 @@ To implement schema customizations for Solr in your project look to how Lagoon [
 ```
   build:
     context: .
-    dockerfile: Dockerfile.solr
+    dockerfile: solr.dockerfile
 ```
 
 *  Place your schema files in your code repository, we typically like to use `.lagoon/solr`
-*  Create a Dockerfile.solr
+*  Create a solr.dockerfile
 
 ```
 FROM amazeeio/solr:6.6
