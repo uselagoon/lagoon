@@ -14,8 +14,8 @@ CREATE OR REPLACE PROCEDURE
   (
     IN id                              int,
     IN name                            varchar(100),
-    IN customer                        int,
     IN git_url                         varchar(300),
+    IN private_key                     varchar(5000),
     IN subfolder                       varchar(300),
     IN openshift                       int,
     IN openshift_project_pattern       varchar(300),
@@ -49,8 +49,8 @@ CREATE OR REPLACE PROCEDURE
     INSERT INTO project (
         id,
         name,
-        customer,
         git_url,
+        private_key,
         subfolder,
         active_systems_deploy,
         active_systems_promote,
@@ -68,8 +68,8 @@ CREATE OR REPLACE PROCEDURE
     SELECT
         id,
         name,
-        c.id,
         git_url,
+        private_key,
         subfolder,
         active_systems_deploy,
         active_systems_promote,
@@ -84,11 +84,9 @@ CREATE OR REPLACE PROCEDURE
         openshift_project_pattern,
         development_environments_limit
     FROM
-        openshift AS os,
-        customer AS c
+        openshift AS os
     WHERE
-        os.id = openshift AND
-        c.id = customer;
+        os.id = openshift;
 
     -- id = 0 explicitly tells auto-increment field
     -- to auto-generate a value
@@ -246,79 +244,6 @@ CREATE OR REPLACE PROCEDURE
 
     DELETE FROM user_ssh_key WHERE skid = v_skid;
     DELETE FROM ssh_key WHERE id = v_skid;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  CreateCustomer
-  (
-    IN id             int,
-    IN name           varchar(50),
-    IN comment        text,
-    IN private_key    varchar(5000)
-  )
-  BEGIN
-    DECLARE new_cid int;
-
-    IF (id IS NULL) THEN
-      SET id = 0;
-    END IF;
-
-    INSERT INTO customer (
-      id,
-      name,
-      comment,
-      private_key
-    ) VALUES (
-      id,
-      name,
-      comment,
-      private_key
-    );
-
-    IF (id = 0) THEN
-      SET new_cid = LAST_INSERT_ID();
-    ELSE
-      SET new_cid = id;
-    END IF;
-
-    SELECT
-      c.id,
-      c.name,
-      c.comment,
-      c.private_key,
-      c.created
-    FROM customer c
-    WHERE c.id = new_cid;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  DeleteCustomer
-  (
-    IN c_name varchar(100)
-  )
-  BEGIN
-    DECLARE v_cid int;
-    DECLARE count int;
-
-    SELECT count(*) INTO count
-    FROM project
-    LEFT JOIN customer ON project.customer = customer.id
-    WHERE customer.name = c_name;
-
-    IF count > 0 THEN
-      SET @message_text = concat('Customer: "', c_name, '" still in use, can not delete');
-      SIGNAL SQLSTATE '02000'
-      SET MESSAGE_TEXT = @message_text;
-    END IF;
-
-    SELECT id INTO v_cid
-    FROM customer c
-    WHERE c.name = c_name;
-
-    DELETE FROM customer_user WHERE v_cid = cid;
-    DELETE FROM customer WHERE id = v_cid;
   END;
 $$
 

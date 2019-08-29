@@ -18,7 +18,9 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const addNotificationRocketChat = async (root, { input }, { sqlClient }) => {
+const addNotificationRocketChat = async (root, { input }, { sqlClient, hasPermission }) => {
+  await hasPermission('notification', 'add');
+
   const prep = prepare(
     sqlClient,
     'CALL CreateNotificationRocketChat(:name, :webhook, :channel)',
@@ -30,7 +32,9 @@ const addNotificationRocketChat = async (root, { input }, { sqlClient }) => {
   return rocketchat;
 };
 
-const addNotificationSlack = async (root, { input }, { sqlClient }) => {
+const addNotificationSlack = async (root, { input }, { sqlClient, hasPermission }) => {
+  await hasPermission('notification', 'add');
+
   const prep = prepare(
     sqlClient,
     'CALL CreateNotificationSlack(:name, :webhook, :channel)',
@@ -46,25 +50,19 @@ const addNotificationToProject = async (
   root,
   { input: unformattedInput },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const input = R.compose(
     R.over(R.lensProp('notificationType'), notificationTypeToString),
   )(unformattedInput);
 
-  if (role !== 'admin') {
-    // Will throw on invalid conditions
-    const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
+  const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
+  await hasPermission('project', 'addNotification', {
+    project: pid,
+  });
 
-    if (!R.contains(pid, projects)) {
-      throw new Error('Unauthorized.');
-    }
-  }
   const rows = await query(sqlClient, Sql.selectProjectNotification(input));
   const projectNotification = R.path([0], rows);
   if (!projectNotification) {
@@ -89,12 +87,12 @@ const deleteNotificationRocketChat = async (
   root,
   { input },
   {
-    credentials: {
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('notification', 'delete');
+
   const { name } = input;
 
   const nids = await Helpers(sqlClient).getAssignedNotificationIds({
@@ -103,26 +101,7 @@ const deleteNotificationRocketChat = async (
   });
 
   if (R.length(nids) > 0) {
-    const nonAllowed = await query(
-      sqlClient,
-      Sql.selectProjectNotificationsWithoutAccess(
-        { permissions: { projects } },
-        {
-          nids,
-        },
-      ),
-    );
-
-    // If there are any project_notification entries, make sure
-    // that there are no assigned notifications the user doesn't
-    // has access to
-    if (R.length(nonAllowed) > 0) {
-      const ids = R.compose(
-        R.join(','),
-        R.map(R.prop('nid')),
-      )(nonAllowed);
-      throw new Error(`Unauthorized for following projects: ${ids}`);
-    }
+    throw new Error("Can't delete notification linked to projects");
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteNotificationRocketChat(:name)');
@@ -136,12 +115,12 @@ const deleteNotificationSlack = async (
   root,
   { input },
   {
-    credentials: {
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('notification', 'delete');
+
   const { name } = input;
 
   const nids = await Helpers(sqlClient).getAssignedNotificationIds({
@@ -150,26 +129,7 @@ const deleteNotificationSlack = async (
   });
 
   if (R.length(nids) > 0) {
-    const nonAllowed = await query(
-      sqlClient,
-      Sql.selectProjectNotificationsWithoutAccess(
-        { permissions: { projects } },
-        {
-          nids,
-        },
-      ),
-    );
-
-    // If there are any project_notification entries, make sure
-    // that there are no assigned notifications the user doesn't
-    // has access to
-    if (R.length(nonAllowed) > 0) {
-      const ids = R.compose(
-        R.join(','),
-        R.map(R.prop('nid')),
-      )(nonAllowed);
-      throw new Error(`Unauthorized for following projects: ${ids}`);
-    }
+    throw new Error("Can't delete notification linked to projects");
   }
 
   const prep = prepare(sqlClient, 'CALL DeleteNotificationSlack(:name)');
@@ -183,30 +143,25 @@ const removeNotificationFromProject = async (
   root,
   { input: unformattedInput },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const input = R.compose(
     R.over(R.lensProp('notificationType'), notificationTypeToString),
   )(unformattedInput);
 
-  if (role !== 'admin') {
-    throw new Error('unauthorized.');
-  }
+  const select = await query(sqlClient, Sql.selectProjectByName(input));
+  const project = R.path([0], select);
+
+  await hasPermission('project', 'removeNotification', {
+    project: project.id,
+  });
 
   await query(
     sqlClient,
-    Sql.deleteProjectNotification(
-      { credentials: { role, permissions: { projects } } },
-      input,
-    ),
+    Sql.deleteProjectNotification(input),
   );
-  const select = await query(sqlClient, Sql.selectProjectByName(input));
-  const project = R.path([0], select);
 
   return project;
 };
@@ -217,13 +172,14 @@ const getNotificationsByProjectId = async (
   { id: pid },
   unformattedArgs,
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('notification', 'view', {
+    project: pid,
+  });
+
   const args = R.compose(R.over(R.lensProp('type'), notificationTypeToString))(
     unformattedArgs,
   );
@@ -239,7 +195,6 @@ const getNotificationsByProjectId = async (
       query(
         sqlClient,
         Sql.selectNotificationsByTypeByProjectId(
-          { credentials: { role, permissions: { projects } } },
           {
             type,
             pid,
@@ -261,22 +216,13 @@ const updateNotificationRocketChat = async (
   root,
   { input },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  const { name } = input;
+  await hasPermission('notification', 'update');
 
-  const isAllowed = await Helpers(sqlClient).isAllowedToModify(
-    { role, permissions: { projects } },
-    { name },
-  );
-  if (!isAllowed) {
-    throw new Error('Unauthorized.');
-  }
+  const { name } = input;
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -295,22 +241,13 @@ const updateNotificationSlack = async (
   root,
   { input },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  const { name } = input;
+  await hasPermission('notification', 'update');
 
-  const isAllowed = await Helpers(sqlClient).isAllowedToModify(
-    { role, permissions: { projects } },
-    { name },
-  );
-  if (!isAllowed) {
-    throw new Error('Unauthorized.');
-  }
+  const { name } = input;
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -325,11 +262,9 @@ const updateNotificationSlack = async (
 const deleteAllNotificationSlacks = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('notification', 'deleteAll');
 
   await query(sqlClient, Sql.truncateNotificationSlack());
 
@@ -340,11 +275,9 @@ const deleteAllNotificationSlacks = async (
 const deleteAllNotificationRocketChats = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('notification', 'deleteAll');
 
   await query(sqlClient, Sql.truncateNotificationRocketchat());
 
@@ -355,11 +288,9 @@ const deleteAllNotificationRocketChats = async (
 const removeAllNotificationsFromAllProjects = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('notification', 'removeAll');
 
   await query(sqlClient, Sql.truncateProjectNotification());
 

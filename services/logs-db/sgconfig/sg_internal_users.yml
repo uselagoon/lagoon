@@ -7,7 +7,6 @@ admin:
   hash: {admin-hash}
   roles:
     - admin
-    - lagoonadmin
 
 #password is: {kibanaserver-password}
 kibanaserver:
