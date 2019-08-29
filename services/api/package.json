@@ -17,7 +17,8 @@
     "sync:gitlab:users": "flow-node dist/gitlab-sync/users",
     "sync:gitlab:groups": "flow-node dist/gitlab-sync/groups",
     "sync:gitlab:projects": "flow-node dist/gitlab-sync/projects",
-    "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects"
+    "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
+    "sync:searchguard": "flow-node --max-http-header-size=80000 dist/helpers/sync-groups-searchguard"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",

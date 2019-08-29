@@ -100,7 +100,7 @@ const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
 
     for (const indexPattern of indexPatterns) {
       try {
-        await kibanaClient.post(`saved_objects/index-pattern`, {
+        await kibanaClient.post(`saved_objects/index-pattern/${indexPattern}`, {
           body: {
             attributes: {
               title: `${indexPattern}`,
