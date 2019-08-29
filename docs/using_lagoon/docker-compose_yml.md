@@ -17,7 +17,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: Dockerfile.nginx
+      dockerfile: nginx.dockerfile
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
@@ -25,7 +25,7 @@ services:
   php:
     build:
       context: .
-      dockerfile: Dockerfile.php
+      dockerfile: php.dockerfile
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.name: nginx
@@ -101,7 +101,7 @@ An example:
   web:
     build:
       context: .
-      dockerfile: Dockerfile.nginx
+      dockerfile: nginx.dockerfile
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
@@ -110,7 +110,7 @@ An example:
   phehaphe:
     build:
       context: .
-      dockerfile: Dockerfile.php
+      dockerfile: php.dockerfile
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
