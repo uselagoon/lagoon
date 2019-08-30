@@ -207,7 +207,7 @@ export const addGroupsToProject = async (
     const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
     const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+    SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
   try {
@@ -252,7 +252,7 @@ export const removeGroupsFromProject = async (
     // @TODO: Load ProjectIDs of subgroups as well
     const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+    SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
   try {
