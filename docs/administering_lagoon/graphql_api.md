@@ -407,3 +407,23 @@ mutation {
   }
 }
 ```
+
+### Deleting Environments
+
+You can also use the Lagoon GraphQL API to delete an environment.  You'll need to know the project name and the environment name in order to run the command.
+
+```graphql
+mutation {
+  deleteEnvironment(
+    input: {
+      # TODO: Fill in the name field
+      # This is the environment name
+      name:""
+      # TODO: Fill in the project field
+      # This is the project name
+      project:""
+      execute:true
+    }
+  )
+}
+```
