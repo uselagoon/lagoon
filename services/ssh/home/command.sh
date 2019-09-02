@@ -19,6 +19,14 @@ case $ACTION in
     ./token.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
     ;;
 
+  'grant')
+    ./grant.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
+    ;;
+
+  'token-debug')
+    ./token-debug.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY"
+    ;;
+
   'rsh')
     ./rsh.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY" "$@"
     ;;

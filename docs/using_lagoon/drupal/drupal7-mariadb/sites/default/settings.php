@@ -13,7 +13,7 @@
  * - settings.development.php
  *   For settings only for the development environment (dev servers, docker).
  * - settings.local.php
- *   For settings only for the local environment, this file will not be commited in GIT!
+ *   For settings only for the local environment, this file will not be committed in GIT!
  */
 
  // Lagoon Database connection.

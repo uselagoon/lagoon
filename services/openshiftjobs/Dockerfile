@@ -21,9 +21,7 @@ COPY . .
 # Verify that all dependencies have been installed via the yarn-workspace-builder
 RUN yarn check --verify-tree
 
-ENV NODE_ENV production \
-    JWTSECRET=super-secret-string \
-    JWTAUDIENCE=api.dev
+ENV NODE_ENV production
 
 RUN yarn run build
 
