@@ -54,15 +54,17 @@ RUN apk add --no-cache fcgi \
         # for webp
         libwebp-dev \
         postgresql-dev \
+        # workaround for https://github.com/amazeeio/lagoon/issues/1208 to have the latest version
+        nghttp2-libs \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug-2.7.0 \
-        && yes '' | pecl install -f redis; \
+        && yes '' | pecl install -f redis-4.3.0; \
        elif [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug \
-        && yes '' | pecl install -f redis; \
+        && yes '' | pecl install -f redis-4.3.0; \
        fi \
     && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
         yes '' | pecl install -f apcu-4.0.11 \
