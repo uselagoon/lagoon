@@ -54,8 +54,6 @@ RUN apk add --no-cache fcgi \
         # for webp
         libwebp-dev \
         postgresql-dev \
-        # workaround for https://github.com/amazeeio/lagoon/issues/1208 to have the latest version
-        nghttp2-libs \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
         yes '' | pecl install -f apcu \
@@ -78,6 +76,7 @@ RUN apk add --no-cache fcgi \
         docker-php-ext-install mcrypt; \
        fi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && apk update && apk upgrade nghttp2-libs \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
     && mkdir -p /tmp/newrelic && cd /tmp/newrelic \
