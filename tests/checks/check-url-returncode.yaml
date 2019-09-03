@@ -1,5 +1,5 @@
 ---
-- name: "{{ testname }} - Check if URL {{url}} returns with resturn code {{expected_returncode}}"
+- name: "{{ testname }} - Check if URL {{url}} returns with return code {{expected_returncode}}"
   uri:
     url: "{{ url }}"
     status_code: "{{ expected_returncode }}"
