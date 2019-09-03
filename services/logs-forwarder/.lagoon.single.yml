@@ -150,6 +150,12 @@ objects:
         ca_private_key_passphrase "#{ENV['LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE']}"
       </source>
 
+      <source>
+        @type monitor_agent
+        bind 0.0.0.0
+        port 24220
+      </source>
+
       <label @LOGS>
         <filter **>
           @type record_modifier
