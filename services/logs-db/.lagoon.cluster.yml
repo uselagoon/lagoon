@@ -89,7 +89,7 @@ objects:
           livenessProbe:
             tcpSocket:
               port: 9200
-            initialDelaySeconds: 120
+            initialDelaySeconds: 360
           envFrom:
           - configMapRef:
               name: lagoon-env

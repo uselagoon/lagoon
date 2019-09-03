@@ -27,30 +27,30 @@ All of it is based around tests. So if you like to only build the part that is n
 
 If you would still like to build and start all services, go ahead:
 
-2. Build images
+2\. Build images
 
 ```sh
 make build
 ```
 
-3. start Lagoon Services
+3\. start Lagoon Services
 
 ```sh
 make up
 ```
 
-4. Follow the Services logs
+4\. Follow the Services logs
 
 ```sh
 make logs
 ```
 
-5. run tests (read [Tests](tests.md) to learn more about testing)
+5\. run tests (read [Tests](tests.md) to learn more about testing)
 ```sh
 make tests
 ```
 
-6. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
+6\. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
 
 ## Local Development
 
