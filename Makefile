@@ -55,8 +55,8 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.16.1
-OPENSHIFT_VERSION := v3.9.0
+MINISHIFT_VERSION := 1.34.1
+OPENSHIFT_VERSION := v3.11.0
 
 MINISHIFT_CPUS := 6
 MINISHIFT_MEMORY := 2GB
