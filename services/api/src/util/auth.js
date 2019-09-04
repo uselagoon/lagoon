@@ -223,6 +223,7 @@ const keycloakHasPermission = (grant, requestCache) => {
     } catch (err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
+      logger.debug(`keycloakHasPermission denied for "${scope}" on "${resource}": ${err.message}`);
     }
 
     requestCache.set(cacheKey, false);
