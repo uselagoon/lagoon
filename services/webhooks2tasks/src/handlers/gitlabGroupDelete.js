@@ -1,7 +1,7 @@
 // @flow
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { deleteCustomer } = require('@lagoon/commons/src/api');
+const { deleteGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -9,13 +9,14 @@ async function gitlabGroupDelete(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { path: name, group_id: id } = body;
+    const { path: name, group_id: id, full_path } = body;
 
     const meta = {
-      customer: id
+      path: name,
+      group_id: id,
     };
 
-    await deleteCustomer(name);
+    await deleteGroup(sanitizeGroupName(full_path));
 
     sendToLagoonLogs(
       'info',
@@ -23,7 +24,7 @@ async function gitlabGroupDelete(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Deleted customer ${name}`
+      `Deleted group ${name}`
     );
 
     return;
@@ -34,7 +35,7 @@ async function gitlabGroupDelete(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not delete customer, reason: ${error}`
+      `Could not delete group, reason: ${error}`
     );
 
     return;

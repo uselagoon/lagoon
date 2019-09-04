@@ -133,7 +133,8 @@ objects:
           </server>
           <buffer>
             flush_mode interval
-            retry_type exponential_backoff
+            retry_type periodic
+            retry_wait 10s
             flush_interval 1s
           </buffer>
         </match>

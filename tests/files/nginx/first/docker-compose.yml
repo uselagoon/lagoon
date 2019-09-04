@@ -12,8 +12,8 @@ services:
       lagoon.deployment.strategy: Recreate
     volumes:
       - ./app:/app:delegated
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     environment:
       - AMAZEEIO_URL=nginx.docker.amazee.io
   nginx-basic-auth:
@@ -22,7 +22,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.basic-auth
+      dockerfile: basic-auth.dockerfile
     labels:
       lagoon.type: nginx
     volumes:
@@ -37,7 +37,7 @@ services:
       - default
     build:
       context: .
-      dockerfile: Dockerfile.basic-auth-disable
+      dockerfile: basic-auth-disable.dockerfile
     labels:
       lagoon.type: nginx
     volumes:

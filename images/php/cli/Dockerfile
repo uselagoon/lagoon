@@ -1,13 +1,14 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
+ARG PHP_IMAGE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 # Defining Versions - https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.8.4 \
-    COMPOSER_HASH_SHA256=1722826c8fbeaf2d6cdd31c9c9af38694d6383a0f2bf476fe6bbd30939de058a
+ENV COMPOSER_VERSION=1.9.0 \
+  COMPOSER_HASH_SHA256=c9dff69d092bdec14dee64df6677e7430163509798895fbd54891c166c5c0875
 
 RUN apk add --no-cache git \
         unzip \
@@ -19,9 +20,10 @@ RUN apk add --no-cache git \
         patch \
         procps \
         coreutils \
+        mariadb-client \
         postgresql-client \
         openssh-sftp-server \
-    && apk add --no-cache "mariadb-client=10.2.22-r0" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
+        findutils \
     && apk add --no-cache nodejs-current nodejs-npm yarn --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \

@@ -9,99 +9,96 @@ const {
 const { applyMiddleware } = require('graphql-middleware');
 const {
   getCredentialsForLegacyToken,
-  getCredentialsForKeycloakToken,
+  getGrantForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
+const User = require('./models/user');
+const Group = require('./models/group');
+
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-const operationBlacklist = R.split(
-  ',',
-  R.propOr('', 'LAGOON_API_OPERATION_BLACKLIST', process.env),
-);
-
-const evaluateOperationsBlacklist = async (
-  resolve,
-  parent,
-  args,
-  context,
-  info,
-) => {
-  const {
-    credentials: { role },
-  } = context;
-
-  if (role !== 'admin' && R.contains(info.fieldName, operationBlacklist)) {
-    throw new Error('Unauthorized.');
-  }
-
-  const result = await resolve(parent, args, context, info);
-  return result;
-};
-
-const schemaWithMiddleware = applyMiddleware(schema, {
-  Query: evaluateOperationsBlacklist,
-  Mutation: evaluateOperationsBlacklist,
-  Subscription: evaluateOperationsBlacklist,
-});
-
 const apolloServer = new ApolloServer({
-  schema: schemaWithMiddleware,
+  schema,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let credentials;
+      let grant;
+      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
       }
 
+
       try {
-        credentials = await getCredentialsForKeycloakToken(
-          getSqlClient(),
-          token,
-        );
+        var sqlClientKeycloak = getSqlClient();
+        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
+        sqlClientKeycloak.end();
       } catch (e) {
+        sqlClientKeycloak.end();
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
       try {
-        if (!credentials) {
-          credentials = await getCredentialsForLegacyToken(
-            getSqlClient(),
+        if (!grant) {
+          var sqlClientLegacy = getSqlClient();
+          legacyCredentials = await getCredentialsForLegacyToken(
+            sqlClientLegacy,
             token,
           );
+          sqlClientLegacy.end();
         }
       } catch (e) {
+        sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
-
       // Add credentials to context.
-      return { credentials };
+      const sqlClient = getSqlClient();
+      return {
+        hasPermission: grant
+          ? keycloakHasPermission(grant)
+          : legacyHasPermission(legacyCredentials),
+        sqlClient,
+      };
+    },
+    onDisconnect: (websocket, context) => {
+      if (context.sqlClient) {
+        context.sqlClient.end();
+      }
     },
   },
+  dataSources: () => ({
+    UserModel: User.User(),
+    GroupModel: Group.Group(),
+  }),
   context: ({ req, connection }) => {
     // Websocket requests
     if (connection) {
       // onConnect must always provide connection.context.
       return {
         ...connection.context,
-        sqlClient: getSqlClient(),
       };
     }
 
     // HTTP requests
     if (!connection) {
       return {
-        // Express middleware must always provide req.credentials.
-        credentials: req.credentials,
         sqlClient: getSqlClient(),
+        hasPermission: req.kauth
+          ? keycloakHasPermission(req.kauth.grant)
+          : legacyHasPermission(req.legacyCredentials),
+        keycloakGrant: req.kauth
+          ? req.kauth.grant
+          : null,
       };
     }
   },

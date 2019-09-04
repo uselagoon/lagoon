@@ -47,24 +47,31 @@ parameters:
     description: Pullable image of custom service
     required: true
 objects:
-- apiVersion: batch/v2alpha1
+- apiVersion: batch/v1beta1
   kind: CronJob
   metadata:
     name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
   spec:
     schedule: "${CRONJOB_SCHEDULE}"
     concurrencyPolicy: Forbid
-    successfulJobsHistoryLimit: 1
+    successfulJobsHistoryLimit: 0
     failedJobsHistoryLimit: 1
     jobTemplate:
+      metadata:
+        labels:
+          cronjob: ${CRONJOB_NAME}
+          branch: ${SAFE_BRANCH}
+          project: ${SAFE_PROJECT}
+          parent: ${SERVICE_NAME}
       spec:
+        backoffLimit: 0
         template:
           metadata:
             labels:
               cronjob: ${CRONJOB_NAME}
               branch: ${SAFE_BRANCH}
               project: ${SAFE_PROJECT}
-              parent: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
+              parent: ${SERVICE_NAME}
           spec:
             containers:
             - name: cronjob-${SERVICE_NAME}-${CRONJOB_NAME}
@@ -82,4 +89,8 @@ objects:
                   value: ${LAGOON_GIT_SHA}
                 - name: SERVICE_NAME
                   value: ${SERVICE_NAME}
-            restartPolicy: OnFailure
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 10Mi
+            restartPolicy: Never

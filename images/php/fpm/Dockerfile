@@ -1,7 +1,8 @@
 ARG PHP_VERSION
+ARG PHP_IMAGE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_VERSION}-fpm-alpine
+FROM php:${PHP_IMAGE_VERSION}-fpm-alpine
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
@@ -36,9 +37,7 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
 ENV NEWRELIC_VERSION=8.6.0.238
 
-RUN apk del --no-cache curl libcurl \
-    && apk add --no-cache "curl=7.61.1-r2" "libcurl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
-    && apk add --no-cache fcgi \
+RUN apk add --no-cache fcgi \
         ssmtp \
         libzip libzip-dev \
         # for gd
@@ -52,27 +51,32 @@ RUN apk del --no-cache curl libcurl \
         libxml2-dev \
         # for xsl
         libxslt-dev \
+        # for webp
+        libwebp-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
         yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug-2.7.0; \
+        && yes '' | pecl install -f xdebug-2.7.0 \
+        && yes '' | pecl install -f redis-4.3.0; \
        elif [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug; \
+        && yes '' | pecl install -f xdebug \
+        && yes '' | pecl install -f redis-4.3.0; \
        fi \
     && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
         yes '' | pecl install -f apcu-4.0.11 \
-        && yes '' | pecl install -f xdebug-2.5.5; \
+        && yes '' | pecl install -f xdebug-2.5.5 \
+        && yes '' | pecl install -f redis-4.3.0; \
        fi \
-    && yes '' | pecl install -f redis \
     && docker-php-ext-enable apcu redis xdebug \
-    && docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-configure gd --with-webp-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
     && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
         docker-php-ext-install mcrypt; \
        fi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && apk update && apk upgrade nghttp2-libs \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
     && mkdir -p /tmp/newrelic && cd /tmp/newrelic \

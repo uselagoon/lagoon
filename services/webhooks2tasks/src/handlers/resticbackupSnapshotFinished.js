@@ -5,7 +5,7 @@ const moment = require('moment');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   addBackup,
-  getAllEnvironmentBackups
+  getEnvironmentBackups
 } = require('@lagoon/commons/src/api');
 const R = require('ramda');
 
@@ -50,35 +50,30 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    // Get a list of all environments and their existing backups.
-    const allEnvironmentsResult = await getAllEnvironmentBackups();
-    const allEnvironments = R.prop('allEnvironments', allEnvironmentsResult)
-    const existingBackupIds = R.pipe(
-      R.map(env => env.backups),
-      R.flatten(),
-      R.map(backup => backup.backupId)
-    )(allEnvironments);
-
     // The webhook contains all existing and new snapshots made for all
-    // environments. Filter out snapshots that have already been recorded and
-    // group remaining (new) by hostname.
+    // environments. Group by hostname.
     const incomingSnapshots = R.prop('snapshots', body);
-    const newSnapshots = R.pipe(
-      R.reject(snapshot => R.contains(snapshot.id, existingBackupIds)),
+    const snapshotsByHostname = R.pipe(
       // Remove pod names suffix from hostnames.
-      R.map(R.over(R.lensProp('hostname'), R.replace(/(-cli|-mariadb|-nginx|-solr|-node|-elasticsearch|-redis)$/, ''))),
+      R.map(R.over(R.lensProp('hostname'), R.replace(/(-cli|-mariadb|-nginx|-solr|-node|-elasticsearch|-redis|-[\w]+-prebackuppod)$/, ''))),
       R.groupBy(snapshot => snapshot.hostname),
       R.toPairs()
     )(incomingSnapshots);
 
-    for (const [hostname, snapshots] of newSnapshots) {
-      const environment = R.find(R.propEq('openshiftProjectName', hostname), allEnvironments);
+    for (const [hostname, snapshots] of snapshotsByHostname) {
+      // Get environment and existing backups.
+      const environmentResult = await getEnvironmentBackups(hostname);
+      const environment = R.prop('environmentByOpenshiftProjectName', environmentResult)
 
       if (!environment) {
         continue;
       }
 
-      for (const snapshot of snapshots) {
+      // Filter out snapshots that have already been recorded.
+      const existingBackupIds = R.pluck('backupId', environment.backups);
+      const newSnapshots = R.reject(snapshot => R.contains(snapshot.id, existingBackupIds), snapshots);
+
+      for (const snapshot of newSnapshots) {
         try {
           const newBackupResult = await saveSnapshotAsBackup(
             snapshot,

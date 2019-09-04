@@ -86,12 +86,14 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(
 # 3. Path of Docker Build context
 docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
 
+docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
+
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
 # 3. Location of Dockerfile
 # 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(2) -t $(CI_BUILD_TAG)/php:$(3) -f $(4) $(5)
 
 docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
 
@@ -130,9 +132,6 @@ images :=     oc \
 							rabbitmq \
 							rabbitmq-cluster \
 							mongo \
-							elasticsearch \
-							kibana \
-							logstash \
 							athenapdf-service \
 							curator \
 							docker-host
@@ -178,15 +177,40 @@ build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
 build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
-build/elasticsearch: build/commons images/elasticsearch/Dockerfile
-build/logstash: build/commons images/logstash/Dockerfile
-build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
 
+
+#######
+####### Elastic Images
+#######
+
+elasticimages :=  elasticsearch__6 \
+								  elasticsearch__7 \
+									kibana__6 \
+									kibana__7 \
+									logstash__6 \
+									logstash__7
+
+build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-elasticimages): build/commons
+	$(eval clean = $(subst build/,,$@))
+	$(eval tool = $(word 1,$(subst __, ,$(clean))))
+	$(eval version = $(word 2,$(subst __, ,$(clean))))
+# Call the docker build
+	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(elasticimages)
+s3-images += elasticimages
+
+build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
 
 #######
 ####### Python Images
@@ -256,8 +280,10 @@ $(build-phpimages): build/commons
 # if there is a subtype, add it. If not, just keep what we already had
 	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
 	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
+# cover the edge case for php 7.0 needing php:7-fpm-alpine
+	$(eval php_ver = $(patsubst 7.0,7,$(version)))
 # Call the docker build
-	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
+	$(call docker_build_php,$(version),$(php_ver),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -419,9 +445,9 @@ $(build-services-galera):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash
-build/logs-db: build/elasticsearch
-build/logs-db-ui: build/kibana
+build/logs2logs-db: build/logstash__6
+build/logs-db: build/elasticsearch__6
+build/logs-db-ui: build/kibana__6
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
@@ -517,7 +543,7 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift
+$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind build/broker-single $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -608,8 +634,10 @@ $(publish-amazeeio-baseimages-with-versions):
 #   The underline is a placeholder for a colon, replace that
 		$(eval image = $(subst __,:,$(image)))
 #		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
-#		Therefore they don't have any latest tag
+#		We push a version without the `-latest` suffix
 		$(call docker_publish_amazeeio,$(image),$(image))
+#		Plus a version with the `-latest` suffix, this makes it easier for people with automated testing
+		$(call docker_publish_amazeeio,$(image),$(image)-latest)
 #		We add the Lagoon Version just as a dash
 		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
 
@@ -755,6 +783,7 @@ openshift-lagoon-setup:
 	oc -n lagoon policy add-role-to-user admin -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/priorityclasses.yaml; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
 	oc -n lagoon create -f openshift-setup/policybinding.yaml | oc -n lagoon create -f openshift-setup/rolebinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \

@@ -1,6 +1,10 @@
 const express = require('express')
 const app = express()
 
+// Adds a 1 sec delay for all requests
+app.use((req, res, next) => setTimeout(next, 1000))
+
+
 app.get('/', function (req, res) {
   let result = []
   Object.keys(process.env).map(key => {
@@ -11,6 +15,16 @@ app.get('/', function (req, res) {
   res.send(result.join("<br />"))
 })
 
-app.listen(3000, function () {
+const server = app.listen(3000, function () {
   console.log('Example app listening on port 3000!')
 })
+
+const startGracefulShutdown = () => {
+  console.log('Starting shutdown of express...');
+  server.close(function () {
+    console.log('Express shut down.');
+  });
+}
+
+process.on('SIGTERM', startGracefulShutdown);
+process.on('SIGINT', startGracefulShutdown);

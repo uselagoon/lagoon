@@ -66,6 +66,24 @@ const typeDefs = gql`
     FAILED
   }
 
+  enum EnvOrderType {
+    NAME
+    UPDATED
+  }
+
+  enum ProjectOrderType {
+    NAME
+    CREATED
+  }
+
+  enum GroupRole {
+    GUEST
+    REPORTER
+    DEVELOPER
+    MAINTAINER
+    OWNER
+  }
+
   type File {
     id: Int
     filename: String
@@ -83,7 +101,7 @@ const typeDefs = gql`
   }
 
   type User {
-    id: Int
+    id: String
     email: String
     firstName: String
     lastName: String
@@ -92,34 +110,16 @@ const typeDefs = gql`
     sshKeys: [SshKey]
   }
 
-  """
-  Lagoon Customer (used for grouping multiple Projects)
-  """
-  type Customer {
-    """
-    Internal ID of this customer
-    """
-    id: Int
-    """
-    Name of customer
-    """
+  type GroupMembership {
+    user: User
+    role: GroupRole
+  }
+
+  type Group {
+    id: String
     name: String
-    """
-    Arbitrary String for some comment
-    """
-    comment: String
-    """
-    SSH Private Key of Customer
-    Will be used to authenticate against the Git Repos of the Project that are assigned to this project
-    Needs to be in single string separated by \`\n\`, example:
-    \`\`\`
-    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
-    \`\`\`
-    """
-    privateKey: String
-    users: [User]
-    created: String
-    projects: [Project]
+    groups: [Group]
+    members: [GroupMembership]
   }
 
   type Openshift {
@@ -169,15 +169,20 @@ const typeDefs = gql`
     """
     name: String
     """
-    Reference to customer object
-    """
-    customer: Customer
-    """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@192.168.99.1/project1.git
     - ssh://git@192.168.99.1:2222/project1.git
     """
     gitUrl: String
+    """
+    SSH Private Key for Project
+    Will be used to authenticate against the Git Repo of the Project
+    Needs to be in single string separated by \`\n\`, example:
+    \`\`\`
+    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
+    \`\`\`
+    """
+    privateKey: String
     """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
@@ -242,10 +247,6 @@ const typeDefs = gql`
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
     openshiftProjectPattern: String
-    """
-    Which Developer SSH keys should have access to this project
-    """
-    users: [User]
     """
     How many environments can be deployed at one timeout
     """
@@ -342,9 +343,9 @@ const typeDefs = gql`
     """
     storageMonth(month: Date): EnvironmentStorageMonth
     """
-    Reference to EnviornmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
+    Reference to EnvironmentHitsMonth API Object, which returns how many hits this environment generated in a specific month
     """
-    hitsMonth(month: Date): EnviornmentHitsMonth
+    hitsMonth(month: Date): EnvironmentHitsMonth
     """
     Environment variables available during build-time and run-time
     """
@@ -358,7 +359,7 @@ const typeDefs = gql`
     services: [EnvironmentService]
   }
 
-  type EnviornmentHitsMonth {
+  type EnvironmentHitsMonth {
     total: Int
   }
 
@@ -449,10 +450,6 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
-    Returns Customer Object by a given name
-    """
-    customerByName(name: String!): Customer
-    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
@@ -467,16 +464,15 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    userCanSshToEnvironment(
+      openshiftProjectName: String
+    ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
-    allProjects(createdAfter: String, gitUrl: String): [Project]
-    """
-    Returns all Customer Objects matching given filter (all if no filter defined)
-    """
-    allCustomers(createdAfter: String): [Customer]
+    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
     """
     Returns all OpenShift Objects
     """
@@ -484,7 +480,7 @@ const typeDefs = gql`
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
-    allEnvironments(createdAfter: String, type: EnvType): [Environment]
+    allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
   }
 
   # Must provide id OR name
@@ -505,7 +501,7 @@ const typeDefs = gql`
     name: String!
     keyValue: String!
     keyType: SshKeyType!
-    userId: Int!
+    user: UserInput!
   }
 
   input DeleteSshKeyInput {
@@ -515,7 +511,6 @@ const typeDefs = gql`
   input AddProjectInput {
     id: Int
     name: String!
-    customer: Int!
     gitUrl: String!
     subfolder: String
     openshift: Int!
@@ -530,7 +525,7 @@ const typeDefs = gql`
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int
-
+    privateKey: String
   }
 
   input AddEnvironmentInput {
@@ -583,12 +578,6 @@ const typeDefs = gql`
     restoreLocation: String
   }
 
-  input AddCustomerInput {
-    id: Int
-    name: String!
-    comment: String
-    privateKey: String
-  }
 
   input DeploymentInput {
     id: Int
@@ -670,10 +659,6 @@ const typeDefs = gql`
     name: String!
   }
 
-  input DeleteCustomerInput {
-    name: String!
-  }
-
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
@@ -707,7 +692,6 @@ const typeDefs = gql`
   }
 
   input AddUserInput {
-    id: Int
     email: String!
     firstName: String
     lastName: String
@@ -724,32 +708,12 @@ const typeDefs = gql`
   }
 
   input UpdateUserInput {
-    id: Int!
+    user: UserInput!
     patch: UpdateUserPatchInput!
   }
 
   input DeleteUserInput {
-    id: Int!
-  }
-
-  input AddUserToProjectInput {
-    project: String!
-    userId: Int!
-  }
-
-  input RemoveUserFromProjectInput {
-    project: String!
-    userId: Int!
-  }
-
-  input AddUserToCustomerInput {
-    customer: String!
-    userId: Int!
-  }
-
-  input RemoveUserFromCustomerInput {
-    customer: String!
-    userId: Int!
+    user: UserInput!
   }
 
   input DeleteProjectInput {
@@ -758,8 +722,8 @@ const typeDefs = gql`
 
   input UpdateProjectPatchInput {
     name: String
-    customer: Int
     gitUrl: String
+    privateKey: String
     subfolder: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
@@ -777,18 +741,6 @@ const typeDefs = gql`
   input UpdateProjectInput {
     id: Int!
     patch: UpdateProjectPatchInput!
-  }
-
-  input UpdateCustomerPatchInput {
-    name: String
-    comment: String
-    privateKey: String
-    created: String
-  }
-
-  input UpdateCustomerInput {
-    id: Int!
-    patch: UpdateCustomerPatchInput!
   }
 
   input UpdateOpenshiftPatchInput {
@@ -911,11 +863,51 @@ const typeDefs = gql`
     destinationEnvironment: String!
   }
 
+  input GroupInput {
+    id: String
+    name: String
+  }
+
+  input AddGroupInput {
+    name: String!
+    parentGroup: GroupInput
+  }
+
+  input UpdateGroupPatchInput {
+    name: String
+  }
+
+  input UpdateGroupInput {
+    group: GroupInput!
+    patch: UpdateGroupPatchInput!
+  }
+
+  input DeleteGroupInput {
+    group: GroupInput!
+  }
+
+  input UserInput {
+    id: String
+    email: String
+  }
+
+  input UserGroupInput {
+    user: UserInput!
+    group: GroupInput!
+  }
+
+  input UserGroupRoleInput {
+    user: UserInput!
+    group: GroupInput!
+    role: GroupRole!
+  }
+
+  input ProjectGroupsInput {
+    project: ProjectInput!
+    groups: [GroupInput!]!
+  }
+
   type Mutation {
-    addCustomer(input: AddCustomerInput!): Customer
-    updateCustomer(input: UpdateCustomerInput!): Customer
-    deleteCustomer(input: DeleteCustomerInput!): String
-    deleteAllCustomers: String
     """
     Add Environment or update if it is already existing
     """
@@ -970,12 +962,6 @@ const typeDefs = gql`
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    addUserToCustomer(input: AddUserToCustomerInput!): Customer
-    removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
-    removeAllUsersFromAllCustomers: String
-    addUserToProject(input: AddUserToProjectInput!): Project
-    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
-    removeAllUsersFromAllProjects: String
     addDeployment(input: DeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
@@ -984,10 +970,6 @@ const typeDefs = gql`
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
-    createAllProjectsInKeycloak: String
-    createAllProjectsInSearchguard: String
-    resyncCustomersWithSearchguard: String
-    createAllUsersInKeycloak: String
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
@@ -1011,6 +993,14 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    addGroup(input: AddGroupInput!): Group
+    updateGroup(input: UpdateGroupInput!): Group
+    deleteGroup(input: DeleteGroupInput!): String
+    deleteAllGroups: String
+    addUserToGroup(input: UserGroupRoleInput!): Group
+    removeUserFromGroup(input: UserGroupInput!): Group
+    addGroupsToProject(input: ProjectGroupsInput): Project
+    removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 
   type Subscription {

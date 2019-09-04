@@ -9,6 +9,7 @@ else
         export DOCKER_HOST=docker-host.default.svc
     else
         echo "could not connect to docker-host.default.svc";
+        exit 1
     fi
 fi
 

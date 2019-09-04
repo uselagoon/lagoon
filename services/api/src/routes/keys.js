@@ -4,11 +4,8 @@ const logger = require('../logger');
 const R = require('ramda');
 const sshpk = require('sshpk');
 const bodyParser = require('body-parser');
+const { knex, query } = require('../util/db');
 const { getSqlClient } = require('../clients/sqlClient');
-const {
-  getCustomerSshKeys,
-  getProjectSshKeys,
-} = require('../resources/sshKey/resolvers');
 
 const toFingerprint = sshKey => {
   try {
@@ -22,10 +19,10 @@ const toFingerprint = sshKey => {
 };
 
 const keysRoute = async (
-  { body: { fingerprint }, credentials: { role } } /* : Object */,
+  { body: { fingerprint }, legacyCredentials } /* : Object */,
   res /* : Object */,
 ) => {
-  if (role !== 'admin') {
+  if (!legacyCredentials || legacyCredentials.role !== 'admin') {
     throw new Error('Unauthorized');
   }
 
@@ -37,23 +34,13 @@ const keysRoute = async (
 
   const sqlClient = getSqlClient();
 
-  const customerSshKeys = await getCustomerSshKeys(
-    // $FlowFixMe
-    {},
-    // $FlowFixMe
-    {},
-    // $FlowFixMe
-    { credentials: { role }, sqlClient },
+  const rows = await query(
+    sqlClient,
+    knex('ssh_key AS sk')
+      .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
+      .toString(),
   );
-
-  const projectSshKeys = await getProjectSshKeys(
-    // $FlowFixMe
-    {},
-    // $FlowFixMe
-    {},
-    // $FlowFixMe
-    { credentials: { role }, sqlClient },
-  );
+  const keys = R.map(R.prop('sshKey'), rows);
 
   sqlClient.end();
 
@@ -66,7 +53,7 @@ const keysRoute = async (
     R.reject(([sshKeyFingerprint]) => sshKeyFingerprint === undefined),
     // Transform from single-level array to array of pairs, with the SSH key fingerprint as the first value
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
-  )(R.concat(customerSshKeys, projectSshKeys));
+  )(keys);
 
   const result = R.propOr('', fingerprint, fingerprintKeyMap);
 
