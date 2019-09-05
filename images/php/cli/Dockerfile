@@ -34,6 +34,12 @@ RUN apk add --no-cache git \
     && mkdir -p /home/.ssh \
     && fix-permissions /home/
 
+# Adding Composer vendor bin path to $PATH.
+ENV PATH="/home/.composer/vendor/bin:${PATH}"
+# We not only use "export $PATH" as this could be overwritten again
+# like it happens in /etc/profile of alpine Images.
+COPY 90-composer-path.sh /lagoon/entrypoints/
+
 # Remove warning about running as root in composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
