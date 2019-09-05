@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ''
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -73,6 +76,7 @@ objects:
               key: appuio.ch/autoscaled
               operator: Equal
               value: 'true'
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}

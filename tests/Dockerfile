@@ -1,6 +1,6 @@
 FROM williamyeh/ansible:centos7
 
-RUN yum -y install git && yum clean all
+RUN yum -y install git && yum clean all && pip install pyjwt requests
 
 RUN git config --global user.email "deploytest@amazee.io" && git config --global user.name deploytest
 

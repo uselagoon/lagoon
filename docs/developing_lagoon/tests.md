@@ -29,7 +29,7 @@ Or only for a specific service:
 
 Sometimes you would like to see what is happening inside the Jenkins, it can be found here: http://localhost:8888/ (`admin`:`admin`)
 
-Sometimes you just would like to create another push webhook, without to wait for the git repository to be initialized and being pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repository and push a webhook push. It needs to know which git repository and branch you would like to check and push:
+Sometimes you just would like to create another push webhook, without having to wait for the git repository to be initialized and pushed. For this case there is a small helper script `tests/playbooks/helpers/just-push.yaml` that will get the current head of the git repository and push a webhook push. It needs to know which git repository and branch you would like to check and push:
 
 		docker-compose -p lagoon exec tests ansible-playbook /ansible/tests/tests/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
 

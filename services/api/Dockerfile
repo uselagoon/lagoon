@@ -30,4 +30,6 @@ ENV NODE_ENV=production \
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.
 COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
 
+RUN yarn build
+
 CMD ["yarn", "start"]

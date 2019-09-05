@@ -59,4 +59,4 @@ Some Docker Images and Containers need additional customizations from the provid
 | varnish-drupal | 5 | [varnish-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/Dockerfile) |
 
 All images are pushed to https://hub.docker.com/u/amazeeio.
-We suggest to always use the latest tag (like `amazeeio/nignx:latest`) or unsuffixed images (like `amazeeio/node:10`), as they are kept up to date in terms of features and security. If you shall choose to use a specific Lagoon Version of an image like `amazeeio/nignx:v0.21.0` or `amazeeio/node:10-v0.21.0` it is your own responsibility to upgrade the version of the Images as soon as a new Lagoon Version is released!
+We suggest to always use the latest tag (like `amazeeio/nginx:latest`) or unsuffixed images (like `amazeeio/node:10`), as they are kept up to date in terms of features and security. If you shall choose to use a specific Lagoon Version of an image like `amazeeio/nginx:v0.21.0` or `amazeeio/node:10-v0.21.0` it is your own responsibility to upgrade the version of the Images as soon as a new Lagoon Version is released!

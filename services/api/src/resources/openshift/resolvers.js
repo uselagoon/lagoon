@@ -18,23 +18,21 @@ import type {ResolversObj} from '../';
 */
 
 // $FlowFixMe
-const attrFilter = R.curry((role, entity) => {
-  // Only admin is allowed to see all attributes
-  if (role === 'admin') {
+const attrFilter = async (hasPermission, entity) => {
+  try {
+    await hasPermission('openshift', 'view:token');
     return entity;
+  } catch (err) {
+    return R.omit(['token'], entity);
   }
-
-  return R.omit(['token'], entity);
-});
+};
 
 const addOpenshift = async (
   args,
   { input },
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Project creation unauthorized.');
-  }
+  await hasPermission('openshift', 'add');
 
   const prep = prepare(
     sqlClient,
@@ -60,11 +58,9 @@ const addOpenshift = async (
 const deleteOpenshift = async (
   args,
   { input },
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  await hasPermission('openshift', 'delete');
 
   const prep = prepare(sqlClient, 'CALL deleteOpenshift(:name)');
   await query(sqlClient, prep(input));
@@ -77,42 +73,38 @@ const getAllOpenshifts = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('openshift', 'viewAll');
+
   const prep = prepare(
     sqlClient,
     `SELECT DISTINCT
         o.*
       FROM project p
       JOIN openshift o ON o.id = p.openshift
-      ${ifNotAdmin(
-    role,
-    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
-  )}
     `,
   );
 
   const rows = await query(sqlClient, prep(args));
 
-  return R.map(attrFilter(role), rows);
+  return rows;
 };
 
 const getOpenshiftByProjectId = async (
   { id: pid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('openshift', 'view', {
+    project: pid,
+  });
+
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -120,26 +112,20 @@ const getOpenshiftByProjectId = async (
       FROM project p
       JOIN openshift o ON o.id = p.openshift
       WHERE p.id = :pid
-      ${ifNotAdmin(
-    role,
-    `AND ${inClauseOr([['p.customer', customers], ['p.id', projects]])}`,
-  )}
     `,
   );
 
   const rows = await query(sqlClient, prep({ pid }));
 
-  return rows ? attrFilter(role, rows[0]) : null;
+  return rows ? attrFilter(hasPermission, rows[0]) : null;
 };
 
 const updateOpenshift = async (
   root,
   { input },
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  await hasPermission('openshift', 'update');
 
   const oid = input.id.toString();
 
@@ -156,11 +142,9 @@ const updateOpenshift = async (
 const deleteAllOpenshifts = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('openshift', 'deleteAll');
 
   await query(sqlClient, Sql.truncateOpenshift());
 

@@ -1259,6 +1259,10 @@
   dependencies:
     p-retry "*"
 
+"@types/ramda@types/npm-ramda#dist":
+  version "0.25.0"
+  resolved "https://codeload.github.com/types/npm-ramda/tar.gz/9529aa3c8ff70ff84afcbc0be83443c00f30ea90"
+
 "@types/range-parser@*":
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
@@ -2158,6 +2162,14 @@ axios@^0.18.0, axios@^0.18.1:
   version "0.18.1"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.1.tgz#ff3f0de2e7b5d180e757ad98000f1081b87bcea3"
   integrity sha512-0BfJq4NSfQXd+SkFdrvFbG7addhYSBA2mQwISr46pD6E5iqkWg02RAs8vyTT/j0RTnoYmeXauBuSv1qKwR179g==
+  dependencies:
+    follow-redirects "1.5.10"
+    is-buffer "^2.0.2"
+
+axios@^0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.19.0.tgz#8e09bff3d9122e133f7b8101c8fbdd00ed3d2ab8"
+  integrity sha512-1uvKqKQta3KBxIz14F2v06AEHZ/dIoeKfbTRkK1E5oqjDnuEerLmYTgJB5AiQZHJcljpg1TuRzdjDR06qNk0DQ==
   dependencies:
     follow-redirects "1.5.10"
     is-buffer "^2.0.2"
@@ -6708,10 +6720,10 @@ jws@^3.2.2:
     jwa "^1.4.1"
     safe-buffer "^5.0.1"
 
-keycloak-admin@^1.8.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/keycloak-admin/-/keycloak-admin-1.10.0.tgz#069443943baaf9390bdd09347180a7df9b704525"
-  integrity sha512-n4C2GfA4G/LmI3yBkE0dDKOpyfCzHQ/mGPhA+pNhJ3u54fUdxHaXH1eGhHZ9WaM24F2mxJsz5a5kei4o+/Q4dg==
+keycloak-admin@^1.12.0:
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/keycloak-admin/-/keycloak-admin-1.12.0.tgz#6727b85053a2981b049083f1ca7984fe5eec544f"
+  integrity sha512-H+1FnLBISbSQGRuBSRfb8AaFmW3KUgFG+HwadcQ/L9HIQcGD07zKjLfYMAcYVAezMKKbmHzrWkgRoVVRBwl/+A==
   dependencies:
     "@types/debug" "^0.0.30"
     axios "^0.18.0"
@@ -6721,6 +6733,13 @@ keycloak-admin@^1.8.0:
     lodash "^4.17.10"
     url-join "^4.0.0"
     url-template "^2.0.8"
+
+keycloak-connect@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/keycloak-connect/-/keycloak-connect-5.0.0.tgz#fa0ebfe1e1236381d0e1b94bfb1594dab5a21497"
+  integrity sha512-9SDZc6bbNzWY1di1qEQAW4RY94t/z6hWvkj6RNro3sWV3PSuT/DNXsCyfZpEJlj5Vz60w8p496HuNdMyqsV7AQ==
+  dependencies:
+    jwk-to-pem "^2.0.0"
 
 keyv@^3.0.0:
   version "3.1.0"
@@ -10079,7 +10098,7 @@ srcset@^1.0.0:
     array-uniq "^1.0.2"
     number-is-nan "^1.0.0"
 
-sshpk@^1.14.1, sshpk@^1.14.2, sshpk@^1.7.0:
+sshpk@^1.14.1, sshpk@^1.14.2, sshpk@^1.16.1, sshpk@^1.7.0:
   version "1.16.1"
   resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.16.1.tgz#fb661c0bef29b39db40769ee39fa70093d6f6877"
   integrity sha512-HXXqVUq7+pcKeLqqZj6mHFUMvXtOJt1uoUx09pFW6011inTMxqI8BA8PM95myrIyyKwdnzjdFjLiE6KBPVtJIg==
@@ -10758,6 +10777,11 @@ typescript@^2.5.1:
   version "2.9.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
   integrity sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
+
+typescript@^3.4.4:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz#c830f657f93f1ea846819e929092f5fe5983e977"
+  integrity sha512-ACzBtm/PhXBDId6a6sDJfroT2pOWt/oOnk4/dElG5G33ZL776N3Y6/6bKZJBFpd+b05F3Ct9qDjMeJmRWtE2/g==
 
 typpy@2.3.10:
   version "2.3.10"

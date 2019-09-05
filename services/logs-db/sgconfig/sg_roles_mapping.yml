@@ -1,14 +1,17 @@
 # In this file users, backendroles and hosts can be mapped to Search Guard roles.
 # Permissions for Search Guard roles are configured in sg_roles.yml
 
+# this gives access to searchguard management
 sg_all_access:
   backendroles:
     - admin
-    - lagoonadmin
+    - platform-owner
 
-lagoonadmin:
+# this gives access to all lagoon tenants
+lagoon_all_access:
   backendroles:
     - admin
+    - platform-owner
 
 sg_kibana_server:
   readonly: true

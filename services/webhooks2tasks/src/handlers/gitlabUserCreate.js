@@ -26,7 +26,7 @@ async function gitlabUserCreate(webhook: WebhookRequestData) {
       lastName = R.tail(nameParts).join(' ');
     }
 
-    await addUser(id, email, firstName, lastName, null, id);
+    await addUser(email, firstName, lastName, null, id);
 
     sendToLagoonLogs(
       'info',
@@ -34,7 +34,7 @@ async function gitlabUserCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Created user ${email}`
+      `Created user ${email} ${id}`
     );
 
     return;

@@ -4,11 +4,8 @@ mutation ClearApiData {
   # First, remove all relations between entities...
   RemoveAllNotificationsFromAllProjects: removeAllNotificationsFromAllProjects
   RemoveAllSshKeysFromAllUsers: removeAllSshKeysFromAllUsers
-  RemoveAllUsersFromAllCustomers: removeAllUsersFromAllCustomers
-  RemoveAllUsersFromAllProjects: removeAllUsersFromAllProjects
 
   # ...then delete the entities themselves
-  DeleteAllCustomers: deleteAllCustomers
   DeleteAllEnvironments: deleteAllEnvironments
   DeleteAllNotificationSlacks: deleteAllNotificationSlacks
   DeleteAllNotificationRocketChats: deleteAllNotificationRocketChats
@@ -17,4 +14,5 @@ mutation ClearApiData {
   DeleteAllSshKeys: deleteAllSshKeys
   DeleteAllUsers: deleteAllUsers
   DeleteAllBackups: deleteAllBackups
+  DeleteAllGroups: deleteAllGroups
 }
