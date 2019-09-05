@@ -108,6 +108,7 @@ const typeDefs = gql`
     comment: String
     gitlabId: Int
     sshKeys: [SshKey]
+    groups: [Group]
   }
 
   type GroupMembership {

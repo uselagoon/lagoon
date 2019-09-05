@@ -111,6 +111,7 @@ const {
 const {
   getAllGroups,
   getGroupsByProjectId,
+  getGroupsByUserId,
   addGroup,
   updateGroup,
   deleteGroup,
@@ -194,6 +195,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   User: {
     sshKeys: getUserSshKeys,
+    groups: getGroupsByUserId,
   },
   Backup: {
     restore: getRestoreByBackupId,

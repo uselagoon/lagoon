@@ -70,6 +70,36 @@ export const getGroupsByProjectId = async (
   }
 };
 
+export const getGroupsByUserId = async (
+  { id: uid },
+  _input,
+  { hasPermission, dataSources, keycloakGrant },
+) => {
+  const queryUser = await dataSources.UserModel.loadUserById(
+    uid,
+  );
+  const queryUserGroups = await dataSources.UserModel.getAllGroupsForUser(queryUser);
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    return queryUserGroups;
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getGroupsByUserId');
+      return [];
+    }
+
+    const currentUser = await dataSources.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const currentUserGroups = await dataSources.UserModel.getAllGroupsForUser(currentUser);
+    const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
+
+    return bothUserGroups;
+  }
+};
+
 export const addGroup = async (_root, { input }, { dataSources, sqlClient, hasPermission }) => {
   await hasPermission('group', 'add');
 
