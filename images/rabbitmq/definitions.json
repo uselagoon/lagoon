@@ -9,6 +9,6 @@
         { "user": "REPLACE_USERNAME", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*" }
   ],
   "policies":[
-        {"vhost":"/","name":"lagoon-ha","pattern":"REPLACE_QUEUE_PATTERN", "definition":{"ha-mode":"all","ha-sync-mode":"automatic","ha-sync-batch-size":5}}
+        {"vhost":"/","name":"lagoon-ha","pattern":"REPLACE_QUEUE_PATTERN", "definition":{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic","ha-sync-batch-size":5}}
   ]
 }

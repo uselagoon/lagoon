@@ -13,7 +13,7 @@ echo NODENAME=rabbit@${HOSTNAME}.${SERVICE_NAME}-headless.${POD_NAMESPACE}.svc.c
 echo cluster_formation.k8s.hostname_suffix=.${SERVICE_NAME}-headless.${POD_NAMESPACE}.svc.cluster.local >> /etc/rabbitmq/rabbitmq.conf
 echo cluster_formation.k8s.service_name=${SERVICE_NAME}-headless >> /etc/rabbitmq/rabbitmq.conf
 
-# Replace placeholders with ENV values and copy file to rabbitmq conf directory from ConfigMap
+# Replace placeholders with ENV values and copy file to rabbitmq conf directory
 if [ -e /etc/rabbitmq/definitions.json ]; then
   sed -i -e "s/REPLACE_USERNAME/${RABBITMQ_DEFAULT_USER}/g" \
 	 -e "s/REPLACE_PASSWORD/${RABBITMQ_DEFAULT_PASS}/g" \
