@@ -1,8 +1,36 @@
 import * as R from 'ramda';
 import validator from 'validator';
+import * as logger from '../../logger';
 import { isPatchEmpty } from '../../util/db';
 import * as projectHelpers from '../project/helpers';
 import { SearchguardOperations } from './searchguard';
+
+export const getGroupsByProjectId = async (
+  { id: pid },
+  _input,
+  { hasPermission, dataSources, keycloakGrant },
+) => {
+  const projectGroups = await dataSources.GroupModel.loadGroupsByProjectId(pid);
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    return projectGroups;
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getGroupsByProjectId');
+      return [];
+    }
+
+    const user = await dataSources.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const userGroups = await dataSources.UserModel.getAllGroupsForUser(user);
+    const userProjectGroups = R.intersection(projectGroups, userGroups);
+
+    return userProjectGroups;
+  }
+};
 
 export const addGroup = async (_root, { input }, { dataSources, sqlClient, hasPermission }) => {
   await hasPermission('group', 'add');
