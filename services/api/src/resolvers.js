@@ -109,6 +109,7 @@ const {
 } = require('./resources/user/resolvers');
 
 const {
+  getAllGroups,
   getGroupsByProjectId,
   addGroup,
   updateGroup,
@@ -209,6 +210,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
+    allGroups: getAllGroups,
   },
   Mutation: {
     addOrUpdateEnvironment,

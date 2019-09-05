@@ -485,6 +485,10 @@ const typeDefs = gql`
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Groups matching given filter (all if no filter defined)
+    """
+    allGroups(name: String): [Group]
   }
 
   # Must provide id OR name
