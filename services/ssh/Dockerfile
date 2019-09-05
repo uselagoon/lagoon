@@ -61,6 +61,7 @@ COPY services/ssh/home/ /home/
 
 # token.sh needs some envplating, so we fix permissions
 RUN fix-permissions /home/token.sh
+RUN fix-permissions /home/grant.sh
 
 RUN fix-permissions /etc/ssh/ && \
     fix-permissions /run/ && \

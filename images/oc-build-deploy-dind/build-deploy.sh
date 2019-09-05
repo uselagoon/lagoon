@@ -45,6 +45,8 @@ DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
 set -x
 
+oc project --insecure-skip-tls-verify $OPENSHIFT_PROJECT
+
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 
 for ADDITIONAL_YAML in "${ADDITIONAL_YAMLS[@]}"

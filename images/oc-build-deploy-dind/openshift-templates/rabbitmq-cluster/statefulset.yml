@@ -41,6 +41,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ""
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
 - apiVersion: v1
   kind: ServiceAccount
@@ -84,6 +87,7 @@ objects:
                      values:
                        - ${SERVICE_NAME}
                topologyKey: kubernetes.io/hostname
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
         containers:
         - name: ${SERVICE_NAME}
           command:

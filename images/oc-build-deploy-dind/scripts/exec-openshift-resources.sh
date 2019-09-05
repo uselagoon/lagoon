@@ -6,6 +6,12 @@ else
   SERVICE_ROUTER_URL=""
 fi
 
+TEMPLATE_ADDITIONAL_PARAMETERS=()
+
+if [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep ENVIRONMENT_TYPE) ]]; then
+  TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}")
+fi
+
 oc process  --local -o yaml --insecure-skip-tls-verify \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
@@ -19,4 +25,5 @@ oc process  --local -o yaml --insecure-skip-tls-verify \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
   -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
   "${TEMPLATE_PARAMETERS[@]}" \
+  "${TEMPLATE_ADDITIONAL_PARAMETERS[@]}" \
   | outputToYaml

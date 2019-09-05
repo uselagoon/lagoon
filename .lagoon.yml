@@ -39,6 +39,7 @@ environments:
   master:
     types:
       logs-db: elasticsearch-cluster
+      logs-collector: custom
     templates:
       logs-db: services/logs-db/.lagoon.cluster.yml
       logs-forwarder: services/logs-forwarder/.lagoon.multi.yml

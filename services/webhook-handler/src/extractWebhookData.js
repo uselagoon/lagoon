@@ -50,6 +50,14 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       event = bodyObj.object_kind || bodyObj.event_name;
       uuid = uuid4();
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
+
+      // This is a system webhook
+      if (!giturl) {
+        // Ensure the system hook came from gitlab
+        if (!('x-gitlab-token' in req.headers) || req.headers['x-gitlab-token'] !== process.env.GITLAB_SYSTEM_HOOK_TOKEN) {
+          throw new Error('Gitlab system hook secret verification failed');
+        }
+      }
     } else if ('x-event-key' in req.headers) {
       webhooktype = 'bitbucket'
       event = req.headers['x-event-key']
