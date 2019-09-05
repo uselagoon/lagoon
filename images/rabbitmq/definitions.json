@@ -1,0 +1,14 @@
+{
+  "vhosts":[
+        {"name": "/"}
+  ],
+  "users": [
+        { "name": "REPLACE_USERNAME", "password": "REPLACE_PASSWORD", "tags": "administrator" }
+  ],
+  "permissions":[
+        { "user": "REPLACE_USERNAME", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*" }
+  ],
+  "policies":[
+        {"vhost":"/","name":"lagoon-ha","pattern":"REPLACE_QUEUE_PATTERN", "definition":{"ha-mode":"all","ha-sync-mode":"automatic","ha-sync-batch-size":5}}
+  ]
+}
