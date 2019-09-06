@@ -5,7 +5,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 ENV RABBITMQ_DEFAULT_USER=guest \
     RABBITMQ_DEFAULT_PASS="guest"\
-    RABBITMQ_DEFAULT_HA_PATTERN='^lagoon-'
+    RABBITMQ_DEFAULT_HA_PATTERN='^$'
 
 
 COPY rabbitmq_delayed_message_exchange-3.7.0.ez /plugins
@@ -16,7 +16,7 @@ COPY definitions.json /etc/rabbitmq/definitions.json
 RUN chgrp 0 /etc/rabbitmq/definitions.json; chmod g+rw /etc/rabbitmq/definitions.json
 
 # Copy a custom entrypoint
-ADD cluster-rabbit.sh /
+COPY cluster-rabbit.sh /
 RUN chgrp 0 /cluster-rabbit.sh; chmod +x /cluster-rabbit.sh
 
 ENTRYPOINT /cluster-rabbit.sh
