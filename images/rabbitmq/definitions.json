@@ -1,14 +1,14 @@
 {
   "vhosts":[
-        {"name": "/"}
+        {"name": "REPLACE_VHOST"}
   ],
   "users": [
         { "name": "REPLACE_USERNAME", "password": "REPLACE_PASSWORD", "tags": "administrator" }
   ],
   "permissions":[
-        { "user": "REPLACE_USERNAME", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*" }
+        { "user": "REPLACE_USERNAME", "vhost": "REPLACE_VHOST", "configure": ".*", "write": ".*", "read": ".*" }
   ],
   "policies":[
-        {"vhost":"/","name":"lagoon-ha","pattern":"REPLACE_QUEUE_PATTERN", "definition":{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic","ha-sync-batch-size":5}}
+        {"vhost":"REPLACE_VHOST","name":"lagoon-ha","pattern":"REPLACE_QUEUE_PATTERN", "definition":{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic","ha-sync-batch-size":5}}
   ]
 }
