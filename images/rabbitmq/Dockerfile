@@ -9,7 +9,7 @@ ENV RABBITMQ_DEFAULT_USER='guest' \
     RABBITMQ_DEFAULT_HA_PATTERN='^$'\
     RABBITMQ_DEFAULT_VHOST='/'
 
-COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
+COPY --from=commons /bin/ep /bin/
 
 COPY rabbitmq_delayed_message_exchange-3.7.0.ez /plugins
 RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange;
