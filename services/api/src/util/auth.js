@@ -83,9 +83,19 @@ const legacyHasPermission = (legacyCredentials) => {
   };
 };
 
-const keycloakHasPermission = (grant) => {
+const keycloakHasPermission = (grant, requestCache) => {
   return async (resource, scope, attributes = {}) => {
     const currentUserId = grant.access_token.content.sub;
+
+    // Check if the same set of permissions has been granted already for this
+    // api query.
+    // TODO Is it possible to ask keycloak for ALL permissions (given a project
+    // or group context) and cache a single query instead?
+    const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(attributes)}`;
+    const cachedPermissions = requestCache.get(cacheKey);
+    if (cachedPermissions !== undefined) {
+      return cachedPermissions;
+    }
 
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
@@ -207,13 +217,16 @@ const keycloakHasPermission = (grant) => {
       const newGrant = await keycloakGrantManager.checkPermissions(authzRequest, request);
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
+        requestCache.set(cacheKey, true);
         return;
       }
     } catch (err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
+      logger.debug(`keycloakHasPermission denied for "${scope}" on "${resource}": ${err.message}`);
     }
 
+    requestCache.set(cacheKey, false);
     throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
