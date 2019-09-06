@@ -120,8 +120,6 @@ objects:
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_USE_LONGNAME
               value: "true"
-            - name: RABBITMQ_DEFAULT_HA_PATTERN
-              value: "^lagoon-"
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:

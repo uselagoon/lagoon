@@ -1,2 +1,4 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/rabbitmq-cluster
+ENV RABBITMQ_DEFAULT_HA_PATTERN='^lagoon-'\
+    RABBITMQ_DEFAULT_VHOST='/'
