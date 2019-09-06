@@ -59,7 +59,7 @@ MINISHIFT_VERSION := 1.34.1
 OPENSHIFT_VERSION := v3.11.0
 
 MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 2GB
+MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
