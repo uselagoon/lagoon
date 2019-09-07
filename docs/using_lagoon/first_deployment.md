@@ -43,7 +43,7 @@ That's it! We hope that wasn't too hard.
 
 ## But wait, how about other branches or the production environment?
 
-That's the beauty of Lagoon: It's exactly the same: Just push the branchname you defined to be your production branch and that one will be deployed.
+That's the beauty of Lagoon: It's exactly the same! Just push the branchname you defined to be your production branch and that one will be deployed.
 
 ## Failure? Don't worry.
 
