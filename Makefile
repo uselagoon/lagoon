@@ -195,8 +195,7 @@ elasticimages :=  elasticsearch__6 \
 									kibana__7 \
 									kibana__7.1 \
 									logstash__6 \
-									logstash__7 \
-									logstash__7.1
+									logstash__7
 
 build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
 
