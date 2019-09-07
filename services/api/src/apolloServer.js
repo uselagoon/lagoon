@@ -6,7 +6,7 @@ const {
   AuthenticationError,
   makeExecutableSchema,
 } = require('apollo-server-express');
-const { applyMiddleware } = require('graphql-middleware');
+const NodeCache = require('node-cache');
 const {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
@@ -61,18 +61,27 @@ const apolloServer = new ApolloServer({
         sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
-      // Add credentials to context.
-      const sqlClient = getSqlClient();
+
+      const requestCache = new NodeCache({
+        stdTTL: 0,
+        checkperiod: 0,
+      });
+
       return {
+        sqlClient: getSqlClient(),
         hasPermission: grant
-          ? keycloakHasPermission(grant)
+          ? keycloakHasPermission(grant, requestCache)
           : legacyHasPermission(legacyCredentials),
-        sqlClient,
+        keycloakGrant: grant,
+        requestCache,
       };
     },
     onDisconnect: (websocket, context) => {
       if (context.sqlClient) {
         context.sqlClient.end();
+      }
+      if (context.requestCache) {
+        context.requestCache.flushAll();
       }
     },
   },
@@ -91,14 +100,20 @@ const apolloServer = new ApolloServer({
 
     // HTTP requests
     if (!connection) {
+      const requestCache = new NodeCache({
+        stdTTL: 0,
+        checkperiod: 0,
+      });
+
       return {
         sqlClient: getSqlClient(),
         hasPermission: req.kauth
-          ? keycloakHasPermission(req.kauth.grant)
+          ? keycloakHasPermission(req.kauth.grant, requestCache)
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth
           ? req.kauth.grant
           : null,
+        requestCache,
       };
     }
   },
@@ -116,6 +131,9 @@ const apolloServer = new ApolloServer({
         willSendResponse: response => {
           if (response.context.sqlClient) {
             response.context.sqlClient.end();
+          }
+          if (response.context.requestCache) {
+            response.context.requestCache.flushAll();
           }
         },
       }),

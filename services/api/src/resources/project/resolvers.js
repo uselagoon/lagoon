@@ -339,7 +339,7 @@ const addProject = async (
 
 const deleteProject = async (
   root,
-  { input: { project } },
+  { input: { project: projectName } },
   {
     sqlClient,
     hasPermission,
@@ -347,7 +347,7 @@ const deleteProject = async (
   },
 ) => {
   // Will throw on invalid conditions
-  const pid = await Helpers(sqlClient).getProjectIdByName(project);
+  const pid = await Helpers(sqlClient).getProjectIdByName(projectName);
   const project = await Helpers(sqlClient).getProjectById(pid);
 
   await hasPermission('project', 'delete', {
@@ -361,7 +361,7 @@ const deleteProject = async (
   try {
     const group = await dataSources.GroupModel.loadGroupByName(`project-${project.name}`);
     await dataSources.GroupModel.deleteGroup(group.id);
-    await SearchguardOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name)
+    await SearchguardOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name);
   } catch (err) {
     logger.error(`Could not delete default group for project ${project.name}: ${err.message}`);
   }
