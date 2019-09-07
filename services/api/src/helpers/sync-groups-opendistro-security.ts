@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { logger } from '@lagoon/commons/src/local-logging';
 import { getSqlClient } from '../clients/sqlClient';
 import { Group } from '../models/group';
-import { SearchguardOperations } from '../resources/group/searchguard';
+import { OpendistroSecurityOperations } from '../resources/group/opendistroSecurity';
 import { keycloakAdminClient } from '../clients/keycloakClient';
 
 
@@ -48,7 +48,7 @@ const refreshToken = async keycloakAdminClient => {
     logger.debug(`Processing ${loadedGroup.name}`);
     const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(loadedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    await SearchguardOperations(sqlClient, GroupModel).syncGroup(loadedGroup.name, projectIds);
+    await OpendistroSecurityOperations(sqlClient, GroupModel).syncGroup(loadedGroup.name, projectIds);
   }
 
   logger.info('Migration completed');

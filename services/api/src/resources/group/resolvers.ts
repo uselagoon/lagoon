@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import validator from 'validator';
 import { isPatchEmpty } from '../../util/db';
 import * as projectHelpers from '../project/helpers';
-import { SearchguardOperations } from './searchguard';
+import { OpendistroSecurityOperations } from './opendistroSecurity';
 
 export const addGroup = async (_root, { input }, { dataSources, sqlClient, hasPermission }) => {
   await hasPermission('group', 'add');
@@ -30,7 +30,7 @@ export const addGroup = async (_root, { input }, { dataSources, sqlClient, hasPe
   });
 
   // We don't have any projects yet. So just an empty string
-  await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(input.name, '')
+  await OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).syncGroup(input.name, '')
 
   return group;
 };
@@ -79,7 +79,7 @@ export const deleteGroup = async (
 
   await dataSources.GroupModel.deleteGroup(group.id);
 
-  await SearchguardOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name)
+  await OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name)
 
   return 'success';
 };
@@ -207,13 +207,13 @@ export const addGroupsToProject = async (
     const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
     const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+    OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
   try {
     await Promise.all(syncGroups);
   } catch (err) {
-    throw new Error(`Could not sync groups with searchguard: ${err.message}`);
+    throw new Error(`Could not sync groups with opendistro-security: ${err.message}`);
   }
 
   return await projectHelpers(sqlClient).getProjectById(project.id);
@@ -252,13 +252,13 @@ export const removeGroupsFromProject = async (
     // @TODO: Load ProjectIDs of subgroups as well
     const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+    OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
   try {
     await Promise.all(syncGroups);
   } catch (err) {
-    throw new Error(`Could not sync groups with searchguard: ${err.message}`);
+    throw new Error(`Could not sync groups with opendistro-security: ${err.message}`);
   }
 
   return await projectHelpers(sqlClient).getProjectById(project.id);

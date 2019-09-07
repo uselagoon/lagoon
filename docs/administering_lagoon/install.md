@@ -62,12 +62,12 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
 4.  As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` (for a local OpenShift this will be http://rest2tasks-lagoon-develop.192.168.99.100.xip.io/), if you get `welcome to rest2tasks` as result, you did everything correct, bravo!
 
-### Searchguard
+### OpendistroSecurity
 
-Once Lagoon is install operational you need to initialise Searchguard to allow Kibana multitenancy. This only needs to be run once in a new setup of lagoon.
+Once Lagoon is install operational you need to initialise OpendistroSecurity to allow Kibana multitenancy. This only needs to be run once in a new setup of lagoon.
 
 1. Open a shell of an elasticsearch pod in logs-db.
-2. run ./sgadmin_demo.sh
+2. run ./securityadmin_demo.sh
 
 ### Configure Installed Lagoon
 
