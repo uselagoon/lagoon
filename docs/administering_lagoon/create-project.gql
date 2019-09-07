@@ -46,30 +46,34 @@ mutation {
   addProject(
     input: {
       # TODO: Fill in the name field
-      # This is the unique identifier of the project
+      # This is the project name
       name: ""
       # TODO: Fill in the customer field
-      # This is the customer ID from the response of the first query
+      # This is the id of the customer to assign to the project
       customer: 0
       # TODO: Fill in the openshift field
-      # This is the OpenShift ID from the response of the first query
+      # This is the id of the OpenShift to assign to the project
       openshift: 0
-      # TODO: Fill in the gitUrl field
-      # This is the SSH URL to the Git repository where a `.lagoon.yml` file should be committed in the root.
-      # HTTPS URLs are currently not supported.
+      # TODO: Fill in the name field
+      # This is the project name
       gitUrl: ""
+      # TODO: Fill in the branches to be deployed
+      branches: ""
+      # TODO: Define the production environment
+      productionEnvironment: ""
     }
   ) {
     name
     customer {
       name
+      id
     }
     openshift {
       name
+      id
     }
     gitUrl
     activeSystemsDeploy
-    activeSystemsPromote
     activeSystemsRemove
     branches
     pullrequests

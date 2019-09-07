@@ -142,6 +142,10 @@ objects:
       port: 24284
       protocol: TCP
       targetPort: 24284
+    - name: http-metrics
+      port: 24231
+      protocol: TCP
+      targetPort: 24231
     type: NodePort
     selector:
       service: ${SERVICE_NAME}
@@ -165,6 +169,20 @@ objects:
         ca_cert_path /fluentd/ssl/ca_cert.pem
         ca_private_key_path /fluentd/ssl/ca_key.pem
         ca_private_key_passphrase "#{ENV['LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE']}"
+      </source>
+
+      <source>
+        @type prometheus
+        bind 0.0.0.0
+        port 24231
+        metrics_path /metrics
+      </source>
+      <source>
+        @type prometheus_output_monitor
+        interval 10
+        <labels>
+          hostname ${hostname}
+        </labels>
       </source>
 
       <label @LOGS>

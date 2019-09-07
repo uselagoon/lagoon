@@ -512,11 +512,10 @@ const fetch = (manager, handler, options, params) => {
     const req = getProtocol(options).request(options, (response) => {
       let json = '';
       response.on('data', (d) => (json += d.toString()));
-      response.on('data', (d) => console.log('grant-manager-data', d.toString()));
-      if (response.statusCode < 200 || response.statusCode > 299) {
-        return reject(new Error(response.statusCode + ':' + http.STATUS_CODES[ response.statusCode ]));
-      }
       response.on('end', () => {
+        if (response.statusCode < 200 || response.statusCode > 299) {
+          return reject(new Error(response.statusCode + ':' + http.STATUS_CODES[ response.statusCode ] + ':' + json));
+        }
         handler(resolve, reject, json);
       });
     });

@@ -1,8 +1,104 @@
 import * as R from 'ramda';
 import validator from 'validator';
+import * as logger from '../../logger';
 import { isPatchEmpty } from '../../util/db';
+import { GroupNotFoundError } from '../../models/group';
 import * as projectHelpers from '../project/helpers';
 import { SearchguardOperations } from './searchguard';
+
+export const getAllGroups = async (
+  root,
+  { name },
+  { hasPermission, dataSources, keycloakGrant },
+) => {
+  try {
+    await hasPermission('group', 'viewAll');
+
+    if (name) {
+      const group = await dataSources.GroupModel.loadGroupByName(name);
+      return [group];
+    } else {
+      return await dataSources.GroupModel.loadAllGroups();
+    }
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      return [];
+    }
+
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllGroups');
+      return [];
+    }
+
+    const user = await dataSources.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const userGroups = await dataSources.UserModel.getAllGroupsForUser(user);
+
+    if (name) {
+      return R.filter(R.propEq('name', name), userGroups);
+    } else {
+      return userGroups;
+    }
+  }
+};
+
+export const getGroupsByProjectId = async (
+  { id: pid },
+  _input,
+  { hasPermission, dataSources, keycloakGrant },
+) => {
+  const projectGroups = await dataSources.GroupModel.loadGroupsByProjectId(pid);
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    return projectGroups;
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getGroupsByProjectId');
+      return [];
+    }
+
+    const user = await dataSources.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const userGroups = await dataSources.UserModel.getAllGroupsForUser(user);
+    const userProjectGroups = R.intersection(projectGroups, userGroups);
+
+    return userProjectGroups;
+  }
+};
+
+export const getGroupsByUserId = async (
+  { id: uid },
+  _input,
+  { hasPermission, dataSources, keycloakGrant },
+) => {
+  const queryUser = await dataSources.UserModel.loadUserById(
+    uid,
+  );
+  const queryUserGroups = await dataSources.UserModel.getAllGroupsForUser(queryUser);
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    return queryUserGroups;
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getGroupsByUserId');
+      return [];
+    }
+
+    const currentUser = await dataSources.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const currentUserGroups = await dataSources.UserModel.getAllGroupsForUser(currentUser);
+    const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
+
+    return bothUserGroups;
+  }
+};
 
 export const addGroup = async (_root, { input }, { dataSources, sqlClient, hasPermission }) => {
   await hasPermission('group', 'add');
@@ -207,7 +303,7 @@ export const addGroupsToProject = async (
     const updatedGroup = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
     const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+    SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
   try {
@@ -252,7 +348,7 @@ export const removeGroupsFromProject = async (
     // @TODO: Load ProjectIDs of subgroups as well
     const projectIdsArray = await dataSources.GroupModel.getProjectsFromGroupAndSubgroups(updatedGroup)
     const projectIds = R.join(',')(projectIdsArray)
-    await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
+    SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(updatedGroup.name, projectIds);
   });
 
   try {
