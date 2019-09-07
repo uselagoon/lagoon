@@ -108,6 +108,7 @@ const typeDefs = gql`
     comment: String
     gitlabId: Int
     sshKeys: [SshKey]
+    groups: [Group]
   }
 
   type GroupMembership {
@@ -272,6 +273,10 @@ const typeDefs = gql`
     Environment variables available during build-time and run-time
     """
     envVariables: [EnvKeyValue]
+    """
+    Which groups are directly linked to project
+    """
+    groups: [Group]
   }
 
   """
@@ -481,6 +486,10 @@ const typeDefs = gql`
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Groups matching given filter (all if no filter defined)
+    """
+    allGroups(name: String): [Group]
   }
 
   # Must provide id OR name
