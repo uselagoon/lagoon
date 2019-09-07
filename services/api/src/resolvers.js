@@ -110,6 +110,9 @@ const {
 } = require('./resources/user/resolvers');
 
 const {
+  getAllGroups,
+  getGroupsByProjectId,
+  getGroupsByUserId,
   addGroup,
   updateGroup,
   deleteGroup,
@@ -157,6 +160,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
+    groups: getGroupsByProjectId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -192,6 +196,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   User: {
     sshKeys: getUserSshKeys,
+    groups: getGroupsByUserId,
   },
   Backup: {
     restore: getRestoreByBackupId,
@@ -209,6 +214,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
+    allGroups: getAllGroups,
   },
   Mutation: {
     addOrUpdateEnvironment,

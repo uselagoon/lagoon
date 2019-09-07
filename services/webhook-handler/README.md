@@ -35,4 +35,4 @@ Now you can send single requests to the webhook handler.
 
 You can also run all tests from the CLI via newman
 
-        yarn run newman-runall
+        yarn run newman:all
