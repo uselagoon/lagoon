@@ -20,6 +20,6 @@ RUN fix-permissions /etc/rabbitmq/definitions.json
 
 # Copy a custom entrypoint
 COPY cluster-rabbit.sh /
-RUN fix-permissions /cluster-rabbit.sh; chmod +x /cluster-rabbit.sh
+RUN fix-permissions /cluster-rabbit.sh && chmod +x /cluster-rabbit.sh
 
 ENTRYPOINT /cluster-rabbit.sh
