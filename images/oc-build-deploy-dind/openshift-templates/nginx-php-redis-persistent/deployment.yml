@@ -66,7 +66,7 @@ parameters:
     value: ''
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
-    required: true
+    value: 'production'
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -104,10 +104,10 @@ objects:
             - name: ${SERVICE_NAME}
               persistentVolumeClaim:
                 claimName: ${SERVICE_NAME}
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${NGINX_SERVICE_IMAGE}
               name: ${NGINX_SERVICE_NAME}
-              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
               ports:
                 - containerPort: 8080
                   protocol: TCP
