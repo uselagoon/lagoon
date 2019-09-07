@@ -29,6 +29,7 @@ interface UserModel {
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
+  getAllGroupsForUser: (userInput: User) => Promise<Group[]>;
   getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
   getUserRolesForProject: (
     userInput: User,
@@ -201,11 +202,9 @@ const loadAllUsers = async (): Promise<User[]> => {
   return users;
 };
 
-
-
-const getAllProjectsIdsForUser = async (userInput: User): Promise<number[]> => {
+const getAllGroupsForUser = async (userInput: User): Promise<Group[]> => {
   const GroupModel = Group();
-  let projects = [];
+  let groups = [];
 
   const roleSubgroups = await keycloakAdminClient.users.listGroups({
     id: userInput.id,
@@ -221,7 +220,20 @@ const getAllProjectsIdsForUser = async (userInput: User): Promise<number[]> => {
       fullRoleSubgroup,
     );
 
-    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(roleSubgroupParent);
+    groups.push(roleSubgroupParent);
+  }
+
+  return groups;
+}
+
+const getAllProjectsIdsForUser = async (userInput: User): Promise<number[]> => {
+  const GroupModel = Group();
+  let projects = [];
+
+  const userGroups = await getAllGroupsForUser(userInput);
+
+  for (const group of userGroups) {
+    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
     projects = [...projects, ...projectIds];
   }
 
@@ -234,22 +246,11 @@ const getUserRolesForProject = async (
 ): Promise<string[]> => {
   const GroupModel = Group();
 
-  const roleSubgroups = await keycloakAdminClient.users.listGroups({
-    id: userInput.id,
-  });
+  const userGroups = await getAllGroupsForUser(userInput);
 
   let roles = [];
-  for (const roleSubgroup of roleSubgroups) {
-    const fullRoleSubgroup = await GroupModel.loadGroupById(roleSubgroup.id);
-    if (!isRoleSubgroup(fullRoleSubgroup)) {
-      continue;
-    }
-
-    const roleSubgroupParent = await GroupModel.loadParentGroup(
-      fullRoleSubgroup,
-    );
-
-    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(roleSubgroupParent);
+  for (const group of userGroups) {
+    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
 
     if (projectIds.includes(projectId)) {
       const groupRoles = R.pipe(
@@ -257,7 +258,7 @@ const getUserRolesForProject = async (
           R.pathEq(['user', 'id'], userInput.id, membership),
         ),
         R.pluck('role'),
-      )(roleSubgroupParent.members);
+      )(group.members);
 
       roles = [...roles, ...groupRoles];
     }
@@ -354,6 +355,7 @@ export const User = (): UserModel => ({
   loadUserById,
   loadUserByUsername,
   loadUserByIdOrUsername,
+  getAllGroupsForUser,
   getAllProjectsIdsForUser,
   getUserRolesForProject,
   addUser,
