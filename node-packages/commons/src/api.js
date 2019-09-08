@@ -266,7 +266,10 @@ const getEnvironmentBackups = (openshiftProjectName: string): Promise<Project[]>
         name
       }
       backups {
-        ...${backupFragment}
+        id
+        backupId
+        source
+        created
       }
     }
   }
