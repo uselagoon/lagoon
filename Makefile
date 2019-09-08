@@ -55,10 +55,11 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.16.1
+MINISHIFT_VERSION := 1.34.1
+OPENSHIFT_VERSION := v3.11.0
 
 MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 2GB
+MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
@@ -84,6 +85,8 @@ docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(
 # 2. Location of Dockerfile
 # 3. Path of Docker Build context
 docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
+
+docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
@@ -129,9 +132,6 @@ images :=     oc \
 							rabbitmq \
 							rabbitmq-cluster \
 							mongo \
-							elasticsearch \
-							kibana \
-							logstash \
 							athenapdf-service \
 							curator \
 							docker-host
@@ -177,15 +177,40 @@ build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
 build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
-build/elasticsearch: build/commons images/elasticsearch/Dockerfile
-build/logstash: build/commons images/logstash/Dockerfile
-build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
 
+
+#######
+####### Elastic Images
+#######
+
+elasticimages :=  elasticsearch__6 \
+								  elasticsearch__7 \
+									kibana__6 \
+									kibana__7 \
+									logstash__6 \
+									logstash__7
+
+build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-elasticimages): build/commons
+	$(eval clean = $(subst build/,,$@))
+	$(eval tool = $(word 1,$(subst __, ,$(clean))))
+	$(eval version = $(word 2,$(subst __, ,$(clean))))
+# Call the docker build
+	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(elasticimages)
+s3-images += elasticimages
+
+build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
 
 #######
 ####### Python Images
@@ -420,9 +445,9 @@ $(build-services-galera):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash
-build/logs-db: build/elasticsearch
-build/logs-db-ui: build/kibana
+build/logs2logs-db: build/logstash__6
+build/logs-db: build/elasticsearch__6
+build/logs-db-ui: build/kibana__6
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
@@ -714,8 +739,9 @@ openshift:
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
-	$(info starting minishift with name $(CI_BUILD_TAG))
-	MINISHIFT_ENABLE_EXPERIMENTAL=y ./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="v3.9.0" --extra-clusterup-flags "--service-catalog"
+	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
@@ -728,14 +754,14 @@ endif
 	./local-dev/minishift/minishift ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login -u system:admin; \
-	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
-	oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
+	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
+	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 	@echo "wait 60secs in order to give openshift time to setup it's registry"
 	sleep 60
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	for i in {10..30}; do oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
+	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
 	$(MAKE) minishift/configure-lagoon-local push-docker-host-image
 
 minishift/login-docker-registry:
@@ -755,6 +781,7 @@ openshift-lagoon-setup:
 	oc -n lagoon policy add-role-to-user admin -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/priorityclasses.yaml; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
 	oc -n lagoon create -f openshift-setup/policybinding.yaml | oc -n lagoon create -f openshift-setup/rolebinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
@@ -786,7 +813,7 @@ minishift/configure-lagoon-local: openshift-lagoon-setup
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
-	rm minishift
+	rm -f minishift
 
 # Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
@@ -795,7 +822,7 @@ minishift/clean: minishift/stop
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
 local-dev/minishift/minishift:
-	$(info downloading minishift)
+	$(info downloading minishift version $(MINISHIFT_VERSION))
 	@mkdir -p ./local-dev/minishift
 ifeq ($(ARCH), Darwin)
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1

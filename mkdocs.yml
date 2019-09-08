@@ -31,6 +31,8 @@ pages:
       - Solr: using_lagoon/drupal/services/solr.md
       - Varnish: using_lagoon/drupal/services/varnish.md
       - Redis: using_lagoon/drupal/services/redis.md
+  - Node.js:
+    - Gracefull Shutdown: using_lagoon/nodejs/gracefull_shutdown.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
   - GoLive: using_lagoon/golive.md

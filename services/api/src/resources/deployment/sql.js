@@ -58,14 +58,14 @@ const Sql /* : SqlObj */ = {
       .toString(),
   selectPermsForDeployment: (id /* : number */) =>
     knex('deployment')
-      .select({ pid: 'project.id', cid: 'project.customer' })
+      .select({ pid: 'project.id' })
       .join('environment', 'deployment.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')
       .where('deployment.id', id)
       .toString(),
   selectPermsForEnvironment: (id /* : number */) =>
     knex('environment')
-      .select({ pid: 'project.id', cid: 'project.customer' })
+      .select({ pid: 'project.id' })
       .join('project', 'environment.project', '=', 'project.id')
       .where('environment.id', id)
       .toString(),

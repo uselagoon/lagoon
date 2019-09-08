@@ -26,7 +26,7 @@ services:
   cli: # cli container, will be used for executing composer and any local commands (drush, drupal, etc.)
     build:
       context: .
-      dockerfile: Dockerfile.cli
+      dockerfile: cli.dockerfile
     image: *lagoon-project # this image will be reused as `CLI_IMAGE` in subsequent Docker builds
     labels:
       # Lagoon Labels
@@ -42,7 +42,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: Dockerfile.nginx
+      dockerfile: nginx.dockerfile
       args:
         CLI_IMAGE: *lagoon-project # Inject the name of the cli image
     labels:
@@ -61,7 +61,7 @@ services:
   php:
     build:
       context: .
-      dockerfile: Dockerfile.php
+      dockerfile: php.dockerfile
       args:
         CLI_IMAGE: *lagoon-project
     labels:

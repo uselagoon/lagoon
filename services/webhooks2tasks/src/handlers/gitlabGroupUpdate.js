@@ -2,7 +2,7 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
-const { updateCustomer } = require('@lagoon/commons/src/api');
+const { updateGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -11,16 +11,16 @@ async function gitlabGroupUpdate(webhook: WebhookRequestData) {
 
   try {
     const group = await getGroup(body.group_id);
-    const { id, path: name, description: comment } = group;
+    const { id, path: name, full_path } = group;
+    const { old_full_path } = body;
 
     const meta = {
       data: group,
-      customer: id
+      group: id
     };
 
-    await updateCustomer(id, {
-      name,
-      comment
+    await updateGroup(sanitizeGroupName(old_full_path), {
+      name: sanitizeGroupName(full_path)
     });
 
     sendToLagoonLogs(
@@ -29,7 +29,7 @@ async function gitlabGroupUpdate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Updated customer ${name}`
+      `Updated group ${name}`
     );
 
     return;
@@ -40,7 +40,7 @@ async function gitlabGroupUpdate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not update customer, reason: ${error}`
+      `Could not update group, reason: ${error}`
     );
 
     return;
