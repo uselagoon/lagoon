@@ -167,6 +167,41 @@ const getEnvironmentByTaskId = async (
   return environment;
 };
 
+const getEnvironmentByBackupId = async (
+  { id: backup_id },
+  args,
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        e.*
+      FROM environment_backup eb
+      JOIN environment e on eb.environment = e.id
+      JOIN project p ON e.project = p.id
+      WHERE eb.id = :backup_id
+      LIMIT 1
+    `,
+  );
+
+  const rows = await query(sqlClient, prep({ backup_id }));
+
+  const environment = rows[0];
+
+  if (!environment) {
+    return null;
+  }
+
+  await hasPermission('environment', 'view', {
+    project: environment.project,
+  });
+
+  return environment;
+};
+
 const getEnvironmentStorageByEnvironmentId = async (
   { id: eid },
   args,
@@ -764,6 +799,7 @@ const Resolvers /* : ResolversObj */ = {
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
   getEnvironmentByTaskId,
+  getEnvironmentByBackupId,
   getEnvironmentServicesByEnvironmentId,
   setEnvironmentServices,
   deleteEnvironment,

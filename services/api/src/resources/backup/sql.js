@@ -21,15 +21,13 @@ const Sql /* : SqlObj */ = {
     { environmentId, includeDeleted } /* : { environmentId: number, includeDeleted: boolean } */,
   ) => {
     const query = knex('environment_backup')
-      .join('environment as e', 'e.id', '=', 'environment_backup.environment')
-      .select('environment_backup.*')
-      .where('e.id', environmentId);
+      .where('environment', environmentId);
 
     if (includeDeleted) {
       return query.toString();
     }
 
-    return query.where('environment_backup.deleted', '=', '0000-00-00 00:00:00').toString();
+    return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
   },
   insertBackup: (
     {

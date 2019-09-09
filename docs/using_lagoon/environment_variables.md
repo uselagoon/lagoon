@@ -78,3 +78,13 @@ If you want to define environment variables different per environment you can cr
 ### `.env` and `.env.defaults`
 `.env` and `.env.defaults` will act as the default values for environment variables if none other is defined. For example
 as default environment variables for Pull-Request environments (see [Worfklows](./workflows.md#pull-requests)).
+
+## Special Environment Variables
+
+### `PHP_ERROR_REPORTING`
+
+This variable, if set, will define the logging level you would like PHP to use. If not supplied, it will be set dynamically based on whether this is a production or development environment.
+
+On production environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE`
+
+On development environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_STRICT`
