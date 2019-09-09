@@ -6,7 +6,7 @@ set -eo pipefail
 # https://github.com/stefanjacobs/keycloak_min/blob/f26927426e60c1ec29fc0c0980e5a694a45dcc05/run.sh
 
 function is_keycloak_running {
-    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/auth/admin/realms)
+    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://$(hostname -i):8080/auth/admin/realms)
     if [[ $http_code -eq 401 ]]; then
         return 0
     else
@@ -1297,7 +1297,7 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://$(hostname -i):8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     configure_lagoon_realm
     configure_lagoon_searchguard_client
@@ -1312,8 +1312,26 @@ configure_keycloak &
 
 /bin/sh /opt/jboss/tools/databases/change-database.sh mariadb
 
+if [ -z "$BIND" ]; then
+    BIND=$(hostname --all-ip-addresses)
+fi
+if [ -z "$BIND_OPTS" ]; then
+    for BIND_IP in $BIND
+    do
+        BIND_OPTS+=" -Djboss.bind.address=$BIND_IP -Djboss.bind.address.private=$BIND_IP "
+    done
+fi
+SYS_PROPS+=" $BIND_OPTS"
+
+# If the server configuration parameter is not present, append the HA profile.
+if echo "$@" | egrep -v -- '-c |-c=|--server-config |--server-config='; then
+    SYS_PROPS+=" -c=standalone-ha.xml"
+fi
+
 ##################
 # Start Keycloak #
 ##################
 
-exec /opt/jboss/keycloak/bin/standalone.sh -b 0.0.0.0
+/opt/jboss/tools/jgroups.sh
+
+exec /opt/jboss/keycloak/bin/standalone.sh $SYS_PROPS
