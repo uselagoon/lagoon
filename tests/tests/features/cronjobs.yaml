@@ -68,7 +68,7 @@
   serial: 1
   vars:
     git_files: "features/"
-    lagoon_no_crons: ".lagoon-no-cronjobs.yml"
+    overwrite_lagoon_yml: ".lagoon-no-cronjobs.yml"
   tasks:
   - include: ../../tasks/git-add-commit-push.yaml
 
