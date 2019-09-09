@@ -1,11 +1,11 @@
 # rabbitmq Image
-amazee.io RabbitMQ Dockerfile with management plugin installed, based on the official rabbitmq:3-management image at [docker-hub](https://hub.docker.com/_/rabbitmq).
+Lagoon RabbitMQ Dockerfile with management plugin installed, based on the official rabbitmq:3-management image at [docker-hub](https://hub.docker.com/_/rabbitmq).
 
 This Dockerfile is intended to be used to setup a standalone RabbitMQ queue broker as well as base image to setup a cluster with HA queues support by default ([Mirrored queues](https://www.rabbitmq.com/ha.html)).   
 By default the RabbitMQ broker is started as single node. If you want to start a cluster, you need to use the [`rabbitmq-cluster`](https://github.com/amazeeio/lagoon/blob/master/images/rabbitmq-cluster/Dockerfile) Docker image, based on `rabbitmq` image plus the `rabbitmq_peer_discovery_k8s` plugin.
 
-## amazee.io & OpenShift adaptions
-This image is prepared to be used on amazee.io which leverages OpenShift. There are therefore some things already done:
+## Lagoon & OpenShift adaptions
+This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
 
 - Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
 - The file `/etc/rabbitmq/definitions.json` is parsed through [envplate](https://github.com/kreuzwerker/envplate) with an container-entrypoint.
@@ -21,7 +21,7 @@ By default a policy called `lagoon-ha` is created at startup but it is not activ
   ]
 ```
 By default, the `ha-mode` is set to `exactly` which controls the exact number of mirroring nodes for a queue (mirrors). The number of nodes, is controller by `ha-params`.   
-For furhter and custom configuration, please refer to [official RabbitMQ documentation](https://www.rabbitmq.com/ha.html).
+For further and custom configuration, please refer to [official RabbitMQ documentation](https://www.rabbitmq.com/ha.html).
 
 ## Environment Variables
 Environment variables defined in RabbitMQ base image
