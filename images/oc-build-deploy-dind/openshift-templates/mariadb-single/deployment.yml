@@ -45,7 +45,7 @@ parameters:
     value: "5Gi"
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
-    required: true
+    value: 'production'
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -77,10 +77,10 @@ objects:
           - name: ${SERVICE_NAME}-data
             persistentVolumeClaim:
               claimName: ${SERVICE_NAME}-data
+        priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
         containers:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
-          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           ports:
           - containerPort: 3306
             protocol: TCP

@@ -56,6 +56,7 @@ parameters:
     value: ''
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
+    value: 'production'
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -97,10 +98,10 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: lagoon-sshkey
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
-              priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
               envFrom:
                 - configMapRef:
                     name: lagoon-env

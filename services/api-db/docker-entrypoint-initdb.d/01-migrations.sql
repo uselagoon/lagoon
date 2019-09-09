@@ -703,6 +703,24 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_index_for_environment_backup_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'environment_backup'
+        AND table_schema = 'infrastructure'
+        AND index_name='backup_environment'
+    ) THEN
+      ALTER TABLE `environment_backup`
+      ADD INDEX `backup_environment` (`environment`);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -739,6 +757,7 @@ CALL add_deploy_base_head_ref_title_to_environment();
 CALL convert_env_vars_from_varchar_to_text();
 CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
+CALL add_index_for_environment_backup_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

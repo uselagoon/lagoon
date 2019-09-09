@@ -31,12 +31,18 @@ interface GroupEdit {
   attributes?: object;
 }
 
+interface AttributeFilterFn {
+  (attribute: { name: string, value: string[] }, group: Group): boolean;
+}
+
 interface GroupModel {
   loadAllGroups: () => Promise<Group[]>;
   loadGroupById: (id: string) => Promise<Group>;
   loadGroupByName: (name: string) => Promise<Group>;
   loadGroupByIdOrName: (groupInput: GroupEdit) => Promise<Group>;
   loadParentGroup: (groupInput: Group) => Promise<Group>;
+  loadGroupsByAttribute: (filterFn: AttributeFilterFn) => Promise<Group[]>;
+  loadGroupsByProjectId: (projectId: number) => Promise<Group[]>;
   getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>,
   getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>,
   addGroup: (groupInput: Group) => Promise<Group>;
@@ -160,7 +166,17 @@ const loadGroupByIdOrName = async (groupInput: GroupEdit): Promise<Group> => {
 const loadAllGroups = async (): Promise<Group[]> => {
   const keycloakGroups = await keycloakAdminClient.groups.find();
 
-  const groups = await transformKeycloakGroups(keycloakGroups);
+  let fullGroups: Group[] = [];
+  for (const group of keycloakGroups) {
+    const fullGroup = await loadGroupById(group.id);
+
+    fullGroups = [
+      ...fullGroups,
+      fullGroup,
+    ];
+  }
+
+  const groups = await transformKeycloakGroups(fullGroups);
 
   return groups;
 };
@@ -174,6 +190,40 @@ const loadParentGroup = async (groupInput: Group): Promise<Group> => asyncPipe(
     [R.T, loadGroupByName],
   ]),
 )(groupInput);
+
+const loadGroupsByAttribute = async (filterFn: AttributeFilterFn): Promise<Group[]> => {
+  const allGroups = await loadAllGroups();
+
+  const filteredGroups = R.filter((group: Group) => R.pipe(
+      R.toPairs,
+      R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
+        if (!isMatch) {
+          return filterFn({
+            name: attribute[0],
+            value: attribute[1],
+          }, group);
+        }
+
+        return isMatch;
+      }, false),
+    )(group.attributes)
+  )(allGroups);
+
+  return filteredGroups;
+};
+
+const loadGroupsByProjectId = async (projectId: number): Promise<Group[]> => {
+  const filterFn = (attribute) => {
+    if (attribute.name === 'lagoon-projects') {
+      const value = R.is(Array, attribute.value) ? R.path(['value', 0], attribute) : attribute.value;
+      return R.test(new RegExp(`\\b${projectId}\\b`), value);
+    }
+
+    return false;
+  }
+
+  return loadGroupsByAttribute(filterFn);
+}
 
 // Recursive function to load projects "up" the group chain
 const getProjectsFromGroupAndParents = async (
@@ -494,6 +544,8 @@ export const Group = (): GroupModel => ({
   loadGroupByName,
   loadGroupByIdOrName,
   loadParentGroup,
+  loadGroupsByAttribute,
+  loadGroupsByProjectId,
   getProjectsFromGroupAndParents,
   getProjectsFromGroupAndSubgroups,
   addGroup,
