@@ -7,6 +7,7 @@ display_errors = ${PHP_DISPLAY_ERRORS:-Off}
 display_startup_errors = ${PHP_DISPLAY_STARTUP_ERRORS:-Off}
 auto_prepend_file = ${PHP_AUTO_PREPEND_FILE:-none}
 auto_append_file = ${PHP_AUTO_APPEND_FILE:-none}
+error_reporting = ${PHP_ERROR_REPORTING:-E_ALL & ~E_DEPRECATED & ~E_STRICT}
 
 [APC]
 apc.shm_size = ${PHP_APC_SHM_SIZE:-32m}
