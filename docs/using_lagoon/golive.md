@@ -20,7 +20,7 @@ environments:
   master:
     routes:
       - nginx:
-        - example.com
+        - example.com:
             tls-acme: 'false'
             insecure: Allow
         - www.example.com:
@@ -36,7 +36,7 @@ environments:
   master:
     routes:
       - nginx:
-        - example.com
+        - example.com:
             tls-acme: 'true'
             insecure: Redirect
         - www.example.com:
