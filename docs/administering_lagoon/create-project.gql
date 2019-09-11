@@ -22,7 +22,7 @@ mutation {
   }
 }
 
-# 2. Create a project and assign it the customer and OpenShift
+# 2. Create a project and assign it the OpenShift
 mutation {
   addProject(
     input: {
@@ -44,7 +44,7 @@ mutation {
       productionEnvironment: ""
     }
   ) {
-    name  
+    name
     openshift {
       name
       id

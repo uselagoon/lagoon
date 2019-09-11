@@ -52,7 +52,23 @@ In Lagoon each developer authenticates via their SSH key(s). This determines the
 2. Remote Shell Access to containers that are running in projects they have access to
 3. The Lagoon logging system, where a developer can find request logs, container logs, Lagoon logs and more.
 
-To allow access to the project, we first need to add a new user to the API:
+To allow access to the project, we first need to add a new group to the API:
+
+```graphql
+mutation {
+	addGroup (
+    input: {
+      # TODO: Enter the name for your new group
+      name: ""
+    }
+  )     {
+    id
+    name
+  }
+}
+```
+
+Then, we need to add a new user to the API:
 
 ```graphql
 mutation {
@@ -204,49 +220,27 @@ mutation {
 }
 ```
 
-### Creating a new group
-
-This query adds a group which can be assigned one or more projects. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. Each customer has an SSH private key that Lagoon will use to clone the Git repository of the project.
-
-```graphql
-mutation {
-	addGroup (
-    input: {
-      # TODO: Enter the name for your new group
-      name: ""
-    }
-  )     {
-    id
-    name
-  }
-}
-```
-
-
-### Adding a group to a projects
+### Adding a group to a project
 
 This query will add a group to a project.  Users of that group will be able to access the project.  They will be able to make changes, based on their role in that group.
 
 ```graphql
 mutation {
-  addUserToGroup (
-    input: {
-      user: {
-        #TODO: Enter the email address of the user
-        email: ""
+  mutation {
+    addGroupsToProject (
+      input: {
+        project: {
+          #TODO: enter the name of the project
+          name: ""
+        }
+        groups: {
+          #TODO: Enter the name of the group that will be added to the project
+          name: ""
+        }
       }
-      group: {
-        #TODO: Enter the name of the group you want to add the user to
-        name: ""
-      }
-      #TODO: Enter the role of the user: guest, reporter, developer, maintainer, owner
-      role:
-
+    ) {
+      id
     }
-  ) {
-    id
-    name
-  }
 }
 ```
 
@@ -436,3 +430,39 @@ mutation {
   )
 }
 ```
+
+### Querying a project to see what groups and users are assigned
+
+Want to see what groups and users have access to a project? Want to know what their roles are? Do I have a query for you!  Using the query below you can search for a project and display the groups, users, and roles that are assigned to that project.
+
+```graphql
+query search{
+  projectByName(
+    #TODO: Enter the name of the project
+    name: ""
+  ) {
+    id,
+    branches,
+    productionEnvironment,
+    pullrequests,
+    gitUrl,
+    openshift {
+      id
+    },
+     groups{
+      id
+      name
+      groups {
+        id
+        name
+      }
+      members {
+        role
+        user {
+          id
+          email
+        }
+      }
+    }
+  }
+}
