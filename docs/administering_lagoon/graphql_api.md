@@ -39,11 +39,10 @@ And press the ▶️ button (or press CTRL+ENTER). If all went well, your first 
 
 Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/blob/master/docs/administering_lagoon/create-project.gql).
 
-For each of the queries (the blocks starting with `mutation {`), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following three objects:
+For each of the queries (the blocks starting with `mutation {`), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `customer` The customer of the project. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. `customer` will hold the SSH private key that Lagoon will use to clone the Git repository of the project.
-2. `openshift` The OpenShift cluster that Lagoon should deploy to. Lagoon is not only capable of deploying to its own OpenShift but also to any OpenShift anywhere in the world.
-3. `project` The project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
+1. `openshift` The OpenShift cluster that Lagoon should deploy to. Lagoon is not only capable of deploying to its own OpenShift but also to any OpenShift anywhere in the world.
+2. `project` The project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
 
@@ -96,42 +95,27 @@ mutation {
 }
 ```
 
-After we added the key we can grant the user access to either:
-
-**Grant a user access to a single project**
+After we add the key, we need to add the user to a group:
 
 ```graphql
 mutation {
-  addUserToProject(
+  addUserToGroup (
     input: {
-      # TODO: Fill in the project field
-      # This is the project name
-      project: ""
-      # TODO: Fill in the userId field
-      # This is the user ID that we noted from the addUser query
-      userId: 0
+      user: {
+        #TODO: Enter the email address of the user
+        email: ""
+      }
+      group: {
+        #TODO: Enter the name of the group you want to add the user to
+        name: ""
+      }
+      #TODO: Enter the role of the user
+      role: OWNER
+
     }
   ) {
     id
-  }
-}
-```
-
-**Grant a user access to a customer (which will grant access to all projects of the customer)**
-
-```graphql
-mutation {
-  addUserToCustomer(
-    input: {
-      # TODO: Fill in the customer field
-      # This is the customer name
-      customer: ""
-      # TODO: Fill in the userId field
-      # This is the user ID that we noted from the addUser query
-      userId: 0
-    }
-  ) {
-    id
+    name
   }
 }
 ```
@@ -220,24 +204,48 @@ mutation {
 }
 ```
 
-### Adding a new customer
+### Creating a new group
 
-This query adds a customer which can be assigned one or more projects. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. Each customer has an SSH private key that Lagoon will use to clone the Git repository of the project.
+This query adds a group which can be assigned one or more projects. Can be used for an actual customer (if you use Lagoon in a multi-customer setup), or just to group multiple projects together. Each customer has an SSH private key that Lagoon will use to clone the Git repository of the project.
 
 ```graphql
 mutation {
-  addCustomer(
+	addGroup (
     input: {
-      # TODO: Fill in the name field
-      # This is the customer name
+      # TODO: Enter the name for your new group
       name: ""
-      # TODO: Fill in the privateKey field - create a new private and public keypair with `ssh-keygen`
-      # The private key is a string, with new lines represented by `\n`
-      privateKey: ""
+    }
+  )     {
+    id
+    name
+  }
+}
+```
+
+
+### Adding a group to a projects
+
+This query will add a group to a project.  Users of that group will be able to access the project.  They will be able to make changes, based on their role in that group.
+
+```graphql
+mutation {
+  addUserToGroup (
+    input: {
+      user: {
+        #TODO: Enter the email address of the user
+        email: ""
+      }
+      group: {
+        #TODO: Enter the name of the group you want to add the user to
+        name: ""
+      }
+      #TODO: Enter the role of the user: guest, reporter, developer, maintainer, owner
+      role:
+
     }
   ) {
-    name
     id
+    name
   }
 }
 ```
@@ -253,9 +261,9 @@ mutation {
       # TODO: Fill in the name field
       # This is the project name
       name: ""
-      # TODO: Fill in the customer field
-      # This is the id of the customer to assign to the project
-      customer: 0
+      # TODO: Fill in the private key field
+      # This is the private key for a project, which is used to access the git code
+      privatekey: ""
       # TODO: Fill in the openshift field
       # This is the id of the OpenShift to assign to the project
       openshift: 0
@@ -268,11 +276,7 @@ mutation {
       productionEnvironment: ""
     }
   ) {
-    name
-    customer {
-      name
-      id
-    }
+    name  
     openshift {
       name
       id
@@ -286,9 +290,9 @@ mutation {
 }
 ```
 
-### List projects and customers
+### List projects and groups
 
-This is a good query to see an overview of all projects, OpenShifts and customers that exist within our Lagoon.
+This is a good query to see an overview of all projects, OpenShifts and groups that exist within our Lagoon.
 
 ```graphql
 query {
@@ -300,9 +304,22 @@ query {
     name
     id
   }
-  allCustomers {
-    name
+  allGroups{
     id
+    name
+    members {
+      #This will display the users in this group
+      user {
+        id
+        firstName
+        lastName
+      }
+      role
+    }
+    groups {
+      id
+      name
+    }
   }
 }
 ```
@@ -337,14 +354,6 @@ query {
     }
     openshift {
       id
-    }
-    customer {
-      id
-      name
-      sshKeys {
-        id
-        name
-      }
     }
   }
 }
