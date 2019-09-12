@@ -56,7 +56,7 @@ To allow access to the project, we first need to add a new group to the API:
 
 ```graphql
 mutation {
-	addGroup (
+  addGroup (
     input: {
       # TODO: Enter the name for your new group
       name: ""

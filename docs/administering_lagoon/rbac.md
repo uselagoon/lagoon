@@ -8,7 +8,7 @@ When assigning a user to a group, you need to provide a role for that user insid
 
 Here is a table that lists the roles and the access they have:
 
-###Lagoon 1.0.0 RBAC Permission Matrix		
+### Lagoon 1.0.0 RBAC Permission Matrix		
 
 
 |                                           |              |                                      |            |        All Projects | and Groups          |       |            |           |          |       |      |
