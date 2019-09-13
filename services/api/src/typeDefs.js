@@ -79,6 +79,11 @@ const typeDefs = gql`
     CREATED
   }
 
+  enum ProjectAvailability {
+    STANDARD
+    HIGH
+  }
+
   enum GroupRole {
     GUEST
     REPORTER
@@ -190,6 +195,10 @@ const typeDefs = gql`
     - ssh://git@192.168.42.1:2222/project1.git
     """
     gitUrl: String
+    """
+    Project Availability STANDARD|HIGH
+    """
+    availability: ProjectAvailability
     """
     SSH Private Key for Project
     Will be used to authenticate against the Git Repo of the Project
@@ -557,6 +566,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int
@@ -778,6 +788,7 @@ const typeDefs = gql`
   input UpdateProjectPatchInput {
     name: String
     gitUrl: String
+    availability: ProjectAvailability
     privateKey: String
     subfolder: String
     activeSystemsDeploy: String

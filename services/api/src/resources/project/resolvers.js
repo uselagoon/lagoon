@@ -236,6 +236,7 @@ const addProject = async (
         :id,
         :name,
         :git_url,
+        :availability,
         :private_key,
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
