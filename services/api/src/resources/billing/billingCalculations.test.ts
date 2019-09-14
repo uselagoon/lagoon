@@ -1,3 +1,5 @@
+/* eslint-env jest */
+
 import { CURRENCIES, AVAILABILITY } from './pricing';
 import {
   hitsCost,
@@ -6,7 +8,7 @@ import {
   devCost,
   hitTier,
   ICustomer,
-  customerProjectsDataReducer
+  customerProjectsDataReducer,
 } from './billingCalculations';
 
 interface IMockDataType {
@@ -30,7 +32,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.standard,
           storageDays: 197,
           prodHours: 744,
-          devHours: 0
+          devHours: 0,
         },
         {
           name: 'v-web',
@@ -40,9 +42,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.standard,
           storageDays: 0,
           prodHours: 744,
-          devHours: 744
-        }
-      ]
+          devHours: 744,
+        },
+      ],
     },
     {
       name: 'SV',
@@ -57,7 +59,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.high,
           storageDays: 784.064378,
           prodHours: 744,
-          devHours: 1488
+          devHours: 1488,
         },
         {
           name: 's_m_com',
@@ -67,7 +69,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.high,
           storageDays: 23.725226,
           prodHours: 744,
-          devHours: 744
+          devHours: 744,
         },
         {
           name: 'd8beta_s_com',
@@ -77,33 +79,33 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.high,
           storageDays: 0,
           prodHours: 744,
-          devHours: 1488
-        }
-      ]
-    }
-  ]
+          devHours: 1488,
+        },
+      ],
+    },
+  ],
 };
 
 const { projects: p1 } = mockData.customers[0];
 const { projects: p2 } = mockData.customers[1];
 
 // Unit Under Test
-describe('Billing Calculations', function() {
-  describe('Hit Tier', function() {
+describe('Billing Calculations', () => {
+  describe('Hit Tier', () => {
     // scenarios and expectation
     it('When hits are between { MIN: 300_001, MAX: 2_500_000 }, then the "hitTier should be 1', () => {
-      //Arrange
-      //Act
+      // Arrange
+      // Act
       const hits = customerProjectsDataReducer(p1, 'hits');
-      //Assert
+      // Assert
       expect(hitTier(hits)).toBe(1);
     });
 
     it('When hits are between { MIN: 2_500_001, MAX: 10_000_000 }, then the "hitTier should be 2', () => {
-      //Arrange
-      //Act
+      // Arrange
+      // Act
       const hits = customerProjectsDataReducer(p2, 'hits');
-      //Assert
+      // Assert
       expect(hitTier(hits)).toBe(2);
     });
   });
@@ -111,18 +113,18 @@ describe('Billing Calculations', function() {
   describe('Hit Costs - Customers billed in US Dollars', () => {
     // scenarios and expectation
     it('Given two projects with standard availability, and hits [1_075, 342_371], the hit cost should be 75.52', () => {
-      //Arrange
+      // Arrange
       const customer = mockData.customers[0];
-      //Act
+      // Act
       const cost = hitsCost(customer);
-      //Assert
+      // Assert
       expect(cost).toBe(75.52);
     });
 
     it('Given three projects with high availability, and hits [6_833_467, 13_782, 0], the hit cost should be 1468.61', () => {
-      //Arrange
+      // Arrange
       const customer = mockData.customers[1];
-      //Act
+      // Act
       const cost = hitsCost(customer);
       // Assert
       expect(cost).toBe(1468.61);
@@ -132,20 +134,20 @@ describe('Billing Calculations', function() {
   describe('Storage Costs - Customers billed in US Dollars', () => {
     // scenarios and expectation
     it('Given the total storage of all projects do NOT exceed the free storage tier the cost should be 0.', () => {
-      //Arrange
+      // Arrange
       const customer = mockData.customers[0];
-      //Act
+      // Act
       const cost = storageCost(customer);
-      //Assert
+      // Assert
       expect(cost).toBe(0);
     });
 
     it('Given the total storage of three projects exceed the free storage tier, GBDays [784.064378, 23.725226, 0], the cost should be 11.41.', () => {
-      //Arrange
+      // Arrange
       const customer = mockData.customers[1];
-      //Act
+      // Act
       const cost = storageCost(customer);
-      //Assert
+      // Assert
       expect(cost).toBe(11.41);
     });
   });
@@ -153,21 +155,21 @@ describe('Billing Calculations', function() {
   describe('Environment Costs - Customers billed in US Dollars', () => {
     // scenarios and expectation
     it('Given a customer with two projects running for the entire month of July, 2019 (744 hours) the Production costs should be 62.05', () => {
-      //Arrange
+      // Arrange
       const customer = mockData.customers[0];
-      //Act
+      // Act
       const cost = prodCost(customer);
-      //Assert
+      // Assert
       expect(cost).toBe(62.05);
     });
 
     // scenarios and expectation
     it('Given a customer does not have more than the freely included development environments, the costs should be 0', () => {
-      //Arrange
+      // Arrange
       const customer = mockData.customers[0];
-      //Act
+      // Act
       const cost = devCost(customer);
-      //Assert
+      // Assert
       expect(cost).toBe(0);
     });
   });
