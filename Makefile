@@ -143,7 +143,7 @@ s3-images += $(images)
 # List with all images prefixed with `build/`. Which are the commands to actually build images
 build-images = $(foreach image,$(images),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-images):
 #	Generate variable image without the prefix `build/`
 	$(eval image = $(subst build/,,$@))
