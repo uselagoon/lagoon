@@ -46,6 +46,7 @@ const {
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
   getEnvironmentByTaskId,
+  getEnvironmentByBackupId,
   getEnvironmentServicesByEnvironmentId,
   setEnvironmentServices,
   deleteEnvironment,
@@ -199,6 +200,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Backup: {
     restore: getRestoreByBackupId,
+    environment: getEnvironmentByBackupId,
   },
   Query: {
     userBySshKey: getUserBySshKey,

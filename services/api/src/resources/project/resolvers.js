@@ -351,8 +351,8 @@ const deleteProject = async (
     project: pid,
   });
 
-  const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
-  await query(sqlClient, prep({ project }));
+  const prep = prepare(sqlClient, 'CALL DeleteProject(:name)');
+  await query(sqlClient, prep(project));
 
   // Remove the default group and user
   try {

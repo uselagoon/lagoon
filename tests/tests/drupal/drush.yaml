@@ -147,45 +147,6 @@
   tasks:
   - include: ../../tasks/ssh/ssh-command.yaml
 
-- name: "{{ testname }} third - init git, add files, commit, git push"
-  hosts: localhost
-  serial: 1
-  vars:
-    git_files: "drupal{{ drupal_version }}-{{ db }}/"
-    docker_files: "drupal{{ drupal_version }}-dockerfiles/php{{ php_version }}/"
-    branch: "foo/bar"
-  tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
-  - set_fact:
-      current_head_third: "{{ current_head }}"
-
-- name: "{{ testname }} third - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
-  hosts: localhost
-  serial: 1
-  vars:
-    branch: "foo/bar"
-    project: "{{ project }}"
-  tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
-
-- include: check-deployed.yaml
-  vars:
-    expected_head: "{{ current_head_third }}"
-    expected_branch: "foo/bar"
-    branch: "foo/bar"
-    project: "{{ project }}"
-
-- name: "{{ testname }} - does ssh work"
-  hosts: localhost
-  serial: 1
-  vars:
-    username: ci-drupal-foo-bar
-    command: drush @foo-bar ssh echo zzyzx
-    expected_content: "zzyzx"
-  tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
-
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, nginx route"
   hosts: localhost
   serial: 1
@@ -227,6 +188,63 @@
   serial: 1
   vars:
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    expected_returncode: 503
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
+- name: "{{ testname }} third - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "drupal{{ drupal_version }}-{{ db }}/"
+    docker_files: "drupal{{ drupal_version }}-dockerfiles/php{{ php_version }}/"
+    branch: "foo/bar"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+  - set_fact:
+      current_head_third: "{{ current_head }}"
+
+- name: "{{ testname }} third - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "foo/bar"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: check-deployed.yaml
+  vars:
+    expected_head: "{{ current_head_third }}"
+    expected_branch: "foo/bar"
+    branch: "foo/bar"
+    project: "{{ project }}"
+
+- name: "{{ testname }} - does ssh work"
+  hosts: localhost
+  serial: 1
+  vars:
+    username: ci-drupal-foo-bar
+    command: drush @foo-bar ssh echo zzyzx
+    expected_content: "zzyzx"
+  tasks:
+  - include: ../../tasks/ssh/ssh-command.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "foo/bar"
+  tasks:
+  - include: ../../tasks/api/remove.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.foo-bar.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
     expected_returncode: 503
   tasks:
   - include: ../../checks/check-url-returncode.yaml
