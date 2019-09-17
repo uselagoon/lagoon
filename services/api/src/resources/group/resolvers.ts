@@ -324,6 +324,42 @@ export const addGroupsToProject = async (
   return await projectHelpers(sqlClient).getProjectById(project.id);
 };
 
+export const addBillingGroupToProject = async (
+  _root,
+  { input: { project: projectInput, name } },
+  { dataSources, sqlClient, hasPermission },
+) => {
+  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+    projectInput,
+  );
+
+  await hasPermission('project', 'addGroup', {
+    project: project.id,
+  });
+
+  // TODO - Add permission check for addBillingGroup
+
+  if (!name) {
+    throw new Error('You must provide groups');
+  }
+
+  let group = { id: '' };
+
+  try {
+    group = await dataSources.GroupModel.loadGroupByName(name);
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      // add group if it doesn't already exist
+      const gData = { name, attributes: { type: ['billing'] } };
+      group = await dataSources.GroupModel.addGroup(gData);
+    }
+  }
+
+  await dataSources.GroupModel.addProjectToGroup(project.id, group);
+
+  return projectHelpers(sqlClient).getProjectById(project.id);
+};
+
 export const removeGroupsFromProject = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },

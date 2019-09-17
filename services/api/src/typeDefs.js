@@ -992,6 +992,11 @@ const typeDefs = gql`
     groups: [GroupInput!]!
   }
 
+  input BillingGroupInput {
+    name: String!
+    project: ProjectInput!
+  }
+
   type Mutation {
     """
     Add Environment or update if it is already existing
@@ -1108,6 +1113,7 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): Group
     removeUserFromGroup(input: UserGroupInput!): Group
     addGroupsToProject(input: ProjectGroupsInput): Project
+    addBillingGroupToProject(input: BillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 
