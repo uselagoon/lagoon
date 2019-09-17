@@ -32,7 +32,7 @@ and to use them: `drush @lagoon.master ssh`
 
 ### Update Site Aliases
 
-If a new environment in Lagoon has been created, you can just run `drush site:alias-convert` to update the site aliases file.
+If a new environment in Lagoon has been created, you can just run `drush site:alias-convert` to update the site aliases file. If running this command does not update `lagoon.site.yml`, try deleting `lagoon.site.yml` first, and then re-run `drush site:alias-convert`.
 
 ### Drush rsync from local to remote environments
 
