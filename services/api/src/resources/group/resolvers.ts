@@ -324,9 +324,25 @@ export const addGroupsToProject = async (
   return await projectHelpers(sqlClient).getProjectById(project.id);
 };
 
-export const addBillingGroupToProject = async (
+export const addBillingGroup = async (
   _root,
-  { input: { project: projectInput, name } },
+  { input: { name } },
+  { dataSources, hasPermission },
+) => {
+  // await hasPermission('group', 'addBillingGroup');
+  // TODO - Add permission check for addProjectToBillingGroup
+
+  if (!name) {
+    throw new Error('You must provide a Billing Group name');
+  }
+
+  const gData = { name, attributes: { type: ['billing'] } };
+  return dataSources.GroupModel.addGroup(gData);
+};
+
+export const addProjectToBillingGroup = async (
+  _root,
+  { input: { project: projectInput, group: groupInput } },
   { dataSources, sqlClient, hasPermission },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
@@ -337,26 +353,10 @@ export const addBillingGroupToProject = async (
     project: project.id,
   });
 
-  // TODO - Add permission check for addBillingGroup
+  // TODO - Add permission check for addProjectToBillingGroup
 
-  if (!name) {
-    throw new Error('You must provide groups');
-  }
-
-  let group = { id: '' };
-
-  try {
-    group = await dataSources.GroupModel.loadGroupByName(name);
-  } catch (err) {
-    if (err instanceof GroupNotFoundError) {
-      // add group if it doesn't already exist
-      const gData = { name, attributes: { type: ['billing'] } };
-      group = await dataSources.GroupModel.addGroup(gData);
-    }
-  }
-
+  const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
   await dataSources.GroupModel.addProjectToGroup(project.id, group);
-
   return projectHelpers(sqlClient).getProjectById(project.id);
 };
 
