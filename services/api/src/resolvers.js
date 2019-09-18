@@ -127,6 +127,7 @@ const {
   addGroup,
   addBillingGroup,
   addProjectToBillingGroup,
+  getAllProjectsInGroup,
   updateGroup,
   deleteGroup,
   deleteAllGroups,
@@ -232,6 +233,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
     allGroups: getAllGroups,
+    allProjectsInGroup: getAllProjectsInGroup,
   },
   Mutation: {
     addOrUpdateEnvironment,

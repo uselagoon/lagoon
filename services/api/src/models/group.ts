@@ -42,8 +42,8 @@ interface GroupModel {
   loadParentGroup: (groupInput: Group) => Promise<Group>;
   loadGroupsByAttribute: (filterFn: AttributeFilterFn) => Promise<Group[]>;
   loadGroupsByProjectId: (projectId: number) => Promise<Group[]>;
-  getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>,
-  getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>,
+  getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>;
+  getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>;
   addGroup: (groupInput: Group) => Promise<Group>;
   updateGroup: (groupInput: GroupEdit) => Promise<Group>;
   deleteGroup: (id: string) => Promise<void>;

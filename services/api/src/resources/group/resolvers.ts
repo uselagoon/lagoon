@@ -349,15 +349,43 @@ export const addProjectToBillingGroup = async (
     projectInput,
   );
 
-  await hasPermission('billing', 'add', {
-    project: project.id,
+  const projectGroups = await dataSources.GroupModel.loadGroupsByProjectId(
+    project.id,
+  );
+
+  // Billing groups for this project
+  const projectBillingGroups = projectGroups.filter(group => {
+    const { attributes } = group;
+    return !!('type' in attributes && attributes.type[0] === 'billing');
   });
 
-  // TODO - Add permission check for addProjectToBillingGroup
+  // A project can only be added to a single billing group.
+  if (projectBillingGroups.length > 0) {
+    throw new Error(
+      `Project already added to billing group: ${projectBillingGroups[0].id}`,
+    );
+  }
+
+  await hasPermission('billing', 'add', { project: project.id });
 
   const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
   await dataSources.GroupModel.addProjectToGroup(project.id, group);
   return projectHelpers(sqlClient).getProjectById(project.id);
+};
+
+export const getAllProjectsInGroup = async (
+  _root,
+  { input: groupInput },
+  { dataSources, sqlClient, hasPermission },
+) => {
+  const {
+    GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
+  } = dataSources;
+  const group = await loadGroupByIdOrName(groupInput);
+  const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+  return projectIdsArray.map(async id =>
+    projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+  );
 };
 
 export const removeGroupsFromProject = async (
