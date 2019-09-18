@@ -1,5 +1,6 @@
 // @flow
 
+const uuid4 = require('uuid4');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
@@ -8,9 +9,9 @@ const {
 } = require('@lagoon/commons/src/api');
 const R = require('ramda');
 
-import type { WebhookRequestData } from '../types';
+import type { WebhookRequestData, ChannelWrapper } from '../types';
 
-async function resticbackupSnapshotSync(webhook: WebhookRequestData) {
+async function resticbackupSnapshotSync(webhook: WebhookRequestData, channelWrapperWebhooks: ChannelWrapper) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
@@ -38,6 +39,34 @@ async function resticbackupSnapshotSync(webhook: WebhookRequestData) {
         await deleteBackup(backup.backupId);
       } catch (error) {
         logger.error(`Could not delete backup, reason: ${error}`)
+      }
+    }
+
+    const newBackups = R.differenceWith(
+      (snapshot, backup) => backup.backupId === snapshot.id,
+      snapshots,
+      environment.backups,
+    );
+
+    for (const backup of newBackups) {
+      const webhookData = {
+        webhooktype: 'resticbackup',
+        event: 'snapshot:finished',
+        giturl: webhook.giturl,
+        uuid: uuid4(),
+        body: {
+          ...body,
+          snapshots: [
+            backup,
+          ]
+        }
+      }
+
+      try {
+        const buffer = new Buffer(JSON.stringify(webhookData));
+        await channelWrapperWebhooks.publish(`lagoon-webhooks`, '', buffer, { persistent: true });
+      } catch(error) {
+        logger.error(`Error queuing lagoon-webhooks resticbackup:snapshot:finished, error: ${error}`);
       }
     }
 
