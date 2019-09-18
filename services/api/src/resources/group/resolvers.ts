@@ -329,7 +329,7 @@ export const addBillingGroup = async (
   { input: { name } },
   { dataSources, hasPermission },
 ) => {
-  // await hasPermission('group', 'addBillingGroup');
+  await hasPermission('billing', 'add');
   // TODO - Add permission check for addProjectToBillingGroup
 
   if (!name) {
@@ -349,7 +349,7 @@ export const addProjectToBillingGroup = async (
     projectInput,
   );
 
-  await hasPermission('project', 'addGroup', {
+  await hasPermission('billing', 'add', {
     project: project.id,
   });
 
