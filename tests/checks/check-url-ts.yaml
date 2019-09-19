@@ -1,0 +1,13 @@
+---
+- debug: msg="{{ lookup('pipe','date +%s')|int }}"
+- name: "{{ testname }} - Check if URL {{url}} returns a timestamp that is more than 90 seconds less than the current time."
+  uri:
+    url: "{{ url }}"
+    return_content: yes
+    validate_certs: no
+  register: result
+  until: ( lookup('pipe','date +%s')|int - result.content|int ) >= 90 
+  retries: 90
+  delay: 10
+  failed_when: false
+- debug: msg="Success!!!"
