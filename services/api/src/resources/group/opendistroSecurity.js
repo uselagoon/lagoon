@@ -4,13 +4,13 @@
 import type MariaSQL from 'mariasql';
 */
 
-const searchguardClient = require('../../clients/searchguardClient');
+const opendistroSecurityClient = require('../../clients/opendistroSecurityClient');
 const kibanaClient = require('../../clients/kibanaClient');
 const logger = require('../../logger');
 const projectHelpers = require('../project/helpers');
 const R = require('ramda');
 
-const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
+const OpendistroSecurityOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
   syncGroup: async (groupName, groupProjectIDs) => {
     const groupProjectNames = [];
     // groupProjectIDs is a comma separated string of IDs, split it up and remove any entries with `''`
@@ -29,61 +29,45 @@ const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
 
     const groupProjectPermissions = {
       body: {
-        indices: {},
-        tenants: {
-          [groupName]: 'RW',
-        },
+        index_permissions: [{
+          index_patterns: [],
+          allowed_actions: ['read'],
+        }],
+        tenant_permissions: [{
+          tenant_patterns: [
+            groupName,
+          ],
+          allowed_actions: [
+            'kibana_all_write',
+          ],
+        }],
       },
     };
 
-    // If this group has no projects assigned, we create a fake project as SearchGuard needs at least one indicies permission to work.
+    // If this group has no projects assigned, we create a fake project as OpendistroSecurity needs at least one indicies permission to work.
     if (groupProjectIDsArray.length === 0) {
-      groupProjectPermissions.body.indices[`${groupName}-has-no-project`] = { '*': ['READ'] };
+      groupProjectPermissions.body.index_permissions[0].index_patterns.push(`${groupName}-has-no-project`);
     } else {
       // inject project permissions into permission array
-      groupProjectNames.forEach(projectName => groupProjectPermissions.body.indices[`*-${projectName}-*`] = { '*': ['READ'] });
+      groupProjectNames.forEach(projectName => groupProjectPermissions.body.index_permissions[0].index_patterns.push(`*-${projectName}-*`));
     }
 
     try {
-      // Create a new SearchGuard Role for this Group with read permissions for all Projects assigned to this group
-      await searchguardClient.put(`roles/${groupName}`, groupProjectPermissions);
-      logger.debug(`${groupName}: Created SearchGuard role "${groupName}"`);
+      // Create a new OpendistroSecurity Role for this Group with read permissions for all Projects assigned to this group
+      await opendistroSecurityClient.put(`roles/${groupName}`, groupProjectPermissions);
+      logger.debug(`${groupName}: Created OpendistroSecurity role "${groupName}"`);
     } catch (err) {
-      logger.error(`SearchGuard create role error: ${err}`);
-      throw new Error(`SearchGuard create role error: ${err}`);
+      logger.error(`OpendistroSecurity create role error: ${err}`);
+      throw new Error(`OpendistroSecurity create role error: ${err}`);
     }
 
-    // Create or Update the lagoon_all_access role which has access to all tenants (all groups)
-    const groups = await GroupModel.loadAllGroups();
-    const groupNames = R.pluck('name', groups);
-
-    const tenants = R.reduce(
-      (acc, elem) => {
-        acc[elem] = 'RW';
-        return acc;
-      },
-      { admin_tenant: 'RW' },
-      groupNames,
-    );
-
     try {
-      await searchguardClient.put('roles/lagoon_all_access', {
-        body: {
-          cluster: ['UNLIMITED'],
-          indices: {
-            '*': {
-              '*': ['UNLIMITED'],
-            },
-          },
-          tenants,
-        },
-      });
-      logger.info(`${groupName}: Created/Updated lagoon_all_access role in SearchGuard`);
+      // Create a new Tenant for this Group
+      await opendistroSecurityClient.put(`tenants/${groupName}`, { body: {} });
+      logger.debug(`${groupName}: Created Tentant "${groupName}"`);
     } catch (err) {
-      logger.error(`SearchGuard Error while creating lagoon_all_access role: ${err}`);
-      throw new Error(
-        `SearchGuard Error while creating lagoon_all_access role: ${err}`,
-      );
+      logger.error(`Opendistro-Security create tenant error: ${err}`);
+      throw new Error(`Opendistro-Security create tenant error: ${err}`);
     }
 
     // Create index-patterns for this group
@@ -108,7 +92,7 @@ const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
             },
           },
           headers: {
-            sgtenant: groupName,
+            securitytenant: groupName,
           },
         });
         logger.debug(`${groupName}: Created index-pattern "${indexPattern}"`);
@@ -128,7 +112,7 @@ const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          sgtenant: groupName,
+          securitytenant: groupName,
         },
       });
 
@@ -144,7 +128,7 @@ const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
             },
           },
           headers: {
-            sgtenant: groupName,
+            securitytenant: groupName,
           },
         });
         logger.debug(
@@ -169,19 +153,34 @@ const SearchguardOperations = (sqlClient /* : MariaSQL */, GroupModel) => ({
   deleteGroup: async (groupName) => {
     // delete groups that have no Projects assigned to them
     try {
-      await searchguardClient.delete(`roles/${groupName}`);
-      logger.debug(`${groupName}: SearchGuard Role "${groupName}" deleted`);
+      await opendistroSecurityClient.delete(`roles/${groupName}`);
+      logger.debug(`${groupName}: OpendistroSecurity Role "${groupName}" deleted`);
     } catch (err) {
       // 404 Errors are expected and mean that the role does not exist
       if (err.statusCode !== 404) {
         logger.error(
-          `SearchGuard Error during deletion of role "${groupName}": ${err}`,
+          `OpendistroSecurity Error during deletion of role "${groupName}": ${err}`,
         );
       } else {
-        logger.debug(`SearchGuard Role "${groupName}" did not exist, skipping deletion`);
+        logger.debug(`OpendistroSecurity Role "${groupName}" did not exist, skipping deletion`);
+      }
+    }
+
+    try {
+      // Create a new Tenant for this Group
+      await opendistroSecurityClient.delete(`tenants/${groupName}`);
+      logger.debug(`${groupName}: Deleted Opendistro-Security Tentant "${groupName}"`);
+    } catch (err) {
+      // 404 Errors are expected and mean that the role does not exist
+      if (err.statusCode !== 404) {
+        logger.error(
+          `Opendistro-Security Error during deletion of tenant "${groupName}": ${err}`,
+        );
+      } else {
+        logger.debug(`Opendistro-Security tenant "${groupName}" did not exist, skipping deletion`);
       }
     }
   },
 });
 
-module.exports = { SearchguardOperations };
+module.exports = { OpendistroSecurityOperations };

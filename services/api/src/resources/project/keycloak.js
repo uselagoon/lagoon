@@ -43,8 +43,8 @@ const KeycloakOperations = {
           )}"`,
         );
       } else {
-        logger.error(`SearchGuard create role error: ${err}`);
-        throw new Error(`SearchGuard create role error: ${err}`);
+        logger.error(`OpendistroSecurity create role error: ${err}`);
+        throw new Error(`OpendistroSecurity create role error: ${err}`);
       }
     }
   },
