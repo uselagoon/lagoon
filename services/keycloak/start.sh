@@ -62,27 +62,34 @@ function configure_lagoon_realm {
     fi
 }
 
-function configure_lagoon_searchguard_client {
+function configure_opendistro_security_client {
 
-    # delete old SearchGuard Client
+    # delete old SearchGuard Clients
     searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=searchguard --config $CONFIG_PATH)
     if [ "$searchguard_client_id" != "[ ]" ]; then
         echo "Client searchguard is exising, will delete"
         SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
         /opt/jboss/keycloak/bin/kcadm.sh delete clients/${SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
     fi
-
     lagoon_searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH)
     if [ "$lagoon_searchguard_client_id" != "[ ]" ]; then
-        echo "Client lagoon-searchguard is already created, skipping basic setup"
+        echo "Client lagoon-searchguard is exising, will delete"
+        LAGOON_SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+        /opt/jboss/keycloak/bin/kcadm.sh delete clients/${LAGOON_SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+    fi
+
+
+    opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH)
+    if [ "$opendistro_security_client_id" != "[ ]" ]; then
+        echo "Client lagoon-opendistro-security is already created, skipping setup"
         return 0
     fi
 
-    # Configure keycloak for searchguard
-    echo Creating client lagoon-searchguard
-    echo '{"clientId": "lagoon-searchguard", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    echo Creating mapper for lagoon-searchguard "groups"
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    # Configure keycloak for lagoon-opendistro-security
+    echo Creating client lagoon-opendistro-security
+    echo '{"clientId": "lagoon-opendistro-security", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo Creating mapper for lagoon-opendistro-security "groups"
+    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n// add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  // remove the group role suffixes\n  var groupName = group.getName().replace(/-owner|-maintainer|-developer|-reporter|-guest/gi,\"\");\n  groupsAndRoles.add(groupName);\n});\n\n// add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"},"name":"groups","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
 }
@@ -1259,6 +1266,33 @@ EOF
     # {"type":"scope","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Backup View","resources":["2ebb5852-6624-4dc6-8374-e1e54a7fd9c5"],"scopes":["8e78b877-f930-43ff-995f-c907af64f69f"],"policies":["d4fae4e2-ddc7-462c-b712-d68aaeb269e1"]}
 }
 
+function add_group_viewall {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  view_all_groups=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Groups --config $CONFIG_PATH)
+
+  if [ "$view_all_groups" != "[ ]" ]; then
+      echo "group:viewAll already configured"
+      return 0
+  fi
+
+  echo Configuring group:viewAll
+
+  GROUP_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=group --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"},{"name":"viewAll"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Groups",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["viewAll"],
+  "policies": ["Users role for realm is Platform Owner"]
+}
+EOF
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1273,8 +1307,9 @@ function configure_keycloak {
     /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     configure_lagoon_realm
-    configure_lagoon_searchguard_client
+    configure_opendistro_security_client
     configure_api_client
+    add_group_viewall
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }

@@ -4,7 +4,7 @@ const R = require('ramda');
 const validator = require('validator');
 const sshpk = require('sshpk');
 const { keycloakAdminClient } = require('../../clients/keycloakClient');
-const searchguardClient = require('../../clients/searchguardClient');
+const opendistroSecurityClient = require('../../clients/opendistroSecurityClient');
 const logger = require('../../logger');
 const {
   inClause,
@@ -16,7 +16,7 @@ const {
 
 const Helpers = require('./helpers');
 const KeycloakOperations = require('./keycloak');
-const { SearchguardOperations } = require('../group/searchguard');
+const { OpendistroSecurityOperations } = require('../group/opendistroSecurity');
 const Sql = require('./sql');
 const { generatePrivateKey, getSshKeyFingerprint } = require('../sshKey');
 const sshKeySql = require('../sshKey/sql');
@@ -283,7 +283,7 @@ const addProject = async (
     logger.error(`Could not create default project group for ${project.name}: ${err.message}`);
   }
 
-  await SearchguardOperations(sqlClient, dataSources.GroupModel).syncGroup(`project-${project.name}`, project.id);
+  OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).syncGroup(`project-${project.name}`, project.id);
 
 
   // Find or create a user that has the public key linked to them
@@ -331,15 +331,12 @@ const addProject = async (
     logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
   }
 
-  // TODO
-  // await SearchguardOperations(sqlClient).addProject(project);
-
   return project;
 };
 
 const deleteProject = async (
   root,
-  { input: { project } },
+  { input: { project: projectName } },
   {
     sqlClient,
     hasPermission,
@@ -347,21 +344,21 @@ const deleteProject = async (
   },
 ) => {
   // Will throw on invalid conditions
-  const pid = await Helpers(sqlClient).getProjectIdByName(project);
+  const pid = await Helpers(sqlClient).getProjectIdByName(projectName);
   const project = await Helpers(sqlClient).getProjectById(pid);
 
   await hasPermission('project', 'delete', {
     project: pid,
   });
 
-  const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
-  await query(sqlClient, prep({ project }));
+  const prep = prepare(sqlClient, 'CALL DeleteProject(:name)');
+  await query(sqlClient, prep(project));
 
   // Remove the default group and user
   try {
     const group = await dataSources.GroupModel.loadGroupByName(`project-${project.name}`);
     await dataSources.GroupModel.deleteGroup(group.id);
-    await SearchguardOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name)
+    OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name);
   } catch (err) {
     logger.error(`Could not delete default group for project ${project.name}: ${err.message}`);
   }
@@ -373,17 +370,6 @@ const deleteProject = async (
     logger.error(`Could not delete default user for project ${project.name}: ${err.message}`);
   }
 
-  // TODO searchguard
-  // await KeycloakOperations.deleteGroup(project);
-
-  // try {
-  //   // Delete SearchGuard Role for this project with the same name as the Project
-  //   await searchguardClient.delete(`roles/${project}`);
-  // } catch (err) {
-  //   logger.error(`SearchGuard delete role error: ${err}`);
-  //   throw new Error(`SearchGuard delete role error: ${err}`);
-  // }
-  // TODO: maybe check rows for changed result
   return 'success';
 };
 
