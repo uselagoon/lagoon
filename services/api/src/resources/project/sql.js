@@ -17,8 +17,10 @@ const Sql /* : SqlObj */ = {
     knex('project')
       .select('name')
       .toString(),
-  selectAllProjects: () =>
+  selectAllProjects: () => knex('project').toString(),
+  selectAllProjectNotIn: (ids /* : number */) =>
     knex('project')
+      .whereNotIn('id', ids)
       .toString(),
   selectProjectByName: (name /* : string */) =>
     knex('project')

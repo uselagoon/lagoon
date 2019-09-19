@@ -86,6 +86,8 @@ const Helpers = (sqlClient /* : MariaSQL */) => {
       ])(projectInput);
     },
     getAllProjects: async () => query(sqlClient, Sql.selectAllProjects()),
+    getAllProjectsNotIn: async ids =>
+      query(sqlClient, Sql.selectAllProjectNotIn(ids)),
     getCustomerProjectsWithoutDirectUserAccess: async (
       customerIds /* : Array<number> */,
       userIds /* : Array<number> */,
