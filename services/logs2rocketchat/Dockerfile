@@ -4,7 +4,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest} as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/node:8
+FROM ${IMAGE_REPO:-amazeeiolagoon}/node:10
 
 # Copying generated node_modules from the first stage
 COPY --from=yarn-workspace-builder /app /app
