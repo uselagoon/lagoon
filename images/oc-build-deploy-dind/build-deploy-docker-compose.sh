@@ -779,8 +779,6 @@ do
     if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
       CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
       CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
 
@@ -794,6 +792,10 @@ do
       else
         # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
         OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+
+        # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
+        # oc stores this cronjob name lowercased
 
         if [ ! -f $OPENSHIFT_TEMPLATE ]; then
           echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
@@ -930,6 +932,28 @@ do
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
+  fi
+done
+
+
+##############################################
+### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
+##############################################
+
+CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d " " -f 1 | xargs)
+
+IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< $CURRENT_CRONJOBS
+
+for SINGLE_NATIVE_CRONJOB in ${SPLIT_CURRENT_CRONJOBS[@]}
+do
+  re="\<$SINGLE_NATIVE_CRONJOB\>"
+  text=$( IFS=' '; echo "${NATIVE_CRONJOB_CLEANUP_ARRAY[*]}")
+  if [[ "$text" =~ $re ]]; then
+    #echo "Single cron found: ${SINGLE_NATIVE_CRONJOB}"
+    continue
+  else
+    #echo "Single cron missing: ${SINGLE_NATIVE_CRONJOB}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
 

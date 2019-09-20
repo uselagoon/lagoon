@@ -1,5 +1,9 @@
 # Drush 9
 
+Lagoon defaults to Drush 8. Drush 9 is used if you install Drush 9 into your Drupal site via Composer. 
+
+## Aliases
+
 Unfortunately Drush 9 does not provide the possibility to inject dynamic Site Aliases like Drush 8 did. We are working with the Drush team to implement this again. In the meantime we have a workaround that allows you to use Drush 9 with Lagoon.
 
 ### Basic Idea
