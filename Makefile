@@ -393,7 +393,7 @@ build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
 build-images += yarn-workspace-builder
-build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builder/Dockerfile
+build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
 	touch $@
