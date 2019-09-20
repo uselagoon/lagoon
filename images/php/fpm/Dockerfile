@@ -35,7 +35,7 @@ COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
-ENV NEWRELIC_VERSION=8.6.0.238
+ENV NEWRELIC_VERSION=9.1.0.246
 
 RUN apk add --no-cache fcgi \
         ssmtp \
