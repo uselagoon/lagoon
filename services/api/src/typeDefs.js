@@ -92,6 +92,13 @@ const typeDefs = gql`
     OWNER
   }
 
+  enum Currency {
+    USD
+    GBP
+    ZAR
+    AUD
+  }
+
   type File {
     id: Int
     filename: String
@@ -128,6 +135,7 @@ const typeDefs = gql`
     id: String
     name: String
     type: String
+    currency: String
     groups: [Group]
     members: [GroupMembership]
     projects: [Project]
@@ -1004,6 +1012,7 @@ const typeDefs = gql`
 
   input BillingGroupInput {
     name: String!
+    currency: Currency!
   }
 
   input ProjectBillingGroupInput {

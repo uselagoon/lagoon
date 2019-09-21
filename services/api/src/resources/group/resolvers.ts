@@ -326,7 +326,7 @@ export const addGroupsToProject = async (
 
 export const addBillingGroup = async (
   _root,
-  { input: { name } },
+  { input: { name, currency } },
   { dataSources, hasPermission },
 ) => {
   await hasPermission('group', 'add');
@@ -335,7 +335,11 @@ export const addBillingGroup = async (
     throw new Error('You must provide a Billing Group name');
   }
 
-  const gData = { name, attributes: { type: ['billing'] } };
+  if (!currency) {
+    throw new Error('You must provide a Currency for the Billing Group');
+  }
+
+  const gData = { name, attributes: { type: ['billing'], currency: [currency] } };
   return dataSources.GroupModel.addGroup(gData);
 };
 
