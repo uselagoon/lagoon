@@ -127,8 +127,10 @@ const typeDefs = gql`
   type Group {
     id: String
     name: String
+    type: String
     groups: [Group]
     members: [GroupMembership]
+    projects: [Project]
   }
 
   type Openshift {

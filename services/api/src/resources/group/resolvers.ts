@@ -329,8 +329,7 @@ export const addBillingGroup = async (
   { input: { name } },
   { dataSources, hasPermission },
 ) => {
-  // await hasPermission('group', 'addBillingGroup');
-  // TODO - Add permission check for addProjectToBillingGroup
+  await hasPermission('group', 'add');
 
   if (!name) {
     throw new Error('You must provide a Billing Group name');
@@ -349,11 +348,21 @@ export const addProjectToBillingGroup = async (
     projectInput,
   );
 
-  const projectGroups = await dataSources.GroupModel.loadGroupsByProjectId(
+  await hasPermission('project', 'addGroup', {
+    project: project.id,
+  });
+
+  if (R.isEmpty(groupInput)) {
+    throw new Error('You must provide a billing group name or id');
+  }
+
+  const { loadGroupsByProjectId, loadGroupByIdOrName, addProjectToGroup } = dataSources.GroupModel;
+
+  // Billing groups for this project
+  const projectGroups = await loadGroupsByProjectId(
     project.id,
   );
 
-  // Billing groups for this project
   const projectBillingGroups = projectGroups.filter(group => {
     const { attributes } = group;
     return !!('type' in attributes && attributes.type[0] === 'billing');
@@ -366,19 +375,20 @@ export const addProjectToBillingGroup = async (
     );
   }
 
-  await hasPermission('billing', 'add', { project: project.id });
-
-  const group = await dataSources.GroupModel.loadGroupByIdOrName(groupInput);
-  await dataSources.GroupModel.addProjectToGroup(project.id, group);
+  const group = await loadGroupByIdOrName(groupInput);
+  await addProjectToGroup(project.id, group);
   return projectHelpers(sqlClient).getProjectById(project.id);
 };
+
+export const getAllProjectsByGroupId = async (root, input, context) =>
+  getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
 
 export const getAllProjectsInGroup = async (
   _root,
   { input: groupInput },
   { dataSources, sqlClient, hasPermission },
 ) => {
-  // TODO - authentication check
+  await hasPermission('group', 'viewAll');
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
   } = dataSources;
@@ -389,12 +399,12 @@ export const getAllProjectsInGroup = async (
   );
 };
 
+// TODO - Move out of api
 export const getAllProjectsNotInBillingGroup = async (
   _root,
   args,
   { dataSources, sqlClient, hasPermission },
 ) => {
-  // TODO - authentication check
   const {
     GroupModel: { loadAllGroups, getProjectsFromGroupAndSubgroups },
   } = dataSources;
