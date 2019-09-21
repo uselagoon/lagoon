@@ -21,7 +21,7 @@ const mockData: IMockDataType = {
     {
       // CH - July 2019
       name: 'VF',
-      currency: CURRENCIES.DOLLAR,
+      currency: CURRENCIES.USD,
       billingSoftware: 'xero',
       projects: [
         {
@@ -48,7 +48,7 @@ const mockData: IMockDataType = {
     },
     {
       name: 'SV',
-      currency: CURRENCIES.DOLLAR,
+      currency: CURRENCIES.USD,
       billingSoftware: 'xero',
       projects: [
         {
