@@ -55,9 +55,8 @@ interface IGroup {
   const groups = await GroupModel.loadAllGroups();
 
   // FILTER OUT ONLY BILLING GROUPS
-
   const groupFilter: (IGroup) => Boolean = group =>
-    R.find(R.pathEq(['attributes', 'type'], 'billing'), group) ? true : false;
+    group.type === 'billing' ? true : false;
   const billingGroups = groups.filter(groupFilter);
 
   // GET ALL PROJECT IDS FOR ALL PROJECTS IN BILLING GROUPS
