@@ -1,6 +1,7 @@
 // @flow
 
 const GraphQLDate = require('graphql-iso-date');
+const GraphQLJSON = require('graphql-type-json');
 
 const {
   getDeploymentsByEnvironmentId,
@@ -128,6 +129,7 @@ const {
   addBillingGroup,
   addProjectToBillingGroup,
   getAllProjectsInGroup,
+  getBillingGroupCost,
   getAllProjectsByGroupId,
   updateGroup,
   deleteGroup,
@@ -238,6 +240,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allEnvironments: getAllEnvironments,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
+    billingGroupCost: getBillingGroupCost,
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -326,6 +329,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskChanged: taskSubscriber,
   },
   Date: GraphQLDate,
+  JSON: GraphQLJSON,
 };
 
 module.exports = resolvers;

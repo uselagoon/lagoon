@@ -11,6 +11,7 @@ const gql = require('./util/gql');
 const typeDefs = gql`
   scalar Upload
   scalar Date
+  scalar JSON
 
   enum SshKeyType {
     SSH_RSA
@@ -528,6 +529,10 @@ const typeDefs = gql`
     Returns all projects in a given group
     """
     allProjectsInGroup(input: GroupInput): [Project]
+    """
+    Returns the costs for a given billing group
+    """
+    billingGroupCost(input: GroupInput, month: String): JSON
   }
 
   # Must provide id OR name
