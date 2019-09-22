@@ -403,36 +403,6 @@ export const getAllProjectsInGroup = async (
   );
 };
 
-// TODO - Move out of api
-export const getAllProjectsNotInBillingGroup = async (
-  _root,
-  args,
-  { dataSources, sqlClient, hasPermission },
-) => {
-  const {
-    GroupModel: { loadAllGroups, getProjectsFromGroupAndSubgroups },
-  } = dataSources;
-
-  // GET ALL GROUPS
-  const groups = await loadAllGroups();
-
-  // FILTER OUT ONLY BILLING GROUPS
-  const billingGroups = groups.filter(group => {
-    const { attributes } = group;
-    return !!('type' in attributes && attributes.type[0] === 'billing');
-  });
-
-  // GET ALL PROJECT IDS FOR ALL PROJECTS IN BILLING GROUPS
-  const allProjPids = await Promise.all(
-    billingGroups.map(group => getProjectsFromGroupAndSubgroups(group)),
-  );
-  const reducerFn = (acc, arr) => [...acc, ...arr];
-  const pids = allProjPids.reduce(reducerFn, []);
-
-  // SQL QUERY FOR ALL PROJECTS NOT IN ID
-  return projectHelpers(sqlClient).getAllProjectsNotIn(pids);
-};
-
 export const removeGroupsFromProject = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
