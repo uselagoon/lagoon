@@ -1,3 +1,4 @@
+ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM rabbitmq:3-management
 
