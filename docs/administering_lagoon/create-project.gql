@@ -30,7 +30,7 @@ mutation {
       # This is the project name
       name: ""
       # TODO: Fill in the private key field
-      # This is the private key for a project, which is used to access the git code
+      # This is the private key for a project, which is used to access the git code.  If no private key is added, Lagoon will create a private key, which can later be accessed by loading the project.
       privatekey: ""
       # TODO: Fill in the openshift field
       # This is the id of the OpenShift to assign to the project
