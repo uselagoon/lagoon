@@ -111,11 +111,11 @@ objects:
               secretKeyRef:
                 name: keycloak-admin-password
                 key: KEYCLOAK_ADMIN_PASSWORD
-          - name: SEARCHGUARD_COOKIE_PASSWORD
+          - name: OPENDISTRO_SECURITY_COOKIE_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: searchguard-cookie-password
-                key: SEARCHGUARD_COOKIE_PASSWORD
+                name: opendistro-security-cookie-password
+                key: OPENDISTRO_SECURITY_COOKIE_PASSWORD
           resources:
             requests:
               cpu: 10m

@@ -60,6 +60,7 @@ RUN apk add --no-cache --virtual .common-run-deps \
         bison \
         boost-dev \
         build-base \
+        check \
         cmake \
         coreutils \
         curl-dev \

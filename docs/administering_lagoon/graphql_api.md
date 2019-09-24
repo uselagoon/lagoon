@@ -101,9 +101,12 @@ mutation {
       # TODO: Fill in the keyType field
       # Valid values are either SSH_RSA or SSH_ED25519.
       keyType: SSH_RSA
-      # TODO: Fill in the userId field
-      # This is the user ID that we noted from the addUser query
-      userId: 0
+      user: {
+        # TODO: Fill in the userId field
+        # This is the user ID that we noted from the addUser query
+        id:"0",
+        email:"michael.schmid@example.com"
+      }
     }
   ) {
     id
@@ -185,7 +188,7 @@ mutation {
       # This is the notification name
       notificationName: ""
     }
-  ) {
+  ) 
     id
   }
 }
@@ -466,3 +469,4 @@ query search{
     }
   }
 }
+
