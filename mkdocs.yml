@@ -41,6 +41,7 @@ pages:
   - Installing Lagoon: administering_lagoon/install.md
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
   - GraphQL API: administering_lagoon/graphql_api.md
+  - Role Based Access Control: administering_lagoon/rbac.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md
