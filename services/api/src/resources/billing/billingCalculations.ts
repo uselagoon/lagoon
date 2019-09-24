@@ -1,6 +1,6 @@
 import { HIT_TIERS, CURRENCY_PRICING } from './pricing';
 
-/* ICustomerProjectBillingData
+/* IProjectData
  * availability - Standard or High
  * storageDays - GBs used over the month (kilobytesUsed for all project environments / 1000 / 1000)
  * prodHours - Aggregated total running time of all productions environements
@@ -8,7 +8,7 @@ import { HIT_TIERS, CURRENCY_PRICING } from './pricing';
  * month - the month we are interested in, used for calculating the days in the month
  * year - the year we are interested in, used for calcuating the days in the month. defaults to the current year.
  */
-export interface ICustomerProjectBillingData {
+export interface IProjectData {
   name: string;
   hits: number;
   availability: string;
@@ -19,22 +19,22 @@ export interface ICustomerProjectBillingData {
   year: number;
 }
 
-export interface ICustomer {
+export interface IBillingGroup {
   id?: number;
   name?: string;
   currency: string;
   billingSoftware?: string;
-  projects: ICustomerProjectBillingData[];
+  projects: IProjectData[];
 }
 
-export const customerProjectsDataReducer = (projects: any, objKey: string) =>
+export const projectsDataReducer = (projects: any, objKey: string) =>
   projects.reduce((acc, obj) => acc + obj[objKey], 0);
 
 // project availability uniformity check - find any project that has different availability
-const uniformAvailabilityCheck = (projects: ICustomerProjectBillingData[]) => {
+const uniformAvailabilityCheck = (projects: IProjectData[]) => {
   const found = projects.filter(
     (project, index, self) =>
-      self.findIndex(p => p.availability !== project.availability) !== -1
+      self.findIndex(p => p.availability !== project.availability) !== -1,
   );
   if (found.length !== 0) {
     throw 'Projects must have the same availability';
@@ -44,13 +44,13 @@ const uniformAvailabilityCheck = (projects: ICustomerProjectBillingData[]) => {
 /**
  * Calculates the hit costs.
  *
- * @param {ICustomer} customer Customer object including:
+ * @param {IBillingGroup} customer Customer object including:
  *
  * @return {Number} The hits cost in the currency provided
  */
-export const hitsCost = ({ projects, currency }: ICustomer) => {
+export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   uniformAvailabilityCheck(projects);
-  const hits = customerProjectsDataReducer(projects, 'hits');
+  const hits = projectsDataReducer(projects, 'hits');
   const availability = projects[0].availability;
   const tier = hitTier(hits);
   const hitsInTier = hits - HIT_TIERS[tier - 1].max;
@@ -68,13 +68,13 @@ export const hitsCost = ({ projects, currency }: ICustomer) => {
 /**
  * Calculates the storage costs.
  *
- * @param {ICustomer} customer Customer object including:
+ * @param {IBillingGroup} customer Customer object including:
  *
  * @return {Number} The storage cost in the currency provided
  */
-export const storageCost = ({ projects, currency }: ICustomer) => {
+export const storageCost = ({ projects, currency }: IBillingGroup) => {
   const { storagePerDay } = CURRENCY_PRICING[currency];
-  const storageDays = customerProjectsDataReducer(projects, 'storageDays');
+  const storageDays = projectsDataReducer(projects, 'storageDays');
   const days = daysInMonth(projects[0].month, projects[0].year);
   const freeGBDays = projects.length * (5 * days);
   const storageToBill = Math.max(storageDays - freeGBDays, 0);
@@ -88,16 +88,16 @@ export const storageCost = ({ projects, currency }: ICustomer) => {
 /**
  * Calculates the production cost.
  *
- * @param {ICustomer} customer Customer billing Currency
+ * @param {IBillingGroup} customer Customer billing Currency
  *
  * @return {Number} The production environment cost in the currency provided
  */
-export const prodCost = ({ currency, projects }: ICustomer) => {
+export const prodCost = ({ currency, projects }: IBillingGroup) => {
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];
 
-  let projectProdCosts = [];
+  const projectProdCosts = [];
   projects.map(project => {
     const { prodHours, availability } = project;
     const { prodSitePerHour } = currencyPricingAvailability[availability];
@@ -111,17 +111,17 @@ export const prodCost = ({ currency, projects }: ICustomer) => {
 /**
  * Calculates the development environment cost.
  *
- * @param {ICustomer} customer Customer billing object
+ * @param {IBillingGroup} customer Customer billing object
  *
  * @return {Number} The production environment cost in the currency provided
  */
-export const devCost = ({ currency, projects }: ICustomer) => {
+export const devCost = ({ currency, projects }: IBillingGroup) => {
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];
   const freeDevHours = hoursInMonth(projects[0].month) * 2;
 
-  let projectDevCosts = [];
+  const projectDevCosts = [];
   projects.map(project => {
     const { devHours, availability } = project;
     const { devSitePerHour } = currencyPricingAvailability[availability];
@@ -135,9 +135,7 @@ export const devCost = ({ currency, projects }: ICustomer) => {
 
 // Hit Cost Helpers
 export const hitTier = (hits: number) =>
-  HIT_TIERS.findIndex(x => {
-    return x.min <= hits && x.max >= hits;
-  });
+  HIT_TIERS.findIndex(x => x.min <= hits && x.max >= hits);
 
 // Calculate the hitBase tiers for a given currency minimum hitbase
 const calculateHitBaseTiers = (hitBase, hitCosts) => {
@@ -148,7 +146,7 @@ const calculateHitBaseTiers = (hitBase, hitCosts) => {
       (
         (previousHitTier.max + 1 - previousHitTier.min) * hitCosts[i - 1] +
         hitBaseTiers[i - 1]
-      ).toFixed(2)
+      ).toFixed(2),
     );
     hitBaseTiers.push(hitBase);
   }
@@ -156,10 +154,8 @@ const calculateHitBaseTiers = (hitBase, hitCosts) => {
 };
 
 // HELPERS
-export const hoursInMonth = (m: number) => {
-  return Number(daysInMonth(m, new Date(Date.now()).getFullYear()) * 24);
-};
+export const hoursInMonth = (m: number) =>
+  Number(daysInMonth(m, new Date(Date.now()).getFullYear()) * 24);
 
-export const daysInMonth = (month: number, year: number) => {
-  return new Date(year, month + 1, 0).getDate();
-};
+export const daysInMonth = (month: number, year: number) =>
+  new Date(year, month + 1, 0).getDate();

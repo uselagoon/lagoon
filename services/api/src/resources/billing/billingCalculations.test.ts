@@ -7,17 +7,17 @@ import {
   prodCost,
   devCost,
   hitTier,
-  ICustomer,
-  customerProjectsDataReducer,
+  IBillingGroup,
+  projectsDataReducer,
 } from './billingCalculations';
 
 interface IMockDataType {
-  customers: ICustomer[];
+  billingGroups: IBillingGroup[];
 }
 
 // month: 'July 2019',
 const mockData: IMockDataType = {
-  customers: [
+  billingGroups: [
     {
       // CH - July 2019
       name: 'VF',
@@ -29,7 +29,7 @@ const mockData: IMockDataType = {
           month: 7,
           year: 2019,
           hits: 1_075,
-          availability: AVAILABILITY.standard,
+          availability: AVAILABILITY.STANDARD,
           storageDays: 197,
           prodHours: 744,
           devHours: 0,
@@ -39,7 +39,7 @@ const mockData: IMockDataType = {
           month: 7,
           year: 2019,
           hits: 342_371,
-          availability: AVAILABILITY.standard,
+          availability: AVAILABILITY.STANDARD,
           storageDays: 0,
           prodHours: 744,
           devHours: 744,
@@ -56,7 +56,7 @@ const mockData: IMockDataType = {
           month: 7,
           year: 2019,
           hits: 6_833_467,
-          availability: AVAILABILITY.high,
+          availability: AVAILABILITY.HIGH,
           storageDays: 784.064378,
           prodHours: 744,
           devHours: 1488,
@@ -66,7 +66,7 @@ const mockData: IMockDataType = {
           month: 7,
           year: 2019,
           hits: 13_782,
-          availability: AVAILABILITY.high,
+          availability: AVAILABILITY.HIGH,
           storageDays: 23.725226,
           prodHours: 744,
           devHours: 744,
@@ -76,7 +76,7 @@ const mockData: IMockDataType = {
           month: 7,
           year: 2019,
           hits: 0,
-          availability: AVAILABILITY.high,
+          availability: AVAILABILITY.HIGH,
           storageDays: 0,
           prodHours: 744,
           devHours: 1488,
@@ -86,8 +86,8 @@ const mockData: IMockDataType = {
   ],
 };
 
-const { projects: p1 } = mockData.customers[0];
-const { projects: p2 } = mockData.customers[1];
+const { projects: p1 } = mockData.billingGroups[0];
+const { projects: p2 } = mockData.billingGroups[1];
 
 // Unit Under Test
 describe('Billing Calculations', () => {
@@ -96,7 +96,7 @@ describe('Billing Calculations', () => {
     it('When hits are between { MIN: 300_001, MAX: 2_500_000 }, then the "hitTier should be 1', () => {
       // Arrange
       // Act
-      const hits = customerProjectsDataReducer(p1, 'hits');
+      const hits = projectsDataReducer(p1, 'hits');
       // Assert
       expect(hitTier(hits)).toBe(1);
     });
@@ -104,7 +104,7 @@ describe('Billing Calculations', () => {
     it('When hits are between { MIN: 2_500_001, MAX: 10_000_000 }, then the "hitTier should be 2', () => {
       // Arrange
       // Act
-      const hits = customerProjectsDataReducer(p2, 'hits');
+      const hits = projectsDataReducer(p2, 'hits');
       // Assert
       expect(hitTier(hits)).toBe(2);
     });
@@ -114,18 +114,18 @@ describe('Billing Calculations', () => {
     // scenarios and expectation
     it('Given two projects with standard availability, and hits [1_075, 342_371], the hit cost should be 75.52', () => {
       // Arrange
-      const customer = mockData.customers[0];
+      const billingGroup = mockData.billingGroups[0];
       // Act
-      const cost = hitsCost(customer);
+      const cost = hitsCost(billingGroup);
       // Assert
       expect(cost).toBe(75.52);
     });
 
     it('Given three projects with high availability, and hits [6_833_467, 13_782, 0], the hit cost should be 1468.61', () => {
       // Arrange
-      const customer = mockData.customers[1];
+      const billingGroup = mockData.billingGroups[1];
       // Act
-      const cost = hitsCost(customer);
+      const cost = hitsCost(billingGroup);
       // Assert
       expect(cost).toBe(1468.61);
     });
@@ -135,18 +135,18 @@ describe('Billing Calculations', () => {
     // scenarios and expectation
     it('Given the total storage of all projects do NOT exceed the free storage tier the cost should be 0.', () => {
       // Arrange
-      const customer = mockData.customers[0];
+      const billingGroup = mockData.billingGroups[0];
       // Act
-      const cost = storageCost(customer);
+      const cost = storageCost(billingGroup);
       // Assert
       expect(cost).toBe(0);
     });
 
     it('Given the total storage of three projects exceed the free storage tier, GBDays [784.064378, 23.725226, 0], the cost should be 11.41.', () => {
       // Arrange
-      const customer = mockData.customers[1];
+      const billingGroup = mockData.billingGroups[1];
       // Act
-      const cost = storageCost(customer);
+      const cost = storageCost(billingGroup);
       // Assert
       expect(cost).toBe(11.41);
     });
@@ -154,21 +154,21 @@ describe('Billing Calculations', () => {
 
   describe('Environment Costs - Customers billed in US Dollars', () => {
     // scenarios and expectation
-    it('Given a customer with two projects running for the entire month of July, 2019 (744 hours) the Production costs should be 62.05', () => {
+    it('Given a billingGroup with two projects running for the entire month of July, 2019 (744 hours) the Production costs should be 62.05', () => {
       // Arrange
-      const customer = mockData.customers[0];
+      const billingGroup = mockData.billingGroups[0];
       // Act
-      const cost = prodCost(customer);
+      const cost = prodCost(billingGroup);
       // Assert
       expect(cost).toBe(62.05);
     });
 
     // scenarios and expectation
-    it('Given a customer does not have more than the freely included development environments, the costs should be 0', () => {
+    it('Given a billingGroup does not have more than the freely included development environments, the costs should be 0', () => {
       // Arrange
-      const customer = mockData.customers[0];
+      const billingGroup = mockData.billingGroups[0];
       // Act
-      const cost = devCost(customer);
+      const cost = devCost(billingGroup);
       // Assert
       expect(cost).toBe(0);
     });
