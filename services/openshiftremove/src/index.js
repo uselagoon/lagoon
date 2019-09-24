@@ -103,8 +103,6 @@ const messageConsumer = async function(msg) {
     }
   });
 
-  const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
-
   const serviceCatalog = new ServiceCatalog({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
@@ -145,20 +143,6 @@ const messageConsumer = async function(msg) {
     });
   };
 
-
-  const hasZeroPods = () =>
-    new Promise(async (resolve, reject) => {
-      const pods = await podsGet();
-      if (pods.items.length === 0) {
-        logger.info(`${openshiftProject}: All Pods deleted`);
-        resolve();
-      } else {
-        logger.info(
-          `${openshiftProject}: Pods not deleted yet, will try again in 2sec`
-        );
-        reject();
-      }
-    });
 
   const hasZeroServiceBindings = () =>
     new Promise(async (resolve, reject) => {
@@ -230,46 +214,6 @@ const messageConsumer = async function(msg) {
 
   // Project exists, let's remove it
   try {
-    const deploymentconfigsGet = promisify(
-      openshift.ns(openshiftProject).deploymentconfigs.get
-    );
-    const deploymentconfigs = await deploymentconfigsGet();
-
-    for (let deploymentconfig of deploymentconfigs.items) {
-      const deploymentconfigsDelete = promisify(
-        openshift
-          .ns(openshiftProject)
-          .deploymentconfigs(deploymentconfig.metadata.name).delete
-      );
-      await deploymentconfigsDelete({
-        body: {
-          kind: 'DeleteOptions',
-          apiVersion: 'v1',
-          propagationPolicy: 'Foreground'
-        }
-      });
-      logger.info(
-        `${openshiftProject}: Deleted DeploymentConfig ${
-          deploymentconfig.metadata.name
-        }`
-      );
-    }
-
-    const pods = await podsGet();
-    for (let pod of pods.items) {
-      const podDelete = promisify(
-        kubernetes.ns(openshiftProject).pods(pod.metadata.name).delete
-      );
-      await podDelete({
-        body: {
-          kind: 'DeleteOptions',
-          apiVersion: 'v1',
-          propagationPolicy: 'Foreground'
-        }
-      });
-      logger.info(`${openshiftProject}: Deleted Pod ${pod.metadata.name}`);
-    }
-
     const serviceBindings = await serviceBindingsGet();
     for (let serviceBinding of serviceBindings.items) {
       await serviceBindingDelete(serviceBinding.metadata.name);
@@ -302,15 +246,14 @@ const messageConsumer = async function(msg) {
       );
     }
 
-    // Confirm all pods and ServiceInstances are deleted.
+    // Confirm all ServiceInstances are deleted.
     try {
       await Promise.all([
-        retry(10, hasZeroPods, 2000),
         retry(12, hasZeroServiceInstances, 10000)
       ]);
     } catch (err) {
       throw new Error(
-        `${openshiftProject}: Pods or ServiceInstances not deleted`
+        `${openshiftProject}: ServiceInstances not deleted`
       );
     }
 
