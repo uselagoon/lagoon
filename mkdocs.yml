@@ -20,7 +20,9 @@ pages:
     - RabbitMQ: using_lagoon/docker_images/rabbitmq.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
-  - Logging: using_lagoon/logging.md
+  - Logs: 
+     - Logging: using_lagoon/logging/logging.md
+     - Kibana Examples: using_lagoon/logging/kibana_examples.md
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
