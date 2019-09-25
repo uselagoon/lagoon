@@ -589,6 +589,34 @@ async function getProjectByName(
   return result.project;
 }
 
+async function getMicrosoftTeamsInfoForProject(
+  project: string,
+): Promise<Array<Object>> {
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationMicrosoftTeams {
+      webhook
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        microsoftTeams: notifications(type: MICROSOFTTEAMS) {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.microsoftTeams) {
+    throw new ProjectNotFound(
+      `Cannot find Microsoft Teams information for project ${project}`,
+    );
+  }
+
+  return result.project.microsoftTeams;
+}
+
 async function getRocketChatInfoForProject(
   project: string,
 ): Promise<Array<Object>> {
@@ -1028,6 +1056,7 @@ module.exports = {
   deleteProject,
   getProjectsByGitUrl,
   getProjectByName,
+  getMicrosoftTeamsInfoForProject,
   getRocketChatInfoForProject,
   getSlackinfoForProject,
   getActiveSystemForProject,
