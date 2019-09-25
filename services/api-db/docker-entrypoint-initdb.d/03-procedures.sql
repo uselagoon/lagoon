@@ -323,6 +323,50 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  CreateNotificationMicrosoftTeams
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_microsoftteams (
+      name,
+      webhook
+    )
+    VALUES (
+      name,
+      webhook
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook
+    FROM notification_microsoftteams
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationMicrosoftTeams
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_microsoftteams ns WHERE ns.name = name;
+
+    DELETE FROM notification_microsoftteams WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'microsoftteams';
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   CreateNotificationRocketChat
   (
     IN name        varchar(50),
