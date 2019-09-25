@@ -31,6 +31,7 @@ const typeDefs = gql`
   enum NotificationType {
     SLACK
     ROCKETCHAT
+    MICROSOFTTEAMS
   }
 
   enum DeploymentStatusType {
@@ -135,6 +136,12 @@ const typeDefs = gql`
     created: String
   }
 
+  type NotificationMicrosoftTeams {
+    id: Int
+    name: String
+    webhook: String
+  }
+
   type NotificationRocketChat {
     id: Int
     name: String
@@ -155,7 +162,7 @@ const typeDefs = gql`
     type: String
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams
 
   """
   Lagoon Project (like a git repository)
@@ -668,6 +675,11 @@ const typeDefs = gql`
     name: String!
   }
 
+  input AddNotificationMicrosoftTeamsInput {
+    name: String!
+    webhook: String!
+  }
+
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
@@ -678,6 +690,10 @@ const typeDefs = gql`
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationMicrosoftTeamsInput {
+    name: String!
   }
 
   input DeleteNotificationRocketChatInput {
@@ -767,6 +783,12 @@ const typeDefs = gql`
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationMicrosoftTeamsPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+
   input UpdateNotificationRocketChatPatchInput {
     name: String
     webhook: String
@@ -777,6 +799,11 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationMicrosoftTeamsInput {
+    name: String!
+    patch: UpdateNotificationMicrosoftTeamsPatchInput
   }
 
   input UpdateNotificationRocketChatInput {
@@ -946,6 +973,16 @@ const typeDefs = gql`
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteAllNotificationRocketChats: String
+    addNotificationMicrosoftTeams(
+      input: AddNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    updateNotificationMicrosoftTeams(
+      input: UpdateNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    deleteNotificationMicrosoftTeams(
+      input: DeleteNotificationMicrosoftTeamsInput!
+    ): String
+    deleteAllNotificationMicrosoftTeams: String
     """
     Connect previous created Notification to a Project
     """

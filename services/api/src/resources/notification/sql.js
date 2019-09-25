@@ -75,6 +75,14 @@ const Sql /* : SqlObj */ = {
       .select({ pid: 'p.id', nid: 'nt.id' })
       .toString();
   },
+  updateNotificationMicrosoftTeams: (input /* : Object */) => {
+    const { name, patch } = input;
+
+    return knex('notification_microsoftteams')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
   updateNotificationRocketChat: (input /* : Object */) => {
     const { name, patch } = input;
 
@@ -97,6 +105,10 @@ const Sql /* : SqlObj */ = {
       .select('nt.*', 'pn.type')
       .toString();
   },
+  selectNotificationMicrosoftTeamsByName: (name /* : string */) =>
+  knex('notification_microsofTeams')
+    .where('name', '=', name)
+    .toString(),
   selectNotificationRocketChatByName: (name /* : string */) =>
     knex('notification_rocketchat')
       .where('name', '=', name)
@@ -140,6 +152,10 @@ const Sql /* : SqlObj */ = {
       .toString(),
   truncateNotificationRocketchat: () =>
     knex('notification_rocketchat')
+      .truncate()
+      .toString(),
+  truncateNotificationMicrosoftTeams: () =>
+    knex('notification_microsoftteams')
       .truncate()
       .toString(),
   truncateProjectNotification: () =>
