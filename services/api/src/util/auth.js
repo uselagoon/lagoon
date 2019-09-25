@@ -121,7 +121,7 @@ const keycloakHasPermission = (grant, requestCache) => {
       try {
         claims = {
           ...claims,
-          projectQuery: [R.prop('project', attributes)],
+          projectQuery: [`${R.prop('project', attributes)}`],
         };
 
         const userProjects = await UserModel.getAllProjectsIdsForUser({
