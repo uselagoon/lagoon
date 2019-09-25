@@ -40,7 +40,7 @@ The Drupal 8 config is largely stock. Notably, redis is disabled while drupal is
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
-  $settings['redis.connection']['port'] = 6379;
+  $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
   $settings['cache_prefix']['default'] = getenv('LAGOON_PROJECT') . '_' . getenv('LAGOON_GIT_SAFE_BRANCH');
 
   // Do not set the cache during installations of Drupal
