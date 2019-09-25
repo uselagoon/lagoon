@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: harbor-notary-signer-template
+  annotations:
+    description: "A template for generating Harbor's notary-signer service"
+parameters:
+  - name: SERVICE_NAME
+    description: Name of this service
+    required: true
+  - name: SAFE_BRANCH
+    description: Which branch this belongs to, special chars replaced with dashes
+    required: true
+  - name: SAFE_PROJECT
+    description: Which project this belongs to, special chars replaced with dashes
+    required: true
+  - name: BRANCH
+    description: Which branch this belongs to, original value
+    required: true
+  - name: PROJECT
+    description: Which project this belongs to, original value
+    required: true
+  - name: LAGOON_GIT_SHA
+    description: git hash sha of the current deployment
+    required: true
+  - name: SERVICE_ROUTER_URL
+    description: URL of the Router for this service
+    value: ""
+  - name: OPENSHIFT_PROJECT
+    description: Name of the Project that this service is in
+    required: true
+  - name: REGISTRY
+    description: Registry where Images are pushed to
+    required: true
+  - name: DEPLOYMENT_STRATEGY
+    description: Strategy of Deploymentconfig
+    value: "Rolling"
+  - name: SERVICE_IMAGE
+    description: Pullable image of service
+    required: true
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${SERVICE_NAME} # notary-signer
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+  spec:
+    ports:
+    - port: 7899
+    selector:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: ${SERVICE_NAME} # notary-signer
+    labels:
+      service: ${SERVICE_NAME}
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        service: ${SERVICE_NAME}
+        branch: ${SAFE_BRANCH}
+        project: ${SAFE_PROJECT}
+    template:
+      metadata:
+        labels:
+          service: ${SERVICE_NAME}
+          branch: ${SAFE_BRANCH}
+          project: ${SAFE_PROJECT}
+      spec:
+        containers:
+        - name: notary-signer
+          image: ${SERVICE_IMAGE} # cdchris12/notary-signer-photon:dev
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: MIGRATIONS_PATH
+            value: migrations/signer/postgresql
+          - name: CLAIR_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: clair-db-password
+                  key: CLAIR_DB_PASSWORD
+          - name: DB_URL
+            valueFrom:
+              secretKeyRef:
+                name: notary-db-url
+                key: NOTARY_DB_URL
+          - name: NOTARY_SIGNER_DEFAULTALIAS
+            value: defaultalias
+          volumeMounts:
+          - name: config
+            mountPath: /etc/notary/signer-config.postgres.json
+            subPath: signer.json
+          - name: signer-certificate
+            mountPath: /etc/ssl/notary/tls.crt
+            subPath: tls.crt
+          - name: signer-certificate
+            mountPath: /etc/ssl/notary/tls.key
+            subPath: tls.key
+        volumes:
+        - name: config
+          secret:
+            secretName: notary-server
+        - name: signer-certificate
+          secret:
+            secretName: notary-server
