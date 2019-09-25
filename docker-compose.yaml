@@ -137,6 +137,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/logs2slack:v1-0-0
+  logs2microsoftteams:
+    image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
+    command: yarn run dev
+    volumes:
+      - ./services/logs2microsoftTeams/src:/app/services/logs2microsoftTeams/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs2microsoftTeams/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs2microsoftteams:v1-0-0
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
