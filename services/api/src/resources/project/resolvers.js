@@ -324,9 +324,9 @@ const addProject = async (
     user = await dataSources.UserModel.loadUserById(userId);
   }
 
-  // Add the user (with linked public key) to the default group as guest
+  // Add the user (with linked public key) to the default group with maintainer role
   try {
-    await dataSources.GroupModel.addUserToGroup(user, group, 'guest');
+    await dataSources.GroupModel.addUserToGroup(user, group, 'maintainer');
   } catch (err) {
     logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
   }
