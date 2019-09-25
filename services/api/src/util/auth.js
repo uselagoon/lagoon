@@ -1,141 +1,44 @@
-const util = require('util');
 const R = require('ramda');
 const jwt = require('jsonwebtoken');
-const jwkToPem = require('jwk-to-pem');
-const axios = require('axios');
 const logger = require('../logger');
-const { query, prepare } = require('../util/db');
+const { keycloakGrantManager } = require('../clients/keycloakClient');
+const User = require('../models/user');
+const Group = require('../models/group');
+
+const UserModel = User.User();
+const GroupModel = Group.Group();
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
-const notEmptyOrNaN /* : Function */ = R.allPass([
-  R.compose(
-    R.not,
-    R.isEmpty,
-  ),
-  R.compose(
-    R.not,
-    R.equals(NaN),
-  ),
-]);
+const sortRolesByWeight = (a, b) => {
+  const roleWeights = {
+    guest: 1,
+    reporter: 2,
+    developer: 3,
+    maintainer: 4,
+    owner: 5,
+  };
 
-// Input: Comma-separated string with ids (defaults to '' if null)
-// Output: Array of ids as strings
-const splitCommaSeparatedPermissions /* :  (?string) => Array<string> */ = R.compose(
-  // MariaDB returns number ids as strings. In order to avoid
-  // having to compare numbers with strings later on, this
-  // function casts them back to string.
-  R.map(R.toString),
-  R.filter(notEmptyOrNaN),
-  R.map(strId => parseInt(strId)),
-  R.split(','),
-  R.defaultTo(''),
-);
-
-const getPermissions = async (sqlClient, args) => {
-  const prep = prepare(
-    sqlClient,
-    'SELECT projects, customers FROM permission WHERE user_id = :user_id',
-  );
-  const rows = await query(sqlClient, prep(args));
-
-  return R.propOr(null, 0, rows);
-};
-
-const getPermissionsForUser = async (sqlClient, userId) => {
-  const rawPermissions = await getPermissions(sqlClient, { userId });
-
-  if (rawPermissions == null) {
-    return {};
+  if (roleWeights[a] < roleWeights[b]) {
+    return -1;
+  } else if (roleWeights[a] > roleWeights[b]) {
+    return 1;
   }
 
-  // Split comma-separated permissions values to arrays
-  const permissions = R.compose(
-    R.over(R.lensProp('customers'), splitCommaSeparatedPermissions),
-    R.over(R.lensProp('projects'), splitCommaSeparatedPermissions),
-    R.defaultTo({}),
-  )(rawPermissions);
-
-  return permissions;
+  return 0;
 };
 
-// Attempt to load signing key from Keycloak API.
-const fetchKeycloakKey = async (header, cb) => {
-  const lagoonRoutes =
-    (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];
-
-  const lagoonKeycloakRoute = lagoonRoutes.find(routes =>
-    routes.includes('keycloak-'),
-  );
-
-  const authServerUrl = lagoonKeycloakRoute
-    ? `${lagoonKeycloakRoute}/auth`
-    : 'http://docker.for.mac.localhost:8088/auth';
-
+const getGrantForKeycloakToken = async (sqlClient, token) => {
+  let grant = '';
   try {
-    const response = await axios.get(
-      `${authServerUrl}/realms/lagoon/protocol/openid-connect/certs`,
-    );
-    const jwks = response.data.keys;
-
-    const jwk = jwks.find(key => key.kid === header.kid);
-
-    if (!jwk) {
-      throw new Error('No keycloak key found for realm lagoon.');
-    }
-
-    cb(null, jwkToPem(jwk));
-  } catch (e) {
-    cb(e);
-  }
-};
-
-const getCredentialsForKeycloakToken = async (sqlClient, token) => {
-  const decodeToken = util.promisify(jwt.verify);
-
-  // Check for a valid keycloak token before cryptographically verifying it to
-  // save a network request.
-  const { azp } = jwt.decode(token);
-  if (!azp || azp !== 'lagoon-ui') {
-    throw new Error('Not a recognized Keycloak token.');
-  }
-
-  let decoded = '';
-  try {
-    decoded = await decodeToken(token, fetchKeycloakKey);
-
-    if (decoded == null) {
-      throw new Error('Decoding token resulted in "null" or "undefined".');
-    }
+    grant = await keycloakGrantManager.createGrant({
+      access_token: token,
+    });
   } catch (e) {
     throw new Error(`Error decoding token: ${e.message}`);
   }
 
-  let nonAdminCreds = {};
-
-  if (!R.contains('admin', decoded.realm_access.roles)) {
-    const {
-      lagoon: { user_id: userId },
-    } = decoded;
-    const permissions = await getPermissionsForUser(sqlClient, userId);
-
-    if (R.isEmpty(permissions)) {
-      throw new Error(`No permissions for user id ${userId}.`);
-    }
-
-    nonAdminCreds = {
-      userId,
-      role: 'none',
-      // Read and write permissions
-      permissions,
-    };
-  }
-
-  return {
-    role: 'admin',
-    permissions: {},
-    ...nonAdminCreds,
-  };
+  return grant;
 };
 
 const getCredentialsForLegacyToken = async (sqlClient, token) => {
@@ -157,45 +60,180 @@ const getCredentialsForLegacyToken = async (sqlClient, token) => {
     throw new Error(`Error decoding token: ${e.message}`);
   }
 
-  const { userId, permissions, role = 'none' } = decoded;
+  const { role = 'none' } = decoded;
 
-  if (role === 'admin') {
-    return {
-      role,
-      permissions: {},
-    };
+  if (role !== 'admin') {
+    throw new Error('Cannot authenticate non-admin user with legacy token.');
   }
 
-  // Get permissions for user, override any from JWT.
-  if (userId) {
-    const dbPermissions = await getPermissionsForUser(sqlClient, userId);
+  return {
+    role,
+    permissions: {},
+  };
+};
 
-    if (R.isEmpty(dbPermissions)) {
-      throw new Error(`No permissions for user id ${userId}.`);
+// Legacy tokens should only be granted by services, which will have admin role.
+const legacyHasPermission = (legacyCredentials) => {
+  const { role } = legacyCredentials;
+
+  return async (resource, scope) => {
+    if (role !== 'admin') {
+      throw new Error('Unauthorized');
+    }
+  };
+};
+
+const keycloakHasPermission = (grant, requestCache) => {
+  return async (resource, scope, attributes = {}) => {
+    const currentUserId = grant.access_token.content.sub;
+
+    // Check if the same set of permissions has been granted already for this
+    // api query.
+    // TODO Is it possible to ask keycloak for ALL permissions (given a project
+    // or group context) and cache a single query instead?
+    const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(attributes)}`;
+    const cachedPermissions = requestCache.get(cacheKey);
+    if (cachedPermissions !== undefined) {
+      return cachedPermissions;
     }
 
-    return {
-      userId,
-      role,
-      permissions: dbPermissions,
-    };
-  }
+    const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
-  // Use permissions from JWT.
-  if (permissions) {
-    return {
-      role,
-      permissions,
+    let claims = {
+      currentUser: [currentUserId],
     };
-  }
 
-  throw new Error(
-    'Cannot authenticate non-admin user with no userId or permissions.',
-  );
+    const usersAttribute = R.prop('users', attributes);
+    if (usersAttribute && usersAttribute.length) {
+      claims = {
+        ...claims,
+        usersQuery: [
+          R.compose(
+            R.join('|'),
+            R.prop('users'),
+          )(attributes),
+        ],
+        currentUser: [currentUserId],
+      };
+    }
+
+    if (R.prop('project', attributes)) {
+      try {
+        claims = {
+          ...claims,
+          projectQuery: [`${R.prop('project', attributes)}`],
+        };
+
+        const userProjects = await UserModel.getAllProjectsIdsForUser({
+          id: currentUserId,
+        });
+
+        if (userProjects.length) {
+          claims = {
+            ...claims,
+            userProjects: [userProjects.join('-')],
+          };
+        }
+
+        const roles = await UserModel.getUserRolesForProject({
+          id: currentUserId,
+        }, R.prop('project', attributes));
+
+        const highestRoleForProject = R.pipe(
+          R.uniq,
+          R.reject(R.isEmpty),
+          R.reject(R.isNil),
+          R.sort(sortRolesByWeight),
+          R.last,
+        )(roles);
+
+        if (highestRoleForProject) {
+          claims = {
+            ...claims,
+            userProjectRole: [highestRoleForProject],
+          };
+        }
+      } catch (err) {
+        logger.error(`Could not submit project (${R.prop('project', attributes)}) claims for authz request: ${err.message}`);
+      }
+    }
+
+    if (R.prop('group', attributes)) {
+      try {
+        const group = await GroupModel.loadGroupById(R.prop('group', attributes));
+
+        const groupRoles = R.pipe(
+          R.filter(membership =>
+            R.pathEq(['user', 'id'], currentUserId, membership),
+          ),
+          R.pluck('role'),
+        )(group.members);
+
+        const highestRoleForGroup = R.pipe(
+          R.uniq,
+          R.reject(R.isEmpty),
+          R.reject(R.isNil),
+          R.sort(sortRolesByWeight),
+          R.last,
+        )(groupRoles);
+
+        if (highestRoleForGroup) {
+          claims = {
+            ...claims,
+            userGroupRole: [highestRoleForGroup],
+          };
+        }
+      } catch (err) {
+        logger.error(`Could not submit group (${R.prop('group', attributes)}) claims for authz request: ${err.message}`);
+      }
+    }
+
+    // Ask keycloak for a new token (RPT).
+    let authzRequest = {
+      permissions: [
+        {
+          id: resource,
+          scopes: [scope],
+        },
+      ],
+    };
+
+    if (!R.isEmpty(claims)) {
+      authzRequest = {
+        ...authzRequest,
+        claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+        claim_token: Buffer.from(JSON.stringify(claims)).toString('base64'),
+      };
+    }
+
+    const request = {
+      headers: {},
+      kauth: {
+        grant: serviceAccount,
+      },
+    };
+
+    try {
+      const newGrant = await keycloakGrantManager.checkPermissions(authzRequest, request);
+
+      if (newGrant.access_token.hasPermission(resource, scope)) {
+        requestCache.set(cacheKey, true);
+        return;
+      }
+    } catch (err) {
+      // Keycloak library doesn't distinguish between a request error or access
+      // denied conditions.
+      logger.debug(`keycloakHasPermission denied for "${scope}" on "${resource}": ${err.message}`);
+    }
+
+    requestCache.set(cacheKey, false);
+    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+  };
 };
 
 module.exports = {
-  splitCommaSeparatedPermissions,
   getCredentialsForLegacyToken,
-  getCredentialsForKeycloakToken,
+  getGrantForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
 };

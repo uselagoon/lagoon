@@ -19,7 +19,9 @@ pages:
     - Nginx: using_lagoon/docker_images/nginx.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
-  - Logging: using_lagoon/logging.md
+  - Logs: 
+     - Logging: using_lagoon/logging/logging.md
+     - Kibana Examples: using_lagoon/logging/kibana_examples.md
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
@@ -31,6 +33,8 @@ pages:
       - Solr: using_lagoon/drupal/services/solr.md
       - Varnish: using_lagoon/drupal/services/varnish.md
       - Redis: using_lagoon/drupal/services/redis.md
+  - Node.js:
+    - Gracefull Shutdown: using_lagoon/nodejs/gracefull_shutdown.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
   - GoLive: using_lagoon/golive.md
@@ -38,6 +42,7 @@ pages:
   - Installing Lagoon: administering_lagoon/install.md
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
   - GraphQL API: administering_lagoon/graphql_api.md
+  - Role Based Access Control: administering_lagoon/rbac.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md

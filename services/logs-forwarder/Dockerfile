@@ -9,6 +9,7 @@ RUN apk add --no-cache tini \
         fluent-plugin-elasticsearch \
         fluent-plugin-secure-forward \
         fluent-plugin-record-modifier \
+ && gem install fluent-plugin-prometheus --version='~>1.0.0' \
  && gem sources --clear-all \
  && apk del .build-deps \
  && rm -rf /var/cache/apk/* \

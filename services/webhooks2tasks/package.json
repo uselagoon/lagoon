@@ -5,7 +5,7 @@
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "build/index.js",
   "engines": {
-    "node": ">=8.12.0"
+    "node": ">=10.16.3"
   },
   "scripts": {
     "start": "flow-node build/index.js",
@@ -19,7 +19,8 @@
     "amqplib": "^0.5.1",
     "async-retry": "^1.2.3",
     "flow-remove-types": "^1.2.1",
-    "ramda": "^0.25.0"
+    "ramda": "^0.25.0",
+    "sshpk": "^1.16.1"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"

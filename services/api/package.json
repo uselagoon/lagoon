@@ -4,15 +4,21 @@
   "description": "Lagoon GraphQL API",
   "main": "index.js",
   "engines": {
-    "node": ">=8.12.0"
+    "node": ">=10.16.3"
   },
   "scripts": {
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start": "flow-node -r dotenv-extended/config src",
-    "dev": "NODE_ENV=development nodemon --watch src --exec 'flow-node -r dotenv-extended/config' -- src"
+    "build": "tsc",
+    "start": "flow-node -r dotenv-extended/config dist",
+    "dev": "NODE_ENV=development nodemon --watch src -e js,json,ts --exec 'tsc && flow-node -r dotenv-extended/config' -- dist",
+    "sync:gitlab:users": "flow-node dist/gitlab-sync/users",
+    "sync:gitlab:groups": "flow-node dist/gitlab-sync/groups",
+    "sync:gitlab:projects": "flow-node dist/gitlab-sync/projects",
+    "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
+    "sync:opendistro-security": "flow-node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -21,7 +27,6 @@
     "@lagoon/commons": "4.0.0",
     "apollo-server-express": "^2.2.5",
     "aws-sdk": "^2.378.0",
-    "axios": "^0.18.1",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",
@@ -41,12 +46,13 @@
     "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
-    "jwk-to-pem": "^2.0.0",
-    "keycloak-admin": "^1.8.0",
+    "keycloak-admin": "^1.12.0",
+    "keycloak-connect": "^5.0.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
     "moment": "^2.22.2",
     "morgan": "^1.9.0",
+    "node-cache": "^4.2.1",
     "ramda": "^0.25.0",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
@@ -54,9 +60,11 @@
     "winston": "^2.4.0"
   },
   "devDependencies": {
+    "@types/ramda": "types/npm-ramda#dist",
     "jest": "^23.6.0",
     "nodemon": "^1.12.1",
     "prettier": "^1.14.2",
-    "prettier-eslint-cli": "^4.7.1"
+    "prettier-eslint-cli": "^4.7.1",
+    "typescript": "^3.4.4"
   }
 }

@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ""
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -68,6 +71,7 @@ objects:
           - name: ${SERVICE_NAME}
             persistentVolumeClaim:
               claimName: ${SERVICE_NAME}
+        priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
         containers:
         - image: ${POSTGRES_SERVICE_IMAGE}
           name: ${SERVICE_NAME}

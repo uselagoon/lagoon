@@ -10,6 +10,7 @@ async function gitlabProjectDelete(webhook: WebhookRequestData) {
     webhooktype,
     event,
     uuid,
+    body,
     body: { path: name }
   } = webhook;
 

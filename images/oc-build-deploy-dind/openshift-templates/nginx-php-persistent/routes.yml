@@ -34,6 +34,8 @@ parameters:
   - name: ROUTES_INSECURE
     description: Setting of insecure Routes
     value: Allow
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
 objects:
 - apiVersion: v1
   kind: Route

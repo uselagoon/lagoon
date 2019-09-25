@@ -2,12 +2,12 @@
 
 const R = require('ramda');
 const validator = require('validator');
-const keycloakClient = require('../../clients/keycloakClient');
-const searchguardClient = require('../../clients/searchguardClient');
+const sshpk = require('sshpk');
+const { keycloakAdminClient } = require('../../clients/keycloakClient');
+const opendistroSecurityClient = require('../../clients/opendistroSecurityClient');
 const logger = require('../../logger');
 const {
-  ifNotAdmin,
-  inClauseOr,
+  inClause,
   prepare,
   query,
   whereAnd,
@@ -16,8 +16,10 @@ const {
 
 const Helpers = require('./helpers');
 const KeycloakOperations = require('./keycloak');
-const SearchguardOperations = require('./searchguard');
+const { OpendistroSecurityOperations } = require('../group/opendistroSecurity');
 const Sql = require('./sql');
+const { generatePrivateKey, getSshKeyFingerprint } = require('../sshKey');
+const sshKeySql = require('../sshKey/sql');
 
 /* ::
 
@@ -25,28 +27,44 @@ import type {ResolversObj} from '../';
 
 */
 
+const removePrivateKey = R.assoc('privateKey', null);
+
 const getAllProjects = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
+    dataSources,
+    keycloakGrant,
   },
 ) => {
-  // We need one "WHERE" keyword, but we have multiple optional conditions
-  const where = whereAnd([
-    args.createdAfter ? 'created >= :created_after' : '',
-    args.gitUrl ? 'git_url = :git_url' : '',
-    ifNotAdmin(
-      role,
-      `(${inClauseOr([['customer', customers], ['project.id', projects]])})`,
-    ),
-  ]);
+  let where;
+  try {
+    await hasPermission('project', 'viewAll');
 
-  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : ''
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      args.gitUrl ? 'git_url = :git_url' : '',
+    ]);
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    const userProjectIds = await dataSources.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      args.gitUrl ? 'git_url = :git_url' : '',
+      inClause('id', userProjectIds),
+    ]);
+  }
+
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
@@ -58,11 +76,8 @@ const getProjectByEnvironmentId = async (
   { id: eid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const prep = prepare(
@@ -72,28 +87,35 @@ const getProjectByEnvironmentId = async (
       FROM environment e
       JOIN project p ON e.project = p.id
       WHERE e.id = :eid
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
       LIMIT 1
     `,
   );
 
   const rows = await query(sqlClient, prep({ eid }));
 
-  return rows ? rows[0] : null;
+  const project = rows[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id,
+  });
+
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id,
+    });
+
+    return project;
+  } catch (err) {
+    return removePrivateKey(project);
+  }
 };
 
 const getProjectByGitUrl = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const str = `
@@ -101,31 +123,35 @@ const getProjectByGitUrl = async (
         *
       FROM project
       WHERE git_url = :git_url
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([
-      ['customer', customers],
-      ['project.id', projects],
-    ])})`,
-  )}
       LIMIT 1
     `;
 
   const prep = prepare(sqlClient, str);
   const rows = await query(sqlClient, prep(args));
 
-  return rows ? rows[0] : null;
+  const project = rows[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id,
+  });
+
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id,
+    });
+
+    return project;
+  } catch (err) {
+    return removePrivateKey(project);
+  }
 };
 
 const getProjectByName = async (
   root,
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const str = `
@@ -133,37 +159,38 @@ const getProjectByName = async (
         *
       FROM project
       WHERE name = :name
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([
-      ['customer', customers],
-      ['project.id', projects],
-    ])})`,
-  )}
     `;
 
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-  return rows[0];
+  const project = rows[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id,
+  });
+
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id,
+    });
+
+    return project;
+  } catch (err) {
+    return removePrivateKey(project);
+  }
 };
 
 const addProject = async (
   root,
   { input },
   {
-    credentials: {
-      role,
-      permissions: { customers },
-    },
+    hasPermission,
     sqlClient,
+    dataSources,
   },
 ) => {
-  const cid = input.customer.toString();
-
-  if (role !== 'admin' && !R.contains(cid, customers)) {
-    throw new Error('Project creation unauthorized.');
-  }
+  await hasPermission('project', 'add');
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
@@ -171,13 +198,32 @@ const addProject = async (
     );
   }
 
+  let keyPair = {};
+  try {
+    const privateKey = R.cond([
+      [R.isNil, generatePrivateKey],
+      [R.isEmpty, generatePrivateKey],
+      [R.T, sshpk.parsePrivateKey],
+    ])(R.prop('privateKey', input));
+
+    const publicKey = privateKey.toPublic();
+
+    keyPair = {
+      ...keyPair,
+      private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
+      public: publicKey.toString(),
+    };
+  } catch (err) {
+    throw new Error(`There was an error with the privateKey: ${err.message}`);
+  }
+
   const prep = prepare(
     sqlClient,
     `CALL CreateProject(
         :id,
         :name,
-        :customer,
         :git_url,
+        :private_key,
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
@@ -217,50 +263,113 @@ const addProject = async (
     `,
   );
 
-  const rows = await query(sqlClient, prep(input));
+  const rows = await query(sqlClient, prep({
+    ...input,
+    privateKey: keyPair.private,
+  }));
   const project = R.path([0, 0], rows);
 
-  await KeycloakOperations.addGroup(project);
-  await SearchguardOperations(sqlClient).addProject(project);
+  // Create a default group for this project
+  let group;
+  try {
+    group = await dataSources.GroupModel.addGroup({
+      name: `project-${project.name}`,
+      attributes: {
+        type: ['project-default-group'],
+        'lagoon-projects': [project.id],
+      },
+    });
+  } catch (err) {
+    logger.error(`Could not create default project group for ${project.name}: ${err.message}`);
+  }
 
-  await Helpers(sqlClient).addProjectUsersToKeycloakGroup(project);
+  OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).syncGroup(`project-${project.name}`, project.id);
+
+
+  // Find or create a user that has the public key linked to them
+  const userRows = await query(
+    sqlClient,
+    sshKeySql.selectUserIdsBySshKeyFingerprint(getSshKeyFingerprint(keyPair.public)),
+  );
+  const userId = R.path([0, 'usid'], userRows);
+
+  let user;
+  if (!userId) {
+    try {
+      user = await dataSources.UserModel.addUser({
+        email: `default-user@${project.name}`,
+        username: `default-user@${project.name}`,
+        comment: `autogenerated user for project ${project.name}`,
+      });
+
+      const keyParts = keyPair.public.split(' ');
+
+      const {
+        info: { insertId },
+      } = await query(
+        sqlClient,
+        sshKeySql.insertSshKey({
+          id: null,
+          name: 'auto-add via api',
+          keyValue: keyParts[1],
+          keyType: keyParts[0],
+          keyFingerprint: getSshKeyFingerprint(keyPair.public),
+        }),
+      );
+      await query(sqlClient, sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }));
+    } catch (err) {
+      logger.error(`Could not create default project user for ${project.name}: ${err.message}`);
+    }
+  } else {
+    user = await dataSources.UserModel.loadUserById(userId);
+  }
+
+  // Add the user (with linked public key) to the default group with maintainer role
+  try {
+    await dataSources.GroupModel.addUserToGroup(user, group, 'maintainer');
+  } catch (err) {
+    logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
+  }
 
   return project;
 };
 
 const deleteProject = async (
   root,
-  { input: { project } },
+  { input: { project: projectName } },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
+    dataSources,
   },
 ) => {
   // Will throw on invalid conditions
-  const pid = await Helpers(sqlClient).getProjectIdByName(project);
+  const pid = await Helpers(sqlClient).getProjectIdByName(projectName);
+  const project = await Helpers(sqlClient).getProjectById(pid);
 
-  if (role !== 'admin') {
-    if (!R.contains(pid, projects)) {
-      throw new Error('Unauthorized.');
-    }
+  await hasPermission('project', 'delete', {
+    project: pid,
+  });
+
+  const prep = prepare(sqlClient, 'CALL DeleteProject(:name)');
+  await query(sqlClient, prep(project));
+
+  // Remove the default group and user
+  try {
+    const group = await dataSources.GroupModel.loadGroupByName(`project-${project.name}`);
+    await dataSources.GroupModel.deleteGroup(group.id);
+    OpendistroSecurityOperations(sqlClient, dataSources.GroupModel).deleteGroup(group.name);
+  } catch (err) {
+    logger.error(`Could not delete default group for project ${project.name}: ${err.message}`);
   }
-
-  const prep = prepare(sqlClient, 'CALL DeleteProject(:project)');
-  await query(sqlClient, prep({ project }));
-
-  await KeycloakOperations.deleteGroup(project);
 
   try {
-    // Delete SearchGuard Role for this project with the same name as the Project
-    await searchguardClient.delete(`roles/${project}`);
+    const user = await dataSources.UserModel.loadUserByUsername(`default-user@${project.name}`);
+    await dataSources.UserModel.deleteUser(user.id);
   } catch (err) {
-    logger.error(`SearchGuard delete role error: ${err}`);
-    throw new Error(`SearchGuard delete role error: ${err}`);
+    logger.error(`Could not delete default user for project ${project.name}: ${err.message}`);
   }
-  // TODO: maybe check rows for changed result
+
   return 'success';
 };
 
@@ -272,8 +381,8 @@ const updateProject = async (
       patch,
       patch: {
         name,
-        customer,
         gitUrl,
+        privateKey,
         subfolder,
         activeSystemsDeploy,
         activeSystemsRemove,
@@ -290,16 +399,14 @@ const updateProject = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { projects },
-    },
     sqlClient,
+    hasPermission,
+    dataSources,
   },
 ) => {
-  if (role !== 'admin' && !R.contains(id.toString(), projects)) {
-    throw new Error('Unauthorized');
-  }
+  await hasPermission('project', 'update', {
+    project: id,
+  });
 
   if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -313,32 +420,37 @@ const updateProject = async (
     }
   }
 
-  const originalProject = await Helpers(sqlClient).getProjectById(id);
-  const originalName = R.prop('name', originalProject);
-  const originalCustomer = parseInt(R.prop('customer', originalProject));
+  const oldProject = await Helpers(sqlClient).getProjectById(id);
 
-  // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
-  if (typeof customer === 'number' && customer !== originalCustomer) {
-    // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-    await Helpers(sqlClient).mapIfNoDirectProjectAccess(
-      id,
-      originalCustomer,
-      async ({
-        keycloakUserId,
-        keycloakUsername,
-        keycloakGroupId,
-        keycloakGroupName,
-      }) => {
-        await keycloakClient.users.delFromGroup({
-          id: keycloakUserId,
-          groupId: keycloakGroupId,
-        });
-        logger.debug(
-          `Removed Keycloak user ${keycloakUsername} from group "${keycloakGroupName}"`,
-        );
-      },
-    );
-  }
+  // TODO If the privateKey changes, automatically remove the old one from the
+  // default user and link the new one.
+
+  // const originalProject = await Helpers(sqlClient).getProjectById(id);
+  // const originalName = R.prop('name', originalProject);
+  // const originalCustomer = parseInt(R.prop('customer', originalProject));
+
+  // // If the project will be updating the `name` or `customer` fields, update Keycloak groups and users accordingly
+  // if (typeof customer === 'number' && customer !== originalCustomer) {
+  //   // Delete Keycloak users from original projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+  //   await Helpers(sqlClient).mapIfNoDirectProjectAccess(
+  //     id,
+  //     originalCustomer,
+  //     async ({
+  //       keycloakUserId,
+  //       keycloakUsername,
+  //       keycloakGroupId,
+  //       keycloakGroupName,
+  //     }) => {
+  //       await keycloakAdminClient.users.delFromGroup({
+  //         id: keycloakUserId,
+  //         groupId: keycloakGroupId,
+  //       });
+  //       logger.debug(
+  //         `Removed Keycloak user ${keycloakUsername} from group "${keycloakGroupName}"`,
+  //       );
+  //     },
+  //   );
+  // }
 
   await query(
     sqlClient,
@@ -346,8 +458,8 @@ const updateProject = async (
       id,
       patch: {
         name,
-        customer,
         gitUrl,
+        privateKey,
         subfolder,
         activeSystemsDeploy,
         activeSystemsRemove,
@@ -364,84 +476,72 @@ const updateProject = async (
     }),
   );
 
-  if (typeof name === 'string' && name !== originalName) {
-    const groupId = await KeycloakOperations.findGroupIdByName(originalName);
+  // Rename the default group and user
+  if (patch.name && oldProject.name !== patch.name) {
+    try {
+      const group = await dataSources.GroupModel.loadGroupByName(`project-${oldProject.name}`);
+      await dataSources.GroupModel.updateGroup({
+        id: group.id,
+        name: `project-${patch.name}`,
+      });
+    } catch (err) {
+      logger.error(`Could not rename default group for project ${patch.name}: ${err.message}`);
+    }
 
-    await keycloakClient.groups.update({ id: groupId }, { name });
-    logger.debug(
-      `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
-    );
+    try {
+      const user = await dataSources.UserModel.loadUserByUsername(`default-user@${oldProject.name}`);
+      await dataSources.UserModel.updateUser({
+        id: user.id,
+        email: `default-user@${patch.name}`,
+        username: `default-user@${patch.name}`,
+        comment: `autogenerated user for project ${patch.name}`,
+      });
+    } catch (err) {
+      logger.error(`Could not rename default user for project ${patch.name}: ${err.message}`);
+    }
   }
 
-  if (typeof customer === 'number' && customer !== originalCustomer) {
-    // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
-    await Helpers(sqlClient).mapIfNoDirectProjectAccess(
-      id,
-      customer,
-      async ({
-        keycloakUserId,
-        keycloakUsername,
-        keycloakGroupId,
-        keycloakGroupName,
-      }) => {
-        await keycloakClient.users.addToGroup({
-          id: keycloakUserId,
-          groupId: keycloakGroupId,
-        });
-        logger.debug(
-          `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
-        );
-      },
-    );
-  }
+  // if (typeof name === 'string' && name !== originalName) {
+  //   const groupId = await KeycloakOperations.findGroupIdByName(originalName);
+
+  //   await keycloakAdminClient.groups.update({ id: groupId }, { name });
+  //   logger.debug(
+  //     `Renamed Keycloak group ${groupId} from "${originalName}" to "${name}"`,
+  //   );
+  // }
+
+  // if (typeof customer === 'number' && customer !== originalCustomer) {
+  //   // Add Keycloak users to new projects where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
+  //   await Helpers(sqlClient).mapIfNoDirectProjectAccess(
+  //     id,
+  //     customer,
+  //     async ({
+  //       keycloakUserId,
+  //       keycloakUsername,
+  //       keycloakGroupId,
+  //       keycloakGroupName,
+  //     }) => {
+  //       await keycloakAdminClient.users.addToGroup({
+  //         id: keycloakUserId,
+  //         groupId: keycloakGroupId,
+  //       });
+  //       logger.debug(
+  //         `Added Keycloak user ${keycloakUsername} to group "${keycloakGroupName}"`,
+  //       );
+  //     },
+  //   );
+  // }
 
   return Helpers(sqlClient).getProjectById(id);
 };
 
-const createAllProjectsInKeycloak = async (
-  root,
-  args,
-  { credentials: { role }, sqlClient },
-) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
-
-  const projects = await query(sqlClient, Sql.selectAllProjects());
-
-  for (const project of projects) {
-    await KeycloakOperations.addGroup(project);
-  }
-
-  return 'success';
-};
-
-const createAllProjectsInSearchguard = async (
-  root,
-  args,
-  { credentials: { role }, sqlClient },
-) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
-
-  const projects = await query(sqlClient, Sql.selectAllProjects());
-
-  for (const project of projects) {
-    await SearchguardOperations(sqlClient).addProject(project);
-  }
-
-  return 'success';
-};
 
 const deleteAllProjects = async (
   root,
   args,
-  { credentials: { role }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  await hasPermission('project', 'deleteAll');
 
   const projectNames = await Helpers(sqlClient).getAllProjectNames();
 
@@ -464,8 +564,6 @@ const Resolvers /* : ResolversObj */ = {
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  createAllProjectsInKeycloak,
-  createAllProjectsInSearchguard,
 };
 
 module.exports = Resolvers;

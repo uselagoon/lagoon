@@ -43,6 +43,9 @@ parameters:
   - name: PERSISTENT_STORAGE_SIZE
     description: Size of the Storage to request
     value: "5Gi"
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -74,6 +77,7 @@ objects:
           - name: ${SERVICE_NAME}-data
             persistentVolumeClaim:
               claimName: ${SERVICE_NAME}-data
+        priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
         containers:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
