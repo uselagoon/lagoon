@@ -259,7 +259,7 @@ objects:
     name: ${SERVICE_NAME} # harbor-nginx
     namespace: ${OPENSHIFT_PROJECT}
   spec:
-    host: harbor-test.us.amazee.io # How do we get this value in the template????
+    host: ${SERVICE_ROUTER_URL}
     path: /
     port:
       targetPort: http

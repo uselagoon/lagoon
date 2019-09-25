@@ -404,46 +404,38 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-chartmuseum.yml
-      lagoon.image: amazeeiolagoon/harbor-chartmuseum:v1-9-0
   harbor-clair:
     image: cdchris12/harbor-clair:dev1.5
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-clair.yml
-      lagoon.image: amazeeiolagoon/harbor-clair:v1-9-0
   harbor-core:
     image: cdchris12/harbor-core:v1.9.0-dev-amazee
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-core.yml
-      lagoon.image: amazeeiolagoon/harbor-core:v1-9-0
   harbor-database:
     image: cdchris12/harbor-postgres:9.6
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-database.yml
-      lagoon.image: amazeeiolagoon/harbor-database:v1-9-0
   harbor-jobservice:
     image: cdchris12/harbor-jobservice:dev
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-jobservice.yml
-      lagoon.image: amazeeiolagoon/harbor-jobservice:v1-9-0
   harbor-nginx:
     image: cdchris12/nginx-photon:v1.9.0-dev
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-nginx.yml
-      lagoon.image: amazeeiolagoon/harbor-nginx:v1-9-0
   harbor-portal:
     image: cdchris12/harbor-portal:v1.9.0-dev-amazee
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-portal.yml
-      lagoon.image: amazeeiolagoon/harbor-portal:v1-9-0
   harbor-redis:
     image: cdchris12/redis-photon:dev
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-redis.yml
-      lagoon.image: amazeeiolagoon/harbor-redis:v1-9-0
