@@ -154,7 +154,7 @@ objects:
         containers:
         - name: registry
           hostname: ${SERVICE_NAME} # harbor-registry
-          image: cdchris12/harbor-registry:dev1.7
+          image: cdchris12/harbor-registry:dev1.9
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -185,11 +185,11 @@ objects:
             mountPath: /etc/registry/root.crt
             subPath: tls.crt
           - name: registry-config
-            mountPath: /etc/registry/config.yml
+            mountPath: /etc/registry/pre_config.yml
             subPath: config.yml
         - name: registryctl
           hostname: harbor-registryctl
-          image: cdchris12/harbor-registryctl:dev1.1
+          image: cdchris12/harbor-registryctl:dev1.3
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -232,7 +232,7 @@ objects:
             mountPath: /storage
             subPath: 
           - name: registry-config
-            mountPath: /etc/registry/config.yml
+            mountPath: /etc/registry/pre_config.yml
             subPath: config.yml
           - name: registry-config
             mountPath: /etc/registryctl/config.yml
