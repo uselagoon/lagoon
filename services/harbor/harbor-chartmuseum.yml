@@ -113,6 +113,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-chartmuseum
         containers:
         - name: chartmuseum
           image: ${SERVICE_IMAGE} # cdchris12/chartmuseum-photon:dev1.4

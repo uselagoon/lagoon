@@ -77,6 +77,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-database
         initContainers:
         - name: "remove-lost-found"
           image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
@@ -85,6 +86,12 @@ objects:
           volumeMounts:
           - name: database-data
             mountPath: /var/lib/postgresql/data
+          env:
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-password
+                  key: POSTGRESQL_PASSWORD
         containers:
         - name: database
           image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
@@ -107,12 +114,12 @@ objects:
                 pg_isready -U postgres
             initialDelaySeconds: 1
             periodSeconds: 10
-            env:
-              - name: POSTGRESQL_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: postgresql-password
-                    key: POSTGRESQL_PASSWORD
+          env:
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-password
+                  key: POSTGRESQL_PASSWORD
           volumeMounts:
           - name: database-data
             mountPath: /var/lib/postgresql/data

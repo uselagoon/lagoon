@@ -68,15 +68,16 @@ objects:
     selector:
       matchLabels:
         service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
+        branch: ${SAFE_BRANCH}
+        project: ${SAFE_PROJECT}
     template:
       metadata:
         labels:
           service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
+          branch: ${SAFE_BRANCH}
+          project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-portal
         containers:
         - name: portal
           image: ${SERVICE_IMAGE} # cdchris12/harbor-portal:v1.9.0-dev-amazee
@@ -93,5 +94,8 @@ objects:
               port: 8080
             initialDelaySeconds: 1
             periodSeconds: 10
+          envFrom:
+          - configMapRef:
+              name: "lagoon-env"
           ports:
           - containerPort: 8080

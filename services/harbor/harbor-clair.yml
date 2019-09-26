@@ -79,6 +79,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-clair
         containers:
         - name: clair
           image: ${SERVICE_IMAGE} # cdchris12/harbor-clair:dev1.5
@@ -98,7 +99,7 @@ objects:
           args: ["-log-level", "error"]
           envFrom:
           - configMapRef:
-            name: "lagoon-env"
+              name: "lagoon-env"
           env:
           - name: HTTP_PROXY
             value: ""
@@ -107,10 +108,10 @@ objects:
           - name: NO_PROXY
             value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harbor-registry,127.0.0.1,localhost,.local,.internal"
           - name: CLAIR_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: clair-db-password
-                  key: CLAIR_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: clair-db-password
+                key: CLAIR_DB_PASSWORD
           ports:
           - containerPort: 6060
           volumeMounts:

@@ -153,6 +153,7 @@ objects:
       spec:
         containers:
         - name: registry
+          hostname: ${SERVICE_NAME} # harbor-registry
           image: cdchris12/harbor-registry:dev1.7
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -170,9 +171,9 @@ objects:
           args: ["serve", "/etc/registry/config.yml"]
           envFrom:
           - secretRef:
-            name: ${SERVICE_NAME} # harbor-registry
+              name: ${SERVICE_NAME} # harbor-registry
           - configMapRef:
-            name: "lagoon-env"
+              name: "lagoon-env"
           ports:
           - containerPort: 5000
           - containerPort: 5001
@@ -187,6 +188,7 @@ objects:
             mountPath: /etc/registry/config.yml
             subPath: config.yml
         - name: registryctl
+          hostname: harbor-registryctl
           image: cdchris12/harbor-registryctl:dev1.1
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -204,9 +206,9 @@ objects:
           args: ["serve", "/etc/registry/config.yml"]
           envFrom:
           - secretRef:
-            name: ${SERVICE_NAME} # harbor-registry
+              name: ${SERVICE_NAME} # harbor-registry
           - configMapRef:
-            name: "lagoon-env"
+              name: "lagoon-env"
           env:
             - name: CORE_SECRET
               valueFrom:

@@ -145,6 +145,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-core
         containers:
         - name: core
           image: ${SERVICE_IMAGE} # cdchris12/harbor-core:v1.9.0-dev-amazee
@@ -163,11 +164,11 @@ objects:
             periodSeconds: 10
           envFrom:
           - configMapRef:
-            name: ${SERVICE_NAME} # harbor-core
+              name: ${SERVICE_NAME} # harbor-core
           - secretRef:
-            name: ${SERVICE_NAME} # harbor-core
+              name: ${SERVICE_NAME} # harbor-core
           - configMapRef:
-            name: "lagoon-env"
+              name: "lagoon-env"
           env:
             - name: CORE_SECRET
               valueFrom:
@@ -211,7 +212,7 @@ objects:
         volumes:
         - name: config
           configMap:
-            name: arbor-core
+            name: harbor-core
             items:
               - key: app.conf
                 path: app.conf

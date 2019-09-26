@@ -77,6 +77,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-redis
         containers:
         - name: redis
           image: ${SERVICE_IMAGE} # cdchris12/redis-photon:dev

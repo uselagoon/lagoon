@@ -439,3 +439,8 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-redis.yml
+  harbor-registry:
+    image: cdchris12/harbor-registry:dev1.7
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor/harbor-registry.yml

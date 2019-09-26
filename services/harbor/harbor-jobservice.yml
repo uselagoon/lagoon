@@ -122,6 +122,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-jobservice
         containers:
         - name: jobservice
           image: ${SERVICE_IMAGE} # cdchris12/harbor-jobservice:dev

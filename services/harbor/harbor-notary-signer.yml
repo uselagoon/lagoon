@@ -42,7 +42,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: ${SERVICE_NAME} # notary-signer
+    name: ${SERVICE_NAME} # harbor-notary-signer
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -57,7 +57,7 @@ objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: ${SERVICE_NAME} # notary-signer
+    name: ${SERVICE_NAME} # harbor-notary-signer
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -76,6 +76,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-notary-signer
         containers:
         - name: notary-signer
           image: ${SERVICE_IMAGE} # cdchris12/notary-signer-photon:dev

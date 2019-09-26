@@ -136,6 +136,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        hostname: ${SERVICE_NAME} # harbor-notary-server
         containers:
         - name: notary-server
           image: ${SERVICE_IMAGE} # cdchris12/notary-server-photon:dev
