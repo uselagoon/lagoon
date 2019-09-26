@@ -49,7 +49,7 @@
     that avoids logging every request
 -->
 
-<schema name="drupal-6.5-solr-7.x" version="1.6">
+<schema name="drupal-8.3.4-solr-7.x" version="1.6">
   <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and
        semantics.  It should not normally be changed by applications.
@@ -148,17 +148,11 @@
        when each document was indexed.-->
   <field name="timestamp" type="pdate" indexed="true" stored="false" default="NOW" multiValued="false" docValues="true"/>
 
-  <!-- This field is used to build the spellchecker index -->
-  <field name="spell" type="textSpell" indexed="true" stored="true" multiValued="true"/>
-
   <field name="site" type="string" indexed="true" stored="false" multiValued="false" docValues="true"/>
   <field name="hash" type="string" indexed="true" stored="false" multiValued="false" docValues="true"/>
 
-  <!-- copyField commands copy one field to another at the time a document
-       is added to the index.  It's used either to index the same field differently,
-       or to add multiple fields to the same field for easier/faster searching.  -->
-  <copyField source="ts_*" dest="spell"/>
-  <copyField source="tm_*" dest="spell"/>
+  <field name="boost_document" type="pfloat" indexed="true" stored="false" multiValued="false" docValues="true"/>
+  <field name="boost_term" type="boost_term_payload" indexed="true" stored="false" multiValued="true"/>
 
   <!-- Dynamic field definitions.  If a field name is not found, dynamicFields
        will be used if the name matches any of the patterns.
@@ -172,8 +166,8 @@
        the last letter is 's' for single valued, 'm' for multi-valued -->
 
   <!-- We use plong for integer since 64 bit ints are now common in PHP. -->
-  <dynamicField name="is_*"  type="plong"    indexed="true"  stored="false" multiValued="false" docValues="true"/>
-  <dynamicField name="im_*"  type="plong"    indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="is_*"  type="plong"    indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <dynamicField name="im_*"  type="plong"    indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
   <!-- List of floats can be saved in a regular float field -->
   <dynamicField name="fs_*"  type="pfloat"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
   <dynamicField name="fm_*"  type="pfloat"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
@@ -181,28 +175,15 @@
   <dynamicField name="ps_*"  type="pdouble"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
   <dynamicField name="pm_*"  type="pdouble"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
   <!-- List of booleans can be saved in a regular boolean field -->
-  <dynamicField name="bm_*"  type="boolean" indexed="true"  stored="false" multiValued="true" docValues="true"/>
-  <dynamicField name="bs_*"  type="boolean" indexed="true"  stored="false" multiValued="false" docValues="true"/>
+  <dynamicField name="bm_*"  type="boolean" indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
+  <dynamicField name="bs_*"  type="boolean" indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
   <!-- Regular text (without processing) can be stored in a string field-->
-  <dynamicField name="ss_*"  type="string"  indexed="true"  stored="false" multiValued="false" docValues="true"/>
-  <!-- For field types using SORTED_SET, multiple identical entries are collapsed into a single value. Thus if I insert values 4, 5, 2, 4, 1, my return will be 1, 2, 4, 5 when enabling docValues. Therefore the multiValued string field doesn't use docValues. -->
-  <dynamicField name="sm_*"  type="string"  indexed="true"  stored="true" multiValued="true" docValues="false"/>
-  <dynamicField name="ses_*" type="edge_n2_kw_string"  indexed="true"  stored="true" multiValued="false"/>
-  <dynamicField name="sem_*" type="edge_n2_kw_string"  indexed="true"  stored="true" multiValued="true"/>
-  <dynamicField name="sds_*" type="string"  indexed="true"  stored="false" multiValued="false" docValues="true"/>
-  <dynamicField name="sdm_*" type="string"  indexed="true"  stored="false" multiValued="true" docValues="true"/>
-  <!-- Normal text fields are for full text - the relevance of a match depends on the length of the text -->
-  <dynamicField name="ts_*"  type="text"    indexed="true"  stored="true" multiValued="false" termVectors="true"/>
-  <dynamicField name="tm_*"  type="text"    indexed="true"  stored="true" multiValued="true" termVectors="true"/>
-  <!-- Unstemmed text fields for full text - the relevance of a match depends on the length of the text -->
-  <dynamicField name="tus_*" type="text_und" indexed="true"  stored="true" multiValued="false" termVectors="true"/>
-  <dynamicField name="tum_*" type="text_und" indexed="true"  stored="true" multiValued="true" termVectors="true"/>
-  <!-- These text fields omit norms - useful for extracted text like taxonomy_names -->
-  <dynamicField name="tos_*" type="text"    indexed="true"  stored="true" multiValued="false" termVectors="true" omitNorms="true"/>
-  <dynamicField name="tom_*" type="text"    indexed="true"  stored="true" multiValued="true" termVectors="true" omitNorms="true"/>
+  <dynamicField name="ss_*"  type="string"  indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <!-- For field types using SORTED_SET, multiple identical entries are collapsed into a single value.
+       Thus if I insert values 4, 5, 2, 4, 1, my return will be 1, 2, 4, 5 when enabling docValues.
+       If you need to preserve the order and duplicate entries, consider to store the values as zm_* (twice). -->
+  <dynamicField name="sm_*"  type="string"  indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
   <!-- Special-purpose text fields -->
-  <dynamicField name="tes_*" type="edge_n2_kw_text" indexed="true" stored="true" multiValued="false"/>
-  <dynamicField name="tem_*" type="edge_n2_kw_text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="tws_*" type="text_ws" indexed="true" stored="true" multiValued="false"/>
   <dynamicField name="twm_*" type="text_ws" indexed="true" stored="true" multiValued="true"/>
 
@@ -212,8 +193,8 @@
   <!-- This field is used to store date ranges -->
   <dynamicField name="drs_*" type="date_range" indexed="true" stored="true" multiValued="false"/>
   <dynamicField name="drm_*" type="date_range" indexed="true" stored="true" multiValued="true"/>
-  <dynamicField name="its_*" type="plong"   indexed="true"  stored="false" multiValued="false" docValues="true"/>
-  <dynamicField name="itm_*" type="plong"   indexed="true"  stored="false" multiValued="true" docValues="true"/>
+  <dynamicField name="its_*" type="plong"   indexed="true"  stored="false" multiValued="false" docValues="true" termVectors="true"/>
+  <dynamicField name="itm_*" type="plong"   indexed="true"  stored="false" multiValued="true" docValues="true" termVectors="true"/>
   <dynamicField name="fts_*" type="pfloat"  indexed="true"  stored="false" multiValued="false" docValues="true"/>
   <dynamicField name="ftm_*" type="pfloat"  indexed="true"  stored="false" multiValued="true" docValues="true"/>
   <dynamicField name="pts_*" type="pdouble" indexed="true"  stored="false" multiValued="false" docValues="true"/>
@@ -250,15 +231,8 @@
   <dynamicField name="rpts_*" type="location_rpt" indexed="true" stored="true" multiValued="false" />
   <dynamicField name="rptm_*" type="location_rpt" indexed="true" stored="true" multiValued="true" />
 
-  <!-- Special fields for Solr 5 functionality. -->
-  <dynamicField name="phons_*" type="phonetic" indexed="true" stored="true" multiValued="false" />
-  <dynamicField name="phonm_*" type="phonetic" indexed="true" stored="true" multiValued="true" />
-
   <!-- External file fields -->
   <dynamicField name="eff_*" type="file"/>
-
-  <!-- Sortable version of the dynamic string field. We need to store it for streaming expressions. -->
-  <dynamicField name="sort_*" type="collated" indexed="false" stored="false" docValues="true"/>
 
   <!-- A random sort field -->
   <dynamicField name="random_*" type="random" indexed="true" stored="true"/>
@@ -398,220 +372,24 @@
       </analyzer>
     </fieldType>
 
-    <!-- A text field that uses WordDelimiterFilter to enable splitting and matching of
-        words on case-change, alpha numeric boundaries, and non-alphanumeric chars,
-        so that a query of "wifi" or "wi fi" could match a document containing "Wi-Fi".
-        Synonyms and stopwords are customized by external files, and stemming is enabled.
-        Duplicate tokens at the same position (which may result from Stemmed Synonyms or
-        WordDelim parts) are removed.
-        -->
-    <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
-      <analyzer type="index">
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <!-- We will only use synonyms at query time
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
-        <filter class="solr.FlattenGraphFilterFactory"/>
-        -->
-        <!-- Case insensitive stop word removal. -->
-        <filter class="solr.StopFilterFactory"
-                ignoreCase="true"
-                words="stopwords.txt"
-                />
-        <filter class="solr.WordDelimiterGraphFilterFactory"
-                protected="protwords.txt"
-                generateWordParts="1"
-                generateNumberParts="1"
-                catenateWords="1"
-                catenateNumbers="1"
-                catenateAll="0"
-                splitOnCaseChange="0"
-                preserveOriginal="1"/>
-        <filter class="solr.LengthFilterFactory" min="2" max="100" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-      </analyzer>
-      <analyzer type="query">
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory"
-                ignoreCase="true"
-                words="stopwords.txt"
-                />
-        <filter class="solr.WordDelimiterGraphFilterFactory"
-                protected="protwords.txt"
-                generateWordParts="1"
-                generateNumberParts="1"
-                catenateWords="0"
-                catenateNumbers="0"
-                catenateAll="0"
-                splitOnCaseChange="0"
-                preserveOriginal="1"/>
-        <filter class="solr.LengthFilterFactory" min="2" max="100" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-      </analyzer>
-      <analyzer type="multiterm">
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory"
-                ignoreCase="true"
-                words="stopwords.txt"
-                />
-        <filter class="solr.WordDelimiterGraphFilterFactory"
-                protected="protwords.txt"
-                generateWordParts="1"
-                generateNumberParts="1"
-                catenateWords="0"
-                catenateNumbers="0"
-                catenateAll="0"
-                splitOnCaseChange="1"
-                preserveOriginal="1"/>
-        <filter class="solr.LengthFilterFactory" min="2" max="100" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-      </analyzer>
-    </fieldType>
-
-    <fieldType name="edge_n2_kw_text" class="solr.TextField" positionIncrementGap="100">
-      <analyzer type="index">
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <!-- Case insensitive stop word removal. -->
-        <filter class="solr.StopFilterFactory"
-                ignoreCase="true"
-                words="stopwords.txt"
-        />
-        <filter class="solr.WordDelimiterGraphFilterFactory"
-                protected="protwords.txt"
-                generateWordParts="1"
-                generateNumberParts="1"
-                catenateWords="1"
-                catenateNumbers="1"
-                catenateAll="0"
-                splitOnCaseChange="0"
-                preserveOriginal="1"/>
-        <filter class="solr.LengthFilterFactory" min="2" max="100" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-        <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="25" />
-      </analyzer>
-      <analyzer type="query">
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory"
-                ignoreCase="true"
-                words="stopwords.txt"
-        />
-        <filter class="solr.LengthFilterFactory" min="2" max="100" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-      </analyzer>
-      <analyzer type="multiterm">
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory"
-                ignoreCase="true"
-                words="stopwords.txt"
-        />
-        <filter class="solr.LengthFilterFactory" min="2" max="100" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-      </analyzer>
-    </fieldType>
-
-    <!-- Edge N gram type - for example for matching against queries with results
-        KeywordTokenizer leaves input string intact as a single term.
-        see: http://www.lucidimagination.com/blog/2009/09/08/auto-suggest-from-popular-queries-using-edgengrams/
-      -->
-    <fieldType name="edge_n2_kw_string" class="solr.TextField" omitNorms="true" positionIncrementGap="100">
-      <analyzer type="index">
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="25" />
-      </analyzer>
-      <analyzer type="query">
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-      </analyzer>
-    </fieldType>
-
-    <!--  Setup simple analysis for spell checking -->
-   <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
-        <tokenizer class="solr.StandardTokenizerFactory" />
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
-        <filter class="solr.LengthFilterFactory" min="4" max="20" />
-        <filter class="solr.LowerCaseFilterFactory" />
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
-      </analyzer>
-    </fieldType>
-
-    <fieldType name="collated" class="solr.ICUCollationField"
-               locale="en"
-               strength="primary"
-               caseLevel="false" />
-
-    <fieldType name="phonetic" stored="false" indexed="true" class="solr.TextField" >
-      <analyzer>
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.DoubleMetaphoneFilterFactory" inject="false"/>
-      </analyzer>
-    </fieldType>
-
-    <fieldType name="payloads" stored="false" indexed="true" class="solr.TextField" >
+    <fieldType name="boost_term_payload" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
         <!--
         The DelimitedPayloadTokenFilter can put payloads on tokens... for example,
         a token of "foo|1.4"  would be indexed as "foo" with a payload of 1.4f
         Attributes of the DelimitedPayloadTokenFilterFactory :
          "delimiter" - a one character delimiter. Default is | (pipe)
-   "encoder" - how to encode the following value into a playload
-      float -> org.apache.lucene.analysis.payloads.FloatEncoder,
-      integer -> o.a.l.a.p.IntegerEncoder
-      identity -> o.a.l.a.p.IdentityEncoder
-            Fully Qualified class name implementing PayloadEncoder, Encoder must have a no arg constructor.
+         "encoder" - how to encode the following value into a playload
+           float -> org.apache.lucene.analysis.payloads.FloatEncoder,
+           integer -> o.a.l.a.p.IntegerEncoder
+           identity -> o.a.l.a.p.IdentityEncoder
+             Fully Qualified class name implementing PayloadEncoder, Encoder must have a no arg constructor.
          -->
         <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
-      </analyzer>
-    </fieldType>
-
-    <!-- lowercases the entire field value, keeping it as a single token.  -->
-    <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory" />
-      </analyzer>
-    </fieldType>
-
-    <!--
-      Example of using PathHierarchyTokenizerFactory at index time, so
-      queries for paths match documents at that path, or in descendent paths
-    -->
-    <fieldType name="descendent_path" class="solr.TextField">
-      <analyzer type="index">
-  <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
-      </analyzer>
-      <analyzer type="query">
-  <tokenizer class="solr.KeywordTokenizerFactory" />
-      </analyzer>
-    </fieldType>
-    <!--
-      Example of using PathHierarchyTokenizerFactory at query time, so
-      queries for paths match documents at that path, or in ancestor paths
-    -->
-    <fieldType name="ancestor_path" class="solr.TextField">
-      <analyzer type="index">
-  <tokenizer class="solr.KeywordTokenizerFactory" />
-      </analyzer>
-      <analyzer type="query">
-  <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
+        <filter class="solr.LengthFilterFactory" min="2" max="100"/>
       </analyzer>
     </fieldType>
 
