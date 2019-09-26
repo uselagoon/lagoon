@@ -1,6 +1,6 @@
 {
   "presets": [
-    "node8-es6"
+    "presets": [["latest-node", { "target": "10" }]]
   ],
   "plugins": [
     "transform-flow-strip-types",

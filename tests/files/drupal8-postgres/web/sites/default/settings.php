@@ -57,7 +57,7 @@ if (getenv('LAGOON')) {
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
-  $settings['redis.connection']['port'] = getenv('REDIS_PORT') ?: '6379';
+  $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
 
   // # Do not set the cache during installations of Drupal
   // if (!drupal_installation_attempted()) {

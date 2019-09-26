@@ -62,6 +62,43 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
+# This is where we need to modify the lagoon versions and do another deploy
+- name: "{{ testname }} - change .lagoon.yml to remove cron, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "features/"
+    overwrite_lagoon_yml: ".lagoon-no-cronjobs.yml"
+  tasks:
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the newest changes for cron removal"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+# Pause while the cronjob project redeploys
+- name: "{{ testname }} - wait for 60 seconds to give an eventual running deployment time to run"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "60"
+  tasks:
+  - include: ../../tasks/pause.yaml
+
+# Run cron removal test
+- name: "{{ testname }} - check if {{ project }} had its native cronjob removed correctly"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}/ts"
+  tasks:
+  - include: ../../checks/check-url-ts.yaml
+
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1

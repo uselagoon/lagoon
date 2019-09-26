@@ -1,4 +1,3 @@
-# Logging
 
 Lagoon provides access to the following logs via Kibana:
 
