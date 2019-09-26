@@ -1,25 +1,29 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/elasticsearch
+FROM ${IMAGE_REPO:-lagoon}/elasticsearch:7.1
 
-RUN bin/elasticsearch-plugin install -b com.floragunn:search-guard-6:6.6.1-24.1 \
-    && chmod a+x plugins/search-guard-6/tools/install_demo_configuration.sh \
-    && plugins/search-guard-6/tools/install_demo_configuration.sh -y \
-    && sed -i 's/searchguard.ssl.http.*//' config/elasticsearch.yml \
-    && sed -i 's/searchguard.audit.type: internal_elasticsearch//' config/elasticsearch.yml \
-    && echo "searchguard.roles_mapping_resolution: BOTH" >> config/elasticsearch.yml \
+RUN bin/elasticsearch-plugin install -b https://d3g5vo6xdbdb9a.cloudfront.net/downloads/elasticsearch-plugins/opendistro-security/opendistro_security-1.1.0.0.zip \
+    && chmod a+x /usr/share/elasticsearch/plugins/opendistro_security/tools/install_demo_configuration.sh \
+    && /usr/share/elasticsearch/plugins/opendistro_security/tools/install_demo_configuration.sh -y \
+    && sed -i 's/opendistro_security.ssl.http.*//' config/elasticsearch.yml \
+    && sed -i 's/opendistro_security.audit.type: internal_elasticsearch//' config/elasticsearch.yml \
+    && echo "opendistro_security.roles_mapping_resolution: BOTH" >> config/elasticsearch.yml \
     && echo "xpack.monitoring.collection.enabled: true" >> config/elasticsearch.yml \
     && echo "xpack.monitoring.history.duration: 1d" >> config/elasticsearch.yml \
     && echo "node.attr.box_type: \${BOX_TYPE}" >> config/elasticsearch.yml \
-    && chmod +x plugins/search-guard-6/tools/hash.sh
+    && chmod +x plugins/opendistro_security/tools/hash.sh
 
 ENV LOGSDB_ADMIN_PASSWORD=admin \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
-    BOX_TYPE=live
+    BOX_TYPE=live \
+    NODE_ML=false \
+    XPACK_ML_ENABLED=false \
+    XPACK_WATCHER_ENABLED=false \
+    JAVA_HOME=/usr/share/elasticsearch/jdk
 
-COPY sgconfig/sg_roles_mapping.yml plugins/search-guard-6/sgconfig/sg_roles_mapping.yml
-COPY sgconfig/sg_internal_users.yml plugins/search-guard-6/sgconfig/sg_internal_users.yml
-COPY sgconfig/sg_config.yml plugins/search-guard-6/sgconfig/sg_config.yml
-RUN fix-permissions plugins/search-guard-6/sgconfig
+COPY opendistro_security/roles_mapping.yml plugins/opendistro_security/securityconfig/roles_mapping.yml
+COPY opendistro_security/internal_users.yml plugins/opendistro_security/securityconfig/internal_users.yml
+COPY opendistro_security/config.yml plugins/opendistro_security/securityconfig/config.yml
+RUN fix-permissions plugins/opendistro_security/securityconfig
 
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 

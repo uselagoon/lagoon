@@ -32,28 +32,21 @@ const Sql /* : SqlObj */ = {
       .select('nt.*', 'pn.*', knex.raw('? as type', [type]))
       .toString();
   },
-  deleteProjectNotification: (
-    { role, permissions: { projects } } /* : Cred */,
-    input /* : Object */,
-  ) => {
-    const { project, notificationType, notificationName } = input;
+  deleteProjectNotification: (input /* : Object */) => {
+    const deleteQuery = knex.raw(
+      `DELETE pn
+      FROM project_notification as pn
+      LEFT JOIN :notificationTable: AS nt ON pn.nid = nt.id AND pn.type = :notificationType
+      LEFT JOIN project as p on pn.pid = p.id
+      WHERE p.name = :project
+      AND nt.name = :notificationName`,
+      {
+        ...input,
+        notificationTable: `notification_${input.notificationType}`,
+      },
+    );
 
-    const deleteQuery = knex('project_notification AS pn')
-      .joinRaw(
-        `LEFT JOIN notification_${notificationType} AS nt ON pn.nid = nt.id AND pn.type = ?`,
-        [notificationType],
-      )
-      .leftJoin('project AS p', 'pn.pid', '=', 'p.id');
-
-    if (role !== 'admin') {
-      deleteQuery.whereIn('pn.pid', projects);
-    }
-
-    return deleteQuery
-      .where('p.name', project)
-      .andWhere('nt.name', notificationName)
-      .del()
-      .toString();
+    return deleteQuery.toString();
   },
   selectProjectById: (input /* : Object */) =>
     knex('project')
@@ -88,19 +81,12 @@ const Sql /* : SqlObj */ = {
       .update(patch)
       .toString();
   },
-  selectNotificationsByTypeByProjectId: (
-    { credentials: { role, permissions: { projects } } /* : Cred */ },
-    input /* : Object */,
-  ) => {
+  selectNotificationsByTypeByProjectId: (input /* : Object */) => {
     const { type, pid } = input;
     const selectQuery = knex('project_notification AS pn').joinRaw(
       `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
       [type],
     );
-
-    if (role !== 'admin') {
-      selectQuery.whereIn('pn.pid', projects);
-    }
 
     return selectQuery
       .where('pn.pid', '=', pid)

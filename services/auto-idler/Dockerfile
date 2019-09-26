@@ -11,7 +11,9 @@ COPY create_jwt.sh idle-services.sh idle-clis.sh /
 
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
-    PROJECT_REGEX=".+"
+    PROJECT_REGEX=".+"  \
+    ROUTER_LOG_INTERVAL=4h \
+    POD_RUN_INTERVAL=14400
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]

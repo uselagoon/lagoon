@@ -11,8 +11,8 @@ const gitlabProjectDelete = require('../handlers/gitlabProjectDelete');
 const gitlabUserCreate = require('../handlers/gitlabUserCreate');
 const gitlabUserUpdate = require('../handlers/gitlabUserUpdate');
 const gitlabUserDelete = require('../handlers/gitlabUserDelete');
-const gitlabUserCustomerAdd = require('../handlers/gitlabUserCustomerAdd');
-const gitlabUserCustomerRemove = require('../handlers/gitlabUserCustomerRemove');
+const gitlabUserGroupAdd = require('../handlers/gitlabUserGroupAdd');
+const gitlabUserGroupRemove = require('../handlers/gitlabUserGroupRemove');
 const gitlabUserProjectAdd = require('../handlers/gitlabUserProjectAdd');
 const gitlabUserProjectRemove = require('../handlers/gitlabUserProjectRemove');
 const gitlabSshKeyAdd = require('../handlers/gitlabSshKeyAdd');
@@ -70,12 +70,13 @@ async function processOther(
       break;
 
     case "gitlab:user_add_to_group":
-      await handle(gitlabUserCustomerAdd, webhook, `${webhooktype}:${event}`);
+      await handle(gitlabUserGroupAdd, webhook, `${webhooktype}:${event}`);
       break;
 
     case "gitlab:user_remove_from_group":
-      await handle(gitlabUserCustomerRemove, webhook, `${webhooktype}:${event}`);
+      await handle(gitlabUserGroupRemove, webhook, `${webhooktype}:${event}`);
       break;
+
 
     case "gitlab:user_add_to_team":
       await handle(gitlabUserProjectAdd, webhook, `${webhooktype}:${event}`);
@@ -85,15 +86,13 @@ async function processOther(
       await handle(gitlabUserProjectRemove, webhook, `${webhooktype}:${event}`);
       break;
 
-    // https://govdex.gov.au/jira/browse/GOVCMS-2658
-    // Disable SSH Key Syncing for now
-    // case "gitlab:key_create":
-    //   await handle(gitlabSshKeyAdd, webhook, `${webhooktype}:${event}`);
-    //   break;
+    case "gitlab:key_create":
+      await handle(gitlabSshKeyAdd, webhook, `${webhooktype}:${event}`);
+      break;
 
-    // case "gitlab:key_destroy":
-    //   await handle(gitlabSshKeyRemove, webhook, `${webhooktype}:${event}`);
-    //   break;
+    case "gitlab:key_destroy":
+      await handle(gitlabSshKeyRemove, webhook, `${webhooktype}:${event}`);
+      break;
 
     default:
       unhandled(webhook, `${webhooktype}:${event}`);

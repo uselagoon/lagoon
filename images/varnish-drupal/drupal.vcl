@@ -343,8 +343,8 @@ sub vcl_deliver {
   unset resp.http.X-Url;
   unset resp.http.X-Host;
 
-  # unset Cache-Tags Header by default, can be disabled with VARNISH_UNSET_HEADER_CACHE_TAGS=true
-  if (!${VARNISH_UNSET_HEADER_CACHE_TAGS:-false}) {
+  # unset Cache-Tags Header by default, can be disabled with VARNISH_SET_HEADER_CACHE_TAGS=true
+  if (!${VARNISH_SET_HEADER_CACHE_TAGS:-false}) {
     unset resp.http.Cache-Tags;
   }
 

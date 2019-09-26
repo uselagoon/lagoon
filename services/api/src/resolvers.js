@@ -3,17 +3,6 @@
 const GraphQLDate = require('graphql-iso-date');
 
 const {
-  addCustomer,
-  deleteCustomer,
-  getAllCustomers,
-  getCustomerByProjectId,
-  updateCustomer,
-  getCustomerByName,
-  deleteAllCustomers,
-  resyncCustomersWithSearchguard,
-} = require('./resources/customer/resolvers');
-
-const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
@@ -57,6 +46,7 @@ const {
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
   getEnvironmentByTaskId,
+  getEnvironmentByBackupId,
   getEnvironmentServicesByEnvironmentId,
   setEnvironmentServices,
   deleteEnvironment,
@@ -64,6 +54,7 @@ const {
   updateEnvironment,
   getAllEnvironments,
   deleteAllEnvironments,
+  userCanSshToEnvironment,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -99,8 +90,6 @@ const {
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  createAllProjectsInKeycloak,
-  createAllProjectsInSearchguard,
 } = require('./resources/project/resolvers');
 
 const {
@@ -113,22 +102,26 @@ const {
 } = require('./resources/sshKey/resolvers');
 
 const {
-  getUsersByProjectId,
   getUserBySshKey,
   addUser,
   updateUser,
   deleteUser,
-  addUserToCustomer,
-  removeUserFromCustomer,
-  getUsersByCustomerId,
-  getProjectsByCustomerId,
-  addUserToProject,
-  removeUserFromProject,
   deleteAllUsers,
-  removeAllUsersFromAllCustomers,
-  removeAllUsersFromAllProjects,
-  createAllUsersInKeycloak,
 } = require('./resources/user/resolvers');
+
+const {
+  getAllGroups,
+  getGroupsByProjectId,
+  getGroupsByUserId,
+  addGroup,
+  updateGroup,
+  deleteGroup,
+  deleteAllGroups,
+  addUserToGroup,
+  removeUserFromGroup,
+  addGroupsToProject,
+  removeGroupsFromProject,
+} = require('./resources/group/resolvers');
 
 const {
   addBackup,
@@ -155,13 +148,19 @@ import type {ResolversObj} from './resources';
 */
 
 const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
+  GroupRole: {
+    GUEST: 'guest',
+    REPORTER: 'reporter',
+    DEVELOPER: 'developer',
+    MAINTAINER: 'maintainer',
+    OWNER: 'owner',
+  },
   Project: {
-    customer: getCustomerByProjectId,
-    users: getUsersByProjectId,
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
+    groups: getGroupsByProjectId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -195,35 +194,29 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
       }
     },
   },
-  Customer: {
-    users: getUsersByCustomerId,
-    projects: getProjectsByCustomerId,
-  },
   User: {
     sshKeys: getUserSshKeys,
+    groups: getGroupsByUserId,
   },
   Backup: {
     restore: getRestoreByBackupId,
+    environment: getEnvironmentByBackupId,
   },
   Query: {
     userBySshKey: getUserBySshKey,
-    customerByName: getCustomerByName,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
     environmentByName: getEnvironmentByName,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
+    userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     allProjects: getAllProjects,
-    allCustomers: getAllCustomers,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
+    allGroups: getAllGroups,
   },
   Mutation: {
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    deleteAllCustomers,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -257,12 +250,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateUser,
     deleteUser,
     deleteAllUsers,
-    addUserToCustomer,
-    removeUserFromCustomer,
-    removeAllUsersFromAllCustomers,
-    addUserToProject,
-    removeUserFromProject,
-    removeAllUsersFromAllProjects,
     addDeployment,
     deleteDeployment,
     updateDeployment,
@@ -271,10 +258,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deleteAllBackups,
     addRestore,
     updateRestore,
-    createAllProjectsInKeycloak,
-    createAllProjectsInSearchguard,
-    resyncCustomersWithSearchguard,
-    createAllUsersInKeycloak,
     addEnvVariable,
     deleteEnvVariable,
     addTask,
@@ -292,6 +275,14 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
+    addGroup,
+    updateGroup,
+    deleteGroup,
+    deleteAllGroups,
+    addUserToGroup,
+    removeUserFromGroup,
+    addGroupsToProject,
+    removeGroupsFromProject,
   },
   Subscription: {
     backupChanged: backupSubscriber,

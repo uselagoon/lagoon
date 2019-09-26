@@ -35,7 +35,7 @@ COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
-ENV NEWRELIC_VERSION=8.6.0.238
+ENV NEWRELIC_VERSION=9.1.0.246
 
 RUN apk add --no-cache fcgi \
         ssmtp \
@@ -58,11 +58,11 @@ RUN apk add --no-cache fcgi \
     && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug-2.7.0 \
-        && yes '' | pecl install -f redis; \
+        && yes '' | pecl install -f redis-4.3.0; \
        elif [ ${PHP_VERSION%.*.*} == "7" ]; then \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug \
-        && yes '' | pecl install -f redis; \
+        && yes '' | pecl install -f redis-4.3.0; \
        fi \
     && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
         yes '' | pecl install -f apcu-4.0.11 \
@@ -76,6 +76,7 @@ RUN apk add --no-cache fcgi \
         docker-php-ext-install mcrypt; \
        fi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && apk update && apk upgrade nghttp2-libs \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
     && mkdir -p /tmp/newrelic && cd /tmp/newrelic \

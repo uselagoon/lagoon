@@ -1,26 +1,7 @@
 # See the docs for a detailed explanation about this file:
 # https://lagoon.readthedocs.io/en/latest/administering_lagoon/graphql_api/#create-first-project
 
-# 1. Create a customer
-mutation {
-  addCustomer(
-    input: {
-      # TODO: Fill in the name field
-      # This is the unique identifier of the customer
-      name: ""
-      # TODO: Fill in privateKey field
-      # The private key is a string, with new lines represented by `\n`
-      # See example here: https://github.com/amazeeio/lagoon/blob/66a080fa5cd0da5a0dca05f2532055f055842cba/local-dev/api-data/api-data.gql#L163
-      privateKey: ""
-    }
-  ) {
-    name
-    # TODO: Make a note of the customer ID that comes back in the response
-    id
-  }
-}
-
-# 2. Create an OpenShift
+# 1. Create an OpenShift
 mutation {
   addOpenshift(
     input: {
@@ -41,35 +22,35 @@ mutation {
   }
 }
 
-# 3. Create a project and assign it the customer and OpenShift
+# 2. Create a project and assign it the OpenShift
 mutation {
   addProject(
     input: {
       # TODO: Fill in the name field
-      # This is the unique identifier of the project
+      # This is the project name
       name: ""
-      # TODO: Fill in the customer field
-      # This is the customer ID from the response of the first query
-      customer: 0
+      # TODO: Fill in the private key field
+      # This is the private key for a project, which is used to access the git code.  If no private key is added, Lagoon will create a private key, which can later be accessed by loading the project.
+      privatekey: ""
       # TODO: Fill in the openshift field
-      # This is the OpenShift ID from the response of the first query
+      # This is the id of the OpenShift to assign to the project
       openshift: 0
-      # TODO: Fill in the gitUrl field
-      # This is the SSH URL to the Git repository where a `.lagoon.yml` file should be committed in the root.
-      # HTTPS URLs are currently not supported.
+      # TODO: Fill in the name field
+      # This is the project name
       gitUrl: ""
+      # TODO: Fill in the branches to be deployed
+      branches: ""
+      # TODO: Define the production environment
+      productionEnvironment: ""
     }
   ) {
     name
-    customer {
-      name
-    }
     openshift {
       name
+      id
     }
     gitUrl
     activeSystemsDeploy
-    activeSystemsPromote
     activeSystemsRemove
     branches
     pullrequests

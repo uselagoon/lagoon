@@ -5,6 +5,7 @@ const {
   ifNotAdmin, inClauseOr, prepare, query,
 } = require('../../util/db');
 const Sql = require('./sql');
+const environmentHelpers = require('../environment/helpers');
 
 /* ::
 
@@ -23,13 +24,14 @@ const getEnvVarsByProjectId = async (
   { id: pid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  await hasPermission('env_var', 'project:view', {
+    project: pid,
+  });
+
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -37,10 +39,6 @@ const getEnvVarsByProjectId = async (
       FROM env_vars ev
       JOIN project p ON ev.project = p.id
       WHERE ev.project = :pid
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
     `,
   );
 
@@ -53,13 +51,16 @@ const getEnvVarsByEnvironmentId = async (
   { id: eid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+
+  await hasPermission('env_var', `environment:view:${environment.environmentType}`, {
+    project: environment.project,
+  });
+
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -68,10 +69,6 @@ const getEnvVarsByEnvironmentId = async (
       JOIN environment e on ev.environment = e.id
       JOIN project p ON e.project = p.id
       WHERE ev.environment = :eid
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
     `,
   );
 
@@ -100,23 +97,13 @@ const addEnvVariableToProject = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectPermsForProject(typeId));
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('env_var', 'project:add', {
+    project: typeId,
+  });
 
   const scope = envVarScopeToString(unformattedScope);
 
@@ -146,23 +133,15 @@ const addEnvVariableToEnvironment = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectPermsForEnvironment(typeId));
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(typeId);
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('env_var', `environment:add:${environment.environmentType}`, {
+    project: environment.project,
+  });
 
   const scope = envVarScopeToString(unformattedScope);
 
@@ -188,23 +167,15 @@ const deleteEnvVariable = async (
   root,
   { input: { id } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectPermsForEnvVariable(id));
+  const perms = await query(sqlClient, Sql.selectPermsForEnvVariable(id));
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('env_var', 'delete', {
+    project: R.path(['0', 'pid'], perms),
+  });
 
   await query(sqlClient, Sql.deleteEnvVariable(id));
 

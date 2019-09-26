@@ -33,4 +33,4 @@ ENV LAGOON_PR_TITLE_BUILDTIME ${LAGOON_PR_TITLE}
 
 EXPOSE 3000
 
-CMD ["yarn", "run", "start"]
+CMD ["node", "index.js"]

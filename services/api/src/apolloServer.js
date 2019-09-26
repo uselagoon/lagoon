@@ -6,56 +6,32 @@ const {
   AuthenticationError,
   makeExecutableSchema,
 } = require('apollo-server-express');
-const { applyMiddleware } = require('graphql-middleware');
+const NodeCache = require('node-cache');
 const {
   getCredentialsForLegacyToken,
-  getCredentialsForKeycloakToken,
+  getGrantForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
+const User = require('./models/user');
+const Group = require('./models/group');
+
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-const operationBlacklist = R.split(
-  ',',
-  R.propOr('', 'LAGOON_API_OPERATION_BLACKLIST', process.env),
-);
-
-const evaluateOperationsBlacklist = async (
-  resolve,
-  parent,
-  args,
-  context,
-  info,
-) => {
-  const {
-    credentials: { role },
-  } = context;
-
-  if (role !== 'admin' && R.contains(info.fieldName, operationBlacklist)) {
-    throw new Error('Unauthorized.');
-  }
-
-  const result = await resolve(parent, args, context, info);
-  return result;
-};
-
-const schemaWithMiddleware = applyMiddleware(schema, {
-  Query: evaluateOperationsBlacklist,
-  Mutation: evaluateOperationsBlacklist,
-  Subscription: evaluateOperationsBlacklist,
-});
-
 const apolloServer = new ApolloServer({
-  schema: schemaWithMiddleware,
+  schema,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let credentials;
+      let grant;
+      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
@@ -64,10 +40,7 @@ const apolloServer = new ApolloServer({
 
       try {
         var sqlClientKeycloak = getSqlClient();
-        credentials = await getCredentialsForKeycloakToken(
-          sqlClientKeycloak,
-          token,
-        );
+        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
         sqlClientKeycloak.end();
       } catch (e) {
         sqlClientKeycloak.end();
@@ -76,9 +49,9 @@ const apolloServer = new ApolloServer({
       }
 
       try {
-        if (!credentials) {
+        if (!grant) {
           var sqlClientLegacy = getSqlClient();
-          credentials = await getCredentialsForLegacyToken(
+          legacyCredentials = await getCredentialsForLegacyToken(
             sqlClientLegacy,
             token,
           );
@@ -88,16 +61,34 @@ const apolloServer = new ApolloServer({
         sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
-      // Add credentials to context.
-      const sqlClient = getSqlClient();
-      return { credentials, sqlClient };
+
+      const requestCache = new NodeCache({
+        stdTTL: 0,
+        checkperiod: 0,
+      });
+
+      return {
+        sqlClient: getSqlClient(),
+        hasPermission: grant
+          ? keycloakHasPermission(grant, requestCache)
+          : legacyHasPermission(legacyCredentials),
+        keycloakGrant: grant,
+        requestCache,
+      };
     },
     onDisconnect: (websocket, context) => {
       if (context.sqlClient) {
         context.sqlClient.end();
       }
+      if (context.requestCache) {
+        context.requestCache.flushAll();
+      }
     },
   },
+  dataSources: () => ({
+    UserModel: User.User(),
+    GroupModel: Group.Group(),
+  }),
   context: ({ req, connection }) => {
     // Websocket requests
     if (connection) {
@@ -109,10 +100,20 @@ const apolloServer = new ApolloServer({
 
     // HTTP requests
     if (!connection) {
+      const requestCache = new NodeCache({
+        stdTTL: 0,
+        checkperiod: 0,
+      });
+
       return {
-        // Express middleware must always provide req.credentials.
-        credentials: req.credentials,
         sqlClient: getSqlClient(),
+        hasPermission: req.kauth
+          ? keycloakHasPermission(req.kauth.grant, requestCache)
+          : legacyHasPermission(req.legacyCredentials),
+        keycloakGrant: req.kauth
+          ? req.kauth.grant
+          : null,
+        requestCache,
       };
     }
   },
@@ -130,6 +131,9 @@ const apolloServer = new ApolloServer({
         willSendResponse: response => {
           if (response.context.sqlClient) {
             response.context.sqlClient.end();
+          }
+          if (response.context.requestCache) {
+            response.context.requestCache.flushAll();
           }
         },
       }),

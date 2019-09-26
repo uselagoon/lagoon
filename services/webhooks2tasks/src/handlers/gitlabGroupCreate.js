@@ -2,9 +2,8 @@
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getGroup } = require('@lagoon/commons/src/gitlabApi');
-const { addCustomer } = require('@lagoon/commons/src/api');
+const { addGroup, addGroupWithParent, sanitizeGroupName } = require('@lagoon/commons/src/api');
 
-const GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY = process.env.GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY || null;
 import type { WebhookRequestData } from '../types';
 
 async function gitlabGroupCreate(webhook: WebhookRequestData) {
@@ -12,14 +11,20 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
 
   try {
     const group = await getGroup(body.group_id);
-    const { id, path: name, description: comment } = group;
+    const { id, path: name, description: comment, full_path, parent_id } = group;
 
     const meta = {
       data: group,
-      customer: id
+      gitlab_group_id: id
     };
 
-    await addCustomer(name, id, comment, GITLAB_DEFAULT_CUSTOMER_SSH_PRIVATEKEY);
+    const groupName = sanitizeGroupName(full_path);
+    if (group.parent_id) {
+      const parentGroup = await getGroup(group.parent_id);
+      await addGroupWithParent(groupName, sanitizeGroupName(parentGroup.full_path));
+    } else {
+      await addGroup(groupName);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -27,7 +32,7 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Created customer ${name}`
+      `Created group ${name}`
     );
 
     return;
@@ -38,7 +43,7 @@ async function gitlabGroupCreate(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not create customer, reason: ${error}`
+      `Could not create group, reason: ${error}`
     );
 
     return;
