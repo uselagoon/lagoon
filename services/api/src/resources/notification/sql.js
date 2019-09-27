@@ -91,6 +91,14 @@ const Sql /* : SqlObj */ = {
       .update(patch)
       .toString();
   },
+  updateNotificationSlack: (input /* : Object */) => {
+    const { name, patch } = input;
+
+    return knex('notification_slack')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
   selectNotificationsByTypeByProjectId: (
     input /* : Object */,
   ) => {
@@ -105,22 +113,14 @@ const Sql /* : SqlObj */ = {
       .select('nt.*', 'pn.type')
       .toString();
   },
-  selectNotificationMicrosoftTeamsByName: (name /* : string */) =>
-  knex('notification_microsofTeams')
-    .where('name', '=', name)
-    .toString(),
+  selectNotificationMicrosoftTeamsByName:  (name /* : string */) =>
+    knex('notification_microsoftteams')
+      .where('name', '=', name)
+      .toString(),
   selectNotificationRocketChatByName: (name /* : string */) =>
     knex('notification_rocketchat')
       .where('name', '=', name)
       .toString(),
-  updateNotificationSlack: (input /* : Object */) => {
-    const { name, patch } = input;
-
-    return knex('notification_slack')
-      .where('name', '=', name)
-      .update(patch)
-      .toString();
-  },
   selectNotificationSlackByName: (name /* : string */) =>
     knex('notification_slack')
       .where('name', '=', name)
