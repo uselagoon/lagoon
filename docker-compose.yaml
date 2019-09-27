@@ -405,7 +405,7 @@ services:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-chartmuseum.yml
   harbor-clair:
-    image: cdchris12/harbor-clair:dev1.5
+    image: cdchris12/harbor-clair:dev1.7
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-clair.yml

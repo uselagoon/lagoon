@@ -82,7 +82,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-clair
         containers:
         - name: clair
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-clair:dev1.5
+          image: ${SERVICE_IMAGE} # cdchris12/harbor-clair:dev1.7
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -120,5 +120,5 @@ objects:
             subPath: config.yaml
         volumes:
         - name: config
-          secret:
-            secretName: "harbor-clair"
+          configMap:
+            name: ${SERVICE_NAME} # harbor-clair
