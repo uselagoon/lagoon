@@ -14,7 +14,7 @@ const {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
-  deploymentSubscriber,
+  deploymentSubscriber
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -29,13 +29,13 @@ const {
   taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
-  taskSubscriber,
+  taskSubscriber
 } = require('./resources/task/resolvers');
 
 const {
   getFilesByTaskId,
   uploadFilesForTask,
-  deleteFilesForTask,
+  deleteFilesForTask
 } = require('./resources/file/resolvers');
 
 const {
@@ -57,7 +57,7 @@ const {
   updateEnvironment,
   getAllEnvironments,
   deleteAllEnvironments,
-  userCanSshToEnvironment,
+  userCanSshToEnvironment
 } = require('./resources/environment/resolvers');
 
 const {
@@ -80,7 +80,7 @@ const {
   deleteAllNotificationSlacks,
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
-  removeAllNotificationsFromAllProjects,
+  removeAllNotificationsFromAllProjects
 } = require('./resources/notification/resolvers');
 
 const {
@@ -89,7 +89,7 @@ const {
   getAllOpenshifts,
   getOpenshiftByProjectId,
   updateOpenshift,
-  deleteAllOpenshifts,
+  deleteAllOpenshifts
 } = require('./resources/openshift/resolvers');
 
 const {
@@ -100,7 +100,7 @@ const {
   getProjectByEnvironmentId,
   getAllProjects,
   updateProject,
-  deleteAllProjects,
+  deleteAllProjects
 } = require('./resources/project/resolvers');
 
 const {
@@ -110,7 +110,7 @@ const {
   deleteSshKey,
   deleteSshKeyById,
   deleteAllSshKeys,
-  removeAllSshKeysFromAllUsers,
+  removeAllSshKeysFromAllUsers
 } = require('./resources/sshKey/resolvers');
 
 const {
@@ -118,7 +118,7 @@ const {
   addUser,
   updateUser,
   deleteUser,
-  deleteAllUsers,
+  deleteAllUsers
 } = require('./resources/user/resolvers');
 
 const {
@@ -137,7 +137,7 @@ const {
   addUserToGroup,
   removeUserFromGroup,
   addGroupsToProject,
-  removeGroupsFromProject,
+  removeGroupsFromProject
 } = require('./resources/group/resolvers');
 
 const {
@@ -148,14 +148,14 @@ const {
   addRestore,
   getRestoreByBackupId,
   updateRestore,
-  backupSubscriber,
+  backupSubscriber
 } = require('./resources/backup/resolvers');
 
 const {
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
   addEnvVariable,
-  deleteEnvVariable,
+  deleteEnvVariable
 } = require('./resources/env-variables/resolvers');
 
 /* ::
@@ -170,17 +170,30 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     REPORTER: 'reporter',
     DEVELOPER: 'developer',
     MAINTAINER: 'maintainer',
-    OWNER: 'owner',
+    OWNER: 'owner'
   },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
-    groups: getGroupsByProjectId,
+    groups: getGroupsByProjectId
+  },
+  GroupInterface: {
+    __resolveType(group) {
+      switch (group.type) {
+        case 'billing':
+          return 'BillingGroup';
+        default:
+          return 'Group';
+      }
+    }
   },
   Group: {
-    projects: getAllProjectsByGroupId,
+    projects: getAllProjectsByGroupId
+  },
+  BillingGroup: {
+    projects: getAllProjectsByGroupId
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -192,14 +205,14 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
     backups: getBackupsByEnvironmentId,
     envVariables: getEnvVarsByEnvironmentId,
-    services: getEnvironmentServicesByEnvironmentId,
+    services: getEnvironmentServicesByEnvironmentId
   },
   Deployment: {
-    environment: getEnvironmentByDeploymentId,
+    environment: getEnvironmentByDeploymentId
   },
   Task: {
     environment: getEnvironmentByTaskId,
-    files: getFilesByTaskId,
+    files: getFilesByTaskId
   },
   Notification: {
     __resolveType(obj) {
@@ -216,15 +229,15 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
         default:
           return null;
       }
-    },
+    }
   },
   User: {
     sshKeys: getUserSshKeys,
-    groups: getGroupsByUserId,
+    groups: getGroupsByUserId
   },
   Backup: {
     restore: getRestoreByBackupId,
-    environment: getEnvironmentByBackupId,
+    environment: getEnvironmentByBackupId
   },
   Query: {
     userBySshKey: getUserBySshKey,
@@ -240,7 +253,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allEnvironments: getAllEnvironments,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
-    billingGroupCost: getBillingGroupCost,
+    billingGroupCost: getBillingGroupCost
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -321,15 +334,15 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addUserToGroup,
     removeUserFromGroup,
     addGroupsToProject,
-    removeGroupsFromProject,
+    removeGroupsFromProject
   },
   Subscription: {
     backupChanged: backupSubscriber,
     deploymentChanged: deploymentSubscriber,
-    taskChanged: taskSubscriber,
+    taskChanged: taskSubscriber
   },
   Date: GraphQLDate,
-  JSON: GraphQLJSON,
+  JSON: GraphQLJSON
 };
 
 module.exports = resolvers;
