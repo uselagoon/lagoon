@@ -154,7 +154,7 @@ objects:
         containers:
         - name: registry
           hostname: ${SERVICE_NAME} # harbor-registry
-          image: cdchris12/harbor-registry:dev1.9
+          image: cdchris12/harbor-registry:dev1.10
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -189,7 +189,7 @@ objects:
             subPath: config.yml
         - name: registryctl
           hostname: harbor-registryctl
-          image: cdchris12/harbor-registryctl:dev1.3
+          image: cdchris12/harbor-registryctl:dev1.4
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -239,8 +239,8 @@ objects:
             subPath: ctl-config.yml
         volumes:
         - name: registry-root-certificate
-          secret:
-            secretName: harbor-core
+          configMap:
+            name: harbor-core
         - name: registry-config
           configMap:
             name: "harbor-registry"
