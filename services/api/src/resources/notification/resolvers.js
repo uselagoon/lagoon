@@ -209,7 +209,7 @@ const removeNotificationFromProject = async (
   return project;
 };
 
-const NOTIFICATION_TYPES = ['slack', 'rocketchat'];
+const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams'];
 
 const getNotificationsByProjectId = async (
   { id: pid },
