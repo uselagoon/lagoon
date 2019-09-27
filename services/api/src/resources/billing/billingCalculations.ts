@@ -53,7 +53,7 @@ export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   const hits = projectsDataReducer(projects, 'hits');
   const availability = projects[0].availability;
   const tier = hitTier(hits);
-  const hitsInTier = hits - HIT_TIERS[tier - 1].max;
+  const hitsInTier = tier > 0 ? hits - HIT_TIERS[tier - 1].max : hits;
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];

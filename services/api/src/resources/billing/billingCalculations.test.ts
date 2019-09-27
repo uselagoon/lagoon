@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 import { CURRENCIES, AVAILABILITY } from './pricing';
 import {
   hitsCost,
@@ -83,6 +81,60 @@ const mockData: IMockDataType = {
         },
       ],
     },
+    {
+      name: 'FC',
+      currency: CURRENCIES.USD,
+      billingSoftware: '',
+      projects: [
+        {
+          name: 'fc_com',
+          month: 8,
+          year: 2019,
+          hits: 5_120_109,
+          availability: AVAILABILITY.HIGH,
+          storageDays: 971.194088,
+          prodHours: 744,
+          devHours: 5208,
+        },
+        {
+          name: 'mil_fc_com',
+          month: 8,
+          year: 2019,
+          hits: 279_553,
+          availability: AVAILABILITY.HIGH,
+          storageDays: 4.80221,
+          prodHours: 744,
+          devHours: 2232,
+        },
+      ],
+    },
+    {
+      name: 'OYW',
+      currency: CURRENCIES.GBP,
+      billingSoftware: '',
+      projects: [
+        {
+          name: 'l2030',
+          month: 8,
+          year: 2019,
+          hits: 56_147,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 16.897876,
+          prodHours: 744,
+          devHours: 1488,
+        },
+        {
+          name: 'oyw',
+          month: 8,
+          year: 2019,
+          hits: 102_352,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 45.075144,
+          prodHours: 744,
+          devHours: 3695,
+        },
+      ],
+    },
   ],
 };
 
@@ -91,7 +143,7 @@ const { projects: p2 } = mockData.billingGroups[1];
 
 // Unit Under Test
 describe('Billing Calculations', () => {
-  describe('Hit Tier', () => {
+  describe('Hit Tier #hit-tier', () => {
     // scenarios and expectation
     it('When hits are between { MIN: 300_001, MAX: 2_500_000 }, then the "hitTier should be 1', () => {
       // Arrange
@@ -110,7 +162,7 @@ describe('Billing Calculations', () => {
     });
   });
 
-  describe('Hit Costs - Customers billed in US Dollars', () => {
+  describe('Hit Costs - Customers billed in US Dollars (USD) #USD', () => {
     // scenarios and expectation
     it('Given two projects with standard availability, and hits [1_075, 342_371], the hit cost should be 75.52', () => {
       // Arrange
@@ -129,9 +181,30 @@ describe('Billing Calculations', () => {
       // Assert
       expect(cost).toBe(1468.61);
     });
+
+    it('Given two projects with high availability, and hits [5,120,109, 279,553], the hit cost should be 1,265.95', () => {
+      // Arrange
+      const billingGroup = mockData.billingGroups[2];
+      // Act
+      const cost = hitsCost(billingGroup);
+      // Assert
+      expect(cost).toBe(1265.95);
+    });
   });
 
-  describe('Storage Costs - Customers billed in US Dollars', () => {
+  describe('Hit Costs - Customers billed in Pounds (GBP) #Hits #GBP', () => {
+    // scenarios and expectation
+    it('Given two projects with standard availability, and hits [56,147, 102,352], the hit cost should be 55.00', () => {
+      // Arrange
+      const billingGroup = mockData.billingGroups[3];
+      // Act
+      const cost = hitsCost(billingGroup);
+      // Assert
+      expect(cost).toBe(55.0);
+    });
+  });
+
+  describe('Storage Costs - Customers billed in US Dollars (USD) #Storage #USD', () => {
     // scenarios and expectation
     it('Given the total storage of all projects do NOT exceed the free storage tier the cost should be 0.', () => {
       // Arrange
@@ -152,7 +225,19 @@ describe('Billing Calculations', () => {
     });
   });
 
-  describe('Environment Costs - Customers billed in US Dollars', () => {
+  describe('Storage Costs - Customers billed Pounds (GBP) #Storage #GBP', () => {
+    // scenarios and expectation
+    it('Given the total storage of two projects [971.194088, 4.80221] the cost should be 22.18.', () => {
+      // Arrange
+      const billingGroup = mockData.billingGroups[2];
+      // Act
+      const cost = storageCost(billingGroup);
+      // Assert
+      expect(cost).toBe(22.18);
+    });
+  });
+
+  describe('Environment Costs - Customers billed in US Dollars (USD) #Environment #USD', () => {
     // scenarios and expectation
     it('Given a billingGroup with two projects running for the entire month of July, 2019 (744 hours) the Production costs should be 62.05', () => {
       // Arrange
@@ -162,7 +247,6 @@ describe('Billing Calculations', () => {
       // Assert
       expect(cost).toBe(62.05);
     });
-
     // scenarios and expectation
     it('Given a billingGroup does not have more than the freely included development environments, the costs should be 0', () => {
       // Arrange
@@ -173,4 +257,16 @@ describe('Billing Calculations', () => {
       expect(cost).toBe(0);
     });
   });
-});
+
+  describe('Environment Costs - Customers billed in Pounds (GBP) #Environment #GBP', () => {
+    // scenarios and expectation
+    it('Given a billingGroup with two projects in August running all month, the costs should be 206.68', () => {
+      // Arrange
+      const billingGroup = mockData.billingGroups[2];
+      // Act
+      const cost = prodCost(billingGroup);
+      // Assert
+      expect(cost).toBe(206.68);
+    });
+  });
+}); // End Billing Calculations
