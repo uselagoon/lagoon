@@ -6,10 +6,11 @@ module.exports = {
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
+      'eslint-import-resolver-typescript': true,
     },
   },
   extends: ['airbnb-base', 'plugin:flowtype/recommended'],
-  plugins: ['flowtype'],
+  plugins: ['flowtype', 'typescript'],
   env: { es6: true, jest: true, node: true },
   rules: {
     // Disable 'arrow-parens': ['error', 'as-needed'] Airbnb stylistic rule for Flow types in comments in single-parameter functions (in the API). This does not cause a regression either, because Prettier will remove other parentheses when it can.
@@ -22,6 +23,7 @@ module.exports = {
     'flowtype/generic-spacing': 'off',
     // Fix issue with the way Prettier formats types
     'flowtype/space-after-type-colon': 'off',
+    'flowtype/no-types-missing-file-annotation': 0,
     // Fix issue with the way Prettier formats function calls
     'function-paren-newline': 'off',
     // Disable Airbnb stylistic rule
