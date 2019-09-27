@@ -42,7 +42,7 @@ export const GBP = {
   availability: {
     STANDARD: {
       hitCosts: [0.0, 0.00012, 0.000056, 0.000024],
-      hitBase: 25.0,
+      hitBase: 55.0,
       prodSitePerHour: 0.0347,
       devSitePerHour: 0.0116,
     },
