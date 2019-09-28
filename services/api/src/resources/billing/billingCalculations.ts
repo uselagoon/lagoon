@@ -158,4 +158,4 @@ export const hoursInMonth = (m: number) =>
   Number(daysInMonth(m, new Date(Date.now()).getFullYear()) * 24);
 
 export const daysInMonth = (month: number, year: number) =>
-  new Date(year, month + 1, 0).getDate();
+  new Date(year, month, 0).getDate();

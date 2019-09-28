@@ -9,8 +9,16 @@ import {
   projectsDataReducer,
 } from './billingCalculations';
 
+interface ITestBillingGroup extends IBillingGroup {
+  expectations?: {
+    hits: number;
+    storage: number;
+    prod: number;
+    dev: number;
+  };
+}
 interface IMockDataType {
-  billingGroups: IBillingGroup[];
+  billingGroups: ITestBillingGroup[];
 }
 
 // month: 'July 2019',
@@ -19,6 +27,12 @@ const mockData: IMockDataType = {
     {
       // CH - July 2019
       name: 'VF',
+      expectations: {
+        hits: 75.52,
+        storage: 0,
+        prod: 62.05,
+        dev: 0
+      },
       currency: CURRENCIES.USD,
       billingSoftware: 'xero',
       projects: [
@@ -46,6 +60,12 @@ const mockData: IMockDataType = {
     },
     {
       name: 'SV',
+      expectations: {
+        hits: 1468.61,
+        storage: 11.41,
+        prod: 310.02,
+        dev: 0
+      },
       currency: CURRENCIES.USD,
       billingSoftware: 'xero',
       projects: [
@@ -83,6 +103,12 @@ const mockData: IMockDataType = {
     },
     {
       name: 'FC',
+      expectations: {
+        hits: 1265.95,
+        storage: 22.18,
+        prod: 206.68,
+        dev: 62.05
+      },
       currency: CURRENCIES.USD,
       billingSoftware: '',
       projects: [
@@ -109,7 +135,13 @@ const mockData: IMockDataType = {
       ],
     },
     {
-      name: 'OYW',
+      name: 'Swiss - OYW',
+      expectations: {
+        hits: 55.0,
+        storage: 0,
+        prod: 51.63,
+        dev: 26
+      },
       currency: CURRENCIES.GBP,
       billingSoftware: '',
       projects: [
@@ -136,10 +168,120 @@ const mockData: IMockDataType = {
       ],
     },
   ],
+    {
+      name: 'MIS',
+      expectations: {
+        hits: 55,
+        storage: 0,
+        prod: 25.82,
+        dev: 0
+      },
+      currency: CURRENCIES.GBP,
+      billingSoftware: '',
+      projects: [
+        {
+          name: 'co',
+          month: 8,
+          year: 2019,
+          hits: 86_766,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 0,
+          prodHours: 744,
+          devHours: 0
+        }
+      ]
+    }
+  ]
 };
+
+// {
+//   name: '',
+//   expectations: {
+//     hits: -999,
+//     storage: -999,
+//     prod: -999,
+//     dev: -999,
+//   },
+//   currency: CURRENCIES.USD,
+//   billingSoftware: '',
+//   projects: [
+//     {
+//       name: '',
+//       month: ,
+//       year: 2019,
+//       hits: ,
+//       availability: AVAILABILITY.,
+//       storageDays: ,
+//       prodHours: ,
+//       devHours: ,
+//     },
+//   ],
+// },
 
 const { projects: p1 } = mockData.billingGroups[0];
 const { projects: p2 } = mockData.billingGroups[1];
+
+const monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+];
+
+const hitsCostTestString = (group: ITestBillingGroup) =>
+  `Given ${group.projects.length} project(s) with ${
+    group.projects[0].availability
+  } availability and hits [${group.projects
+    .map(project => project.hits)
+    .join()}], during ${
+    monthNames[group.projects[0].month - 1]
+  } the cost should be ${group.expectations.hits} #hits #${group.currency} #${
+    group.name
+  }: `;
+
+const storageCostTestString = (group: ITestBillingGroup) =>
+  `Given the total storage of ${
+    group.projects.length
+  } project(s), and GBDays [${group.projects
+    .map(project => project.storageDays)
+    .join()}], during ${
+    monthNames[group.projects[0].month - 1]
+  } the cost should be ${group.expectations.storage}. #storage #${
+    group.currency
+  } #${group.name}`;
+
+const prodEnvironmentCostTestString = (group: ITestBillingGroup) =>
+  `Given a billing group with ${
+    group.projects.length
+  } project(s), running for[${group.projects
+    .map(project => project.prodHours)
+    .join()}] hours during ${
+    monthNames[group.projects[0].month - 1]
+  } the cost should be ${group.expectations.prod}. #prod #${group.currency} #${
+    group.name
+  } `;
+
+const devEnvironmentCostTestString = (group: ITestBillingGroup) =>
+  `Given a billing group with ${
+    group.projects.length
+  } project(s), running for[${group.projects
+    .map(project => project.devHours)
+    .join()}] during ${
+    monthNames[group.projects[0].month - 1]
+  } the cost should be ${group.expectations.dev}. #dev #${group.currency} #${
+    group.name
+  }`;
+
+const currencyFilter = currency => group =>
+  group.currency === CURRENCIES[currency];
 
 // Unit Under Test
 describe('Billing Calculations', () => {
@@ -162,111 +304,89 @@ describe('Billing Calculations', () => {
     });
   });
 
-  describe('Hit Costs - Customers billed in US Dollars (USD) #USD', () => {
+  describe('Hit Costs - Customers billed in US Dollars (USD) #Hits #USD', () => {
     // scenarios and expectation
-    it('Given two projects with standard availability, and hits [1_075, 342_371], the hit cost should be 75.52', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[0];
-      // Act
-      const cost = hitsCost(billingGroup);
-      // Assert
-      expect(cost).toBe(75.52);
-    });
-
-    it('Given three projects with high availability, and hits [6_833_467, 13_782, 0], the hit cost should be 1468.61', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[1];
-      // Act
-      const cost = hitsCost(billingGroup);
-      // Assert
-      expect(cost).toBe(1468.61);
-    });
-
-    it('Given two projects with high availability, and hits [5,120,109, 279,553], the hit cost should be 1,265.95', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[2];
-      // Act
-      const cost = hitsCost(billingGroup);
-      // Assert
-      expect(cost).toBe(1265.95);
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
+      it(hitsCostTestString(group), () => {
+        // Act
+        const cost = hitsCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.hits);
+      });
     });
   });
 
   describe('Hit Costs - Customers billed in Pounds (GBP) #Hits #GBP', () => {
     // scenarios and expectation
-    it('Given two projects with standard availability, and hits [56,147, 102,352], the hit cost should be 55.00', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[3];
-      // Act
-      const cost = hitsCost(billingGroup);
-      // Assert
-      expect(cost).toBe(55.0);
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
+      it(hitsCostTestString(group), () => {
+        // Act
+        const cost = hitsCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.hits);
+      });
     });
   });
 
   describe('Storage Costs - Customers billed in US Dollars (USD) #Storage #USD', () => {
     // scenarios and expectation
-    it('Given the total storage of all projects do NOT exceed the free storage tier the cost should be 0.', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[0];
-      // Act
-      const cost = storageCost(billingGroup);
-      // Assert
-      expect(cost).toBe(0);
-    });
-
-    it('Given the total storage of three projects exceed the free storage tier, GBDays [784.064378, 23.725226, 0], the cost should be 11.41.', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[1];
-      // Act
-      const cost = storageCost(billingGroup);
-      // Assert
-      expect(cost).toBe(11.41);
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
+      it(storageCostTestString(group), () => {
+        // Act
+        const cost = storageCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.storage);
+      });
     });
   });
 
-  describe('Storage Costs - Customers billed Pounds (GBP) #Storage #GBP', () => {
+  describe('Storage Costs - Customers billed in Pounds (GBP) #Storage #GBP', () => {
     // scenarios and expectation
-    it('Given the total storage of two projects [971.194088, 4.80221] the cost should be 22.18.', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[2];
-      // Act
-      const cost = storageCost(billingGroup);
-      // Assert
-      expect(cost).toBe(22.18);
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
+      it(storageCostTestString(group), () => {
+        // Act
+        const cost = storageCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.storage);
+      });
     });
   });
 
   describe('Environment Costs - Customers billed in US Dollars (USD) #Environment #USD', () => {
     // scenarios and expectation
-    it('Given a billingGroup with two projects running for the entire month of July, 2019 (744 hours) the Production costs should be 62.05', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[0];
-      // Act
-      const cost = prodCost(billingGroup);
-      // Assert
-      expect(cost).toBe(62.05);
-    });
-    // scenarios and expectation
-    it('Given a billingGroup does not have more than the freely included development environments, the costs should be 0', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[0];
-      // Act
-      const cost = devCost(billingGroup);
-      // Assert
-      expect(cost).toBe(0);
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
+      it(prodEnvironmentCostTestString(group), () => {
+        // Act
+        const cost = prodCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.prod);
+      });
+
+      it(devEnvironmentCostTestString(group), () => {
+        // Act
+        const cost = devCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.dev);
+      });
     });
   });
 
   describe('Environment Costs - Customers billed in Pounds (GBP) #Environment #GBP', () => {
     // scenarios and expectation
-    it('Given a billingGroup with two projects in August running all month, the costs should be 206.68', () => {
-      // Arrange
-      const billingGroup = mockData.billingGroups[2];
-      // Act
-      const cost = prodCost(billingGroup);
-      // Assert
-      expect(cost).toBe(206.68);
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
+      it(prodEnvironmentCostTestString(group), () => {
+        // Act
+        const cost = prodCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.prod);
+      });
+
+      it(devEnvironmentCostTestString(group), () => {
+        // Act
+        const cost = devCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.dev);
+      });
     });
   });
 }); // End Billing Calculations
