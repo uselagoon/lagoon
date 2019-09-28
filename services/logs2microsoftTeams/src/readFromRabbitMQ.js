@@ -56,14 +56,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "github:pull_request:opened:handled":
     case "gitlab:merge_request:opened:handled":
     case "bitbucket:pullrequest:created:opened:handled":
-      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) opened in [${meta.repoName}](${meta.repoUrl})`
+      text = `PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) opened in [${meta.repoName}](${meta.repoUrl})`
       sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:synchronize:handled":
     case "bitbucket:pullrequest:updated:opened:handled":
     case "gitlab:merge_request:updated:handled":
-      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in [${meta.repoName}](${meta.repoUrl})`
+      text = `PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in [${meta.repoName}](${meta.repoUrl})`
       sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
@@ -71,31 +71,31 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:pullrequest:rejected:handled":
     case "github:pull_request:closed:handled":
     case "gitlab:merge_request:closed:handled":
-      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) closed in [${meta.repoName}](${meta.repoUrl})`
+      text = `PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) closed in [${meta.repoName}](${meta.repoUrl})`
       sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:pullrequest:deploy":
-      text = `*[${meta.projectName}]* REST pullrequest deploy trigger \`${meta.pullrequestTitle}\``
+      text = `REST pullrequest deploy trigger \`${meta.pullrequestTitle}\``
       sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "github:delete:handled":
     case "gitlab:remove:handled":
     case "bitbucket:delete:handled":
-      text = `*[${meta.projectName}]* deleted in \`${meta.branchName}\``
+      text = `deleted in \`${meta.branchName}\``
       sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:remove:receive":
-      text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
+      text = `REST remove trigger \`${meta.branchName}\``
       sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "bitbucket:repo:push:handled":
     case "github:push:handled":
     case "gitlab:push:handled":
-      text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
+      text = `[${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
       if (meta.shortSha){
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
       }
@@ -106,7 +106,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "gitlab:push:skipped":
     case "github:push:skipped":
     case "bitbucket:push:skipped":
-      text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
+      text = `[${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
       if (meta.shortSha){
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
       }
@@ -116,7 +116,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "api:deployEnvironmentBranch":
     case "api:deployEnvironmentLatest":
-      text = `*[${meta.projectName}]* API deploy trigger \`${meta.branchName}\``
+      text = `API deploy trigger \`${meta.branchName}\``
       if (meta.shortSha) {
         text = `${text} (${meta.shortSha})`
       }
@@ -124,7 +124,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "rest:deploy:receive":
-      text = `*[${meta.projectName}]* REST deploy trigger \`${meta.branchName}\``
+      text = `REST deploy trigger \`${meta.branchName}\``
       if (meta.shortSha) {
         text = `${text} (${meta.shortSha})`
       }
@@ -132,7 +132,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "rest:promote:receive":
-      text = `*[${meta.projectName}]* REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
+      text = `REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
       sendToMicrosoftTeams(project, text, 'gold', warning, channelWrapperLogs, msg, appId)
       break;
 
@@ -153,19 +153,18 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "rest:pullrequest:remove":
-      text = `*[${meta.projectName}]* REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
+      text = `REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
       sendToMicrosoftTeams(project, text, 'lawngreen', whiteCheckMark, channelWrapperLogs, msg, appId)
       break;
 
     case "task:remove-openshift:finished":
-      text = `*[${meta.projectName}]* remove \`${meta.openshiftProject}\``
+      text = `remove \`${meta.openshiftProject}\``
       sendToMicrosoftTeams(project, text, 'lawngreen', whiteCheckMark, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
-      text = `*[${meta.projectName}]*`
       if (meta.shortSha) {
         text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
       } else {
@@ -182,7 +181,6 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:remove-openshift:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
-      text = `*[${meta.projectName}]*`
       if (meta.shortSha) {
         text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
       } else {
