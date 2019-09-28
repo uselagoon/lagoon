@@ -44,7 +44,12 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
   logger.verbose(`received ${event} for project ${project}`)
 
-  var text
+  const whiteCheckMark = 'https://statics.teams.microsoft.com/evergreen-assets/emojioneassets/assets-png/2705.png'
+  const informationSource = 'https://statics.teams.microsoft.com/evergreen-assets/emojioneassets/assets-png/2139.png'
+  const bangBang = 'https://statics.teams.microsoft.com/evergreen-assets/emojioneassets/assets-png/203c.png'
+  const warning = 'https://statics.teams.microsoft.com/evergreen-assets/emojioneassets/assets-png/26a0.png'
+
+  var text = ''
 
   switch (event) {
 
@@ -52,14 +57,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "gitlab:merge_request:opened:handled":
     case "bitbucket:pullrequest:created:opened:handled":
       text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) opened in [${meta.repoName}](${meta.repoUrl})`
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:synchronize:handled":
     case "bitbucket:pullrequest:updated:opened:handled":
     case "gitlab:merge_request:updated:handled":
       text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in [${meta.repoName}](${meta.repoUrl})`
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "bitbucket:pullrequest:fulfilled:handled":
@@ -67,24 +72,24 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "github:pull_request:closed:handled":
     case "gitlab:merge_request:closed:handled":
       text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) closed in [${meta.repoName}](${meta.repoUrl})`
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:pullrequest:deploy":
       text = `*[${meta.projectName}]* REST pullrequest deploy trigger \`${meta.pullrequestTitle}\``
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "github:delete:handled":
     case "gitlab:remove:handled":
     case "bitbucket:delete:handled":
       text = `*[${meta.projectName}]* deleted in \`${meta.branchName}\``
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:remove:receive":
       text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "bitbucket:repo:push:handled":
@@ -95,7 +100,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
       }
       text = `${text} pushed in [${meta.repoFullName}](${meta.repoUrl})`
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "gitlab:push:skipped":
@@ -106,7 +111,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
         text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
       }
       text = `${text} pushed in [${meta.repoFullName}](${meta.repoUrl}) *deployment skipped*`
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "api:deployEnvironmentBranch":
@@ -115,7 +120,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.shortSha) {
         text = `${text} (${meta.shortSha})`
       }
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:deploy:receive":
@@ -123,39 +128,38 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.shortSha) {
         text = `${text} (${meta.shortSha})`
       }
-      sendToMicrosoftTeams(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, '#E8E8E8', informationSource, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:promote:receive":
       text = `*[${meta.projectName}]* REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
-      sendToMicrosoftTeams(project, text, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, 'gold', warning, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
-      text = `*[${meta.projectName}]* `
       if (meta.shortSha) {
         text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
       } else {
         text = `${text} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` complete.`
+      text = `${text} Build \`${meta.buildName}\` complete.<p>`
       if (meta.logLink){
-        text = `${text} [Logs](${meta.logLink})\n`
+        text = `${text} [Logs](${meta.logLink})<p>`
       }
-      text = `\n${text}${meta.route}\n ${meta.routes.join("\n")}`
-      sendToMicrosoftTeams(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      text = `${text}<a href=${meta.route}>${meta.route}</a><p> ${meta.routes.join("<p>")}`
+      sendToMicrosoftTeams(project, text, 'lawngreen', whiteCheckMark, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:pullrequest:remove":
       text = `*[${meta.projectName}]* REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
-      sendToMicrosoftTeams(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, 'lawngreen', whiteCheckMark, channelWrapperLogs, msg, appId)
       break;
 
     case "task:remove-openshift:finished":
       text = `*[${meta.projectName}]* remove \`${meta.openshiftProject}\``
-      sendToMicrosoftTeams(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, 'lawngreen', whiteCheckMark, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
@@ -171,7 +175,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.logLink){
         text = `${text} ${meta.logLink}`
       }
-      sendToMicrosoftTeams(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, message, 'gold', warning, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:error":
@@ -188,7 +192,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       if (meta.logLink){
         text = `${text} ${meta.logLink}`
       }
-      sendToMicrosoftTeams(project, text, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, text, 'red', bangBang, channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:closed:CannotDeleteProductionEnvironment":
@@ -197,7 +201,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "gitlab:push:CannotDeleteProductionEnvironment":
     case "rest:remove:CannotDeleteProductionEnvironment":
       text = `*[${meta.name}]* \`${meta.branchName}\` not deleted. ${meta.error}`
-      sendToMicrosoftTeams(project, message, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      sendToMicrosoftTeams(project, message, 'gold', warning, channelWrapperLogs, msg, appId)
       break;
 
     default:
@@ -207,39 +211,52 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 }
 
 const sendToMicrosoftTeams = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
-  let projectMicrosoftTeamses;
+  let projectMicrosoftTeamsNotifications;
   try {
-    projectMicrosoftTeamses = await getMicrosoftTeamsInfoForProject(project)
+    projectMicrosoftTeamsNotifications = await getMicrosoftTeamsInfoForProject(project)
   }
   catch (error) {
     logger.error(`No Microsoft Teams information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
-  projectMicrosoftTeamses.forEach(async (projectMicrosoftTeams) => {
+  projectMicrosoftTeamsNotifications.forEach(projectMicrosoftTeams => {
     const { webhook } = projectMicrosoftTeams;
     const webhookUrl = new URL(webhook);
 
-    var data = JSON.stringify({
-      "text": `${message}`
-    });
+    var data = JSON.stringify(
+      {
+        "@type": "MessageCard",
+        "@context": "http://schema.org/extensions",
+        "summary": message,
+        "title": project,
+        "themeColor": color,
+        "sections": [
+            {
+                "activityText": message,
+                "activityImage": emoji
+            }
+        ]
+      }
+    );
 
     var options = {
+      hostname: webhookUrl.host,
+      port: webhookUrl.port,
+      path: webhookUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': data.length
       }
     };
 
-    var req = http.request(webhook, options, function(res) {
+    var req = http.request(options, function(res) {
       res.setEncoding('utf8');
     });
 
     req.on('error', function(e) {
       logger.error(`problem with request: ${e.message}`);
     });
-    req.write(data);
-    req.end();
+    req.end(data);
   });
   channelWrapperLogs.ack(msg)
   return
