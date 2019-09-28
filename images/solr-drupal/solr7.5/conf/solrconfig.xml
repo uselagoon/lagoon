@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!DOCTYPE config [
-  <!ENTITY spellcheck SYSTEM "solrconfig_spellcheck.xml">
   <!ENTITY extra SYSTEM "solrconfig_extra.xml">
   <!ENTITY index SYSTEM "solrconfig_index.xml">
 ]>
@@ -10,7 +9,7 @@
      For more details about configurations options that may appear in
      this file, see http://wiki.apache.org/solr/SolrConfigXml.
 -->
-<config name="drupal-6.5-solr-7.x" >
+<config name="drupal-8.3.4-solr-7.x" >
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
        including org.apache.solr.(search|update|request|core|analysis)
@@ -82,9 +81,6 @@
   <lib dir="${solr.install.dir:../../../..}/contrib/langid/lib/" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-langid-\d.*\.jar" />
 
-  <lib dir="${solr.install.dir:../../../..}/contrib/velocity/lib" regex=".*\.jar" />
-  <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-velocity-\d.*\.jar" />
-
   <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-analysis-extras-\d.*\.jar" />
@@ -104,6 +100,7 @@
        replication is in use, this should match the replication
        configuration.
     -->
+  <!--<dataDir>${solr.data.dir:}</dataDir>-->
   <dataDir>/var/solr/${solr.core.name}</dataDir>
 
 
@@ -227,7 +224,7 @@
          More details on the nuances of each LockFactory...
          http://wiki.apache.org/lucene-java/AvailableLockFactories
     -->
-    <lockType>${solr.lock.type:none}</lockType>
+    <lockType>${solr.lock.type:native}</lockType>
 
     <!-- Commit Deletion Policy
          Custom deletion policies can be specified here. The class must
@@ -730,14 +727,8 @@
       <bool name="omitHeader">true</bool>
       <!-- Don't abort searches for the /select request handler (set in solrcore.properties) -->
       <int name="timeAllowed">${solr.selectSearchHandler.timeAllowed:-1}</int>
-
       <!-- By default, don't spell check -->
       <str name="spellcheck">false</str>
-      <!-- Defaults for the spell checker when used -->
-      <str name="spellcheck.onlyMorePopular">true</str>
-      <str name="spellcheck.extendedResults">false</str>
-      <!--  The number of suggestions to return -->
-      <str name="spellcheck.count">1</str>
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
@@ -751,7 +742,7 @@
       <str name="echoParams">explicit</str>
       <str name="wt">json</str>
       <str name="indent">true</str>
-      <str name="df">text</str>
+      <str name="df">id</str>
     </lst>
   </requestHandler>
 
@@ -791,12 +782,8 @@
      when performing moreLikeThis requests.-->
   <requestHandler name="/mlt" class="solr.MoreLikeThisHandler">
     <lst name="defaults">
-      <str name="df">content</str>
       <str name="mlt.mintf">1</str>
       <str name="mlt.mindf">1</str>
-      <str name="mlt.minwl">3</str>
-      <str name="mlt.maxwl">15</str>
-      <str name="mlt.maxqt">20</str>
       <str name="mlt.match.include">false</str>
       <!-- Abort any searches longer than 2 seconds (set in solrcore.properties) -->
       <int name="timeAllowed">${solr.mlt.timeAllowed:2000}</int>
@@ -806,7 +793,7 @@
   <!-- A minimal query type for doing lucene queries -->
   <requestHandler name="standard" class="solr.SearchHandler">
      <lst name="defaults">
-       <str name="df">content</str>
+       <str name="df">id</str>
        <str name="echoParams">explicit</str>
        <bool name="omitHeader">true</bool>
      </lst>
@@ -814,7 +801,7 @@
 
   <initParams path="/update/**,/query,/select,/tvrh,/elevate,/spell,/browse">
     <lst name="defaults">
-      <str name="df">text</str>
+      <str name="df">id</str>
     </lst>
   </initParams>
 
@@ -919,7 +906,7 @@
       <str name="enable">${solr.replication.master:false}</str>
       <str name="replicateAfter">commit</str>
       <str name="replicateAfter">startup</str>
-      <str name="confFiles">${solr.replication.confFiles:schema.xml,mapping-ISOLatin1Accent.txt,protwords.txt,stopwords.txt,synonyms.txt,elevate.xml}</str>
+      <str name="confFiles">${solr.replication.confFiles:schema.xml,elevate.xml}</str>
     </lst>
     <lst name="slave">
       <str name="enable">${solr.replication.slave:false}</str>
@@ -983,16 +970,8 @@
 
      -->
 
-  <!-- Spell Check
-
-      The spell check component can return a list of alternative spelling
-      suggestions. This component must be defined in
-      solrconfig_extra.xml if present, since it's used in the search handler.
-
-      http://wiki.apache.org/solr/SpellCheckComponent
-   -->
   <!-- Following is a dynamic way to include other components or any customized solrconfig.xml stuff, added by other contrib modules -->
-  &spellcheck;
+  &extra;
 
   <!-- A request handler for demonstrating the spellcheck component.
 
@@ -1009,13 +988,8 @@
     -->
   <requestHandler name="/spell" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
-      <str name="df">spell</str>
-      <!-- Solr will use suggestions from both the 'default' spellchecker
-           and from the 'wordbreak' spellchecker and combine them.
-           collations (re-written queries) can include a combination of
-           corrections from both spellcheckers -->
-      <str name="spellcheck.dictionary">default</str>
-      <str name="spellcheck.dictionary">wordbreak</str>
+      <str name="df">id</str>
+      <str name="spellcheck.dictionary">und</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.onlyMorePopular">false</str>
       <str name="spellcheck.extendedResults">false</str>
@@ -1031,9 +1005,6 @@
       <str>spellcheck</str>
     </arr>
   </requestHandler>
-
-  <!-- Following is a dynamic way to include other components or any customized solrconfig.xml stuff, added by other contrib modules -->
-  &extra;
 
   <requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
@@ -1060,7 +1031,7 @@
     -->
   <requestHandler name="/tvrh" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
-      <str name="df">text</str>
+      <str name="df">id</str>
       <bool name="tv">true</bool>
     </lst>
     <arr name="last-components">
@@ -1125,7 +1096,7 @@
   <requestHandler name="/elevate" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
       <str name="echoParams">explicit</str>
-      <str name="df">text</str>
+      <str name="df">id</str>
     </lst>
     <arr name="last-components">
       <str>elevator</str>
