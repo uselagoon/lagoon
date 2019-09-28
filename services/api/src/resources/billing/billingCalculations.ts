@@ -1,4 +1,4 @@
-import { HIT_TIERS, CURRENCY_PRICING } from './pricing';
+import { HIT_TIERS, CURRENCY_PRICING, AVAILABILITY } from './pricing';
 
 /* IProjectData
  * availability - Standard or High
@@ -34,7 +34,7 @@ export const projectsDataReducer = (projects: any, objKey: string) =>
 const uniformAvailabilityCheck = (projects: IProjectData[]) => {
   const found = projects.filter(
     (project, index, self) =>
-      self.findIndex(p => p.availability !== project.availability) !== -1,
+      self.findIndex(p => p.availability !== project.availability) !== -1
   );
   if (found.length !== 0) {
     throw 'Projects must have the same availability';
@@ -124,7 +124,11 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   const projectDevCosts = [];
   projects.map(project => {
     const { devHours, availability } = project;
-    const { devSitePerHour } = currencyPricingAvailability[availability];
+    // TODO: VERIFY IF THIS IS CORRECT OR NOT
+    // const { devSitePerHour } = currencyPricingAvailability[availability];
+    const { devSitePerHour } = currencyPricingAvailability[
+      AVAILABILITY.STANDARD
+    ];
 
     const devToBill = Math.max(devHours - freeDevHours, 0);
     projectDevCosts.push(devToBill * devSitePerHour);
@@ -146,7 +150,7 @@ const calculateHitBaseTiers = (hitBase, hitCosts) => {
       (
         (previousHitTier.max + 1 - previousHitTier.min) * hitCosts[i - 1] +
         hitBaseTiers[i - 1]
-      ).toFixed(2),
+      ).toFixed(2)
     );
     hitBaseTiers.push(hitBase);
   }

@@ -6,7 +6,7 @@ import {
   devCost,
   hitTier,
   IBillingGroup,
-  projectsDataReducer,
+  projectsDataReducer
 } from './billingCalculations';
 
 interface ITestBillingGroup extends IBillingGroup {
@@ -44,7 +44,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 197,
           prodHours: 744,
-          devHours: 0,
+          devHours: 0
         },
         {
           name: 'v-web',
@@ -54,9 +54,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 0,
           prodHours: 744,
-          devHours: 744,
-        },
-      ],
+          devHours: 744
+        }
+      ]
     },
     {
       name: 'SV',
@@ -77,7 +77,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 784.064378,
           prodHours: 744,
-          devHours: 1488,
+          devHours: 1488
         },
         {
           name: 's_m_com',
@@ -87,7 +87,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 23.725226,
           prodHours: 744,
-          devHours: 744,
+          devHours: 744
         },
         {
           name: 'd8beta_s_com',
@@ -97,9 +97,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 0,
           prodHours: 744,
-          devHours: 1488,
-        },
-      ],
+          devHours: 1488
+        }
+      ]
     },
     {
       name: 'FC',
@@ -120,7 +120,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 971.194088,
           prodHours: 744,
-          devHours: 5208,
+          devHours: 5208
         },
         {
           name: 'mil_fc_com',
@@ -130,9 +130,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 4.80221,
           prodHours: 744,
-          devHours: 2232,
-        },
-      ],
+          devHours: 2232
+        }
+      ]
     },
     {
       name: 'Swiss - OYW',
@@ -140,7 +140,7 @@ const mockData: IMockDataType = {
         hits: 55.0,
         storage: 0,
         prod: 51.63,
-        dev: 26
+        dev: 25.6
       },
       currency: CURRENCIES.GBP,
       billingSoftware: '',
@@ -153,7 +153,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 16.897876,
           prodHours: 744,
-          devHours: 1488,
+          devHours: 1488
         },
         {
           name: 'oyw',
@@ -163,11 +163,10 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 45.075144,
           prodHours: 744,
-          devHours: 3695,
-        },
-      ],
+          devHours: 3695
+        }
+      ]
     },
-  ],
     {
       name: 'MIS',
       expectations: {
@@ -261,7 +260,7 @@ const storageCostTestString = (group: ITestBillingGroup) =>
 const prodEnvironmentCostTestString = (group: ITestBillingGroup) =>
   `Given a billing group with ${
     group.projects.length
-  } project(s), running for[${group.projects
+  } project(s), running for [${group.projects
     .map(project => project.prodHours)
     .join()}] hours during ${
     monthNames[group.projects[0].month - 1]
@@ -272,9 +271,9 @@ const prodEnvironmentCostTestString = (group: ITestBillingGroup) =>
 const devEnvironmentCostTestString = (group: ITestBillingGroup) =>
   `Given a billing group with ${
     group.projects.length
-  } project(s), running for[${group.projects
+  } project(s), running for [${group.projects
     .map(project => project.devHours)
-    .join()}] during ${
+    .join()}] hours during ${
     monthNames[group.projects[0].month - 1]
   } the cost should be ${group.expectations.dev}. #dev #${group.currency} #${
     group.name
@@ -352,7 +351,7 @@ describe('Billing Calculations', () => {
     });
   });
 
-  describe('Environment Costs - Customers billed in US Dollars (USD) #Environment #USD', () => {
+  describe('Prod Environment Costs - Customers billed in US Dollars (USD) #Environment #USD', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
       it(prodEnvironmentCostTestString(group), () => {
@@ -361,12 +360,22 @@ describe('Billing Calculations', () => {
         // Assert
         expect(cost).toBe(group.expectations.prod);
       });
+    });
+  });
 
+  describe('Dev Environment Costs - Customers billed in US Dollars (USD) #Environment #USD', () => {
+    // scenarios and expectation
+    mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
       it(devEnvironmentCostTestString(group), () => {
         // Act
         const cost = devCost(group);
         // Assert
-        expect(cost).toBe(group.expectations.dev);
+        try {
+          expect(cost).toBe(group.expectations.dev);
+        } catch (exception) {
+          console.log(group);
+          throw exception;
+        }
       });
     });
   });
