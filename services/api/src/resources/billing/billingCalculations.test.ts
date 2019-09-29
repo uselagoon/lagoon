@@ -189,6 +189,109 @@ const mockData: IMockDataType = {
           devHours: 0
         }
       ]
+    },
+    {
+      name: 'AUS-COM',
+      expectations: {
+        hits: 481.37,
+        storage: 0,
+        prod: 446.4,
+        dev: 203.58
+      },
+      currency: CURRENCIES.AUD,
+      billingSoftware: '',
+      projects: [
+        {
+          name: 'fta',
+          month: 8,
+          year: 2019,
+          hits: 0,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 12,
+          prodHours: 744,
+          devHours: 0
+        },
+        {
+          name: 'cd',
+          month: 8,
+          year: 2019,
+          hits: 14186,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 101,
+          prodHours: 744,
+          devHours: 2_232
+        },
+        {
+          name: 'zpor',
+          month: 8,
+          year: 2019,
+          hits: 0,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 25,
+          prodHours: 744,
+          devHours: 649
+        },
+        {
+          name: 'zpub',
+          month: 8,
+          year: 2019,
+          hits: 20_938,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 23,
+          prodHours: 744,
+          devHours: 744
+        },
+        {
+          name: 'apmpor',
+          month: 8,
+          year: 2019,
+          hits: 0,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 4,
+          prodHours: 0,
+          devHours: 2_137
+        },
+        {
+          name: 'zhi',
+          month: 8,
+          year: 2019,
+          hits: 234,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 3,
+          prodHours: 744,
+          devHours: 0
+        },
+        {
+          name: 'moa',
+          month: 8,
+          year: 2019,
+          hits: 240_264,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 121,
+          prodHours: 744,
+          devHours: 382
+        },
+        {
+          name: 'flt',
+          month: 8,
+          year: 2019,
+          hits: 555_994,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 74,
+          prodHours: 744,
+          devHours: 1_999
+        },
+        {
+          name: 'pha',
+          month: 8,
+          year: 2019,
+          hits: 788_270,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 164,
+          prodHours: 744,
+          devHours: 744
+        }
+      ]
     }
   ]
 };
