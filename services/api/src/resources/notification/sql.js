@@ -81,6 +81,14 @@ const Sql /* : SqlObj */ = {
       .update(patch)
       .toString();
   },
+  updateNotificationEmail: (input /* : Object */) => {
+    const { name, patch } = input;
+
+    return knex('notification_email')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
   selectNotificationsByTypeByProjectId: (input /* : Object */) => {
     const { type, pid } = input;
     const selectQuery = knex('project_notification AS pn').joinRaw(
@@ -109,6 +117,10 @@ const Sql /* : SqlObj */ = {
     knex('notification_slack')
       .where('name', '=', name)
       .toString(),
+  selectNotificationEmailByName: (name /* : string */) =>
+    knex('notification_email')
+      .where('name', '=', name)
+      .toString(),
   selectUnassignedNotificationsByType: (notificationType /* : string */) =>
     knex(`notification_${notificationType} AS nt`)
       .leftJoin(
@@ -132,6 +144,10 @@ const Sql /* : SqlObj */ = {
       .toString(),
   truncateNotificationSlack: () =>
     knex('notification_slack')
+      .truncate()
+      .toString(),
+  truncateNotificationEmail: () =>
+    knex('notification_email')
       .truncate()
       .toString(),
   truncateNotificationRocketchat: () =>

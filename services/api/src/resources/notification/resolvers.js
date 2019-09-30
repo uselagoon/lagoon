@@ -14,9 +14,25 @@ import type {ResolversObj} from '../';
 
 const notificationTypeToString = R.cond([
   [R.equals('ROCKETCHAT'), R.toLower],
+  [R.equals('EMAIL'), R.toLower],
   [R.equals('SLACK'), R.toLower],
   [R.T, R.identity],
 ]);
+
+const addNotificationEmail = async (root, { input }, { sqlClient, hasPermission }) => {
+  await hasPermission('notification', 'add');
+  console.log(input);
+
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateNotificationEmail(:name, :email_address)',
+  );
+
+  const rows = await query(sqlClient, prep(input));
+  const email = R.path([0, 0], rows);
+
+  return email;
+};
 
 const addNotificationRocketChat = async (root, { input }, { sqlClient, hasPermission }) => {
   await hasPermission('notification', 'add');
@@ -81,6 +97,34 @@ const addNotificationToProject = async (
   );
   const project = R.path([0], select);
   return project;
+};
+
+const deleteNotificationEmail = async (
+  root,
+  { input },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  await hasPermission('notification', 'delete');
+
+  const { name } = input;
+
+  const nids = await Helpers(sqlClient).getAssignedNotificationIds({
+    name,
+    type: 'email',
+  });
+
+  if (R.length(nids) > 0) {
+    throw new Error("Can't delete notification linked to projects");
+  }
+
+  const prep = prepare(sqlClient, 'CALL DeleteNotificationEmail(:name)');
+  await query(sqlClient, prep(input));
+
+  // TODO: maybe check rows for changed result
+  return 'success';
 };
 
 const deleteNotificationRocketChat = async (
@@ -166,7 +210,7 @@ const removeNotificationFromProject = async (
   return project;
 };
 
-const NOTIFICATION_TYPES = ['slack', 'rocketchat'];
+const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'email'];
 
 const getNotificationsByProjectId = async (
   { id: pid },
@@ -210,6 +254,31 @@ const getNotificationsByProjectId = async (
     }
     return R.concat(acc, rows);
   }, []);
+};
+
+const updateNotificationEmail = async (
+  root,
+  { input },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  await hasPermission('notification', 'update');
+
+  const { name } = input;
+
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  await query(sqlClient, Sql.updateNotificationEmail(input));
+  const rows = await query(
+    sqlClient,
+    Sql.selectNotificationEmailByName(name),
+  );
+
+  return R.prop(0, rows);
 };
 
 const updateNotificationRocketChat = async (
@@ -272,6 +341,19 @@ const deleteAllNotificationSlacks = async (
   return 'success';
 };
 
+const deleteAllNotificationEmails = async (
+  root,
+  args,
+  { sqlClient, hasPermission },
+) => {
+  await hasPermission('notification', 'deleteAll');
+
+  await query(sqlClient, Sql.truncateNotificationEmail());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 const deleteAllNotificationRocketChats = async (
   root,
   args,
@@ -301,15 +383,19 @@ const removeAllNotificationsFromAllProjects = async (
 const Resolvers /* : ResolversObj */ = {
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationEmail,
   addNotificationToProject,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationEmail,
   getNotificationsByProjectId,
   removeNotificationFromProject,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationEmail,
   deleteAllNotificationSlacks,
   deleteAllNotificationRocketChats,
+  deleteAllNotificationEmails,
   removeAllNotificationsFromAllProjects,
 };
 

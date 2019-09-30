@@ -31,6 +31,7 @@ const typeDefs = gql`
   enum NotificationType {
     SLACK
     ROCKETCHAT
+    EMAIL
   }
 
   enum DeploymentStatusType {
@@ -149,13 +150,19 @@ const typeDefs = gql`
     channel: String
   }
 
+  type NotificationEmail {
+    id: Int
+    name: String
+    emailAddress: String
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
     type: String
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationEmail
 
   """
   Lagoon Project (like a git repository)
@@ -668,6 +675,11 @@ const typeDefs = gql`
     name: String!
   }
 
+  input AddNotificationEmailInput {
+    name: String!
+    emailAddress: String!
+  }
+
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
@@ -678,6 +690,10 @@ const typeDefs = gql`
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationEmailInput {
+    name: String!
   }
 
   input DeleteNotificationRocketChatInput {
@@ -767,6 +783,11 @@ const typeDefs = gql`
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationEmailPatchInput {
+    name: String
+    emailAddress: String
+  }
+
   input UpdateNotificationRocketChatPatchInput {
     name: String
     webhook: String
@@ -777,6 +798,11 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationEmailInput {
+    name: String!
+    patch: UpdateNotificationEmailPatchInput
   }
 
   input UpdateNotificationRocketChatInput {
@@ -946,6 +972,16 @@ const typeDefs = gql`
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteAllNotificationRocketChats: String
+    addNotificationEmail(
+      input: AddNotificationEmailInput!
+    ): NotificationEmail
+    updateNotificationEmail(
+      input: UpdateNotificationEmailInput!
+    ): NotificationEmail
+    deleteNotificationEmail(
+      input: DeleteNotificationEmailInput!
+    ): String
+    deleteAllNotificationEmails: String
     """
     Connect previous created Notification to a Project
     """

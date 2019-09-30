@@ -67,6 +67,10 @@ const {
   removeNotificationFromProject,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  addNotificationEmail,
+  updateNotificationEmail,
+  deleteNotificationEmail,
+  deleteAllNotificationEmails,
   deleteAllNotificationSlacks,
   deleteAllNotificationRocketChats,
   removeAllNotificationsFromAllProjects,
@@ -189,6 +193,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
           return 'NotificationSlack';
         case 'rocketchat':
           return 'NotificationRocketChat';
+        case 'email':
+          return 'NotificationEmail';
         default:
           return null;
       }
@@ -230,6 +236,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateNotificationRocketChat,
     deleteNotificationRocketChat,
     deleteAllNotificationRocketChats,
+    addNotificationEmail,
+    updateNotificationEmail,
+    deleteNotificationEmail,
+    deleteAllNotificationEmails,
     addNotificationToProject,
     removeNotificationFromProject,
     removeAllNotificationsFromAllProjects,
