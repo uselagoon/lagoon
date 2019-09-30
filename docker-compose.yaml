@@ -137,6 +137,22 @@ services:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/logs2slack:v1-0-0
+  logs2email:
+    image: ${IMAGE_REPO:-lagoon}/logs2email
+    command: yarn run dev
+    volumes:
+      - ./services/logs2email/src:/app/services/logs2email/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/logs2slack/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/logs2slack:v1-0-0
+    depends_on:
+      - mailhog
+  mailhog:
+    image: mailhog/mailhog
+    labels:
+      lagoon.type: none
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
