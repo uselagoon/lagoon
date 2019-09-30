@@ -54,6 +54,12 @@ CREATE TABLE IF NOT EXISTS notification_slack (
   channel     varchar(300)
 );
 
+CREATE TABLE IF NOT EXISTS notification_email (
+  id            int NOT NULL auto_increment PRIMARY KEY,
+  name          varchar(50) UNIQUE,
+  email_address varchar(300)
+);
+
 
 CREATE TABLE IF NOT EXISTS project (
   id                               int NOT NULL auto_increment PRIMARY KEY,
@@ -179,7 +185,7 @@ CREATE TABLE IF NOT EXISTS s3_file (
 CREATE TABLE IF NOT EXISTS project_notification (
   nid      int,
   pid      int REFERENCES project (id),
-  type     ENUM('slack','rocketchat') NOT NULL,
+  type     ENUM('slack','rocketchat','email') NOT NULL,
   CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
 );
 

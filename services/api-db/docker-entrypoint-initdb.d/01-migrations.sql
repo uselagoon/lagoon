@@ -163,6 +163,28 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_enum_email_to_type_in_project_notification()
+
+  BEGIN
+    DECLARE column_type_project_notification_type varchar(50);
+
+    SELECT COLUMN_TYPE INTO column_type_project_notification_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project_notification'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_project_notification_type = "enum('slack')"
+    ) THEN
+      ALTER TABLE project_notification
+      MODIFY type ENUM('slack','rocketchat','email');
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_deleted_to_environment()
 
   BEGIN
@@ -758,6 +780,7 @@ CALL convert_env_vars_from_varchar_to_text();
 CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
+CALL add_enum_email_to_type_in_project_notification();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
