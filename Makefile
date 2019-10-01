@@ -425,7 +425,17 @@ services :=       api \
 									drush-alias \
 									keycloak \
 									keycloak-db \
-									ui
+									ui \
+									harbor-chartmuseum \
+									harbor-clair \
+									harbor-core \
+									harbor-database \
+									harbor-jobservice \
+									harbor-nginx \
+									harbor-portal \
+									harbor-redis \
+									harbor-registry \
+									harbor-registryctl
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera

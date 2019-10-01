@@ -35,9 +35,11 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
-  - name: SERVICE_IMAGE
-    description: Pullable image of service
+  - name: HARBOR-REGISTRY_SERVICE_IMAGE
+    description: Pullable image of registry service
     required: true
+  - name: HARBOR-REGISTRYCTL_SERVICE_IMAGE
+    description: Pullable image of registryctl service
 objects:
 - apiVersion: v1
   kind: Secret
@@ -154,7 +156,7 @@ objects:
         containers:
         - name: registry
           hostname: ${SERVICE_NAME} # harbor-registry
-          image: cdchris12/harbor-registry:dev1.10
+          image: ${HARBOR-REGISTRY_SERVICE_IMAGE} # cdchris12/harbor-registry:dev1.10
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -189,7 +191,7 @@ objects:
             subPath: config.yml
         - name: registryctl
           hostname: harbor-registryctl
-          image: cdchris12/harbor-registryctl:dev1.4
+          image: ${HARBOR-REGISTRYCTL_SERVICE_IMAGE} # cdchris12/harbor-registryctl:dev1.4
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:

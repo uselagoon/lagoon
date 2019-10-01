@@ -444,3 +444,10 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor/harbor-registry.yml
+      lagoon.name: harbor-registry
+  harbor-registryctl:
+    image: cdchris12/harbor-registryctl:dev1.4
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor/harbor-registry.yml
+      lagoon.name: harbor-registry
