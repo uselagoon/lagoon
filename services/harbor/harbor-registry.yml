@@ -40,6 +40,7 @@ parameters:
     required: true
   - name: HARBOR-REGISTRYCTL_SERVICE_IMAGE
     description: Pullable image of registryctl service
+    required: true
 objects:
 - apiVersion: v1
   kind: Secret
