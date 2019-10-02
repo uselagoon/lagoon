@@ -51,151 +51,233 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
   logger.verbose(`received ${event} for project ${project}`)
 
-  var text
+  var messageMeta = {
+    subject: '',
+    mainHtml: '',
+    plainText: '',
+    additional: '',
+    color: '#E8E8E8',
+    emoji: '❔'
+  }
 
   switch (event) {
 
     case "github:pull_request:opened:handled":
     case "gitlab:merge_request:opened:handled":
     case "bitbucket:pullrequest:created:opened:handled":
-      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) opened in [${meta.repoName}](${meta.repoUrl})`
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `PR <a href="${meta.pullrequestUrl}">#${meta.pullrequestNumber} (${meta.pullrequestTitle}</a> opened in <a href="${meta.repoUrl}">${meta.repoName}</a>`
+      messageMeta.plainText = `[${meta.projectName}] PR #${meta.pullrequestNumber} - ${meta.pullrequestTitle} opened in ${meta.repoName}`
+      messageMeta.subject = messageMeta.plainText
+      messageMeta.
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:synchronize:handled":
     case "bitbucket:pullrequest:updated:opened:handled":
     case "gitlab:merge_request:updated:handled":
-      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in [${meta.repoName}](${meta.repoUrl})`
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `PR <a href="${meta.pullrequestUrl}">#${meta.pullrequestNumber} (${meta.pullrequestTitle})</a> updated in <a href="${meta.repoUrl}">${meta.repoName}</a>`
+      messageMeta.plainText = `[${meta.projectName}] PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) updated in ${meta.repoName}`
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "bitbucket:pullrequest:fulfilled:handled":
     case "bitbucket:pullrequest:rejected:handled":
     case "github:pull_request:closed:handled":
     case "gitlab:merge_request:closed:handled":
-      text = `*[${meta.projectName}]* PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) closed in [${meta.repoName}](${meta.repoUrl})`
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `[${meta.projectName}] PR <a href="${meta.pullrequestUrl}">#${meta.pullrequestNumber} (${meta.pullrequestTitle})</a> closed in <a href="${meta.repoUrl}">${meta.repoName}</a>`
+      messageMeta.plainText = `[${meta.projectName}] PR [#${meta.pullrequestNumber} (${meta.pullrequestTitle})](${meta.pullrequestUrl}) closed in ${meta.repoName}`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:pullrequest:deploy":
-      text = `*[${meta.projectName}]* REST pullrequest deploy trigger \`${meta.pullrequestTitle}\``
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `REST pullrequest deploy trigger <code>${meta.pullrequestTitle}</code>`
+      messageMeta.plainText = `[${meta.projectName}] REST pullrequest deploy trigger for PR : ${meta.pullrequestTitle}`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "github:delete:handled":
     case "gitlab:remove:handled":
     case "bitbucket:delete:handled":
-      text = `*[${meta.projectName}]* deleted in \`${meta.branchName}\``
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `Deleted environment <code>${meta.branchName}</code>`
+      messageMeta.plainText = `[${meta.projectName}] deleted environment ${meta.branchName}`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:remove:receive":
-      text = `*[${meta.projectName}]* REST remove trigger \`${meta.branchName}\``
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `REST remove trigger <code>${meta.branchName}</code>`
+      messageMeta.plainText = `[${meta.projectName}] REST remove trigger ${meta.branchName}`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "bitbucket:repo:push:handled":
     case "github:push:handled":
     case "gitlab:push:handled":
-      text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `<a href="${meta.repoUrl}/tree/${meta.branchName}">${meta.branchName}</a>`
+      messageMeta.plainText = `[${meta.projectName}] ${meta.branchName}`
       if (meta.shortSha){
-        text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
+        messageMeta.mainHtml = `${messageMeta.plainText} <a href="${meta.commitUrl}">${meta.shortSha}</a>`
+        messageMeta.plainText = `${messageMeta.plainText} (${meta.shortSha})`
       }
-      text = `${text} pushed in [${meta.repoFullName}](${meta.repoUrl})`
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.mainHtml = `${messageMeta.mainHtml} pushed in <a href="${meta.repoUrl}">${meta.repoFullName}</a>`
+      messageMeta.plainText = `${messageMeta.plainText} pushed in ${meta.repoFullName}`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "gitlab:push:skipped":
     case "github:push:skipped":
     case "bitbucket:push:skipped":
-      text = `*[${meta.projectName}]* [${meta.branchName}](${meta.repoUrl}/tree/${meta.branchName})`
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `<a href="${meta.repoUrl}/tree/${meta.branchName}">${meta.branchName}</a>`
+      messageMeta.plainText = `[${meta.projectName}] ${meta.branchName}`
       if (meta.shortSha){
-        text = `${text} ([${meta.shortSha}](${meta.commitUrl}))`
+        messageMeta.mainHtml = `${messageMeta.plainText} <a href="${meta.commitUrl}">${meta.shortSha}</a>`
+        messageMeta.plainText = `${messageMeta.plainText} (${meta.shortSha})`
       }
-      text = `${text} pushed in [${meta.repoFullName}](${meta.repoUrl}) *deployment skipped*`
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.mainHtml = `${messageMeta.plainText} pushed in <a href="${meta.repoUrl}">${meta.repoFullName}</a> <strong>deployment skipped</strong>`
+      messageMeta.plainText = `${messageMeta.plainText} pushed in ${meta.repoFullName} *deployment skipped*`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "api:deployEnvironmentBranch":
     case "api:deployEnvironmentLatest":
-      text = `*[${meta.projectName}]* REST deploy trigger \`${meta.branchName}\``
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `API deploy trigger <code>${meta.branchName}</code>`
+      messageMeta.plainText = `[${meta.projectName}] API deploy trigger on branch: ${meta.branchName}`
       if (meta.shortSha) {
-        text = `${text} (${meta.shortSha})`
+        messageMeta.mainHtml = `${messageMeta.mainHtml} (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} (${meta.shortSha})`
       }
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:deploy:receive":
-      text = `*[${meta.projectName}]* REST deploy trigger \`${meta.branchName}\``
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '️ℹ️'
+      messageMeta.mainHtml = `REST deploy trigger on branch <code>${meta.branchName}</code>`
+      messageMeta.plainText = `[${meta.projectName}] REST deploy trigger on branch: ${meta.branchName}`
       if (meta.shortSha) {
-        text = `${text} (${meta.shortSha})`
+        messageMeta.mainHtml = `${messageMeta.mainHtml} (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} (${meta.shortSha})`
       }
-      sendToEmail(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:promote:receive":
-      text = `*[${meta.projectName}]* REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
-      sendToEmail(project, text, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      messageMeta.color = '#E8E8E8'
+      messageMeta.emoji = '⚠️'
+      messageMeta.mainHtml = `REST promote trigger : Branch${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
+      messageMeta.plainText = `[${meta.projectName}] REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
-      text = `*[${meta.projectName}]* `
+      messageMeta.color = 'lawngreen'
+      messageMeta.emoji = '✅'
+      messageMeta.plainText = `[${meta.projectName}] `
       if (meta.shortSha) {
-        text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
+        messageMeta.mainHtml = `${messageMeta.plainText} <code>${meta.branchName}</code> (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.branchName} (${meta.shortSha})`
       } else {
-        text = `${text} \`${meta.branchName}\``
+        messageMeta.mainHtml = `${messageMeta.plainText} <code>${meta.branchName}</code>`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.branchName}`
       }
-      text = `${text} Build \`${meta.buildName}\` complete.`
+      messageMeta.mainHtml = `${messageMeta.plainText} Build <code>${meta.buildName}</code> complete.`
+      messageMeta.plainText = `${messageMeta.plainText} Build ${meta.buildName} complete.`
+      messageMeta.subject = messageMeta.plainText
       if (meta.logLink){
-        text = `${text} [Logs](${meta.logLink})\n`
+        messageMeta.mainHtml = `${messageMeta.plainText} <a href="${meta.logLink}">Logs</a>`
+        messageMeta.plainText = `${messageMeta.plainText} [Logs](${meta.logLink})\n`
       }
-      text = `\n${text}${meta.route}\n ${meta.routes.join("\n")}`
-      sendToEmail(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      messageMeta.plainText = `\n${messageMeta.plainText}${meta.route}\n ${meta.routes.join("\n")}`
+      // var allRoutes = []
+      // allRoutes.push(meta.route, meta.routes)
+      // const routeHtml = allRoutes.map(function (route){
+      //   return '<li>' + route + '</li>'
+      // }).join('')
+      messageMeta.additional = `<ul><li><a href="${meta.route}">${meta.route}</a></li>${meta.routes.map(function(route){return '<li><a href="' + route + '">' + route + '</a></li>'}).join('\n')}</ul>`
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "rest:pullrequest:remove":
-      text = `*[${meta.projectName}]* REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
-      sendToEmail(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      messageMeta.color = 'lawngreen'
+      messageMeta.emoji = '✅'
+      messageMeta.plainText = `[${meta.projectName}] REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "task:remove-openshift:finished":
-      text = `*[${meta.projectName}]* remove \`${meta.openshiftProject}\``
-      sendToEmail(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      messageMeta.color = 'lawngreen'
+      messageMeta.emoji = '✅'
+      messageMeta.plainText = `[${meta.projectName}] remove \`${meta.openshiftProject}\``
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
     case "task:remove-openshift-resources:retry":
-      text = `*[${meta.projectName}]*`
+      messageMeta.color = 'gold'
+      messageMeta.emoji = '⚠️'
+      messageMeta.plainText = `[${meta.projectName}]`
       if (meta.shortSha) {
-        text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\` (${meta.shortSha})`
       } else {
-        text = `${text} \`${meta.branchName}\``
+        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` failed.`
+      messageMeta.plainText = `${messageMeta.plainText} Build \`${meta.buildName}\` failed.`
+      messageMeta.subject = messageMeta.plainText
       if (meta.logLink){
-        text = `${text} ${meta.logLink}`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.logLink}`
       }
-      sendToEmail(project, text, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:error":
     case "task:remove-openshift:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
-      text = `*[${meta.projectName}]*`
+      messageMeta.color = 'red'
+      messageMeta.emoji = '‼️'
+      messageMeta.plainText = `[${meta.projectName}]`
       if (meta.shortSha) {
-        text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\` (${meta.shortSha})`
       } else {
-        text = `${text} \`${meta.branchName}\``
+        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\``
       }
-      text = `${text} Build \`${meta.buildName}\` failed.`
+      messageMeta.plainText = `${messageMeta.plainText} Build \`${meta.buildName}\` failed.`
+      messageMeta.subject = messageMeta.plainText
       if (meta.logLink){
-        text = `${text} ${meta.logLink}`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.logLink}`
       }
-      sendToEmail(project, text, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     case "github:pull_request:closed:CannotDeleteProductionEnvironment":
@@ -203,8 +285,11 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:repo:push:CannotDeleteProductionEnvironment":
     case "gitlab:push:CannotDeleteProductionEnvironment":
     case "rest:remove:CannotDeleteProductionEnvironment":
-      text = `*[${meta.name}]* \`${meta.branchName}\` not deleted. ${meta.error}`
-      sendToEmail(project, text, 'gold', ':warning:', channelWrapperLogs, msg, appId)
+      messageMeta.color = 'gold'
+      messageMeta.emoji = '⚠️'
+      messageMeta.plainText = `[${meta.name}] \`${meta.branchName}\` not deleted. ${meta.error}`
+      messageMeta.subject = messageMeta.plainText
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
     default:
@@ -213,7 +298,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
 }
 
-const sendToEmail = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
+const sendToEmail = async (project, messageMeta, channelWrapperLogs, msg, appId) => {
   let projectEmails;
   try {
     projectEmails = await getEmailInfoForProject(project)
@@ -225,17 +310,48 @@ const sendToEmail = async (project, message, color, emoji, channelWrapperLogs, m
   projectEmails.forEach(projectEmail => {
     const { emailAddress } = projectEmail;
 
-    var data = JSON.stringify({
-      text: `${emoji} ${message}`,
-    });
-    logger.verbose(emailAddress)
-
     let info = transporter.sendMail({
-      from: 'lagoon@amazee.io', // sender address
-      to: emailAddress, // list of receivers
-      subject: 'Hello ✔', // Subject line
-      text: message, // plain text body
-      html: message
+      from: 'lagoon@amazee.io',
+      to: emailAddress,
+      subject: messageMeta.subject,
+      text: messageMeta.plainText,
+      html: `
+      <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Test Email Sample</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 " />
+    <style>
+      @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+      body {
+        font-family: 'Roboto', sans-serif;
+      }
+      .main{
+        border-left: 10px solid ${messageMeta.color};
+        padding: 10px;
+      }
+      ul {
+        margin: 2px;
+        list-style-type:none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <h2><strong>${messageMeta.emoji} [${project}]</strong></h2>
+      <p>
+        ${messageMeta.mainHtml}
+      </p>
+    </div>
+    <div>
+      <p>
+        ${messageMeta.additional}
+      </p>
+    </div>
+  </body>
+</html>`
     });
   });
   channelWrapperLogs.ack(msg)
