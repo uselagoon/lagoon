@@ -1173,6 +1173,7 @@ const typeDefs = gql`
     deleteBillingGroup(input: DeleteGroupInput!): String
     addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
     updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
+    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 
