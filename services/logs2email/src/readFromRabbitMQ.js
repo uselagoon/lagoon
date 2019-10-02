@@ -4,9 +4,6 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 
 const { getEmailInfoForProject } = require('@lagoon/commons/src/api');
 
-const { URL } = require('url');
-const http = require('https');
-
 const nodemailer = require('nodemailer');
 let transporter = nodemailer.createTransport({
   sendmail: true,
