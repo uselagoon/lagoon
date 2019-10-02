@@ -543,7 +543,7 @@ const typeDefs = gql`
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
-    allGroups(name: String): [GroupInterface]
+    allGroups(name: String, type: String): [GroupInterface]
     """
     Returns all projects in a given group
     """
@@ -1033,11 +1033,23 @@ const typeDefs = gql`
   input BillingGroupInput {
     name: String!
     currency: Currency!
+    billingSoftware: String
   }
 
   input ProjectBillingGroupInput {
     group: GroupInput!
     project: ProjectInput!
+  }
+
+  input UpdateBillingGroupPatchInput {
+    name: String!
+    currency: Currency
+    billingSoftware: String
+  }
+
+  input UpdateBillingGroupInput {
+    group: GroupInput!
+    patch: UpdateBillingGroupPatchInput!
   }
 
   type Mutation {
@@ -1156,8 +1168,11 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): Group
     removeUserFromGroup(input: UserGroupInput!): Group
     addGroupsToProject(input: ProjectGroupsInput): Project
-    addBillingGroup(input: BillingGroupInput): Group
+    addBillingGroup(input: BillingGroupInput!): BillingGroup
+    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
+    deleteBillingGroup(input: DeleteGroupInput!): String
     addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
+    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 

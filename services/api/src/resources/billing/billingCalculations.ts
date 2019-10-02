@@ -124,7 +124,7 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   const projectDevCosts = [];
   projects.map(project => {
     const { devHours, availability } = project;
-    // TODO: VERIFY IF THIS IS CORRECT OR NOT
+    // TODO: Once availability is set per environment change below
     // const { devSitePerHour } = currencyPricingAvailability[availability];
     const { devSitePerHour } = currencyPricingAvailability[
       AVAILABILITY.STANDARD
