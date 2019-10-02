@@ -8,6 +8,7 @@ const exec = promisify(require('child_process').exec);
 const GRAPHQL_ENDPOINT = 'http://localhost:3000';
 
 const fakeName = faker.random.alphaNumeric(10);
+const fakeProject = faker.random.alphaNumeric(15);
 
 const requestConfig = {
   baseURL: GRAPHQL_ENDPOINT,
@@ -81,7 +82,6 @@ const QUERIES = {
             ...on BillingGroup{
               name
               currency
-              billingSoftware
             }
           }
         }
@@ -97,7 +97,6 @@ const QUERIES = {
             {
               name: 'High Cotton Billing Group',
               currency: 'USD',
-              billingSoftware: 'null',
             },
             {
               name: 'project-high-cotton',
@@ -118,7 +117,6 @@ const QUERIES = {
           type
           ...on BillingGroup {
             currency
-            billingSoftware
           }
           projects{
             id
@@ -131,7 +129,6 @@ const QUERIES = {
       name: 'High Cotton Billing Group',
       type: 'billing',
       currency: 'USD',
-      billingSoftware: 'null',
       projects: [
         {
           id: 18,
@@ -151,10 +148,70 @@ const MUTATIONS = {
         }
       }
     `,
+    variables: { input: { name: fakeName, currency: 'USD' } },
     expected: {
       data: {
         addBillingGroup: {
           name: fakeName,
+        },
+      },
+    },
+  },
+  ADD_PROJECT_WITH_STANDARD_AVAILABILITY: {
+    mutation: `
+      mutation addProject($input: AddProjectInput!) {
+        addProject(input: $input){
+          name
+          availability
+        }
+      }
+    `,
+    variables: {
+      input: {
+        name: fakeProject,
+        gitUrl: 'http://github.com',
+        openshift: 1,
+        productionEnvironment: 'master',
+        availability: 'STANDARD',
+      },
+    },
+    expected: {
+      data: {
+        addProject: {
+          name: fakeProject,
+          availability: 'STANDARD',
+        },
+      },
+    },
+  },
+  UPDATE_BILLING_GROUP: {
+    mutation: `
+      mutation updateBillingGroup($input: UpdateBillingGroupInput!){
+        updateBillingGroup(input: $input) {
+          name
+          type
+          currency
+          billingSoftware
+        }
+      }
+    `,
+    variables: {
+      input: {
+        group: { name: 'PLACEHOLDER' },
+        patch: {
+          name: 'PLACEHOLDER',
+          currency: 'AUD',
+          billingSoftware: 'Bexio',
+        },
+      },
+    },
+    expected: {
+      data: {
+        updateBillingGroup: {
+          name: 'PLACEHOLDER',
+          type: 'billing',
+          currency: 'AUD',
+          billingSoftware: 'Bexio',
         },
       },
     },
@@ -172,27 +229,28 @@ describe('Group Resolvers', () => {
     axiosInstance = axios.create(requestConfig);
   });
 
-  describe('BillingGroup #billing', () => {
+  describe('BillingGroup Mutations #mutations', () => {
     // scenarios and expectation
     /*
     it('', async () => {
       // Arrange
-      const postData = {
-        query: ,
-      };
+      const { mutation: query, variables, expected } = MUTATIONS.;
+      const data = { query, variables, expected };
       // Act
-      const response = await axiosInstance.post('/graphql', postData);
-      const { data } = response ? response : null;
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
       // Assert
-      const expectedResult = {};
-      expect(data).toMatchObject(expectedResult);
+      expect(responseData).toMatchObject(expected);
     });
     */
 
     it('When I run the mutation addBillingGroup, I expect the name to be returned', async () => {
       // Arrange
-      const { mutation: query, expected } = MUTATIONS.ADD_BILLING_GROUP;
-      const variables = { input: { name: fakeName, currency: 'USD' } };
+      const {
+        mutation: query,
+        expected,
+        variables,
+      } = MUTATIONS.ADD_BILLING_GROUP;
       const data = { query, variables };
 
       // Act
@@ -217,6 +275,78 @@ describe('Group Resolvers', () => {
       //   },
       // });
     });
+
+    it('When I add a project with STANDARD availability, the expect STANDARD to be returned', async () => {
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.ADD_PROJECT_WITH_STANDARD_AVAILABILITY;
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      const expectedResult = {};
+      expect(responseData).toMatchObject(expected);
+    });
+
+    const createNewGroup = async () => {
+      const { mutation: query, variables } = MUTATIONS.ADD_BILLING_GROUP;
+      variables.input.name = faker.random.alphaNumeric(10);
+      const data = { query: query, variables };
+      const response = await axiosInstance.post('/graphql', data);
+      const {
+        data: {
+          data: { addBillingGroup },
+        },
+      } = response ? response : null;
+      return addBillingGroup;
+    };
+
+    it('When I update a billing group name, currency, and billing software, I expect the result to reflect this', async () => {
+      // Setup - create a new group
+      const { name } = await createNewGroup();
+
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.UPDATE_BILLING_GROUP;
+
+      // Modify the input and patch to use the new group name
+      variables.input.group.name = name;
+      variables.input.patch.name = `UPDATED ${name}`;
+
+      // Modify the expected result to match the modified new group name
+      expected.data.updateBillingGroup.name = `UPDATED ${name}`;
+
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    });
+  });
+
+  describe('BillingGroup Related Queries #queries', () => {
+    // scenarios and expectation
+    /*
+    it('', async () => {
+      // Arrange
+      const { query, expected } = QUERIES.
+
+      // Act
+      const response = await axiosInstance.post('/graphql', { query });
+      const { data } = response ? response : null;
+
+      // Assert
+      expect(data).toMatchObject(expected);
+    });
+    */
 
     it('When I query for all projects, filtered by the "test" gitUrl, I expect the result to match the query signature', async () => {
       // Arrange
