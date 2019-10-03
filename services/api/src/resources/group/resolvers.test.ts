@@ -33,6 +33,19 @@ const getJWTToken = async () => {
   }
 };
 
+const createNewGroup = async () => {
+  const { mutation: query, variables } = MUTATIONS.ADD_BILLING_GROUP;
+  variables.input.name = faker.random.alphaNumeric(10);
+  const data = { query: query, variables };
+  const response = await axiosInstance.post('/graphql', data);
+  const {
+    data: {
+      data: { addBillingGroup },
+    },
+  } = response ? response : null;
+  return addBillingGroup;
+};
+
 const QUERIES = {
   ALL_PROJECTS_FILTERED_BY_GIT_URL: {
     query: `
@@ -137,6 +150,16 @@ const QUERIES = {
       ],
     },
   },
+  ALL_PROJECTS_IN_GROUP: {
+    query: {},
+    variables: {},
+    expected: {},
+  },
+  BILLING_GROUP_COST: {
+    query: {},
+    variables: {},
+    expected: {},
+  },
 };
 
 const MUTATIONS = {
@@ -153,33 +176,6 @@ const MUTATIONS = {
       data: {
         addBillingGroup: {
           name: fakeName,
-        },
-      },
-    },
-  },
-  ADD_PROJECT_WITH_STANDARD_AVAILABILITY: {
-    mutation: `
-      mutation addProject($input: AddProjectInput!) {
-        addProject(input: $input){
-          name
-          availability
-        }
-      }
-    `,
-    variables: {
-      input: {
-        name: fakeProject,
-        gitUrl: 'http://github.com',
-        openshift: 1,
-        productionEnvironment: 'master',
-        availability: 'STANDARD',
-      },
-    },
-    expected: {
-      data: {
-        addProject: {
-          name: fakeProject,
-          availability: 'STANDARD',
         },
       },
     },
@@ -216,12 +212,67 @@ const MUTATIONS = {
       },
     },
   },
+  DELETE_BILLING_GROUP: {
+    mutation: `
+      mutation deleteGroup($input: DeleteGroupInput!) {
+        deleteGroup(input: $input)
+      }
+    `,
+    variables: { input: { group: { name: 'PLACEHOLDER' } } },
+    expected: {
+      data: {
+        deleteGroup: 'success',
+      },
+    },
+  },
+  ADD_PROJECT_WITH_STANDARD_AVAILABILITY: {
+    mutation: `
+      mutation addProject($input: AddProjectInput!) {
+        addProject(input: $input){
+          name
+          availability
+        }
+      }
+    `,
+    variables: {
+      input: {
+        name: fakeProject,
+        gitUrl: 'http://github.com',
+        openshift: 1,
+        productionEnvironment: 'master',
+        availability: 'STANDARD',
+      },
+    },
+    expected: {
+      data: {
+        addProject: {
+          name: fakeProject,
+          availability: 'STANDARD',
+        },
+      },
+    },
+  },
+  ADD_PROJECT_TO_BILLING_GROUP: {
+    mutation: {},
+    variables: {},
+    expected: {},
+  },
+  UPDATE_PROJECT_BILLING_GROUP: {
+    mutation: {},
+    variables: {},
+    expected: {},
+  },
+  REMOVE_PROJECT_FROM_BILLING_GROUP: {
+    mutation: {},
+    variables: {},
+    expected: {},
+  },
 };
 
 let axiosInstance: AxiosInstance;
 
 // Unit Under Test
-describe('Group Resolvers', () => {
+describe('Billing Group Costs Related Queries & Mutation', () => {
   beforeAll(async () => {
     // GET JWT Token
     const token = (await getJWTToken()).replace(/[\n\t\r]/g, '');
@@ -231,18 +282,6 @@ describe('Group Resolvers', () => {
 
   describe('BillingGroup Mutations #mutations', () => {
     // scenarios and expectation
-    /*
-    it('', async () => {
-      // Arrange
-      const { mutation: query, variables, expected } = MUTATIONS.;
-      const data = { query, variables, expected };
-      // Act
-      const response = await axiosInstance.post('/graphql', data);
-      const { data: responseData } = response ? response : null;
-      // Assert
-      expect(responseData).toMatchObject(expected);
-    });
-    */
 
     it('When I run the mutation addBillingGroup, I expect the name to be returned', async () => {
       // Arrange
@@ -276,35 +315,6 @@ describe('Group Resolvers', () => {
       // });
     });
 
-    it('When I add a project with STANDARD availability, the expect STANDARD to be returned', async () => {
-      // Arrange
-      const {
-        mutation: query,
-        variables,
-        expected,
-      } = MUTATIONS.ADD_PROJECT_WITH_STANDARD_AVAILABILITY;
-      const data = { query, variables };
-      // Act
-      const response = await axiosInstance.post('/graphql', data);
-      const { data: responseData } = response ? response : null;
-      // Assert
-      const expectedResult = {};
-      expect(responseData).toMatchObject(expected);
-    });
-
-    const createNewGroup = async () => {
-      const { mutation: query, variables } = MUTATIONS.ADD_BILLING_GROUP;
-      variables.input.name = faker.random.alphaNumeric(10);
-      const data = { query: query, variables };
-      const response = await axiosInstance.post('/graphql', data);
-      const {
-        data: {
-          data: { addBillingGroup },
-        },
-      } = response ? response : null;
-      return addBillingGroup;
-    };
-
     it('When I update a billing group name, currency, and billing software, I expect the result to reflect this', async () => {
       // Setup - create a new group
       const { name } = await createNewGroup();
@@ -330,23 +340,92 @@ describe('Group Resolvers', () => {
       // Assert
       expect(responseData).toMatchObject(expected);
     });
+
+    it('When I delete a billing group, I expect it to go away', async () => {
+      const { name } = await createNewGroup();
+
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.DELETE_BILLING_GROUP;
+
+      // Modify the input variable name to match the new group name
+      variables.input.group.name = name;
+
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    }, 30000);
+
+    it('When I add a project with STANDARD availability, the expect STANDARD to be returned', async () => {
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.ADD_PROJECT_WITH_STANDARD_AVAILABILITY;
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      const expectedResult = {};
+      expect(responseData).toMatchObject(expected);
+    });
+
+    it("When I add a project to a billing group, I should see that project in the billing groups's projects", async () => {
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.ADD_PROJECT_TO_BILLING_GROUP;
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    });
+
+    it("When I update the billing group associated to a project, I should see that project in the new billing group's projects", async () => {
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.UPDATE_PROJECT_BILLING_GROUP;
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    });
+
+    it("When I remove a project from a billing group, I shouldn't see that project in the billing group's project list", async () => {
+      // Arrange
+      const {
+        mutation: query,
+        variables,
+        expected,
+      } = MUTATIONS.REMOVE_PROJECT_FROM_BILLING_GROUP;
+      const data = { query, variables };
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    });
   });
 
   describe('BillingGroup Related Queries #queries', () => {
     // scenarios and expectation
-    /*
-    it('', async () => {
-      // Arrange
-      const { query, expected } = QUERIES.
-
-      // Act
-      const response = await axiosInstance.post('/graphql', { query });
-      const { data } = response ? response : null;
-
-      // Assert
-      expect(data).toMatchObject(expected);
-    });
-    */
 
     it('When I query for all projects, filtered by the "test" gitUrl, I expect the result to match the query signature', async () => {
       // Arrange
@@ -382,5 +461,60 @@ describe('Group Resolvers', () => {
       // Assert
       expect(data.data.allGroups).toContainEqual(expected);
     });
+
+    it('When I query for all projects in a group, I expect the result to match the query signature', async () => {
+      // Arrange
+      const { query, expected, variables } = QUERIES.ALL_PROJECTS_IN_GROUP;
+      const data = { query, variables };
+
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    });
+
+    it('When I query for the billing group cost, I expect the result to match the test data for hits, storage, and environment hours', async () => {
+      // Arrange
+      const { query, expected, variables } = QUERIES.BILLING_GROUP_COST;
+      const data = { query, variables };
+
+      // Act
+      const response = await axiosInstance.post('/graphql', data);
+      const { data: responseData } = response ? response : null;
+
+      // Assert
+      expect(responseData).toMatchObject(expected);
+    });
   });
 });
+
+// QUERY TEMPLATE
+/*
+  it('', async () => {
+    // Arrange
+    const { query, expected } = QUERIES.
+
+    // Act
+    const response = await axiosInstance.post('/graphql', { query });
+    const { data } = response ? response : null;
+
+    // Assert
+    expect(data).toMatchObject(expected);
+  });
+  */
+
+// MUTATION TEMPLATE
+/*
+  it('', async () => {
+    // Arrange
+    const { mutation: query, variables, expected } = MUTATIONS.;
+    const data = { query, variables };
+    // Act
+    const response = await axiosInstance.post('/graphql', data);
+    const { data: responseData } = response ? response : null;
+    // Assert
+    expect(responseData).toMatchObject(expected);
+  });
+  */
