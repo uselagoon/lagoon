@@ -126,7 +126,7 @@ objects:
         containers:
         - name: jobservice
           image: ${SERVICE_IMAGE} # cdchris12/harbor-jobservice:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /api/v1/stats

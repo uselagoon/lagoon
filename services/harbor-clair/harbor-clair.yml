@@ -83,7 +83,7 @@ objects:
         containers:
         - name: clair
           image: ${SERVICE_IMAGE} # cdchris12/harbor-clair:dev1.7
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /health

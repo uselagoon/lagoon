@@ -223,7 +223,7 @@ objects:
         containers:
         - name: nginx
           image: ${SERVICE_IMAGE} # cdchris12/nginx-photon:v1.9.0-dev
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               scheme: HTTP

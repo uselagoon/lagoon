@@ -81,7 +81,7 @@ objects:
         initContainers:
         - name: "remove-lost-found"
           image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: ["rm", "-Rf", "/var/lib/postgresql/data/lost+found"]
           volumeMounts:
           - name: database-data
@@ -95,7 +95,7 @@ objects:
         containers:
         - name: database
           image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             exec:
               command:

@@ -81,7 +81,7 @@ objects:
         containers:
         - name: redis
           image: ${SERVICE_IMAGE} # cdchris12/redis-photon:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             tcpSocket:
               port: 6379

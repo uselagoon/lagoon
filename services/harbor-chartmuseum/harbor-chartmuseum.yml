@@ -117,7 +117,7 @@ objects:
         containers:
         - name: chartmuseum
           image: ${SERVICE_IMAGE} # cdchris12/chartmuseum-photon:dev1.4
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /health

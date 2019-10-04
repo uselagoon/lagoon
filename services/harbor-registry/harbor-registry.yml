@@ -158,7 +158,7 @@ objects:
         - name: registry
           hostname: ${SERVICE_NAME} # harbor-registry
           image: ${HARBOR-REGISTRY_SERVICE_IMAGE} # cdchris12/harbor-registry:dev1.10
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /
@@ -193,7 +193,7 @@ objects:
         - name: registryctl
           hostname: harbor-registryctl
           image: ${HARBOR-REGISTRYCTL_SERVICE_IMAGE} # cdchris12/harbor-registryctl:dev1.4
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /api/health
