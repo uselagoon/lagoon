@@ -102,10 +102,24 @@ objects:
                     secretKeyRef:
                       name: keycloak-admin-password
                       key: KEYCLOAK_ADMIN_PASSWORD
+                - name: KEYCLOAK_API_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-api-client-secret
+                      key: KEYCLOAK_API_CLIENT_SECRET
+                - name: KEYCLOAK_AUTH_SERVER_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-auth-server-client-secret
+                      key: KEYCLOAK_AUTH_SERVER_CLIENT_SECRET
                 - name: SERVICE_NAME
                   value: ${SERVICE_NAME}
                 - name: CRONJOBS
                   value: ${CRONJOBS}
+                - name: JGROUPS_DISCOVERY_PROTOCOL
+                  value: dns.DNS_PING
+                - name: JGROUPS_DISCOVERY_PROPERTIES
+                  value: dns_query=${SERVICE_NAME}-headless
               resources:
                 requests:
                   cpu: 10m
@@ -152,3 +166,25 @@ objects:
       to:
         kind: Service
         name: ${SERVICE_NAME}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ${SERVICE_NAME}
+        branch: ${SAFE_BRANCH}
+        project: ${SAFE_PROJECT}
+      name: ${SERVICE_NAME}-headless
+    spec:
+      clusterIP: None
+      ports:
+        - name: 7600-tcp
+          port: 7600
+          protocol: TCP
+          targetPort: 7600
+      selector:
+        service: ${SERVICE_NAME}
+      sessionAffinity: None
+      type: ClusterIP
+    status:
+      loadBalancer: {}
