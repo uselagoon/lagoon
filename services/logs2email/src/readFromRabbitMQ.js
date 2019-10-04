@@ -186,8 +186,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "rest:promote:receive":
       messageMeta.color = '#E8E8E8'
       messageMeta.emoji = '⚠️'
-      messageMeta.mainHtml = `REST promote trigger : Branch${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
-      messageMeta.plainText = `[${meta.projectName}] REST promote trigger \`${meta.branchName}\` -> \`${meta.promoteSourceEnvironment}\``
+      messageMeta.mainHtml = `REST promote trigger : Branch <code>${meta.branchName}</code> -> <code>${meta.promoteSourceEnvironment}</code>`
+      messageMeta.plainText = `[${meta.projectName}] REST promote trigger : ${meta.branchName} -> ${meta.promoteSourceEnvironment}`
       messageMeta.subject = messageMeta.plainText
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
@@ -213,11 +213,6 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
         messageMeta.plainText = `${messageMeta.plainText} [Logs](${meta.logLink})\n`
       }
       messageMeta.plainText = `\n${messageMeta.plainText}${meta.route}\n ${meta.routes.join("\n")}`
-      // var allRoutes = []
-      // allRoutes.push(meta.route, meta.routes)
-      // const routeHtml = allRoutes.map(function (route){
-      //   return '<li>' + route + '</li>'
-      // }).join('')
       messageMeta.additional = `<ul><li><a href="${meta.route}">${meta.route}</a></li>${meta.routes.map(function(route){return '<li><a href="' + route + '">' + route + '</a></li>'}).join('\n')}</ul>`
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
@@ -225,7 +220,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "rest:pullrequest:remove":
       messageMeta.color = 'lawngreen'
       messageMeta.emoji = '✅'
-      messageMeta.plainText = `[${meta.projectName}] REST pullrequest remove trigger \`${meta.pullrequestNumber}\``
+      messageMeta.mainHtml = `REST pullrequest remove trigger ${meta.pullrequestNumber}`
+      messageMeta.plainText = `[${meta.projectName}] REST pullrequest remove trigger ${meta.pullrequestNumber}`
       messageMeta.subject = messageMeta.plainText
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
@@ -233,7 +229,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "task:remove-openshift:finished":
       messageMeta.color = 'lawngreen'
       messageMeta.emoji = '✅'
-      messageMeta.plainText = `[${meta.projectName}] remove \`${meta.openshiftProject}\``
+      messageMeta.mainHtml = `Remove <code>${meta.openshiftProject}</code>`
+      messageMeta.plainText = `[${meta.projectName}] remove ${meta.openshiftProject}`
       messageMeta.subject = messageMeta.plainText
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
@@ -245,13 +242,17 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       messageMeta.emoji = '⚠️'
       messageMeta.plainText = `[${meta.projectName}]`
       if (meta.shortSha) {
-        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\` (${meta.shortSha})`
+        messageMeta.mainHtml = `<code>${meta.branchName}</code> (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.branchName} (${meta.shortSha})`
       } else {
-        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\``
+        messageMeta.mainHtml = `${messageMeta.mainHtml} <code>${meta.branchName}</code>`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.branchName}`
       }
-      messageMeta.plainText = `${messageMeta.plainText} Build \`${meta.buildName}\` failed.`
+      messageMeta.mainHtml = `${messageMeta.mainHtml} Build <code>${meta.buildName}</code> retried.`
+      messageMeta.plainText = `${messageMeta.plainText} Build ${meta.buildName} retried.`
       messageMeta.subject = messageMeta.plainText
       if (meta.logLink){
+        messageMeta.mainHtml = `${messageMeta.mainHtml} ${meta.logLink}`
         messageMeta.plainText = `${messageMeta.plainText} ${meta.logLink}`
       }
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
@@ -265,13 +266,17 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       messageMeta.emoji = '‼️'
       messageMeta.plainText = `[${meta.projectName}]`
       if (meta.shortSha) {
-        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\` (${meta.shortSha})`
+        messageMeta.mainHtml = `<code>${meta.branchName}</code> (${meta.shortSha})`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.branchName} (${meta.shortSha})`
       } else {
-        messageMeta.plainText = `${messageMeta.plainText} \`${meta.branchName}\``
+        messageMeta.mainHtml = `${messageMeta.mainHtml} <code>${meta.branchName}</code>`
+        messageMeta.plainText = `${messageMeta.plainText} ${meta.branchName}`
       }
-      messageMeta.plainText = `${messageMeta.plainText} Build \`${meta.buildName}\` failed.`
+      messageMeta.mainHtml = `${messageMeta.mainHtml} Build <code>${meta.buildName}</code> error.`
+      messageMeta.plainText = `${messageMeta.plainText} Build ${meta.buildName} error.`
       messageMeta.subject = messageMeta.plainText
       if (meta.logLink){
+        messageMeta.mainHtml = `${messageMeta.mainHtml} ${meta.logLink}`
         messageMeta.plainText = `${messageMeta.plainText} ${meta.logLink}`
       }
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
@@ -284,8 +289,10 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "rest:remove:CannotDeleteProductionEnvironment":
       messageMeta.color = 'gold'
       messageMeta.emoji = '⚠️'
-      messageMeta.plainText = `[${meta.name}] \`${meta.branchName}\` not deleted. ${meta.error}`
+      messageMeta.mainHtml = `<code>${meta.branchName}</code> not deleted. ${meta.error}`
+      messageMeta.plainText = `[${meta.name}] ${meta.branchName} not deleted.`
       messageMeta.subject = messageMeta.plainText
+      messageMeta.plainText = `${messageMeta.plainText} ${meta.error}`
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
