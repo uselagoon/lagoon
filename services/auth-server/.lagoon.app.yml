@@ -93,6 +93,11 @@ objects:
               value: ${SERVICE_NAME}
             - name: CRONJOBS
               value: ${CRONJOBS}
+            - name: KEYCLOAK_AUTH_SERVER_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-auth-server-client-secret
+                  key: KEYCLOAK_AUTH_SERVER_CLIENT_SECRET
           envFrom:
           - configMapRef:
               name: lagoon-env
