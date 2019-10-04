@@ -434,8 +434,8 @@ services :=       api \
 									harbor-nginx \
 									harbor-portal \
 									harbor-redis \
-									harbor-registry \
-									harbor-registryctl
+									harborregistry \
+									harborregistryctl
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera

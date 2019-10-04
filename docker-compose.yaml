@@ -444,17 +444,17 @@ services:
       lagoon.type: custom
       lagoon.template: services/harbor-redis/harbor-redis.yml
       lagoon.image: amazeeiolagoon/harbor-redis:pr-1269
-  harbor-registry:
-    image: ${IMAGE_REPO:-lagoon}/harbor-registry
+  harborregistry:
+    image: ${IMAGE_REPO:-lagoon}/harborregistry
     labels:
       lagoon.type: custom
-      lagoon.template: services/harbor-registry/harbor-registry.yml
-      lagoon.name: harbor-registry
-      lagoon.image: amazeeiolagoon/harbor-registry:pr-1269
-  harbor-registryctl:
-    image: ${IMAGE_REPO:-lagoon}/harbor-registryctl
+      lagoon.template: services/harborregistry/harborregistry.yml
+      lagoon.name: harborregistry
+      lagoon.image: amazeeiolagoon/harborregistry:pr-1269
+  harborregistryctl:
+    image: ${IMAGE_REPO:-lagoon}/harborregistryctl
     labels:
       lagoon.type: custom
-      lagoon.template: services/harbor-registryctl/harbor-registry.yml
-      lagoon.name: harbor-registry
-      lagoon.image: amazeeiolagoon/harbor-registryctl:pr-1269
+      lagoon.template: services/harborregistryctl/harborregistry.yml
+      lagoon.name: harborregistry
+      lagoon.image: amazeeiolagoon/harborregistryctl:pr-1269
