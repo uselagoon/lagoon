@@ -397,53 +397,53 @@ services:
       lagoon.template: services/logs-collector/.lagoon.yml
       lagoon.rollout: daemonset
   harbor-chartmuseum:
-    image: cdchris12/chartmuseum-photon:dev1.4
+    image: ${IMAGE_REPO:-lagoon}/harbor-chartmuseum
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-chartmuseum/harbor-chartmuseum.yml
   harbor-clair:
-    image: cdchris12/harbor-clair:dev1.7
+    image: ${IMAGE_REPO:-lagoon}/harbor-clair
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-clair/harbor-clair.yml
   harbor-core:
-    image: cdchris12/harbor-core:v1.9.0-dev-amazee
+    image: ${IMAGE_REPO:-lagoon}/harbor-core
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-core/harbor-core.yml
   harbor-database:
-    image: cdchris12/harbor-postgres:9.6
+    image: ${IMAGE_REPO:-lagoon}/harbor-postgres
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-database/harbor-database.yml
   harbor-jobservice:
-    image: cdchris12/harbor-jobservice:dev
+    image: ${IMAGE_REPO:-lagoon}/harbor-jobservice
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-jobservice/harbor-jobservice.yml
   harbor-nginx:
-    image: cdchris12/nginx-photon:v1.9.0-dev
+    image: ${IMAGE_REPO:-lagoon}/harbor-photon
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
   harbor-portal:
-    image: cdchris12/harbor-portal:v1.9.0-dev-amazee
+    image: ${IMAGE_REPO:-lagoon}/harbor-portal
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-portal/harbor-portal.yml
   harbor-redis:
-    image: cdchris12/redis-photon:dev
+    image: ${IMAGE_REPO:-lagoon}/harbor-photon
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-redis/harbor-redis.yml
   harbor-registry:
-    image: cdchris12/harbor-registry:dev1.7
+    image: ${IMAGE_REPO:-lagoon}/harbor-registry
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-registry/harbor-registry.yml
       lagoon.name: harbor-registry
   harbor-registryctl:
-    image: cdchris12/harbor-registryctl:dev1.4
+    image: ${IMAGE_REPO:-lagoon}/harbor-registryctl
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-registryctl/harbor-registry.yml
