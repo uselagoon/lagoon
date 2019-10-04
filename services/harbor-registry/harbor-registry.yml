@@ -41,6 +41,12 @@ parameters:
   - name: HARBOR-REGISTRYCTL_SERVICE_IMAGE
     description: Pullable image of registryctl service
     required: true
+  - name: HARBOR-REGISTRY_SERVICE_NAME
+    description: Pullable image of registry service
+    value: harbor-registry
+  - name: HARBOR-REGISTRYCTL_SERVICE_NAME
+    description: Pullable image of registryctl service
+    value: harbor-registryctl
 objects:
 - apiVersion: v1
   kind: Secret
@@ -155,8 +161,7 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         containers:
-        - name: registry
-          hostname: ${SERVICE_NAME} # harbor-registry
+        - name: ${HARBOR-REGISTRY_SERVICE_NAME}
           image: ${HARBOR-REGISTRY_SERVICE_IMAGE} # cdchris12/harbor-registry:dev1.10
           imagePullPolicy: Always
           livenessProbe:
@@ -190,8 +195,7 @@ objects:
           - name: registry-config
             mountPath: /etc/registry/pre_config.yml
             subPath: config.yml
-        - name: registryctl
-          hostname: harbor-registryctl
+        - name: ${HARBOR-REGISTRYCTL_SERVICE_NAME}
           image: ${HARBOR-REGISTRYCTL_SERVICE_IMAGE} # cdchris12/harbor-registryctl:dev1.4
           imagePullPolicy: Always
           livenessProbe:

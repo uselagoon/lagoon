@@ -93,7 +93,7 @@ objects:
                   name: postgresql-password
                   key: POSTGRESQL_PASSWORD
         containers:
-        - name: database
+        - name: ${SERVICE_NAME} # harbor-database
           image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
           imagePullPolicy: Always
           livenessProbe:

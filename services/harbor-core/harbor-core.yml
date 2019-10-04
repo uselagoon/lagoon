@@ -228,7 +228,7 @@ objects:
       spec:
         hostname: ${SERVICE_NAME} # harbor-core
         containers:
-        - name: core
+        - name: ${SERVICE_NAME} # harbor-core
           image: ${SERVICE_IMAGE} # cdchris12/harbor-core:v1.9.0-dev-amazee
           imagePullPolicy: Always
           livenessProbe:

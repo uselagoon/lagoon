@@ -221,7 +221,7 @@ objects:
       spec:
         hostname: ${SERVICE_NAME} # harbor-nginx
         containers:
-        - name: nginx
+        - name: ${SERVICE_NAME} # harbor-nginx
           image: ${SERVICE_IMAGE} # cdchris12/nginx-photon:v1.9.0-dev
           imagePullPolicy: Always
           livenessProbe:

@@ -115,7 +115,7 @@ objects:
       spec:
         hostname: ${SERVICE_NAME} # harbor-chartmuseum
         containers:
-        - name: chartmuseum
+        - name: ${SERVICE_NAME} # harbor-chartmuseum
           image: ${SERVICE_IMAGE} # cdchris12/chartmuseum-photon:dev1.4
           imagePullPolicy: Always
           livenessProbe:

@@ -81,7 +81,7 @@ objects:
       spec:
         hostname: ${SERVICE_NAME} # harbor-clair
         containers:
-        - name: clair
+        - name: ${SERVICE_NAME} # harbor-clair
           image: ${SERVICE_IMAGE} # cdchris12/harbor-clair:dev1.7
           imagePullPolicy: Always
           livenessProbe:
