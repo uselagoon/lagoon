@@ -415,7 +415,7 @@ services:
       lagoon.template: services/harbor-core/harbor-core.yml
       lagoon.image: amazeeiolagoon/harbor-core:pr-1269
   harbor-database:
-    image: ${IMAGE_REPO:-lagoon}/harbor-postgres
+    image: ${IMAGE_REPO:-lagoon}/harbor-databse
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-database/harbor-database.yml
