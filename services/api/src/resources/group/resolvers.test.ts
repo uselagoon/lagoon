@@ -1,13 +1,47 @@
 import { promisify } from 'util';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import * as faker from 'faker';
+import {
+  ADD_PROJECT,
+  ADD_BILLING_GROUP,
+  UPDATE_BILLING_GROUP,
+  DELETE_BILLING_GROUP,
+  ADD_PROJECT_TO_BILLING_GROUP,
+  UPDATE_PROJECT_BILLING_GROUP,
+  REMOVE_PROJECT_FROM_BILLING_GROUP,
+} from './mutations';
 
 const exec = promisify(require('child_process').exec);
 
 const GRAPHQL_ENDPOINT = 'http://localhost:3000';
 
-const fakeName = faker.random.alphaNumeric(10);
-const fakeProject = faker.random.alphaNumeric(15);
+type Project = {
+  name?: string;
+  gitUrl?: string;
+  openshift?: number;
+  productionEnvironment?: string;
+  availability?: string;
+};
+
+type Group = {
+  name?: string;
+  currency?: string;
+  billingSoftware?: string;
+};
+
+const defaultProject: Project = {
+  name: 'PLACEHOLDER',
+  gitUrl: 'http://github.com',
+  openshift: 1,
+  productionEnvironment: 'master',
+  availability: 'STANDARD',
+};
+
+const defaultBillingGroup: Group = {
+  name: 'PLACEHOLDER',
+  currency: 'USD',
+  billingSoftware: 'Bexio',
+};
 
 const requestConfig = {
   baseURL: GRAPHQL_ENDPOINT,
@@ -31,6 +65,44 @@ const getJWTToken = async () => {
     console.error(err);
   }
 };
+
+let axiosInstance: AxiosInstance;
+
+type GroupResult = {
+  name?: string;
+  type: string;
+  currency: string;
+  billingSoftware: string;
+  projects?: [Project];
+};
+
+type ProjectResult = {
+  name?: string;
+  groups?: [Group];
+};
+
+type DataResult = {
+  addNewProject: ProjectResult;
+  addNewBillingGroup: GroupResult;
+  updateBillingGroup: GroupResult;
+  deleteBillingGroup: { deleteGroup: 'success' };
+  data: {
+    addProjectToBillingGroup: ProjectResult;
+    updateProjectBillingGroup: ProjectResult;
+    removeProjectFromBillingGroup: ProjectResult;
+  };
+  errors?: any;
+  // [key: string]: ProjectResult | GroupResult;
+};
+
+type AxiosResponseGraphQL = Promise<AxiosResponse<DataResult>>;
+type AxiosGraphQL = (query: String, variables?: any) => AxiosResponseGraphQL;
+
+const graphql: AxiosGraphQL = (query: String, variables?: any) =>
+  axiosInstance.post('/graphql', {
+    query,
+    ...(variables ? { variables } : {}),
+  });
 
 const QUERIES = {
   ALL_PROJECTS_FILTERED_BY_GIT_URL: {
@@ -264,127 +336,39 @@ const QUERIES = {
   },
 };
 
-const ADD_PROJECT = `
-mutation addProject($input: AddProjectInput!) {
-  addProject(input: $input){
-    name
-    availability
-  }
-}
-`;
+const addNewProject = (project: Project) =>
+  graphql(ADD_PROJECT, { input: { ...defaultProject, ...project } });
 
-const defaultProject = {
-  name: 'PLACEHOLDER',
-  gitUrl: 'http://github.com',
-  openshift: 1,
-  productionEnvironment: 'master',
-  availability: 'STANDARD',
-};
+const addNewBillingGroup = (group: Group) =>
+  graphql(ADD_BILLING_GROUP, { input: { ...defaultBillingGroup, ...group } });
 
-const addNewProject = input =>
-  graphql(ADD_PROJECT, { input: { ...defaultProject, ...input } });
-
-const ADD_BILLING_GROUP = `
-mutation addBillingGroup($input: BillingGroupInput!) {
-  addBillingGroup(input: $input) {
-    name
-  }
-}
-`;
-
-const defaultBillingGroup = {
-  name: 'PLACEHOLDER',
-  currency: 'USD',
-  billingSoftware: 'Bexio',
-};
-
-const addNewBillingGroup = input =>
-  graphql(ADD_BILLING_GROUP, { input: { ...defaultBillingGroup, ...input } });
-
-const UPDATE_BILLING_GROUP = `
-mutation updateBillingGroup($input: UpdateBillingGroupInput!){
-  updateBillingGroup(input: $input) {
-    name
-    type
-    currency
-    billingSoftware
-  }
-}
-`;
-const updateBillingGroup = (group, patch) =>
+const updateBillingGroup = (group: Group, patch: Group) =>
   graphql(UPDATE_BILLING_GROUP, {
     input: { group: { ...group }, patch: { ...patch } },
   });
 
-const DELETE_BILLING_GROUP = `
-mutation deleteGroup($input: DeleteGroupInput!) {
-  deleteGroup(input: $input)
-}
-`;
-const deleteBillingGroup = group =>
+const deleteBillingGroup = (group: Group) =>
   graphql(DELETE_BILLING_GROUP, { input: { group: { ...group } } });
 
-const ADD_PROJECT_TO_BILLING_GROUP = `
-mutation addProjectToBillingGroup($input: ProjectBillingGroupInput){
-  addProjectToBillingGroup(input: $input){
-    name
-    groups {
-      name
-    }
-  }
-}
-`;
-
-const addProjectToBillingGroup = (project, group) =>
+const addProjectToBillingGroup = (project: Project, group: Group) =>
   graphql(ADD_PROJECT_TO_BILLING_GROUP, {
     input: { project: { ...project }, group: { ...group } },
   });
 
-const MUTATIONS = {
-  addProjectToBillingGroup: (fakeProjectName, fakeGroupName) => ({
-    query: ADD_PROJECT_TO_BILLING_GROUP,
-    variables: {
-      input: {
-        project: { name: fakeProjectName },
-        group: { name: fakeGroupName },
-      },
-    },
-    expected: {
-      data: {
-        addProjectToBillingGroup: {
-          name: fakeProjectName,
-          groups: [
-            { name: `project-${fakeProjectName}` },
-            { name: fakeGroupName },
-          ],
-        },
-      },
-    },
-  }),
-  updateProjectBillingGroup: (fakeProjectName, fakeGroupName) => ({
-    query: ``,
-    variables: {},
-    expected: {},
-  }),
-  removeProjectFromBillingGroup: (fakeGroupName, fakeProjectName) => ({
-    query: ``,
-    variables: {},
-    expected: {},
-  }),
-};
+const updateProjectBillingGroup = (project: Project, group: Group) =>
+  graphql(UPDATE_PROJECT_BILLING_GROUP, {
+    input: { project: { ...project }, group: { ...group } },
+  });
+
+const removeProjectFromBillingGroup = (group: Group, project: Project) =>
+  graphql(REMOVE_PROJECT_FROM_BILLING_GROUP, {
+    input: { group: { ...group }, project: { ...project } },
+  });
 
 const cleanup = {
   groups: [],
   projects: [],
 };
-
-let axiosInstance: AxiosInstance;
-
-const graphql = (query: String, variables?) =>
-  axiosInstance.post('/graphql', {
-    query,
-    ...(variables ? { variables } : {}),
-  });
 
 // Unit Under Test
 describe('Billing Group Costs Related Queries & Mutation', () => {
@@ -400,7 +384,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
     afterAll(async () => {
       // cleanup.groups.map(group => deleteBillingGroup(group));
-      // cleanup.projects.map(group => deleteProject(project));
+      // // cleanup.projects.map(group => deleteProject(project));
     }, 60000);
 
     it('When I run the mutation addBillingGroup, I expect the name to be returned. #mutaion #addBillingGroup', async () => {
@@ -417,12 +401,16 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       // Act
       const { data } = await addNewBillingGroup({ name: fakeGroupName });
 
+      if (!data.addNewBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
+
       // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      cleanup.groups.push({ name: fakeGroupName });
-    });
+      // cleanup.groups.push({ name: fakeGroupName });
+    }, 10000);
 
     it('When I update a billing group name, currency, and billing software, I expect the result to reflect this. #mutation #updateBillingGroup', async () => {
       // Arrange
@@ -451,12 +439,16 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       // Act
       const { data } = await updateBillingGroup(group, patch);
 
+      if (!data.updateBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
+
       // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      cleanup.groups.push(group);
-    });
+      // cleanup.groups.push(group);
+    }, 10000);
 
     it('When I delete a billing group, I expect it to go away. #mutation #deleteGroup', async () => {
       // Arrange
@@ -470,6 +462,10 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
       // Act
       const { data } = await deleteBillingGroup({ name: fakeGroupName });
+
+      if (!data.deleteBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
 
       // Assert
       expect(data).toMatchObject(expected);
@@ -490,11 +486,15 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       // Act
       const { data } = await addNewProject({ name: fakeProjectName });
 
+      if (!data.addNewProject) {
+        throw new Error(data.errors[0].message);
+      }
+
       // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      cleanup.projects.push({ name: fakeProjectName });
+      // cleanup.projects.push({ name: fakeProjectName });
     });
 
     it("When I add a project to a billing group, I should see that project returned in the billing groups' projects array. #mutation #addProjectToBillingGroup", async () => {
@@ -505,6 +505,9 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       await addNewProject(project);
       await addNewBillingGroup(group);
 
+      // Act
+      const { data } = await addProjectToBillingGroup(project, group);
+
       const expected = {
         data: {
           addProjectToBillingGroup: {
@@ -514,79 +517,69 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
         },
       };
 
-      // Act
-      const { data } = await addProjectToBillingGroup(project, group);
-
       // sort the resulting group array otherwise the array order can throw off the test
       const nameSortFn = (a, b) => (a.name > b.name ? 1 : -1);
       data.data.addProjectToBillingGroup.groups.sort(nameSortFn);
       expected.data.addProjectToBillingGroup.groups.sort(nameSortFn);
 
+      if (!data.data.addProjectToBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
+
       // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      cleanup.groups.push(group);
-      cleanup.projects.push(project);
-    });
+      // cleanup.groups.push(group);
+      // cleanup.projects.push(project);
+    }, 30000);
 
-    /*
     it("When I update the billing group associated to a project, I should see that project in the new billing group's projects. #mutation #updateProjectBillingGroup", async () => {
       // Arrange
-      const fakeProjectName = faker.random.alphaNumeric(10);
-      const fakeGroupName = faker.random.alphaNumeric(10);
-      const fakeGroupUpdateName = faker.random.alphaNumeric(10);
+      const project = { name: faker.random.alphaNumeric(10) };
+      const group = { name: faker.random.alphaNumeric(10) };
+      const group2 = { name: faker.random.alphaNumeric(10) };
 
-      await addNewProject({ name: fakeProjectName });
-      await addNewBillingGroup({ name: fakeGroupName });
-      await addProjectToBillingGroup({ name: fakeGroupUpdateName });
-
-      const {
-        query,
-        variables,
-        expected,
-      } = MUTATIONS.updateProjectbillingGroup(
-        fakeProject,
-        fakeGroupName,
-        fakeGroupUpdateName,
-      );
+      await addNewProject(project);
+      await addNewBillingGroup(group);
+      await addNewBillingGroup(group2);
+      await addProjectToBillingGroup(project, group);
 
       // Act
-      const response = await graphql(query, variables);
-      const { data: responseData } = response ? response : null;
+      const { data } = await updateProjectBillingGroup(project, group2);
+
+      if (!data.data.updateProjectBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
 
       // Assert
-      expect(responseData).toMatchObject(expected);
-    });
-    */
+      expect(data.data.updateProjectBillingGroup.groups).toContainEqual(group2);
 
-    /*
+      // cleanup
+      // cleanup.groups.push(group);
+      // cleanup.groups.push(group2);
+      // cleanup.projects.push(project);
+    }, 120000);
+
     it("When I remove a project from a billing group, I shouldn't see that project in the billing group's project list. #mutation #removeProjectFromBillingGroup", async () => {
       // Arrange
-      const fakeProjectName = faker.random.alphaNumeric(10);
-      const fakeGroupName = faker.random.alphaNumeric(10);
+      const project = { name: faker.random.alphaNumeric(10) };
+      const group = { name: faker.random.alphaNumeric(10) };
 
-      await addNewProject({ name: fakeProjectName });
-      await addNewBillingGroup({ name: fakeGroupName });
-      await addProjectToBillingGroup({
-        project: fakeProjectName,
-        group: fakeGroupName,
-      });
-
-      const {
-        query,
-        variables,
-        expected,
-      } = MUTATIONS.removeProjectFromBillinGroup();
+      await addNewProject(project);
+      await addNewBillingGroup(group);
+      await addProjectToBillingGroup(project, group);
 
       // Act
-      const response = await graphql(query, variables);
-      const { data: responseData } = response ? response : null;
+      const { data } = await removeProjectFromBillingGroup(group, project);
+
+      if (!data.data.removeProjectFromBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
 
       // Assert
-      expect(responseData).toMatchObject(expected);
-    });
-    */
+      expect(data.data.removeProjectFromBillingGroup.groups.length).toBe(1);
+    }, 30000);
   });
 
   describe('BillingGroup Related Queries #queries', () => {
@@ -624,7 +617,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       const response = await axiosInstance.post('/graphql', { query });
       const { data } = response ? response : null;
       // Assert
-      expect(data.data.allGroups).toContainEqual(expected);
+      expect(data.allGroups).toContainEqual(expected);
     });
 
     it('When I query for all projects in a group, I expect the result to match the query signature. #query #allProjectsInGroup', async () => {
