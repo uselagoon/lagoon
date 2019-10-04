@@ -462,4 +462,48 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationEmail
+  (
+    IN name          varchar(50),
+    IN email_address varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_email (
+      name,
+      email_address
+    )
+    VALUES (
+      name,
+      email_address
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      email_address
+    FROM notification_email
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationEmail
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_email ns WHERE ns.name = name;
+
+    DELETE FROM notification_email WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'email';
+  END;
+$$
+
 DELIMITER ;

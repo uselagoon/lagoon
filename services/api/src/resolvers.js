@@ -70,6 +70,10 @@ const {
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  addNotificationEmail,
+  updateNotificationEmail,
+  deleteNotificationEmail,
+  deleteAllNotificationEmails,
   deleteAllNotificationSlacks,
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
@@ -195,6 +199,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
           return 'NotificationRocketChat';
         case 'microsoftteams':
           return 'NotificationMicrosoftTeams';
+        case 'email':
+          return 'NotificationEmail';
         default:
           return null;
       }
@@ -240,6 +246,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateNotificationMicrosoftTeams,
     deleteNotificationMicrosoftTeams,
     deleteAllNotificationMicrosoftTeams,
+    addNotificationEmail,
+    updateNotificationEmail,
+    deleteNotificationEmail,
+    deleteAllNotificationEmails,
     addNotificationToProject,
     removeNotificationFromProject,
     removeAllNotificationsFromAllProjects,

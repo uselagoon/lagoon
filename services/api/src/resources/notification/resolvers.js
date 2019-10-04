@@ -15,6 +15,7 @@ import type {ResolversObj} from '../';
 const notificationTypeToString = R.cond([
   [R.equals('MICROSOFTTEAMS'), R.toLower],
   [R.equals('ROCKETCHAT'), R.toLower],
+  [R.equals('EMAIL'), R.toLower],
   [R.equals('SLACK'), R.toLower],
   [R.T, R.identity],
 ]);
@@ -31,6 +32,19 @@ const addNotificationMicrosoftTeams = async (root, { input }, { sqlClient, hasPe
   const microsoftTeams = R.path([0, 0], rows);
 
   return microsoftTeams;
+const addNotificationEmail = async (root, { input }, { sqlClient, hasPermission }) => {
+  await hasPermission('notification', 'add');
+  console.log(input);
+
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateNotificationEmail(:name, :email_address)',
+  );
+
+  const rows = await query(sqlClient, prep(input));
+  const email = R.path([0, 0], rows);
+
+  return email;
 };
 
 const addNotificationRocketChat = async (root, { input }, { sqlClient, hasPermission }) => {
@@ -99,6 +113,34 @@ const addNotificationToProject = async (
 };
 
 const deleteNotificationMicrosoftTeams = async (
+    root,
+    { input },
+    {
+      sqlClient,
+      hasPermission,
+    },
+  ) => {
+    await hasPermission('notification', 'delete');
+
+    const { name } = input;
+
+    const nids = await Helpers(sqlClient).getAssignedNotificationIds({
+      name,
+      type: 'microsoftTeams',
+    });
+
+    if (R.length(nids) > 0) {
+      throw new Error("Can't delete notification linked to projects");
+    }
+
+    const prep = prepare(sqlClient, 'CALL DeleteNotificationMicrosoftTeams(:name)');
+    await query(sqlClient, prep(input));
+
+    // TODO: maybe check rows for changed result
+    return 'success';
+  };
+
+const deleteNotificationEmail = async (
   root,
   { input },
   {
@@ -112,14 +154,14 @@ const deleteNotificationMicrosoftTeams = async (
 
   const nids = await Helpers(sqlClient).getAssignedNotificationIds({
     name,
-    type: 'microsoftTeams',
+    type: 'email',
   });
 
   if (R.length(nids) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
-  const prep = prepare(sqlClient, 'CALL DeleteNotificationMicrosoftTeams(:name)');
+  const prep = prepare(sqlClient, 'CALL DeleteNotificationEmail(:name)');
   await query(sqlClient, prep(input));
 
   // TODO: maybe check rows for changed result
@@ -209,7 +251,7 @@ const removeNotificationFromProject = async (
   return project;
 };
 
-const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams'];
+const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email'];
 
 const getNotificationsByProjectId = async (
   { id: pid },
@@ -256,6 +298,31 @@ const getNotificationsByProjectId = async (
 };
 
 const updateNotificationMicrosoftTeams = async (
+    root,
+    { input },
+    {
+      sqlClient,
+      hasPermission,
+    },
+  ) => {
+    await hasPermission('notification', 'update');
+
+    const { name } = input;
+
+    if (isPatchEmpty(input)) {
+      throw new Error('input.patch requires at least 1 attribute');
+    }
+
+    await query(sqlClient, Sql.updateNotificationMicrosoftTeams(input));
+    const rows = await query(
+      sqlClient,
+      Sql.selectNotificationMicrosoftTeamsByName(name),
+    );
+
+    return R.prop(0, rows);
+  };
+
+const updateNotificationEmail = async (
   root,
   { input },
   {
@@ -271,10 +338,10 @@ const updateNotificationMicrosoftTeams = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await query(sqlClient, Sql.updateNotificationMicrosoftTeams(input));
+  await query(sqlClient, Sql.updateNotificationEmail(input));
   const rows = await query(
     sqlClient,
-    Sql.selectNotificationMicrosoftTeamsByName(name),
+    Sql.selectNotificationEmailByName(name),
   );
 
   return R.prop(0, rows);
@@ -340,6 +407,19 @@ const deleteAllNotificationSlacks = async (
   return 'success';
 };
 
+const deleteAllNotificationEmails = async (
+  root,
+  args,
+  { sqlClient, hasPermission },
+) => {
+  await hasPermission('notification', 'deleteAll');
+
+  await query(sqlClient, Sql.truncateNotificationEmail());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
 const deleteAllNotificationRocketChats = async (
   root,
   args,
@@ -383,18 +463,22 @@ const Resolvers /* : ResolversObj */ = {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationEmail,
   addNotificationToProject,
   deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationEmail,
   getNotificationsByProjectId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationEmail,
   deleteAllNotificationSlacks,
   deleteAllNotificationRocketChats,
   deleteAllNotificationMicrosoftTeams,
+  deleteAllNotificationEmails,
   removeAllNotificationsFromAllProjects,
 };
 
