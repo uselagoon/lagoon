@@ -32,6 +32,7 @@ const addNotificationMicrosoftTeams = async (root, { input }, { sqlClient, hasPe
   const microsoftTeams = R.path([0, 0], rows);
 
   return microsoftTeams;
+};
 const addNotificationEmail = async (root, { input }, { sqlClient, hasPermission }) => {
   await hasPermission('notification', 'add');
   console.log(input);

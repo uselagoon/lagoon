@@ -310,7 +310,7 @@ mutation PopulateApi {
   }
 
   # Fake Email for testing
-  CiEmail: addNotificationEmail(
+  CiEmail: addNotificationEmail (
     input: {
       name: "local-email-testing"
       emailAddress: "localdeveloper@amazee.io"
