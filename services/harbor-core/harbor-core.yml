@@ -160,7 +160,7 @@ objects:
     #EXT_ENDPOINT: "https://harbor-core.us.amazee.io" # Will be populated via GrpahiQL at build time
     CORE_URL: "http://harbor-core"
     JOBSERVICE_URL: "http://harbor-jobservice"
-    REGISTRY_URL: "http://harbor-registry:5000"
+    REGISTRY_URL: "http://harborregistry:5000"
     TOKEN_SERVICE_URL: "http://harbor-core/service/token"
     WITH_NOTARY: "false"
     NOTARY_URL: ""
@@ -183,11 +183,11 @@ objects:
     _REDIS_URL: "harbor-redis:6379,100,"
     _REDIS_URL_REG: "redis://harbor-redis:6379/2"
     PORTAL_URL: "http://harbor-portal"
-    REGISTRYCTL_URL: "http://harbor-registry:8080"
+    REGISTRYCTL_URL: "http://harborregistry:8080"
     CLAIR_HEALTH_CHECK_SERVER_URL: "http://harbor-clair:6061"
     HTTP_PROXY: ""
     HTTPS_PROXY: ""
-    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harbor-registry,127.0.0.1,localhost,.local,.internal"
+    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harborregistry,127.0.0.1,localhost,.local,.internal"
 - apiVersion: v1
   kind: Service
   metadata:

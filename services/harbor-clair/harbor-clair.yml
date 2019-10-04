@@ -106,7 +106,7 @@ objects:
           - name: HTTPS_PROXY
             value: ""
           - name: NO_PROXY
-            value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harbor-registry,127.0.0.1,localhost,.local,.internal"
+            value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harborregistry,127.0.0.1,localhost,.local,.internal"
           - name: CLAIR_DB_PASSWORD
             valueFrom:
               secretKeyRef:

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: harbor-registry-template
+  name: harborregistry-template
   annotations:
     description: "A template for generating Harbor's registry service"
 parameters:
@@ -35,23 +35,23 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
-  - name: HARBOR-REGISTRY_SERVICE_IMAGE
+  - name: HARBORREGISTRY_SERVICE_IMAGE
     description: Pullable image of registry service
     required: true
-  - name: HARBOR-REGISTRYCTL_SERVICE_IMAGE
+  - name: HARBORREGISTRYCTL_SERVICE_IMAGE
     description: Pullable image of registryctl service
     required: true
-  - name: HARBOR-REGISTRY_SERVICE_NAME
+  - name: HARBORREGISTRY_SERVICE_NAME
     description: Pullable image of registry service
-    value: harbor-registry
-  - name: HARBOR-REGISTRYCTL_SERVICE_NAME
+    value: harborregistry
+  - name: HARBORREGISTRYCTL_SERVICE_NAME
     description: Pullable image of registryctl service
-    value: harbor-registryctl
+    value: harborregistryctl
 objects:
 - apiVersion: v1
   kind: Secret
   metadata:
-    name: ${SERVICE_NAME} # harbor-registry
+    name: ${SERVICE_NAME} # harborregistry
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -64,7 +64,7 @@ objects:
 - apiVersion: v1
   kind: ConfigMap
   metadata:
-    name: ${SERVICE_NAME} # harbor-registry
+    name: ${SERVICE_NAME} # harborregistry
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -104,7 +104,7 @@ objects:
           issuer: harbor-token-issuer
           realm: "$EXT_ENDPOINT/service/token"
           rootcertbundle: /etc/registry/root.crt
-          service: harbor-registry
+          service: harborregistry
       validation:
         disabled: true
       notifications:
@@ -123,7 +123,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: ${SERVICE_NAME} # harbor-registry
+    name: ${SERVICE_NAME} # harborregistry
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -141,7 +141,7 @@ objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: ${SERVICE_NAME} # harbor-registry
+    name: ${SERVICE_NAME} # harborregistry
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -161,8 +161,8 @@ objects:
           project: ${SAFE_PROJECT}
       spec:
         containers:
-        - name: ${HARBOR-REGISTRY_SERVICE_NAME}
-          image: ${HARBOR-REGISTRY_SERVICE_IMAGE} # cdchris12/harbor-registry:dev1.10
+        - name: ${HARBORREGISTRY_SERVICE_NAME}
+          image: ${HARBORREGISTRY_SERVICE_IMAGE} # cdchris12/harbor-registry:dev1.10
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -179,7 +179,7 @@ objects:
           args: ["serve", "/etc/registry/config.yml"]
           envFrom:
           - secretRef:
-              name: ${SERVICE_NAME} # harbor-registry
+              name: ${SERVICE_NAME} # harborregistry
           - configMapRef:
               name: "lagoon-env"
           ports:
@@ -195,8 +195,8 @@ objects:
           - name: registry-config
             mountPath: /etc/registry/pre_config.yml
             subPath: config.yml
-        - name: ${HARBOR-REGISTRYCTL_SERVICE_NAME}
-          image: ${HARBOR-REGISTRYCTL_SERVICE_IMAGE} # cdchris12/harbor-registryctl:dev1.4
+        - name: ${HARBORREGISTRYCTL_SERVICE_NAME}
+          image: ${HARBORREGISTRYCTL_SERVICE_IMAGE} # cdchris12/harbor-registryctl:dev1.4
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -213,7 +213,7 @@ objects:
           args: ["serve", "/etc/registry/config.yml"]
           envFrom:
           - secretRef:
-              name: ${SERVICE_NAME} # harbor-registry
+              name: ${SERVICE_NAME} # harborregistry
           - configMapRef:
               name: "lagoon-env"
           env:
@@ -230,7 +230,7 @@ objects:
             - name: REGISTRY_HTTP_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: harbor-registry-secret
+                  name: harborregistry-secret
                   key: HARBOR_REGISTRY_SECRET
           ports:
           - containerPort: 8080
@@ -250,6 +250,6 @@ objects:
             name: harbor-core
         - name: registry-config
           configMap:
-            name: "harbor-registry"
+            name: "harborregistry"
         - name: registry-data
           emptyDir: {}

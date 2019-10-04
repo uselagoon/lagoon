@@ -153,7 +153,7 @@ objects:
             - name: CORE_URL
               value: "http://harbor-core"
             - name: REGISTRY_CONTROLLER_URL
-              value: "http://harbor-registry:8080"
+              value: "http://harborregistry:8080"
             - name: LOG_LEVEL
               value: debug
             - name: HTTP_PROXY
@@ -161,7 +161,7 @@ objects:
             - name: HTTPS_PROXY
               value: ""
             - name: NO_PROXY
-              value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harbor-registry,127.0.0.1,localhost,.local,.internal"
+              value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harborregistry,127.0.0.1,localhost,.local,.internal"
           ports:
           - containerPort: 8080
           volumeMounts:
