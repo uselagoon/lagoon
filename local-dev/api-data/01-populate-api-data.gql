@@ -309,6 +309,16 @@ mutation PopulateApi {
     id
   }
 
+  # Fake Email for testing
+  CiEmail: addNotificationEmail(
+    input: {
+      name: "local-email-testing"
+      emailAddress: "localdeveloper@amazee.io"
+    }
+  ) {
+    id
+  }
+
   # Projects for CI
   CiGithub1: addProject(
     input: {
@@ -341,6 +351,15 @@ mutation PopulateApi {
       project: "ci-github"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiGithubEmail: addNotificationToProject(
+    input: {
+      project: "ci-github"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -394,6 +413,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiGitlabEmail: addNotificationToProject(
+    input: {
+      project: "ci-gitlab"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiBitbucket: addProject(
     input: {
@@ -426,6 +454,15 @@ mutation PopulateApi {
       project: "ci-bitbucket"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiBitbucketEmail: addNotificationToProject(
+    input: {
+      project: "ci-bitbucket"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -467,6 +504,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiRestEmail: addNotificationToProject(
+    input: {
+      project: "ci-rest"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiNode: addProject(
     input: {
@@ -499,6 +545,15 @@ mutation PopulateApi {
       project: "ci-node"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiNodeEmail: addNotificationToProject(
+    input: {
+      project: "ci-node"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -539,6 +594,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiMultiproject1Email: addNotificationToProject(
+    input: {
+      project: "ci-multiproject1"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiMultiproject2: addProject(
     input: {
@@ -571,6 +635,15 @@ mutation PopulateApi {
       project: "ci-multiproject2"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiMultiproject2Email: addNotificationToProject(
+    input: {
+      project: "ci-multiproject2"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -613,6 +686,16 @@ mutation PopulateApi {
     id
   }
 
+  CiDrupalEmail: addNotificationToProject(
+    input: {
+      project: "ci-drupal"
+      notificationType: EMAIL
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
   CiNginx: addProject(
     input: {
       id: 11
@@ -644,6 +727,15 @@ mutation PopulateApi {
       project: "ci-nginx"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiNginxEmail: addNotificationToProject(
+    input: {
+      project: "ci-nginx"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -767,6 +859,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiFeaturesEmail: addNotificationToProject(
+    input: {
+      project: "ci-features"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiFeaturesSubfolder: addProject(
     input: {
@@ -802,6 +903,15 @@ mutation PopulateApi {
       project: "ci-features-subfolder"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiFeaturesSubfolderEmail: addNotificationToProject(
+    input: {
+      project: "ci-features-subfolder"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -842,6 +952,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiElasticsearchEmail: addNotificationToProject(
+    input: {
+      project: "ci-elasticsearch"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiDrupalGalera: addProject(
     input: {
@@ -874,6 +993,15 @@ mutation PopulateApi {
       project: "ci-drupal-galera"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiDrupalGaleraEmail: addNotificationToProject(
+    input: {
+      project: "ci-drupal-galera"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
@@ -914,6 +1042,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiDrupalPostgresEmail: addNotificationToProject(
+    input: {
+      project: "ci-drupal-postgres"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiSolr: addProject(
     input: {
@@ -950,6 +1087,15 @@ mutation PopulateApi {
   ) {
     id
   }
+  CiSolrEmail: addNotificationToProject(
+    input: {
+      project: "ci-solr"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
 
   CiApi: addProject(
     input: {
@@ -982,6 +1128,15 @@ mutation PopulateApi {
       project: "ci-api"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+  CiApiEmail: addNotificationToProject(
+    input: {
+      project: "ci-api"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
     }
   ) {
     id
