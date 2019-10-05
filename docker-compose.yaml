@@ -141,11 +141,11 @@ services:
     image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
     command: yarn run dev
     volumes:
-      - ./services/logs2microsoftTeams/src:/app/services/logs2microsoftTeams/src
+      - ./services/logs2microsoftteams/src:/app/services/logs2microsoftteams/src
       - ./node-packages:/app/node-packages:delegated
     labels:
       lagoon.type: custom
-      lagoon.template: services/logs2microsoftTeams/.lagoon.app.yml
+      lagoon.template: services/logs2microsoftteams/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/logs2microsoftteams:v1-0-0
   logs2email:
     image: ${IMAGE_REPO:-lagoon}/logs2email
