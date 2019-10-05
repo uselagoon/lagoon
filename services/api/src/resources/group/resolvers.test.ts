@@ -171,7 +171,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
     }
 
     for (var i = cleanup.groups.length - 1; i >= 0; i--) {
-      await deleteGroup(cleanup.groups[i]);
+      await deleteGroup(cleanup.groups[i]).catch(error => console.log(error));
       cleanup.groups.splice(i, 1);
     }
   }, 120000);

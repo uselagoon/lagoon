@@ -119,26 +119,10 @@ query billingGroupCost($input: GroupInput, $month: String) {
 }
 `;
 
-export default {
-  ADD_PROJECT,
-  ADD_BILLING_GROUP,
-  UPDATE_BILLING_GROUP,
-  DELETE_BILLING_GROUP,
-  ADD_PROJECT_TO_BILLING_GROUP,
-  UPDATE_PROJECT_BILLING_GROUP,
-  REMOVE_PROJECT_FROM_BILLING_GROUP,
-  ALL_PROJECTS,
-  PROJECT_BY_NAME,
-  ALL_GROUPS,
-  ALL_PROJECTS_IN_GROUP,
-  DELETE_PROJECT,
-  BILLING_GROUP_COST,
-};
-
 // This is here because I wanted the above queries refactored out of the actual test file
 // TODO: MOVE THE ABOVE GRAPHQL QUERIES/MUTATIONS SOMEWHERE ELSE
-describe('Unnecessary Test', () => {
-  test('BECAUSE JEST JEST YELLS AT YOU IF YOU HAVE A *.test file without a test', () => {
+describe('Testing the Big Questions', () => {
+  test('What is the meaning of life?', () => {
     const THE_MEANING_OF_LIFE = 42;
     expect(THE_MEANING_OF_LIFE).toBe(42);
   });
