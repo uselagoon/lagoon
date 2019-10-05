@@ -24,7 +24,7 @@
         "--config",
         "jest.config.js",
         "-t",
-        "#updateProjectBillingGroup"
+        "#mutation #deleteGroup"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

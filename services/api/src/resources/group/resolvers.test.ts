@@ -1,6 +1,6 @@
 import { promisify } from 'util';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import * as faker from 'faker';
+import { random } from 'faker';
 import {
   ADD_PROJECT,
   ADD_BILLING_GROUP,
@@ -9,11 +9,17 @@ import {
   ADD_PROJECT_TO_BILLING_GROUP,
   UPDATE_PROJECT_BILLING_GROUP,
   REMOVE_PROJECT_FROM_BILLING_GROUP,
-} from './mutations';
+  ALL_PROJECTS,
+  PROJECT_BY_NAME,
+  ALL_GROUPS,
+  ALL_PROJECTS_IN_GROUP,
+  DELETE_PROJECT,
+  BILLING_GROUP_COST,
+} from './gql.test';
 
 const exec = promisify(require('child_process').exec);
 
-const GRAPHQL_ENDPOINT = 'http://localhost:3000';
+const fakeName = random.alphaNumeric;
 
 type Project = {
   name?: string;
@@ -21,12 +27,15 @@ type Project = {
   openshift?: number;
   productionEnvironment?: string;
   availability?: string;
+  groups?: [Group];
 };
 
 type Group = {
   name?: string;
+  type?: string;
   currency?: string;
   billingSoftware?: string;
+  projects?: [Project];
 };
 
 const defaultProject: Project = {
@@ -44,8 +53,8 @@ const defaultBillingGroup: Group = {
 };
 
 const requestConfig = {
-  baseURL: GRAPHQL_ENDPOINT,
-  timeout: 20000,
+  baseURL: 'http://localhost:3000',
+  timeout: 60000,
   headers: {
     Authorization: '',
     'content-type': 'application/json',
@@ -68,31 +77,20 @@ const getJWTToken = async () => {
 
 let axiosInstance: AxiosInstance;
 
-type GroupResult = {
-  name?: string;
-  type: string;
-  currency: string;
-  billingSoftware: string;
-  projects?: [Project];
-};
-
-type ProjectResult = {
-  name?: string;
-  groups?: [Group];
-};
-
 type DataResult = {
-  addNewProject: ProjectResult;
-  addNewBillingGroup: GroupResult;
-  updateBillingGroup: GroupResult;
-  deleteBillingGroup: { deleteGroup: 'success' };
   data: {
-    addProjectToBillingGroup: ProjectResult;
-    updateProjectBillingGroup: ProjectResult;
-    removeProjectFromBillingGroup: ProjectResult;
+    deleteGroup: { deleteGroup: 'success' };
+    addProject: Project;
+    addBillingGroup: Group;
+    updateBillingGroup: Group;
+    allGroups: [Group];
+    addProjectToBillingGroup: Project;
+    updateProjectBillingGroup: Project;
+    removeProjectFromBillingGroup: Project;
+    allProjects: [Project];
   };
   errors?: any;
-  // [key: string]: ProjectResult | GroupResult;
+  // [key: string]: Project | Group;
 };
 
 type AxiosResponseGraphQL = Promise<AxiosResponse<DataResult>>;
@@ -104,242 +102,10 @@ const graphql: AxiosGraphQL = (query: String, variables?: any) =>
     ...(variables ? { variables } : {}),
   });
 
-const QUERIES = {
-  ALL_PROJECTS_FILTERED_BY_GIT_URL: {
-    query: `
-      query allProjects {
-        allProjects(gitUrl:"test"){
-          id
-          gitUrl
-          name
-          availability
-          groups{
-            ...on BillingGroup {
-              name
-            }
-          }
-        }
-      }
-    `,
-    expected: {
-      data: {
-        allProjects: [
-          {
-            id: 18,
-            gitUrl: 'test',
-            name: 'high-cotton',
-            availability: 'HIGH',
-            groups: [
-              {
-                name: 'High Cotton Billing Group',
-              },
-              {},
-              {},
-            ],
-          },
-        ],
-      },
-    },
-  },
-  GET_PROJECT_FILTERED_BY_NAME: {
-    query: `
-      query getProject {
-        projectByName(name:"high-cotton"){
-          id
-          name
-          availability
-          groups{
-            name
-            ...on BillingGroup{
-              name
-              currency
-            }
-          }
-        }
-      }
-    `,
-    expected: {
-      data: {
-        projectByName: {
-          id: 18,
-          name: 'high-cotton',
-          availability: 'HIGH',
-          groups: [
-            {
-              name: 'High Cotton Billing Group',
-              currency: 'USD',
-            },
-            {
-              name: 'project-high-cotton',
-            },
-            {
-              name: 'ui-customer',
-            },
-          ],
-        },
-      },
-    },
-  },
-  ALL_GROUPS_FILTERED_BY_BILLING_TYPE: {
-    query: `
-      query allGroups {
-        allGroups(type:"billing"){
-          name
-          type
-          ...on BillingGroup {
-            currency
-          }
-          projects{
-            id
-            name
-          }
-        }
-      }
-    `,
-    expected: {
-      name: 'High Cotton Billing Group',
-      type: 'billing',
-      currency: 'USD',
-      projects: [
-        {
-          id: 18,
-          name: 'high-cotton',
-        },
-      ],
-    },
-  },
-  ALL_PROJECTS_IN_GROUP: {
-    query: `
-      query allProjectsInGroup($input:GroupInput) {
-        allProjectsInGroup(input: $input){
-          name
-        }
-      }
-    `,
-    variables: { input: { name: 'High Cotton Billing Group' } },
-    expected: {
-      data: {
-        allProjectsInGroup: [
-          {
-            name: 'high-cotton',
-          },
-        ],
-      },
-    },
-  },
-  BILLING_GROUP_COST: {
-    query: `
-      query billingGroupCost($input: GroupInput, $month: String) {
-        billingGroupCost(input: $input, month: $month)
-      }
-    `,
-    variables: {
-      input: { name: 'High Cotton Billing Group' },
-      month: '2019-08',
-    },
-    expected: {
-      data: {
-        billingGroupCost: {
-          currency: 'USD',
-          availability: {
-            high: {
-              hitCost: 213.03,
-              storageCost: 1.4,
-              environmentCost: {
-                prod: 206.68,
-                dev: 0,
-              },
-              projects: [
-                {
-                  id: '18',
-                  name: 'high-cotton',
-                  availability: 'HIGH',
-                  month: 7,
-                  year: 2019,
-                  hits: 343446,
-                  storageDays: 197,
-                  prodHours: 1488,
-                  devHours: 744,
-                  environments: {
-                    '0': {
-                      id: '3',
-                      name: 'Master',
-                      type: 'production',
-                      hits: {
-                        hits: 0,
-                      },
-                      storage: {
-                        bytesUsed: null,
-                        month: null,
-                      },
-                      hours: {
-                        month: '2019-08',
-                        hours: 0,
-                      },
-                    },
-                    '1': {
-                      id: '4',
-                      name: 'Staging',
-                      type: 'development',
-                      hits: {
-                        hits: 0,
-                      },
-                      storage: {
-                        bytesUsed: null,
-                        month: null,
-                      },
-                      hours: {
-                        month: '2019-08',
-                        hours: 0,
-                      },
-                    },
-                    '2': {
-                      id: '5',
-                      name: 'Development',
-                      type: 'development',
-                      hits: {
-                        hits: 0,
-                      },
-                      storage: {
-                        bytesUsed: null,
-                        month: null,
-                      },
-                      hours: {
-                        month: '2019-08',
-                        hours: 0,
-                      },
-                    },
-                    '3': {
-                      id: '6',
-                      name: 'PR-175',
-                      type: 'development',
-                      hits: {
-                        hits: 0,
-                      },
-                      storage: {
-                        bytesUsed: null,
-                        month: null,
-                      },
-                      hours: {
-                        month: '2019-08',
-                        hours: 0,
-                      },
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
-const addNewProject = (project: Project) =>
+const addProject = (project: Project) =>
   graphql(ADD_PROJECT, { input: { ...defaultProject, ...project } });
 
-const addNewBillingGroup = (group: Group) =>
+const addBillingGroup = (group: Group) =>
   graphql(ADD_BILLING_GROUP, { input: { ...defaultBillingGroup, ...group } });
 
 const updateBillingGroup = (group: Group, patch: Group) =>
@@ -347,7 +113,7 @@ const updateBillingGroup = (group: Group, patch: Group) =>
     input: { group: { ...group }, patch: { ...patch } },
   });
 
-const deleteBillingGroup = (group: Group) =>
+const deleteGroup = (group: Group) =>
   graphql(DELETE_BILLING_GROUP, { input: { group: { ...group } } });
 
 const addProjectToBillingGroup = (project: Project, group: Group) =>
@@ -365,6 +131,25 @@ const removeProjectFromBillingGroup = (group: Group, project: Project) =>
     input: { group: { ...group }, project: { ...project } },
   });
 
+const allProjects = (
+  createdAfter: String = null,
+  gitUrl: String = null,
+  order: String = null,
+) => graphql(ALL_PROJECTS, { createdAfter, gitUrl, order });
+
+const projectByName = (name: String = '') => graphql(PROJECT_BY_NAME, { name });
+
+const allGroups = (type: String = null) => graphql(ALL_GROUPS, { type });
+
+const allProjectsInGroup = (group: Group) =>
+  graphql(ALL_PROJECTS_IN_GROUP, { input: { ...group } });
+
+const deleteProject = (name: String) =>
+  graphql(DELETE_PROJECT, { input: { project: name } });
+
+const billingGroupCost = (group: Group, month: String) =>
+  graphql(BILLING_GROUP_COST, { input: { ...group }, month });
+
 const cleanup = {
   groups: [],
   projects: [],
@@ -379,135 +164,144 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
     axiosInstance = axios.create(requestConfig);
   });
 
+  afterEach(async () => {
+    for (var i = cleanup.projects.length - 1; i >= 0; i--) {
+      await deleteProject(cleanup.projects[i].name);
+      cleanup.groups.splice(i, 1);
+    }
+
+    for (var i = cleanup.groups.length - 1; i >= 0; i--) {
+      await deleteGroup(cleanup.groups[i]);
+      cleanup.groups.splice(i, 1);
+    }
+  }, 120000);
+
   describe('BillingGroup Mutations #mutations', () => {
     // scenarios and expectation
 
-    afterAll(async () => {
-      // cleanup.groups.map(group => deleteBillingGroup(group));
-      // // cleanup.projects.map(group => deleteProject(project));
-    }, 60000);
-
     it('When I run the mutation addBillingGroup, I expect the name to be returned. #mutaion #addBillingGroup', async () => {
       // Arrange
-      const fakeGroupName = faker.random.alphaNumeric(10);
-      const expected = {
-        data: {
-          addBillingGroup: {
-            name: fakeGroupName,
-          },
-        },
-      };
+      const group = { name: fakeName(10) };
 
       // Act
-      const { data } = await addNewBillingGroup({ name: fakeGroupName });
+      const { data } = await addBillingGroup(group);
 
-      if (!data.addNewBillingGroup) {
+      if (!data.data.addBillingGroup) {
         throw new Error(data.errors[0].message);
       }
 
       // Assert
+      const expected = {
+        data: {
+          addBillingGroup: {
+            name: group.name,
+          },
+        },
+      };
       expect(data).toMatchObject(expected);
 
       // cleanup
-      // cleanup.groups.push({ name: fakeGroupName });
+      cleanup.groups.push(group);
     }, 10000);
 
     it('When I update a billing group name, currency, and billing software, I expect the result to reflect this. #mutation #updateBillingGroup', async () => {
       // Arrange
-      const fakeGroupName = faker.random.alphaNumeric(10);
-      const fakeGroupNameUpdate = faker.random.alphaNumeric(10);
-      await addNewBillingGroup({ name: fakeGroupName });
+      const group = { name: fakeName(10) };
+      await addBillingGroup(group);
 
-      const group = { name: fakeGroupName };
       const patch = {
-        name: fakeGroupNameUpdate,
+        name: fakeName(10),
         currency: 'AUD',
         billingSoftware: 'Bexio',
       };
 
+      // Act
+      const { data } = await updateBillingGroup(group, patch);
+
+      if (!data.data.updateBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
+
+      // Assert
       const expected = {
         data: {
           updateBillingGroup: {
-            name: fakeGroupNameUpdate,
+            name: patch.name,
             type: 'billing',
             currency: 'AUD',
             billingSoftware: 'Bexio',
           },
         },
       };
-
-      // Act
-      const { data } = await updateBillingGroup(group, patch);
-
-      if (!data.updateBillingGroup) {
-        throw new Error(data.errors[0].message);
-      }
-
-      // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      // cleanup.groups.push(group);
+      cleanup.groups.push(group);
     }, 10000);
 
     it('When I delete a billing group, I expect it to go away. #mutation #deleteGroup', async () => {
       // Arrange
-      const fakeGroupName = faker.random.alphaNumeric(10);
-      await addNewBillingGroup({ name: fakeGroupName });
+      const group = { name: fakeName(10) };
+      await addBillingGroup(group);
+
+      // Act
+      const { data } = await deleteGroup(group);
+
+      if (!data.data.deleteGroup) {
+        throw new Error(data.errors[0].message);
+      }
+
+      // Assert
       const expected = {
         data: {
           deleteGroup: 'success',
         },
       };
+      expect(data).toMatchObject(expected);
+    }, 10000);
+
+    it('When I add a project with STANDARD availability, the expect STANDARD to be returned. #mutation #addProject', async () => {
+      // Arrange
+      const project = { name: fakeName(10) };
 
       // Act
-      const { data } = await deleteBillingGroup({ name: fakeGroupName });
+      const { data } = await addProject(project);
 
-      if (!data.deleteBillingGroup) {
+      if (!data.data.addProject) {
         throw new Error(data.errors[0].message);
       }
 
       // Assert
-      expect(data).toMatchObject(expected);
-    }, 30000);
-
-    it('When I add a project with STANDARD availability, the expect STANDARD to be returned. #mutation #addProject', async () => {
-      // Arrange
-      const fakeProjectName = faker.random.alphaNumeric(10);
       const expected = {
         data: {
           addProject: {
-            name: fakeProjectName,
+            name: project.name,
             availability: 'STANDARD',
           },
         },
       };
-
-      // Act
-      const { data } = await addNewProject({ name: fakeProjectName });
-
-      if (!data.addNewProject) {
-        throw new Error(data.errors[0].message);
-      }
-
-      // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      // cleanup.projects.push({ name: fakeProjectName });
+      cleanup.projects.push(project);
     });
 
     it("When I add a project to a billing group, I should see that project returned in the billing groups' projects array. #mutation #addProjectToBillingGroup", async () => {
       // Arrange
-      const project = { name: faker.random.alphaNumeric(10) };
-      const group = { name: faker.random.alphaNumeric(10) };
+      const project = { name: fakeName(10) };
+      const group = { name: fakeName(10) };
 
-      await addNewProject(project);
-      await addNewBillingGroup(group);
+      await addProject(project);
+      await addBillingGroup(group);
 
       // Act
       const { data } = await addProjectToBillingGroup(project, group);
 
+      if (!data.data.addProjectToBillingGroup) {
+        throw new Error(data.errors[0].message);
+      }
+
+      // Assert
       const expected = {
         data: {
           addProjectToBillingGroup: {
@@ -517,32 +311,27 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
         },
       };
 
-      // sort the resulting group array otherwise the array order can throw off the test
+      // Sort the resulting group array otherwise the array order can throw off the test
       const nameSortFn = (a, b) => (a.name > b.name ? 1 : -1);
       data.data.addProjectToBillingGroup.groups.sort(nameSortFn);
       expected.data.addProjectToBillingGroup.groups.sort(nameSortFn);
 
-      if (!data.data.addProjectToBillingGroup) {
-        throw new Error(data.errors[0].message);
-      }
-
-      // Assert
       expect(data).toMatchObject(expected);
 
       // cleanup
-      // cleanup.groups.push(group);
-      // cleanup.projects.push(project);
-    }, 30000);
+      cleanup.groups.push(group);
+      cleanup.projects.push(project);
+    }, 10000);
 
-    it("When I update the billing group associated to a project, I should see that project in the new billing group's projects. #mutation #updateProjectBillingGroup", async () => {
+    it("When I update the billing group associated to a project, I should see that project in the new billing groups' projects. #mutation #updateProjectBillingGroup", async () => {
       // Arrange
-      const project = { name: faker.random.alphaNumeric(10) };
-      const group = { name: faker.random.alphaNumeric(10) };
-      const group2 = { name: faker.random.alphaNumeric(10) };
+      const project = { name: fakeName(10) };
+      const group = { name: fakeName(10) };
+      const group2 = { name: fakeName(10) };
 
-      await addNewProject(project);
-      await addNewBillingGroup(group);
-      await addNewBillingGroup(group2);
+      await addProject(project);
+      await addBillingGroup(group);
+      await addBillingGroup(group2);
       await addProjectToBillingGroup(project, group);
 
       // Act
@@ -556,18 +345,18 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       expect(data.data.updateProjectBillingGroup.groups).toContainEqual(group2);
 
       // cleanup
-      // cleanup.groups.push(group);
-      // cleanup.groups.push(group2);
-      // cleanup.projects.push(project);
+      cleanup.groups.push(group);
+      cleanup.groups.push(group2);
+      cleanup.projects.push(project);
     }, 120000);
 
-    it("When I remove a project from a billing group, I shouldn't see that project in the billing group's project list. #mutation #removeProjectFromBillingGroup", async () => {
+    it("When I remove a project from a billing group, I shouldn NOT see that project in the billing groups' project list. #mutation #removeProjectFromBillingGroup", async () => {
       // Arrange
-      const project = { name: faker.random.alphaNumeric(10) };
-      const group = { name: faker.random.alphaNumeric(10) };
+      const project = { name: fakeName(10) };
+      const group = { name: fakeName(10) };
 
-      await addNewProject(project);
-      await addNewBillingGroup(group);
+      await addProject(project);
+      await addBillingGroup(group);
       await addProjectToBillingGroup(project, group);
 
       // Act
@@ -579,7 +368,11 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
       // Assert
       expect(data.data.removeProjectFromBillingGroup.groups.length).toBe(1);
-    }, 30000);
+
+      // cleanup
+      cleanup.groups.push(group);
+      cleanup.projects.push(project);
+    }, 10000);
   });
 
   describe('BillingGroup Related Queries #queries', () => {
@@ -587,92 +380,181 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
     it('When I query for all projects, filtered by the "test" gitUrl, I expect the result to match the query signature. #query #allProjects', async () => {
       // Arrange
-      const { query, expected } = QUERIES.ALL_PROJECTS_FILTERED_BY_GIT_URL;
+      const project: Project = {
+        name: fakeName(10),
+        gitUrl: `http://github.com/amazeeio/${fakeName(5)}`,
+      };
+      await addProject(project);
 
       // Act
-      const response = await graphql(query);
-      const { data } = response ? response : null;
+      const { data } = await allProjects(null, project.gitUrl);
 
       // Assert
-      expect(data).toMatchObject(expected);
-    });
+      expect(data.data.allProjects.length).toBeGreaterThan(0);
+
+      // cleanup
+      cleanup.projects.push(project);
+    }, 10000);
 
     it('When I query for the "high-cotton" project by name, I expect the result to match the query signature. #query #projectByName', async () => {
       // Arrange
-      const { query, expected } = QUERIES.GET_PROJECT_FILTERED_BY_NAME;
-
       // Act
-      const response = await axiosInstance.post('/graphql', { query });
-      const { data } = response ? response : null;
+      const { data } = await projectByName('high-cotton');
 
       // Assert
+      const expected = {
+        data: {
+          projectByName: {
+            name: 'high-cotton',
+          },
+        },
+      };
       expect(data).toMatchObject(expected);
-    });
+    }, 10000);
 
     it('When I query for all groups filtered by billing type, I expect "High Cotton Billing Group" to be in the returned result. #query #allGroups', async () => {
       // Arrange
-      const { query, expected } = QUERIES.ALL_GROUPS_FILTERED_BY_BILLING_TYPE;
-
       // Act
-      const response = await axiosInstance.post('/graphql', { query });
-      const { data } = response ? response : null;
+      const { data } = await allGroups('billing');
+
+      const group = await data.data.allGroups.find(
+        group => group.name === 'High Cotton Billing Group',
+      );
+
       // Assert
-      expect(data.allGroups).toContainEqual(expected);
-    });
+      const expected = {
+        name: 'High Cotton Billing Group',
+        type: 'billing',
+        currency: 'USD',
+      };
+      expect(group).toEqual(expected);
+    }, 10000);
 
     it('When I query for all projects in a group, I expect the result to match the query signature. #query #allProjectsInGroup', async () => {
       // Arrange
-      const { query, expected, variables } = QUERIES.ALL_PROJECTS_IN_GROUP;
-      const data = { query, variables };
+      const project = { name: 'High Cotton Billing Group' };
 
       // Act
-      const response = await axiosInstance.post('/graphql', data);
-      const { data: responseData } = response ? response : null;
+      const { data } = await allProjectsInGroup(project);
 
       // Assert
-      expect(responseData).toMatchObject(expected);
+      const expected = {
+        data: {
+          allProjectsInGroup: [
+            {
+              name: 'high-cotton',
+            },
+          ],
+        },
+      };
+      expect(data).toMatchObject(expected);
     });
 
     it('When I query for the billing group cost, I expect the result to match the test data for hits, storage, and environment hours. #query #billingGroupCost', async () => {
       // Arrange
-      const { query, expected, variables } = QUERIES.BILLING_GROUP_COST;
-      const data = { query, variables };
+      const group = { name: 'High Cotton Billing Group' };
 
       // Act
-      const response = await axiosInstance.post('/graphql', data);
-      const { data: responseData } = response ? response : null;
+      const { data } = await billingGroupCost(group, '2019-08');
 
       // Assert
-      expect(responseData).toMatchObject(expected);
+      const expected = {
+        data: {
+          billingGroupCost: {
+            currency: 'USD',
+            availability: {
+              high: {
+                hitCost: 213.03,
+                storageCost: 1.4,
+                environmentCost: {
+                  prod: 206.68,
+                  dev: 0,
+                },
+                projects: [
+                  {
+                    id: '18',
+                    name: 'high-cotton',
+                    availability: 'HIGH',
+                    month: 7,
+                    year: 2019,
+                    hits: 343446,
+                    storageDays: 197,
+                    prodHours: 1488,
+                    devHours: 744,
+                    environments: {
+                      '0': {
+                        id: '3',
+                        name: 'Master',
+                        type: 'production',
+                        hits: {
+                          hits: 0,
+                        },
+                        storage: {
+                          bytesUsed: null,
+                          month: null,
+                        },
+                        hours: {
+                          month: '2019-08',
+                          hours: 0,
+                        },
+                      },
+                      '1': {
+                        id: '4',
+                        name: 'Staging',
+                        type: 'development',
+                        hits: {
+                          hits: 0,
+                        },
+                        storage: {
+                          bytesUsed: null,
+                          month: null,
+                        },
+                        hours: {
+                          month: '2019-08',
+                          hours: 0,
+                        },
+                      },
+                      '2': {
+                        id: '5',
+                        name: 'Development',
+                        type: 'development',
+                        hits: {
+                          hits: 0,
+                        },
+                        storage: {
+                          bytesUsed: null,
+                          month: null,
+                        },
+                        hours: {
+                          month: '2019-08',
+                          hours: 0,
+                        },
+                      },
+                      '3': {
+                        id: '6',
+                        name: 'PR-175',
+                        type: 'development',
+                        hits: {
+                          hits: 0,
+                        },
+                        storage: {
+                          bytesUsed: null,
+                          month: null,
+                        },
+                        hours: {
+                          month: '2019-08',
+                          hours: 0,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+      expect(data).toMatchObject(expected);
     });
   });
 });
-
-// QUERY TEMPLATE
-/*
-  it('', async () => {
-    // Arrange
-    const { query, expected } = QUERIES.
-
-    // Act
-    const response = await axiosInstance.post('/graphql', { query });
-    const { data } = response ? response : null;
-
-    // Assert
-    expect(data).toMatchObject(expected);
-  });
-  */
-
-// MUTATION TEMPLATE
-/*
-  it('', async () => {
-    // Arrange
-    const { query, variables, expected } = MUTATIONS.;
-    const data = { query, variables };
-    // Act
-    const response = await axiosInstance.post('/graphql', data);
-    const { data: responseData } = response ? response : null;
-    // Assert
-    expect(responseData).toMatchObject(expected);
-  });
-  */

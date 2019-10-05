@@ -70,6 +70,55 @@ mutation removeProjectFromBillingGroup($input: ProjectBillingGroupInput) {
 }
 `;
 
+export const ALL_PROJECTS = `
+query allProjects($createdAfter:String, $gitUrl:String, $order: ProjectOrderType) {
+  allProjects(createdAfter:$createdAfter, gitUrl:$gitUrl, order:$order){
+    name
+    availability
+    gitUrl
+  }
+}
+`;
+
+export const PROJECT_BY_NAME = `
+query projectByName($name:String!) {
+  projectByName(name:$name){
+    name
+  }
+}
+`;
+
+export const ALL_GROUPS = `
+query allGroups($name: String, $type: String) {
+  allGroups(name: $name, type: $type){
+    name
+    type
+    ...on BillingGroup {
+      currency
+    }
+  }
+}
+`;
+
+export const ALL_PROJECTS_IN_GROUP = `
+query allProjectsInGroup($input: GroupInput) {
+  allProjectsInGroup(input: $input){
+    name
+  }
+}
+`;
+
+export const DELETE_PROJECT = `
+mutation deleteProject($input:DeleteProjectInput!){
+  deleteProject(input:$input)
+}`;
+
+export const BILLING_GROUP_COST = `
+query billingGroupCost($input: GroupInput, $month: String) {
+  billingGroupCost(input: $input, month: $month)
+}
+`;
+
 export default {
   ADD_PROJECT,
   ADD_BILLING_GROUP,
@@ -78,4 +127,19 @@ export default {
   ADD_PROJECT_TO_BILLING_GROUP,
   UPDATE_PROJECT_BILLING_GROUP,
   REMOVE_PROJECT_FROM_BILLING_GROUP,
+  ALL_PROJECTS,
+  PROJECT_BY_NAME,
+  ALL_GROUPS,
+  ALL_PROJECTS_IN_GROUP,
+  DELETE_PROJECT,
+  BILLING_GROUP_COST,
 };
+
+// This is here because I wanted the above queries refactored out of the actual test file
+// TODO: MOVE THE ABOVE GRAPHQL QUERIES/MUTATIONS SOMEWHERE ELSE
+describe('Unnecessary Test', () => {
+  test('BECAUSE JEST JEST YELLS AT YOU IF YOU HAVE A *.test file without a test', () => {
+    const THE_MEANING_OF_LIFE = 42;
+    expect(THE_MEANING_OF_LIFE).toBe(42);
+  });
+});
