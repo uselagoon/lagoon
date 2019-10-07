@@ -4,4 +4,4 @@ Host *
   IdentityFile /home/.ssh/lagoon_cli.key
   IdentityFile /home/.ssh/key
   ServerAliveInterval 60
-  ServerAliveCountMax 1440 # max keepalive of 24h
+  ServerAliveCountMax 1440
