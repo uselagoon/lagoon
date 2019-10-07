@@ -246,8 +246,6 @@ objects:
           envFrom:
           - configMapRef:
               name: ${SERVICE_NAME}-config # harbor-core
-          - secretRef:
-              name: ${SERVICE_NAME} # harbor-core
           - configMapRef:
               name: "lagoon-env"
           env:
