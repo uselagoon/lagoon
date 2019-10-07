@@ -5,6 +5,6 @@ COPY nginx.conf /etc/nginx/nginx.conf
 
 USER root
 
-RUN chown root:root /etc/nginx/nginx.conf && chmod 744 /etc/nginx/nginx.conf
+RUN chown root:root /etc/nginx/nginx.conf && chmod 744 /etc/nginx/nginx.conf && chmod -R g+r /etc/nginx
 
 USER nginx
