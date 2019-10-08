@@ -70,7 +70,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   data:
-    config.yml: |+
+    config.yml: |
       version: 0.1
       log:
         level: error
@@ -115,7 +115,7 @@ objects:
             timeout: 3000ms
             threshold: 5
             backoff: 1s
-    ctl-config.yml: |+
+    ctl-config.yml: |
       ---
       protocol: "http"
       port: 8080

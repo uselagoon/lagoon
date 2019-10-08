@@ -50,7 +50,7 @@ objects:
   type: Opaque
   data:
     secretKey: "bm90LWEtc2VjdXJlLWtleQ==" # Used to generate the below TLS certs base64 encrypted `not-a-secure-key`
-    tls.crt: |+
+    tls.crt: |
       -----BEGIN CERTIFICATE-----
       MIIE0zCCArugAwIBAgIJAPY/OzLMeVq2MA0GCSqGSIb3DQEBCwUAMAAwHhcNMTkw
       NDE4MDIyNzM3WhcNMjkwNDE1MDIyNzM3WjAAMIICIjANBgkqhkiG9w0BAQEFAAOC
@@ -80,7 +80,7 @@ objects:
       jiljgc86q4cZtUTFrcwMidbk+8Q6+JbDVg7HV/+pnC+wnv197kwe
       -----END CERTIFICATE-----
     # Bogus cert, but should be fine to keep indefinitely.
-    tls.key: |+
+    tls.key: |
       -----BEGIN RSA PRIVATE KEY-----
       MIIJKQIBAAKCAgEA3xlUJs2b/aI2NLoy4OIQ+dn/yMb/O99iKDRyZKpH8rSOmS+o
       F9unmSAzL65XA/v6nY0OLI/dASDjkqkBpIdTGzogR5f8UiB6osuEY7V71XZdzWLr
@@ -142,7 +142,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   data:
-    app.conf: |+
+    app.conf: |
       appname = Harbor
       runmode = dev
       enablegzip = true

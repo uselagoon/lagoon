@@ -48,7 +48,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   data:
-    config.yml: |+
+    config.yml: |
       protocol: "http"
       port: 8080
       worker_pool:
