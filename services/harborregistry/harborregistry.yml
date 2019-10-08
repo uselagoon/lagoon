@@ -104,7 +104,7 @@ objects:
           issuer: harbor-token-issuer
           realm: "$EXT_ENDPOINT/service/token"
           rootcertbundle: /etc/registry/root.crt
-          service: harborregistry
+          service: harbor-registry
       validation:
         disabled: true
       notifications:
