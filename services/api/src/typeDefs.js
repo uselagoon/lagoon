@@ -94,10 +94,11 @@ const typeDefs = gql`
   }
 
   enum Currency {
-    USD
-    GBP
-    ZAR
     AUD
+    GBP
+    USD
+    CHF
+    ZAR
   }
 
   type File {

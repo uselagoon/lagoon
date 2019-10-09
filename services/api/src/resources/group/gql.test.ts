@@ -1,6 +1,16 @@
 export const ADD_PROJECT = `
 mutation addProject($input: AddProjectInput!) {
   addProject(input: $input){
+    id
+    name
+    availability
+  }
+}
+`;
+
+export const UPDATE_PROJECT = `
+mutation updateProject ($input: UpdateProjectInput!) {
+  updateProject(input:$input){
     name
     availability
   }

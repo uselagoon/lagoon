@@ -3,6 +3,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { random } from 'faker';
 import {
   ADD_PROJECT,
+  UPDATE_PROJECT,
   ADD_BILLING_GROUP,
   UPDATE_BILLING_GROUP,
   DELETE_BILLING_GROUP,
@@ -22,6 +23,7 @@ const exec = promisify(require('child_process').exec);
 const fakeName = random.alphaNumeric;
 
 type Project = {
+  id?: number;
   name?: string;
   gitUrl?: string;
   openshift?: number;
@@ -31,6 +33,7 @@ type Project = {
 };
 
 type Group = {
+  id?: number;
   name?: string;
   type?: string;
   currency?: string;
@@ -81,6 +84,7 @@ type DataResult = {
   data: {
     deleteGroup: { deleteGroup: 'success' };
     addProject: Project;
+    updateProject: Project; // <----- TODO:
     addBillingGroup: Group;
     updateBillingGroup: Group;
     allGroups: [Group];
@@ -88,6 +92,7 @@ type DataResult = {
     updateProjectBillingGroup: Project;
     removeProjectFromBillingGroup: Project;
     allProjects: [Project];
+    projectByName: Project; // <------ TODO:
   };
   errors?: any;
   // [key: string]: Project | Group;
@@ -104,6 +109,9 @@ const graphql: AxiosGraphQL = (query: String, variables?: any) =>
 
 const addProject = (project: Project) =>
   graphql(ADD_PROJECT, { input: { ...defaultProject, ...project } });
+
+const updateProject = (id: number, project: Project) =>
+  graphql(UPDATE_PROJECT, { input: { id, patch: { ...project } } });
 
 const addBillingGroup = (group: Group) =>
   graphql(ADD_BILLING_GROUP, { input: { ...defaultBillingGroup, ...group } });
@@ -277,6 +285,33 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
           addProject: {
             name: project.name,
             availability: 'STANDARD',
+          },
+        },
+      };
+      expect(data).toMatchObject(expected);
+
+      // cleanup
+      cleanup.projects.push(project);
+    });
+
+    it('When I update a project availability, I expect the updated availability to be returned. #mutation #updateProject #availability', async () => {
+      // Arrange
+      const project = { name: fakeName(10) };
+      const { data: addProjectData } = await addProject(project);
+
+      // Act
+      const { data } = await updateProject(addProjectData.data.addProject.id, { availability: "HIGH" });
+
+      if (!data.data.updateProject) {
+        throw new Error(data.errors[0].message);
+      }
+
+      // Assert
+      const expected = {
+        data: {
+          updateProject: {
+            name: project.name,
+            availability: 'HIGH',
           },
         },
       };
