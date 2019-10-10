@@ -518,7 +518,7 @@ const typeDefs = gql`
   }
 
   input DeleteSshKeyByIdInput {
-    name: Int!
+    id: Int!
   }
 
   input AddProjectInput {

@@ -162,18 +162,17 @@ const deleteSshKey = async (
 const deleteSshKeyById = async (
   root,
   { input: { id } },
-  { credentials: { role, userId }, sqlClient },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectSshKeyIdsByUserId(userId));
-    const sshKeyIds = R.map(R.prop('skid'), rows);
-    if (!R.contains(skid, sshKeyIds)) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  const perms = await query(sqlClient, Sql.selectUserIdsBySshKeyId(id));
+  const userIds = R.map(R.prop('usid'), perms);
+
+  await hasPermission('ssh_key', 'delete', {
+    users: userIds.join(','),
+  });
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKeyById(:id)');
-  await query(sqlClient, prep({ name }));
+  await query(sqlClient, prep({ id }));
 
   return 'success';
 };
