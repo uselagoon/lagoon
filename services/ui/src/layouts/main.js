@@ -1,11 +1,11 @@
-import Global from 'layouts/global'
+import GlobalStyles from 'layouts/GlobalStyles'
 import Header from 'components/Header'
 
 const MainLayout = ({ children }) => (
-  <Global>
+  <GlobalStyles>
     <Header />
     { children }
-  </Global>
+  </GlobalStyles>
 )
 
 export default MainLayout;

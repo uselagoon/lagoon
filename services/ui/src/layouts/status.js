@@ -1,9 +1,9 @@
-import Global from 'layouts/global';
+import GlobalStlyes from 'layouts/GlobalStyles';
 import Header from 'components/Header';
 import { bp } from 'lib/variables';
 
 const StatusLayout = ({ children }) => (
-  <Global>
+  <GlobalStlyes>
     <Header />
     <div className="content-wrapper">
       <div className="content">{children}</div>
@@ -24,7 +24,7 @@ const StatusLayout = ({ children }) => (
         }
       }
     `}</style>
-  </Global>
+  </GlobalStlyes>
 );
 
 export default StatusLayout;
