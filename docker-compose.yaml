@@ -9,7 +9,7 @@ services:
       - '3306:3306'
     labels:
       lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/api-db:v1-0-0
+      lagoon.image: amazeeiolagoon/api-db:v1-1-1
   cli:
     image: ${IMAGE_REPO:-lagoon}/cli
     volumes:
@@ -37,7 +37,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhook-handler:v1-0-0
+      lagoon.image: amazeeiolagoon/webhook-handler:v1-1-1
   broker:
     image: ${IMAGE_REPO:-lagoon}/broker-single
     ports:
@@ -46,7 +46,7 @@ services:
     labels:
       lagoon.type: rabbitmq-cluster
       lagoon.template: services/broker/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/broker:v1-0-0
+      lagoon.image: amazeeiolagoon/broker:v1-1-1
   openshiftremove:
     image: ${IMAGE_REPO:-lagoon}/openshiftremove
     command: yarn run dev
@@ -56,7 +56,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftremove/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftremove:v1-0-0
+      lagoon.image: amazeeiolagoon/openshiftremove:v1-1-1
   openshiftbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
@@ -68,7 +68,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploy/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:v1-0-0
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:v1-1-1
   openshiftbuilddeploymonitor:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
@@ -82,7 +82,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:v1-0-0
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:v1-1-1
   openshiftjobs:
     image: ${IMAGE_REPO:-lagoon}/openshiftjobs
     command: yarn run dev
@@ -96,7 +96,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftjobs/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftjobs:v1-0-0
+      lagoon.image: amazeeiolagoon/openshiftjobs:v1-1-1
   openshiftjobsmonitor:
     image: ${IMAGE_REPO:-lagoon}/openshiftjobsmonitor
     command: yarn run dev
@@ -106,7 +106,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftjobsmonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftjobsmonitor:v1-0-0
+      lagoon.image: amazeeiolagoon/openshiftjobsmonitor:v1-1-1
   openshiftmisc:
     image: ${IMAGE_REPO:-lagoon}/openshiftmisc
     command: yarn run dev
@@ -116,7 +116,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftmisc/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftmisc:v1-0-0
+      lagoon.image: amazeeiolagoon/openshiftmisc:v1-1-1
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -126,7 +126,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2rocketchat/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2rocketchat:v1-0-0
+      lagoon.image: amazeeiolagoon/logs2rocketchat:v1-1-1
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
@@ -136,7 +136,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2slack:v1-0-0
+      lagoon.image: amazeeiolagoon/logs2slack:v1-1-1
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
@@ -146,7 +146,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhooks2tasks:v1-0-0
+      lagoon.image: amazeeiolagoon/webhooks2tasks:v1-1-1
   rest2tasks:
     image: ${IMAGE_REPO:-lagoon}/rest2tasks
     command: yarn run dev
@@ -158,7 +158,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/rest2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rest2tasks:v1-0-0
+      lagoon.image: amazeeiolagoon/rest2tasks:v1-1-1
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
@@ -174,7 +174,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:v1-0-0
+      lagoon.image: amazeeiolagoon/api:v1-1-1
   ui:
     image: ${IMAGE_REPO:-lagoon}/ui
     command: yarn run dev
@@ -188,7 +188,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/ui/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ui:v1-0-0
+      lagoon.image: amazeeiolagoon/ui:v1-1-1
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
@@ -211,7 +211,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ssh:v1-0-0
+      lagoon.image: amazeeiolagoon/ssh:v1-1-1
   auth-server:
     image: ${IMAGE_REPO:-lagoon}/auth-server
     command: yarn run dev
@@ -226,7 +226,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-server:v1-0-0
+      lagoon.image: amazeeiolagoon/auth-server:v1-1-1
   keycloak:
     image: ${IMAGE_REPO:-lagoon}/keycloak
     user: '111111111'
@@ -237,14 +237,14 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/keycloak/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/keycloak:v1-0-0
+      lagoon.image: amazeeiolagoon/keycloak:v1-1-1
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
       - '3336:3306'
     labels:
       lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/keycloak-db:v1-0-0
+      lagoon.image: amazeeiolagoon/keycloak-db:v1-1-1
   tests:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -315,7 +315,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/drush-alias/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/drush-alias:v1-0-0
+      lagoon.image: amazeeiolagoon/drush-alias:v1-1-1
       version: '2'
   logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs-db
@@ -327,14 +327,14 @@ services:
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml
-      lagoon.image: amazeeiolagoon/logs-db:v1-0-0
+      lagoon.image: amazeeiolagoon/logs-db:v1-1-1
   logs-forwarder:
     image: ${IMAGE_REPO:-lagoon}/logs-forwarder
     user: '111111111'
     labels:
       lagoon.type: custom
       lagoon.template: services/logs-forwarder/.lagoon.single.yml
-      lagoon.image: amazeeiolagoon/logs-forwarder:v1-0-0
+      lagoon.image: amazeeiolagoon/logs-forwarder:v1-1-1
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui
     user: '111111111'
@@ -346,14 +346,14 @@ services:
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs-db-ui:v1-0-0
+      lagoon.image: amazeeiolagoon/logs-db-ui:v1-1-1
   logs-db-curator:
     image: ${IMAGE_REPO:-lagoon}/logs-db-curator
     user: '111111111'
     labels:
       lagoon.type: cli
       lagoon.template: services/logs-db-curator/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs-db-curator:v1-0-0
+      lagoon.image: amazeeiolagoon/logs-db-curator:v1-1-1
   logs2logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
@@ -369,7 +369,7 @@ services:
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs2logs-db:v1-0-0
+      lagoon.image: amazeeiolagoon/logs2logs-db:v1-1-1
   auto-idler:
     image: ${IMAGE_REPO:-lagoon}/auto-idler
     user: '111111111'
@@ -380,7 +380,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auto-idler/.lagoon.yml
-      lagoon.image: amazeeiolagoon/auto-idler:v1-0-0
+      lagoon.image: amazeeiolagoon/auto-idler:v1-1-1
   storage-calculator:
     image: ${IMAGE_REPO:-lagoon}/storage-calculator
     user: '111111111'
@@ -389,7 +389,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/storage-calculator/.lagoon.yml
-      lagoon.image: amazeeiolagoon/storage-calculator:v1-0-0
+      lagoon.image: amazeeiolagoon/storage-calculator:v1-1-1
   logs-collector:
     image: openshift/origin-logging-fluentd:v3.6.1
     labels:
