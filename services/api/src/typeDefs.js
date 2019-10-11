@@ -515,6 +515,10 @@ const typeDefs = gql`
     """
     projectByName(name: String!): Project
     """
+    Returns Group Object by a given name
+    """
+    groupByName(name: String!): Group
+    """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
