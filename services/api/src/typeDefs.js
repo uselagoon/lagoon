@@ -52,6 +52,7 @@ const typeDefs = gql`
     BUILD
     RUNTIME
     GLOBAL
+    DOCKER
   }
 
   enum TaskStatusType {

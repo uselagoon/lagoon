@@ -260,3 +260,20 @@ Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in th
 * `path` - the path to the yaml file
 * `command` - can either be `create` or `apply`, depending on if you like to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`
 * `ignore_error` - either `true` or `false` (default), this allows you to instruct the lagoon build script to ignore any errors that might are returned during running the command. (This can be useful to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist).
+
+#### `private-registries`
+
+The `private-registries` block allows you to define your own private docker registries to pull private images. If you don't specify a `url` in your yaml, it will default to using docker hub.
+
+The password can be defined as an environment variable name that is set in the Lagoon api [Environment Variables (Lagoon API) » Docker Registry Environment Variables (Lagoon API)](./environment_variables.md). If one is not set, it will default to the value defined in the `.lagoon.yml` file.
+
+```
+private-registries:
+  docker-hub:
+    username: dockerhubuser
+    password: DOCKER_HUB_PASSWORD
+  custom-registry:
+    username: myownregistryuser
+    password: MY_OWN_REGISTRY_PASSWORD
+    url: my.own.registry.com
+```

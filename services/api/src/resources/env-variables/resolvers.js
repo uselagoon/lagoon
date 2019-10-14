@@ -17,6 +17,7 @@ const envVarScopeToString = R.cond([
   [R.equals('GLOBAL'), R.toLower],
   [R.equals('BUILD'), R.toLower],
   [R.equals('RUNTIME'), R.toLower],
+  [R.equals('DOCKER'), R.toLower],
   [R.T, R.identity],
 ]);
 
