@@ -277,3 +277,20 @@ private-registries:
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
 ```
+
+To consume an image from a private registry, it needs to be used as the `FROM` in a `Dockerfile.<service>`
+
+```
+#Dockerfile.mariadb
+FROM dockerhubuser/my-private-database:tag
+```
+
+And the service updated to use build instead of image
+
+```
+services:
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+```
