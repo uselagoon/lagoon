@@ -59,3 +59,10 @@ environments:
         schedule: '01 0 * * * '
         command: /lagoon/cronjob.sh "/usr/bin/curator --config /curator/curator.yml /curator/actions.yml"
         service: logs-db-curator
+  develop:
+    types:
+      logs-db: elasticsearch-cluster
+    templates:
+      logs-db: services/logs-db/.lagoon.cluster.yml
+    rollouts:
+      logs-db: statefulset
