@@ -8,8 +8,7 @@ services:
     ports:
       - '3306:3306'
     labels:
-      lagoon.type: mariadb
-      lagoon.image: amazeeiolagoon/api-db:v1-1-2
+      lagoon.type: mariadb-single
   cli:
     image: ${IMAGE_REPO:-lagoon}/cli
     volumes:
@@ -243,7 +242,7 @@ services:
     ports:
       - '3336:3306'
     labels:
-      lagoon.type: mariadb
+      lagoon.type: mariadb-single
       lagoon.image: amazeeiolagoon/keycloak-db:v1-1-2
   tests:
     image: ${IMAGE_REPO:-lagoon}/tests
