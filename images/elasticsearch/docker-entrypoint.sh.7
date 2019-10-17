@@ -22,5 +22,4 @@ else
   sed -i 's/discovery.seed_hosts:.*//' /usr/share/elasticsearch/config/elasticsearch.yml
   sed -i 's/cluster.initial_master_nodes:.*//' /usr/share/elasticsearch/config/elasticsearch.yml
   echo "discovery.seed_hosts: ${K8S_SVC_NAME}" >> /usr/share/elasticsearch/config/elasticsearch.yml
-  echo "cluster.initial_master_nodes: ${K8S_SVC_NAME}-0" >> /usr/share/elasticsearch/config/elasticsearch.yml
 fi
