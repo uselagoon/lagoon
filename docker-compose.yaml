@@ -9,6 +9,7 @@ services:
       - '3306:3306'
     labels:
       lagoon.type: mariadb-single
+      lagoon.image: amazeeiolagoon/api-db:v1-1-3
   cli:
     image: ${IMAGE_REPO:-lagoon}/cli
     volumes:
