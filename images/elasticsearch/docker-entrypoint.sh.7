@@ -2,6 +2,8 @@
 
 set -eo pipefail
 
+ep /usr/share/elasticsearch/config/elasticsearch.yml
+
 if [ ! -z "$EXTRA_OPTS" ]; then
   echo -e "${EXTRA_OPTS}" >> /usr/share/elasticsearch/config/elasticsearch.yml
 fi
@@ -21,4 +23,5 @@ else
   sed -i 's/cluster.initial_master_nodes:.*//' /usr/share/elasticsearch/config/elasticsearch.yml
   echo "discovery.seed_hosts: ${K8S_SVC_NAME}" >> /usr/share/elasticsearch/config/elasticsearch.yml
   echo "cluster.initial_master_nodes: ${K8S_SVC_NAME}-0" >> /usr/share/elasticsearch/config/elasticsearch.yml
+  echo "cluster.routing.allocation.enable: all" >> /usr/share/elasticsearch/config/elasticsearch.yml
 fi
