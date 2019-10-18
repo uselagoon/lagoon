@@ -1,12 +1,12 @@
 # php-fpm Image
 
-amazee.io Alpine 7 Dockerfile with php-fpm installed, based on the official PHP Alpine images at (https://hub.docker.com/_/php/)
+Lagoon Alpine 7 Dockerfile with php-fpm installed, based on the official PHP Alpine images at (https://hub.docker.com/_/php/)
 
-This Dockerfile is intended to be used as an base for any php needs within amazee.io. This image itself does not create a webserver, rather just an php-fpm fastcgi listener. You maybe need to adapt the php-fpm pool config.
+This Dockerfile is intended to be used as an base for any php needs within Lagoon. This image itself does not create a webserver, rather just an php-fpm fastcgi listener. You maybe need to adapt the php-fpm pool config.
 
-## amazee.io & OpenShift adaptions
+## Lagoon & OpenShift adaptions
 
-This image is prepared to be used on amazee.io which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
 
 - Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
 - The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf` plus all files within `/usr/local/etc/php-fpm.d/` are parsed through [envplate](https://github.com/kreuzwerker/envplate) with an container-entrypoint.

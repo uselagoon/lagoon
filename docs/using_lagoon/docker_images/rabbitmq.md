@@ -1,7 +1,7 @@
 # rabbitmq Image
 Lagoon RabbitMQ Dockerfile with management plugin installed, based on the official rabbitmq:3-management image at [docker-hub](https://hub.docker.com/_/rabbitmq).
 
-This Dockerfile is intended to be used to setup a standalone RabbitMQ queue broker as well as base image to setup a cluster with HA queues support by default ([Mirrored queues](https://www.rabbitmq.com/ha.html)).   
+This Dockerfile is intended to be used to setup a standalone RabbitMQ queue broker as well as base image to setup a cluster with HA queues support by default ([Mirrored queues](https://www.rabbitmq.com/ha.html)).
 By default the RabbitMQ broker is started as single node. If you want to start a cluster, you need to use the [`rabbitmq-cluster`](https://github.com/amazeeio/lagoon/blob/master/images/rabbitmq-cluster/Dockerfile) Docker image, based on `rabbitmq` image plus the `rabbitmq_peer_discovery_k8s` plugin.
 
 ## Lagoon & OpenShift adaptions
@@ -11,16 +11,16 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 - The file `/etc/rabbitmq/definitions.json` is parsed through [envplate](https://github.com/kreuzwerker/envplate) with an container-entrypoint.
 
 ## Included RabbitMQ default schema (definitions.json)
-To enable the support for Mirrored Queues, at least one [`policy`](https://www.rabbitmq.com/parameters.html#policies) must exists.   
-Into the `definitions.json` schema file, are definied the minimal entities to let the container running: virtualhost (vhost), username and password to access management UI, permissions and policies.  
+To enable the support for Mirrored Queues, at least one [`policy`](https://www.rabbitmq.com/parameters.html#policies) must exists.
+Into the `definitions.json` schema file, are definied the minimal entities to let the container running: virtualhost (vhost), username and password to access management UI, permissions and policies.
 
-By default a policy called `lagoon-ha` is created at startup but it is not active because it doesn't match any queue's name pattern (see default [Environment Variables](#environment-variables)).  
+By default a policy called `lagoon-ha` is created at startup but it is not active because it doesn't match any queue's name pattern (see default [Environment Variables](#environment-variables)).
 ```
 "policies":[
         {"vhost":"${RABBITMQ_DEFAULT_VHOST}","name":"lagoon-ha","pattern":"${RABBITMQ_DEFAULT_HA_PATTERN}", "definition":{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic","ha-sync-batch-size":5}}
   ]
 ```
-By default, the `ha-mode` is set to `exactly` which controls the exact number of mirroring nodes for a queue (mirrors). The number of nodes, is controller by `ha-params`.   
+By default, the `ha-mode` is set to `exactly` which controls the exact number of mirroring nodes for a queue (mirrors). The number of nodes, is controller by `ha-params`.
 For further and custom configuration, please refer to [official RabbitMQ documentation](https://www.rabbitmq.com/ha.html).
 
 ## Environment Variables
