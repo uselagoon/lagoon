@@ -40,7 +40,7 @@ If you want to protect your site via Basic Authentication you can do this by def
 
 
 ## Environment Variables
-Environment variables are meant to do common behavior changes of php.
+Environment variables are meant to do common behavior changes of nginx container.
 
 | Environment Variable              | Default   | Description                                    |
 | --------------------------------- | --------- | ---------------------------------------------- |

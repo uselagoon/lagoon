@@ -18,7 +18,7 @@ The image ships a *default* vcl configuration file, optimized to work on Lagoon.
 Some options are configurable via environments variables (see [Environment Variables](#environment-variables)).
 
 ## Environment Variables
-Environment variables defined in RabbitMQ base image
+Environment variables defined in Varnish base image
 
 | Environment Variable              | Default               | Description                                    |
 | ---------------------------------      | ---------        | ---------------------------------------------- |
