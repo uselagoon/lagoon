@@ -1,9 +1,9 @@
 # Lagoon Remote
 
-## design flowchart
+## Design flowchart
 https://docs.google.com/drawings/d/1kMCJn3R2sUtiNYraG9mNce-Od8n_6oq-asoR6ISHn_8/edit
 
-## details
+## Details
 
 There are multiple portions to this repo;
 
@@ -26,7 +26,7 @@ configuration.
   oc apply -n lagoon -f supplemental/lagoon-svc-router-logs.yml  
   ~~~~
 
-  1. The openshift haproxy needs to be configured to forward to logstash.
+  2. The openshift haproxy needs to be configured to forward to logstash.
   Update `ROUTER_SYSLOG_ADDRESS` to `router-logs.lagoon.svc:5140`.
   ~~~~
   oc -n default edit dc/router
@@ -43,6 +43,7 @@ https://logs2logs-lagoon-master.ch.amazee.io .
 oc -n lagoon-remote-us edit configmap/lagoon-env
 ~~~~
 
+~~~~
 lagoon project
 
 apiVersion: v1
@@ -54,7 +55,9 @@ spec:
   externalName: logstash.lagoon-remote-us-master.svc.cluster.local
   sessionAffinity: None
   type: ExternalName
+~~~~
 
-
+~~~~
 oc -n default patch deploymentconfig/router \
 -p  '{"spec":{"template":{"spec":{"containers":{"env": {"name":"blah", "value":"Baz"}}}}}}''
+~~~~
