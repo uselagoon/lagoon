@@ -1,5 +1,6 @@
 # Solr Image
-Lagoon `Solr` image Dockerfile, based on the offical `solr:<version>-alpine` image.
+Lagoon `Solr` image Dockerfile, based on the offical `solr:<version>-alpine` images.  
+The supported versions of Solr on Lagoon are 5.5, 6.6 and 7.5.  
 
 This Dockerfile is intended to be used to setup a standalone Solr server with an initial core `mycore`.
 
@@ -11,11 +12,11 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 - `20-solr-datadir.sh` script to check if Solr config is compliant for Lagoon.
 
 ## Supported version
-Lagoon support Solr versions: `5.5`, `6.6`, `7.5`
+Lagoon supports Solr versions: `5.5`, `6.6`, `7.5`
 
 ## Solr Drupal image
-Lagoon `solr-drupal` Docker image, is a customized `solr` image to use within Drupal projects in Lagoon.
-The initial core is `drupal` and it's created and configured starting from a Drupal customized and optimized configuration.
+Lagoon `solr-drupal` Docker image, is a customized `solr` image to use within Drupal projects in Lagoon.  
+The initial core is `drupal` and it's created and configured starting from a Drupal customized and optimized configuration.  
 For each Solr version, there is a specific `solr-drupal:<version>` docker image.
 
 ## Environment Variables

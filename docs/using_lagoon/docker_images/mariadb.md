@@ -16,7 +16,7 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 - `pwgen` - utility to generate random and complex passwords
 
 ## Included `my.cnf` configuration file
-The image ships a *default* MariaDB configuration file, optimized to work on Lagoon.
+The image ships a *default* MariaDB configuration file, optimized to work on Lagoon.  
 Some options are configurable via environments variables (see [Environment Variables](#environment-variables)).
 
 ## Environment Variables
@@ -38,7 +38,7 @@ Environment variables defined in MariaDB base image
 | `BACKUPS_DIR`                          |  /var/lib/mysql/backup | Default path for databases' backups    |
 
 ## MariaDB Drupal image
-Lagoon `mariadb-drupal` Docker image, is a customized `mariadb` image to use within Drupal projects in Lagoon.
+Lagoon `mariadb-drupal` Docker image, is a customized `mariadb` image to use within Drupal projects in Lagoon.  
 It differs from `mariadb` only for initial database setup, made by some environment variables:
 
 | Environment Variable              | Default             | Description                                    |

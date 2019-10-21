@@ -1,5 +1,5 @@
 # Varnish Image
-Lagoon `Varnish` image Dockerfile, based on offical `varnish` package provided by `alpine:3.7` image.
+Lagoon `Varnish` image Dockerfile, based on offical `varnish` package provided by `alpine:3.7` image.  
 
 By default `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
 
@@ -14,7 +14,7 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 - `vbox-bodyaccess` - Varnish vmod that lets you access the request body https://github.com/aondio/libvmod-bodyaccess.
 
 ## Included `default.vcl` configuration file
-The image ships a *default* vcl configuration file, optimized to work on Lagoon.
+The image ships a *default* vcl configuration file, optimized to work on Lagoon.  
 Some options are configurable via environments variables (see [Environment Variables](#environment-variables)).
 
 ## Environment Variables
@@ -36,5 +36,5 @@ Environment variables defined in Varnish base image
 | `MANAGEMENT_LISTEN`                    |   6082           | Default management listening port    |
 
 ## Varnish Drupal image
-Lagoon `varnish-drupal` Docker image, is a customized `varnish` image to use within Drupal projects in Lagoon.
+Lagoon `varnish-drupal` Docker image, is a customized `varnish` image to use within Drupal projects in Lagoon.  
 It differs from `varnish` only for `default.vcl` file, optimized for Drupal on Lagoon.
