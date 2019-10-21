@@ -12,7 +12,7 @@ If you are an amazee.io customer, the webhook url is:
 
 1. Proceed to Settings -> Webhooks -> `Add webhook` in your repository
 2. The `Payload URL` is the route to the webhook-handler of your Lagoon instance
-3. Set `Content type` to `application\json`
+3. Set `Content type` to `application/json`
 ![Github Webhook Configuration 1](/images/gh_webhook_1.png)
 4. Choose which events will trigger your webhook. It is our suggestion that you send `push` and `Pull request` events, and then filter further in the Lagoon configuration of your project.
 ![Github Webhook Configuration 2](/images/gh_webhook_2.png)

@@ -222,9 +222,9 @@ const refreshToken = async keycloakAdminClient => {
       user = await UserModel.loadUserById(userId);
     }
 
-    // Add the user (with linked public key) to the default group as guest
+    // Add the user (with linked public key) to the default group as maintainer
     try {
-      await GroupModel.addUserToGroup(user, keycloakGroup, 'guest');
+      await GroupModel.addUserToGroup(user, keycloakGroup, 'maintainer');
     } catch (err) {
       logger.error(
         `Could not link user to default projet group for ${project.name}: ${

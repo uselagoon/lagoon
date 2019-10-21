@@ -1,7 +1,7 @@
 ---
 client:
   hosts:
-    - logs-db
+    - logs-db-service
   port: 9200
   http_auth: ${LOGSDB_HTTP_AUTH}
 

@@ -18,11 +18,11 @@ async function resticbackupSnapshotSync(webhook: WebhookRequestData, channelWrap
     const { name, bucket_name, backup_metrics, snapshots } = body;
 
     // Get environment and existing backups.
-    const environmentResult = await getEnvironmentBackups(bucket_name);
+    const environmentResult = await getEnvironmentBackups(name);
     const environment = R.prop('environmentByOpenshiftProjectName', environmentResult)
 
     if (!environment) {
-      logger.warn(`Skipping ${webhooktype}:${event}. Error: environment ${bucket_name} not found.`);
+      logger.warn(`Skipping ${webhooktype}:${event}. Error: environment ${name} not found.`);
       return;
     }
 
