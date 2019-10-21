@@ -1,4 +1,4 @@
-[The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut](/images/lagoon-logo.png)
+![The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut](/images/lagoon-logo.png)
 <br />
 
 # Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
