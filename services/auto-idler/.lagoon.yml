@@ -105,7 +105,7 @@ objects:
     test: false
     triggers:
     - type: ConfigChange
-- apiVersion: batch/v2alpha1
+- apiVersion: batch/v1beta1
   kind: CronJob
   metadata:
     name: cronjob-idle-clis
@@ -139,7 +139,7 @@ objects:
                       name: jwtsecret
                       key: JWTSECRET
             restartPolicy: OnFailure
-- apiVersion: batch/v2alpha1
+- apiVersion: batch/v1beta1
   kind: CronJob
   metadata:
     name: cronjob-idle-services
