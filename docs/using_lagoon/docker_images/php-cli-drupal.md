@@ -1,6 +1,9 @@
 # php-cli-drupal Image
 
-Based on Lagoon `php-cli` image, `cli-drupal` image has all tools for daily maintenance, plus `drush`.
+Based on Lagoon `php-cli` image, `cli-drupal` image has all tools for daily maintenance of a Drupal website:  
+- `drush`
+- `drupal console`
+- `drupal lancher` (which will fallback to drush 8 if there is no site installed drush found)
 
 ## Lagoon & OpenShift adaptions
 
