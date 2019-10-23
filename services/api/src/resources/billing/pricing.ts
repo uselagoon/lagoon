@@ -9,6 +9,8 @@ export const HIT_TIERS = [
 
 export const CURRENCIES = {
   USD: 'USD',
+  CHF: 'CHF',
+  EUR: 'EUR',
   GBP: 'GBP',
   ZAR: 'ZAR',
   AUD: 'AUD',
@@ -20,6 +22,42 @@ export const AVAILABILITY = {
 };
 
 export const USD = {
+  storagePerDay: 0.0333,
+  availability: {
+    STANDARD: {
+      hitCosts: [0.0, 0.00015, 0.00007, 0.00003],
+      hitBase: 69.0,
+      prodSitePerHour: 0.0417,
+      devSitePerHour: 0.0139,
+    },
+    HIGH: {
+      hitCosts: [0.0, 0.0003, 0.00014, 0.00006],
+      hitBase: 200.0,
+      prodSitePerHour: 0.1389,
+      devSitePerHour: 0.0417,
+    },
+  },
+};
+
+export const CHF = {
+  storagePerDay: 0.0333,
+  availability: {
+    STANDARD: {
+      hitCosts: [0.0, 0.00015, 0.00007, 0.00003],
+      hitBase: 69.0,
+      prodSitePerHour: 0.0417,
+      devSitePerHour: 0.0139,
+    },
+    HIGH: {
+      hitCosts: [0.0, 0.0003, 0.00014, 0.00006],
+      hitBase: 200.0,
+      prodSitePerHour: 0.1389,
+      devSitePerHour: 0.0417,
+    },
+  },
+};
+
+export const EUR = {
   storagePerDay: 0.0333,
   availability: {
     STANDARD: {
@@ -87,6 +125,8 @@ export const AUD = {
 
 export const CURRENCY_PRICING = {
   USD,
+  CHF,
+  EUR,
   GBP,
   ZAR,
   AUD,
