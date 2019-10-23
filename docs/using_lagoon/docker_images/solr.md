@@ -24,4 +24,4 @@ Environment variables defined in Solr base image
 
 | Environment Variable                   | Default         | Description                                    |
 | ---------------------------------      | ---------       | ---------------------------------------------- |
-| `SOLR_JAVA_MEM`                        |   512M          | Default Java HEAP size (ie. `OLR_JAVA_MEM="-Xms10g -Xmx10g"` ) |
+| `SOLR_JAVA_MEM`                        |   512M          | Default Java HEAP size (ie. `SOLR_JAVA_MEM="-Xms10g -Xmx10g"` ) |
