@@ -263,29 +263,27 @@ Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in th
 
 #### `private-registries`
 
-The `private-registries` block allows you to define your own private docker registries to pull private images. If you don't specify a `url` in your yaml, it will default to using docker hub.
+The `private-registries` block allows you to define your own private docker registries to pull private images. To use a private registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your yaml, it will default to using docker hub.
 
-The password can be defined as an environment variable name that is set in the Lagoon api [Environment Variables (Lagoon API) » Docker Registry Environment Variables (Lagoon API)](./environment_variables.md). If one is not set, it will default to the value defined in the `.lagoon.yml` file.
-
+There are 2 ways to define the password used for your registry user.
+* Create an environment variable in the Lagoon API [Environment Variables (Lagoon API) » Docker Registry Environment Variables (Lagoon API)](./environment_variables.md). The name of the variable you create can then be set as the password.
 ```
 private-registries:
-  docker-hub:
-    username: dockerhubuser
-    password: DOCKER_HUB_PASSWORD
   custom-registry:
     username: myownregistryuser
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
 ```
-
-To consume an image from a private registry, it needs to be used as the `FROM` in a `Dockerfile.<service>`
-
+* Define it directly in the `.lagoon.yml` file in plain text.
 ```
-#Dockerfile.mariadb
-FROM dockerhubuser/my-private-database:tag
+private-registries:
+  docker-hub:
+    username: dockerhubuser
+    password: MySecretPassword
 ```
 
-And the service updated to use build instead of image
+##### Consuming a private image
+To consume a private image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image
 
 ```
 services:
@@ -293,4 +291,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.mariadb
+```
+
+Once the `docker-compose.yml` file has been updated to use a build. You need to create the `Dockerfile.<service>` and then set your privar image as the `FROM <repo>/<name>:<tag>`
+
+```
+#Dockerfile.mariadb
+FROM dockerhubuser/my-private-database:tag
 ```
