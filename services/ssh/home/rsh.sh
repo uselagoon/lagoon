@@ -100,7 +100,7 @@ fi
 OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${OPENSHIFT_TOKEN} --server=${OPENSHIFT_CONSOLE} "
 
 # If there is a deploymentconfig for the given service
-if [[ "$OC get deploymentconfigs -l service=${SERVICE}" ]]; then
+if [[ $($OC get deploymentconfigs -l service=${SERVICE}) ]]; then
   DEPLOYMENTCONFIG=$($OC get deploymentconfigs -l service=${SERVICE} -o name)
   # If the deploymentconfig is scaled to 0, scale to 1
   if [[ $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
