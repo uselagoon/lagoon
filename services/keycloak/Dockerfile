@@ -4,8 +4,8 @@ FROM jboss/keycloak
 
 USER root
 
-RUN yum install -y nc \
-    && yum clean all \
+RUN microdnf install -y nc \
+    && microdnf clean all \
     && rm -rf /var/cache/yum
 
 LABEL maintainer="amazee.io"
