@@ -53,6 +53,7 @@ ENV NEWRELIC_VERSION=9.12.0.268
 RUN apk add --no-cache curl --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 
 RUN apk add --no-cache fcgi \
+        curl \
         ssmtp \
         libzip libzip-dev \
         # for gd
@@ -97,7 +98,7 @@ RUN apk add --no-cache fcgi \
     && apk del .phpize-deps \
     && echo "extension=yaml.so" > /usr/local/etc/php/conf.d/yaml.ini \
     && mkdir -p /tmp/newrelic && cd /tmp/newrelic \
-    && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
+    && curl -sSLO https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
     && gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
     && NR_INSTALL_USE_CP_NOT_LN=1 NR_INSTALL_SILENT=1 ./newrelic-install install \
     && sed -i -e "s/newrelic.appname = .*/newrelic.appname = \"\${LAGOON_PROJECT:-noproject}-\${LAGOON_GIT_SAFE_BRANCH:-nobranch}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
