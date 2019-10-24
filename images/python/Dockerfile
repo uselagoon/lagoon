@@ -31,11 +31,13 @@ RUN apk update \
       2*) \
         apk add --no-cache python-dev \
         py2-pip \
-        py2-virtualenv; \
+        py2-virtualenv \
+        curl; \
         ;; \
       3*) \
         apk add --no-cache python3-dev \
-        py3-virtualenv; \
+        py3-virtualenv \
+        curl; \
         ;; \
       esac
 

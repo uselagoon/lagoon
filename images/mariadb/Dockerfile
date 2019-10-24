@@ -41,6 +41,7 @@ RUN \
     net-tools \
     pwgen \
     tzdata \
+    curl \
     wget; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*; \
     rm -rf /var/lib/mysql/* /etc/mysql/; \

@@ -34,9 +34,9 @@ header="Content-Type: application/json"
 # Prepare the post (containing the user id) as a JSON object.
 data="{\"userId\": \"$USER_ID\"}"
 
-token=$(wget "$server/generate" --header "$header" --post-data "$data" -d -v -O - 2>&1)
+token=$(curl -s -L "$server/generate" --header "$header" --data "$data" -d -v 2>&1)
 echo "token='${token}'" >> /proc/1/fd/1
 
 # Submit the token request as a POST request with the JSON data
 # containing the key.
-echo $(wget "$server/generate" --header "$header" --post-data "$data" -q -O -)
+echo $(curl -s -L "$server/generate" --header "$header" --data "$data")

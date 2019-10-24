@@ -21,7 +21,7 @@ ssh_username=$1
 ssh_fingerprint=$2
 
 data="{\"fingerprint\": \"$ssh_fingerprint\"}"
-keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" -q --content-on-error -O -)
+keys=$(curl curl -s -L $api/keys --header "Content-Type: application/json" --header "$bearer" --data "$data" --show-error)
 
 options="no-port-forwarding,no-X11-forwarding,no-agent-forwarding"
 

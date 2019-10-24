@@ -31,4 +31,4 @@ data="{\"userId\": \"$USER_ID\", \"grant\": true}"
 
 # Submit the token request as a POST request with the JSON data
 # containing the key.
-echo $(wget "$server/generate" --header "$header" --post-data "$data" -q -O -)
+echo $(curl -s -L "$server/generate" --header "$header" --data "$data")

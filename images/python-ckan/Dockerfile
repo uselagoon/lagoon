@@ -12,7 +12,8 @@ RUN apk update \
     libmagic \
     libxslt-dev \
     libxml2-dev \
-    libffi-dev
+    libffi-dev \
+    curl
 
 RUN mkdir -p /app/ckan/default \
     && fix-permissions /app/ckan/default

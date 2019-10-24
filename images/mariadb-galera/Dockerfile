@@ -51,6 +51,7 @@ RUN apk add --no-cache --virtual .common-run-deps \
         rsync \
         sqlite-libs \
         tzdata \
+        curl \
         wget && \
     apk add --no-cache --virtual .galera-build-deps \
         asio-dev && \
