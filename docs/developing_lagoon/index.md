@@ -30,7 +30,7 @@ If you would still like to build and start all services, go ahead:
 2\. Build images
 
 ```sh
-make build
+make build -j$(getconf _NPROCESSORS_ONLN)
 ```
 
 3\. start Lagoon Services

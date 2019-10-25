@@ -170,7 +170,7 @@ build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
-build/varnish-persistent: build/commons images/varnish/Dockerfile
+build/varnish-persistent: build/varnish images/varnish/Dockerfile
 build/varnish-persistent-drupal: build/varnish images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
@@ -181,7 +181,7 @@ build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: images/athenapdf-service/Dockerfile
+build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
 
 
 #######
@@ -460,6 +460,8 @@ build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
+build/drush-alias: build/commons
+build/keycloak: build/commons
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
