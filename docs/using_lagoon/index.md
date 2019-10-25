@@ -43,7 +43,7 @@ Some Docker Images and Containers need additional customizations from the provid
 
 | Type           | Versions           | Dockerfile                                                                                                   |
 | ---------------| -------------------| -------------------------------------------------------------------------------------------------------------|
-| nginx | openresty/1.13.6.2 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
+| nginx | openresty/1.15.8.2 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
 | nginx-drupal | | [nginx-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) |
 | [php-fpm](docker_images/php-fpm.md) | 7.1, 7.2, 7.3 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
 | php-cli | 7.1, 7.2, 7.3 | [php/cli/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile) |
