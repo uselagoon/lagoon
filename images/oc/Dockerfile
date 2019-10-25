@@ -57,7 +57,7 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     mkdir /tmp/openshift-origin-client-tools && \
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar && \
-    curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest/linux/amd64/svcat && \
+    curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest-v0.2/linux/amd64/svcat && \
     chmod +x /usr/bin/svcat
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
