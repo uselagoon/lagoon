@@ -21,7 +21,3 @@ Environment variables defined in Redis base image. See also https://raw.githubus
 | `LOGLEVEL`                             |   notice 	    | Define the level of logs                             |
 | `DATABASES`                            |   -1 	        | Default number of databases created at startup       |
 | `MAXMEMORY`                            |   100mb 	        | Maximum amount of memory |
-
-## Redis persistent Image
-Lagoon `redis-persistent` Docker image, based on Lagoon `redis` image, is intended for use if the Redis service must be in `persistent` mode (ie. with a persistent volume where transactions will be saved).  
-It differs from `redis` only for `FLAVOR` environment variable.

@@ -34,7 +34,3 @@ Environment variables defined in Varnish base image
 | `CACHE_SIZE`                           |   100M           | Cache size   |
 | `LISTEN`                               |   8080           | Default backend server port    |
 | `MANAGEMENT_LISTEN`                    |   6082           | Default management listening port    |
-
-## Varnish Drupal image
-Lagoon `varnish-drupal` Docker image, is a customized `varnish` image to use within Drupal projects in Lagoon.  
-It differs from `varnish` only for `default.vcl` file, optimized for Drupal on Lagoon.
