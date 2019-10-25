@@ -163,7 +163,7 @@ objects:
     REGISTRY_URL: "http://harborregistry:5000"
     TOKEN_SERVICE_URL: "http://harbor-core/service/token"
     WITH_NOTARY: "false"
-    NOTARY_URL: ""
+    #NOTARY_URL: ""
     CFG_EXPIRATION: "5"
     ADMIRAL_URL: "NA"
     WITH_CLAIR: "true"
@@ -174,8 +174,8 @@ objects:
     CLAIR_DB_SSLMODE: "disable"
     CLAIR_URL: "http://harbor-clair:6060"
     REGISTRY_STORAGE_PROVIDER_NAME: "s3"
-    WITH_CHARTMUSEUM: "true"
-    CHART_REPOSITORY_URL: "http://harbor-chartmuseum"
+    WITH_CHARTMUSEUM: "false"
+    #CHART_REPOSITORY_URL: "http://harbor-chartmuseum"
     LOG_LEVEL: "error"
     CONFIG_PATH: "/etc/core/app.conf"
     SYNC_REGISTRY: "false"
@@ -187,7 +187,7 @@ objects:
     CLAIR_HEALTH_CHECK_SERVER_URL: "http://harbor-clair:6061"
     HTTP_PROXY: ""
     HTTPS_PROXY: ""
-    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harborregistry,127.0.0.1,localhost,.local,.internal"
+    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harbor-clair,harborregistry,127.0.0.1,localhost,.local,.internal"
 - apiVersion: v1
   kind: Service
   metadata:

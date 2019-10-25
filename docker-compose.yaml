@@ -396,12 +396,6 @@ services:
       lagoon.type: custom
       lagoon.template: services/logs-collector/.lagoon.yml
       lagoon.rollout: daemonset
-  harbor-chartmuseum:
-    image: ${IMAGE_REPO:-lagoon}/harbor-chartmuseum
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-chartmuseum/harbor-chartmuseum.yml
-      lagoon.image: amazeeiolagoon/harbor-chartmuseum:pr-1269
   harbor-clair:
     image: ${IMAGE_REPO:-lagoon}/harbor-clair
     labels:
