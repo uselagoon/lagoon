@@ -18,6 +18,10 @@ const withOptions = withProps(({ pageEnvironment }) => {
       value: 'DrushCacheClear'
     },
     {
+      label: 'Run Drupal cron [drush core-cron]',
+      value: 'DrushCron'
+    },
+    {
       label: 'Copy database between environments [drush sql-sync]',
       value: 'DrushSqlSync'
     },

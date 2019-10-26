@@ -985,6 +985,7 @@ const typeDefs = gql`
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
+    taskDrushCron(environment: Int!): Task
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!

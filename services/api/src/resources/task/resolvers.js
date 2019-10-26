@@ -347,6 +347,40 @@ const taskDrushCacheClear = async (
   return taskData;
 };
 
+const taskDrushCron = async (
+  root,
+  { environment: environmentId },
+  { sqlClient, hasPermission },
+) => {
+  await envValidators(sqlClient).environmentExists(environmentId);
+  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('task', `drushCron:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
+
+  const command =
+    'drupal_version=$(drush status drupal-version --format=list) && \
+  if [ ${drupal_version%.*.*} == "8" ]; then \
+    drush core:cron; \
+  elif [ ${drupal_version%.*} == "7" ]; then \
+    drush cc core-cron; \
+  else \
+    echo "could not execute cron for found Drupal Version ${drupal_version}"; \
+    exit 1; \
+  fi';
+
+  const taskData = await Helpers(sqlClient).addTask({
+    name: 'Drush core-cron',
+    environment: environmentId,
+    service: 'cli',
+    command,
+    execute: true,
+  });
+
+  return taskData;
+};
+
 const taskDrushSqlSync = async (
   root,
   {
@@ -451,6 +485,7 @@ const Resolvers /* : ResolversObj */ = {
   taskDrushArchiveDump,
   taskDrushSqlDump,
   taskDrushCacheClear,
+  taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
   taskSubscriber,
