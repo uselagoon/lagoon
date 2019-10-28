@@ -831,7 +831,7 @@ EOF
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Run Drush core-cron",
+  "name": "Run Drush cron",
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",

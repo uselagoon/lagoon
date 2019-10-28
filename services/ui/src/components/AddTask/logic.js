@@ -18,7 +18,7 @@ const withOptions = withProps(({ pageEnvironment }) => {
       value: 'DrushCacheClear'
     },
     {
-      label: 'Run Drupal cron [drush core-cron]',
+      label: 'Run Drupal cron [drush cron]',
       value: 'DrushCron'
     },
     {

@@ -360,7 +360,7 @@ const taskDrushCron = async (
   });
 
   const taskData = await Helpers(sqlClient).addTask({
-    name: 'Drush core-cron',
+    name: 'Drush cron',
     environment: environmentId,
     service: 'cli',
     command: `drush cron`,
