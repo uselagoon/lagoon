@@ -64,6 +64,7 @@ const DrushCron = ({
                 }
               })
             }
+            disabled={called}
           >
             Add task
           </button>
