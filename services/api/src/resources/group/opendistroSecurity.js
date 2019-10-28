@@ -18,13 +18,17 @@ const OpendistroSecurityOperations = (sqlClient /* : MariaSQL */, GroupModel) =>
 
     // Load project name by ID and add to groupProjectNames array
     for (const groupProjectID of groupProjectIDsArray) {
-      const project = await projectHelpers(sqlClient).getProjectById(groupProjectID);
-      const projectName = project.name;
-      // Within elasticsearch we don't support any special characters, except dashes, convert all special characters to them and make it lowercase
-      const openshiftProjectNameStyle = projectName
-        .toLocaleLowerCase()
-        .replace(/[^0-9a-z-]/g, '-');
-      groupProjectNames.push(openshiftProjectNameStyle);
+      try {
+        const project = await projectHelpers(sqlClient).getProjectById(groupProjectID);
+        const projectName = project.name;
+        // Within elasticsearch we don't support any special characters, except dashes, convert all special characters to them and make it lowercase
+        const openshiftProjectNameStyle = projectName
+          .toLocaleLowerCase()
+          .replace(/[^0-9a-z-]/g, '-');
+        groupProjectNames.push(openshiftProjectNameStyle);
+      } catch (error) {
+        logger.error(`Error processing project id '${groupProjectID}' of '${groupName}: ${error}`);
+      }
     }
 
     const groupProjectPermissions = {
@@ -58,7 +62,6 @@ const OpendistroSecurityOperations = (sqlClient /* : MariaSQL */, GroupModel) =>
       logger.debug(`${groupName}: Created OpendistroSecurity role "${groupName}"`);
     } catch (err) {
       logger.error(`OpendistroSecurity create role error: ${err}`);
-      throw new Error(`OpendistroSecurity create role error: ${err}`);
     }
 
     try {
@@ -67,7 +70,6 @@ const OpendistroSecurityOperations = (sqlClient /* : MariaSQL */, GroupModel) =>
       logger.debug(`${groupName}: Created Tentant "${groupName}"`);
     } catch (err) {
       logger.error(`Opendistro-Security create tenant error: ${err}`);
-      throw new Error(`Opendistro-Security create tenant error: ${err}`);
     }
 
     // Create index-patterns for this group

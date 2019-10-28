@@ -2,6 +2,8 @@
 
 set -eo pipefail
 
+ep /usr/share/elasticsearch/config/elasticsearch.yml
+
 if [ ! -z "$EXTRA_OPTS" ]; then
   echo -e "${EXTRA_OPTS}" >> /usr/share/elasticsearch/config/elasticsearch.yml
 fi

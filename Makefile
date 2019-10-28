@@ -840,7 +840,7 @@ endif
 .PHONY: push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
 	rm -rf build/oc-build-deploy-dind
-	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+	$(MAKE) minishift/login-docker-registry build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
 
 
 

@@ -248,7 +248,7 @@ objects:
           @type elasticsearch
           #with_transporter_log true
           #@log_level debug
-          host logs-db
+          host logs-db-service
           port 9200
           templates { "container-logs": "/fluentd/etc/container-logs.json"}
           template_overwrite true

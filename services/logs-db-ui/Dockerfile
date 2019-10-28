@@ -4,7 +4,7 @@ FROM ${IMAGE_REPO:-lagoon}/kibana:7.1
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
     LOGSDB_ADMIN_PASSWORD=admin \
-    ELASTICSEARCH_HOSTS=http://logs-db:9200 \
+    ELASTICSEARCH_HOSTS=http://logs-db-service:9200 \
     OPENDISTRO_SECURITY_OPENID_CLIENT_SECRET=xxxx \
     KEYCLOAK_ADMIN_USER=admin \
     KEYCLOAK_ADMIN_PASSWORD=admin
