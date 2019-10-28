@@ -34,7 +34,7 @@ export const projectsDataReducer = (projects: any, objKey: string) =>
 const uniformAvailabilityCheck = (projects: IProjectData[]) => {
   const found = projects.filter(
     (project, index, self) =>
-      self.findIndex(p => p.availability !== project.availability) !== -1
+      self.findIndex(p => p.availability !== project.availability) !== -1,
   );
   if (found.length !== 0) {
     throw 'Projects must have the same availability';
@@ -113,28 +113,24 @@ export const prodCost = ({ currency, projects }: IBillingGroup) => {
  *
  * @param {IBillingGroup} customer Customer billing object
  *
- * @return {Number} The production environment cost in the currency provided
+ * @return {Number} The development environment cost in the currency provided
  */
 export const devCost = ({ currency, projects }: IBillingGroup) => {
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];
-  const freeDevHours = hoursInMonth(projects[0].month) * 2;
 
-  const projectDevCosts = [];
-  projects.map(project => {
-    const { devHours, availability } = project;
-    // TODO: Once availability is set per environment change below
-    // const { devSitePerHour } = currencyPricingAvailability[availability];
-    const { devSitePerHour } = currencyPricingAvailability[
-      AVAILABILITY.STANDARD
-    ];
+  // Each project gets two free environments per month.
+  // hours in month x 2 x number of projects
+  const freeDevHours = hoursInMonth(projects[0].month) * 2 * projects.length;
 
-    const devToBill = Math.max(devHours - freeDevHours, 0);
-    projectDevCosts.push(devToBill * devSitePerHour);
-  });
-
-  return Number(projectDevCosts.reduce((acc, obj) => acc + obj, 0).toFixed(2));
+  // project.devHours is a sum of all development hours for each environment
+  const devHours = projects.reduce((acc, project) => acc + project.devHours, 0);
+  // TODO: Once availability is set per environment change below
+  // const { devSitePerHour } = currencyPricingAvailability[availability];
+  const { devSitePerHour } = currencyPricingAvailability[AVAILABILITY.STANDARD];
+  const devToBill = Math.max(devHours - freeDevHours, 0);
+  return Number((devToBill * devSitePerHour).toFixed(2));
 };
 
 // Hit Cost Helpers
@@ -150,7 +146,7 @@ const calculateHitBaseTiers = (hitBase, hitCosts) => {
       (
         (previousHitTier.max + 1 - previousHitTier.min) * hitCosts[i - 1] +
         hitBaseTiers[i - 1]
-      ).toFixed(2)
+      ).toFixed(2),
     );
     hitBaseTiers.push(hitBase);
   }
