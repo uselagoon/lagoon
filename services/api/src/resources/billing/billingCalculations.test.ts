@@ -1,3 +1,11 @@
+/*
+    To run all tests here, execute the following command:
+    $  yarn test billingCalculations --colors
+
+    To run a specific test, you can use the tags at the end of the description.
+    Example:
+    $ yarn test billingCalculations --colors -t "#USD #FC"
+*/
 import { CURRENCIES, AVAILABILITY } from './pricing';
 import {
   hitsCost,
@@ -6,7 +14,7 @@ import {
   devCost,
   hitTier,
   IBillingGroup,
-  projectsDataReducer
+  projectsDataReducer,
 } from './billingCalculations';
 
 interface ITestBillingGroup extends IBillingGroup {
@@ -31,7 +39,7 @@ const mockData: IMockDataType = {
         hits: 75.52,
         storage: 0,
         prod: 62.05,
-        dev: 0
+        dev: 0,
       },
       currency: CURRENCIES.USD,
       billingSoftware: 'xero',
@@ -44,7 +52,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 197,
           prodHours: 744,
-          devHours: 0
+          devHours: 0,
         },
         {
           name: 'v-web',
@@ -54,9 +62,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 0,
           prodHours: 744,
-          devHours: 744
-        }
-      ]
+          devHours: 744,
+        },
+      ],
     },
     {
       name: 'SV',
@@ -64,7 +72,7 @@ const mockData: IMockDataType = {
         hits: 1468.61,
         storage: 11.41,
         prod: 310.02,
-        dev: 0
+        dev: 0,
       },
       currency: CURRENCIES.USD,
       billingSoftware: 'xero',
@@ -77,7 +85,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 784.064378,
           prodHours: 744,
-          devHours: 1488
+          devHours: 1488,
         },
         {
           name: 's_m_com',
@@ -87,7 +95,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 23.725226,
           prodHours: 744,
-          devHours: 744
+          devHours: 744,
         },
         {
           name: 'd8beta_s_com',
@@ -97,9 +105,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 0,
           prodHours: 744,
-          devHours: 1488
-        }
-      ]
+          devHours: 1488,
+        },
+      ],
     },
     {
       name: 'FC',
@@ -107,7 +115,7 @@ const mockData: IMockDataType = {
         hits: 1265.95,
         storage: 22.18,
         prod: 206.68,
-        dev: 62.05
+        dev: 62.05,
       },
       currency: CURRENCIES.USD,
       billingSoftware: '',
@@ -120,7 +128,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 971.194088,
           prodHours: 744,
-          devHours: 5208
+          devHours: 5208,
         },
         {
           name: 'mil_fc_com',
@@ -130,9 +138,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.HIGH,
           storageDays: 4.80221,
           prodHours: 744,
-          devHours: 2232
-        }
-      ]
+          devHours: 2232,
+        },
+      ],
     },
     {
       name: 'Swiss - OYW',
@@ -140,7 +148,7 @@ const mockData: IMockDataType = {
         hits: 55.0,
         storage: 0,
         prod: 51.63,
-        dev: 25.6
+        dev: 25.6,
       },
       currency: CURRENCIES.GBP,
       billingSoftware: '',
@@ -153,7 +161,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 16.897876,
           prodHours: 744,
-          devHours: 1488
+          devHours: 1488,
         },
         {
           name: 'oyw',
@@ -163,9 +171,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 45.075144,
           prodHours: 744,
-          devHours: 3695
-        }
-      ]
+          devHours: 3695,
+        },
+      ],
     },
     {
       name: 'MIS',
@@ -173,7 +181,7 @@ const mockData: IMockDataType = {
         hits: 55,
         storage: 0,
         prod: 25.82,
-        dev: 0
+        dev: 0,
       },
       currency: CURRENCIES.GBP,
       billingSoftware: '',
@@ -186,9 +194,9 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 0,
           prodHours: 744,
-          devHours: 0
-        }
-      ]
+          devHours: 0,
+        },
+      ],
     },
     {
       name: 'AUS-COM',
@@ -196,7 +204,7 @@ const mockData: IMockDataType = {
         hits: 481.37,
         storage: 0,
         prod: 446.4,
-        dev: 203.58
+        dev: 203.58,
       },
       currency: CURRENCIES.AUD,
       billingSoftware: '',
@@ -209,7 +217,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 12,
           prodHours: 744,
-          devHours: 0
+          devHours: 0,
         },
         {
           name: 'cd',
@@ -219,7 +227,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 101,
           prodHours: 744,
-          devHours: 2_232
+          devHours: 2_232,
         },
         {
           name: 'zpor',
@@ -229,7 +237,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 25,
           prodHours: 744,
-          devHours: 649
+          devHours: 649,
         },
         {
           name: 'zpub',
@@ -239,7 +247,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 23,
           prodHours: 744,
-          devHours: 744
+          devHours: 744,
         },
         {
           name: 'apmpor',
@@ -249,7 +257,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 4,
           prodHours: 0,
-          devHours: 2_137
+          devHours: 2_137,
         },
         {
           name: 'zhi',
@@ -259,7 +267,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 3,
           prodHours: 744,
-          devHours: 0
+          devHours: 0,
         },
         {
           name: 'moa',
@@ -269,7 +277,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 121,
           prodHours: 744,
-          devHours: 382
+          devHours: 382,
         },
         {
           name: 'flt',
@@ -279,7 +287,7 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 74,
           prodHours: 744,
-          devHours: 1_999
+          devHours: 1_999,
         },
         {
           name: 'pha',
@@ -289,11 +297,11 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 164,
           prodHours: 744,
-          devHours: 744
-        }
-      ]
-    }
-  ]
+          devHours: 744,
+        },
+      ],
+    },
+  ],
 };
 
 // {
@@ -335,7 +343,7 @@ const monthNames = [
   'September',
   'October',
   'November',
-  'December'
+  'December',
 ];
 
 const hitsCostTestString = (group: ITestBillingGroup) =>

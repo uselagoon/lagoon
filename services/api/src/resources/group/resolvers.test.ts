@@ -1,3 +1,11 @@
+/*
+    To run all tests here, execute the following command:
+    $  yarn test resolvers --colors
+
+    To run a specific test, you can use the tags at the end of the description.
+    Example:
+    $ yarn test resolvers --colors -t "#updateProject #availability"
+*/
 import { promisify } from 'util';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { random } from 'faker';
@@ -84,7 +92,7 @@ type DataResult = {
   data: {
     deleteGroup: { deleteGroup: 'success' };
     addProject: Project;
-    updateProject: Project; // <----- TODO:
+    updateProject: Project;
     addBillingGroup: Group;
     updateBillingGroup: Group;
     allGroups: [Group];
@@ -92,7 +100,7 @@ type DataResult = {
     updateProjectBillingGroup: Project;
     removeProjectFromBillingGroup: Project;
     allProjects: [Project];
-    projectByName: Project; // <------ TODO:
+    projectByName: Project;
   };
   errors?: any;
   // [key: string]: Project | Group;
@@ -210,7 +218,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
       // cleanup
       cleanup.groups.push(group);
-    }, 10000);
+    }, 60000);
 
     it('When I update a billing group name, currency, and billing software, I expect the result to reflect this. #mutation #updateBillingGroup', async () => {
       // Arrange
@@ -245,7 +253,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
       // cleanup
       cleanup.groups.push(group);
-    }, 10000);
+    }, 60000);
 
     it('When I delete a billing group, I expect it to go away. #mutation #deleteGroup', async () => {
       // Arrange
@@ -266,7 +274,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
         },
       };
       expect(data).toMatchObject(expected);
-    }, 10000);
+    }, 60000);
 
     it('When I add a project with STANDARD availability, the expect STANDARD to be returned. #mutation #addProject', async () => {
       // Arrange
@@ -300,7 +308,9 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       const { data: addProjectData } = await addProject(project);
 
       // Act
-      const { data } = await updateProject(addProjectData.data.addProject.id, { availability: "HIGH" });
+      const { data } = await updateProject(addProjectData.data.addProject.id, {
+        availability: 'HIGH',
+      });
 
       if (!data.data.updateProject) {
         throw new Error(data.errors[0].message);
@@ -356,7 +366,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       // cleanup
       cleanup.groups.push(group);
       cleanup.projects.push(project);
-    }, 10000);
+    }, 60000);
 
     it("When I update the billing group associated to a project, I should see that project in the new billing groups' projects. #mutation #updateProjectBillingGroup", async () => {
       // Arrange
@@ -385,7 +395,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       cleanup.projects.push(project);
     }, 120000);
 
-    it("When I remove a project from a billing group, I shouldn NOT see that project in the billing groups' project list. #mutation #removeProjectFromBillingGroup", async () => {
+    it("When I remove a project from a billing group, I should NOT see that project in the billing groups' project list. #mutation #removeProjectFromBillingGroup", async () => {
       // Arrange
       const project = { name: fakeName(10) };
       const group = { name: fakeName(10) };
@@ -407,7 +417,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       // cleanup
       cleanup.groups.push(group);
       cleanup.projects.push(project);
-    }, 10000);
+    }, 60000);
   });
 
   describe('BillingGroup Related Queries #queries', () => {
@@ -429,7 +439,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
       // cleanup
       cleanup.projects.push(project);
-    }, 10000);
+    }, 60000);
 
     it('When I query for the "high-cotton" project by name, I expect the result to match the query signature. #query #projectByName', async () => {
       // Arrange
@@ -445,7 +455,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
         },
       };
       expect(data).toMatchObject(expected);
-    }, 10000);
+    }, 60000);
 
     it('When I query for all groups filtered by billing type, I expect "High Cotton Billing Group" to be in the returned result. #query #allGroups', async () => {
       // Arrange
@@ -463,7 +473,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
         currency: 'USD',
       };
       expect(group).toEqual(expected);
-    }, 10000);
+    }, 60000);
 
     it('When I query for all projects in a group, I expect the result to match the query signature. #query #allProjectsInGroup', async () => {
       // Arrange
