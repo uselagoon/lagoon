@@ -42,7 +42,6 @@ const uniformAvailabilityCheck = (projects: IProjectData[]) => {
 };
 
 // TODO: Add Comments
-// TODO: This can be unit tested with mock data easily.
 export const calculateProjectEnvironmentsTotalsToBill = environments => {
   const hits = environments.reduce(
     (acc, { type, hits: { total } }) =>

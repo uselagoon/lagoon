@@ -15,6 +15,7 @@ import {
   hitTier,
   IBillingGroup,
   projectsDataReducer,
+  calculateProjectEnvironmentsTotalsToBill,
 } from './billingCalculations';
 
 interface ITestBillingGroup extends IBillingGroup {
@@ -507,6 +508,20 @@ describe('Billing Calculations', () => {
         // Assert
         expect(cost).toBe(group.expectations.dev);
       });
+    });
+  });
+
+  describe('Calculate Totals from Environments #CalculateProjectEnvironmentTotals', () => {
+    it('When the above ProjectEnvironmentsMockData is provided, the totals should match the expected result.', () => {
+      // Arrange
+      const environments = {};
+      // Act
+      const result = calculateProjectEnvironmentsTotalsToBill(environments);
+      // Assert
+      const expected = {
+        hmmm: '',
+      };
+      expect(result).toMatchObject(expected);
     });
   });
 }); // End Billing Calculations
