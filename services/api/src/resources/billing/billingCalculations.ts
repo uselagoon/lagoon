@@ -41,6 +41,41 @@ const uniformAvailabilityCheck = (projects: IProjectData[]) => {
   }
 };
 
+// TODO: Add Comments
+// TODO: This can be unit tested with mock data easily.
+export const calculateProjectEnvironmentsTotalsToBill = environments => {
+  const hits = environments.reduce(
+    (acc, { type, hits: { total } }) =>
+      type !== 'production' ? acc + total : acc + 0,
+    0,
+  );
+
+  const storageDays = environments.reduce(
+    (acc, { storage: { bytesUsed } }) =>
+      bytesUsed === null ? acc + 0 : acc + parseInt(bytesUsed, 10),
+    0,
+  );
+
+  const devHours = environments.reduce(
+    (acc, { type, hours: { hours } }) =>
+      type !== 'production' ? acc + hours : acc + 0,
+    0,
+  );
+
+  const prodHours = environments.reduce(
+    (acc, { type, hours: { hours } }) =>
+      type === 'production' ? acc + hours : acc + 0,
+    0,
+  );
+
+  return {
+    hits,
+    storageDays: storageDays / 1000 / 1000,
+    prodHours,
+    devHours,
+  };
+};
+
 export const getProjectsCosts = (availability, currency, projects) => {
   const billingGroup = { projects, currency };
   const hitCost = hitsCost(billingGroup);
