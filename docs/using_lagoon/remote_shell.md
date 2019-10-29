@@ -35,19 +35,19 @@ Will connect you to the Project `drupal-example` on the environment `master`.
 By default the remote shell will try to connect you to the container defined with the type `cli`. If you like to connect to another pod/service you can define it via
 
 ```
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh service=[SERVICE-NAME]
+ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
 ```
 
 If your Pod/Service contains multiple containers, Lagoon will connect you to the first defined container. Or you can define the specific container via
 
 ```
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh service=[SERVICE-NAME] container=[CONTAINER-NAME]
+ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
 ```
 
 As example to connect to the `php` container within the `nginx` pod:
 
 ```
-ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh service=nginx container=php
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud service=nginx container=php
 ```
 
 ### Execute Commands
