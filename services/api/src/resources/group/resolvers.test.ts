@@ -509,30 +509,30 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
             currency: 'USD',
             availability: {
               high: {
-                hitCost: 213.03,
-                storageCost: 1.4,
+                hitCost: 200,
+                storageCost: 0,
                 environmentCost: {
-                  prod: 206.68,
-                  dev: 0,
+                  environmentCost: {
+                    prod: 0,
+                    dev: 0,
+                  },
                 },
                 projects: [
                   {
                     id: '18',
                     name: 'high-cotton',
                     availability: 'HIGH',
-                    month: 7,
-                    year: 2019,
-                    hits: 343446,
-                    storageDays: 197,
-                    prodHours: 1488,
-                    devHours: 744,
-                    environments: {
-                      '0': {
+                    hits: 0,
+                    storageDays: 0,
+                    prodHours: 0,
+                    devHours: 0,
+                    environments: [
+                      {
                         id: '3',
                         name: 'Master',
                         type: 'production',
                         hits: {
-                          hits: 0,
+                          total: 0,
                         },
                         storage: {
                           bytesUsed: null,
@@ -543,12 +543,12 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
                           hours: 0,
                         },
                       },
-                      '1': {
+                      {
                         id: '4',
                         name: 'Staging',
                         type: 'development',
                         hits: {
-                          hits: 0,
+                          total: 0,
                         },
                         storage: {
                           bytesUsed: null,
@@ -559,12 +559,12 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
                           hours: 0,
                         },
                       },
-                      '2': {
+                      {
                         id: '5',
                         name: 'Development',
                         type: 'development',
                         hits: {
-                          hits: 0,
+                          total: 0,
                         },
                         storage: {
                           bytesUsed: null,
@@ -575,12 +575,12 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
                           hours: 0,
                         },
                       },
-                      '3': {
+                      {
                         id: '6',
                         name: 'PR-175',
                         type: 'development',
                         hits: {
-                          hits: 0,
+                          total: 0,
                         },
                         storage: {
                           bytesUsed: null,
@@ -591,7 +591,9 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
                           hours: 0,
                         },
                       },
-                    },
+                    ],
+                    month: '08',
+                    year: '2019',
                   },
                 ],
               },
