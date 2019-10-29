@@ -41,6 +41,24 @@ const uniformAvailabilityCheck = (projects: IProjectData[]) => {
   }
 };
 
+export const getProjectsCosts = (availability, currency, projects) => {
+  const billingGroup = { projects, currency };
+  const hitCost = hitsCost(billingGroup);
+  const storage = storageCost(billingGroup);
+  const prod = prodCost(billingGroup);
+  const dev = devCost(billingGroup);
+
+  const environmentCost = { environmentCost: { prod, dev } };
+  return {
+    [availability]: {
+      hitCost,
+      storageCost: storage,
+      environmentCost,
+      projects,
+    },
+  };
+};
+
 /**
  * Calculates the hit costs.
  *
