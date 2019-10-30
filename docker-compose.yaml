@@ -349,7 +349,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/logs-db
     user: '111111111'
     environment:
-      KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+      KEYCLOAK_URL: http://keycloak:8080
     ports:
       - '9200:9200'
     networks:
@@ -373,7 +373,7 @@ services:
     ports:
       - '5601:5601'
     environment:
-      KEYCLOAK_URL: http://docker.for.mac.localhost:8088
+      KEYCLOAK_URL: http://${KEYCLOAK_URL:-docker.for.mac.localhost:8088}
       LOGSDB_UI_URL: http://0.0.0.0:5601
     labels:
       lagoon.type: kibana
