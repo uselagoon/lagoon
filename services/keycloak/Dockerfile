@@ -4,7 +4,7 @@ FROM jboss/keycloak
 
 USER root
 
-RUN microdnf install -y nc \
+RUN microdnf install -y nc python2 \
     && microdnf clean all \
     && rm -rf /var/cache/yum
 
