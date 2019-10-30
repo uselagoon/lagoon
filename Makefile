@@ -745,7 +745,11 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
+ifeq ($(ARCH), Darwin)
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+else
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"
+endif
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
