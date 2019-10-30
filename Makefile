@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
 
-ARCH := $(shell uname)
+ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Name of the Branch we are currently in
 BRANCH_NAME :=
@@ -747,7 +747,7 @@ minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
-ifeq ($(ARCH), Darwin)
+ifeq ($(ARCH), darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
 	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
@@ -825,14 +825,16 @@ minishift/stop: local-dev/minishift/minishift
 minishift/clean: minishift/stop
 	rm -rf ./local-dev/minishift/minishift
 
-# Downloads the correct oc cli client based on if we are on OS X or Linux
+# Symlink the installed minishift client if the correct version is already
+# installed, otherwise downloads it.
 local-dev/minishift/minishift:
-	$(info downloading minishift version $(MINISHIFT_VERSION))
 	@mkdir -p ./local-dev/minishift
-ifeq ($(ARCH), Darwin)
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
+ifeq ($(MINISHIFT_VERSION), $(shell minishift version | sed -E 's/^minishift v([0-9.]+).*/\1/'))
+	$(info linking local minishift version $(MINISHIFT_VERSION))
+	ln -s $(shell command -v minishift) ./local-dev/minishift/minishift
 else
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
+	$(info downloading minishift version $(MINISHIFT_VERSION) for $(ARCH))
+	curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-$(ARCH)-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
 
 .PHONY: push-oc-build-deploy-dind
