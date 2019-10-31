@@ -102,7 +102,7 @@ objects:
       auth:
         token:
           issuer: harbor-token-issuer
-          realm: "$EXT_ENDPOINT/service/token"
+          realm: "$HARBOR_NGINX_ENDPOINT/service/token"
           rootcertbundle: /etc/registry/root.crt
           service: harbor-registry
       validation:
