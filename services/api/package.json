@@ -2,7 +2,7 @@
   "name": "api",
   "version": "3.0.0",
   "description": "Lagoon GraphQL API",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "engines": {
     "node": ">=10.16.3"
   },
@@ -13,7 +13,7 @@
     "test:watch": "jest --forceExit --detectOpenHandles --maxWorkers=10 --watch",
     "build": "tsc --pretty",
     "start": "flow-node -r dotenv-extended/config dist",
-    "dev": "NODE_ENV=development nodemon --ignore '*.test.ts' --watch src -e js,json,ts --exec 'tsc && flow-node --inspect=0.0.0.0:9229 -r dotenv-extended/config' -- dist",
+    "dev": "NODE_ENV=development nodemon --ignore '*.test.ts' --watch src -e js,json,ts --exec 'tsc --sourceMap && flow-node --inspect=0.0.0.0:9229 -r dotenv-extended/config' -- dist",
     "sync:gitlab:users": "flow-node dist/gitlab-sync/users",
     "sync:gitlab:groups": "flow-node dist/gitlab-sync/groups",
     "sync:gitlab:projects": "flow-node dist/gitlab-sync/projects",
@@ -61,12 +61,13 @@
     "winston": "^2.4.0"
   },
   "devDependencies": {
-    "faker": "^4.1.0",
-    "axios": "^0.19.0",
     "@types/axios": "^0.14.0",
     "@types/faker": "^4.1.5",
     "@types/jest": "^24.0.18",
+    "@types/mariasql": "./services/api/types/mariasql",
     "@types/ramda": "types/npm-ramda#dist",
+    "axios": "^0.19.0",
+    "faker": "^4.1.0",
     "jest": "^24.9.0",
     "nodemon": "^1.12.1",
     "prettier": "^1.14.2",
