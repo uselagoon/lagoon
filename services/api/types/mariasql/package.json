@@ -1,0 +1,19 @@
+{
+    "name": "@types/mariasql",
+    "version": "0.2.6",
+    "description": "TypeScript definitions for mariasql",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "MichaelBennett",
+            "url": "https://github.com/bennett000",
+            "githubUsername": "bennett000"
+        },
+        {
+            "name": "JustinLWinter",
+            "url": "https://github.com/justinlevi",
+            "githubUsername": "justinlevi"
+        }
+    ],
+    "typeScriptVersion": "2.0"
+}
