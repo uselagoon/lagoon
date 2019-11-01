@@ -33,6 +33,10 @@ const Sql /* : SqlObj */ = {
       .where('name', name)
       .select('id')
       .toString(),
+  selectProjectsByIds: (projectIds /* : Array<number> */) =>
+    knex('project as p')
+      .whereIn('p.id', projectIds)
+      .toString(),
   // Select projects by project ids where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
   selectProjectsWithoutDirectUserAccess: (
     projectIds /* : Array<number> */,
