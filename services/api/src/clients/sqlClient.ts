@@ -1,10 +1,9 @@
-// @flow
+import * as Client from 'mariasql';
 
-const MariaSQL = require('mariasql');
-const logger = require('../logger');
+import * as logger from '../logger';
 
-const getSqlClient = () => {
-  const sqlClient = new MariaSQL({
+export const getSqlClient = () => {
+  const sqlClient = new Client({
     host: 'api-db',
     port: 3306,
     user: 'api',
@@ -13,7 +12,7 @@ const getSqlClient = () => {
   });
 
   sqlClient.on('error', error => {
-    logger.error(error);
+    logger.error(error.message);
   });
 
   return sqlClient;
