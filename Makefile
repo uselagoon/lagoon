@@ -69,7 +69,8 @@ MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
-MINIKUBE_VERSION := 0.34.1
+MINIKUBE_VERSION := 1.5.2
+KUBERNETES_VERSION := v1.16.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := 6
 MINIKUBE_MEMORY := 2048
@@ -902,7 +903,7 @@ endif
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minikube: local-dev/minikube
 	$(info starting minikube with name $(MINIKUBE_PROFILE))
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) start --cpus $(MINIKUBE_CPUS) --memory $(MINIKUBE_MEMORY) --disk-size $(MINIKUBE_DISK_SIZE) --vm-driver virtualbox --kubernetes-version="v1.13.4"
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) start --cpus $(MINIKUBE_CPUS) --memory $(MINIKUBE_MEMORY) --disk-size $(MINIKUBE_DISK_SIZE) --vm-driver virtualbox --kubernetes-version="$(KUBERNETES_VERSION)"
 # ifeq ($(ARCH), Darwin)
 # 	@MINIKUBE_MACHINE_IP=$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip); \
 # 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$MINIKUBE_MACHINE_IP'"; \
