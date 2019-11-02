@@ -27,19 +27,19 @@ export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
   name?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   project?: Number; // int(11) DEFAULT NULL,
-  deploy_type?: string; // enum('branch','pullrequest','promote') COLLATE utf8_bin DEFAULT NULL,
-  environment_type?: string; //  enum('production','development') COLLATE utf8_bin NOT NULL,
-  openshift_project_name?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  deployType?: string; // enum('branch','pullrequest','promote') COLLATE utf8_bin DEFAULT NULL,
+  environmentType?: string; //  enum('production','development') COLLATE utf8_bin NOT NULL,
+  openshiftProjectName?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   updated?: string; // timestamp NOT NULL DEFAULT current_timestamp(),
   created?: string; //  timestamp NOT NULL DEFAULT current_timestamp(),
   deleted?: string; // timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   route?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   routes?: string; // text COLLATE utf8_bin DEFAULT NULL,
-  monitoring_urls?: string; // text COLLATE utf8_bin DEFAULT NULL,
-  auto_idle?: Boolean; // int(1) NOT NULL DEFAULT 1,
-  deploy_base_ref?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
-  deploy_head_ref?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
-  deploy_title?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
+  monitoringUrls?: string; // text COLLATE utf8_bin DEFAULT NULL,
+  autoIdle?: Boolean; // int(1) NOT NULL DEFAULT 1,
+  deployBaseRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  deployHeadRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  deployTitle?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
 }
 
 interface EnvironmentData {
@@ -60,24 +60,36 @@ type projectEnvWithDataType = (
 export const projectEnvironmentsWithData: projectEnvWithDataType = async (
   pid,
   month,
-  sqlClient = getSqlClient(),
+  sqlClient,
 ) => {
   const environments = await projectEnvironments(pid, null, true, sqlClient);
-  const data = (await Promise.all(
-    environments.map(
-      async ({ id: eid, openshift_project_name: openshift }) => ({
-        eid,
-        data: { ...(await environmentData(eid, month, openshift)) },
-      }),
-    ),
-  )).reduce((obj, item) => ({ ...obj, [item.eid]: { ...item.data } }), {});
 
-  return environments.map(env => ({
-    id: env.id,
-    name: env.name,
-    type: env.environment_type,
-    ...data[env.id],
-  }));
+  const environmentDataFn = async ({
+    id: eid,
+    environmentType: type,
+    openshiftProjectName: openshift,
+  }: Environment) => ({
+    eid,
+    type,
+    data: {
+      ...(await environmentData(eid, month, openshift, sqlClient)),
+    },
+  });
+  const data = await Promise.all(environments.map(environmentDataFn));
+
+  const environmentDataReducerFn = (obj, item) => ({
+    ...obj,
+    [item.eid]: { ...item.data },
+  });
+  const keyedData = data.reduce(environmentDataReducerFn, {});
+
+  const environmentsMapFn = ({ id, name, environmentType: type }) => ({
+    id,
+    name,
+    type,
+    ...keyedData[id],
+  });
+  return environments.map(environmentsMapFn);
 };
 
 /**
@@ -93,7 +105,7 @@ export const projectEnvironments = async (
   pid,
   type,
   includeDeleted = false,
-  sqlClient = getSqlClient(),
+  sqlClient,
 ) => {
   const prep = prepare(
     sqlClient,
@@ -130,6 +142,7 @@ export const environmentData = async (
   eid: number,
   month: string,
   openshiftProjectName: string,
+  sqlClient: MariaClient,
 ) => {
   const hits = await environmentHitsMonthByEnvironmentId(
     openshiftProjectName,
@@ -139,10 +152,13 @@ export const environmentData = async (
   const storage = await environmentStorageMonthByEnvironmentId(
     eid,
     month,
+    sqlClient,
   ).catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
-  const hours = await environmentHoursMonthByEnvironmentId(eid, month).catch(
-    errorCatcherFn('getHours', { hours: 0 }),
-  );
+  const hours = await environmentHoursMonthByEnvironmentId(
+    eid,
+    month,
+    sqlClient,
+  ).catch(errorCatcherFn('getHours', { hours: 0 }));
 
   return { hits, storage, hours };
 };
@@ -150,7 +166,7 @@ export const environmentData = async (
 export const environmentStorageMonthByEnvironmentId = async (
   eid,
   month,
-  sqlClient = getSqlClient(),
+  sqlClient,
 ) => {
   const str = `
     SELECT
@@ -171,7 +187,7 @@ export const environmentStorageMonthByEnvironmentId = async (
 export const environmentHoursMonthByEnvironmentId = async (
   eid: number,
   yearMonth: string,
-  sqlClient = getSqlClient(),
+  sqlClient,
 ) => {
   const str = `SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid`;
   const prep = prepare(sqlClient, str);
