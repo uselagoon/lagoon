@@ -1,19 +1,15 @@
 import * as R from 'ramda';
-import { asyncPipe } from '@lagoon/commons/src/util';
-import pickNonNil from '../util/pickNonNil';
-import * as logger from '../logger';
-
-import { User } from './user';
 import {
   loadGroupById,
   loadGroupByName,
   getProjectsFromGroupAndSubgroups,
+  Group,
 } from './group';
 
 import { query } from '../util/db';
 import { getSqlClient } from '../clients/sqlClient';
 import {
-  selectProject,
+  selectProject as selectProjectById,
   selectProjectByName,
   selectProjectsByIds,
 } from '../resources/project/sql';
@@ -43,50 +39,56 @@ export interface Project {
 
 /*
 export interface ProjectModel {
-  loadProjectById: (id: Number) => Promise<Project>;
-  loadProjectByName: (name: String) => Promise<Project>;
+  ProjectById: (id: Number) => Promise<Project>;
+  ProjectByName: (name: String) => Promise<Project>;
 
-  loadAllProjectsByGroupId: () => Promise<[Project]>;
-  loadAllProjectsByGroupName: () => Promise<[Project]>;
+  AllProjectsByGroupId: () => Promise<[Project]>;
+  AllProjectsByGroupName: () => Promise<[Project]>;
 }
 */
 
-export const loadProjectById = async (
-  id: Number,
-  sqlClient = getSqlClient(),
-) => {
-  const rows = await query(sqlClient, selectProject(id));
+export const projectById = async (id: Number, sqlClient = getSqlClient()) => {
+  const rows = await query(sqlClient, selectProjectById(id));
   return R.prop(0, rows);
 };
 
-export const loadProjectByName = async (
+export const projectByName = async (
   name: string,
   sqlClient = getSqlClient(),
 ) => {
-  const projectFromName = asyncPipe(R.prop('name'), async name => {
-    const rows = await query(sqlClient, selectProjectByName(name));
-    const project = R.prop(0, rows);
+  const rows = await query(sqlClient, selectProjectByName(name));
+  const project = R.prop(0, rows);
 
-    if (!project) {
-      throw new Error('Unauthorized');
-    }
+  if (!project) {
+    throw new Error('Unauthorized');
+  }
 
-    return project;
-  });
+  return project;
 };
 
-export const loadAllProjectsByGroupId = async (id: Number) => {};
+const projectsByGroup = async (group: Group, sqlClient = getSqlClient()) => {
+  const projectIds = await getProjectsFromGroupAndSubgroups(group);
+  return query(sqlClient, selectProjectsByIds(projectIds) as string);
+};
 
-export const loadAllProjectsByGroupName = async (
+export const projectsByGroupId = async (
+  id: string,
+  sqlClient = getSqlClient(),
+) => {
+  const group = await loadGroupById(id);
+  return projectsByGroup(group, sqlClient);
+};
+
+export const projectsByGroupName = async (
   name: string,
   sqlClient = getSqlClient(),
 ) => {
   const group = await loadGroupByName(name);
-  const projectIds = await getProjectsFromGroupAndSubgroups(group);
-  const projects = await sqlClient.query(selectProjectsByIds(
-    projectIds,
-  ) as string);
-  return projects;
+  return projectsByGroup(group, sqlClient);
 };
 
-export default {};
+export default {
+  projectsByGroup,
+  projectsByGroupId,
+  projectsByGroupName,
+};
