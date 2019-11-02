@@ -82,7 +82,7 @@ export const getProjectsCosts = (availability, currency, projects) => {
   const prod = prodCost(billingGroup);
   const dev = devCost(billingGroup);
 
-  const environmentCost = { environmentCost: { prod, dev } };
+  const environmentCost = { prod, dev };
   return {
     [availability]: {
       hitCost,
