@@ -211,6 +211,7 @@ async function createDeployTask(deployData: Object) {
 
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
+    case 'lagoon_kubernetesBuildDeploy':
       if (environments.project.productionEnvironment === branchName) {
         logger.debug(
           `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
@@ -252,12 +253,34 @@ async function createDeployTask(deployData: Object) {
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'true':
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'false':
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
@@ -276,7 +299,18 @@ async function createDeployTask(deployData: Object) {
                   project.branches
                 } matched branchname, starting deploy`,
               );
-              return sendToLagoonTasks('builddeploy-openshift', deployData);
+              switch (project.activeSystemsDeploy) {
+                case 'lagoon_openshiftBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-openshift', deployData);
+                case 'lagoon_kubernetesBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+                default:
+                  throw new UnknownActiveSystem(
+                    `Unknown active system '${
+                      project.activeSystemsDeploy
+                    }' for task 'deploy' in for project ${projectName}`,
+                  );
+              }
             }
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, regex ${

@@ -121,6 +121,7 @@ docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
 images :=     oc \
+							kubectl \
 							mariadb \
 							mariadb-drupal \
 							mariadb-galera \
@@ -129,6 +130,7 @@ images :=     oc \
 							postgres-ckan \
 							postgres-drupal \
 							oc-build-deploy-dind \
+							kubectl-build-deploy-dind \
 							commons \
 							nginx \
 							nginx-drupal \
@@ -189,10 +191,13 @@ build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
+build/kubectl: build/commons images/kubectl/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
 build/toolbox: build/commons images/toolbox/Dockerfile
+build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
+
 
 #######
 ####### Elastic Images
@@ -424,6 +429,7 @@ services :=       api \
 									openshiftjobsmonitor \
 									openshiftmisc \
 									openshiftremove \
+									kubernetesbuilddeploy \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
@@ -474,7 +480,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -914,23 +920,30 @@ minikube: local-dev/minikube
 # 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${MINIKUBE_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 # endif
 	./local-dev/minikube --profile $(MINIKUBE_PROFILE) ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
-	# eval $$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) oc-env); \
-	# oc login -u system:admin; \
-	# bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="default/$$(./local-dev/minishift/minishift --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
-	# oc --context="default/$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	# oc --context="default/$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
-	@echo "$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip)" > $@
-	# @echo "wait 60secs in order to give openshift time to setup it's registry"
-	# sleep 60
-	# eval $$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) oc-env); \
-	# for i in {10..30}; do oc --context="default/$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
-	# $(MAKE) minikube/configure-lagoon-local push-docker-host-image
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- config set-context $(MINIKUBE_PROFILE)
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- --context="$(MINIKUBE_PROFILE)" create -f kubernetes-setup/anonymous-clusteradmin.yaml
+	@echo "$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip)" >d $@
+#	create bulk storageclass
+	./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- get storageclass/standard -o yaml | sed 's/name: standard/name: bulk/' | sed '/is-default-class/d' | ./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- create -f -
+	$(MAKE) kubernetes-lagoon-setup
+
+
+# Configures an openshift to use with Lagoon
+.PHONY: kubernetes-lagoon-setup
+kubernetes-lagoon-setup:
+	kubectl create namespace lagoon; \
+	kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
+	kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
+	kubectl -n lagoon create -f kubernetes-setup/docker-host.yaml; \
+	kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
+	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:"; \
+	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
 # Stop kubernetes Cluster
 .PHONY: minikube/stop
 minikube/stop: local-dev/minikube
 	./local-dev/minikube --profile $(MINIKUBE_PROFILE) delete
-	rm minikube
+	rm -f minikube
 
 # Stop kubernetes, remove downloaded minikube
 .PHONY: minikube/clean

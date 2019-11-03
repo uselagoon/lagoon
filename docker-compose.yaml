@@ -117,6 +117,19 @@ services:
       lagoon.type: custom
       lagoon.template: services/openshiftmisc/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftmisc:v1-2-0
+  kubernetesbuilddeploy:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploy
+    command: yarn run dev
+    environment:
+      #- CI=${CI:-true}
+      - OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE=schnitzel/kubectl-build-deploy-dind
+    volumes:
+      - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesbuilddeploy/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:v1-2-0
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
