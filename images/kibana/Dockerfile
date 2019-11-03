@@ -1,11 +1,10 @@
-
-
 ARG IMAGE_REPO
+ARG BASE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker.elastic.co/logstash/logstash:6.8.2
+FROM docker.elastic.co/kibana/kibana:${BASE_VERSION}
 
 LABEL maintainer="amazee.io"
-ENV LAGOON=logstash
+ENV LAGOON=kibana
 
 USER root
 
@@ -33,9 +32,12 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-RUN fix-permissions /usr/share/logstash/data \
-    && fix-permissions /usr/share/logstash/config
+RUN fix-permissions /usr/share/kibana
 
-ENV LS_JAVA_OPTS "-Xms400m -Xmx400m"
+# tells the local development environment on which port we are running
+# ENV LAGOON_LOCALDEV_HTTP_PORT=5601
 
-ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash", "/usr/local/bin/docker-entrypoint"]
+ENV NODE_OPTIONS="--max-old-space-size=200"
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
+CMD ["/bin/bash", "/usr/local/bin/kibana-docker"]
