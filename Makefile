@@ -901,3 +901,54 @@ rebuild-push-oc-build-deploy-dind:
 .PHONY: ui-development
 ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db
+
+#
+# experimental dynamic build system that does away with the local build directory
+#
+DOCKERFILES = $(shell find images services local-dev cli tests -type f -name 'Dockerfile*')
+DOCKERRULES = .docker.mk
+PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4
+NODE_VERSIONS := 6 8 9 10 12
+PYTHON_VERSIONS := 2.7 3.7
+SOLR_VERSIONS := 5.5 6.6 7.5
+# IMPORTANT: only one of each minor version, as the images are tagged based on minor version
+ELASTIC_VERSIONS := 7.1.1 7.2.1 7.3.2
+
+# $1: image name
+# $2: base image version
+# $3: image tag
+# $4: Dockerfile path
+# $5: docker build context directory
+docker_build_version_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg BASE_VERSION=$(2) -t $(CI_BUILD_TAG)/$(1):$(3) -f $(4) $(5)
+
+# $1: image name
+# $2: Dockerfile path
+# $3: docker build context directory
+docker_build_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+
+include $(DOCKERRULES)
+
+# TODO:
+# - build:publish target
+
+$(DOCKERRULES): $(DOCKERFILES) Makefile docker-build.awk docker-pull.awk
+	@# generate build commands for all lagoon docker images
+	@(grep '^FROM $${IMAGE_REPO:-.*}/' $(DOCKERFILES); \
+		grep -L '^FROM $${IMAGE_REPO:-.*}/' $(DOCKERFILES)) | \
+		./docker-build.awk \
+		-v PHP_VERSIONS="$(PHP_VERSIONS)" \
+		-v NODE_VERSIONS="$(NODE_VERSIONS)" \
+		-v PYTHON_VERSIONS="$(PYTHON_VERSIONS)" \
+		-v SOLR_VERSIONS="$(SOLR_VERSIONS)" \
+		-v ELASTIC_VERSIONS="$(ELASTIC_VERSIONS)" \
+		> $@
+	@# generate pull commands for all images lagoon builds on
+	@grep '^FROM ' $(DOCKERFILES) | \
+		grep -v ':FROM $${IMAGE_REPO:-.*}/' | \
+		./docker-pull.awk \
+		-v PHP_VERSIONS="$(PHP_VERSIONS)" \
+		-v NODE_VERSIONS="$(NODE_VERSIONS)" \
+		-v PYTHON_VERSIONS="$(PYTHON_VERSIONS)" \
+		-v SOLR_VERSIONS="$(SOLR_VERSIONS)" \
+		-v ELASTIC_VERSIONS="$(ELASTIC_VERSIONS)" \
+		>> $@
