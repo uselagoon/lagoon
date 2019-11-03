@@ -1,7 +1,7 @@
-ARG NODE_VERSION
+ARG BASE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM node:${NODE_VERSION}-alpine
+FROM node:${BASE_VERSION}-alpine
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=node
@@ -37,11 +37,11 @@ RUN apk update \
 RUN echo '{ "allow_root": true }' > /home/.bowerrc \
     && echo 'unsafe-perm=true' > /home/.npmrc
 
-RUN if [ ${NODE_VERSION%.*.*} == "9" ] || [ ${NODE_VERSION%.*.*} == "6" ] ; then \
-    echo echo \"Node Version ${NODE_VERSION} is end of life and should no longer be used. For more information, visit https://nodejs.org/en/about/releases/\" \> /dev/stderr >> /home/.bashrc ; fi
+RUN if [ ${BASE_VERSION%.*.*} == "9" ] || [ ${BASE_VERSION%.*.*} == "6" ] ; then \
+    echo echo \"Node Version ${BASE_VERSION} is end of life and should no longer be used. For more information, visit https://nodejs.org/en/about/releases/\" \> /dev/stderr >> /home/.bashrc ; fi
 
-RUN if [ ${NODE_VERSION%.*.*} == "8" ] ; then \
-    echo echo \"Node Version ${NODE_VERSION} will be end of life after 2019-12-31 - Please consider updating to v10 or v12. For more information, visit https://nodejs.org/en/about/releases/\" \> /dev/stderr >> /home/.bashrc ; fi
+RUN if [ ${BASE_VERSION%.*.*} == "8" ] ; then \
+    echo echo \"Node Version ${BASE_VERSION} will be end of life after 2019-12-31 - Please consider updating to v10 or v12. For more information, visit https://nodejs.org/en/about/releases/\" \> /dev/stderr >> /home/.bashrc ; fi
 
 WORKDIR /app
 
