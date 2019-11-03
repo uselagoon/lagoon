@@ -85,6 +85,7 @@ LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo 
 # Name of the Branch we are currently in
 BRANCH_NAME :=
 DEFAULT_ALPINE_VERSION := 3.11
+GO_VERSION := 1.13.8
 
 #######
 ####### Functions
@@ -1131,3 +1132,64 @@ rebuild-push-oc-build-deploy-dind:
 .PHONY: ui-development
 ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker
+
+#######
+####### Container image build system
+#######
+
+DOCKERFILES = $(shell find images services local-dev cli tests -type f -name 'Dockerfile*')
+DOCKERRULES = .docker.mk
+PHP_VERSIONS := 7.2 7.3 7.4
+NODE_VERSIONS := 10 12
+PYTHON_VERSIONS := 2.7 3.7
+SOLR_VERSIONS := 5.5 6.6 7.5
+# IMPORTANT: only one of each minor version, as the images are tagged based on minor version
+ELASTIC_VERSIONS := 7.1.1 7.2.1 7.3.2
+
+# Build a docker image.
+# $1: image name
+# $2: Dockerfile path
+# $3: docker build context directory
+docker_build_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+
+# Build a docker image with a version build-arg.
+# $1: image name
+# $2: base image version
+# $3: image tag
+# $4: Dockerfile path
+# $5: docker build context directory
+docker_build_version_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) --build-arg BASE_VERSION=$(2) -t $(CI_BUILD_TAG)/$(1):$(3) -f $(4) $(5)
+
+# Tag an image with the `amazeeio` repository and push it.
+# $1: source image name:tag
+# $2: target image name:tag
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2)
+
+# Tag an image with the `amazeeiolagoon` repository and push it.
+# $1: source image name:tag
+# $2: target image name:tag
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2)
+
+$(DOCKERRULES): $(DOCKERFILES) Makefile docker-build.awk docker-pull.awk
+	@# generate build commands for all lagoon docker images
+	@(grep '^FROM $${IMAGE_REPO:-.*}/' $(DOCKERFILES); \
+		grep -L '^FROM $${IMAGE_REPO:-.*}/' $(DOCKERFILES)) | \
+		./docker-build.awk \
+		-v PHP_VERSIONS="$(PHP_VERSIONS)" \
+		-v NODE_VERSIONS="$(NODE_VERSIONS)" \
+		-v PYTHON_VERSIONS="$(PYTHON_VERSIONS)" \
+		-v SOLR_VERSIONS="$(SOLR_VERSIONS)" \
+		-v ELASTIC_VERSIONS="$(ELASTIC_VERSIONS)" \
+		> $@
+	@# generate pull commands for all images lagoon builds on
+	@grep '^FROM ' $(DOCKERFILES) | \
+		grep -v ':FROM $${IMAGE_REPO:-.*}/' | \
+		./docker-pull.awk \
+		-v PHP_VERSIONS="$(PHP_VERSIONS)" \
+		-v NODE_VERSIONS="$(NODE_VERSIONS)" \
+		-v PYTHON_VERSIONS="$(PYTHON_VERSIONS)" \
+		-v SOLR_VERSIONS="$(SOLR_VERSIONS)" \
+		-v ELASTIC_VERSIONS="$(ELASTIC_VERSIONS)" \
+		>> $@
+
+include $(DOCKERRULES)

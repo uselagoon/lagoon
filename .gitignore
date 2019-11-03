@@ -24,3 +24,5 @@ docs/_build
 yarn-debug.log*
 yarn-error.log*
 site
+/.docker.mk
+/pull-report.json
