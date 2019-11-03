@@ -1,6 +1,6 @@
-ARG NODE_VERSION
+ARG BASE_VERSION
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/node:${NODE_VERSION}
+FROM ${IMAGE_REPO:-lagoon}/node:${BASE_VERSION}
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=node

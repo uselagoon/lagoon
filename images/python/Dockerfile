@@ -1,8 +1,9 @@
-ARG PYTHON_VERSION
+ARG BASE_VERSION
 ARG IMAGE_REPO
 ARG ALPINE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
+FROM python:${BASE_VERSION}-alpine${ALPINE_VERSION}
+ARG BASE_VERSION
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=python
@@ -27,7 +28,7 @@ ENV TMPDIR=/tmp \
 
 RUN apk update \
     && apk upgrade \
-    && case ${PYTHON_VERSION} in \
+    && case ${BASE_VERSION} in \
       2*) \
         apk add --no-cache python-dev \
         py2-pip \

@@ -1,6 +1,6 @@
-ARG PYTHON_VERSION
+ARG BASE_VERSION
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/python:${PYTHON_VERSION}
+FROM ${IMAGE_REPO:-lagoon}/python:${BASE_VERSION}
 
 RUN apk update \
     && apk upgrade \

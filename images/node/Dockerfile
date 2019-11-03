@@ -1,8 +1,8 @@
-ARG NODE_VERSION
+ARG BASE_VERSION
 ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION}
+FROM node:${BASE_VERSION}-alpine${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=node
