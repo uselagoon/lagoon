@@ -558,6 +558,10 @@ const typeDefs = gql`
     Returns the costs for a given billing group
     """
     billingGroupCost(input: GroupInput, month: String): JSON
+    """
+    Returns the costs for all billing groups
+    """
+    allBillingGroupsCost(month: String): JSON
   }
 
   # Must provide id OR name
