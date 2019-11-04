@@ -1,215 +1,187 @@
-// @flow
+import { MariaClient } from 'mariasql';
+// import * as R from 'ramda';
+// import { asyncPipe } from '@lagoon/commons/src/util';
+// import { keycloakAdminClient } from '../clients/keycloakClient';
+// import pickNonNil from '../util/pickNonNil';
+// import * as logger from '../logger';
+// import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
+// import { User, transformKeycloakUsers } from './user';
+// import {
+//   loadGroupById,
+//   loadGroupByName,
+//   getProjectsFromGroupAndSubgroups,
+//   Group,
+// } from './group';
+import * as moment from 'moment';
 
-const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { createRemoveTask } = require('@lagoon/commons/src/tasks');
-const esClient = require('../../clients/esClient');
-const { isPatchEmpty, prepare, query, whereAnd } = require('../../util/db');
-const Helpers = require('./helpers');
-const Sql = require('./sql');
-const projectSql = require('../project/sql');
-const projectHelpers = require('../project/helpers');
+import { getSqlClient } from '../clients/sqlClient';
 
-/* ::
+import * as esClient from '../clients/esClient';
+import { prepare, query } from '../util/db';
+// import Helpers from './helpers';
+// import Sql from './sql';
+// import projectSql from '../project/sql';
+// import projectHelpers from '../project/helpers';
 
-import type {ResolversObj} from '../';
+export interface Environment {
+  id?: number; // int(11) NOT NULL AUTO_INCREMENT,
+  name?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  project?: Number; // int(11) DEFAULT NULL,
+  deployType?: string; // enum('branch','pullrequest','promote') COLLATE utf8_bin DEFAULT NULL,
+  environmentType?: string; //  enum('production','development') COLLATE utf8_bin NOT NULL,
+  openshiftProjectName?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  updated?: string; // timestamp NOT NULL DEFAULT current_timestamp(),
+  created?: string; //  timestamp NOT NULL DEFAULT current_timestamp(),
+  deleted?: string; // timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  route?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
+  routes?: string; // text COLLATE utf8_bin DEFAULT NULL,
+  monitoringUrls?: string; // text COLLATE utf8_bin DEFAULT NULL,
+  autoIdle?: Boolean; // int(1) NOT NULL DEFAULT 1,
+  deployBaseRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  deployHeadRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  deployTitle?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
+}
 
-*/
+interface EnvironmentData {
+  id: string;
+  name: string;
+  type: string;
+  hits: any;
+  storage: any;
+  hours: any;
+}
 
-const deployTypeToString = R.cond([
-  [R.equals('BRANCH'), R.toLower],
-  [R.equals('PULLREQUEST'), R.toLower],
-  [R.equals('PROMOTE'), R.toLower],
-  [R.T, R.identity],
-]);
+type projectEnvWithDataType = (
+  pid: string,
+  month: string,
+  sqlClient: MariaClient,
+) => Promise<EnvironmentData[]>;
 
-const envTypeToString = R.cond([
-  [R.equals('PRODUCTION'), R.toLower],
-  [R.equals('DEVELOPMENT'), R.toLower],
-  [R.T, R.identity],
-]);
-
-const getEnvironmentByName = async (
-  root,
-  args,
-  { sqlClient, hasPermission },
+/**
+ * Get all environments for a project.
+ *
+ * @param {string} pid The project id.
+ * @param {string} type The environment type we're interested in
+ * @param {boolean} includeDeleted include deleted environments
+ * @param {MariaClient} sqlClient The SQL Client.
+ *
+ * @return {Promise<[Environments]>} An array of all project environments
+ */
+export const projectEnvironments = async (
+  pid,
+  type,
+  includeDeleted = false,
+  sqlClient,
 ) => {
-  const str = `
-    SELECT *
-    FROM environment
-    WHERE name = :name AND
-    project = :project
-  `;
-
-  const prep = prepare(sqlClient, str);
-
-  const rows = await query(sqlClient, prep(args));
-  const environment = rows[0];
-
-  if (!environment) {
-    return null;
-  }
-
-  await hasPermission('environment', 'view', {
-    project: args.project,
-  });
-
-  return environment;
-};
-
-const getEnvironmentsByProjectId = async (
-  { id: pid },
-  unformattedArgs,
-  { sqlClient, hasPermission },
-) => {
-  const args = R.compose(R.over(R.lensProp('type'), envTypeToString))(
-    unformattedArgs,
-  );
-
-  await hasPermission('environment', 'view', {
-    project: pid,
-  });
-
   const prep = prepare(
     sqlClient,
-    `
-      SELECT *
+    ` SELECT *
       FROM environment e
       WHERE e.project = :pid
-      ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-      ${args.type ? 'AND e.environment_type = :type' : ''}
-    `,
+      ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
+      ${type ? 'AND e.environment_type = :type' : ''}`,
   );
 
-  const rows = await query(sqlClient, prep({ pid, type: args.type }));
-
-  return rows;
+  const environments: [Environment] = await query(
+    sqlClient,
+    prep({ pid, includeDeleted, type }),
+  );
+  return environments;
 };
 
-const getEnvironmentByDeploymentId = async (
-  { id: deployment_id },
-  args,
-  { sqlClient, hasPermission },
+// alias on the above
+export const environmentsByProjectId = projectEnvironments;
+
+// Needed for local Dev - Required if not connected to openshift
+export const errorCatcherFn = (msg, responseObj) => err => {
+  console.log(`${msg}: ${err.status} : ${err.message}`);
+  return { ...responseObj };
+};
+
+/**
+ * Get billing data for an environment.
+ *
+ * @param {number} eid the environment id
+ * @param {string} month The billing month we want to get data for.
+ * @param {string} openshiftProjectName The openshiftProjectName - used for hits.
+ * @param {MariaClient} sqlClient The sqlClient.
+ *
+ * @return {object} An object that includes hits, storage, hours
+ */
+export const environmentData = async (
+  eid: number,
+  month: string,
+  openshiftProjectName: string,
+  sqlClient: MariaClient,
 ) => {
-  const prep = prepare(
+  const hits = await environmentHitsMonthByEnvironmentId(
+    openshiftProjectName,
+    month,
+  ).catch(errorCatcherFn('getHits', { total: 0 }));
+
+  const storage = await environmentStorageMonthByEnvironmentId(
+    eid,
+    month,
     sqlClient,
-    `SELECT
-        e.*
-      FROM deployment d
-      JOIN environment e on d.environment = e.id
-      JOIN project p ON e.project = p.id
-      WHERE d.id = :deployment_id
-      LIMIT 1
-    `,
-  );
+  ).catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
+  const hours = await environmentHoursMonthByEnvironmentId(
+    eid,
+    month,
+    sqlClient,
+  ).catch(errorCatcherFn('getHours', { hours: 0 }));
 
-  const rows = await query(sqlClient, prep({ deployment_id }));
+  return { hits, storage, hours };
+};
 
-  const environment = rows[0];
+/**
+ * Get all environments and billing data for a project.
+ *
+ * @param {string} pid The project id.
+ * @param {string} month The month we're interested in
+ * @param {MariaClient} sqlClient The SQL Client.
+ *
+ * @return {Promise<[Environments ]>} An array of all project environments with data
+ */
+export const projectEnvironmentsWithData: projectEnvWithDataType = async (
+  pid,
+  month,
+  sqlClient,
+) => {
+  const environments = await projectEnvironments(pid, null, true, sqlClient);
 
-  if (!environment) {
-    return null;
-  }
-
-  await hasPermission('environment', 'view', {
-    project: environment.project,
+  const environmentDataFn = async ({
+    id: eid,
+    environmentType: type,
+    openshiftProjectName: openshift,
+  }: Environment) => ({
+    eid,
+    type,
+    data: {
+      ...(await environmentData(eid, month, openshift, sqlClient)),
+    },
   });
+  const data = await Promise.all(environments.map(environmentDataFn));
 
-  return environment;
-};
-
-const getEnvironmentByTaskId = async (
-  { id: task_id },
-  args,
-  { sqlClient, hasPermission },
-) => {
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-        e.*
-      FROM task t
-      JOIN environment e on t.environment = e.id
-      JOIN project p ON e.project = p.id
-      WHERE t.id = :task_id
-      LIMIT 1
-    `,
-  );
-
-  const rows = await query(sqlClient, prep({ task_id }));
-
-  const environment = rows[0];
-
-  if (!environment) {
-    return null;
-  }
-
-  await hasPermission('environment', 'view', {
-    project: environment.project,
+  const environmentDataReducerFn = (obj, item) => ({
+    ...obj,
+    [item.eid]: { ...item.data },
   });
+  const keyedData = data.reduce(environmentDataReducerFn, {});
 
-  return environment;
-};
-
-const getEnvironmentByBackupId = async (
-  { id: backup_id },
-  args,
-  { sqlClient, hasPermission },
-) => {
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-        e.*
-      FROM environment_backup eb
-      JOIN environment e on eb.environment = e.id
-      JOIN project p ON e.project = p.id
-      WHERE eb.id = :backup_id
-      LIMIT 1
-    `,
-  );
-
-  const rows = await query(sqlClient, prep({ backup_id }));
-
-  const environment = rows[0];
-
-  if (!environment) {
-    return null;
-  }
-
-  await hasPermission('environment', 'view', {
-    project: environment.project,
+  const environmentsMapFn = ({ id, name, environmentType: type }) => ({
+    id,
+    name,
+    type,
+    ...keyedData[id],
   });
-
-  return environment;
+  return environments.map(environmentsMapFn);
 };
 
-const getEnvironmentStorageByEnvironmentId = async (
-  { id: eid },
-  args,
-  { sqlClient, hasPermission },
+export const environmentStorageMonthByEnvironmentId = async (
+  eid,
+  month,
+  sqlClient,
 ) => {
-  await hasPermission('environment', 'storage');
-
-  const prep = prepare(
-    sqlClient,
-    `
-      SELECT *
-      FROM environment_storage es
-      WHERE es.environment = :eid
-    `,
-  );
-
-  const rows = await query(sqlClient, prep({ eid }));
-
-  return rows;
-};
-
-const getEnvironmentStorageMonthByEnvironmentId = async (
-  { id: eid },
-  args,
-  { sqlClient, hasPermission },
-) => {
-  await hasPermission('environment', 'storage');
-
   const str = `
     SELECT
       SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
@@ -222,30 +194,17 @@ const getEnvironmentStorageMonthByEnvironmentId = async (
   `;
 
   const prep = prepare(sqlClient, str);
-
-  const rows = await query(sqlClient, prep({ eid, month: args.month }));
-
+  const rows = await query(sqlClient, prep({ eid, month: month }));
   return rows[0];
 };
 
-const getEnvironmentHoursMonthByEnvironmentId = async (
-  { id: eid },
-  args,
-  { sqlClient, hasPermission },
+export const environmentHoursMonthByEnvironmentId = async (
+  eid: number,
+  yearMonth: string,
+  sqlClient,
 ) => {
-  await hasPermission('environment', 'storage');
-
-  const str = `
-    SELECT
-      e.created, e.deleted
-    FROM
-      environment e
-    WHERE
-      e.id = :eid
-  `;
-
+  const str = `SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid`;
   const prep = prepare(sqlClient, str);
-
   const rows = await query(sqlClient, prep({ eid }));
 
   const { created, deleted } = rows[0];
@@ -256,7 +215,7 @@ const getEnvironmentHoursMonthByEnvironmentId = async (
   const now = new Date();
 
   // Generate date object of the requested month, but with the first day, hour, minute, seconds and milliseconds
-  const interested_month_start = new Date(args.month) || new Date();
+  const interested_month_start = new Date(yearMonth) || new Date();
   interested_month_start.setDate(1);
   interested_month_start.setHours(0);
   interested_month_start.setMinutes(0);
@@ -291,7 +250,7 @@ const getEnvironmentHoursMonthByEnvironmentId = async (
   // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
   if (
     deleted_date < interested_month_start &&
-    deleted_date !== '0000-00-00 00:00:00'
+    moment(deleted_date).format('YYYY-MM-DD HH:mm:ss') !== '0000-00-00 00:00:00'
   ) {
     return { month, hours: 0 };
   }
@@ -322,19 +281,17 @@ const getEnvironmentHoursMonthByEnvironmentId = async (
   return { month, hours };
 };
 
-const getEnvironmentHitsMonthByEnvironmentId = async (
-  { openshiftProjectName },
-  args,
-  { hasPermission },
+export const environmentHitsMonthByEnvironmentId = async (
+  openshiftProjectName,
+  yearMonth,
 ) => {
-  await hasPermission('environment', 'storage');
-
-  const interested_date = args.month ? new Date(args.month) : new Date();
+  const interested_date = yearMonth ? new Date(yearMonth) : new Date();
   const year = interested_date.getFullYear();
   const month = interested_date.getMonth() + 1;
   // This generates YYYY-MM
-  const interested_year_month_lte = `${year}-${month+1 < 10 ? `0${month+1}` : month+1 }-01T00:00:00`;
-  const interested_year_month_gte = `${year}-${month < 10 ? `0${month}` : month }-01T00:00:00`;
+  const interested_year_month = `${year}-${
+    month < 10 ? `0${month}` : month
+  }-01T00:00:00`;
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -345,8 +302,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `${interested_year_month_gte}||/M`,
-                    lte: `${interested_year_month_lte}||/M`,
+                    gte: `${interested_year_month}||/M`,
+                    lte: `${interested_year_month}||/M`,
                   },
                 },
               },
@@ -381,406 +338,11 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   }
 };
 
-const getEnvironmentServicesByEnvironmentId = async (
-  { id: eid },
-  args,
-  { sqlClient, hasPermission },
-) => {
-  const environment = await Helpers(sqlClient).getEnvironmentById(eid);
-  await hasPermission('environment', 'view', {
-    project: environment.project,
-  });
-
-  const rows = await query(sqlClient, Sql.selectServicesByEnvironmentId(eid));
-
-  return rows;
+export default {
+  projectEnvironments,
+  environmentsByProjectId,
+  environmentData,
+  environmentStorageMonthByEnvironmentId,
+  environmentHoursMonthByEnvironmentId,
+  environmentHitsMonthByEnvironmentId,
 };
-
-const getEnvironmentByOpenshiftProjectName = async (
-  root,
-  args,
-  { sqlClient, hasPermission },
-) => {
-  const str = `
-    SELECT
-      e.*
-    FROM
-      environment e
-      JOIN project p ON e.project = p.id
-    WHERE e.openshift_project_name = :openshift_project_name
-  `;
-
-  const prep = prepare(sqlClient, str);
-
-  const rows = await query(sqlClient, prep(args));
-
-  const environment = rows[0];
-
-  if (!environment) {
-    return null;
-  }
-
-  await hasPermission('environment', 'view', {
-    project: environment.project,
-  });
-
-  return environment;
-};
-
-const addOrUpdateEnvironment = async (
-  root,
-  { input: unformattedInput },
-  { sqlClient, hasPermission },
-) => {
-  const input = R.compose(
-    R.over(R.lensProp('environmentType'), envTypeToString),
-    R.over(R.lensProp('deployType'), deployTypeToString),
-    R.over(R.lensProp('deployHeadRef'), R.defaultTo(null)),
-    R.over(R.lensProp('deployTitle'), R.defaultTo(null)),
-  )(unformattedInput);
-
-  const pid = input.project.toString();
-
-  await hasPermission('environment', `addOrUpdate:${input.environmentType}`, {
-    project: pid,
-  });
-
-  const prep = prepare(
-    sqlClient,
-    `
-      CALL CreateOrUpdateEnvironment(
-        :id,
-        :name,
-        :project,
-        :deploy_type,
-        :deploy_base_ref,
-        :deploy_head_ref,
-        :deploy_title,
-        :environment_type,
-        :openshift_project_name
-      );
-    `,
-  );
-
-  const rows = await query(sqlClient, prep(input));
-  const environment = R.path([0, 0], rows);
-
-  return environment;
-};
-
-const addOrUpdateEnvironmentStorage = async (
-  root,
-  { input },
-  { sqlClient, hasPermission },
-) => {
-  await hasPermission('environment', 'storage');
-
-  const prep = prepare(
-    sqlClient,
-    `
-      CALL CreateOrUpdateEnvironmentStorage(
-        :environment,
-        :persistent_storage_claim,
-        :bytes_used
-      );
-    `,
-  );
-
-  const rows = await query(sqlClient, prep(input));
-  const environment = R.path([0, 0], rows);
-
-  return environment;
-};
-
-// const getEnvironmentByEnvironmentStorageId = async (
-//   { id: esid },
-//   args,
-//   { credentials: { role } },
-// ) => {
-//   if (role !== 'admin') {
-//     throw new Error('Unauthorized');
-//   }
-//   const prep = prepare(
-//     sqlClient,
-//     `
-//       SELECT e.*
-//       FROM environment_storage es
-//       JOIN environment e ON es.environment = e.id
-//       WHERE es.id = :esid
-//     `,
-//   );
-
-//   const rows = await query(sqlClient, prep({ esid }));
-
-//   return rows ? rows[0] : null;
-// };
-
-const deleteEnvironment = async (
-  root,
-  { input: { project: projectName, name, execute } },
-  { sqlClient, hasPermission },
-) => {
-  const projectId = await projectHelpers(sqlClient).getProjectIdByName(
-    projectName,
-  );
-
-  const projectRows = await query(
-    sqlClient,
-    projectSql.selectProject(projectId),
-  );
-  const project = projectRows[0];
-
-  const environmentRows = await query(
-    sqlClient,
-    Sql.selectEnvironmentByNameAndProject(name, projectId),
-  );
-  const environment = environmentRows[0];
-
-  if (!environment) {
-    throw new Error(
-      `Environment "${name}" does not exist in project "${projectId}"`,
-    );
-  }
-
-  await hasPermission('environment', `delete:${environment.environmentType}`, {
-    project: projectId,
-  });
-
-  // Deleting environment in api w/o executing the openshift remove.
-  // This gets called by openshiftremove service after successful remove.
-  if (execute === false) {
-    try {
-      await hasPermission('environment', 'deleteNoExec', {
-        project: projectId,
-      });
-
-      const prep = prepare(
-        sqlClient,
-        'CALL DeleteEnvironment(:name, :project)',
-      );
-      await query(sqlClient, prep({ name, project: projectId }));
-
-      return 'success';
-    } catch (err) {
-      // Not allowed to stop execution.
-    }
-  }
-
-  let canDeleteProduction;
-  try {
-    await hasPermission('environment', 'delete:production', {
-      project: projectId,
-    });
-    canDeleteProduction = true;
-  } catch (err) {
-    canDeleteProduction = false;
-  }
-
-  let data = {
-    projectName: project.name,
-    type: environment.deployType,
-    forceDeleteProductionEnvironment: canDeleteProduction,
-  };
-
-  const meta = {
-    projectName: data.projectName,
-    environmentName: environment.name,
-  };
-
-  switch (environment.deployType) {
-    case 'branch':
-    case 'promote':
-      data = {
-        ...data,
-        branch: name,
-      };
-      break;
-
-    case 'pullrequest':
-      data = {
-        ...data,
-        pullrequestNumber: environment.name.replace('pr-', ''),
-      };
-      break;
-
-    default:
-      sendToLagoonLogs(
-        'error',
-        data.projectName,
-        '',
-        'api:deleteEnvironment:error',
-        meta,
-        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``,
-      );
-      return `Error: unknown deploy type ${environment.deployType}`;
-  }
-
-  await createRemoveTask(data);
-  sendToLagoonLogs(
-    'info',
-    data.projectName,
-    '',
-    'api:deleteEnvironment',
-    meta,
-    `*[${data.projectName}]* Deleting environment \`${environment.name}\``,
-  );
-
-  return 'success';
-};
-
-const updateEnvironment = async (
-  root,
-  { input: unformattedInput },
-  { sqlClient, hasPermission },
-) => {
-  const input = R.compose(
-    R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
-    R.over(R.lensPath(['patch', 'deployType']), deployTypeToString),
-  )(unformattedInput);
-
-  if (isPatchEmpty(input)) {
-    throw new Error('input.patch requires at least 1 attribute');
-  }
-
-  const id = input.id;
-  const curEnv = await Helpers(sqlClient).getEnvironmentById(id);
-
-  await hasPermission('environment', `update:${curEnv.environmentType}`, {
-    project: curEnv.project,
-  });
-
-  const newType = R.pathOr(
-    curEnv.environment_type,
-    ['patch', 'environmentType'],
-    input,
-  );
-  const newProject = R.pathOr(curEnv.project, ['patch', 'project'], input);
-
-  await hasPermission('environment', `update:${newType}`, {
-    project: newProject,
-  });
-
-  await query(sqlClient, Sql.updateEnvironment(input));
-
-  const rows = await query(sqlClient, Sql.selectEnvironmentById(id));
-
-  return R.prop(0, rows);
-};
-
-const getAllEnvironments = async (
-  root,
-  unformattedArgs,
-  { sqlClient, hasPermission },
-) => {
-  const args = R.compose(R.over(R.lensProp('type'), envTypeToString))(
-    unformattedArgs,
-  );
-
-  await hasPermission('environment', 'viewAll');
-
-  const where = whereAnd([
-    args.createdAfter ? 'created >= :created_after' : '',
-    args.type ? 'environment_type = :type' : '',
-    'deleted = "0000-00-00 00:00:00"',
-  ]);
-
-  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
-
-  const prep = prepare(sqlClient, `SELECT * FROM environment ${where}${order}`);
-  const rows = await query(sqlClient, prep(args));
-
-  return rows;
-};
-
-const deleteAllEnvironments = async (
-  root,
-  args,
-  { sqlClient, hasPermission },
-) => {
-  await hasPermission('environment', 'deleteAll');
-
-  await query(sqlClient, Sql.truncateEnvironment());
-
-  // TODO: Check rows for success
-  return 'success';
-};
-
-const setEnvironmentServices = async (
-  root,
-  { input: { environment: environmentId, services } },
-  { sqlClient, hasPermission },
-) => {
-  const environment = await Helpers(sqlClient).getEnvironmentById(
-    environmentId,
-  );
-  await hasPermission('environment', `update:${environment.environmentType}`, {
-    project: environment.project,
-  });
-
-  await query(sqlClient, Sql.deleteServices(environmentId));
-
-  for (const service of services) {
-    await query(sqlClient, Sql.insertService(environmentId, service));
-  }
-
-  return query(sqlClient, Sql.selectServicesByEnvironmentId(environmentId));
-};
-
-const userCanSshToEnvironment = async (
-  root,
-  args,
-  { sqlClient, hasPermission },
-) => {
-  const str = `
-    SELECT
-      e.*
-    FROM
-      environment e
-      JOIN project p ON e.project = p.id
-    WHERE e.openshift_project_name = :openshift_project_name
-  `;
-
-  const prep = prepare(sqlClient, str);
-
-  const rows = await query(sqlClient, prep(args));
-
-  const environment = rows[0];
-
-  if (!environment) {
-    return null;
-  }
-
-  try {
-    await hasPermission('environment', `ssh:${environment.environmentType}`, {
-      project: environment.project,
-    });
-
-    return environment;
-  } catch (err) {
-    return null;
-  }
-};
-
-const Resolvers /* : ResolversObj */ = {
-  addOrUpdateEnvironment,
-  addOrUpdateEnvironmentStorage,
-  getEnvironmentByName,
-  getEnvironmentByOpenshiftProjectName,
-  getEnvironmentHoursMonthByEnvironmentId,
-  getEnvironmentStorageByEnvironmentId,
-  getEnvironmentStorageMonthByEnvironmentId,
-  getEnvironmentHitsMonthByEnvironmentId,
-  getEnvironmentByDeploymentId,
-  getEnvironmentByTaskId,
-  getEnvironmentByBackupId,
-  getEnvironmentServicesByEnvironmentId,
-  setEnvironmentServices,
-  deleteEnvironment,
-  getEnvironmentsByProjectId,
-  updateEnvironment,
-  getAllEnvironments,
-  deleteAllEnvironments,
-  userCanSshToEnvironment,
-};
-
-module.exports = Resolvers;
