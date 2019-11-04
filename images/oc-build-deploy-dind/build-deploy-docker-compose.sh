@@ -31,7 +31,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # We are running every minute.
     return 0
   else
-    # All other cases are less often than 15 minutes.
+    # All other cases are more often than 15 minutes.
     return 1
   fi
 }
