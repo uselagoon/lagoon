@@ -6762,10 +6762,9 @@ jws@^3.2.2:
     jwa "^1.4.1"
     safe-buffer "^5.0.1"
 
-keycloak-admin@^1.12.0:
+"keycloak-admin@https://github.com/amazeeio/keycloak-admin/releases/download/0.0.0/keycloak-admin.tgz":
   version "1.12.0"
-  resolved "https://registry.yarnpkg.com/keycloak-admin/-/keycloak-admin-1.12.0.tgz#6727b85053a2981b049083f1ca7984fe5eec544f"
-  integrity sha512-H+1FnLBISbSQGRuBSRfb8AaFmW3KUgFG+HwadcQ/L9HIQcGD07zKjLfYMAcYVAezMKKbmHzrWkgRoVVRBwl/+A==
+  resolved "https://github.com/amazeeio/keycloak-admin/releases/download/0.0.0/keycloak-admin.tgz#524fa64f56f4d351045fff73eb051754d4074c09"
   dependencies:
     "@types/debug" "^0.0.30"
     axios "^0.18.0"
