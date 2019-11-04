@@ -84,12 +84,10 @@ export const getProjectsCosts = (availability, currency, projects) => {
 
   const environmentCost = { prod, dev };
   return {
-    [availability]: {
-      hitCost,
-      storageCost: storage,
-      environmentCost,
-      projects,
-    },
+    hitCost,
+    storageCost: storage,
+    environmentCost,
+    projects,
   };
 };
 
