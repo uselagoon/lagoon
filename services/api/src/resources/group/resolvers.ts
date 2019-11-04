@@ -5,6 +5,7 @@ import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
 import * as projectHelpers from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
+import { KeycloakUnauthorizedError } from '../../util/auth';
 
 export const getAllGroups = async (
   root,
@@ -21,25 +22,30 @@ export const getAllGroups = async (
       return await dataSources.GroupModel.loadAllGroups();
     }
   } catch (err) {
-    if (err instanceof GroupNotFoundError) {
-      return [];
+    if (name && err instanceof GroupNotFoundError) {
+      throw err;
     }
 
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getAllGroups');
-      return [];
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.warn('Access denied to user for getAllGroups');
+        return [];
+      } else {
+        const user = await dataSources.UserModel.loadUserById(
+          keycloakGrant.access_token.content.sub,
+        );
+        const userGroups = await dataSources.UserModel.getAllGroupsForUser(user);
+
+        if (name) {
+          return R.filter(R.propEq('name', name), userGroups);
+        } else {
+          return userGroups;
+        }
+      }
     }
 
-    const user = await dataSources.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub,
-    );
-    const userGroups = await dataSources.UserModel.getAllGroupsForUser(user);
-
-    if (name) {
-      return R.filter(R.propEq('name', name), userGroups);
-    } else {
-      return userGroups;
-    }
+    logger.warn(`getAllGroups failed unexpectedly: ${err.message}`);
+    throw err;
   }
 };
 

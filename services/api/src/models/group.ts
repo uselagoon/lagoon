@@ -178,9 +178,7 @@ const loadAllGroups = async (): Promise<Group[]> => {
     ];
   }
 
-  const groups = await transformKeycloakGroups(fullGroups);
-
-  return groups;
+  return fullGroups;
 };
 
 const loadParentGroup = async (groupInput: Group): Promise<Group> => asyncPipe(

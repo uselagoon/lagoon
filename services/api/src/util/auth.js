@@ -83,6 +83,13 @@ const legacyHasPermission = (legacyCredentials) => {
   };
 };
 
+class KeycloakUnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'KeycloakUnauthorizedError';
+  }
+}
+
 const keycloakHasPermission = (grant, requestCache) => {
   return async (resource, scope, attributes = {}) => {
     const currentUserId = grant.access_token.content.sub;
@@ -227,7 +234,7 @@ const keycloakHasPermission = (grant, requestCache) => {
     }
 
     requestCache.set(cacheKey, false);
-    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+    throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
 
@@ -235,5 +242,6 @@ module.exports = {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
+  KeycloakUnauthorizedError,
   keycloakHasPermission,
 };
