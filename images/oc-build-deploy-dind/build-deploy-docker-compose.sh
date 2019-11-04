@@ -12,22 +12,26 @@ function outputToYaml() {
 }
 
 function cronScheduleMoreOftenThan15Minutes() {
-  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+  # Work out if a particular cron schedule runs at least every 15 minutes.
+  # returns 0 if cron runs at least every 15 minutes. This includes a 15 minute
+  # cron as well. Running a cron every 10 minutes will also return 0.
+  # returns 1 if cron runs less often, say every 30 minutes.
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
-    # Match found for M/xx, H/xx or */xx
-    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    # Match found for `M/xx`, `H/xx` or `*/xx`.
+    # Check if xx is smaller or equal to 15, which means this cronjob runs at
+    # least every 15 minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -lt 15 ]; then
+    if [ $STEP -le 15 ]; then
       return 0
     else
       return 1
     fi
   elif [[ $MINUTE =~ ^\*$ ]]; then
-    # We are running every minute
+    # We are running every minute.
     return 0
   else
-    # all other cases are more often than 15 minutes
+    # All other cases are less often than 15 minutes.
     return 1
   fi
 }
@@ -787,10 +791,12 @@ do
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
       if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
-        # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
+        # If this cronjob is run least as often as every 15 minutes, we run the
+        # cronjob inside the pod itself.
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
-        # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
+        # This cronjob runs less ofen than every 15 minutes, we create a
+        # kubernetes native cronjob for it.
         OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
