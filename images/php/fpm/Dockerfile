@@ -1,8 +1,9 @@
-ARG PHP_VERSION
-ARG PHP_IMAGE_VERSION
+ARG BASE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_IMAGE_VERSION}-fpm-alpine
+FROM php:${BASE_VERSION}-fpm-alpine
+
+ARG BASE_VERSION
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
@@ -60,21 +61,21 @@ RUN apk add --no-cache fcgi \
         libwebp-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
-    && case ${PHP_VERSION} in \
+    && case ${BASE_VERSION} in \
       7.3*) \
-        yes '' | pecl install -f apcu \
+        yes '' | pecl install -f apcu-5.1.18 \
         && yes '' | pecl install -f xdebug-2.7.0 \
         && yes '' | pecl install -f redis-4.3.0; \
         ;; \
       7.0*) \
-        yes '' | pecl install -f apcu \
+        yes '' | pecl install -f apcu-5.1.18 \
         && yes '' | pecl install -f xdebug-2.6.0 \
         && yes '' | pecl install -f redis-4.3.0; \
         ;; \
       7*) \
-        yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug \
-        && yes '' | pecl install -f redis-4.3.0; \
+        yes '' | pecl install -f apcu-5.1.18 \
+        && yes '' | pecl install -f xdebug-2.9.0 \
+        && yes '' | pecl install -f redis-5.1.1; \
         ;; \
       5*) \
         yes '' | pecl install -f apcu-4.0.11 \
@@ -83,7 +84,7 @@ RUN apk add --no-cache fcgi \
         ;; \
       esac \
     && docker-php-ext-enable apcu redis xdebug \
-    && case ${PHP_VERSION} in \
+    && case ${BASE_VERSION} in \
       7.4*) \
         docker-php-ext-configure gd --with-webp --with-jpeg \
         ;; \
@@ -92,7 +93,7 @@ RUN apk add --no-cache fcgi \
         ;; \
       esac \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
-    && case ${PHP_VERSION} in \
+    && case ${BASE_VERSION} in \
       7.1*|7.0*|5*) \
         docker-php-ext-install mcrypt; \
         ;; \
@@ -100,7 +101,7 @@ RUN apk add --no-cache fcgi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
-    && if [ ${PHP_VERSION%.*} != "7.4" ]; then \
+    && if [ ${BASE_VERSION} != "7.4" ]; then \
     mkdir -p /tmp/newrelic && cd /tmp/newrelic \
     && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
     && gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
