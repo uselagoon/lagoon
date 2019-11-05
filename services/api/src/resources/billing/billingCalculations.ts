@@ -45,7 +45,7 @@ const uniformAvailabilityCheck = (projects: IProjectData[]) => {
 export const calculateProjectEnvironmentsTotalsToBill = environments => {
   const hits = environments.reduce(
     (acc, { type, hits: { total } }) =>
-      type !== 'production' ? acc + total : acc + 0,
+      type === 'production' ? acc + total : acc + 0,
     0,
   );
 
@@ -75,7 +75,7 @@ export const calculateProjectEnvironmentsTotalsToBill = environments => {
   };
 };
 
-export const getProjectsCosts = (availability, currency, projects) => {
+export const getProjectsCosts = (currency, projects) => {
   const billingGroup = { projects, currency };
   const hitCost = hitsCost(billingGroup);
   const storage = storageCost(billingGroup);
@@ -83,10 +83,12 @@ export const getProjectsCosts = (availability, currency, projects) => {
   const dev = devCost(billingGroup);
 
   const environmentCost = { prod, dev };
+  const total = hitCost + storage + prod + dev;
   return {
     hitCost,
     storageCost: storage,
     environmentCost,
+    total,
     projects,
   };
 };

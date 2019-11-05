@@ -92,6 +92,6 @@ const availabilityFilterFn = filterKey => ({ availability }) =>
 export const availabiltyProjectsCosts = (projects, availability, currency) => {
   const filteredProjects = projects.filter(availabilityFilterFn(availability));
   return filteredProjects.length > 0
-    ? getProjectsCosts(availability, currency, filteredProjects)
+    ? getProjectsCosts(currency, filteredProjects)
     : {};
 };
