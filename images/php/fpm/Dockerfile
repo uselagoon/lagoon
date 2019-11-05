@@ -1,9 +1,10 @@
-ARG PHP_VERSION
-ARG PHP_IMAGE_VERSION
+ARG BASE_VERSION
 ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
+FROM php:${BASE_VERSION}-fpm-alpine${ALPINE_VERSION}
+
+ARG BASE_VERSION
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
@@ -69,7 +70,7 @@ RUN apk add --no-cache fcgi \
     && yes '' | pecl install -f xdebug \
     && yes '' | pecl install -f redis-4.3.0 \
     && docker-php-ext-enable apcu redis xdebug \
-    && case ${PHP_VERSION} in \
+    && case ${BASE_VERSION} in \
       7.4*) \
         docker-php-ext-configure gd --with-webp --with-jpeg \
         ;; \
@@ -81,7 +82,7 @@ RUN apk add --no-cache fcgi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
-    && if [ ${PHP_VERSION%.*} != "7.4" ]; then \
+    && if [ ${BASE_VERSION%.*} != "7.4" ]; then \
        mkdir -p /tmp/newrelic && cd /tmp/newrelic \
     && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
     && gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
