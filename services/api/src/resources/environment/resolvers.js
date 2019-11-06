@@ -344,12 +344,12 @@ const getEnvironmentHoursMonthByEnvironmentId = async (
 
 const getEnvironmentHitsMonthByEnvironmentId = async (
   { openshiftProjectName },
-  args,
+  { month },
   { hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  const splits = args.month.split('-');
+  const splits = month.split('-');
   const yearSplit = splits[0];
   const monthSplit = splits[1];
 
@@ -362,11 +362,11 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   const lteYear = lteDate.getFullYear();
   const lteMonth = lteDate.getMonth() + 1;
 
-  const pad = num => num < 10 ? `0${num}` : num;
+  const pad = num => (num < 10 ? `0${num}` : num);
 
   // This generates YYYY-MM
-  const interestedYearMonthDay_gte = `${gteYear}-${pad(gteMonth)}-1`;
-  const interestedYearMonthDay_lte = `${lteYear}-${pad(lteMonth)}-1`;
+  const interestedYearMonthDay_gte = `${gteYear}-${pad(gteMonth)}`;
+  const interestedYearMonthDay_lte = `${lteYear}-${pad(lteMonth)}`;
 
   try {
     const result = await esClient.count({
@@ -378,8 +378,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `${interestedYearMonthDay_gte}||/M`,
-                    lte: `${interestedYearMonthDay_lte}||/M`,
+                    gte: interestedYearMonthDay_gte,
+                    lte: interestedYearMonthDay_lte,
                     format: 'strict_year_month',
                   },
                 },
