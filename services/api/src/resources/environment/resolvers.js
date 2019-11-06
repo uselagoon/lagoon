@@ -353,22 +353,20 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
   const yearSplit = splits[0];
   const monthSplit = splits[1];
 
-  const interestedDate = new Date(`${yearSplit}/${monthSplit}/1`);
-  const year = interestedDate.getFullYear();
-  const month = interestedDate.getMonth() + 1;
+  const gteDate = new Date(`${yearSplit}/${monthSplit}/1`);
+  const gteYear = gteDate.getFullYear();
+  const gteMonth = gteDate.getMonth() + 1;
 
-  const nextMonthDate = new Date(interestedDate.getTime());
-  nextMonthDate.setMonth(interestedDate.getMonth() + 1);
-  const nextYear = nextMonthDate.getFullYear();
-  const nextMonth = nextMonthDate.getMonth() + 1;
+  const lteDate = new Date(gteDate.getTime());
+  lteDate.setMonth(gteDate.getMonth() + 1);
+  const lteYear = lteDate.getFullYear();
+  const lteMonth = lteDate.getMonth() + 1;
+
+  const pad = num => num < 10 ? `0${num}` : num;
 
   // This generates YYYY-MM
-  const interested_year_month_lte = `${nextYear}-${
-    nextMonth < 10 ? `0${nextMonth}` : nextMonth
-  }`;
-  const interested_year_month_gte = `${year}-${
-    month < 10 ? `0${month}` : month
-  }`;
+  const interestedYearMonthDay_gte = `${gteYear}-${pad(gteMonth)}-1`;
+  const interestedYearMonthDay_lte = `${lteYear}-${pad(lteMonth)}-1`;
 
   try {
     const result = await esClient.count({
@@ -380,8 +378,8 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `${interested_year_month_gte}||/M`,
-                    lte: `${interested_year_month_lte}||/M`,
+                    gte: `${interestedYearMonthDay_gte}||/M`,
+                    lte: `${interestedYearMonthDay_lte}||/M`,
                     format: 'strict_year_month',
                   },
                 },
