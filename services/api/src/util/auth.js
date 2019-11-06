@@ -5,9 +5,6 @@ const { keycloakGrantManager } = require('../clients/keycloakClient');
 const User = require('../models/user');
 const Group = require('../models/group');
 
-const UserModel = User.User();
-const GroupModel = Group.Group();
-
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
 const sortRolesByWeight = (a, b) => {
@@ -90,7 +87,10 @@ class KeycloakUnauthorizedError extends Error {
   }
 }
 
-const keycloakHasPermission = (grant, requestCache) => {
+const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
+  const UserModel = User.User({ keycloakAdminClient });
+  const GroupModel = Group.Group({ keycloakAdminClient });
+
   return async (resource, scope, attributes = {}) => {
     const currentUserId = grant.access_token.content.sub;
 
