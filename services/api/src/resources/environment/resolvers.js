@@ -352,16 +352,30 @@ const getEnvironmentHoursMonthByEnvironmentId = async (
 
 const getEnvironmentHitsMonthByEnvironmentId = async (
   { openshiftProjectName },
-  args,
+  { month },
   { hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  const interested_date = args.month ? new Date(args.month) : new Date();
-  const year = interested_date.getFullYear();
-  const month = interested_date.getMonth() + 1;
+  const splits = month.split('-');
+  const yearSplit = splits[0];
+  const monthSplit = splits[1];
+
+  const gteDate = new Date(`${yearSplit}/${monthSplit}/1`);
+  const gteYear = gteDate.getFullYear();
+  const gteMonth = gteDate.getMonth() + 1;
+
+  const lteDate = new Date(gteDate.getTime());
+  lteDate.setMonth(gteDate.getMonth() + 1);
+  const lteYear = lteDate.getFullYear();
+  const lteMonth = lteDate.getMonth() + 1;
+
+  const pad = num => (num < 10 ? `0${num}` : num);
+
   // This generates YYYY-MM
-  const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
+  const interestedYearMonthDay_gte = `${gteYear}-${pad(gteMonth)}`;
+  const interestedYearMonthDay_lte = `${lteYear}-${pad(lteMonth)}`;
+
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -372,9 +386,9 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `${interested_year_month}||/M`,
-                    lte: `${interested_year_month}||/M`,
-                    format: "strict_year_month"
+                    gte: interestedYearMonthDay_gte,
+                    lte: interestedYearMonthDay_lte,
+                    format: 'strict_year_month',
                   },
                 },
               },

@@ -194,7 +194,7 @@ export const environmentStorageMonthByEnvironmentId = async (
   `;
 
   const prep = prepare(sqlClient, str);
-  const rows = await query(sqlClient, prep({ eid, month: month }));
+  const rows = await query(sqlClient, prep({ eid, month }));
   return rows[0];
 };
 
@@ -203,7 +203,8 @@ export const environmentHoursMonthByEnvironmentId = async (
   yearMonth: string,
   sqlClient,
 ) => {
-  const str = `SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid`;
+  const str =
+    'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid';
   const prep = prepare(sqlClient, str);
   const rows = await query(sqlClient, prep({ eid }));
 
@@ -285,16 +286,25 @@ export const environmentHitsMonthByEnvironmentId = async (
   openshiftProjectName,
   yearMonth,
 ) => {
-  const interested_date = yearMonth ? new Date(yearMonth) : new Date();
-  const year = interested_date.getFullYear();
-  const month = interested_date.getMonth() + 1;
+  const splits = yearMonth.split('-');
+  const yearSplit = splits[0];
+  const monthSplit = splits[1];
+
+  const gteDate = new Date(`${yearSplit}/${monthSplit}/1`);
+  const gteYear = gteDate.getFullYear();
+  const gteMonth = gteDate.getMonth() + 1;
+
+  const lteDate = new Date(gteDate.getTime());
+  lteDate.setMonth(gteDate.getMonth() + 1);
+  const lteYear = lteDate.getFullYear();
+  const lteMonth = lteDate.getMonth() + 1;
+
+  const pad = num => (num < 10 ? `0${num}` : num);
+
   // This generates YYYY-MM
-  const interested_year_month_lte = `${year}-${
-    month + 1 < 10 ? `0${month + 1}` : month + 1
-  }-01T00:00:00`;
-  const interested_year_month_gte = `${year}-${
-    month < 10 ? `0${month}` : month
-  }-01T00:00:00`;
+  const interestedYearMonthDay_gte = `${gteYear}-${pad(gteMonth)}`;
+  const interestedYearMonthDay_lte = `${lteYear}-${pad(lteMonth)}`;
+
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -305,8 +315,9 @@ export const environmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: `${interested_year_month_gte}||/M`,
-                    lte: `${interested_year_month_lte}||/M`,
+                    gte: interestedYearMonthDay_gte,
+                    lte: interestedYearMonthDay_lte,
+                    format: 'strict_year_month',
                   },
                 },
               },
