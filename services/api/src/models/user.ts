@@ -196,7 +196,9 @@ export const User = (clients): UserModel => {
   };
 
   const loadAllUsers = async (): Promise<User[]> => {
-    const keycloakUsers = await keycloakAdminClient.users.find();
+    const keycloakUsers = await keycloakAdminClient.users.find({
+      max: -1,
+    });
 
     const users = await transformKeycloakUsers(keycloakUsers);
 
