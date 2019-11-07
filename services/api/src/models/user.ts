@@ -93,17 +93,16 @@ export const User = (clients): UserModel => {
         )(keycloakUser),
     );
 
-    const usersWithGitlabIdFetch = users.map(
-      async (user: User): Promise<User> => {
-        const gitlabId = await fetchGitlabId(user);
-        return {
-          ...user,
-          gitlabId,
-        };
-      },
-    );
+    let usersWithGitlabIdFetch = [];
 
-    return Promise.all(usersWithGitlabIdFetch);
+    for (const user of users) {
+      usersWithGitlabIdFetch.push({
+        ...user,
+        gitlabId: await fetchGitlabId(user),
+      });
+    }
+
+    return usersWithGitlabIdFetch;
   };
 
   const linkUserToGitlab = async (

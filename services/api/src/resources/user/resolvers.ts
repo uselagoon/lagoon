@@ -105,19 +105,22 @@ export const deleteAllUsers = async (
   await hasPermission('user', 'deleteAll');
 
   const users = await models.UserModel.loadAllUsers();
-  const userIds = R.pluck('id', users);
 
-  const deleteUsers = userIds.map(
-    async id => await models.UserModel.deleteUser(id),
-  );
-
-  try {
-    // Deleting all users in parallel may cause problems, but this is only used
-    // in the tests right now and the number of users for that use case is low.
-    await Promise.all(deleteUsers);
-  } catch (err) {
-    throw new Error(`Could not delete all users: ${err.message}`);
+  let deleteErrors: String[] = [];
+  for (const user of users) {
+    try {
+      await models.UserModel.deleteUser(user.id)
+    } catch (err) {
+      deleteErrors = [
+        ...deleteErrors,
+        `${user.email} (${user.id})`,
+      ]
+    }
   }
 
-  return 'success';
+  return R.ifElse(
+    R.isEmpty,
+    R.always('success'),
+    deleteErrors => { throw new Error(`Could not delete users: ${deleteErrors.join(', ')}`) },
+  )(deleteErrors);
 };

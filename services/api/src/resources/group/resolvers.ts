@@ -194,21 +194,24 @@ export const deleteAllGroups = async (
   await hasPermission('group', 'deleteAll');
 
   const groups = await models.GroupModel.loadAllGroups();
-  const groupIds = R.pluck('id', groups);
 
-  const deleteGroups = groupIds.map(
-    async id => await models.GroupModel.deleteGroup(id),
-  );
-
-  try {
-    // Deleting all groups in parallel may cause problems, but this is only used
-    // in the tests right now and the number of groups for that use case is low.
-    await Promise.all(deleteGroups);
-  } catch (err) {
-    throw new Error(`Could not delete all groups: ${err.message}`);
+  let deleteErrors: String[] = [];
+  for (const group of groups) {
+    try {
+      await models.GroupModel.deleteGroup(group.id)
+    } catch (err) {
+      deleteErrors = [
+        ...deleteErrors,
+        `${group.name} (${group.id})`,
+      ];
+    }
   }
 
-  return 'success';
+  return R.ifElse(
+    R.isEmpty,
+    R.always('success'),
+    deleteErrors => { throw new Error(`Could not delete groups: ${deleteErrors.join(', ')}`) },
+  )(deleteErrors);
 };
 
 export const addUserToGroup = async (
