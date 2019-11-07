@@ -721,6 +721,14 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPALCE PROCEDURE
+  extend_project_notification_type_length
+
+  BEGIN
+    ALTER TABLE project_notification MODIFY column_type_project_notification_type VARCHAR(74)
+  END;
+$$
+
 CREATE OR REPLACE PROCEDURE
   add_enum_email_microsoftteams_to_type_in_project_notification()
 
@@ -780,7 +788,7 @@ CALL convert_env_vars_from_varchar_to_text();
 CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
-CALL   add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL  add_enum_email_microsoftteams_to_type_in_project_notification();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
