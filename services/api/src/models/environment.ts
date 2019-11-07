@@ -1,27 +1,9 @@
 import { MariaClient } from 'mariasql';
-// import * as R from 'ramda';
-// import { asyncPipe } from '@lagoon/commons/src/util';
-// import { keycloakAdminClient } from '../clients/keycloakClient';
-// import pickNonNil from '../util/pickNonNil';
-// import * as logger from '../logger';
-// import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
-// import { User, transformKeycloakUsers } from './user';
-// import {
-//   loadGroupById,
-//   loadGroupByName,
-//   getProjectsFromGroupAndSubgroups,
-//   Group,
-// } from './group';
 import * as moment from 'moment';
 
 import { getSqlClient } from '../clients/sqlClient';
-
 import * as esClient from '../clients/esClient';
 import { prepare, query } from '../util/db';
-// import Helpers from './helpers';
-// import Sql from './sql';
-// import projectSql from '../project/sql';
-// import projectHelpers from '../project/helpers';
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -286,25 +268,11 @@ export const environmentHitsMonthByEnvironmentId = async (
   openshiftProjectName,
   yearMonth,
 ) => {
-  const splits = yearMonth.split('-');
-  const yearSplit = splits[0];
-  const monthSplit = splits[1];
-
-  const gteDate = new Date(`${yearSplit}/${monthSplit}/1`);
-  const gteYear = gteDate.getFullYear();
-  const gteMonth = gteDate.getMonth() + 1;
-
-  const lteDate = new Date(gteDate.getTime());
-  lteDate.setMonth(gteDate.getMonth() + 1);
-  const lteYear = lteDate.getFullYear();
-  const lteMonth = lteDate.getMonth() + 1;
-
-  const pad = num => (num < 10 ? `0${num}` : num);
-
+  const interested_date = yearMonth ? new Date(yearMonth) : new Date();
+  const year = interested_date.getFullYear();
+  const month = interested_date.getMonth() + 1;
   // This generates YYYY-MM
-  const interestedYearMonthDay_gte = `${gteYear}-${pad(gteMonth)}`;
-  const interestedYearMonthDay_lte = `${lteYear}-${pad(lteMonth)}`;
-
+  const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
   try {
     const result = await esClient.count({
       index: `router-logs-${openshiftProjectName}-*`,
@@ -315,8 +283,8 @@ export const environmentHitsMonthByEnvironmentId = async (
               {
                 range: {
                   '@timestamp': {
-                    gte: interestedYearMonthDay_gte,
-                    lte: interestedYearMonthDay_lte,
+                    gte: `${interested_year_month}||/M`,
+                    lte: `${interested_year_month}||/M`,
                     format: 'strict_year_month',
                   },
                 },
