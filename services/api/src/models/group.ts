@@ -94,17 +94,19 @@ const transformKeycloakGroups = async (
     }),
   );
 
-  const groupsWithGroupsAndMembers = groups.map(
-    async (group: Group): Promise<Group> => ({
+  let groupsWithGroupsAndMembers = [];
+
+  for (const group of groups) {
+    groupsWithGroupsAndMembers.push({
       ...group,
       groups: await transformKeycloakGroups(
         R.reject(isRoleSubgroup)(group.subGroups),
       ),
       members: await getGroupMembership(group),
-    }),
-  );
+    });
+  }
 
-  return Promise.all(groupsWithGroupsAndMembers);
+  return groupsWithGroupsAndMembers;
 };
 
 const loadGroupById = async (id: string): Promise<Group> => {

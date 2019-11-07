@@ -68,6 +68,7 @@ objects:
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 0
     failedJobsHistoryLimit: 1
+    startingDeadlineSeconds: 240
     jobTemplate:
       metadata:
         labels:
