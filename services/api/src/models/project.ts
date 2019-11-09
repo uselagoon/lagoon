@@ -1,13 +1,14 @@
 import * as R from 'ramda';
 import {
-  loadGroupById,
-  loadGroupByName,
-  getProjectsFromGroupAndSubgroups,
+  // loadGroupById,
+  // loadGroupByName,
+  // getProjectsFromGroupAndSubgroups,
   Group,
 } from './group';
 
 import { query } from '../util/db';
 import { getSqlClient } from '../clients/sqlClient';
+import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import {
   selectProject as selectProjectById,
   selectProjectByName,
@@ -67,7 +68,9 @@ export const projectByName = async (
 };
 
 const projectsByGroup = async (group: Group, sqlClient = getSqlClient()) => {
-  const projectIds = await getProjectsFromGroupAndSubgroups(group);
+  const keycloakAdminClient = await getKeycloakAdminClient();
+  const GroupModel = Group(keycloakAdminClient);
+  const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
   return query(sqlClient, selectProjectsByIds(projectIds) as string);
 };
 
@@ -75,7 +78,9 @@ export const projectsByGroupId = async (
   id: string,
   sqlClient = getSqlClient(),
 ) => {
-  const group = await loadGroupById(id);
+  const keycloakAdminClient = await getKeycloakAdminClient();
+  const GroupModel = Group(keycloakAdminClient);
+  const group = await GroupModel.loadGroupById(id);
   return projectsByGroup(group, sqlClient);
 };
 
@@ -83,7 +88,9 @@ export const projectsByGroupName = async (
   name: string,
   sqlClient = getSqlClient(),
 ) => {
-  const group = await loadGroupByName(name);
+  const keycloakAdminClient = await getKeycloakAdminClient();
+  const GroupModel = Group(keycloakAdminClient);
+  const group = await GroupModel.loadGroupByName(name);
   return projectsByGroup(group, sqlClient);
 };
 

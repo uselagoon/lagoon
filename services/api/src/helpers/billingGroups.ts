@@ -15,8 +15,9 @@ import * as R from 'ramda';
 import * as projectHelpers from '../resources/project/helpers';
 //import { logger } from '@lagoon/commons/src/local-logging';
 import { getSqlClient } from '../clients/sqlClient';
+import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';
-import { keycloakAdminClient } from '../clients/keycloakClient';
+// import { keycloakAdminClient } from '../clients/keycloakClient';
 
 const keycloakAuth = {
   username: 'admin',
@@ -40,12 +41,9 @@ interface IGroup {
 }
 
 export const getAllProjectsNotInBillingGroup = async () => {
-  keycloakAdminClient.setConfig({ realmName: 'master' });
-  await keycloakAdminClient.auth(keycloakAuth);
-  keycloakAdminClient.setConfig({ realmName: 'lagoon' });
-
+  const keycloakAdminClient = await getKeycloakAdminClient();
   const sqlClient = getSqlClient();
-  const GroupModel = Group();
+  const GroupModel = Group(keycloakAdminClient);
 
   // GET ALL GROUPS
   const groups = await GroupModel.loadAllGroups();
@@ -74,12 +72,8 @@ export const getAllProjectsNotInBillingGroup = async () => {
 };
 
 export const getAllBillingGroupsWithoutProjects = async () => {
-  keycloakAdminClient.setConfig({ realmName: 'master' });
-  await keycloakAdminClient.auth(keycloakAuth);
-  keycloakAdminClient.setConfig({ realmName: 'lagoon' });
-
-  // const sqlClient = getSqlClient();
-  const GroupModel = Group();
+  const keycloakAdminClient = await getKeycloakAdminClient();
+  const GroupModel = Group(keycloakAdminClient);
 
   // Get All Billing Groups
   const groupTypeFilterFn = ({ name, value }, group) => {
@@ -107,7 +101,8 @@ export const getAllBillingGroupsWithoutProjects = async () => {
 };
 
 export const deleteAllBillingGroupsWithoutProjects = async () => {
-  const GroupModel = Group();
+  const keycloakAdminClient = await getKeycloakAdminClient();
+  const GroupModel = Group(keycloakAdminClient);
   const groups = await getAllBillingGroupsWithoutProjects();
   await Promise.all(
     groups.map(async group => {
