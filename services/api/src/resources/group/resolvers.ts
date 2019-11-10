@@ -428,9 +428,9 @@ export const addProjectToBillingGroup = async (
     );
   }
 
-  const group = await loadGroupByIdOrName(groupInput);
-  await addProjectToGroup(project.id, group);
-  return projectHelpers(sqlClient).getProjectById(project.id);
+  // const group = await loadGroupByIdOrName(groupInput);
+  await addProjectToGroup(project.id, groupInput);
+  return 'success';
 };
 
 export const updateProjectBillingGroup = async (

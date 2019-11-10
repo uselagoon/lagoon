@@ -4,7 +4,7 @@ import pickNonNil from '../util/pickNonNil';
 import * as logger from '../logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { projectsByGroupName, projectsByGroupId, Project } from './project';
+import { projectsByGroup, Project } from './project';
 import {
   projectSimplifiedWithMonthYear,
   getProjectsData,
@@ -543,7 +543,7 @@ export const Group = (clients): GroupModel => {
 
   const addProjectToGroup = async (
     projectId: number,
-    groupInput: Group,
+    groupInput: any,
   ): Promise<void> => {
     const group = await loadGroupById(groupInput.id);
     const newGroupProjects = R.pipe(
@@ -620,10 +620,9 @@ export const Group = (clients): GroupModel => {
     const group = (await loadGroupByIdOrName(groupInput)) as BillingGroup;
     const { id, currency, name } = group;
 
-    const initialProjects = (id
-      ? await projectsByGroupId(id, sqlClient)
-      : await projectsByGroupName(name, sqlClient)
-    ).map(projectSimplifiedWithMonthYear(yearMonth));
+    const initialProjects = (await projectsByGroup(group)).map(
+      projectSimplifiedWithMonthYear(yearMonth),
+    );
 
     const projects = await getProjectsData(
       initialProjects,

@@ -67,35 +67,18 @@ export const projectByName = async (
   return project;
 };
 
-const projectsByGroup = async (group: Group, sqlClient = getSqlClient()) => {
+export const projectsByGroup = async (
+  group: Group,
+  sqlClient = getSqlClient(),
+) => {
   const keycloakAdminClient = await getKeycloakAdminClient();
   const GroupModel = Group(keycloakAdminClient);
   const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
   return query(sqlClient, selectProjectsByIds(projectIds) as string);
 };
 
-export const projectsByGroupId = async (
-  id: string,
-  sqlClient = getSqlClient(),
-) => {
-  const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group(keycloakAdminClient);
-  const group = await GroupModel.loadGroupById(id);
-  return projectsByGroup(group, sqlClient);
-};
-
-export const projectsByGroupName = async (
-  name: string,
-  sqlClient = getSqlClient(),
-) => {
-  const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group(keycloakAdminClient);
-  const group = await GroupModel.loadGroupByName(name);
-  return projectsByGroup(group, sqlClient);
-};
-
 export default {
+  projectById,
+  projectByName,
   projectsByGroup,
-  projectsByGroupId,
-  projectsByGroupName,
 };
