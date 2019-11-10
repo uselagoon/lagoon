@@ -13,7 +13,7 @@ ENV RABBITMQ_DEFAULT_USER='guest' \
 COPY --from=commons /bin/ep /bin/fix-permissions /bin/
 
 COPY rabbitmq_delayed_message_exchange-3.8.0.ez /plugins
-RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange;
+RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange rabbitmq_shovel rabbitmq_shovel_management rabbitmq_prometheus;
 
 # Copy startup schema with vhost, users, permissions and policies
 COPY definitions.json /etc/rabbitmq/definitions.json
@@ -24,3 +24,7 @@ COPY cluster-rabbit.sh /
 RUN fix-permissions /cluster-rabbit.sh && chmod +x /cluster-rabbit.sh
 
 ENTRYPOINT /cluster-rabbit.sh
+
+# Exposing additional Ports
+# 15692 - prometheus
+EXPOSE 15692
