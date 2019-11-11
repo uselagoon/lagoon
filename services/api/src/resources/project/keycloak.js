@@ -1,18 +1,23 @@
 // @flow
 
 const R = require('ramda');
-const { keycloakAdminClient } = require('../../clients/keycloakClient');
+const { getKeycloakAdminClient } = require('../../clients/keycloak-admin');
 const logger = require('../../logger');
 
 const KeycloakOperations = {
-  findGroupIdByName: async (name /* : string */) =>
-    R.path(
+  findGroupIdByName: async (name /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
+    return R.path(
       [0, 'id'],
       await keycloakAdminClient.groups.find({
         search: name,
       }),
-    ),
+    );
+  },
   deleteGroup: async (name /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak group id with the name
       const keycloakGroupId = await KeycloakOperations.findGroupIdByName(name);
@@ -27,6 +32,8 @@ const KeycloakOperations = {
     }
   },
   addGroup: async (project /* : any */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Create a group in Keycloak named the same as the project
       const name = R.prop('name', project);
