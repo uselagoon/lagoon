@@ -6,16 +6,11 @@ SHELL := /bin/bash
 # images
 #
 # The main commands are:
-
-# make build/<imagename>
-# Builds an individual image and all of it's needed parents. Run `make build-list` to get a list of
-# all buildable images. Make will keep track of each build image with creating an empty file with
-# the name of the image in the folder `build`. If you want to force a rebuild of the image, either
-# remove that file or run `make clean`
-
-# make build
-# builds all images in the correct order. Uses existing images for layer caching, define via `TAG`
-# which branch should be used
+#
+# make build:all - build all images
+# make build:list - list all the generated build targets
+# make build:s3-save - save to s3
+# make build:pull - pulls all the base images that lagoon builds on into the local cache. It then generates a pull-report.json containing the image names/tags and hashes of these base images.
 
 # make tests/<testname>
 # Runs individual tests. In a nutshell it does:
@@ -588,12 +583,12 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind build/broker-single $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift test-services-rest
+$(run-rest-tests): minishift build\:node-6-builder build\:node-8-builder build\:oc-build-deploy-dind build\:broker-single $(foreach image,$(deployment-test-services-rest),build\:$(image)) build\:push-minishift test-services-rest
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 .PHONY: tests/drupal tests/drupal-postgres tests/drupal-galera
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift test-services-drupal
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build\:varnish-drupal build\:solr-5.5-drupal build\:nginx-drupal build\:redis build\:php-5.6-cli-drupal build\:php-7.0-cli-drupal build\:php-7.1-cli-drupal build\:php-7.2-cli-drupal build\:php-7.3-cli-drupal build\:php-7.4-cli-drupal build\:api-db build\:postgres-drupal build\:mariadb-drupal build\:postgres-ckan build\:oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build\:$(image)) build\:drush-alias build\:push-minishift test-services-drupal
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
@@ -603,7 +598,7 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift test-services-webhooks
+$(run-webhook-tests): minishift build\:node-6-builder build\:node-8-builder build\:oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build\:$(image)) build\:push-minishift test-services-webhooks
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
@@ -614,7 +609,7 @@ end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
 end2end-tests: $(end2end-all-tests)
 
 .PHONY: start-end2end-ansible
-start-end2end-ansible: build/tests
+start-end2end-ansible: build\:tests
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end up -d tests
 
 $(end2end-all-tests): start-end2end-ansible
@@ -640,11 +635,11 @@ $(push-minishift-images):
 		docker push $$(cat minishift):30000/lagoon/$(image) | cat; \
 	fi
 
-push-docker-host-image: build/docker-host minishift/login-docker-registry
+push-docker-host-image: minishift build\:docker-host minishift/login-docker-registry
 	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
 	docker push $$(cat minishift):30000/lagoon/docker-host | cat
 
-lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
+lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build\:$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
@@ -810,7 +805,9 @@ endif
 	sleep 60
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
-	$(MAKE) minishift/configure-lagoon-local push-docker-host-image
+
+.PHONY: minishift/start
+minishift/start: minishift minishift/configure-lagoon-local push-docker-host-image
 
 minishift/login-docker-registry:
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
@@ -852,7 +849,7 @@ openshift-lagoon-setup:
 # This calls the regular openshift-lagoon-setup first, which configures our minishift like we configure a real openshift for lagoon.
 # It then overwrites the docker-host deploymentconfig and cronjobs to use our own just-built docker-host images.
 .PHONY: minishift/configure-lagoon-local
-minishift/configure-lagoon-local: openshift-lagoon-setup
+minishift/configure-lagoon-local: minishift openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140;
