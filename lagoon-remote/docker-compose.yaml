@@ -29,3 +29,12 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: docker-host/docker-host.yaml
+  broker:
+    image: amazeeio/rabbitmq-cluster:v1.1.4
+    ports:
+      - '15672:15672'
+      - '5672:5672'
+    labels:
+      lagoon.type: rabbitmq-cluster
+      lagoon.template: services/broker/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/broker:v1-1-4
