@@ -134,7 +134,8 @@ images :=     oc \
 							mongo \
 							athenapdf-service \
 							curator \
-							docker-host
+							docker-host \
+							toolbox
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -182,7 +183,7 @@ build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
-
+build/toolbox: build/commons images/toolbox/Dockerfile
 
 #######
 ####### Elastic Images
