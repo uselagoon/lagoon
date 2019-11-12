@@ -109,7 +109,16 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
-    case "rest:deploy:receive":
+    case "api:deployEnvironmentLatest":
+    case "api:deployEnvironmentBranch":
+        text = `*[${meta.projectName}]* API deploy trigger \`${meta.branchName}\``
+        if (meta.shortSha) {
+          text = `${text} (${meta.shortSha})`
+        }
+        sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+        break;
+
+      case "rest:deploy:receive":
       text = `*[${meta.projectName}]* REST deploy trigger \`${meta.branchName}\``
       if (meta.shortSha) {
         text = `${text} (${meta.shortSha})`

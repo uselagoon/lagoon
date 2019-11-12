@@ -62,6 +62,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "rest:deploy:receive":
     case "rest:remove:receive":
     case "rest:promote:receive":
+    case "api:deployEnvironmentLatest":
+    case "api:deployEnvironmentBranch":
     case "github:push:skipped":
     case "gitlab:push:skipped":
     case "bitbucket:push:skipped":
