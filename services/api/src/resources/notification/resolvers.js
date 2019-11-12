@@ -97,7 +97,7 @@ const deleteNotificationRocketChat = async (
 
   const nids = await Helpers(sqlClient).getAssignedNotificationIds({
     name,
-    type: 'slack',
+    type: 'rocketchat',
   });
 
   if (R.length(nids) > 0) {
