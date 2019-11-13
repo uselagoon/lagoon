@@ -1,4 +1,3 @@
-import { MariaClient } from 'mariasql';
 import * as moment from 'moment';
 
 import { getSqlClient } from '../clients/sqlClient';
@@ -36,8 +35,9 @@ interface EnvironmentData {
 type projectEnvWithDataType = (
   pid: string,
   month: string,
-  sqlClient: MariaClient,
 ) => Promise<EnvironmentData[]>;
+
+const sqlClient = getSqlClient();
 
 /**
  * Get all environments for a project.
@@ -45,7 +45,6 @@ type projectEnvWithDataType = (
  * @param {string} pid The project id.
  * @param {string} type The environment type we're interested in
  * @param {boolean} includeDeleted include deleted environments
- * @param {MariaClient} sqlClient The SQL Client.
  *
  * @return {Promise<[Environments]>} An array of all project environments
  */
@@ -53,7 +52,6 @@ export const projectEnvironments = async (
   pid,
   type,
   includeDeleted = false,
-  sqlClient,
 ) => {
   const prep = prepare(
     sqlClient,
@@ -86,7 +84,6 @@ export const errorCatcherFn = (msg, responseObj) => err => {
  * @param {number} eid the environment id
  * @param {string} month The billing month we want to get data for.
  * @param {string} openshiftProjectName The openshiftProjectName - used for hits.
- * @param {MariaClient} sqlClient The sqlClient.
  *
  * @return {object} An object that includes hits, storage, hours
  */
@@ -94,7 +91,6 @@ export const environmentData = async (
   eid: number,
   month: string,
   openshiftProjectName: string,
-  sqlClient: MariaClient,
 ) => {
   const hits = await environmentHitsMonthByEnvironmentId(
     openshiftProjectName,
@@ -104,13 +100,10 @@ export const environmentData = async (
   const storage = await environmentStorageMonthByEnvironmentId(
     eid,
     month,
-    sqlClient,
   ).catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
-  const hours = await environmentHoursMonthByEnvironmentId(
-    eid,
-    month,
-    sqlClient,
-  ).catch(errorCatcherFn('getHours', { hours: 0 }));
+  const hours = await environmentHoursMonthByEnvironmentId(eid, month).catch(
+    errorCatcherFn('getHours', { hours: 0 }),
+  );
 
   return { hits, storage, hours };
 };
@@ -120,16 +113,14 @@ export const environmentData = async (
  *
  * @param {string} pid The project id.
  * @param {string} month The month we're interested in
- * @param {MariaClient} sqlClient The SQL Client.
  *
  * @return {Promise<[Environments ]>} An array of all project environments with data
  */
 export const projectEnvironmentsWithData: projectEnvWithDataType = async (
   pid,
   month,
-  sqlClient,
 ) => {
-  const environments = await projectEnvironments(pid, null, true, sqlClient);
+  const environments = await projectEnvironments(pid, null, true);
 
   const environmentDataFn = async ({
     id: eid,
@@ -139,7 +130,7 @@ export const projectEnvironmentsWithData: projectEnvWithDataType = async (
     eid,
     type,
     data: {
-      ...(await environmentData(eid, month, openshift, sqlClient)),
+      ...(await environmentData(eid, month, openshift)),
     },
   });
   const data = await Promise.all(environments.map(environmentDataFn));
@@ -159,11 +150,7 @@ export const projectEnvironmentsWithData: projectEnvWithDataType = async (
   return environments.map(environmentsMapFn);
 };
 
-export const environmentStorageMonthByEnvironmentId = async (
-  eid,
-  month,
-  sqlClient,
-) => {
+export const environmentStorageMonthByEnvironmentId = async (eid, month) => {
   const str = `
     SELECT
       SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
@@ -183,7 +170,6 @@ export const environmentStorageMonthByEnvironmentId = async (
 export const environmentHoursMonthByEnvironmentId = async (
   eid: number,
   yearMonth: string,
-  sqlClient,
 ) => {
   const str =
     'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid';

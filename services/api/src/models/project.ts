@@ -1,19 +1,8 @@
 import * as R from 'ramda';
-import {
-  // loadGroupById,
-  // loadGroupByName,
-  // getProjectsFromGroupAndSubgroups,
-  Group,
-} from './group';
-
-import { query } from '../util/db';
+import { Group } from './group';
+import * as Helpers from '../resources/project/helpers';
 import { getSqlClient } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
-import {
-  selectProject as selectProjectById,
-  selectProjectByName,
-  selectProjectsByIds,
-} from '../resources/project/sql';
 
 export interface Project {
   id: Number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -38,47 +27,15 @@ export interface Project {
   availability: String; // varchar(50) COLLATE utf8_bin DEFAULT NULL,
 }
 
-/*
-export interface ProjectModel {
-  ProjectById: (id: Number) => Promise<Project>;
-  ProjectByName: (name: String) => Promise<Project>;
-
-  AllProjectsByGroupId: () => Promise<[Project]>;
-  AllProjectsByGroupName: () => Promise<[Project]>;
-}
-*/
-
-export const projectById = async (id: Number, sqlClient = getSqlClient()) => {
-  const rows = await query(sqlClient, selectProjectById(id));
-  return R.prop(0, rows);
-};
-
-export const projectByName = async (
-  name: string,
-  sqlClient = getSqlClient(),
-) => {
-  const rows = await query(sqlClient, selectProjectByName(name));
-  const project = R.prop(0, rows);
-
-  if (!project) {
-    throw new Error('Unauthorized');
-  }
-
-  return project;
-};
-
-export const projectsByGroup = async (
-  group: Group,
-  sqlClient = getSqlClient(),
-) => {
+export const projectsByGroup = async (group: Group) => {
+  const sqlClient = getSqlClient();
   const keycloakAdminClient = await getKeycloakAdminClient();
   const GroupModel = Group(keycloakAdminClient);
   const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
-  return query(sqlClient, selectProjectsByIds(projectIds) as string);
+  const projects = await Helpers(sqlClient).getProjectsByIds(projectIds);
+  return projects;
 };
 
 export default {
-  projectById,
-  projectByName,
   projectsByGroup,
 };

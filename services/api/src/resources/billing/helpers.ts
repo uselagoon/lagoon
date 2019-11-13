@@ -1,4 +1,3 @@
-import { MariaClient } from 'mariasql';
 import { Project } from '../../models/project';
 import { projectEnvironmentsWithData } from '../../models/environment';
 import {
@@ -43,16 +42,14 @@ export const projectSimplifiedWithMonthYear = (yearMonth: string) => ({
  *   Used in map functions to iterate over a list of projects
  *
  * @param {string} yearMonth the environment id
- * @param {MariaClient} sqlClient the sqlClient
  *
  * @return {Function} A function that takes a project and returns billing data for that month
  */
 export const projectWithBillingDataFn = (
   yearMonth: string,
-  sqlClient: MariaClient,
 ) => async project => {
   const { id } = project;
-  const envs = await projectEnvironmentsWithData(id, yearMonth, sqlClient);
+  const envs = await projectEnvironmentsWithData(id, yearMonth);
   const projectData = calculateProjectEnvironmentsTotalsToBill(envs);
   return { ...project, ...projectData, environments: envs };
 };
@@ -62,16 +59,11 @@ export const projectWithBillingDataFn = (
  *
  * @param {[Project]} projects an array of project
  * @param {string} yearMonth The year month string passed in we want to get data for.
- * @param {MariaClient} sqlClient the sqlClient
  *
  * @return {Promise<[Project]>} An array of projects with billing data
  */
-export const getProjectsData = async (
-  projects,
-  yearMonth: string,
-  sqlClient,
-) => {
-  const billingDataFn = projectWithBillingDataFn(yearMonth, sqlClient);
+export const getProjectsData = async (projects, yearMonth: string) => {
+  const billingDataFn = projectWithBillingDataFn(yearMonth);
   const projectsWithData = projects.map(billingDataFn);
   return Promise.all(projectsWithData);
 };

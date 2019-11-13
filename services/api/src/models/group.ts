@@ -75,12 +75,8 @@ interface GroupModel {
   ) => Promise<Group | BillingGroup>;
   addProjectToGroup: (projectId: number, group: Group) => Promise<void>;
   removeProjectFromGroup: (projectId: number, group: Group) => Promise<void>;
-  billingGroupCost: (
-    groupInput: any,
-    yearMonth: any,
-    sqlClient: any,
-  ) => Promise<any>;
-  allBillingGroupCosts: (yearMonth: string, sqlClient: any) => Promise<any>;
+  billingGroupCost: (groupInput: any, yearMonth: any) => Promise<any>;
+  allBillingGroupCosts: (yearMonth: string) => Promise<any>;
 }
 
 export class GroupExistsError extends Error {
@@ -616,19 +612,16 @@ export const Group = (clients): GroupModel => {
     projects: [Project];
   };
 
-  const billingGroupCost = async (groupInput, yearMonth, sqlClient) => {
+  const billingGroupCost = async (groupInput, yearMonth) => {
     const group = (await loadGroupByIdOrName(groupInput)) as BillingGroup;
     const { id, currency, name } = group;
 
-    const initialProjects = (await projectsByGroup(group)).map(
+    const groupProjects = await projectsByGroup(group);
+    const initialProjects = groupProjects.map(
       projectSimplifiedWithMonthYear(yearMonth),
     );
 
-    const projects = await getProjectsData(
-      initialProjects,
-      yearMonth,
-      sqlClient,
-    );
+    const projects = await getProjectsData(initialProjects, yearMonth);
 
     const high = availabiltyProjectsCosts(
       projects,
@@ -646,7 +639,7 @@ export const Group = (clients): GroupModel => {
     return { id, name, currency, availability, ...high, ...standard };
   };
 
-  const allBillingGroupCosts = async (yearMonth, sqlClient) => {
+  const allBillingGroupCosts = async yearMonth => {
     const allGroups = await loadAllGroups();
     const filterFn = (key, val) => group => group[key].includes(val);
     const billingGroups = allGroups.filter(filterFn('type', 'billing'));
@@ -655,7 +648,7 @@ export const Group = (clients): GroupModel => {
     for (let i = 0; i < billingGroups.length; i++) {
       const group = billingGroups[i];
       billingGroupCosts.push(
-        await billingGroupCost({ id: group.id }, yearMonth, sqlClient),
+        await billingGroupCost({ id: group.id }, yearMonth),
       );
     }
 
