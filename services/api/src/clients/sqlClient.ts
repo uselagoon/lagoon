@@ -4,8 +4,8 @@ import * as logger from '../logger';
 
 let client: Client.MariaClient;
 
-export const getSqlClient = () => {
-  if (client) {
+export const getSqlClient = (force: boolean = false) => {
+  if (client && force === false) {
     return client;
   }
   const sqlClient = new Client({

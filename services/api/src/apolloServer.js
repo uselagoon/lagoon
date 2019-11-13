@@ -70,7 +70,7 @@ const apolloServer = new ApolloServer({
 
       return {
         keycloakAdminClient,
-        sqlClient: getSqlClient(),
+        sqlClient: getSqlClient(true),
         hasPermission: grant
           ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
           : legacyHasPermission(legacyCredentials),
