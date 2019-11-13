@@ -6,9 +6,9 @@ import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 import { projectsByGroup, Project } from './project';
 import {
-  projectSimplifiedWithMonthYear,
   getProjectsData,
   availabiltyProjectsCosts,
+  extractMonthYear,
 } from '../resources/billing/helpers';
 
 export interface Group {
@@ -615,11 +615,13 @@ export const Group = (clients): GroupModel => {
   const billingGroupCost = async (groupInput, yearMonth) => {
     const group = (await loadGroupByIdOrName(groupInput)) as BillingGroup;
     const { id, currency, name } = group;
+    const { month, year } = extractMonthYear(yearMonth);
 
     const groupProjects = await projectsByGroup(group);
-    const initialProjects = groupProjects.map(
-      projectSimplifiedWithMonthYear(yearMonth),
-    );
+
+    const initialProjects = groupProjects.map(({ id, name, availability }) => ({
+      id, name, availability, month, year
+    }));
 
     const projects = await getProjectsData(initialProjects, yearMonth);
 

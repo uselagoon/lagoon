@@ -6,34 +6,11 @@ import {
 } from './billingCalculations';
 
 // helper function to split the input string
-const getYearMonthFromString = yearMonth => {
+export const extractMonthYear = yearMonth => {
   const splits = yearMonth.split('-');
   return {
     month: splits[1],
     year: splits[0],
-  };
-};
-
-/**
- * Creates a function to reduce a project to only the fields needed for billing costs
- *   Used in map functions to iterate over a list of projects
- *
- * @param {string} yearMonth the environment id
- *
- * @return {Function} A function that takes an environment and returns billing data
- */
-export const projectSimplifiedWithMonthYear = (yearMonth: string) => ({
-  id,
-  name,
-  availability,
-}: Project) => {
-  const { year, month } = getYearMonthFromString(yearMonth);
-  return {
-    id,
-    name,
-    availability,
-    month,
-    year,
   };
 };
 
