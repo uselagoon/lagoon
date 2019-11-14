@@ -1,11 +1,11 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM jboss/keycloak
+FROM jboss/keycloak:7.0.1
 
 USER root
 
-RUN yum install -y nc \
-    && yum clean all \
+RUN microdnf install -y nc python2 \
+    && microdnf clean all \
     && rm -rf /var/cache/yum
 
 LABEL maintainer="amazee.io"

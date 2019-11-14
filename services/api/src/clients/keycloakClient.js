@@ -2,15 +2,21 @@
 
 const crypto = require('crypto');
 const R = require('ramda');
-const KeycloakAdmin = require('keycloak-admin').default;
 const KeycloakConfig = require('keycloak-connect/middleware/auth-utils/config');
 const KeycloakGrantManager = require('../lib/keycloak-grant-manager');
 
-// Must be initialized with `waitAndInitKeycloak`
-const keycloakAdminClient = new KeycloakAdmin({
+const ConnectionConfig = {
   baseUrl: 'http://keycloak:8080/auth',
+  realmName: 'lagoon',
+};
+
+const Credentials = {
   realmName: 'master',
-});
+  username: 'admin',
+  password: R.pathOr('<password not set>', ['env', 'KEYCLOAK_ADMIN_PASSWORD'], process),
+  grantType: 'password',
+  clientId: 'admin-cli',
+};
 
 const lagoonKeycloakRoute = R.compose(
   R.defaultTo('http://keycloak:8080'),
@@ -97,6 +103,7 @@ keycloakGrantManager.validateToken = function validateToken(token, expectedType)
 };
 
 module.exports = {
-  keycloakAdminClient,
   keycloakGrantManager,
+  ConnectionConfig,
+  Credentials,
 };
