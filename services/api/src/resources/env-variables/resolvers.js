@@ -102,7 +102,7 @@ const addEnvVariableToProject = async (
   },
 ) => {
   await hasPermission('env_var', 'project:add', {
-    project: typeId,
+    project: `${typeId}`,
   });
 
   const scope = envVarScopeToString(unformattedScope);

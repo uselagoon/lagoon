@@ -258,9 +258,9 @@ mutation {
       # TODO: Fill in the name field
       # This is the project name
       name: ""
-      # TODO: Fill in the private key field
+      # TODO: Fill in the private key field (replace newlines with '\n')
       # This is the private key for a project, which is used to access the git code
-      privatekey: ""
+      privateKey: ""
       # TODO: Fill in the openshift field
       # This is the id of the OpenShift to assign to the project
       openshift: 0
@@ -469,4 +469,4 @@ query search{
     }
   }
 }
-
+```

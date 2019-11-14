@@ -3,7 +3,7 @@ import { parsePrivateKey } from 'sshpk';
 import { logger } from '@lagoon/commons/src/local-logging';
 import * as api from '@lagoon/commons/src/api';
 import * as gitlabApi from '@lagoon/commons/src/gitlabApi';
-import { keycloakAdminClient } from '../../clients/keycloakClient';
+import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { getSqlClient } from '../../clients/sqlClient';
 import { query, prepare } from '../../util/db';
 import { Group } from '../../models/group';
@@ -31,43 +31,13 @@ interface GitlabProject {
 
 const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
-const keycloakAuth = {
-  username: 'admin',
-  password: R.pathOr(
-    '<password not set>',
-    ['env', 'KEYCLOAK_ADMIN_PASSWORD'],
-    process,
-  ) as string,
-  grantType: 'password',
-  clientId: 'admin-cli',
-};
-
-const refreshToken = async keycloakAdminClient => {
-  const tokenRaw = new Buffer(
-    keycloakAdminClient.accessToken.split('.')[1],
-    'base64',
-  );
-  const token = JSON.parse(tokenRaw.toString());
-  const date = new Date();
-  const now = Math.floor(date.getTime() / 1000);
-
-  if (token.exp <= now) {
-    logger.debug('Refreshing keycloak token');
-    keycloakAdminClient.setConfig({ realmName: 'master' });
-    await keycloakAdminClient.auth(keycloakAuth);
-    keycloakAdminClient.setConfig({ realmName: 'lagoon' });
-  }
-};
-
 (async () => {
-  keycloakAdminClient.setConfig({ realmName: 'master' });
-  await keycloakAdminClient.auth(keycloakAuth);
-  keycloakAdminClient.setConfig({ realmName: 'lagoon' });
+  const keycloakAdminClient = await getKeycloakAdminClient();
 
   const sqlClient = getSqlClient();
 
-  const GroupModel = Group();
-  const UserModel = User();
+  const GroupModel = Group({ keycloakAdminClient });
+  const UserModel = User({ keycloakAdminClient });
 
   const projectArgs = process.argv.slice(2);
   if (projectArgs.length === 0) {
@@ -84,7 +54,6 @@ const refreshToken = async keycloakAdminClient => {
   );
 
   for (const project of projectRecords) {
-    await refreshToken(keycloakAdminClient);
     logger.debug(`Processing ${project.name}`);
 
     const gitlabProject = R.find(
@@ -241,9 +210,9 @@ const refreshToken = async keycloakAdminClient => {
       user = await UserModel.loadUserById(userId);
     }
 
-    // Add the user (with linked public key) to the default group as guest
+    // Add the user (with linked public key) to the default group as maintainer
     try {
-      await GroupModel.addUserToGroup(user, keycloakGroup, 'guest');
+      await GroupModel.addUserToGroup(user, keycloakGroup, 'maintainer');
     } catch (err) {
       logger.error(
         `Could not link user to default projet group for ${project.name}: ${

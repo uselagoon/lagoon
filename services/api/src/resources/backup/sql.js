@@ -84,7 +84,7 @@ const Sql /* : SqlObj */ = {
   selectPermsForRestore: (backupId /* : string */) =>
     knex('backup_restore')
       .select({ pid: 'project.id' })
-      .join('environment_backup', 'backup_restore.backup', '=', 'environment_backup.id')
+      .join('environment_backup', 'backup_restore.backup_id', '=', 'environment_backup.id')
       .join('environment', 'environment_backup.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')
       .where('backup_restore.backup_id', backupId)
