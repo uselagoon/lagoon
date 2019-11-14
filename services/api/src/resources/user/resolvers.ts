@@ -5,7 +5,7 @@ import Sql from './sql';
 export const getUserBySshKey = async (
   _root,
   { sshKey },
-  { sqlClient, dataSources, hasPermission },
+  { sqlClient, models, hasPermission },
 ) => {
   await hasPermission('user', 'getBySshKey');
 
@@ -21,7 +21,7 @@ export const getUserBySshKey = async (
   );
   const userId = R.map(R.prop('usid'), rows);
 
-  const user = await dataSources.UserModel.loadUserById(userId);
+  const user = await models.UserModel.loadUserById(userId);
 
   return user;
 };
@@ -29,11 +29,11 @@ export const getUserBySshKey = async (
 export const addUser = async (
   _root,
   { input },
-  { dataSources, hasPermission },
+  { models, hasPermission },
 ) => {
   await hasPermission('user', 'add');
 
-  const user = await dataSources.UserModel.addUser({
+  const user = await models.UserModel.addUser({
     email: input.email,
     username: input.email,
     firstName: input.firstName,
@@ -48,13 +48,13 @@ export const addUser = async (
 export const updateUser = async (
   _root,
   { input: { user: userInput, patch } },
-  { dataSources, hasPermission },
+  { models, hasPermission },
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const user = await dataSources.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
     username: R.prop('email', userInput),
   });
@@ -63,7 +63,7 @@ export const updateUser = async (
     users: [user.id],
   });
 
-  const updatedUser = await dataSources.UserModel.updateUser({
+  const updatedUser = await models.UserModel.updateUser({
     id: user.id,
     email: patch.email,
     username: patch.email,
@@ -79,9 +79,9 @@ export const updateUser = async (
 export const deleteUser = async (
   _root,
   { input: { user: userInput } },
-  { dataSources, hasPermission },
+  { models, hasPermission },
 ) => {
-  const user = await dataSources.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
     username: R.prop('email', userInput),
   });
@@ -90,7 +90,7 @@ export const deleteUser = async (
     users: [user.id],
   });
 
-  await dataSources.UserModel.deleteUser(user.id);
+  await models.UserModel.deleteUser(user.id);
 
   // TODO remove user ssh keys
 
@@ -100,24 +100,27 @@ export const deleteUser = async (
 export const deleteAllUsers = async (
   _root,
   _args,
-  { dataSources, hasPermission },
+  { models, hasPermission },
 ) => {
   await hasPermission('user', 'deleteAll');
 
-  const users = await dataSources.UserModel.loadAllUsers();
-  const userIds = R.pluck('id', users);
+  const users = await models.UserModel.loadAllUsers();
 
-  const deleteUsers = userIds.map(
-    async id => await dataSources.UserModel.deleteUser(id),
-  );
-
-  try {
-    // Deleting all users in parallel may cause problems, but this is only used
-    // in the tests right now and the number of users for that use case is low.
-    await Promise.all(deleteUsers);
-  } catch (err) {
-    throw new Error(`Could not delete all users: ${err.message}`);
+  let deleteErrors: String[] = [];
+  for (const user of users) {
+    try {
+      await models.UserModel.deleteUser(user.id)
+    } catch (err) {
+      deleteErrors = [
+        ...deleteErrors,
+        `${user.email} (${user.id})`,
+      ]
+    }
   }
 
-  return 'success';
+  return R.ifElse(
+    R.isEmpty,
+    R.always('success'),
+    deleteErrors => { throw new Error(`Could not delete users: ${deleteErrors.join(', ')}`) },
+  )(deleteErrors);
 };

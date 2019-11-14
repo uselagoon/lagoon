@@ -2,8 +2,7 @@
 
 const { initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
-const { keycloakAdminClient } = require('./clients/keycloakClient');
-const waitAndInitKeycloak = require('./util/waitAndInitKeycloak');
+const waitForKeycloak = require('./util/waitForKeycloak');
 const logger = require('./logger');
 const createServer = require('./server');
 
@@ -11,14 +10,9 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 (async () => {
-  const { JWTSECRET, JWTAUDIENCE, KEYCLOAK_ADMIN_PASSWORD } = process.env;
+  const { JWTSECRET, JWTAUDIENCE } = process.env;
 
-  await waitAndInitKeycloak(keycloakAdminClient, {
-    username: 'admin',
-    password: `${KEYCLOAK_ADMIN_PASSWORD || '<password not set>'}`,
-    grantType: 'password',
-    clientId: 'admin-cli',
-  });
+  await waitForKeycloak();
 
   logger.debug('Starting to boot the application.');
 
