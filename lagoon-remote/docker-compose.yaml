@@ -29,12 +29,6 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: docker-host/docker-host.yaml
-  harbor-chartmuseum:
-    image: ${IMAGE_REPO:-lagoon}/harbor-chartmuseum
-    labels:
-      lagoon.type: custom
-      lagoon.template: harbor-chartmuseum/harbor-chartmuseum.yml
-      lagoon.image: amazeeiolagoon/harbor-chartmuseum:pr-1269
   harbor-clair:
     image: ${IMAGE_REPO:-lagoon}/harbor-clair
     labels:
