@@ -1,2 +1,2 @@
-FROM goharbor/harbor-jobservice:v1.9.0-dev
+FROM goharbor/harbor-jobservice:v1.9.2
 LABEL maintainer="amazee.io"

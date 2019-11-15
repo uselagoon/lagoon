@@ -1,4 +1,4 @@
-FROM goharbor/harbor-registryctl:dev
+FROM goharbor/harbor-registryctl:v1.9.2
 
 COPY start.sh /harbor/
 

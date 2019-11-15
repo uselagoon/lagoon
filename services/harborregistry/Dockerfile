@@ -1,4 +1,4 @@
-FROM goharbor/registry-photon:v1.9.0-dev
+FROM goharbor/registry-photon:v1.9.2
 
 COPY entrypoint.sh /
 
