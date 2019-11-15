@@ -1,4 +1,4 @@
-FROM goharbor/clair-photon:v1.9.2
+FROM goharbor/clair-photon:v2.0.9-v1.9.2
 LABEL maintainer="amazee.io"
 
 COPY docker-entrypoint.sh /
