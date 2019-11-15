@@ -426,7 +426,6 @@ services :=       api \
 									keycloak \
 									keycloak-db \
 									ui \
-									harbor-chartmuseum \
 									harbor-clair \
 									harbor-core \
 									harbor-database \
