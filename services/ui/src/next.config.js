@@ -46,6 +46,9 @@ module.exports = {
       return entries;
     };
 
+    // Debug config.
+    // console.dir(config, { depth: null });
+
     return config;
   }
 };

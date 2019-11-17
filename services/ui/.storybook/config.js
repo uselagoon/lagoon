@@ -1,3 +1,5 @@
+// Import the mocked next.config before importing decorators.
+import config from './next.mock-config';
 import requireContext from 'require-context.macro';
 import { addDecorator, addParameters, configure } from '@storybook/react';
 import { withA11y } from '@storybook/addon-a11y';
