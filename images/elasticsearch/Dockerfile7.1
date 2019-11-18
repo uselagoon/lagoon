@@ -40,6 +40,7 @@ node.ml: "${NODE_ML}"\n\
 xpack.ml.enabled: "${XPACK_ML_ENABLED}"\n\
 xpack.watcher.enabled: "${XPACK_WATCHER_ENABLED}"\n\
 xpack.security.enabled: "${XPACK_SECURITY_ENABLED}"\n\
+processors: "${PROCESSORS}"\n\
 cluster.remote.connect: "${CLUSTER_REMOTE_CONNECT}"' >> config/elasticsearch.yml
 
 RUN fix-permissions config
@@ -52,6 +53,7 @@ ENV ES_JAVA_OPTS="-Xms400m -Xmx400m" \
     XPACK_ML_ENABLED=true \
     XPACK_WATCHER_ENABLED=true \
     XPACK_SECURITY_ENABLED=false \
+    PROCESSORS=2 \
     CLUSTER_REMOTE_CONNECT=true \
     EXTRA_OPTS=""
 
