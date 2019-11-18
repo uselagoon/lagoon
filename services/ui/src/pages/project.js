@@ -14,7 +14,10 @@ import withQueryError from 'lib/withQueryError';
 import { withProjectRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
 
-const PageProject = ({ router }) => (
+/**
+ * Displays a project page, given the project name.
+ */
+export const PageProject = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.projectName} | Project`}</title>

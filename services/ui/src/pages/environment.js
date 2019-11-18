@@ -15,7 +15,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageEnvironment = ({ router }) => (
+/**
+ * Displays an environment page, given the openshift project name.
+ */
+export const PageEnvironment = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.openshiftProjectName} | Environment`}</title>

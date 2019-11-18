@@ -17,7 +17,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageDeployments = ({ router }) => {
+/**
+ * Displays the deployments page, given the openshift project name.
+ */
+export const PageDeployments = ({ router }) => {
   return (
     <>
       <Head>

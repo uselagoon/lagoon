@@ -18,7 +18,10 @@ import {
 } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageDeployment = ({ router }) => {
+/**
+ * Displays a deployment page, given the openshift project and deployment name.
+ */
+export const PageDeployment = ({ router }) => {
   return (
     <>
       <Head>

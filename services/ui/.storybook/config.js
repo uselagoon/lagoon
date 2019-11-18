@@ -17,7 +17,7 @@ addParameters({
       // console.log({a, b});
 
       // Sort by root names, using the ordering specified in rootOrder array.
-      const rootOrder = ['Home', 'Components'];
+      const rootOrder = ['Home', 'Pages', 'Components'];
 
       // If the two stories have the same story kind, then use the default
       // ordering, which is the order they are defined in the story file.

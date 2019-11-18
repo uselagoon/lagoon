@@ -17,7 +17,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageTasks = ({ router }) => (
+/**
+ * Displays the tasks page, given the openshift project name.
+ */
+export const PageTasks = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.openshiftProjectName} | Tasks`}</title>

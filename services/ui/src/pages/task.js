@@ -18,7 +18,10 @@ import {
 } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageTask = ({ router }) => (
+/**
+ * Displays a task page, given the openshift project and task ID.
+ */
+export const PageTask = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.taskId} | Task`}</title>

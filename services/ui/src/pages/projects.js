@@ -7,8 +7,11 @@ import AllProjectsQuery from 'lib/query/AllProjects';
 import Projects from 'components/Projects';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
-import { bp, color, fontSize } from 'lib/variables';
+import { bp } from 'lib/variables';
 
+/**
+ * Displays the projects page.
+ */
 const ProjectsPage = () => (
   <>
     <Head>
