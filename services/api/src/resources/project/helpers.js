@@ -6,13 +6,12 @@ import type MariaSQL from 'mariasql';
 
 const R = require('ramda');
 const { asyncPipe } = require('@lagoon/commons/src/util');
-const { keycloakAdminClient } = require('../../clients/keycloakClient');
 const { query } = require('../../util/db');
 const logger = require('../../logger');
 
 // const userHelpers = require('../user/helpers');
 
-const KeycloakOperations = require('../project/keycloak');
+// const KeycloakOperations = require('../project/keycloak');
 const Sql = require('../project/sql');
 
 const Helpers = (sqlClient /* : MariaSQL */) => {

@@ -33,7 +33,9 @@ export type WebhookRequestData = {
   event: string,
   giturl: string,
   uuid?: string,
-  body?: Object
+  body?: Object,
+  user?: Object,
+  sender?: Object
 };
 
 export type Project = {

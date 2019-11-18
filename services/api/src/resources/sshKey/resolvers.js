@@ -40,7 +40,7 @@ const addSshKey = async (
       id, name, keyValue, keyType: unformattedKeyType, user: userInput
     },
   },
-  { sqlClient, hasPermission, dataSources },
+  { sqlClient, hasPermission, models },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
   const keyFormatted = formatSshKey({ keyType, keyValue });
@@ -49,7 +49,7 @@ const addSshKey = async (
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
-  const user = await dataSources.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
     username: R.prop('email', userInput),
   });
