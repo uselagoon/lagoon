@@ -46,7 +46,7 @@
     "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^2.5.0",
     "jsonwebtoken": "^8.0.1",
-    "keycloak-admin": "^1.12.0",
+    "keycloak-admin": "https://github.com/amazeeio/keycloak-admin.git\\#allow-more-customization",
     "keycloak-connect": "^5.0.0",
     "knex": "^0.14.3",
     "mariasql": "^0.2.6",
