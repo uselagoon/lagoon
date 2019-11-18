@@ -1,8 +1,7 @@
 // @flow
 
 const R = require('ramda');
-const sqlClient = require('../../clients/sqlClient');
-const { s3Client, s3Bucket } = require('../../clients/aws');
+const { s3Client } = require('../../clients/aws');
 const { query } = require('../../util/db');
 const Sql = require('./sql');
 const taskSql = require('../task/sql');
@@ -15,9 +14,8 @@ import type {ResolversObj} from '../';
 
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {
-    Bucket: s3Bucket,
     Key: file.s3Key,
-    Expires: 900, // 15 minutes
+    Expires: 300, // 5 minutes
   });
 
   return {
@@ -32,22 +30,15 @@ const getFilesByTaskId = async (
   { id: tid },
   args,
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
+    sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(tid));
+  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(tid));
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   const rows = await query(sqlClient, Sql.selectTaskFiles(tid));
 
@@ -62,28 +53,20 @@ const uploadFilesForTask = async (
   root,
   { input: { task, files } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
+    sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(task));
+  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(task));
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('task', 'update', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   const resolvedFiles = await Promise.all(files);
   const uploadAndTrackFiles = resolvedFiles.map(async newFile => {
     const s3_key = `tasks/${task}/${newFile.filename}`;
     const params = {
-      Bucket: s3Bucket,
       Key: s3_key,
       Body: newFile.stream,
       ACL: 'private',
@@ -120,17 +103,18 @@ const uploadFilesForTask = async (
 const deleteFilesForTask = async (
   root,
   { input: { id } },
-  { credentials: { role } },
+  { sqlClient, hasPermission },
 ) => {
-  if (role !== 'admin') {
-    throw new Error('Unauthorized.');
-  }
+  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(id));
+
+  await hasPermission('task', 'delete', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
 
   const rows = await query(sqlClient, Sql.selectTaskFiles(id));
   const deleteObjects = R.map(file => ({ Key: file.s3Key }), rows);
 
   const params = {
-    Bucket: s3Bucket,
     Delete: {
       Objects: deleteObjects,
       Quiet: false,

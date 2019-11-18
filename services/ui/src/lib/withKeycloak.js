@@ -5,6 +5,10 @@ const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
 export default (App, initialAuth) => {
   return class withKeycloak extends React.Component {
+    static getInitialProps(ctx) {
+      return App.getInitialProps(ctx);
+    }
+
     constructor(props) {
       super(props);
       this.state = { auth: initialAuth };

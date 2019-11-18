@@ -22,6 +22,8 @@ export type CredMaybe = {
   }
 };
 
+type hasPermissionFn = (resource: string, scope: mixed, attributes: object) => void;
+
 type ResolverFn = (
   obj: {
     id: string,
@@ -37,7 +39,9 @@ type ResolverFn = (
     sshKey: string,
   },
   context: {
-    credentials: Cred
+    credentials: Cred,
+    sqlClient: MariaSQL,
+    hasPermission: hasPermissionFn,
   },
   info?: {|
     +fieldName: string,
@@ -58,7 +62,7 @@ type SubscribeObj = {
 };
 
 export type ResolversObj = {
-  [string]: ResolverFn | SubscribeObj
+  [string]: ResolverFn | SubscribeObj | string
 };
 
 type SqlFn = (...args: Array<any>) => string;

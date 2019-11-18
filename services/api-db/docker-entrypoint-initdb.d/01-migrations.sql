@@ -588,6 +588,139 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_key_fingerprint_to_ssh_key()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'ssh_key'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'key_fingerprint'
+    ) THEN
+      ALTER TABLE `ssh_key`
+      ADD `key_fingerprint` char(51) NULL UNIQUE;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_autoidle_to_environment()
+
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'auto_idle'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `auto_idle` int(1) NOT NULL default '1';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_deploy_base_head_ref_title_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deploy_base_ref'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `deploy_base_ref` varchar(100),
+      ADD `deploy_head_ref` varchar(100),
+      ADD `deploy_title` varchar(300);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_env_vars_from_varchar_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(300);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'env_vars'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'value';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE `env_vars`
+      MODIFY `value` text NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_user_ssh_key_usid_to_char()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'user_ssh_key'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'usid';
+
+    IF (column_type = 'int') THEN
+      ALTER TABLE user_ssh_key
+      MODIFY usid char(36) NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_private_key_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'private_key'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `private_key` varchar(5000);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_environment_backup_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'environment_backup'
+        AND table_schema = 'infrastructure'
+        AND index_name='backup_environment'
+    ) THEN
+      ALTER TABLE `environment_backup`
+      ADD INDEX `backup_environment` (`environment`);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_production_environment_to_project();
@@ -618,6 +751,13 @@ CALL add_default_value_to_task_status();
 CALL add_scope_to_env_vars();
 CALL add_deleted_to_environment_backup();
 CALL convert_task_command_to_text();
+CALL add_key_fingerprint_to_ssh_key();
+CALL add_autoidle_to_environment();
+CALL add_deploy_base_head_ref_title_to_environment();
+CALL convert_env_vars_from_varchar_to_text();
+CALL convert_user_ssh_key_usid_to_char();
+CALL add_private_key_to_project();
+CALL add_index_for_environment_backup_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

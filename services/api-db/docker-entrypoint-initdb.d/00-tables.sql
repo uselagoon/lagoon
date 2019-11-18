@@ -3,11 +3,12 @@ USE infrastructure;
 -- Tables
 
 CREATE TABLE IF NOT EXISTS ssh_key (
-  id            int NOT NULL auto_increment PRIMARY KEY,
-  name          varchar(100) NOT NULL,
-  key_value     varchar(5000) NOT NULL,
-  key_type      ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
-  created       timestamp DEFAULT CURRENT_TIMESTAMP
+  id               int NOT NULL auto_increment PRIMARY KEY,
+  name             varchar(100) NOT NULL,
+  key_value        varchar(5000) NOT NULL,
+  key_type         ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
+  key_fingerprint  char(51) NULL UNIQUE,
+  created          timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user (
@@ -72,7 +73,8 @@ CREATE TABLE IF NOT EXISTS project (
   openshift                        int REFERENCES openshift (id),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
-  created                          timestamp DEFAULT CURRENT_TIMESTAMP
+  created                          timestamp DEFAULT CURRENT_TIMESTAMP,
+  private_key                      varchar(5000)
 );
 
 CREATE TABLE IF NOT EXISTS environment (
@@ -80,7 +82,11 @@ CREATE TABLE IF NOT EXISTS environment (
   name                   varchar(100),
   project                int REFERENCES project (id),
   deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
+  deploy_base_ref        varchar(100),
+  deploy_head_ref        varchar(100),
+  deploy_title           varchar(300),
   environment_type       ENUM('production', 'development') NOT NULL,
+  auto_idle              int(1) NOT NULL default 1,
   openshift_project_name varchar(100),
   route                  varchar(300),
   routes                 text,
@@ -133,7 +139,7 @@ CREATE TABLE IF NOT EXISTS backup_restore (
 CREATE TABLE IF NOT EXISTS env_vars (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(300) NOT NULL,
-  value       varchar(300) NOT NULL,
+  value       text NOT NULL,
   scope       ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
   environment int NULL REFERENCES environent (id),

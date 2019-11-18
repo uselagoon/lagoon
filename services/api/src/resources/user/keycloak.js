@@ -2,20 +2,25 @@
 
 const R = require('ramda');
 const pickNonNil = require('../../util/pickNonNil');
-const keycloakClient = require('../../clients/keycloakClient');
+const { getKeycloakAdminClient } = require('../../clients/keycloak-admin');
 const logger = require('../../logger');
 
 const KeycloakOperations = {
-  findUserIdByUsername: async (username /* : string */) =>
-    R.path(
+  findUserIdByUsername: async (username /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
+    return R.path(
       [0, 'id'],
-      await keycloakClient.users.findOne({
+      await keycloakAdminClient.users.findOne({
         username,
       }),
-    ),
+    );
+  },
   createUser: async (user /* : any */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
-      await keycloakClient.users.create({
+      await keycloakAdminClient.users.create({
         ...pickNonNil(['email', 'firstName', 'lastName'], user),
         username: R.prop('email', user),
         enabled: true,
@@ -52,9 +57,11 @@ const KeycloakOperations = {
     keycloakUserId /* : string */,
     username /* : string */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Delete the user
-      await keycloakClient.users.del({ id: keycloakUserId });
+      await keycloakAdminClient.users.del({ id: keycloakUserId });
 
       logger.debug(`Deleted Keycloak user with username "${username}"`);
     } catch (err) {
@@ -63,6 +70,8 @@ const KeycloakOperations = {
     }
   },
   deleteUserByUsername: async (username /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -70,7 +79,7 @@ const KeycloakOperations = {
       );
 
       // Delete the user
-      await keycloakClient.users.del({ id: keycloakUserId });
+      await keycloakAdminClient.users.del({ id: keycloakUserId });
 
       logger.debug(`Deleted Keycloak user with username "${username}"`);
     } catch (err) {
@@ -81,6 +90,8 @@ const KeycloakOperations = {
   linkUserToGitlab: async (
     { username, gitlabUserId } /* : {username: string, gitlabUserId: number} */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -88,7 +99,7 @@ const KeycloakOperations = {
       );
 
       // Add Gitlab Federated Identity to User
-      await keycloakClient.users.addToFederatedIdentity({
+      await keycloakAdminClient.users.addToFederatedIdentity({
         id: keycloakUserId,
         federatedIdentityId: 'gitlab',
         federatedIdentity: {
@@ -111,6 +122,8 @@ const KeycloakOperations = {
     }
   },
   removeGitlabLink: async (username /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -118,7 +131,7 @@ const KeycloakOperations = {
       );
 
       // Add Gitlab Federated Identity to User
-      await keycloakClient.users.delFromFederatedIdentity({
+      await keycloakAdminClient.users.delFromFederatedIdentity({
         id: keycloakUserId,
         federatedIdentityId: 'gitlab',
       });
@@ -136,6 +149,8 @@ const KeycloakOperations = {
   addUserToGroup: async (
     { username, groupName } /* : {username: string, groupName: string} */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id by username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -145,13 +160,13 @@ const KeycloakOperations = {
       // Find the Keycloak group id by name
       const keycloakGroupId = R.path(
         [0, 'id'],
-        await keycloakClient.groups.find({
+        await keycloakAdminClient.groups.find({
           search: groupName,
         }),
       );
 
       // Add the user to the group
-      await keycloakClient.users.addToGroup({
+      await keycloakAdminClient.users.addToGroup({
         id: keycloakUserId,
         groupId: keycloakGroupId,
       });
@@ -167,6 +182,8 @@ const KeycloakOperations = {
   deleteUserFromGroup: async (
     { username, groupName } /* : {username: string, groupName: string} */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id by username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -176,13 +193,13 @@ const KeycloakOperations = {
       // Find the Keycloak group id by name
       const keycloakGroupId = R.path(
         [0, 'id'],
-        await keycloakClient.groups.find({
+        await keycloakAdminClient.groups.find({
           search: groupName,
         }),
       );
 
       // Delete the user from the group
-      await keycloakClient.users.delFromGroup({
+      await keycloakAdminClient.users.delFromGroup({
         id: keycloakUserId,
         groupId: keycloakGroupId,
       });

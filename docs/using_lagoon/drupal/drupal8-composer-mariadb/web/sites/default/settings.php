@@ -15,13 +15,13 @@
  * - production.services.yml
  *   For services only for the production environment.
  * - development.settings.php
- *   For settings only for the development environment (devevlopment sites, docker).
+ *   For settings only for the development environment (development sites, docker).
  * - development.services.yml
- *   For services only for the development environment (devevlopment sites, docker).
+ *   For services only for the development environment (development sites, docker).
  * - settings.local.php
- *   For settings only for the local environment, this file will not be commited in GIT!
+ *   For settings only for the local environment, this file will not be committed in GIT!
  * - services.local.yml
- *   For services only for the local environment, this file will not be commited in GIT!
+ *   For services only for the local environment, this file will not be committed in GIT!
  */
 
 // Lagoon Database connection.
@@ -41,9 +41,9 @@ if (getenv('LAGOON')) {
 // WARNING: you have to create a search_api server having "solr" machine name at
 // /admin/config/search/search-api/add-server to make this work.
 if (getenv('LAGOON') && (file_exists($app_root . '/modules/contrib/search_api_solr') || file_exists($app_root . 'modules/search_api_solr'))) {
-  $config['search_api.server.solr']['backend_config']['connector_config']['host'] = getenv('SOLR_HOST') ?: 'solr';
+  $config['search_api.server.solr']['backend_config']['connector_config']['host'] = (getenv('SOLR_HOST') ?: 'solr');
   $config['search_api.server.solr']['backend_config']['connector_config']['path'] = '/solr/';
-  $config['search_api.server.solr']['backend_config']['connector_config']['core'] = getenv('SOLR_CORE') ?: 'drupal';
+  $config['search_api.server.solr']['backend_config']['connector_config']['core'] = (getenv('SOLR_CORE') ?: 'drupal');
   $config['search_api.server.solr']['backend_config']['connector_config']['port'] = 8983;
   $config['search_api.server.solr']['backend_config']['connector_config']['http_user'] = (getenv('SOLR_USER') ?: '');
   $config['search_api.server.solr']['backend_config']['connector_config']['http']['http_user'] = (getenv('SOLR_USER') ?: '');
@@ -56,7 +56,7 @@ if (getenv('LAGOON') && (file_exists($app_root . '/modules/contrib/search_api_so
 if (getenv('LAGOON') && (file_exists($app_root . '/modules/contrib/redis') || file_exists($app_root . 'modules/redis')) && extension_loaded('redis')) {
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
-  $settings['redis.connection']['port'] = 6379;
+  $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
 
   $settings['cache_prefix']['default'] = getenv('LAGOON_PROJECT') . '_' . getenv('LAGOON_GIT_SAFE_BRANCH');
 

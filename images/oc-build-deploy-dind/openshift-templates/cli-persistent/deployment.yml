@@ -54,6 +54,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ''
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -72,9 +75,6 @@ objects:
         type: ${DEPLOYMENT_STRATEGY}
       template:
         metadata:
-          annotations:
-            appuio.ch/backupcommand: /bin/sh -c "if [[ $MARIADB_HOST ]]; then dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $MARIADB_HOST -u $MARIADB_USERNAME -p$MARIADB_PASSWORD $MARIADB_DATABASE > $dump && cat $dump && rm $dump; fi"
-            backup.appuio.ch/file-extension: .mysql.sql
           creationTimestamp: null
           labels:
             service: ${SERVICE_NAME}
@@ -98,6 +98,7 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: lagoon-sshkey
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
@@ -123,6 +124,8 @@ objects:
                 requests:
                   cpu: 10m
                   memory: 10Mi
+                limits:
+                  memory: 8Gi
       test: false
       triggers:
         - type: ConfigChange

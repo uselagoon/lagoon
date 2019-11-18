@@ -1,5 +1,5 @@
 import React from 'react';
-import { bp } from '../../variables';
+import { bp } from 'lib/variables';
 
 const LogViewer = ({ logs }) => (
   <React.Fragment>
@@ -16,7 +16,7 @@ const LogViewer = ({ logs }) => (
           font-family: 'Monaco', monospace;
           font-size: 12px;
           font-weight: 400;
-          height: 600px;
+          min-height: 600px;
           margin: 0;
           overflow-wrap: break-word;
           overflow-x: scroll;

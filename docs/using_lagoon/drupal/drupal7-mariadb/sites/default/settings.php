@@ -13,7 +13,7 @@
  * - settings.development.php
  *   For settings only for the development environment (dev servers, docker).
  * - settings.local.php
- *   For settings only for the local environment, this file will not be commited in GIT!
+ *   For settings only for the local environment, this file will not be committed in GIT!
  */
 
  // Lagoon Database connection.
@@ -37,9 +37,9 @@
     // Override search API server settings fetched from default configuration.
     $conf['search_api_override_mode'] = 'load';
     $conf['search_api_override_servers']['solr']['name'] = 'Lagoon Solr - Environment:' . getenv('LAGOON_PROJECT');
-    $conf['search_api_override_servers']['solr']['options']['host'] = getenv('SOLR_HOST') ?: 'solr';
+    $conf['search_api_override_servers']['solr']['options']['host'] = (getenv('SOLR_HOST') ?: 'solr');
     $conf['search_api_override_servers']['solr']['options']['port'] = 8983;
-    $conf['search_api_override_servers']['solr']['options']['path'] = '/solr/' . getenv('SOLR_CORE') ?: 'drupal';
+    $conf['search_api_override_servers']['solr']['options']['path'] = '/solr/' . (getenv('SOLR_CORE') ?: 'drupal');
     $conf['search_api_override_servers']['solr']['options']['http_user'] = (getenv('SOLR_USER') ?: '');
     $conf['search_api_override_servers']['solr']['options']['http_pass'] = (getenv('SOLR_PASSWORD') ?: '');
     $conf['search_api_override_servers']['solr']['options']['excerpt'] = 0;

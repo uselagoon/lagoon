@@ -10,6 +10,11 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
+## Install VirtualBox 
+
+We are using VitualBox to run the Openshift Minishift VM. For download and instalation instructions see here:
+[https://www.virtualbox.org/](https://www.virtualbox.org/)
+
 ## Start Services
 
 1. Add `192.168.99.0/24` to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
@@ -22,30 +27,30 @@ All of it is based around tests. So if you like to only build the part that is n
 
 If you would still like to build and start all services, go ahead:
 
-2. Build images
+2\. Build images
 
 ```sh
 make build
 ```
 
-3. start Lagoon Services
+3\. start Lagoon Services
 
 ```sh
 make up
 ```
 
-4. Follow the Services logs
+4\. Follow the Services logs
 
 ```sh
 make logs
 ```
 
-5. run tests (read [Tests](tests.md) to learn more about testing)
+5\. run tests (read [Tests](tests.md) to learn more about testing)
 ```sh
 make tests
 ```
 
-6. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
+6\. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
 
 ## Local Development
 

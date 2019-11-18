@@ -64,7 +64,7 @@ const messageConsumer = async msg => {
     var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
     var openshiftName = projectOpenShift.openshift.name
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
-    var deployPrivateKey = projectOpenShift.customer.privateKey
+    var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
     var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
@@ -89,14 +89,23 @@ const messageConsumer = async msg => {
     case "branch":
       // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
       var gitRef = gitSha ? gitSha : `origin/${branchName}`
+      var deployBaseRef = branchName
+      var deployHeadRef = null
+      var deployTitle = null
       break;
 
     case "pullrequest":
       var gitRef = gitSha
+      var deployBaseRef = prBaseBranchName
+      var deployHeadRef = prHeadBranchName
+      var deployTitle = prPullrequestTitle
       break;
 
     case "promote":
       var gitRef = `origin/${promoteSourceEnvironment}`
+      var deployBaseRef = promoteSourceEnvironment
+      var deployHeadRef = null
+      var deployTitle = null
       break;
   }
 
@@ -304,7 +313,7 @@ const messageConsumer = async msg => {
   // Update GraphQL API with information about this environment
   let environment;
   try {
-    environment = await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, graphqlEnvironmentType, openshiftProject)
+    environment = await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef, deployTitle)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(err)

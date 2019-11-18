@@ -1,11 +1,11 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM jboss/keycloak
+FROM jboss/keycloak:7.0.1
 
 USER root
 
-RUN yum install -y nc \
-    && yum clean all \
+RUN microdnf install -y nc python2 \
+    && microdnf clean all \
     && rm -rf /var/cache/yum
 
 LABEL maintainer="amazee.io"
@@ -47,12 +47,15 @@ ENV TMPDIR=/tmp \
     DB_DATABASE=keycloak \
     KEYCLOAK_LAGOON_ADMIN_USERNAME=lagoonadmin \
     KEYCLOAK_LAGOON_ADMIN_PASSWORD=lagoonadmin \
-    PROXY_ADDRESS_FORWARDING=true
+    PROXY_ADDRESS_FORWARDING=true \
+    KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a \
+    KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
 
 VOLUME /opt/jboss/keycloak/standalone/data
 
 COPY start.sh /opt/jboss/tools/start.sh
 COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
+COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["/opt/jboss/tools/start.sh"]

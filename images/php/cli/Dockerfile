@@ -1,9 +1,14 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
+ARG PHP_IMAGE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=cli
+
+# Defining Versions - https://getcomposer.org/download/
+ENV COMPOSER_VERSION=1.9.0 \
+  COMPOSER_HASH_SHA256=c9dff69d092bdec14dee64df6677e7430163509798895fbd54891c166c5c0875
 
 RUN apk add --no-cache git \
         unzip \
@@ -15,14 +20,17 @@ RUN apk add --no-cache git \
         patch \
         procps \
         coreutils \
+        mariadb-client \
         postgresql-client \
         openssh-sftp-server \
-    && apk add --no-cache "mariadb-client=10.2.22-r0" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
-    && apk add --no-cache nodejs-current nodejs-npm yarn --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
+        findutils \
+        nodejs-current \
+        nodejs-npm \
+        yarn \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
-    && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/1.8.4/composer.phar \
-    && echo "1722826c8fbeaf2d6cdd31c9c9af38694d6383a0f2bf476fe6bbd30939de058a /usr/local/bin/composer" | sha256sum \
+    && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
+    && echo "$COMPOSER_HASH_SHA256 /usr/local/bin/composer" | sha256sum \
     && chmod +x /usr/local/bin/composer \
     && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo \
     && mkdir -p /home/.ssh \

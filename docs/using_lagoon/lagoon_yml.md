@@ -10,6 +10,7 @@ The `.lagoon.yml` is the central file to setup your project:
 The `.lagoon.yml` file must be placed at the root of your git repository.
 
 ## Example `.lagoon.yml`
+This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your needs.
 
 ```
 docker-compose-yaml: docker-compose.yml
@@ -67,7 +68,7 @@ environments:
 ##### `docker-compose-yaml`
 Tells the build script which docker-compose yaml file should be used in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml` but could be used for a specific lagoon docker-compose yaml file if you need something like that.
 
-#### `routes.autogenerate.generate`
+#### `routes.autogenerate.enabled`
 This allows you to disable the automatic created routes (NOT the custom routes per environment, see below for them) all together.
 
 #### `routes.autogenerate.insecure`
@@ -84,11 +85,11 @@ This setting allows you to enable injecting the deployed git SHA into your proje
 
 There are different type of tasks you can define, they differ when exactly they are executed in a build flow:
 
-### `pre_rollout.[i].run`
+### Pre-Rollout Tasks - `pre_rollout.[i].run`
 The task defined as `pre_rollout` tasks will run against your project _after_ the new images have been built successfully and _before_ the project gets altered in any way.
 This feature enables you for example to create a database dump before the rollout is running. This will make it easier to roll-back in case of an issue with the rollout.
 
-#### `post_rollout.[i].run`
+#### Post-Rollout Tasks - `post_rollout.[i].run`
 Here you can specify tasks which need to run against your project, _after_:
 
 - all Images have been successfully built
@@ -118,6 +119,8 @@ The simplest route is the `example.com` example above. This will assume that you
 
 In the `"www.example.com"` example, we see two more options (also see the `:` at the end of the route and that the route is wrapped in `"`, that's important!):
 
+#### SSL Configuration - `tls-acme`
+
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route, this is the default. If you don't like a Let's Encrypt set this to `tls-acme: 'false'`
 * `insecure` can be set to `None`, `Allow` or `Redirect`.
     * `Allow` simply sets up both routes for http and https (this is the default).
@@ -125,7 +128,11 @@ In the `"www.example.com"` example, we see two more options (also see the `:` at
     * `None` will mean a route for http will _not_ be created, and no redirect will take place
 * `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
-#### `environments.[name].cronjobs`
+!!! Hint
+    If you plan to switch from a SSL certificate signed by a Certificate Authority (CA) to a Let's Encrypt certificate best get in touch with your Lagoon administrator to oversee the transition as there are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. Workaround would be manually removing the CA certificate and then trigger the Let's Encrypt process.
+
+
+#### Cronjobs - `environments.[name].cronjobs`
 As most of the time it is not desirable to run the same cronjobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
 * `name:`
@@ -159,7 +166,7 @@ environments:
 ```
 
 #### `environments.[name].templates`
-The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-templates))
+The Lagoon Build processes checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-templates))
 
 Sometimes though you would like to override the template just for a single environment and not for all of them:
 
@@ -178,14 +185,14 @@ environments:
 ```
 
 #### `environments.[name].rollouts`
-The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-deploymentconfig-templates))
+The Lagoon Build processes checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-deploymentconfig-templates))
 
 Sometimes though you would like to override the rollout type just for a single environment, especially if you also overwrote the template type for the environment
 
 `service-name: rollout-type`
 
 * `service-name` - is the name of the service from `docker-compose.yml` you would like to override
-* `rollout-type` - the type of rollout, see [documentation of `docker-compose.yml`](/using_lagoon/docker-compose_yml/#custom-rollout-monitor-types)) for possible values
+* `rollout-type` - the type of rollout, see [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-rollout-monitor-types)) for possible values
 
 Example:
 

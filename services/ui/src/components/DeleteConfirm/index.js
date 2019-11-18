@@ -1,7 +1,7 @@
 import React from 'react';
-import Modal from '../Modal';
-import { color, fontSize, bp } from '../../variables';
-import withLogic from './logic';
+import Modal from 'components/Modal';
+import { color, fontSize, bp } from 'lib/variables';
+import withLogic from 'components/DeleteConfirm/logic';
 
 const DeleteConfirm = ({
   deleteType,

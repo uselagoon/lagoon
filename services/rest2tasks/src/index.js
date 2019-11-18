@@ -23,8 +23,15 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(expressValidator());
 
+const deprecationMessage = 'Deprecated API - This will be removed in the future, use GraphQL API instead.'
+
+app.use(function(req, res, next) {
+  res.setHeader('Warning', '299 - "' + deprecationMessage + '"');
+  next();
+})
+
 app.get('/', (req, res) => {
-  return res.status(200).send('welcome to rest2tasks')
+  return res.status(200).send('welcome to rest2tasks - ' + deprecationMessage)
 })
 
 app.post('/pullrequest/deploy', async (req, res) => {
@@ -91,7 +98,7 @@ app.post('/pullrequest/deploy', async (req, res) => {
   const result = await req.getValidationResult()
 
   if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
+    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()) + ' - ' + deprecationMessage);
     return;
   }
 
@@ -118,24 +125,24 @@ app.post('/pullrequest/deploy', async (req, res) => {
     sendToLagoonLogs('info', data.projectName, '', `rest:pullrequest:deploy`, meta,
       `*[${data.projectName}]* REST deploy trigger \`${data.pullrequestTitle}\``
     )
-    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
+    res.status(200).type('json').send({ "ok": "true", "message": taskResult, "warning": deprecationMessage})
     return;
   } catch (error) {
     switch (error.name) {
       case "ProjectNotFound":
       case "ActiveSystemsNotFound":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
+          res.status(404).type('json').send({ "ok": "false", "message": error.message, "warning": deprecationMessage})
           return;
         break;
 
       case "NoNeedToDeployBranch":
-          res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          res.status(501).type('json').send({ "ok": "false", "message": error.message, "warning": deprecationMessage})
           return;
         break;
 
       default:
           logger.error(error)
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
+          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`, "warning": deprecationMessage})
           return;
         break;
     }
@@ -178,7 +185,7 @@ app.post('/deploy', async (req, res) => {
   const result = await req.getValidationResult()
 
   if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
+    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()) + ' - ' + deprecationMessage);
     return;
   }
 
@@ -208,24 +215,24 @@ app.post('/deploy', async (req, res) => {
     sendToLagoonLogs('info', data.projectName, '', `rest:deploy:receive`, meta,
       `*[${data.projectName}]* REST deploy trigger ${logMessage}`
     )
-    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
+    res.status(200).type('json').send({ "ok": "true", "message": taskResult, "warning": deprecationMessage})
     return;
   } catch (error) {
     switch (error.name) {
       case "ProjectNotFound":
       case "ActiveSystemsNotFound":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
+          res.status(404).type('json').send({ "ok": "false", "message": error.message, "warning": deprecationMessage})
           return;
         break;
 
       case "NoNeedToDeployBranch":
-          res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          res.status(501).type('json').send({ "ok": "false", "message": error.message, "warning": deprecationMessage})
           return;
         break;
 
       default:
           logger.error(error)
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
+          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`, "warning": deprecationMessage})
           return;
         break;
     }
@@ -262,7 +269,7 @@ app.post('/promote', async (req, res) => {
   const result = await req.getValidationResult()
 
   if (!result.isEmpty()) {
-    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()));
+    res.status(400).send('There have been validation errors: ' + util.inspect(result.mapped()) + ' - ' + deprecationMessage);
     return;
   }
 
@@ -287,24 +294,24 @@ app.post('/promote', async (req, res) => {
     sendToLagoonLogs('info', data.projectName, '', `rest:promote:receive`, meta,
       `*[${data.projectName}]* REST promote trigger ${logMessage}`
     )
-    res.status(200).type('json').send({ "ok": "true", "message": taskResult})
+    res.status(200).type('json').send({ "ok": "true", "message": taskResult, "warning": deprecationMessage})
     return;
   } catch (error) {
     switch (error.name) {
       case "ProjectNotFound":
       case "ActiveSystemsNotFound":
-          res.status(404).type('json').send({ "ok": "false", "message": error.message})
+          res.status(404).type('json').send({ "ok": "false", "message": error.message, "warning": deprecationMessage})
           return;
         break;
 
       case "NoNeedToDeployBranch":
-          res.status(501).type('json').send({ "ok": "false", "message": error.message})
+          res.status(501).type('json').send({ "ok": "false", "message": error.message, "warning": deprecationMessage})
           return;
         break;
 
       default:
           logger.error(error)
-          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`})
+          res.status(500).type('json').send({ "ok": "false", "message": `Internal Error: ${error}`, "warning": deprecationMessage})
           return;
         break;
     }

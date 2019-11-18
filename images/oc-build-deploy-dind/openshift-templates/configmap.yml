@@ -24,7 +24,6 @@ parameters:
     value: ""
   - name: ENVIRONMENT_TYPE
     description: Which environment type this project is
-    value: development
   - name: ROUTE
     description: The main route of this project
     value: ""

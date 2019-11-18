@@ -27,7 +27,7 @@ async function gitlabUserUpdate(webhook: WebhookRequestData) {
       lastName = R.tail(nameParts).join(' ');
     }
 
-    await updateUser(id, {
+    await updateUser(email, {
       email,
       firstName,
       lastName

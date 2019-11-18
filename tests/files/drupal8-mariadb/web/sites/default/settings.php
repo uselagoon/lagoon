@@ -15,13 +15,13 @@
  * - production.services.yml
  *   For services only for the production environment.
  * - development.settings.php
- *   For settings only for the development environment (devevlopment sites, docker).
+ *   For settings only for the development environment (development sites, docker).
  * - development.services.yml
- *   For services only for the development environment (devevlopment sites, docker).
+ *   For services only for the development environment (development sites, docker).
  * - settings.local.php
- *   For settings only for the local environment, this file will not be commited in GIT!
+ *   For settings only for the local environment, this file will not be committed in GIT!
  * - services.local.yml
- *   For services only for the local environment, this file will not be commited in GIT!
+ *   For services only for the local environment, this file will not be committed in GIT!
  *
  */
 
@@ -57,7 +57,7 @@ if (getenv('LAGOON')) {
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
-  $settings['redis.connection']['port'] = getenv('REDIS_PORT') ?: '6379';
+  $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
 
   // # Do not set the cache during installations of Drupal
   // if (!drupal_installation_attempted()) {

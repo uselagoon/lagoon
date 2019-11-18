@@ -12,7 +12,7 @@
   ],
   "dependencies": {
     "babel-eslint": "^8.2.1",
-    "eslint": "4.9.0",
+    "eslint": "^4.9.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-flowtype": "^2.41.0",
     "eslint-plugin-import": "^2.7.0"

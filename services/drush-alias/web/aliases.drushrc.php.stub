@@ -279,6 +279,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
     'remote-host' => "$ssh_host",
     'remote-user' => "$environment->openshiftProjectName",
     'root' => "$drupal_path",
+    'backup-dir' => '/tmp',
     'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
   ] + $defaults;
 

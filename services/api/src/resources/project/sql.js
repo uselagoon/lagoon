@@ -20,6 +20,10 @@ const Sql /* : SqlObj */ = {
   selectAllProjects: () =>
     knex('project')
       .toString(),
+  selectProjectByName: (name /* : string */) =>
+    knex('project')
+      .where('name', name)
+      .toString(),
   selectProjectIdByName: (name /* : string */) =>
     knex('project')
       .where('name', name)
@@ -70,11 +74,6 @@ const Sql /* : SqlObj */ = {
       .whereIn('cu.usid', userIds)
       // Filter out projects which have a matching project_user entry (where one or more of the user ids already has direct access to the project)
       .whereNull('pu.pid')
-      .toString(),
-  selectProjectIdsByCustomerIds: (customerIds /* : Array<number> */) =>
-    knex('project')
-      .select('id')
-      .whereIn('customer', customerIds)
       .toString(),
   // Returns all users that have access to a project, either directly or indirectly (through customer).
   selectAllUsersForProjectId: (projectId /* : number */) =>

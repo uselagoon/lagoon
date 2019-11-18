@@ -1,8 +1,0 @@
-- name: "{{ testname }} - POST rest2task /promote with source environment {{ source_environment }}, target environment {{ promote_environment }}  and project {{ project }} to {{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}"
-  uri:
-    url: "{{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}/promote"
-    method: POST
-    follow_redirects: yes
-    body_format: json
-    body: '{"branchName": "{{ promote_environment }}","sourceEnvironmentName": "{{ source_environment }}","projectName": "{{ project }}"}'
-

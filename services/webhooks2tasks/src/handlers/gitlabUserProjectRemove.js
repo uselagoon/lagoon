@@ -1,6 +1,6 @@
 // @flow
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { removeUserFromProject } = require('@lagoon/commons/src/api');
+const { removeUserFromGroup } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
@@ -8,15 +8,19 @@ async function gitlabUserProjectRemove(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { project_path: project, user_id: user } = body;
+    const { project_path: projectName, user_id: userId, user_email: userEmail } = body;
 
     const meta = {
       data: body,
-      user,
-      project,
+      projectName,
+      userId,
+      userEmail
     };
 
-    await removeUserFromProject(user, project);
+    // In Gitlab you can add/remove Users to Projects, in Lagoon this is not directly possible, but instead
+    // Lagoon automatically creates a group for each project in this form: `project-$projectname`
+    // So if a User is removed from a Project in Gitlab, we remove the user from this group
+    await removeUserFromGroup(userEmail, `project-${projectName}`);
 
     sendToLagoonLogs(
       'info',
@@ -24,7 +28,7 @@ async function gitlabUserProjectRemove(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Removed user ${user} from project ${project}`
+      `Removed user ${userEmail} ${userId} from group project-${projectName}`
     );
 
     return;
@@ -35,7 +39,7 @@ async function gitlabUserProjectRemove(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not remove user from project, reason: ${error}`
+      `Could not remove user from group project, reason: ${error}`
     );
 
     return;

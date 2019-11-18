@@ -15,7 +15,7 @@ Logs each received webhook to the lagoon-logs queue.
 
 Fully developed in Docker and hosted on amazee.io Openshift, see the `.openshift` folder. Deployed via Jenkinsfile.
 
-Uses `lagoon/node:8` as base image.
+Uses `lagoon/node:10` as base image.
 
 ## Development
 
@@ -35,4 +35,4 @@ Now you can send single requests to the webhook handler.
 
 You can also run all tests from the CLI via newman
 
-        yarn run newman-runall
+        yarn run newman:all

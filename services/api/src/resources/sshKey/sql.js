@@ -28,41 +28,37 @@ const Sql /* : SqlObj */ = {
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
       .where('usk.usid', '=', userId)
       .toString(),
-  selectAllCustomerSshKeys: (
-    { credentials: { role } } /* : {credentials: Cred} */,
-  ) => {
-    if (role !== 'admin') {
-      throw new Error('Unauthorized');
-    }
-    return knex('ssh_key AS sk')
-      .join('user_ssh_key AS usk', 'sk.id', '=', 'usk.skid')
-      .join('customer_user AS cu', 'usk.usid', '=', 'cu.usid')
-      .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
-      .toString();
-  },
-  selectAllProjectSshKeys: (
-    { credentials: { role } } /* : {credentials: Cred} */,
-  ) => {
-    if (role !== 'admin') {
-      throw new Error('Unauthorized');
-    }
-    return knex('ssh_key AS sk')
+  selectUserIdsBySshKeyId: (keyId /* : number */) =>
+    knex('ssh_key as sk')
+      .select('usk.usid')
+      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
+      .where('usk.skid', '=', keyId)
+      .toString(),
+  selectUserIdsBySshKeyFingerprint: (fingerprint /* : string */) =>
+    knex('ssh_key as sk')
+      .select('usk.usid')
+      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
+      .where('sk.key_fingerprint', '=', fingerprint)
+      .toString(),
+  selectAllProjectSshKeys: () =>
+    knex('ssh_key AS sk')
       .join('user_ssh_key AS usk', 'sk.id', '=', 'usk.skid')
       .join('project_user AS pu', 'usk.usid', '=', 'pu.usid')
       .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
-      .toString();
-  },
+      .toString(),
   insertSshKey: (
     {
       id,
       name,
       keyValue,
       keyType,
+      keyFingerprint,
     } /* : {
     id: number,
     name: string,
     keyValue: string,
     keyType: string,
+    keyFingerprint: string,
   } */,
   ) =>
     knex('ssh_key')
@@ -71,6 +67,7 @@ const Sql /* : SqlObj */ = {
         name,
         key_value: keyValue,
         key_type: keyType,
+        key_fingerprint: keyFingerprint,
       })
       .toString(),
   addSshKeyToUser: (

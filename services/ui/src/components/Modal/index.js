@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactModal from 'react-modal';
-import { color, bp } from '../../variables';
+import { color, bp } from 'lib/variables';
 
 ReactModal.setAppElement('#__next');
 

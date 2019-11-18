@@ -20,7 +20,7 @@ environments:
   master:
     routes:
       - nginx:
-        - example.com
+        - example.com:
             tls-acme: 'false'
             insecure: Allow
         - www.example.com:
@@ -36,7 +36,7 @@ environments:
   master:
     routes:
       - nginx:
-        - example.com
+        - example.com:
             tls-acme: 'true'
             insecure: Redirect
         - www.example.com:
@@ -57,7 +57,7 @@ Check if your cronjobs have been setup for your production environment - see [.l
 ## DNS
 To make it as easy as possible for you to get your site pointing to our servers we have dedicated load balancer DNS records. Those technical DNS resource records are used just for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record ask your lagoon administrator about the exact CNAME you need to setup.
 
-**Example on amazee.io :** `<loadbalancer-name>.<region-identifier>.amazee.io`
+**Example on amazee.io :** `<region-identifier>.amazee.io`
 
 Before you switch over your domain to lagoon make sure you lower the Time-to-Live (TTL) before the golive. This will ensure
 that the switch from the old to the new servers will go fast and quick. We usually advise a TTL of 300-600 seconds prior

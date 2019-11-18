@@ -7,8 +7,8 @@ API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
 # Load all projects and their environments
-GRAPHQL='query developmentEnvironments {
-  developmentEnvironments:allProjects {
+GRAPHQL='query environments {
+  environments:allProjects {
     name
     autoIdle
     openshift {
@@ -16,7 +16,7 @@ GRAPHQL='query developmentEnvironments {
       token
       name
     }
-    environments(type: DEVELOPMENT) {
+    environments {
       openshiftProjectName
       name
     }
@@ -28,7 +28,7 @@ ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARE
 
 # Filter only projects that actually have an environment
 # Loop through each found project
-echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.environments|length)>=1)' | while read project
+echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
   do
     PROJECT_NAME=$(echo "$project" | jq -r '.name')
     OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
@@ -53,7 +53,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
             continue;
           fi
 
-          # Check for Deploymentconfigs wich are clis
+          # Check for Deploymentconfigs which are clis
           DEPLOYMENTCONFIGS=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get dc -l service=cli -o name)
           if [ "$DEPLOYMENTCONFIGS" == "" ]; then
             echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: No deploymentconfigs for cli found"
@@ -74,18 +74,57 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | select((.env
             elif [ "$HAS_RUNNING_REPLICAS" == "true" ]; then
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has running pods, checking if they are non-busy"
 
-              # Now check if the container has only the entrypoint processes running (done with `ps --no-headers a` which only shows processes that have a tty)
-              RUNNING_PROCESSES=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig sh -c "ps --no-headers a | wc -l | tr -d ' '")
+              # Set to false initially, if there are any processes or builds running they are adjusted then.
+              # Will also skip on any continue conditions
+              NO_PROCESSES=false
+              NO_BUILDS=false
+              NO_CRONJOBS=false
 
+              # Check for any running processes
+              RUNNING_PROCESSES=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig sh -c "pgrep -P 0 | tail -n +3 | wc -l | tr -d ' '")
               if [ ! $? -eq 0 ]; then
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: error checking for busy-ness of pods"
                 continue
               elif [ "$RUNNING_PROCESSES" == "0" ]; then
                 # Now we can scale
-                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: not busy, scaling to 0"
-                oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" scale --replicas=0 $deploymentconfig
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: no running processes"
+                NO_PROCESSES=true
               else
                 echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has $RUNNING_PROCESSES running processes, skipping"
+                continue
+              fi
+
+              # Check for cronjobs present
+              CRONJOBS_PRESENT=$(set -e -o pipefail; oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" rsh $deploymentconfig sh -c "echo \$CRONJOBS")
+              if [ ! $? -eq 0 ]; then
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: error checking if pod has cronjob"
+                continue
+              elif [ -z "$CRONJOBS_PRESENT" ]; then
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: no cronjobs"
+                NO_CRONJOBS=true
+              else
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has cronjobs defined, skipping"
+                continue
+              fi
+
+              # Check for any running builds
+              RUNNING_BUILDS=$(oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" get --no-headers=true builds | grep "Running" | wc -l | tr -d ' ')
+              if [ ! $? -eq 0 ]; then
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: error checking build status"
+                continue
+              elif [ "$RUNNING_BUILDS" == "0" ]; then
+                # Now we can scale
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: no running builds"
+                NO_BUILDS=true
+              else
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: has $RUNNING_BUILDS running builds, skipping"
+                continue
+              fi
+
+              ## If there are no builds AND no processes, then we can idle the pods
+              if [[ "$NO_BUILDS" == "true" && "$NO_PROCESSES" == "true" && "$NO_CRONJOBS" == "true" ]]; then
+                echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: scaling to 0"
+                oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" -n "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" scale --replicas=0 $deploymentconfig
               fi
             else
               echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: $deploymentconfig: no running pods"

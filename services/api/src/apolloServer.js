@@ -1,61 +1,132 @@
 // @flow
 
 const R = require('ramda');
-const { ApolloServer, AuthenticationError } = require('apollo-server-express');
-const { getCredentialsForLegacyToken, getCredentialsForKeycloakToken } = require('./util/auth');
+const {
+  ApolloServer,
+  AuthenticationError,
+  makeExecutableSchema,
+} = require('apollo-server-express');
+const NodeCache = require('node-cache');
+const {
+  getCredentialsForLegacyToken,
+  getGrantForKeycloakToken,
+  legacyHasPermission,
+  keycloakHasPermission,
+} = require('./util/auth');
+const { getSqlClient } = require('./clients/sqlClient');
+const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
+const User = require('./models/user');
+const Group = require('./models/group');
+
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
 const apolloServer = new ApolloServer({
-  typeDefs,
-  resolvers,
+  schema,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let credentials;
+      let grant;
+      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
       }
 
+
+      const sqlClientKeycloak = getSqlClient();
       try {
-        credentials = await getCredentialsForKeycloakToken(token);
+        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
+        sqlClientKeycloak.end();
       } catch (e) {
+        sqlClientKeycloak.end();
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
+      const sqlClientLegacy = getSqlClient();
       try {
-        if (!credentials) {
-          credentials = await getCredentialsForLegacyToken(token);
+        if (!grant) {
+          legacyCredentials = await getCredentialsForLegacyToken(
+            sqlClientLegacy,
+            token,
+          );
+          sqlClientLegacy.end();
         }
       } catch (e) {
+        sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
 
-      // Add credentials to context.
-      return { credentials };
+      const keycloakAdminClient = await getKeycloakAdminClient();
+      const requestCache = new NodeCache({
+        stdTTL: 0,
+        checkperiod: 0,
+      });
+
+      return {
+        keycloakAdminClient,
+        sqlClient: getSqlClient(),
+        hasPermission: grant
+          ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
+          : legacyHasPermission(legacyCredentials),
+        keycloakGrant: grant,
+        requestCache,
+        models: {
+          UserModel: User.User({ keycloakAdminClient }),
+          GroupModel: Group.Group({ keycloakAdminClient }),
+        },
+      };
+    },
+    onDisconnect: (websocket, context) => {
+      if (context.sqlClient) {
+        context.sqlClient.end();
+      }
+      if (context.requestCache) {
+        context.requestCache.flushAll();
+      }
     },
   },
-  context: ({ req, connection }) => {
+  context: async ({ req, connection }) => {
     // Websocket requests
     if (connection) {
       // onConnect must always provide connection.context.
-      return connection.context;
+      return {
+        ...connection.context,
+      };
     }
 
     // HTTP requests
     if (!connection) {
+      const keycloakAdminClient = await getKeycloakAdminClient();
+      const requestCache = new NodeCache({
+        stdTTL: 0,
+        checkperiod: 0,
+      });
+
       return {
-        // Express middleware must always provide req.credentials.
-        credentials: req.credentials,
+        keycloakAdminClient,
+        sqlClient: getSqlClient(),
+        hasPermission: req.kauth
+          ? keycloakHasPermission(req.kauth.grant, requestCache, keycloakAdminClient)
+          : legacyHasPermission(req.legacyCredentials),
+        keycloakGrant: req.kauth
+          ? req.kauth.grant
+          : null,
+        requestCache,
+        models: {
+          UserModel: User.User({ keycloakAdminClient }),
+          GroupModel: Group.Group({ keycloakAdminClient }),
+        },
       };
     }
   },
-  formatError: (error) => {
+  formatError: error => {
     logger.warn(error.message);
     return {
       message: error.message,
@@ -63,6 +134,20 @@ const apolloServer = new ApolloServer({
       path: error.path,
     };
   },
+  plugins: [
+    {
+      requestDidStart: () => ({
+        willSendResponse: response => {
+          if (response.context.sqlClient) {
+            response.context.sqlClient.end();
+          }
+          if (response.context.requestCache) {
+            response.context.requestCache.flushAll();
+          }
+        },
+      }),
+    },
+  ],
 });
 
 module.exports = apolloServer;

@@ -55,10 +55,11 @@ SHELL := /bin/bash
 DOCKER_BUILD_PARAMS := --quiet
 
 # Version and Hash of the OpenShift cli that should be downloaded
-MINISHIFT_VERSION := 1.16.1
+MINISHIFT_VERSION := 1.34.1
+OPENSHIFT_VERSION := v3.11.0
 
 MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 2GB
+MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
@@ -79,12 +80,20 @@ BRANCH_NAME :=
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
+# Build a Python docker image. Expects as arguments:
+# 1. Python version
+# 2. Location of Dockerfile
+# 3. Path of Docker Build context
+docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
+
+docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
+
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
 # 3. Location of Dockerfile
 # 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(2) -t $(CI_BUILD_TAG)/php:$(3) -f $(4) $(5)
 
 docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
 
@@ -108,6 +117,7 @@ images :=     oc \
 							mariadb-galera \
 							mariadb-galera-drupal \
 							postgres \
+							postgres-ckan \
 							postgres-drupal \
 							oc-build-deploy-dind \
 							commons \
@@ -122,9 +132,6 @@ images :=     oc \
 							rabbitmq \
 							rabbitmq-cluster \
 							mongo \
-							elasticsearch \
-							kibana \
-							logstash \
 							athenapdf-service \
 							curator \
 							docker-host
@@ -156,6 +163,7 @@ build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
 build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
 build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
+build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
 build/commons: images/commons/Dockerfile
 build/nginx: build/commons images/nginx/Dockerfile
@@ -169,14 +177,74 @@ build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
 build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/mongo: build/commons images/mongo/Dockerfile
-build/elasticsearch: build/commons images/elasticsearch/Dockerfile
-build/logstash: build/commons images/logstash/Dockerfile
-build/kibana: build/commons images/kibana/Dockerfile
 build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: images/athenapdf-service/Dockerfile
+
+
+#######
+####### Elastic Images
+#######
+
+elasticimages :=  elasticsearch__6 \
+								  elasticsearch__7 \
+								  elasticsearch__7.1 \
+									kibana__6 \
+									kibana__7 \
+									kibana__7.1 \
+									logstash__6 \
+									logstash__7
+
+build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-elasticimages): build/commons
+	$(eval clean = $(subst build/,,$@))
+	$(eval tool = $(word 1,$(subst __, ,$(clean))))
+	$(eval version = $(word 2,$(subst __, ,$(clean))))
+# Call the docker build
+	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(elasticimages)
+s3-images += elasticimages
+
+build/elasticsearch__6 build/elasticsearch__7 build/elasticsearch__7.1 build/kibana__6 build/kibana__7 build/kibana__7.1 build/logstash__6 build/logstash__7: images/commons
+
+#######
+####### Python Images
+#######
+####### Python Images are alpine linux based Python images.
+
+pythonimages :=  python__2.7 \
+								 python__3.7 \
+								 python__2.7-ckan \
+								 python__2.7-ckandatapusher
+
+build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
+
+# Define the make recepie for all base images
+$(build-pythonimages): build/commons
+	$(eval clean = $(subst build/python__,,$@))
+	$(eval version = $(word 1,$(subst -, ,$(clean))))
+	$(eval type = $(word 2,$(subst -, ,$(clean))))
+# this fills variables only if $type is existing, if not they are just empty
+	$(eval type_dash = $(if $(type),-$(type)))
+# Call the docker build
+	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
+# Touch an empty file which make itself is using to understand when the image has been last build
+	touch $@
+
+base-images-with-versions += $(pythonimages)
+s3-images += python
+
+build/python__2.7 build/python__3.7: images/commons
+build/python__2.7-ckan: build/python__2.7
+build/python__2.7-ckandatapusher: build/python__2.7
+
 
 #######
 ####### PHP Images
@@ -214,8 +282,10 @@ $(build-phpimages): build/commons
 # if there is a subtype, add it. If not, just keep what we already had
 	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
 	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
+# cover the edge case for php 7.0 needing php:7-fpm-alpine
+	$(eval php_ver = $(patsubst 7.0,7,$(version)))
 # Call the docker build
-	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
+	$(call docker_build_php,$(version),$(php_ver),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -244,7 +314,9 @@ solrimages := 	solr__5.5 \
 								solr__7.5 \
 								solr__5.5-drupal \
 								solr__6.6-drupal \
-								solr__7.5-drupal
+								solr__7.5-drupal \
+								solr__5.5-ckan \
+								solr__6.6-ckan
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -268,20 +340,24 @@ build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
 build/solr__6.6-drupal: build/solr__6.6
 build/solr__7.5-drupal: build/solr__7.5
+build/solr__5.5-ckan: build/solr__5.5
+build/solr__6.6-ckan: build/solr__6.6
 
 #######
 ####### Node Images
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__10 \
-							node__9 \
-							node__8 \
-							node__6 \
-							node__10-builder \
-							node__9-builder \
-							node__8-builder \
-							node__6-builder
+nodeimages := node__12 \
+						node__10 \
+						node__9 \
+						node__8 \
+						node__6 \
+						node__12-builder \
+						node__10-builder \
+						node__9-builder \
+						node__8-builder \
+						node__6-builder
 
 build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 
@@ -302,6 +378,7 @@ base-images-with-versions += $(nodeimages)
 s3-images += node
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__12-builder: build/node__12 images/node/builder/Dockerfile
 build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
 build/node__8-builder: build/node__8 images/node/builder/Dockerfile
@@ -316,7 +393,7 @@ build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
 build-images += yarn-workspace-builder
-build/yarn-workspace-builder: build/node__8-builder images/yarn-workspace-builder/Dockerfile
+build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
 	touch $@
@@ -373,9 +450,9 @@ $(build-services-galera):
 
 # Dependencies of Service Images
 build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash
-build/logs-db: build/elasticsearch
-build/logs-db-ui: build/kibana
+build/logs2logs-db: build/logstash__7
+build/logs-db: build/elasticsearch__7.1
+build/logs-db-ui: build/kibana__7.1
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
@@ -463,7 +540,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch
@@ -471,12 +548,12 @@ run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
-$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift
+$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind build/broker-single $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -562,8 +639,10 @@ $(publish-amazeeio-baseimages-with-versions):
 #   The underline is a placeholder for a colon, replace that
 		$(eval image = $(subst __,:,$(image)))
 #		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
-#		Therefore they don't have any latest tag
+#		We push a version without the `-latest` suffix
 		$(call docker_publish_amazeeio,$(image),$(image))
+#		Plus a version with the `-latest` suffix, this makes it easier for people with automated testing
+		$(call docker_publish_amazeeio,$(image),$(image)-latest)
 #		We add the Lagoon Version just as a dash
 		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
 
@@ -665,8 +744,9 @@ openshift:
 # Start Local OpenShift Cluster within a docker machine with a given name, also check if the IP
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
-	$(info starting minishift with name $(CI_BUILD_TAG))
-	MINISHIFT_ENABLE_EXPERIMENTAL=y ./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="v3.9.0" --extra-clusterup-flags "--service-catalog"
+	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
 ifeq ($(ARCH), Darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
@@ -679,14 +759,14 @@ endif
 	./local-dev/minishift/minishift ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login -u system:admin; \
-	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
-	oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
-	oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
+	bash -c "echo '{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"docker-registry-external\"},\"spec\":{\"ports\":[{\"port\":5000,\"protocol\":\"TCP\",\"targetPort\":5000,\"nodePort\":30000}],\"selector\":{\"docker-registry\":\"default\"},\"sessionAffinity\":\"None\",\"type\":\"NodePort\"}}' | oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" create -n default -f -"; \
+	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin system:anonymous; \
+	oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" adm policy add-cluster-role-to-user cluster-admin developer;
 	@echo "$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)" > $@
 	@echo "wait 60secs in order to give openshift time to setup it's registry"
 	sleep 60
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
-	for i in {10..30}; do oc --context="default/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
+	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
 	$(MAKE) minishift/configure-lagoon-local push-docker-host-image
 
 minishift/login-docker-registry:
@@ -706,6 +786,7 @@ openshift-lagoon-setup:
 	oc -n lagoon policy add-role-to-user admin -z openshiftbuilddeploy; \
 	oc -n lagoon create -f openshift-setup/clusterrole-openshiftbuilddeploy.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user openshiftbuilddeploy -z openshiftbuilddeploy; \
+	oc -n lagoon create -f openshift-setup/priorityclasses.yaml; \
 	oc -n lagoon create -f openshift-setup/shared-resource-viewer.yaml; \
 	oc -n lagoon create -f openshift-setup/policybinding.yaml | oc -n lagoon create -f openshift-setup/rolebinding.yaml; \
 	oc -n lagoon create serviceaccount docker-host; \
@@ -737,7 +818,7 @@ minishift/configure-lagoon-local: openshift-lagoon-setup
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
-	rm minishift
+	rm -f minishift
 
 # Stop OpenShift, remove downloaded minishift
 .PHONY: openshift/clean
@@ -746,7 +827,7 @@ minishift/clean: minishift/stop
 
 # Downloads the correct oc cli client based on if we are on OS X or Linux
 local-dev/minishift/minishift:
-	$(info downloading minishift)
+	$(info downloading minishift version $(MINISHIFT_VERSION))
 	@mkdir -p ./local-dev/minishift
 ifeq ($(ARCH), Darwin)
 		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
@@ -757,7 +838,7 @@ endif
 .PHONY: push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
 	rm -rf build/oc-build-deploy-dind
-	$(MAKE) build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+	$(MAKE) minishift/login-docker-registry build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
 
 
 
