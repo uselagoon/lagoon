@@ -16,10 +16,25 @@ pages:
   - Environment Variables: using_lagoon/environment_variables.md
   - Docker Images:
     - PHP-FPM: using_lagoon/docker_images/php-fpm.md
+    - PHP CLI: using_lagoon/docker_images/php-cli.md
+    - PHP CLI Drupal: using_lagoon/docker_images/php-cli-drupal.md
     - Nginx: using_lagoon/docker_images/nginx.md
+    - Nginx Drupal: using_lagoon/docker_images/nginx-drupal.md
+    - MariaDB: using_lagoon/docker_images/mariadb.md
+    - MariaDB Drupal: using_lagoon/docker_images/mariadb-drupal.md
+    - MongoDB: using_lagoon/docker_images/mongo.md
+    - RabbitMQ: using_lagoon/docker_images/rabbitmq.md
+    - Redis: using_lagoon/docker_images/redis.md
+    - Redis Permanent: using_lagoon/docker_images/redis-permanent.md
+    - Solr: using_lagoon/docker_images/solr.md
+    - Solr Drupal: using_lagoon/docker_images/solr-drupal.md
+    - Varnish: using_lagoon/docker_images/varnish.md
+    - Varnish Drupal: using_lagoon/docker_images/varnish-drupal.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
-  - Logging: using_lagoon/logging.md
+  - Logs: 
+     - Logging: using_lagoon/logging/logging.md
+     - Kibana Examples: using_lagoon/logging/kibana_examples.md
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Drupal:
@@ -40,6 +55,7 @@ pages:
   - Installing Lagoon: administering_lagoon/install.md
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
   - GraphQL API: administering_lagoon/graphql_api.md
+  - Role Based Access Control: administering_lagoon/rbac.md
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md

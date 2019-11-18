@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/logstash:6
+FROM ${IMAGE_REPO:-lagoon}/logstash:7
 
 RUN bin/logstash-plugin install logstash-input-lumberjack
 
@@ -19,16 +19,11 @@ ENV PATH_CONFIG=null
 ENV RABBITMQ_HOST="broker" \
     RABBITMQ_USER="guest" \
     RABBITMQ_PASSWORD="guest" \
-    ELASTICSEARCH_URL="http://logs-db:9200" \
+    ELASTICSEARCH_URL="http://logs-db-service:9200" \
     LOGSDB_ADMIN_PASSWORD=admin \
     LOGSTASH_USERNAME="username" \
     LOGSTASH_PASSWORD="password" \
-    XPACK_MONITORING_ELASTICSEARCH_URL="http://logs-db:9200" \
-    XPACK_MONITORING_ELASTICSEARCH_USERNAME=admin \
-    XPACK_MONITORING_ELASTICSEARCH_PASSWORD=admin \
-    XPACK_MANAGEMENT_ELASTICSEARCH_URL="http://logs-db:9200" \
-    XPACK_MANAGEMENT_ELASTICSEARCH_USERNAME=admin \
-    XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD=admin
+    XPACK_MONITORING_ENABLED=false
 
 
 EXPOSE 8080 9600

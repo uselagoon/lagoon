@@ -55,7 +55,7 @@ const getEnvVarsByEnvironmentId = async (
     hasPermission,
   },
 ) => {
-  const environment = environmentHelpers(sqlClient).getEnvironmentById(eid);
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
 
   await hasPermission('env_var', `environment:view:${environment.environmentType}`, {
     project: environment.project,
@@ -102,7 +102,7 @@ const addEnvVariableToProject = async (
   },
 ) => {
   await hasPermission('env_var', 'project:add', {
-    project: typeId,
+    project: `${typeId}`,
   });
 
   const scope = envVarScopeToString(unformattedScope);
@@ -137,7 +137,7 @@ const addEnvVariableToEnvironment = async (
     hasPermission,
   },
 ) => {
-  const environment = environmentHelpers(sqlClient).getEnvironmentById(typeId);
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(typeId);
 
   await hasPermission('env_var', `environment:add:${environment.environmentType}`, {
     project: environment.project,

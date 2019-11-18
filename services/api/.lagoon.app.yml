@@ -119,6 +119,11 @@ objects:
                 secretKeyRef:
                   name: keycloak-admin-password
                   key: KEYCLOAK_ADMIN_PASSWORD
+            - name: KEYCLOAK_API_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-api-client-secret
+                  key: KEYCLOAK_API_CLIENT_SECRET
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
             - name: CRONJOBS

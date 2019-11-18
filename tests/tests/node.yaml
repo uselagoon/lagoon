@@ -6,6 +6,24 @@
 
 - include: rest/branch.yaml
   vars:
+    testname: "NODE 12"
+    node_version: 12
+    git_repo_name: node.git
+    project: ci-node
+    branch: node12
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: rest/branch.yaml
+  vars:
+    testname: "NODE 10"
+    node_version: 10
+    git_repo_name: node.git
+    project: ci-node
+    branch: node10
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
+- include: rest/branch.yaml
+  vars:
     testname: "NODE 8"
     node_version: 8
     git_repo_name: node.git

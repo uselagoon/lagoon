@@ -1,5 +1,9 @@
 # Drush 9
 
+Lagoon defaults to Drush 8. Drush 9 is used if you install Drush 9 into your Drupal site via Composer. 
+
+## Aliases
+
 Unfortunately Drush 9 does not provide the possibility to inject dynamic Site Aliases like Drush 8 did. We are working with the Drush team to implement this again. In the meantime we have a workaround that allows you to use Drush 9 with Lagoon.
 
 ### Basic Idea
@@ -32,15 +36,19 @@ and to use them: `drush @lagoon.master ssh`
 
 ### Update Site Aliases
 
-If a new environment in Lagoon has been created, you can just run `drush site:alias-convert` to update the site aliases file.
+If a new environment in Lagoon has been created, you can just run `drush site:alias-convert` to update the site aliases file. If running this command does not update `lagoon.site.yml`, try deleting `lagoon.site.yml` first, and then re-run `drush site:alias-convert`.
 
 ### Drush rsync from local to remote environments
 
-If you like to sync files from a local to a remote environment you need to pass additional parameters:
+If you would like to sync files from a local environment to a remote environment, you need to pass additional parameters:
 
 ```
 drush rsync @self:%files @lagoon.master:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
+
+This is also applies to syncing a remote environment to another remote environment, if you're not using the Lagoon Tasks UI to copy files between environments. 
+For example, if you wanted to sync the files from `@lagoon.master` to `@lagoon.dev` and ran `drush rsync @lagoon.master @lagoon.dev` locally, you will probably run into a "Cannot specify two remote aliases" error. 
+To resolve this, you would first need to ssh into your destination environment `drush @lagoon.dev ssh`, then execute the rsync command with parameters similar to the above: `drush rsync @lagoon.master:%files  @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX`. 
 
 This is not necessary if you rsync from a remote to a local environment.
 

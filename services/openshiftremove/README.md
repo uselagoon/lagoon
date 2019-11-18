@@ -20,7 +20,7 @@ It uses https://github.com/benbria/node-amqp-connection-manager for connecting t
 
 Fully developed in Docker and hosted on amazee.io Openshift, see the `.openshift` folder. Deployed via Jenkinsfile.
 
-Uses `lagoon/node:8` as base image.
+Uses `lagoon/node:10` as base image.
 
 ## Development
 

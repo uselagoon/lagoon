@@ -6,7 +6,7 @@ set -eo pipefail
 # https://github.com/stefanjacobs/keycloak_min/blob/f26927426e60c1ec29fc0c0980e5a694a45dcc05/run.sh
 
 function is_keycloak_running {
-    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/auth/admin/realms)
+    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://$(hostname -i):8080/auth/admin/realms)
     if [[ $http_code -eq 401 ]]; then
         return 0
     else
@@ -62,27 +62,34 @@ function configure_lagoon_realm {
     fi
 }
 
-function configure_lagoon_searchguard_client {
+function configure_opendistro_security_client {
 
-    # delete old SearchGuard Client
+    # delete old SearchGuard Clients
     searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=searchguard --config $CONFIG_PATH)
     if [ "$searchguard_client_id" != "[ ]" ]; then
         echo "Client searchguard is exising, will delete"
         SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
         /opt/jboss/keycloak/bin/kcadm.sh delete clients/${SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
     fi
-
     lagoon_searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH)
     if [ "$lagoon_searchguard_client_id" != "[ ]" ]; then
-        echo "Client lagoon-searchguard is already created, skipping basic setup"
+        echo "Client lagoon-searchguard is exising, will delete"
+        LAGOON_SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+        /opt/jboss/keycloak/bin/kcadm.sh delete clients/${LAGOON_SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+    fi
+
+
+    opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH)
+    if [ "$opendistro_security_client_id" != "[ ]" ]; then
+        echo "Client lagoon-opendistro-security is already created, skipping setup"
         return 0
     fi
 
-    # Configure keycloak for searchguard
-    echo Creating client lagoon-searchguard
-    echo '{"clientId": "lagoon-searchguard", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    echo Creating mapper for lagoon-searchguard "groups"
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    # Configure keycloak for lagoon-opendistro-security
+    echo Creating client lagoon-opendistro-security
+    echo '{"clientId": "lagoon-opendistro-security", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo Creating mapper for lagoon-opendistro-security "groups"
+    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
     echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n// add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  // remove the group role suffixes\n  var groupName = group.getName().replace(/-owner|-maintainer|-developer|-reporter|-guest/gi,\"\");\n  groupsAndRoles.add(groupName);\n});\n\n// add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"},"name":"groups","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
 }
@@ -1297,10 +1304,10 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://$(hostname -i):8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
 
     configure_lagoon_realm
-    configure_lagoon_searchguard_client
+    configure_opendistro_security_client
     configure_api_client
     add_group_viewall
 
@@ -1312,8 +1319,30 @@ configure_keycloak &
 
 /bin/sh /opt/jboss/tools/databases/change-database.sh mariadb
 
+if [ -z "$BIND" ]; then
+    BIND=$(hostname --all-ip-addresses)
+fi
+if [ -z "$BIND_OPTS" ]; then
+    for BIND_IP in $BIND
+    do
+        BIND_OPTS+=" -Djboss.bind.address=$BIND_IP -Djboss.bind.address.private=$BIND_IP "
+    done
+fi
+SYS_PROPS+=" $BIND_OPTS"
+
+# If the server configuration parameter is not present, append the HA profile.
+if echo "$@" | egrep -v -- '-c |-c=|--server-config |--server-config='; then
+    SYS_PROPS+=" -c=standalone-ha.xml"
+fi
+
+# in 7.0.1+ script uploads are disabled by default. Enable them here.
+# https://www.keycloak.org/docs/latest/release_notes/index.html#keycloak-7-0-1-final
+SYS_PROPS+=" -Dkeycloak.profile.feature.upload_scripts=enabled"
+
 ##################
 # Start Keycloak #
 ##################
 
-exec /opt/jboss/keycloak/bin/standalone.sh -b 0.0.0.0
+/opt/jboss/tools/jgroups.sh
+
+exec /opt/jboss/keycloak/bin/standalone.sh $SYS_PROPS

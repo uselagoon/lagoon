@@ -4,7 +4,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest}  as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/node:8
+FROM ${IMAGE_REPO:-amazeeiolagoon}/node:10
 
 # Copying generated node_modules from the first stage
 COPY --from=yarn-workspace-builder /app /app
@@ -22,7 +22,8 @@ COPY . .
 RUN yarn check --verify-tree
 
 # Making sure we run in production
-ENV NODE_ENV production
+ENV NODE_ENV=production \
+    KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
 
 RUN yarn run build
 
