@@ -366,6 +366,7 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
                   '@timestamp': {
                     gte: `${interested_year_month}||/M`,
                     lte: `${interested_year_month}||/M`,
+                    format: "strict_year_month"
                   },
                 },
               },
