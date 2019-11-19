@@ -91,3 +91,6 @@ problem, look at the `/etc/resolv.conf` in your failing pod and check for errant
 To fix, you must remove the extra search domain. Login to the minishift vm (`minishift ssh`) and
 remove the setting from `/etc/resolv.conf`. Restart openshift docker, `sudo docker restart origin`.
 Redeploy `docker-host` in the `lagoon` project.
+
+
+[Instructions for debugging the API with VSCode](./api-debugging.md)
