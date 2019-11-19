@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { Group } from './group';
 import * as Helpers from '../resources/project/helpers';
-import { getSqlClient } from '../clients/sqlClient';
+import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
 export interface Project {
@@ -28,7 +28,7 @@ export interface Project {
 }
 
 export const projectsByGroup = async (group: Group) => {
-  const sqlClient = getSqlClient();
+  const sqlClient = getSqlClient(USE_SINGLETON);
   const keycloakAdminClient = await getKeycloakAdminClient();
   const GroupModel = Group(keycloakAdminClient);
   const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);

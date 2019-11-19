@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { getSqlClient } from '../clients/sqlClient';
+import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
 import * as esClient from '../clients/esClient';
 import { prepare, query } from '../util/db';
 
@@ -37,7 +37,7 @@ type projectEnvWithDataType = (
   month: string,
 ) => Promise<EnvironmentData[]>;
 
-const sqlClient = getSqlClient();
+const sqlClient = getSqlClient(USE_SINGLETON);
 
 /**
  * Get all environments for a project.

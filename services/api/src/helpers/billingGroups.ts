@@ -14,7 +14,7 @@
 import * as R from 'ramda';
 import * as projectHelpers from '../resources/project/helpers';
 //import { logger } from '@lagoon/commons/src/local-logging';
-import { getSqlClient } from '../clients/sqlClient';
+import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';
 // import { keycloakAdminClient } from '../clients/keycloakClient';
@@ -42,7 +42,7 @@ interface IGroup {
 
 export const getAllProjectsNotInBillingGroup = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const sqlClient = getSqlClient();
+  const sqlClient = getSqlClient(USE_SINGLETON);
   const GroupModel = Group(keycloakAdminClient);
 
   // GET ALL GROUPS

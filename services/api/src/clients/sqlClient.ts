@@ -4,8 +4,10 @@ import * as logger from '../logger';
 
 let client: Client.MariaClient;
 
-export const getSqlClient = (force: boolean = false) => {
-  if (client && force === false) {
+export const USE_SINGLETON = true;
+
+export const getSqlClient = (singleton: boolean = false) => {
+  if (client && singleton === true) {
     return client;
   }
   const sqlClient = new Client({
