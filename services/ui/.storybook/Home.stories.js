@@ -1,6 +1,7 @@
 import React from 'react';
 import GlobalStyles from 'layouts/GlobalStyles';
 import { color } from 'lib/variables';
+import withAnonymousUser from 'storybook/decorators/AnonymousUser';
 
 export default {
   title: 'Home/Welcome',
@@ -27,4 +28,5 @@ export const toLagoon = () => (
 );
 toLagoon.story = {
   name: 'to Lagoon',
+  decorators: [ withAnonymousUser ],
 };

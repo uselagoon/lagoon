@@ -16,7 +16,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
 
-const PageBackups = ({ router }) => (
+/**
+ * Displays the backups page, given the name of an openshift project.
+ */
+export const PageBackups = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.openshiftProjectName} | Backups`}</title>

@@ -2,6 +2,7 @@ import requireContext from 'require-context.macro';
 import { addDecorator, addParameters, configure } from '@storybook/react';
 import { withA11y } from '@storybook/addon-a11y';
 import { withKnobs } from '@storybook/addon-knobs';
+import withApiConnection from './decorators/ApiConnection';
 import withGlobalStyles from './decorators/GlobalStyles';
 import lagoonTheme from './lagoonTheme';
 
@@ -49,6 +50,7 @@ addParameters({
 // Add global decorators.
 addDecorator(withA11y);
 addDecorator(withKnobs);
+addDecorator(withApiConnection);
 addDecorator(withGlobalStyles);
 
 const loaderFn = () => {
