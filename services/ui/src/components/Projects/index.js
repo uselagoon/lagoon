@@ -3,7 +3,7 @@ import Link from 'next/link';
 import css from 'styled-jsx/css';
 import Highlighter from 'react-highlight-words';
 import ProjectLink from 'components/link/Project';
-import Box from 'components/style/Box';
+import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
