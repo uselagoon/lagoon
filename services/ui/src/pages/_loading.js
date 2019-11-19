@@ -1,5 +1,5 @@
 import React from 'react';
-import StatusLayout from 'layouts/status';
+import StatusLayout from 'layouts/StatusLayout';
 
 /**
  * Displays the loading page.

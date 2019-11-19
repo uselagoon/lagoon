@@ -1,5 +1,5 @@
 import React from 'react';
-import GlobalStyles from 'layouts/GlobalStyles';
+import StatusLayout from 'layouts/StatusLayout';
 import { color } from 'lib/variables';
 import withAnonymousUser from 'storybook/decorators/AnonymousUser';
 
@@ -8,7 +8,7 @@ export default {
 };
 
 export const toLagoon = () => (
-  <GlobalStyles>
+  <StatusLayout>
     <h1>Lagoon UI</h1>
     <p>This is the style guide for Lagoon.</p>
     <h4>Keyboard shortcuts</h4>
@@ -24,7 +24,7 @@ export const toLagoon = () => (
       {' '}
       or use the <b>circled … button</b> near the top left of this website.
     </p>
-  </GlobalStyles>
+  </StatusLayout>
 );
 toLagoon.story = {
   name: 'to Lagoon',

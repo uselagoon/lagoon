@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from 'layouts/main';
+import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithTaskQuery from 'lib/query/EnvironmentWithTask';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';

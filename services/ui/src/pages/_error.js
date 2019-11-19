@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Head from 'next-server/head';
-import StatusLayout from 'layouts/status';
+import StatusLayout from 'layouts/StatusLayout';
 
 const statusCodes = {
   400: 'Bad Request',

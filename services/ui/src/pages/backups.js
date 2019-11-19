@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from 'layouts/main';
+import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithBackupsQuery from 'lib/query/EnvironmentWithBackups';
 import BackupsSubscription from 'lib/subscription/Backups';
 import Breadcrumbs from 'components/Breadcrumbs';

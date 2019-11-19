@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from 'layouts/main';
+import MainLayout from 'layouts/MainLayout';
 import AllProjectsQuery from 'lib/query/AllProjects';
 import Projects from 'components/Projects';
 import withQueryLoading from 'lib/withQueryLoading';
