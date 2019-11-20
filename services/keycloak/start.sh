@@ -1293,6 +1293,33 @@ function add_group_viewall {
 EOF
 }
 
+function add_deployment_cancel {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  cancel_deployment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Deployment --config $CONFIG_PATH)
+
+  if [ "$cancel_deployment" != "[ ]" ]; then
+      echo "deployment:cancel already configured"
+      return 0
+  fi
+
+  echo Configuring deployment:cancel
+
+  DEPLOYMENT_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=deployment --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$DEPLOYMENT_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"cancel"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Cancel Deployment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["deployment"],
+  "scopes": ["cancel"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
+}
+EOF
+}
+
 function configure_task_cron {
 
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
@@ -1345,6 +1372,7 @@ function configure_keycloak {
     configure_opendistro_security_client
     configure_api_client
     add_group_viewall
+    add_deployment_cancel
     configure_task_cron
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
