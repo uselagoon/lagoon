@@ -1293,6 +1293,41 @@ function add_group_viewall {
 EOF
 }
 
+function configure_task_cron {
+
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  cron_task_groups=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Run+Drush+cron --config $CONFIG_PATH)
+
+  if [ "$cron_task_groups" != "[ ]" ]; then
+    echo "group:drushCron already configured"
+    return 0
+  fi
+
+  echo Configuring group:drushCron
+
+  # Create new scopes
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushCron:development"
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushCron:production"
+
+  # Add new scopes to resources
+  TASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
+
+
+  # Create new permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Run Drush cron",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["drushCron:production","drushCron:development"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1310,6 +1345,7 @@ function configure_keycloak {
     configure_opendistro_security_client
     configure_api_client
     add_group_viewall
+    configure_task_cron
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }
