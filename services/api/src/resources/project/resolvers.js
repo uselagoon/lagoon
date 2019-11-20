@@ -28,6 +28,9 @@ import type {ResolversObj} from '../';
 
 const removePrivateKey = R.assoc('privateKey', null);
 
+const isValidGitUrl = value =>
+  /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(value);
+
 const getAllProjects = async (
   root,
   args,
@@ -195,6 +198,9 @@ const addProject = async (
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!',
     );
+  }
+  if (!isValidGitUrl(input.gitUrl)) {
+    throw new Error('The provided gitUrl is invalid.',);
   }
 
   let keyPair = {};
@@ -417,6 +423,10 @@ const updateProject = async (
         'Only lowercase characters, numbers and dashes allowed for name!',
       );
     }
+  }
+
+  if (gitUrl !== undefined && !isValidGitUrl(gitUrl)) {
+    throw new Error('The provided gitUrl is invalid.',);
   }
 
   const oldProject = await Helpers(sqlClient).getProjectById(id);
