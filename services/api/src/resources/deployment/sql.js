@@ -13,6 +13,11 @@ const Sql /* : SqlObj */ = {
     knex('deployment')
       .where('id', '=', id)
       .toString(),
+  selectDeploymentByNameAndEnvironment: (name /* : string */, environmentId /* : numbere */) =>
+    knex('deployment')
+      .where('name', '=', name)
+      .andWhere('environment', '=', environmentId)
+      .toString(),
   insertDeployment: (
     {
       id,
