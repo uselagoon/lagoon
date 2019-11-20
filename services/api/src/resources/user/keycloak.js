@@ -2,18 +2,23 @@
 
 const R = require('ramda');
 const pickNonNil = require('../../util/pickNonNil');
-const { keycloakAdminClient } = require('../../clients/keycloakClient');
+const { getKeycloakAdminClient } = require('../../clients/keycloak-admin');
 const logger = require('../../logger');
 
 const KeycloakOperations = {
-  findUserIdByUsername: async (username /* : string */) =>
-    R.path(
+  findUserIdByUsername: async (username /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
+    return R.path(
       [0, 'id'],
       await keycloakAdminClient.users.findOne({
         username,
       }),
-    ),
+    );
+  },
   createUser: async (user /* : any */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       await keycloakAdminClient.users.create({
         ...pickNonNil(['email', 'firstName', 'lastName'], user),
@@ -52,6 +57,8 @@ const KeycloakOperations = {
     keycloakUserId /* : string */,
     username /* : string */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Delete the user
       await keycloakAdminClient.users.del({ id: keycloakUserId });
@@ -63,6 +70,8 @@ const KeycloakOperations = {
     }
   },
   deleteUserByUsername: async (username /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -81,6 +90,8 @@ const KeycloakOperations = {
   linkUserToGitlab: async (
     { username, gitlabUserId } /* : {username: string, gitlabUserId: number} */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -111,6 +122,8 @@ const KeycloakOperations = {
     }
   },
   removeGitlabLink: async (username /* : string */) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id with a username matching the username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -136,6 +149,8 @@ const KeycloakOperations = {
   addUserToGroup: async (
     { username, groupName } /* : {username: string, groupName: string} */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id by username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
@@ -167,6 +182,8 @@ const KeycloakOperations = {
   deleteUserFromGroup: async (
     { username, groupName } /* : {username: string, groupName: string} */,
   ) => {
+    const keycloakAdminClient = await getKeycloakAdminClient();
+
     try {
       // Find the Keycloak user id by username
       const keycloakUserId = await KeycloakOperations.findUserIdByUsername(
