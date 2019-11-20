@@ -33,9 +33,9 @@ ENV TMPDIR=/tmp \
     BASH_ENV=/home/.bashrc
 
 # Defining Versions
-ENV OC_VERSION=v3.9.0 \
-    OC_HASH=191fece \
-    OC_SHA256=6ed2fb1579b14b4557e4450a807c97cd1b68a6c727cd1e12deedc5512907222e \
+ENV OC_VERSION=v3.11.0 \
+    OC_HASH=0cbc58b \
+    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3 \
     GLIBC_VERSION=2.28-r0
 
 # To run the openshift client library `oc` we need glibc, install that first. Copied from https://github.com/jeanblanchard/docker-alpine-glibc/blob/master/Dockerfile
