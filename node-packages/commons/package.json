@@ -13,7 +13,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "jest": "^23.6.0",
+    "jest": "^24.9.0",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1"
   },
