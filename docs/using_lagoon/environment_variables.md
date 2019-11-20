@@ -67,23 +67,23 @@ mutation addBuildtimeEnv {
   }
 }
 ```
-### Docker Registry Environment Variables (Lagoon API)
+### Container Registry Environment Variables (Lagoon API)
 
 Docker Registry Environment Variables are only available during a Build and are used when attempting to log in to a private registry. It is used to store the password for the user defined in [Specials » `private-registries`](./lagoon_yml.md). They can be applied at the project or environment level.
 
-This defines a project wide docker registry variable (available in all environments) for the project with id `463`:
+This defines a project wide container registry variable (available in all environments) for the project with id `463`:
 ```
 mutation addDockerRegistryEnv {
-  addEnvVariable(input:{type:PROJECT, typeId:463, scope:DOCKER, name:"MY_OWN_REGISTRY_PASSWORD", value:"MySecretPassword"}) {
+  addEnvVariable(input:{type:PROJECT, typeId:463, scope:CONTAINER_REGISTRY, name:"MY_OWN_REGISTRY_PASSWORD", value:"MySecretPassword"}) {
     id
   }
 }
 ```
 
-This defines a environment id `546` specific docker registry variable (available only in that specific environment):
+This defines a environment id `546` specific container registry variable (available only in that specific environment):
 ```
 mutation addDockerRegistryEnv {
-  addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:DOCKER, name:"MY_OWN_REGISTRY_PASSWORD", value:"MySecretPassword"}) {
+  addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:CONTAINER_REGISTRY, name:"MY_OWN_REGISTRY_PASSWORD", value:"MySecretPassword"}) {
     id
   }
 }
