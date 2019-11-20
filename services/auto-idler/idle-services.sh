@@ -107,7 +107,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
             # if no running builds, and any deploymentconfigs notin (mariadb,postgres,cli) have been running greater than $POD_RUN_INTERVAL, then we want to check router-logs then proceed to idle
             if [[ "$NO_BUILDS" == "true" && "$PODS_RUNNING" == "true" ]]; then
               # Check if this environment has hits
-              HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d"
+              HITS=$(curl -s -u "admin:$LOGSDB_ADMIN_PASSWORD" -XGET "http://logs-db-service:9200/router-logs-$ENVIRONMENT_OPENSHIFT_PROJECTNAME-*/_search" -H 'Content-Type: application/json' -d"
               {
                 \"size\": 0,
                 \"query\": {

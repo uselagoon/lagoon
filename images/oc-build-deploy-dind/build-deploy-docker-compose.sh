@@ -874,6 +874,11 @@ if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
     sed -i s/podAntiAffinity/podAffinity/g /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
   fi
 
+  # If this is openshift 3.9, remove all occurences of priorityClassName
+  if oc version | grep openshift | awk '{print $2}' | grep -q "v3\.9.*"; then
+    sed -i /priorityClassName/d /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+  fi
+
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 

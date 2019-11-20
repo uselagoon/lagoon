@@ -14,6 +14,7 @@ const {
   keycloakHasPermission,
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
+const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
@@ -38,8 +39,8 @@ const apolloServer = new ApolloServer({
       }
 
 
+      const sqlClientKeycloak = getSqlClient();
       try {
-        var sqlClientKeycloak = getSqlClient();
         grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
         sqlClientKeycloak.end();
       } catch (e) {
@@ -48,9 +49,9 @@ const apolloServer = new ApolloServer({
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
+      const sqlClientLegacy = getSqlClient();
       try {
         if (!grant) {
-          var sqlClientLegacy = getSqlClient();
           legacyCredentials = await getCredentialsForLegacyToken(
             sqlClientLegacy,
             token,
@@ -62,18 +63,24 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError(e.message);
       }
 
+      const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
         checkperiod: 0,
       });
 
       return {
+        keycloakAdminClient,
         sqlClient: getSqlClient(),
         hasPermission: grant
-          ? keycloakHasPermission(grant, requestCache)
+          ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
           : legacyHasPermission(legacyCredentials),
         keycloakGrant: grant,
         requestCache,
+        models: {
+          UserModel: User.User({ keycloakAdminClient }),
+          GroupModel: Group.Group({ keycloakAdminClient }),
+        },
       };
     },
     onDisconnect: (websocket, context) => {
@@ -85,11 +92,7 @@ const apolloServer = new ApolloServer({
       }
     },
   },
-  dataSources: () => ({
-    UserModel: User.User(),
-    GroupModel: Group.Group(),
-  }),
-  context: ({ req, connection }) => {
+  context: async ({ req, connection }) => {
     // Websocket requests
     if (connection) {
       // onConnect must always provide connection.context.
@@ -100,20 +103,26 @@ const apolloServer = new ApolloServer({
 
     // HTTP requests
     if (!connection) {
+      const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
         checkperiod: 0,
       });
 
       return {
+        keycloakAdminClient,
         sqlClient: getSqlClient(),
         hasPermission: req.kauth
-          ? keycloakHasPermission(req.kauth.grant, requestCache)
+          ? keycloakHasPermission(req.kauth.grant, requestCache, keycloakAdminClient)
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth
           ? req.kauth.grant
           : null,
         requestCache,
+        models: {
+          UserModel: User.User({ keycloakAdminClient }),
+          GroupModel: Group.Group({ keycloakAdminClient }),
+        },
       };
     }
   },
