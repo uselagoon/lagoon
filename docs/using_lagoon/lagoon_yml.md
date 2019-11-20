@@ -266,7 +266,7 @@ Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in th
 The `private-registries` block allows you to define your own private container registries to pull private images. To use a private registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your yaml, it will default to using docker hub.
 
 There are 2 ways to define the password used for your registry user.
-* Create an environment variable in the Lagoon API [Environment Variables (Lagoon API) » Docker Registry Environment Variables (Lagoon API)](./environment_variables.md). The name of the variable you create can then be set as the password.
+* Create an environment variable in the Lagoon API [Environment Variables (Lagoon API) » Container Registry Environment Variables (Lagoon API)](./environment_variables.md). The name of the variable you create can then be set as the password.
 ```
 private-registries:
   custom-registry:
