@@ -1,10 +1,13 @@
 import React from 'react';
 import Modal from 'components/Modal';
 import Button from 'components/Button';
-import { color, fontSize, bp } from 'lib/variables';
+import { color } from 'lib/variables';
 import withLogic from 'components/DeleteConfirm/logic';
 
-const DeleteConfirm = ({
+/**
+ * Confirms the deletion of the specified name and type.
+ */
+export const DeleteConfirm = ({
   deleteType,
   deleteName,
   onDelete,
