@@ -13,6 +13,10 @@ export default gql`
         id
         name
       }
+      deployType
+      deployBaseRef
+      deployHeadRef
+      deployTitle
       deployments {
         ...deploymentFields
       }

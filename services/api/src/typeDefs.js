@@ -506,6 +506,13 @@ const typeDefs = gql`
     project: ProjectInput
   }
 
+  # Must provide id OR name and environment
+  input DeploymentInput {
+    id: Int
+    name: String
+    environment: EnvironmentInput
+  }
+
   input AddSshKeyInput {
     id: Int
     name: String!
@@ -516,6 +523,10 @@ const typeDefs = gql`
 
   input DeleteSshKeyInput {
     name: String!
+  }
+
+  input DeleteSshKeyByIdInput {
+    id: Int!
   }
 
   input AddProjectInput {
@@ -589,7 +600,7 @@ const typeDefs = gql`
   }
 
 
-  input DeploymentInput {
+  input AddDeploymentInput {
     id: Int
     name: String!
     status: DeploymentStatusType!
@@ -617,6 +628,10 @@ const typeDefs = gql`
   input UpdateDeploymentInput {
     id: Int!
     patch: UpdateDeploymentPatchInput!
+  }
+
+  input CancelDeploymentInput {
+    deployment: DeploymentInput!
   }
 
   input TaskInput {
@@ -966,15 +981,17 @@ const typeDefs = gql`
     addSshKey(input: AddSshKeyInput!): SshKey
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
+    deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
     deleteAllSshKeys: String
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    addDeployment(input: DeploymentInput!): Deployment
+    addDeployment(input: AddDeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
+    cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
@@ -986,6 +1003,7 @@ const typeDefs = gql`
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
+    taskDrushCron(environment: Int!): Task
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!
