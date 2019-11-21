@@ -362,7 +362,6 @@ services:
       - '--config.reload.interval'
       - '1s'
     ports:
-      - '5140:5140/udp'
       - '5141:5141/udp'
     volumes:
       - './services/logs2logs-db/pipeline:/usr/share/logstash/pipeline'
@@ -396,3 +395,19 @@ services:
       lagoon.type: custom
       lagoon.template: services/logs-collector/.lagoon.yml
       lagoon.rollout: daemonset
+  logs-tee:
+    image: ${IMAGE_REPO:-lagoon}/logs-tee
+    user: '111111111'
+    ports:
+      - '5140:5140/udp'
+    command:
+      # logs will be copied to these endpoints
+      - 'logs2logs-db:5140'
+      - 'router-logs-collector:5140'
+  router-logs-collector:
+    image: ${IMAGE_REPO:-lagoon}/router-logs-collector
+    user: '111111111'
+    environment:
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - CLUSTER_NAME=local_development_cluster
