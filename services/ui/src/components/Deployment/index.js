@@ -5,7 +5,7 @@ import CancelDeployment from 'components/CancelDeployment';
 import LogViewer from 'components/LogViewer';
 import { bp } from 'lib/variables';
 
-const getDuration = deployment => {
+export const getDeploymentDuration = deployment => {
   const deploymentStart = deployment.started || deployment.created;
   const durationStart =
     (deploymentStart && moment.utc(deploymentStart)) || moment.utc();
@@ -48,7 +48,7 @@ const Deployment = ({ deployment }) => (
       <div className="field-wrapper duration">
         <div>
           <label>Duration</label>
-          <div className="field">{getDuration(deployment)}</div>
+          <div className="field">{getDeploymentDuration(deployment)}</div>
         </div>
       </div>
       {['new', 'pending', 'running'].includes(deployment.status) && (
