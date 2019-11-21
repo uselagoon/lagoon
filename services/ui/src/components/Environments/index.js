@@ -70,9 +70,9 @@ const Environments = ({ environments = [] }) => {
                   </div>
                 )}
                 <label>
-                  {environment.deployType === 'branch'
-                    ? environment.deployType
-                    : 'PR'}
+                  {environment.deployType === 'pullrequest'
+                    ? 'PR'
+                    : environment.deployType}
                 </label>
                 <h4>{environment.name}</h4>
               </Box>
