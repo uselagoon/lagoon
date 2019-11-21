@@ -411,3 +411,11 @@ services:
       - RABBITMQ_USER=guest
       - RABBITMQ_PASS=guest
       - CLUSTER_NAME=local_development_cluster
+  logs-dispatcher:
+    image: ${IMAGE_REPO:-lagoon}/logs-dispatcher
+    user: '111111111'
+    environment:
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - ELASTICSEARCH_USER=admin
+      - ELASTICSEARCH_PASS=admin
