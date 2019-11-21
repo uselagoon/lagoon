@@ -5,7 +5,7 @@ LABEL maintainer="amazee.io"
 
 RUN apk update \
     && apk upgrade \
-    && apk add --no-cache curl ncdu socat ca-certificates openssl perl perl-doc mysql-client \
+    && apk add --no-cache curl ncdu socat ca-certificates openssl perl perl-doc mysql-client rsync \
     && update-ca-certificates \
     && rm -rf /var/cache/apk/* \
     && wget https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl -O mysqltuner.pl \
