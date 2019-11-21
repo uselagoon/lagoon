@@ -12,6 +12,7 @@ const {
   createTaskMonitor
 } = require('@lagoon/commons/src/tasks');
 const resticRestore = require('./handlers/resticRestore');
+const openshiftBuildCancel = require('./handlers/openshiftBuildCancel');
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -26,6 +27,10 @@ const messageConsumer = async msg => {
   switch(key) {
     case 'restic:backup:restore':
       resticRestore(data);
+      break;
+
+    case 'openshift:build:cancel':
+      openshiftBuildCancel(data);
       break;
 
     default:
