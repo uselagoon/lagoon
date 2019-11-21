@@ -181,7 +181,7 @@ build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: images/athenapdf-service/Dockerfile
+build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
 
 
 #######
@@ -460,6 +460,8 @@ build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
+build/drush-alias: build/nginx
+build/keycloak: build/commons
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
