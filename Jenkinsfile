@@ -22,7 +22,7 @@ node {
         }
 
         stage ('build images') {
-          sh "make build"
+          sh "make build -j6"
         }
 
         stage ('push images to amazeeiolagoon/*') {
@@ -52,7 +52,7 @@ node {
                 'start minishift': {
                   stage ('start minishift') {
                     sh 'make minishift/clean || echo'
-                    sh "make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                    sh "make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
                   }
                 }
               )
@@ -67,7 +67,7 @@ node {
                   stage ('run tests') {
                     try {
                       sh "make push-minishift"
-                      sh "make tests -j1"
+                      sh "make tests -j3"
                     } catch (e) {
                       echo "Something went wrong, trying to cleanup"
                       cleanup()
