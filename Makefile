@@ -170,8 +170,8 @@ build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
-build/varnish-persistent: build/commons images/varnish/Dockerfile
-build/varnish-persistent-drupal: build/varnish images/varnish-drupal/Dockerfile
+build/varnish-persistent: build/varnish build/commons images/varnish/Dockerfile
+build/varnish-persistent-drupal: build/varnish-drupal images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
