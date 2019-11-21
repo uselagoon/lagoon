@@ -347,6 +347,29 @@ const taskDrushCacheClear = async (
   return taskData;
 };
 
+const taskDrushCron = async (
+  root,
+  { environment: environmentId },
+  { sqlClient, hasPermission },
+) => {
+  await envValidators(sqlClient).environmentExists(environmentId);
+  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('task', `drushCron:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
+
+  const taskData = await Helpers(sqlClient).addTask({
+    name: 'Drush cron',
+    environment: environmentId,
+    service: 'cli',
+    command: `drush cron`,
+    execute: true,
+  });
+
+  return taskData;
+};
+
 const taskDrushSqlSync = async (
   root,
   {
@@ -451,6 +474,7 @@ const Resolvers /* : ResolversObj */ = {
   taskDrushArchiveDump,
   taskDrushSqlDump,
   taskDrushCacheClear,
+  taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
   taskSubscriber,
