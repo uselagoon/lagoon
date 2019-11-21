@@ -3,7 +3,7 @@ import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import CancelDeployment from 'components/CancelDeployment';
 import LogViewer from 'components/LogViewer';
-import { bp, color } from 'lib/variables';
+import { bp } from 'lib/variables';
 
 const getDuration = deployment => {
   const deploymentStart = deployment.started || deployment.created;
@@ -18,6 +18,9 @@ const getDuration = deployment => {
   return duration;
 };
 
+/**
+ * Displays information about a deployment.
+ */
 const Deployment = ({ deployment }) => (
   <div className="deployment">
     <div className="details">
