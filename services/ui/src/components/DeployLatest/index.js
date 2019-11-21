@@ -10,6 +10,9 @@ const DEPLOY_ENVIRONMENT_LATEST_MUTATION = gql`
   }
 `;
 
+/**
+ * Button that deploys the latest environment.
+ */
 const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
   let deploymentsEnabled = true;
 
