@@ -2,15 +2,12 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
+import ButtonAction from 'components/Button/ButtonAction';
 import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushCacheClear = gql`
-  mutation taskDrushCacheClear(
-    $environment: Int!
-  ) {
-    taskDrushCacheClear(
-      environment: $environment
-    ) {
+  mutation taskDrushCacheClear($environment: Int!) {
+    taskDrushCacheClear(environment: $environment) {
       id
       name
       status
@@ -24,15 +21,14 @@ const taskDrushCacheClear = gql`
   }
 `;
 
-const DrushCacheClear = ({
-  pageEnvironment,
-  onCompleted,
-  onError,
-}) => (
+const DrushCacheClear = ({ pageEnvironment, onCompleted, onError }) => (
   <Mutation
     mutation={taskDrushCacheClear}
     onCompleted={onCompleted}
     onError={onError}
+    variables={{
+      environment: pageEnvironment.id
+    }}
   >
     {(taskDrushCacheClear, { loading, called, error, data }) => {
       return (
@@ -44,47 +40,22 @@ const DrushCacheClear = ({
               name="dest-environment"
               value={{
                 label: pageEnvironment.name,
-                value: pageEnvironment.id,
+                value: pageEnvironment.id
               }}
               options={[
                 {
                   label: pageEnvironment.name,
-                  value: pageEnvironment.id,
+                  value: pageEnvironment.id
                 }
               ]}
               isDisabled
               required
             />
           </div>
-          <button
-            onClick={() =>
-              taskDrushCacheClear({
-                variables: {
-                  environment: pageEnvironment.id
-                }
-              })
-            }
-          >
-            Add task
-          </button>
+          <ButtonAction action={taskDrushCacheClear}>Add task</ButtonAction>
           <style jsx>{`
             .envSelect {
-              margin-top: 10px;
-            }
-            button {
-              align-self: flex-end;
-              background-color: ${color.lightestGrey};
-              border: none;
-              border-radius: 20px;
-              color: ${color.darkGrey};
-              font-family: 'source-code-pro', sans-serif;
-              ${fontSize(13)};
-              margin-top: 10px;
-              padding: 3px 20px 2px;
-              text-transform: uppercase;
-              @media ${bp.tinyUp} {
-                align-self: auto;
-              }
+              margin: 10px 0;
             }
           `}</style>
         </React.Fragment>
