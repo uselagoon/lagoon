@@ -4,8 +4,8 @@ node {
 
   // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
   // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
-  // Jenkins HOME Folder
-  env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
+  //  HOME Folder
+  env.MINISHIFT_HOME = "${env.HOME}/.minishift"
 
   withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
     withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
