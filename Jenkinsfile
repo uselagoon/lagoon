@@ -67,7 +67,7 @@ node {
                 stage ('run tests') {
                   try {
                     sh "make push-minishift -j5"
-                    sh "make tests -j3"
+                    sh "make tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
