@@ -185,8 +185,8 @@ const typeDefs = gql`
     name: String
     """
     Git URL, needs to be SSH Git URL in one of these two formats
-    - git@192.168.99.1/project1.git
-    - ssh://git@192.168.99.1:2222/project1.git
+    - git@192.168.42.1/project1.git
+    - ssh://git@192.168.42.1:2222/project1.git
     """
     gitUrl: String
     """
