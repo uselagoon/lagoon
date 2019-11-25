@@ -4,7 +4,7 @@
     testname: "BITBUCKET - slash branch"
     node_version: 8
     git_repo_name: bitbucket.git
-    git_repo_url: https://192.168.99.1:2222/git/bitbucket
+    git_repo_url: https://127.0.1.1:2222/git/bitbucket
     git_repo_full_name: git/bitbucket
     project: ci-bitbucket
     branch: bitbucket/slash/branch
@@ -15,12 +15,12 @@
     testname: "BITBUCKET - skip deployment"
     node_version: 8
     git_repo_name: bitbucket.git
-    git_repo_url: https://192.168.99.1:2222/git/bitbucket
+    git_repo_url: https://127.0.1.1:2222/git/bitbucket
     git_repo_full_name: git/bitbucket
     project: ci-bitbucket
     branch: skip
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-    
+
 - include: bitbucket/pullrequest.yaml
   vars:
     testname: "BITBUCKET - PULLREQUEST"
