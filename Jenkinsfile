@@ -2,10 +2,7 @@ node {
 
   openshift_versions = ['v3.11.0']
 
-  // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
-  // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
-  //  HOME Folder
-  env.MINISHIFT_HOME = "${env.HOME}/.minishift"
+  env.MINISHIFT_HOME = "/data/jenkins/.minishift"
 
   withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
     withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
@@ -44,7 +41,7 @@ node {
               'start minishift': {
                 stage ('start minishift') {
                   sh 'make minishift/clean || echo'
-                  sh "make minishift MINISHIFT_CPUS=4 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=64GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
                 }
               },
               'push images to amazeeiolagoon': {
@@ -67,7 +64,8 @@ node {
                 stage ('run tests') {
                   try {
                     sh "make push-minishift -j5"
-                    sh "make tests"
+                    sh "make up"
+                    sh "make tests -j4"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
