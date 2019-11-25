@@ -10,7 +10,7 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
-## Install VirtualBox 
+## Install VirtualBox
 
 We are using VitualBox to run the Openshift Minishift VM. For download and instalation instructions see here:
 [https://www.virtualbox.org/](https://www.virtualbox.org/)
@@ -49,7 +49,7 @@ make logs
 make tests
 ```
 
-6\. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
+6\. Look what happens in OpenShift: [https://192.168.42.100:8443/console](https://192.168.42.100:8443/console) (developer/developer)
 
 ## Local Development
 
