@@ -44,7 +44,7 @@ node {
               'start minishift': {
                 stage ('start minishift') {
                   sh 'make minishift/clean || echo'
-                  sh "make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                  sh "make minishift MINISHIFT_CPUS=4 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
                 }
               },
               'push images to amazeeiolagoon': {
