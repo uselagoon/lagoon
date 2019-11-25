@@ -2,6 +2,7 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
+import ButtonAction from 'components/Button/ButtonAction';
 import withLogic from 'components/AddTask/components/logic';
 import { bp, color, fontSize } from 'lib/variables';
 
@@ -45,7 +46,11 @@ const DrushRsyncFiles = ({
     {(taskDrushRsyncFiles, { loading, called, error, data }) => {
       return (
         <React.Fragment>
-          <div className="warning">Warning! <br />This task replaces files. Be careful to double check the source and destination environment!</div>
+          <div className="warning">
+            Warning! <br />
+            This task replaces files. Be careful to double check the source and
+            destination environment!
+          </div>
           <div className="envSelect">
             <label id="source-env">Source:</label>
             <ReactSelect
@@ -67,20 +72,20 @@ const DrushRsyncFiles = ({
               name="dest-environment"
               value={{
                 label: pageEnvironment.name,
-                value: pageEnvironment.id,
+                value: pageEnvironment.id
               }}
               options={[
                 {
                   label: pageEnvironment.name,
-                  value: pageEnvironment.id,
+                  value: pageEnvironment.id
                 }
               ]}
               isDisabled
               required
             />
           </div>
-          <button
-            onClick={() =>
+          <ButtonAction
+            action={() =>
               taskDrushRsyncFiles({
                 variables: {
                   sourceEnvironment: selectedSourceEnv,
@@ -91,31 +96,15 @@ const DrushRsyncFiles = ({
             disabled={!selectedSourceEnv}
           >
             Add task
-          </button>
+          </ButtonAction>
           <style jsx>{`
             .warning {
               background-color: red;
               color: white;
               padding: 10px;
-
             }
             .envSelect {
-              margin-top: 10px;
-            }
-            button {
-              align-self: flex-end;
-              background-color: ${color.lightestGrey};
-              border: none;
-              border-radius: 20px;
-              color: ${color.darkGrey};
-              font-family: 'source-code-pro', sans-serif;
-              ${fontSize(13)};
-              margin-top: 10px;
-              padding: 3px 20px 2px;
-              text-transform: uppercase;
-              @media ${bp.tinyUp} {
-                align-self: auto;
-              }
+              margin: 10px 0;
             }
           `}</style>
         </React.Fragment>

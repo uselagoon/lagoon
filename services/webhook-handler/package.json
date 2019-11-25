@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "flow-remove-types": "^1.2.3",
-    "jest": "^23.6.0",
+    "jest": "^24.9.0",
     "newman": "^4.5.4",
     "nodemon": "^1.12.1"
   }
