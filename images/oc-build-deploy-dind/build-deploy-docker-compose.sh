@@ -187,23 +187,23 @@ done
 ##############################################
 ### PRIVATE REGISTRY LOGINS
 ##############################################
-# we want to be able to support private docker registries
+# we want to be able to support private container registries
 set +x
-# grab all the private-registries that are defined in the `.lagoon.yml` file
-PRIVATE_CONTAINER_REGISTRIES=($(cat .lagoon.yml | shyaml keys private-registries || echo ""))
+# grab all the container-registries that are defined in the `.lagoon.yml` file
+PRIVATE_CONTAINER_REGISTRIES=($(cat .lagoon.yml | shyaml keys container-registries || echo ""))
 for PRIVATE_CONTAINER_REGISTRY in "${PRIVATE_CONTAINER_REGISTRIES[@]}"
 do
   # check if a url is set, if none set proceed against docker hub
-  PRIVATE_CONTAINER_REGISTRY_URL=$(cat .lagoon.yml | shyaml get-value private-registries.$PRIVATE_CONTAINER_REGISTRY.url false)
+  PRIVATE_CONTAINER_REGISTRY_URL=$(cat .lagoon.yml | shyaml get-value container-registries.$PRIVATE_CONTAINER_REGISTRY.url false)
   if [ $PRIVATE_CONTAINER_REGISTRY_URL == "false" ]; then
     echo "No 'url' defined for registry $PRIVATE_CONTAINER_REGISTRY, will proceed against docker hub";
   fi
   # check the username and passwords are defined in yaml
-  PRIVATE_CONTAINER_REGISTRY_USERNAME=$(cat .lagoon.yml | shyaml get-value private-registries.$PRIVATE_CONTAINER_REGISTRY.username false)
+  PRIVATE_CONTAINER_REGISTRY_USERNAME=$(cat .lagoon.yml | shyaml get-value container-registries.$PRIVATE_CONTAINER_REGISTRY.username false)
   if [ $PRIVATE_CONTAINER_REGISTRY_USERNAME == "false" ]; then
     echo "No 'username' defined for registry $PRIVATE_CONTAINER_REGISTRY"; exit 1;
   fi
-  PRIVATE_CONTAINER_REGISTRY_PASSWORD=$(cat .lagoon.yml | shyaml get-value private-registries.$PRIVATE_CONTAINER_REGISTRY.password false)
+  PRIVATE_CONTAINER_REGISTRY_PASSWORD=$(cat .lagoon.yml | shyaml get-value container-registries.$PRIVATE_CONTAINER_REGISTRY.password false)
   if [[ $PRIVATE_CONTAINER_REGISTRY_PASSWORD == "false" ]]; then
     echo "No 'password' defined for registry $PRIVATE_CONTAINER_REGISTRY"; exit 1;
   fi
