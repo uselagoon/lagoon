@@ -34,7 +34,7 @@ const Environment = ({ environment }) => {
             {moment
               .utc(environment.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (z)')}
           </div>
         </div>
       </div>
@@ -45,7 +45,7 @@ const Environment = ({ environment }) => {
             {moment
               .utc(environment.updated)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (z)')}
           </div>
         </div>
       </div>
