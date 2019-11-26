@@ -1226,9 +1226,23 @@ mutation PopulateApi {
     input: {
       id: 18
       name: "high-cotton"
+      availability: HIGH
       openshift: 4
       gitUrl: "ssh://git@192.168.42.1:2222/git/high-cotton.git"
       productionEnvironment: "Master"
+    }
+  ) {
+    id
+  }
+  UIBillingGroup1: addBillingGroup(
+    input: { name: "High Cotton Billing Group", currency: USD }
+  ) {
+    id
+  }
+  UIProject1BillingGroup1: addProjectToBillingGroup(
+    input: {
+      project: { name: "high-cotton" }
+      group: { name: "High Cotton Billing Group" }
     }
   ) {
     id
