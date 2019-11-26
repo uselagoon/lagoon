@@ -30,6 +30,7 @@ Environment variables defined in MariaDB base image
 | `MARIADB_ROOT_PASSWORD`                |   Lag00n 	    | MariaDB root user's password                   |
 | `MARIADB_CHARSET`                      |   utf8mb4 	    | Set the server charset                         |
 | `MARIADB_COLLATION`                    |   utf8mb4_bin 	| Set server collation                           |
+| `MARIADB_MAX_ALLOWED_PACKET`           |   64M          | Set the max_allowed_packet size                |
 | `MARIADB_INNODB_BUFFER_POOL_SIZE`      |   256M	        | Set the MariaDB InnoDB Buffer Pool Size        |
 | `MARIADB_INNODB_BUFFER_POOL_INSTANCES` |   1            | Number of InnoDB Buffer Pool instances         |
 | `MARIADB_INNODB_LOG_FILE_SIZE`         |   64M          | Size of InnoDB log file                        |
