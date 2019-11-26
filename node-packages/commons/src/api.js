@@ -603,6 +603,34 @@ async function getProjectByName(
   return result.project;
 }
 
+async function getMicrosoftTeamsInfoForProject(
+  project: string,
+): Promise<Array<Object>> {
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationMicrosoftTeams {
+      webhook
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        microsoftTeams: notifications(type: MICROSOFTTEAMS) {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.microsoftTeams) {
+    throw new ProjectNotFound(
+      `Cannot find Microsoft Teams information for project ${project}`,
+    );
+  }
+
+  return result.project.microsoftTeams;
+}
+
 async function getRocketChatInfoForProject(
   project: string,
 ): Promise<Array<Object>> {
@@ -657,6 +685,34 @@ async function getSlackinfoForProject(project: string): Promise<Project> {
   }
 
   return result.project.slacks;
+}
+
+async function getEmailInfoForProject(
+  project: string,
+): Promise<Array<Object>> {
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationEmail {
+      emailAddress
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        emails: notifications(type: EMAIL) {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.emails) {
+    throw new ProjectNotFound(
+      `Cannot find email information for project ${project}`,
+    );
+  }
+
+  return result.project.emails;
 }
 
 async function getActiveSystemForProject(
@@ -1042,8 +1098,10 @@ module.exports = {
   deleteProject,
   getProjectsByGitUrl,
   getProjectByName,
+  getMicrosoftTeamsInfoForProject,
   getRocketChatInfoForProject,
   getSlackinfoForProject,
+  getEmailInfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
   getEnvironmentByName,
