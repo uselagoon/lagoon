@@ -4,6 +4,7 @@ import withLogic from 'components/AddTask/logic';
 import DrushArchiveDump from 'components/AddTask/components/DrushArchiveDump';
 import DrushSqlDump from 'components/AddTask/components/DrushSqlDump';
 import DrushCacheClear from 'components/AddTask/components/DrushCacheClear';
+import DrushCron from 'components/AddTask/components/DrushCron';
 import DrushRsyncFiles from 'components/AddTask/components/DrushRsyncFiles';
 import DrushSqlSync from 'components/AddTask/components/DrushSqlSync';
 import Empty from 'components/AddTask/components/Empty';
@@ -24,6 +25,7 @@ const AddTask = ({
     DrushArchiveDump,
     DrushSqlDump,
     DrushCacheClear,
+    DrushCron,
     DrushRsyncFiles,
     DrushSqlSync,
     Empty,

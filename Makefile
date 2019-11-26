@@ -170,8 +170,8 @@ build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
-build/varnish-persistent: build/commons images/varnish/Dockerfile
-build/varnish-persistent-drupal: build/varnish images/varnish-drupal/Dockerfile
+build/varnish-persistent: build/varnish build/commons images/varnish/Dockerfile
+build/varnish-persistent-drupal: build/varnish-drupal images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
@@ -181,7 +181,7 @@ build/docker-host: build/commons images/docker-host/Dockerfile
 build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: images/athenapdf-service/Dockerfile
+build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
 
 
 #######
@@ -401,8 +401,10 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 # Variables of service images we manage and build
 services :=       api \
 									auth-server \
+									logs2email \
 									logs2slack \
 									logs2rocketchat \
+									logs2microsoftteams \
 									openshiftbuilddeploy \
 									openshiftbuilddeploymonitor \
 									openshiftjobs \
@@ -449,7 +451,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -460,6 +462,8 @@ build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
+build/drush-alias: build/nginx
+build/keycloak: build/commons
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -540,7 +544,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch
@@ -745,7 +749,11 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+ifeq ($(ARCH), Darwin)
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --host-only-cidr "192.168.42.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+else
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"
+endif
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
 ifeq ($(ARCH), darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
@@ -812,7 +820,7 @@ openshift-lagoon-setup:
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140; \
 
 # Stop OpenShift Cluster
 .PHONY: minishift/stop
@@ -847,4 +855,3 @@ rebuild-push-oc-build-deploy-dind:
 .PHONY: ui-development
 ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db
-

@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import CancelDeployment from 'components/CancelDeployment';
 import LogViewer from 'components/LogViewer';
 import { bp, color } from 'lib/variables';
 
@@ -28,7 +29,7 @@ const Deployment = ({ deployment }) => (
             {moment
               .utc(deployment.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (z)')}
           </div>
         </div>
       </div>
@@ -47,6 +48,9 @@ const Deployment = ({ deployment }) => (
           <div className="field">{getDuration(deployment)}</div>
         </div>
       </div>
+      {['new', 'pending', 'running'].includes(deployment.status) && (
+        <CancelDeployment deployment={deployment} />
+      )}
     </div>
     <LogViewer logs={deployment.buildLog} />
     <style jsx>{`
