@@ -27,6 +27,11 @@ If the deployment is a pull request deployment, Lagoon will load the Base and th
 - checkout the base branch (the branch the Pull Request points too)
 - merge the head branch (the branch that the Pull Request originates from) on top of the base branch
 
+    <details>
+        <summary>More specifically</summary>
+        Lagoon will checkout and merge particular _SHAs_ which were sent in the webhook. Those SHAs may or _may not_ point to the branch HEADs. For example, if you make a new push to a Github PR, it can happen that SHA of the base branch will _not_ point to the current base branch HEAD.
+    </details>
+
 If the merge fails, Lagoon will also stop and inform you about this.
 
 ## 3. Build Image
