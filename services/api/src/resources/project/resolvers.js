@@ -28,6 +28,9 @@ import type {ResolversObj} from '../';
 
 const removePrivateKey = R.assoc('privateKey', null);
 
+const isValidGitUrl = value =>
+  /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(value);
+
 const getAllProjects = async (
   root,
   args,
@@ -68,7 +71,15 @@ const getAllProjects = async (
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
 
-  return rows;
+  // This resolver is used for the main UI page and is quite slow. Since we've
+  // already authorized the user has access to all the projects we are
+  // returning, AND all user roles are allowed to view all environments, we can
+  // short-circuit the slow keycloak check in the getEnvironmentsByProjectId
+  // resolver.
+  //
+  // @TODO: When this performance issue is fixed for real, remove this hack as
+  // it hardcodes a "everyone can view environments" authz rule.
+  return rows.map(row => ({ ...row, environmentAuthz: true }));
 };
 
 const getProjectByEnvironmentId = async (
@@ -195,6 +206,9 @@ const addProject = async (
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!',
     );
+  }
+  if (!isValidGitUrl(input.gitUrl)) {
+    throw new Error('The provided gitUrl is invalid.',);
   }
 
   let keyPair = {};
@@ -417,6 +431,10 @@ const updateProject = async (
         'Only lowercase characters, numbers and dashes allowed for name!',
       );
     }
+  }
+
+  if (gitUrl !== undefined && !isValidGitUrl(gitUrl)) {
+    throw new Error('The provided gitUrl is invalid.',);
   }
 
   const oldProject = await Helpers(sqlClient).getProjectById(id);
