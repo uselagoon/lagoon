@@ -68,7 +68,15 @@ const getAllProjects = async (
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
 
-  return rows;
+  // This resolver is used for the main UI page and is quite slow. Since we've
+  // already authorized the user has access to all the projects we are
+  // returning, AND all user roles are allowed to view all environments, we can
+  // short-circuit the slow keycloak check in the getEnvironmentsByProjectId
+  // resolver.
+  //
+  // @TODO: When this performance issue is fixed for real, remove this hack as
+  // it hardcodes a "everyone can view environments" authz rule.
+  return rows.map(row => ({ ...row, environmentAuthz: true }));
 };
 
 const getProjectByEnvironmentId = async (
