@@ -60,16 +60,24 @@ const {
 } = require('./resources/environment/resolvers');
 
 const {
+  addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
   addNotificationToProject,
+  deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
   getNotificationsByProjectId,
   removeNotificationFromProject,
+  updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  addNotificationEmail,
+  updateNotificationEmail,
+  deleteNotificationEmail,
+  deleteAllNotificationEmails,
   deleteAllNotificationSlacks,
+  deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
@@ -192,6 +200,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
           return 'NotificationSlack';
         case 'rocketchat':
           return 'NotificationRocketChat';
+        case 'microsoftteams':
+          return 'NotificationMicrosoftTeams';
+        case 'email':
+          return 'NotificationEmail';
         default:
           return null;
       }
@@ -233,6 +245,14 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateNotificationRocketChat,
     deleteNotificationRocketChat,
     deleteAllNotificationRocketChats,
+    addNotificationMicrosoftTeams,
+    updateNotificationMicrosoftTeams,
+    deleteNotificationMicrosoftTeams,
+    deleteAllNotificationMicrosoftTeams,
+    addNotificationEmail,
+    updateNotificationEmail,
+    deleteNotificationEmail,
+    deleteAllNotificationEmails,
     addNotificationToProject,
     removeNotificationFromProject,
     removeAllNotificationsFromAllProjects,
