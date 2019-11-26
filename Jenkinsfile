@@ -69,7 +69,7 @@ node {
                   try {
                     sh "make push-minishift -j5"
                     sh "make up"
-                    sh "make tests -j4"
+                    sh "make tests -j3"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()

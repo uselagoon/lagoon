@@ -66,20 +66,28 @@ const getEnvironmentByName = async (
 };
 
 const getEnvironmentsByProjectId = async (
-  { id: pid },
+  project,
   unformattedArgs,
   {
     sqlClient,
     hasPermission,
   },
 ) => {
+  const { id: pid } = project;
   const args = R.compose(R.over(R.lensProp('type'), envTypeToString))(
     unformattedArgs,
   );
 
-  await hasPermission('environment', 'view', {
-    project: pid,
-  });
+  // The getAllProjects resolver will authorize environment access already,
+  // so we can skip the request to keycloak.
+  //
+  // @TODO: When this performance issue is fixed for real, remove this hack as
+  // it hardcodes a "everyone can view environments" authz rule.
+  if (!R.prop('environmentAuthz', project)) {
+    await hasPermission('environment', 'view', {
+      project: pid,
+    });
+  }
 
   const prep = prepare(
     sqlClient,
