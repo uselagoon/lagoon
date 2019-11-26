@@ -4,7 +4,7 @@ Version 1.0 of Lagoon changed how you access your projects!  Access to your proj
 
 ## Roles
 
-When assigning a user to a group, you need to provide a role for that user inside this group. Each one of the 5 current existing roles gives the user different permissions to the group and projects assigned to the group. Here are the roles that are currently found in Lagoon:
+When assigning a user to a group, you need to provide a group role for that user inside this group. Each one of the 5 current existing group roles gives the user different permissions to the group and projects assigned to the group. Here are the Platform Wide Roles and the Group Roles that are currently found in Lagoon:
 
 ### Platform Wide Roles
 
@@ -14,7 +14,7 @@ The platform wide admin has access to everything across all of Lagoon.  That inc
 
 ##### Platform Wide Owner
 
-The platform wide owner has access to every Lagoon Group, like the Role Owner, and can be used if you need a user that needs access to everything but you don't want to assign the user to every Group.
+The platform wide owner has access to every Lagoon Group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every Group.
 
 ### Group Roles
 
