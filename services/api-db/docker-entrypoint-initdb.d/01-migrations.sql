@@ -541,7 +541,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'scope'
     ) THEN
       ALTER TABLE `env_vars`
-      ADD `scope` ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global';
+      ADD `scope` ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
       UPDATE env_vars
       SET scope = 'global';
     END IF;

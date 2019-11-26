@@ -152,12 +152,14 @@ CREATE TABLE IF NOT EXISTS env_vars (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(300) NOT NULL,
   value       text NOT NULL,
-  scope       ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global',
+  scope       ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
   environment int NULL REFERENCES environent (id),
   UNIQUE KEY `name_project` (`name`,`project`),
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
+
+ALTER TABLE env_vars MODIFY COLUMN scope ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
 
 CREATE TABLE IF NOT EXISTS environment_service (
   id          int NOT NULL auto_increment PRIMARY KEY,
