@@ -1,4 +1,4 @@
-import * as Client from 'mariasql';
+import Client from 'mariasql';
 
 import * as logger from '../logger';
 
