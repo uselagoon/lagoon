@@ -80,7 +80,7 @@ do
       # Copy environment variable from lagoon-env configmap.
       ${OC} set env --from=configmap/lagoon-env deploymentconfig/storage-calc
 
-      PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaims\///'))
+      PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaim\///'))
 
       for PVC in "${PVCS[@]}"
       do
