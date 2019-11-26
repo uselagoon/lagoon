@@ -15,7 +15,7 @@ As you connect via SSH, the Authentication also happens automatically via SSH Pu
 Connecting is easy and follows the following pattern:
 
 ```
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh
+ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST]
 ```
 
 - `PORT` - The Remote Shell SSH Endpoint Port (for amazee.io `32222`)
@@ -25,7 +25,7 @@ ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh
 As en example:
 
 ```
-ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud
 ```
 
 Will connect you to the Project `drupal-example` on the environment `master`.
@@ -35,19 +35,19 @@ Will connect you to the Project `drupal-example` on the environment `master`.
 By default the remote shell will try to connect you to the container defined with the type `cli`. If you like to connect to another pod/service you can define it via
 
 ```
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh service=[SERVICE-NAME]
+ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
 ```
 
 If your Pod/Service contains multiple containers, Lagoon will connect you to the first defined container. Or you can define the specific container via
 
 ```
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] rsh service=[SERVICE-NAME] container=[CONTAINER-NAME]
+ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
 ```
 
 As example to connect to the `php` container within the `nginx` pod:
 
 ```
-ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh service=nginx container=php
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud service=nginx container=php
 ```
 
 ### Execute Commands
@@ -57,7 +57,9 @@ Like with regular SSH you can also execute a remote command directly without ope
 Example:
 
 ```
-ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud rsh whoami
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud whoami
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud service=nginx whoami
+ssh -p 32222 -t drupal-example-master@ssh.lagoon.amazeeio.cloud service=nginx container=php whoami
 ```
 
 Will execute `whoami` within the `cli` container.

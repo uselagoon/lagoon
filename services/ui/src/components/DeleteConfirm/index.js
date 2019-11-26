@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from 'components/Modal';
+import ButtonAction from 'components/Button/ButtonAction';
 import { color, fontSize, bp } from 'lib/variables';
 import withLogic from 'components/DeleteConfirm/logic';
 
@@ -15,9 +16,9 @@ const DeleteConfirm = ({
 }) => {
   return (
     <React.Fragment>
-      <button className="button--page" onClick={openModal}>
+      <ButtonAction action={openModal}>
         Delete
-      </button>
+      </ButtonAction>
       <Modal
         isOpen={open}
         onRequestClose={closeModal}
@@ -35,13 +36,12 @@ const DeleteConfirm = ({
             <a href="#" className="hover-state" onClick={closeModal}>
               cancel
             </a>
-            <button
-              className="button--modal"
+            <ButtonAction
               disabled={inputValue !== deleteName}
-              onClick={() => onDelete()}
+              action={onDelete}
             >
               Delete
-            </button>
+            </ButtonAction>
           </div>
         </React.Fragment>
       </Modal>
@@ -49,10 +49,6 @@ const DeleteConfirm = ({
         input {
           margin-right: 10px;
           width: 100%;
-        }
-        button {
-          margin-right: 10px;
-          cursor: pointer;
         }
         a.hover-state {
           margin-right: 10px;
@@ -64,39 +60,7 @@ const DeleteConfirm = ({
         }
         .form-input {
           display: flex;
-        }
-        .button--page {
-          align-self: flex-end;
-          background-color: ${color.midGrey};
-          border: none;
-          border-radius: 20px;
-          color: ${color.darkGrey};
-          font-family: 'source-code-pro', sans-serif;
-          ${fontSize(13)};
-          padding: 3px 20px 2px;
-          text-transform: uppercase;
-          @media ${bp.tinyUp} {
-            align-self: auto;
-          }
-        }
-        .button--modal {
-          align-self: flex-end;
-          background-color: ${color.lightestGrey};
-          border: none;
-          border-radius: 20px;
-          color: ${color.darkGrey};
-          font-family: 'source-code-pro', sans-serif;
-          ${fontSize(13)};
-          padding: 3px 20px 2px;
-          text-transform: uppercase;
-          @media ${bp.tinyUp} {
-            align-self: auto;
-          }
-
-          &:disabled {
-            color: ${color.grey};
-            cursor: default;
-          }
+          align-items: center;
         }
       `}</style>
     </React.Fragment>
