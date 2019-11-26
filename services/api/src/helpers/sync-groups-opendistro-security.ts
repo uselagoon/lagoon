@@ -7,20 +7,33 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
 (async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-
   const sqlClient = getSqlClient();
   const GroupModel = Group({ keycloakAdminClient });
 
-  const groups = await GroupModel.loadAllGroups();
+  const allGroups = await GroupModel.loadAllGroups();
+  let groupsQueue = allGroups.map(group => ({ group, retries: 0}));
 
-  for (const group of groups) {
-    logger.debug(`Processing ${group.name}`);
-    const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(group)
-    const projectIds = R.join(',')(projectIdsArray)
-    await OpendistroSecurityOperations(sqlClient, GroupModel).syncGroup(group.name, projectIds);
+  logger.info(`Syncing ${allGroups.length} groups`);
+
+  while (groupsQueue.length > 0) {
+    const { group, retries } = groupsQueue.shift();
+    try {
+      logger.debug(`Processing ${group.name}`);
+      const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(group)
+      const projectIds = R.join(',')(projectIdsArray)
+      await OpendistroSecurityOperations(sqlClient, GroupModel).syncGroup(group.name, projectIds);
+    } catch (err) {
+      if (retries < 3) {
+        logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
+        groupsQueue.push({ group, retries: retries + 1 });
+      }
+      else {
+        logger.error(`Sync failed: ${err.message}`);
+      }
+    }
   }
 
-  logger.info('Migration completed');
+  logger.info('Sync completed');
 
   sqlClient.destroy();
 })();

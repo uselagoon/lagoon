@@ -10,6 +10,10 @@ node {
         env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
         env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
 
+        stage ('env') {
+          sh "env"
+        }
+
         deleteDir()
 
         stage ('Checkout') {
