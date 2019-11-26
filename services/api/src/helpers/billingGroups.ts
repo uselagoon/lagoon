@@ -12,7 +12,7 @@
 */
 
 import * as R from 'ramda';
-import * as projectHelpers from '../resources/project/helpers';
+import projectHelpers from '../resources/project/helpers';
 //import { logger } from '@lagoon/commons/src/local-logging';
 import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';

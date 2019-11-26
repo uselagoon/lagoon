@@ -3,7 +3,7 @@ import validator from 'validator';
 import * as logger from '../../logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
-import * as projectHelpers from '../project/helpers';
+import projectHelpers from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
 

@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Group } from './group';
-import * as Helpers from '../resources/project/helpers';
+import Helpers from '../resources/project/helpers';
 import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
