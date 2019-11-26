@@ -6,6 +6,7 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   createDeployTask,
   createPromoteTask,
+  createMiscTask,
 } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const {
@@ -19,6 +20,7 @@ const {
   isPatchEmpty,
 } = require('../../util/db');
 const Sql = require('./sql');
+const Helpers = require('./helpers');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
 const projectHelpers = require('../project/helpers');
@@ -297,6 +299,46 @@ const updateDeployment = async (
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
   return deployment;
+};
+
+const cancelDeployment = async (
+  root,
+  { input: { deployment: deploymentInput } },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(deployment.environment);
+  const project = await projectHelpers(sqlClient).getProjectById(
+    environment.project,
+  );
+
+  await hasPermission('deployment', 'cancel', {
+    project: project.id,
+  });
+
+  const data = {
+    build: deployment,
+    environment,
+    project,
+  };
+
+  try {
+    await createMiscTask({ key: 'openshift:build:cancel', data });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:cancelDeployment',
+      { deploymentId: deployment.id },
+      `Deployment not cancelled, reason: ${error}`,
+    );
+    return `Error: ${error.message}`;
+  }
 };
 
 const deployEnvironmentLatest = async (
@@ -727,6 +769,7 @@ const Resolvers /* : ResolversObj */ = {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  cancelDeployment,
   deployEnvironmentLatest,
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,

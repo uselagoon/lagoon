@@ -1,115 +1,127 @@
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
+import ButtonAction from 'components/Button/ButtonAction';
 import { bp, color, fontSize } from 'lib/variables';
 
 const DEPLOY_ENVIRONMENT_LATEST_MUTATION = gql`
-  mutation deployEnvironmentLatest(
-    $environmentId: Int!
-  ) {
-    deployEnvironmentLatest(
-      input: {
-        environment: {
-          id: $environmentId
-        }
-      }
-    )
+  mutation deployEnvironmentLatest($environmentId: Int!) {
+    deployEnvironmentLatest(input: { environment: { id: $environmentId } })
   }
 `;
 
-const DeployLatest = ({
-  pageEnvironment,
-}) => {
+const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
+  let deploymentsEnabled = true;
+
+  if (
+    environment.deployType === 'branch' ||
+    environment.deployType === 'promote'
+  ) {
+    if (!environment.deployBaseRef) {
+      deploymentsEnabled = false;
+    }
+  } else if (environment.deployType === 'pullrequest') {
+    if (
+      !environment.deployBaseRef &&
+      !environment.deployHeadRef &&
+      !environment.deployTitle
+    ) {
+      deploymentsEnabled = false;
+    }
+  } else {
+    deploymentsEnabled = false;
+  }
+
   return (
-    <React.Fragment>
-      <div className="newDeploymentWrapper">
-        <div className="newDeployment">
+    <div className="newDeployment">
+      {!deploymentsEnabled && (
+        <React.Fragment>
+          <div className="description">
+            Manual deployments are not available for this environment.
+          </div>
+          <ButtonAction disabled={true}>Deploy</ButtonAction>
+        </React.Fragment>
+      )}
+      {deploymentsEnabled && (
+        <React.Fragment>
+          <div className="description">
+            {environment.deployType === 'branch' &&
+              `Start a new deployment of branch ${environment.deployBaseRef}.`}
+            {environment.deployType === 'pullrequest' &&
+              `Start a new deployment of pull request ${
+                environment.deployTitle
+              }.`}
+            {environment.deployType === 'promote' &&
+              `Start a new deployment from environment ${
+                environment.project.name
+              }-${environment.deployBaseRef}.`}
+          </div>
           <Mutation
             mutation={DEPLOY_ENVIRONMENT_LATEST_MUTATION}
+            variables={{
+              environmentId: environment.id
+            }}
           >
-            {(deploy, { loading, called, error, data }) => {
-              const success = data && data.deployEnvironmentLatest === 'success';
+            {(deploy, { loading, error, data }) => {
+              const success =
+                data && data.deployEnvironmentLatest === 'success';
               return (
                 <React.Fragment>
-                  <button
-                    onClick={() =>
-                      deploy({
-                        variables: {
-                          environmentId: pageEnvironment.id,
-                        }
-                      })
-                    }
-                    disabled={loading}
-                  >
+                  <ButtonAction action={deploy} disabled={loading}>
                     Deploy
-                  </button>
+                  </ButtonAction>
 
-                  {success &&
-                    <div className="deploy_result">
-                      Deployment queued.
-                    </div>}
+                  {success && (
+                    <div className="deploy_result">Deployment queued.</div>
+                  )}
 
-                  {error &&
+                  {error && (
                     <div className="deploy_result">
                       <p>There was a problem deploying.</p>
                       <p>{error.message}</p>
-                    </div>}
+                    </div>
+                  )}
                 </React.Fragment>
               );
             }}
           </Mutation>
-        </div>
-      </div>
+        </React.Fragment>
+      )}
       <style jsx>
         {`
-          .newDeploymentWrapper {
-            @media ${bp.wideUp} {
-              display: flex;
-            }
-            &::before {
-              @media ${bp.wideUp} {
-                content: '';
-                display: block;
-                flex-grow: 1;
-              }
-            }
-          }
           .newDeployment {
+            align-items: center;
             background: ${color.white};
             border: 1px solid ${color.lightestGrey};
             border-radius: 3px;
             box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
             display: flex;
-            flex-flow: column;
+            flex-flow: row wrap;
+            justify-content: space-between;
             margin-bottom: 32px;
-            padding: 32px 20px;
+            padding: 15px;
+
             @media ${bp.tabletUp} {
               margin-bottom: 0;
             }
+
             @media ${bp.wideUp} {
               min-width: 52%;
             }
+
+            .description {
+              color: ${color.darkGrey};
+            }
+
             .deploy_result {
               margin-top: 20px;
-            }
-          }
-          button {
-            align-self: flex-end;
-            background-color: ${color.lightestGrey};
-            border: none;
-            border-radius: 20px;
-            color: ${color.darkGrey};
-            font-family: 'source-code-pro', sans-serif;
-            ${fontSize(13)};
-            padding: 3px 20px 2px;
-            text-transform: uppercase;
-            @media ${bp.tinyUp} {
-              align-self: auto;
+              text-align: right;
+              width: 100%;
             }
           }
         `}
       </style>
-    </React.Fragment>
+    </div>
   );
 };
 

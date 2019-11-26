@@ -40,7 +40,7 @@ const Deployments = ({ deployments }) => (
               {moment
                 .utc(deployment.created)
                 .local()
-                .format('DD MMM YYYY, HH:mm:ss')}
+                .format('DD MMM YYYY, HH:mm:ss (z)')}
             </div>
             <div className={`status ${deployment.status}`}>
               {deployment.status.charAt(0).toUpperCase() +
