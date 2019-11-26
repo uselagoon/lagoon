@@ -133,6 +133,11 @@ do
             query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
             curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
 
+            # Update namespace labels
+            if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE"]; then
+              ${OC} label namespace $ENVIRONMENT_OPENSHIFT_PROJECTNAME lagoon/storage-${PVC}=${STORAGE_BYTES} --overwrite
+            fi
+
         done
       fi
 
