@@ -690,7 +690,7 @@ mutation PopulateApi {
     input: {
       project: "ci-drupal"
       notificationType: EMAIL
-      notificationName: "amazeeio--lagoon-local-ci"
+      notificationName: "local-email-testing"
     }
   ) {
     id
