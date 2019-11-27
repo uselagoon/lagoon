@@ -211,7 +211,7 @@ $(build-elasticimages): build/commons
 	touch $@
 
 base-images-with-versions += $(elasticimages)
-s3-images += elasticimages
+s3-images += $(elasticimages)
 
 build/elasticsearch__6 build/elasticsearch__7 build/elasticsearch__7.1 build/kibana__6 build/kibana__7 build/kibana__7.1 build/logstash__6 build/logstash__7: images/commons
 
@@ -240,7 +240,7 @@ $(build-pythonimages): build/commons
 	touch $@
 
 base-images-with-versions += $(pythonimages)
-s3-images += python
+s3-images += $(pythonimages)
 
 build/python__2.7 build/python__3.7: images/commons
 build/python__2.7-ckan: build/python__2.7
@@ -291,7 +291,7 @@ $(build-phpimages): build/commons
 	touch $@
 
 base-images-with-versions += $(phpimages)
-s3-images += php
+s3-images += $(phpimages)
 
 build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
@@ -335,7 +335,7 @@ $(build-solrimages): build/commons
 	touch $@
 
 base-images-with-versions += $(solrimages)
-s3-images += solr
+s3-images += $(solrimages)
 
 build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
@@ -376,7 +376,7 @@ $(build-nodeimages): build/commons
 	touch $@
 
 base-images-with-versions += $(nodeimages)
-s3-images += node
+s3-images += $(nodeimages)
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
 build/node__12-builder: build/node__12 images/node/builder/Dockerfile
@@ -823,15 +823,26 @@ minishift/configure-lagoon-local: openshift-lagoon-setup
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140; \
 
-# Stop OpenShift Cluster
+# Stop MiniShift
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm -f minishift
 
-# Stop OpenShift, remove downloaded minishift
+# Stop All MiniShifts
+.PHONY: minishift/stopall
+minishift/stopall: local-dev/minishift/minishift
+	for profile in $$(./local-dev/minishift/minishift profile list | awk '{ print $$2 }'); do ./local-dev/minishift/minishift --profile $$profile delete --force; done
+	rm -f minishift
+
+# Stop MiniShift, remove downloaded minishift
 .PHONY: openshift/clean
 minishift/clean: minishift/stop
+	rm -rf ./local-dev/minishift/minishift
+
+# Stop All Minishifts, remove downloaded minishift
+.PHONY: openshift/cleanall
+minishift/cleanall: minishift/stopall
 	rm -rf ./local-dev/minishift/minishift
 
 # Symlink the installed minishift client if the correct version is already

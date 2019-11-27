@@ -44,7 +44,7 @@ node {
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift/clean || echo'
+                  sh 'make minishift/cleanall || echo'
                   sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=64GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
                 }
               },
@@ -115,7 +115,7 @@ node {
 def cleanup() {
   try {
     sh "make down"
-    sh "make minishift/clean"
+    sh "make minishift/cleanall"
     sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
