@@ -1227,7 +1227,7 @@ mutation PopulateApi {
       id: 18
       name: "high-cotton"
       openshift: 4
-      gitUrl: "test"
+      gitUrl: "ssh://git@192.168.42.1:2222/git/high-cotton.git"
       productionEnvironment: "Master"
     }
   ) {
