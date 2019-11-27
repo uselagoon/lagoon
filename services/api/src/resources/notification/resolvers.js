@@ -35,7 +35,6 @@ const addNotificationMicrosoftTeams = async (root, { input }, { sqlClient, hasPe
 };
 const addNotificationEmail = async (root, { input }, { sqlClient, hasPermission }) => {
   await hasPermission('notification', 'add');
-  console.log(input);
 
   const prep = prepare(
     sqlClient,
