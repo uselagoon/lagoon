@@ -2,16 +2,17 @@ node {
 
   openshift_versions = ['v3.11.0']
 
-  // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
-  // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
-  // Jenkins HOME Folder
-  env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
+  env.MINISHIFT_HOME = "/data/jenkins/.minishift"
 
   withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
     withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
       try {
         env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
         env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
+
+        stage ('env') {
+          sh "env"
+        }
 
         deleteDir()
 
@@ -25,64 +26,64 @@ node {
           sh "make build -j6"
         }
 
-        stage ('push images to amazeeiolagoon/*') {
-          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME} -j4"
-          }
-        }
-
         openshift_versions.each { openshift_version ->
-          lock('minishift') {
-            notifySlack()
+          notifySlack()
 
-            if (openshift_version == 'v3.11.0') {
-              minishift_version = '1.34.1'
-            }
+          if (openshift_version == 'v3.11.0') {
+            minishift_version = '1.34.1'
+          }
 
-            try {
-              parallel (
-                'start services': {
-                  stage ('start services') {
-                    sh "make kill"
-                    sh "make up"
-                    sh "sleep 60"
-                  }
-                },
-                'start minishift': {
-                  stage ('start minishift') {
-                    sh 'make minishift/clean || echo'
-                    sh "make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+          try {
+            parallel (
+              'start services': {
+                stage ('start services') {
+                  sh "make kill"
+                  sh "make up"
+                  sh "sleep 60"
+                }
+              },
+              'start minishift': {
+                stage ('start minishift') {
+                  sh 'make minishift/cleanall || echo'
+                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=64GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                }
+              },
+              'push images to amazeeiolagoon': {
+                stage ('push images to amazeeiolagoon/*') {
+                  withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+                    sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                    sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME} -j4"
                   }
                 }
-              )
-            } catch (e) {
-              echo "Something went wrong, trying to cleanup"
-              cleanup()
-              throw e
-            }
-
-            parallel (
-              "_tests_${openshift_version}": {
-                  stage ('run tests') {
-                    try {
-                      sh "make push-minishift"
-                      sh "make tests -j3"
-                    } catch (e) {
-                      echo "Something went wrong, trying to cleanup"
-                      cleanup()
-                      throw e
-                    }
-                    cleanup()
-                  }
-              },
-              "logs_${openshift_version}": {
-                  stage ('all') {
-                    sh "make logs"
-                  }
-              },
+              }
             )
+          } catch (e) {
+            echo "Something went wrong, trying to cleanup"
+            cleanup()
+            throw e
           }
+
+          parallel (
+            "_tests_${openshift_version}": {
+                stage ('run tests') {
+                  try {
+                    sh "make push-minishift -j5"
+                    sh "make up"
+                    sh "make tests -j3"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
+                  cleanup()
+                }
+            },
+            "logs_${openshift_version}": {
+                stage ('all') {
+                  sh "make logs"
+                }
+            },
+          )
         }
 
         if (env.TAG_NAME) {
@@ -114,7 +115,7 @@ node {
 def cleanup() {
   try {
     sh "make down"
-    sh "make minishift/clean"
+    sh "make minishift/cleanall"
     sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."

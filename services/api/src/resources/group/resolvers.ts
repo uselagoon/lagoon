@@ -132,7 +132,7 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
   });
 
   // We don't have any projects yet. So just an empty string
-  await OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(input.name, '')
+  OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(input.name, '')
 
   return group;
 };
@@ -181,7 +181,7 @@ export const deleteGroup = async (
 
   await models.GroupModel.deleteGroup(group.id);
 
-  await OpendistroSecurityOperations(sqlClient, models.GroupModel).deleteGroup(group.name)
+  OpendistroSecurityOperations(sqlClient, models.GroupModel).deleteGroup(group.name)
 
   return 'success';
 };

@@ -260,3 +260,42 @@ Each definition is keyed by a unique name (`secrets` and `logs-db-secrets` in th
 * `path` - the path to the yaml file
 * `command` - can either be `create` or `apply`, depending on if you like to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`
 * `ignore_error` - either `true` or `false` (default), this allows you to instruct the lagoon build script to ignore any errors that might are returned during running the command. (This can be useful to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist).
+
+#### `container-registries`
+
+The `container-registries` block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your yaml, it will default to using docker hub.
+
+There are 2 ways to define the password used for your registry user.
+* Create an environment variable in the Lagoon API [Environment Variables (Lagoon API) » Container Registry Environment Variables (Lagoon API)](./environment_variables.md). The name of the variable you create can then be set as the password.
+```
+container-registries:
+  my-custom-registry:
+    username: myownregistryuser
+    password: MY_OWN_REGISTRY_PASSWORD
+    url: my.own.registry.com
+```
+* Define it directly in the `.lagoon.yml` file in plain text.
+```
+container-registries:
+  docker-hub:
+    username: dockerhubuser
+    password: MySecretPassword
+```
+
+##### Consuming a custom or private container registry image
+To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image
+
+```
+services:
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+```
+
+Once the `docker-compose.yml` file has been updated to use a build. You need to create the `Dockerfile.<service>` and then set your privar image as the `FROM <repo>/<name>:<tag>`
+
+```
+#Dockerfile.mariadb
+FROM dockerhubuser/my-private-database:tag
+```

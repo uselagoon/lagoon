@@ -67,7 +67,7 @@ MINISHIFT_DISK_SIZE := 30GB
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
 
-ARCH := $(shell uname)
+ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Name of the Branch we are currently in
 BRANCH_NAME :=
@@ -134,7 +134,8 @@ images :=     oc \
 							mongo \
 							athenapdf-service \
 							curator \
-							docker-host
+							docker-host \
+							toolbox
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -170,8 +171,8 @@ build/nginx: build/commons images/nginx/Dockerfile
 build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
 build/varnish: build/commons images/varnish/Dockerfile
 build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
-build/varnish-persistent: build/commons images/varnish/Dockerfile
-build/varnish-persistent-drupal: build/varnish images/varnish-drupal/Dockerfile
+build/varnish-persistent: build/varnish build/commons images/varnish/Dockerfile
+build/varnish-persistent-drupal: build/varnish-drupal images/varnish-drupal/Dockerfile
 build/redis: build/commons images/redis/Dockerfile
 build/redis-persistent: build/redis images/redis-persistent/Dockerfile
 build/rabbitmq: build/commons images/rabbitmq/Dockerfile
@@ -182,7 +183,7 @@ build/oc: build/commons images/oc/Dockerfile
 build/curator: build/commons images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
-
+build/toolbox: build/commons images/toolbox/Dockerfile
 
 #######
 ####### Elastic Images
@@ -210,7 +211,7 @@ $(build-elasticimages): build/commons
 	touch $@
 
 base-images-with-versions += $(elasticimages)
-s3-images += elasticimages
+s3-images += $(elasticimages)
 
 build/elasticsearch__6 build/elasticsearch__7 build/elasticsearch__7.1 build/kibana__6 build/kibana__7 build/kibana__7.1 build/logstash__6 build/logstash__7: images/commons
 
@@ -239,7 +240,7 @@ $(build-pythonimages): build/commons
 	touch $@
 
 base-images-with-versions += $(pythonimages)
-s3-images += python
+s3-images += $(pythonimages)
 
 build/python__2.7 build/python__3.7: images/commons
 build/python__2.7-ckan: build/python__2.7
@@ -293,7 +294,7 @@ $(build-phpimages): build/commons
 	touch $@
 
 base-images-with-versions += $(phpimages)
-s3-images += php
+s3-images += $(phpimages)
 
 build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm build/php__7.4.0RC6-fpm: images/commons
 build/php__5.6-cli: build/php__5.6-fpm
@@ -339,7 +340,7 @@ $(build-solrimages): build/commons
 	touch $@
 
 base-images-with-versions += $(solrimages)
-s3-images += solr
+s3-images += $(solrimages)
 
 build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
 build/solr__5.5-drupal: build/solr__5.5
@@ -380,7 +381,7 @@ $(build-nodeimages): build/commons
 	touch $@
 
 base-images-with-versions += $(nodeimages)
-s3-images += node
+s3-images += $(nodeimages)
 
 build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
 build/node__12-builder: build/node__12 images/node/builder/Dockerfile
@@ -406,8 +407,10 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 # Variables of service images we manage and build
 services :=       api \
 									auth-server \
+									logs2email \
 									logs2slack \
 									logs2rocketchat \
+									logs2microsoftteams \
 									openshiftbuilddeploy \
 									openshiftbuilddeploymonitor \
 									openshiftjobs \
@@ -454,7 +457,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2slack build/logs2rocketchat build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -547,7 +550,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2slack logs2rocketchat api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch
@@ -753,12 +756,12 @@ openshift:
 minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
 ifeq ($(ARCH), Darwin)
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --host-only-cidr "192.168.42.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
 else
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"
 endif
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
-ifeq ($(ARCH), Darwin)
+ifeq ($(ARCH), darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
 	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
@@ -823,27 +826,40 @@ openshift-lagoon-setup:
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.99.1:5140; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140; \
 
-# Stop OpenShift Cluster
+# Stop MiniShift
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm -f minishift
 
-# Stop OpenShift, remove downloaded minishift
+# Stop All MiniShifts
+.PHONY: minishift/stopall
+minishift/stopall: local-dev/minishift/minishift
+	for profile in $$(./local-dev/minishift/minishift profile list | awk '{ print $$2 }'); do ./local-dev/minishift/minishift --profile $$profile delete --force; done
+	rm -f minishift
+
+# Stop MiniShift, remove downloaded minishift
 .PHONY: openshift/clean
 minishift/clean: minishift/stop
 	rm -rf ./local-dev/minishift/minishift
 
-# Downloads the correct oc cli client based on if we are on OS X or Linux
+# Stop All Minishifts, remove downloaded minishift
+.PHONY: openshift/cleanall
+minishift/cleanall: minishift/stopall
+	rm -rf ./local-dev/minishift/minishift
+
+# Symlink the installed minishift client if the correct version is already
+# installed, otherwise downloads it.
 local-dev/minishift/minishift:
-	$(info downloading minishift version $(MINISHIFT_VERSION))
 	@mkdir -p ./local-dev/minishift
-ifeq ($(ARCH), Darwin)
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-darwin-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
+ifeq ($(MINISHIFT_VERSION), $(shell minishift version | sed -E 's/^minishift v([0-9.]+).*/\1/'))
+	$(info linking local minishift version $(MINISHIFT_VERSION))
+	ln -s $(shell command -v minishift) ./local-dev/minishift/minishift
 else
-		curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-linux-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
+	$(info downloading minishift version $(MINISHIFT_VERSION) for $(ARCH))
+	curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-$(ARCH)-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
 
 .PHONY: push-oc-build-deploy-dind
@@ -856,4 +872,3 @@ rebuild-push-oc-build-deploy-dind:
 .PHONY: ui-development
 ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db
-
