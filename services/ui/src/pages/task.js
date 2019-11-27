@@ -27,7 +27,7 @@ const PageTask = ({ router }) => (
       query={EnvironmentWithTaskQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName,
-        taskId: router.query.taskId
+        taskId: parseInt(router.query.taskId, 10)
       }}
     >
       {R.compose(

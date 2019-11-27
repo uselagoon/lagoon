@@ -31,6 +31,8 @@ const typeDefs = gql`
   enum NotificationType {
     SLACK
     ROCKETCHAT
+    MICROSOFTTEAMS
+    EMAIL
   }
 
   enum DeploymentStatusType {
@@ -52,6 +54,7 @@ const typeDefs = gql`
     BUILD
     RUNTIME
     GLOBAL
+    CONTAINER_REGISTRY
   }
 
   enum TaskStatusType {
@@ -135,6 +138,12 @@ const typeDefs = gql`
     created: String
   }
 
+  type NotificationMicrosoftTeams {
+    id: Int
+    name: String
+    webhook: String
+  }
+
   type NotificationRocketChat {
     id: Int
     name: String
@@ -149,13 +158,19 @@ const typeDefs = gql`
     channel: String
   }
 
+  type NotificationEmail {
+    id: Int
+    name: String
+    emailAddress: String
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
     type: String
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
 
   """
   Lagoon Project (like a git repository)
@@ -171,8 +186,8 @@ const typeDefs = gql`
     name: String
     """
     Git URL, needs to be SSH Git URL in one of these two formats
-    - git@192.168.99.1/project1.git
-    - ssh://git@192.168.99.1:2222/project1.git
+    - git@192.168.42.1/project1.git
+    - ssh://git@192.168.42.1:2222/project1.git
     """
     gitUrl: String
     """
@@ -683,6 +698,15 @@ const typeDefs = gql`
     name: String!
   }
 
+  input AddNotificationMicrosoftTeamsInput {
+    name: String!
+    webhook: String!
+  }
+  input AddNotificationEmailInput {
+    name: String!
+    emailAddress: String!
+  }
+
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
@@ -693,6 +717,13 @@ const typeDefs = gql`
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationMicrosoftTeamsInput {
+    name: String!
+  }
+  input DeleteNotificationEmailInput {
+    name: String!
   }
 
   input DeleteNotificationRocketChatInput {
@@ -782,6 +813,16 @@ const typeDefs = gql`
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationMicrosoftTeamsPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+  input UpdateNotificationEmailPatchInput {
+    name: String
+    emailAddress: String
+  }
+
   input UpdateNotificationRocketChatPatchInput {
     name: String
     webhook: String
@@ -792,6 +833,15 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationMicrosoftTeamsInput {
+    name: String!
+    patch: UpdateNotificationMicrosoftTeamsPatchInput
+  }
+  input UpdateNotificationEmailInput {
+    name: String!
+    patch: UpdateNotificationEmailPatchInput
   }
 
   input UpdateNotificationRocketChatInput {
@@ -961,6 +1011,26 @@ const typeDefs = gql`
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteAllNotificationRocketChats: String
+    addNotificationMicrosoftTeams(
+      input: AddNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    updateNotificationMicrosoftTeams(
+      input: UpdateNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    deleteNotificationMicrosoftTeams(
+      input: DeleteNotificationMicrosoftTeamsInput!
+    ): String
+    deleteAllNotificationMicrosoftTeams: String
+    addNotificationEmail(
+      input: AddNotificationEmailInput!
+    ): NotificationEmail
+    updateNotificationEmail(
+      input: UpdateNotificationEmailInput!
+    ): NotificationEmail
+    deleteNotificationEmail(
+      input: DeleteNotificationEmailInput!
+    ): String
+    deleteAllNotificationEmails: String
     """
     Connect previous created Notification to a Project
     """
