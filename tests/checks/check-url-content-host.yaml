@@ -9,4 +9,5 @@
   until: result.content | search(expected_content)
   retries: 90
   delay: 10
-- debug: msg="Success!!!"
+- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} contains content {{expected_content}}"
+  debug: msg="Success!!!"

@@ -823,15 +823,26 @@ minishift/configure-lagoon-local: openshift-lagoon-setup
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140; \
 
-# Stop OpenShift Cluster
+# Stop MiniShift
 .PHONY: minishift/stop
 minishift/stop: local-dev/minishift/minishift
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm -f minishift
 
-# Stop OpenShift, remove downloaded minishift
+# Stop All MiniShifts
+.PHONY: minishift/stopall
+minishift/stopall: local-dev/minishift/minishift
+	for profile in $$(./local-dev/minishift/minishift profile list | awk '{ print $$2 }'); do ./local-dev/minishift/minishift --profile $$profile delete --force; done
+	rm -f minishift
+
+# Stop MiniShift, remove downloaded minishift
 .PHONY: openshift/clean
 minishift/clean: minishift/stop
+	rm -rf ./local-dev/minishift/minishift
+
+# Stop All Minishifts, remove downloaded minishift
+.PHONY: openshift/cleanall
+minishift/cleanall: minishift/stopall
 	rm -rf ./local-dev/minishift/minishift
 
 # Symlink the installed minishift client if the correct version is already
