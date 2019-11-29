@@ -1,6 +1,7 @@
 import React from 'react';
 import gql from 'graphql-tag';
 import { Mutation } from 'react-apollo';
+import ButtonAction from 'components/Button/ButtonAction';
 
 const addRestore = gql`
   mutation addRestore($input: AddRestoreInput!) {
@@ -10,26 +11,29 @@ const addRestore = gql`
   }
 `;
 
-const Prepare = ({ backupId, className }) => (
-  <Mutation mutation={addRestore}>
+const Prepare = ({ backupId }) => (
+  <Mutation mutation={addRestore} variables={{ input: { backupId } }}>
     {(addRestore, { loading, called, error, data }) => {
       if (error) {
-        return <button className={className} disabled>Download error</button>;
+        return (
+          <ButtonAction disabled>
+            Retrieve failed
+          </ButtonAction>
+        );
       }
 
       if (loading || called) {
-        return <button className={className} disabled>Preparing ...</button>;
+        return (
+          <ButtonAction disabled>
+            Retrieving ...
+          </ButtonAction>
+        );
       }
 
       return (
-        <button
-          className={className}
-          onClick={() => {
-            addRestore({ variables: { input: { backupId } } });
-          }}
-        >
-          Prepare download
-        </button>
+        <ButtonAction action={addRestore}>
+          Retrieve
+        </ButtonAction>
       );
     }}
   </Mutation>

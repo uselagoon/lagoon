@@ -1,5 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
+# Definig Versions https://www.elastic.co/guide/en/elasticsearch/reference/7.1/docker.html
 FROM docker.elastic.co/elasticsearch/elasticsearch:7.1.1
 
 LABEL maintainer="amazee.io"
