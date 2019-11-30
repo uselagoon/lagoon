@@ -1,12 +1,21 @@
 import React from 'react';
-import { bp, color, fontSize } from 'lib/variables';
+import { bp, color } from 'lib/variables';
 
-const ButtonStyles = ({ element, children, disabled, ...rest }) => {
-  const ButtonElement = element;
+const Button = ({ action = null, href = null, disabled, children }) => {
+  const ButtonElement = href ? 'a' : 'button';
+  const onClick = action
+    ? action
+    : e => {
+        if (disabled) {
+          e.preventDefault();
+          return false;
+        }
+      };
   return (
-    <React.Fragment>
+    <>
       <ButtonElement
-        {...rest}
+        onClick={onClick}
+        href={href}
         disabled={disabled}
         className={`btn ${disabled ? 'btn--disabled' : ''}`}
       >
@@ -37,8 +46,8 @@ const ButtonStyles = ({ element, children, disabled, ...rest }) => {
           }
         `}
       </style>
-    </React.Fragment>
+    </>
   );
 };
 
-export default ButtonStyles;
+export default Button;

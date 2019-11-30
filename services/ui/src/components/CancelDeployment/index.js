@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
-import ButtonAction from 'components/Button/ButtonAction';
+import Button from 'components/Button';
 import { bp, color, fontSize } from 'lib/variables';
 
 const CANCEL_DEPLOYMENT_MUTATION = gql`
@@ -21,9 +21,9 @@ const CancelDeployment = ({ deployment, ...rest }) => (
       const success = data && data.cancelDeployment === 'success';
       return (
         <React.Fragment>
-          <ButtonAction action={cancelDeploy} disabled={loading || success}>
+          <Button action={cancelDeploy} disabled={loading || success}>
             {success ? 'Cancellation requested' : 'Cancel deployment'}
-          </ButtonAction>
+          </Button>
 
           {error && (
             <div className="deploy_result">
