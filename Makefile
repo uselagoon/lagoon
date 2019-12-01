@@ -144,7 +144,7 @@ s3-images += $(images)
 # List with all images prefixed with `build/`. Which are the commands to actually build images
 build-images = $(foreach image,$(images),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-images):
 #	Generate variable image without the prefix `build/`
 	$(eval image = $(subst build/,,$@))
@@ -200,7 +200,7 @@ elasticimages :=  elasticsearch__6 \
 
 build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-elasticimages): build/commons
 	$(eval clean = $(subst build/,,$@))
 	$(eval tool = $(word 1,$(subst __, ,$(clean))))
@@ -227,7 +227,7 @@ pythonimages :=  python__2.7 \
 
 build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
@@ -274,7 +274,7 @@ phpimages := 	php__5.6-fpm \
 
 build-phpimages = $(foreach image,$(phpimages),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-phpimages): build/commons
 	$(eval clean = $(subst build/php__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
@@ -327,7 +327,7 @@ solrimages := 	solr__5.5 \
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-solrimages): build/commons
 	$(eval clean = $(subst build/solr__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
@@ -367,7 +367,7 @@ nodeimages := node__12 \
 
 build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 
-# Define the make recepie for all base images
+# Define the make recipe for all base images
 $(build-nodeimages): build/commons
 	$(eval clean = $(subst build/node__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
@@ -442,7 +442,7 @@ service-images += $(services) $(services-galera)
 
 build-services = $(foreach image,$(services),build/$(image))
 
-# Recepie for all building service-images
+# Recipe for all building service-images
 $(build-services):
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
@@ -820,9 +820,9 @@ openshift-lagoon-setup:
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
 
-# This calles the regular openshift-lagoon-setup first, which configures our minishift like we configure a real openshift for laggon
-# It then overwrite the docker-host deploymentconfig and cronjobs to use our own just builded docker-host images
-.PHONY: openshift/configure-lagoon-local
+# This calls the regular openshift-lagoon-setup first, which configures our minishift like we configure a real openshift for lagoon.
+# It then overwrites the docker-host deploymentconfig and cronjobs to use our own just-built docker-host images.
+.PHONY: minishift/configure-lagoon-local
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
@@ -841,7 +841,7 @@ minishift/stopall: local-dev/minishift/minishift
 	rm -f minishift
 
 # Stop MiniShift, remove downloaded minishift
-.PHONY: openshift/clean
+.PHONY: minishift/clean
 minishift/clean: minishift/stop
 	rm -rf ./local-dev/minishift/minishift
 
