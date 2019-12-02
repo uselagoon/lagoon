@@ -670,6 +670,15 @@ do
           -n ${OPENSHIFT_PROJECT} \
           configmap lagoon-env \
           -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
+
+        # only add the DB_READREPLICA_HOSTS variable if it exists in the servicebroker credentials yaml
+        if DB_READREPLICA_HOSTS=$(shyaml get-value data.DB_READREPLICA_HOSTS < "/oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml" | base64 -d); then
+          oc patch --insecure-skip-tls-verify \
+            -n "$OPENSHIFT_PROJECT" \
+            configmap lagoon-env \
+            -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_READREPLICA_HOSTS\":\"${DB_READREPLICA_HOSTS}\"}}"
+        fi
+
         set -x
         ;;
 
