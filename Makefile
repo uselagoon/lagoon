@@ -93,7 +93,7 @@ docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VE
 # 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
 # 3. Location of Dockerfile
 # 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(2) -t $(CI_BUILD_TAG)/php:$(3) -f $(4) $(5)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
 
 docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
 
@@ -286,10 +286,8 @@ $(build-phpimages): build/commons
 # if there is a subtype, add it. If not, just keep what we already had
 	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
 	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
-# cover the edge case for php 7.0 needing php:7-fpm-alpine
-	$(eval php_ver = $(patsubst 7.0,7,$(version)))
 # Call the docker build
-	$(call docker_build_php,$(version),$(php_ver),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
+	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
