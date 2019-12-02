@@ -1,3 +1,3 @@
-FROM amazeeio/php:7.1-cli-drupal
+FROM amazeeio/php:7.2-cli-drupal
 
 COPY . /app

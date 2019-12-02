@@ -6,16 +6,6 @@
 
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.0 - MARIADB"
-    drupal_version: 8
-    db: mariadb
-    php_version: 7.0
-    git_repo_name: drupal.git
-    project: ci-drupal
-    branch: drupal8-composer-70-mariadb
-
-- include: drupal/drupal.yaml
-  vars:
     testname: "Drupal 8 composer PHP 7.1 - MARIADB"
     drupal_version: 8
     db: mariadb
@@ -44,12 +34,21 @@
     project: ci-drupal
     branch: drupal8-composer-73-mariadb
 
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.4 - MARIADB"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.4
+    git_repo_name: drupal.git
+    project: ci-drupal
+    branch: drupal8-composer-74-mariadb
 
 - include: drupal/drush.yaml
   vars:
     testname: "DRUSH"
     drupal_version: 8
     db: mariadb
-    php_version: 7.1
+    php_version: 7.3
     git_repo_name: drupal.git
     project: ci-drupal
