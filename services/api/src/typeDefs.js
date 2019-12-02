@@ -31,6 +31,8 @@ const typeDefs = gql`
   enum NotificationType {
     SLACK
     ROCKETCHAT
+    MICROSOFTTEAMS
+    EMAIL
   }
 
   enum DeploymentStatusType {
@@ -52,6 +54,7 @@ const typeDefs = gql`
     BUILD
     RUNTIME
     GLOBAL
+    CONTAINER_REGISTRY
   }
 
   enum TaskStatusType {
@@ -135,6 +138,12 @@ const typeDefs = gql`
     created: String
   }
 
+  type NotificationMicrosoftTeams {
+    id: Int
+    name: String
+    webhook: String
+  }
+
   type NotificationRocketChat {
     id: Int
     name: String
@@ -149,13 +158,19 @@ const typeDefs = gql`
     channel: String
   }
 
+  type NotificationEmail {
+    id: Int
+    name: String
+    emailAddress: String
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
     type: String
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
 
   """
   Lagoon Project (like a git repository)
@@ -171,8 +186,8 @@ const typeDefs = gql`
     name: String
     """
     Git URL, needs to be SSH Git URL in one of these two formats
-    - git@192.168.99.1/project1.git
-    - ssh://git@192.168.99.1:2222/project1.git
+    - git@192.168.42.1/project1.git
+    - ssh://git@192.168.42.1:2222/project1.git
     """
     gitUrl: String
     """
@@ -505,6 +520,13 @@ const typeDefs = gql`
     project: ProjectInput
   }
 
+  # Must provide id OR name and environment
+  input DeploymentInput {
+    id: Int
+    name: String
+    environment: EnvironmentInput
+  }
+
   input AddSshKeyInput {
     id: Int
     name: String!
@@ -515,6 +537,10 @@ const typeDefs = gql`
 
   input DeleteSshKeyInput {
     name: String!
+  }
+
+  input DeleteSshKeyByIdInput {
+    id: Int!
   }
 
   input AddProjectInput {
@@ -588,7 +614,7 @@ const typeDefs = gql`
   }
 
 
-  input DeploymentInput {
+  input AddDeploymentInput {
     id: Int
     name: String!
     status: DeploymentStatusType!
@@ -616,6 +642,10 @@ const typeDefs = gql`
   input UpdateDeploymentInput {
     id: Int!
     patch: UpdateDeploymentPatchInput!
+  }
+
+  input CancelDeploymentInput {
+    deployment: DeploymentInput!
   }
 
   input TaskInput {
@@ -668,6 +698,15 @@ const typeDefs = gql`
     name: String!
   }
 
+  input AddNotificationMicrosoftTeamsInput {
+    name: String!
+    webhook: String!
+  }
+  input AddNotificationEmailInput {
+    name: String!
+    emailAddress: String!
+  }
+
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
@@ -678,6 +717,13 @@ const typeDefs = gql`
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationMicrosoftTeamsInput {
+    name: String!
+  }
+  input DeleteNotificationEmailInput {
+    name: String!
   }
 
   input DeleteNotificationRocketChatInput {
@@ -767,6 +813,16 @@ const typeDefs = gql`
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationMicrosoftTeamsPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+  input UpdateNotificationEmailPatchInput {
+    name: String
+    emailAddress: String
+  }
+
   input UpdateNotificationRocketChatPatchInput {
     name: String
     webhook: String
@@ -777,6 +833,15 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationMicrosoftTeamsInput {
+    name: String!
+    patch: UpdateNotificationMicrosoftTeamsPatchInput
+  }
+  input UpdateNotificationEmailInput {
+    name: String!
+    patch: UpdateNotificationEmailPatchInput
   }
 
   input UpdateNotificationRocketChatInput {
@@ -946,6 +1011,26 @@ const typeDefs = gql`
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteAllNotificationRocketChats: String
+    addNotificationMicrosoftTeams(
+      input: AddNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    updateNotificationMicrosoftTeams(
+      input: UpdateNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    deleteNotificationMicrosoftTeams(
+      input: DeleteNotificationMicrosoftTeamsInput!
+    ): String
+    deleteAllNotificationMicrosoftTeams: String
+    addNotificationEmail(
+      input: AddNotificationEmailInput!
+    ): NotificationEmail
+    updateNotificationEmail(
+      input: UpdateNotificationEmailInput!
+    ): NotificationEmail
+    deleteNotificationEmail(
+      input: DeleteNotificationEmailInput!
+    ): String
+    deleteAllNotificationEmails: String
     """
     Connect previous created Notification to a Project
     """
@@ -965,15 +1050,17 @@ const typeDefs = gql`
     addSshKey(input: AddSshKeyInput!): SshKey
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
+    deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
     deleteAllSshKeys: String
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    addDeployment(input: DeploymentInput!): Deployment
+    addDeployment(input: AddDeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
+    cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
@@ -985,6 +1072,7 @@ const typeDefs = gql`
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
+    taskDrushCron(environment: Int!): Task
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!

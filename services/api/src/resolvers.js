@@ -8,6 +8,7 @@ const {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  cancelDeployment,
   deployEnvironmentLatest,
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
@@ -24,6 +25,7 @@ const {
   taskDrushArchiveDump,
   taskDrushSqlDump,
   taskDrushCacheClear,
+  taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
   taskSubscriber,
@@ -58,16 +60,24 @@ const {
 } = require('./resources/environment/resolvers');
 
 const {
+  addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
   addNotificationToProject,
+  deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
   getNotificationsByProjectId,
   removeNotificationFromProject,
+  updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  addNotificationEmail,
+  updateNotificationEmail,
+  deleteNotificationEmail,
+  deleteAllNotificationEmails,
   deleteAllNotificationSlacks,
+  deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
@@ -97,6 +107,7 @@ const {
   addSshKey,
   updateSshKey,
   deleteSshKey,
+  deleteSshKeyById,
   deleteAllSshKeys,
   removeAllSshKeysFromAllUsers,
 } = require('./resources/sshKey/resolvers');
@@ -189,6 +200,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
           return 'NotificationSlack';
         case 'rocketchat':
           return 'NotificationRocketChat';
+        case 'microsoftteams':
+          return 'NotificationMicrosoftTeams';
+        case 'email':
+          return 'NotificationEmail';
         default:
           return null;
       }
@@ -230,6 +245,14 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateNotificationRocketChat,
     deleteNotificationRocketChat,
     deleteAllNotificationRocketChats,
+    addNotificationMicrosoftTeams,
+    updateNotificationMicrosoftTeams,
+    deleteNotificationMicrosoftTeams,
+    deleteAllNotificationMicrosoftTeams,
+    addNotificationEmail,
+    updateNotificationEmail,
+    deleteNotificationEmail,
+    deleteAllNotificationEmails,
     addNotificationToProject,
     removeNotificationFromProject,
     removeAllNotificationsFromAllProjects,
@@ -244,6 +267,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addSshKey,
     updateSshKey,
     deleteSshKey,
+    deleteSshKeyById,
     deleteAllSshKeys,
     removeAllSshKeysFromAllUsers,
     addUser,
@@ -253,6 +277,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addDeployment,
     deleteDeployment,
     updateDeployment,
+    cancelDeployment,
     addBackup,
     deleteBackup,
     deleteAllBackups,
@@ -264,6 +289,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskDrushArchiveDump,
     taskDrushSqlDump,
     taskDrushCacheClear,
+    taskDrushCron,
     taskDrushSqlSync,
     taskDrushRsyncFiles,
     deleteTask,

@@ -15,12 +15,25 @@ pages:
   - Environment Types: using_lagoon/environment_types.md
   - Environment Variables: using_lagoon/environment_variables.md
   - Docker Images:
-    - PHP-FPM: using_lagoon/docker_images/php-fpm.md
+    - Elasticsearch: using_lagoon/docker_images/elasticsearch.md
+    - MariaDB Drupal: using_lagoon/docker_images/mariadb-drupal.md
+    - MariaDB: using_lagoon/docker_images/mariadb.md
+    - MongoDB: using_lagoon/docker_images/mongo.md
+    - Nginx Drupal: using_lagoon/docker_images/nginx-drupal.md
     - Nginx: using_lagoon/docker_images/nginx.md
+    - PHP CLI Drupal: using_lagoon/docker_images/php-cli-drupal.md
+    - PHP CLI: using_lagoon/docker_images/php-cli.md
+    - PHP-FPM: using_lagoon/docker_images/php-fpm.md
     - RabbitMQ: using_lagoon/docker_images/rabbitmq.md
+    - Redis Permanent: using_lagoon/docker_images/redis-permanent.md
+    - Redis: using_lagoon/docker_images/redis.md
+    - Solr Drupal: using_lagoon/docker_images/solr-drupal.md
+    - Solr: using_lagoon/docker_images/solr.md
+    - Varnish Drupal: using_lagoon/docker_images/varnish-drupal.md
+    - Varnish: using_lagoon/docker_images/varnish.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
-  - Logs: 
+  - Logs:
      - Logging: using_lagoon/logging/logging.md
      - Kibana Examples: using_lagoon/logging/kibana_examples.md
   - Remote Shell: using_lagoon/remote_shell.md

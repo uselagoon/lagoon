@@ -7,8 +7,8 @@ LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 # Defining Versions - https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.9.0 \
-  COMPOSER_HASH_SHA256=c9dff69d092bdec14dee64df6677e7430163509798895fbd54891c166c5c0875
+ENV COMPOSER_VERSION=1.9.1 \
+  COMPOSER_HASH_SHA256=1f210b9037fcf82670d75892dfc44400f13fe9ada7af9e787f93e50e3b764111
 
 RUN apk add --no-cache git \
         unzip \
@@ -64,7 +64,7 @@ COPY mariadb-client.cnf /etc/my.cnf.d/
 COPY 55-cli-helpers.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
 
-RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] ; then \
+RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*} == "7.1" ] ; then \
   echo echo \"PHP ${PHP_VERSION} is end of life and should no longer be used. For more information, visit https://secure.php.net/eol.php\" \> /dev/stderr >> /home/.bashrc ; fi
 
 # SSH Key and Agent Setup

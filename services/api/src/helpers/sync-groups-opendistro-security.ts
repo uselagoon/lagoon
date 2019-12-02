@@ -3,54 +3,37 @@ import { logger } from '@lagoon/commons/src/local-logging';
 import { getSqlClient } from '../clients/sqlClient';
 import { Group } from '../models/group';
 import { OpendistroSecurityOperations } from '../resources/group/opendistroSecurity';
-import { keycloakAdminClient } from '../clients/keycloakClient';
-
-
-const keycloakAuth = {
-  username: 'admin',
-  password: R.pathOr(
-    '<password not set>',
-    ['env', 'KEYCLOAK_ADMIN_PASSWORD'],
-    process,
-  ) as string,
-  grantType: 'password',
-  clientId: 'admin-cli',
-};
-
-const refreshToken = async keycloakAdminClient => {
-  const tokenRaw = new Buffer(keycloakAdminClient.accessToken.split('.')[1], 'base64');
-  const token = JSON.parse(tokenRaw.toString());
-  const date = new Date();
-  const now = Math.floor(date.getTime() / 1000);
-
-  if (token.exp <= now) {
-    logger.debug('Refreshing keycloak token');
-    keycloakAdminClient.setConfig({ realmName: 'master' });
-    await keycloakAdminClient.auth(keycloakAuth);
-    keycloakAdminClient.setConfig({ realmName: 'lagoon' });
-  }
-}
+import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
 (async () => {
-
-  keycloakAdminClient.setConfig({ realmName: 'master' });
-  await keycloakAdminClient.auth(keycloakAuth);
-  keycloakAdminClient.setConfig({ realmName: 'lagoon' });
-
+  const keycloakAdminClient = await getKeycloakAdminClient();
   const sqlClient = getSqlClient();
-  const GroupModel = Group();
+  const GroupModel = Group({ keycloakAdminClient });
 
-  const groups = await GroupModel.loadAllGroups();
+  const allGroups = await GroupModel.loadAllGroups();
+  let groupsQueue = allGroups.map(group => ({ group, retries: 0}));
 
-  for (const group of groups) {
-    await refreshToken(keycloakAdminClient);
-    logger.debug(`Processing ${group.name}`);
-    const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(group)
-    const projectIds = R.join(',')(projectIdsArray)
-    await OpendistroSecurityOperations(sqlClient, GroupModel).syncGroup(group.name, projectIds);
+  logger.info(`Syncing ${allGroups.length} groups`);
+
+  while (groupsQueue.length > 0) {
+    const { group, retries } = groupsQueue.shift();
+    try {
+      logger.debug(`Processing ${group.name}`);
+      const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(group)
+      const projectIds = R.join(',')(projectIdsArray)
+      await OpendistroSecurityOperations(sqlClient, GroupModel).syncGroup(group.name, projectIds);
+    } catch (err) {
+      if (retries < 3) {
+        logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
+        groupsQueue.push({ group, retries: retries + 1 });
+      }
+      else {
+        logger.error(`Sync failed: ${err.message}`);
+      }
+    }
   }
 
-  logger.info('Migration completed');
+  logger.info('Sync completed');
 
   sqlClient.destroy();
 })();

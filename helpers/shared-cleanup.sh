@@ -19,45 +19,46 @@
 # after running this script, the user will be presented with a list of
 # databases that are probably ok to remove.
 
-for util in oc svcat jq mysql; do
-which ${util} > /dev/null
-if [ $? -gt 0 ]; then
-  echo "please install ${util}"
-  exit 1
-fi
-done;
+set -euo pipefail
 
+for util in oc jq mysql; do
+	if ! command -v ${util} > /dev/null; then
+		echo "please install ${util}"
+		exit 1
+	fi
+done
 
 # services with a port are not servicebrokers.
 echo "getting a list of services for cluster $(oc whoami --show-server)..."
-oc get service --all-namespaces |grep mariadb  |grep -v 3306  > mariadb-services
+oc get service --all-namespaces -o=jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{.spec.externalName}{"\n"}{end}' | awk '$2 ~ /^mariadb-/ { print }' > mariadb-services
 
 # get a list of database servers
-SERVERS=$(awk '{print $3}' mariadb-services | sort |uniq )
+# ignore the dedicated servers
+SERVERS=$(awk '{print $3}' mariadb-services | sort -u | grep -v "^dedicated")
 
 for SERVER in $SERVERS; do
   CONFFILE=${HOME}/.my.cnf-${SERVER}
-  if [ -f $CONFFILE ]; then
+  if [ -f "$CONFFILE" ]; then
     echo "getting database list for server ${SERVER}..."
-    mysql --defaults-file=$CONFFILE -se 'show databases;' | egrep -v mysql$\|_schema$ > ${SERVER}-databases
+    mysql --defaults-file="$CONFFILE" -se 'show databases;' | grep -Ev "mysql$|_schema$" > "${SERVER}-databases"
   else
-    echo ERROR: please create $CONFFILE so I can know how to connect to $SERVER
+    echo "ERROR: please create $CONFFILE so I can know how to connect to $SERVER"
     exit 2
   fi
 done
 
 errors=()
-for PROJECT in $(awk '{print $1}' mariadb-services); do
-  echo checking project $PROJECT
-  DBHOST=$(grep ^${PROJECT}\  mariadb-services | awk '{print $3}')
-  DATABASE=$(oc -n $PROJECT get configmap lagoon-env -o json | jq -r '.data | with_entries(select(.key|match("_DATABASE";"i")))[]')
+for PROJECT in $(awk '$3 ~ /^dedicated/ {next} {print $1}' mariadb-services); do
+  echo "checking project $PROJECT"
+  DBHOST=$(grep "^${PROJECT}\s" mariadb-services | awk '{print $3}')
+  DATABASE=$(oc -n "$PROJECT" get configmap lagoon-env -o json | jq -r '.data | with_entries(select(.key|match("_DATABASE";"i")))[]' || :)
 
-  if [ -z $DATABASE ]; then
+  if [ -z "$DATABASE" ]; then
     echo "some problem with $PROJECT"
     errors+=("$PROJECT")
   else
-    echo found database $DATABASE on host $DBHOST
-    sed -ibak -e "/${DATABASE}/d" ${DBHOST}-databases
+    echo "found database $DATABASE on host $DBHOST"
+    sed -i.bak -e "/${DATABASE}/d" "${DBHOST}-databases"
   fi
 done
 
@@ -69,6 +70,6 @@ echo
 
 for SERVER in $SERVERS; do
   echo "Orphaned databases for: ${SERVER}..."
-  cat ${SERVER}-databases
+  cat "${SERVER}-databases"
   echo
 done
