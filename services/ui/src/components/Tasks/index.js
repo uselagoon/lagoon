@@ -26,7 +26,7 @@ const Tasks = ({ tasks }) => (
               {moment
                 .utc(task.created)
                 .local()
-                .format('DD MMM YYYY, HH:mm:ss')}
+                .format('DD MMM YYYY, HH:mm:ss (z)')}
             </div>
             <div className="service">{task.service}</div>
             <div className={`status ${task.status}`}>

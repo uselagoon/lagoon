@@ -21,5 +21,9 @@ else
     sleep 5
   fi
   # Create the binding, the secret will be named after the name of the binding.
-  svcat -n ${OPENSHIFT_PROJECT} bind ${SERVICE_NAME} --name "${SERVICE_NAME}-servicebroker-credentials"
+  svcat -n ${OPENSHIFT_PROJECT} bind ${SERVICE_NAME} --name "${SERVICE_NAME}-servicebroker-credentials" --wait
+  if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret "${SERVICE_NAME}-servicebroker-credentials"; then
+    echo "Tried to unbind and bind secret for '${SERVICE_NAME}-servicebroker-credentials' - but bind failed"
+    exit 1
+  fi
 fi

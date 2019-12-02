@@ -21,6 +21,7 @@ const createServer = async () => {
 
   const port = normalizePort(process.env.PORT || '3000');
   const server = http.createServer(app);
+  server.setTimeout(900000) // higher Server timeout: 15min instead of default 2min
 
   apolloServer.installSubscriptionHandlers(server);
 

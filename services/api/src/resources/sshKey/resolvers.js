@@ -159,6 +159,24 @@ const deleteSshKey = async (
   return 'success';
 };
 
+const deleteSshKeyById = async (
+  root,
+  { input: { id } },
+  { sqlClient, hasPermission },
+) => {
+  const perms = await query(sqlClient, Sql.selectUserIdsBySshKeyId(id));
+  const userIds = R.map(R.prop('usid'), perms);
+
+  await hasPermission('ssh_key', 'delete', {
+    users: userIds.join(','),
+  });
+
+  const prep = prepare(sqlClient, 'CALL DeleteSshKeyById(:id)');
+  await query(sqlClient, prep({ id }));
+
+  return 'success';
+};
+
 const deleteAllSshKeys = async (
   root,
   args,
@@ -190,6 +208,7 @@ const Resolvers /* : ResolversObj */ = {
   addSshKey,
   updateSshKey,
   deleteSshKey,
+  deleteSshKeyById,
   deleteAllSshKeys,
   removeAllSshKeysFromAllUsers,
 };
