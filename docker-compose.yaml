@@ -146,7 +146,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2microsoftteams/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2microsoftteams:v1-0-0
+      lagoon.image: amazeeiolagoon/logs2microsoftteams:master
   logs2email:
     image: ${IMAGE_REPO:-lagoon}/logs2email
     command: yarn run dev
