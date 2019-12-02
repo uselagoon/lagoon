@@ -1,6 +1,7 @@
 // @flow
 
 const logger = require('../logger');
+const { getKeycloakAdminClient } = require('../clients/keycloak-admin');
 
 /* ::
 
@@ -19,22 +20,18 @@ type UserSettings = {
 
 */
 
-async function waitAndInitKeycloak(
-  keycloakAdminClient /* : Object */,
-  userSettings /* : UserSettings */,
-) {
+async function waitForKeycloak() {
   let keycloakReady = false;
+  let keycloakAdminClient;
 
   do {
     try {
-      keycloakAdminClient.setConfig({ realmName: 'master' });
-      await keycloakAdminClient.auth(userSettings);
+      keycloakAdminClient = await getKeycloakAdminClient();
 
       if (!(await keycloakAdminClient.realms.findOne({ realm: 'lagoon' }))) {
         throw new Error('The "lagoon" realm has not been created yet.');
       }
 
-      keycloakAdminClient.setConfig({ realmName: 'lagoon' });
       const clients = await keycloakAdminClient.clients.find({ clientId: 'api' });
       if (!clients.length) {
         throw new Error('The "api" client has not been created yet.');
@@ -47,22 +44,11 @@ async function waitAndInitKeycloak(
     }
   } while (!keycloakReady);
 
-  // Re-authenticate with Keycloak every 55 seconds because tokens time out after 60 seconds
-  // TODO: Come up with a better solution for this (refresh token?)
-  setInterval(async () => {
-    keycloakAdminClient.setConfig({ realmName: 'master' });
-    await keycloakAdminClient.auth(userSettings);
-    keycloakAdminClient.setConfig({ realmName: 'lagoon' });
-    logger.debug('Re-authenticated with Keycloak after 55 seconds');
-  }, 55 * 1000);
-
   if (!keycloakAdminClient) {
     throw new Error('Keycloak client not initialized!');
   }
 
   logger.debug('Connected to Keycloak');
-
-  return keycloakAdminClient;
 }
 
-module.exports = waitAndInitKeycloak;
+module.exports = waitForKeycloak;

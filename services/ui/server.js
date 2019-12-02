@@ -14,6 +14,11 @@ app
   .then(() => {
     const server = express();
 
+    // Handle favicon requests that ignore our HTML meta tags.
+    server.get('/favicon.ico', (req, res) => (
+      res.status(200).sendFile('favicon.ico', {root: __dirname + '/src/static/images/favicons/'})
+    ));
+
     server.get('/projects', (req, res) => {
       app.render(req, res, '/projects');
     });

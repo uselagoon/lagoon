@@ -7,9 +7,9 @@ LABEL maintainer="amazee.io"
 ENV LAGOON=cli-drupal
 
 # Defining Versions - https://github.com/hechoendrupal/drupal-console-launcher/releases
-ENV DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.1 \
-    DRUPAL_CONSOLE_LAUNCHER_SHA=c44be5772de751a498374b43290c693e6a8c79f4 \
-    DRUSH_VERSION=8.3.0 \
+ENV DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.4 \
+    DRUPAL_CONSOLE_LAUNCHER_SHA=b7759279668caf915b8e9f3352e88f18e4f20659 \
+    DRUSH_VERSION=8.3.1 \
     DRUSH_LAUNCHER_VERSION=0.6.0 \
     DRUSH_LAUNCHER_FALLBACK=/opt/drush8/vendor/bin/drush
 

@@ -9,5 +9,6 @@
   until: result.status == expected_returncode
   retries: 20
   delay: 10
-- debug: msg="Success!!!"
+- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} returns with return code {{expected_returncode}}"
+  debug: msg="Success!!!"
 

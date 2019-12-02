@@ -5,9 +5,6 @@ const { keycloakGrantManager } = require('../clients/keycloakClient');
 const User = require('../models/user');
 const Group = require('../models/group');
 
-const UserModel = User.User();
-const GroupModel = Group.Group();
-
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
 const sortRolesByWeight = (a, b) => {
@@ -83,7 +80,17 @@ const legacyHasPermission = (legacyCredentials) => {
   };
 };
 
-const keycloakHasPermission = (grant, requestCache) => {
+class KeycloakUnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'KeycloakUnauthorizedError';
+  }
+}
+
+const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
+  const UserModel = User.User({ keycloakAdminClient });
+  const GroupModel = Group.Group({ keycloakAdminClient });
+
   return async (resource, scope, attributes = {}) => {
     const currentUserId = grant.access_token.content.sub;
 
@@ -227,7 +234,7 @@ const keycloakHasPermission = (grant, requestCache) => {
     }
 
     requestCache.set(cacheKey, false);
-    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+    throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
 
@@ -235,5 +242,6 @@ module.exports = {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
+  KeycloakUnauthorizedError,
   keycloakHasPermission,
 };
