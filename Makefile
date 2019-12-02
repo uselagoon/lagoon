@@ -286,8 +286,6 @@ $(build-phpimages): build/commons
 # if there is a subtype, add it. If not, just keep what we already had
 	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
 	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
-# cover the edge case for php 7.0 needing php:7-fpm-alpine
-	$(eval php_ver = $(patsubst 7.0,7,$(version)))
 # Call the docker build
 	$(call docker_build_php,$(version),$(php_ver),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
