@@ -82,7 +82,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-clair
         containers:
         - name: ${SERVICE_NAME} # harbor-clair
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-clair:dev1.7
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:

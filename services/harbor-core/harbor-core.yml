@@ -157,7 +157,7 @@ objects:
     POSTGRESQL_SSLMODE: "disable"
     POSTGRESQL_MAX_IDLE_CONNS: "50"
     POSTGRESQL_MAX_OPEN_CONNS: "100"
-    #EXT_ENDPOINT: "https://harbor-core.us.amazee.io" # Will be populated via GrpahiQL at build time
+    #EXT_ENDPOINT: "https://harbor-core.us.amazee.io" # Will be generated based on the automatically created route
     CORE_URL: "http://harbor-core"
     JOBSERVICE_URL: "http://harbor-jobservice"
     REGISTRY_URL: "http://harborregistry:5000"
@@ -229,7 +229,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-core
         containers:
         - name: ${SERVICE_NAME} # harbor-core
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-core:v1.9.0-dev-amazee
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:

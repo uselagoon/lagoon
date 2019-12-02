@@ -59,8 +59,8 @@ objects:
   type: Opaque
   data:
     REGISTRY_REDIS_PASSWORD: ""
-    #REGISTRY_STORAGE_S3_ACCESSKEY: "" # Will be injected via GraphiQL at build time
-    #REGISTRY_STORAGE_S3_SECRETKEY: "" # Will be injected via GraphiQL at build time
+    #REGISTRY_STORAGE_S3_ACCESSKEY: "" # Will be stored in the Lagoon API
+    #REGISTRY_STORAGE_S3_SECRETKEY: "" # Will be stored in the Lagoon API
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -78,8 +78,8 @@ objects:
           service: registry
       storage:
         s3:
-          region: $STORAGE_AMAZON_REGION
-          bucket: $STORAGE_AMAZON_BUCKET
+          region: $HARBOR_REGISTRY_STORAGE_AMAZON_REGION
+          bucket: $HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET
         cache:
           layerinfo: redis
         maintenance:
@@ -162,7 +162,7 @@ objects:
       spec:
         containers:
         - name: ${HARBORREGISTRY_SERVICE_NAME}
-          image: ${HARBORREGISTRY_SERVICE_IMAGE} # cdchris12/harbor-registry:dev1.10
+          image: ${HARBORREGISTRY_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -196,7 +196,7 @@ objects:
             mountPath: /etc/registry/pre_config.yml
             subPath: config.yml
         - name: ${HARBORREGISTRYCTL_SERVICE_NAME}
-          image: ${HARBORREGISTRYCTL_SERVICE_IMAGE} # cdchris12/harbor-registryctl:dev1.4
+          image: ${HARBORREGISTRYCTL_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:

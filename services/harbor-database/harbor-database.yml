@@ -80,7 +80,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-database
         initContainers:
         - name: "remove-lost-found"
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           command: ["rm", "-Rf", "/var/lib/postgresql/data/lost+found"]
           volumeMounts:
@@ -94,26 +94,18 @@ objects:
                   key: POSTGRESQL_PASSWORD
         containers:
         - name: ${SERVICE_NAME} # harbor-database
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-postgres:9.6
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
-          livenessProbe:
-            exec:
-              command:
-              - bash
-              - "-c"
-              - |
-                pg_isready -U postgres
-            initialDelaySeconds: 60
-            periodSeconds: 10
           readinessProbe:
-            exec:
-              command:
-              - bash
-              - "-c"
-              - |
-                pg_isready -U postgres
-            initialDelaySeconds: 1
-            periodSeconds: 10
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 120
+            periodSeconds: 5
           env:
             - name: POSTGRESQL_PASSWORD
               valueFrom:

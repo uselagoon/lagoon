@@ -126,7 +126,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-jobservice
         containers:
         - name: ${SERVICE_NAME} # harbor-jobservice
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-jobservice:dev
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:

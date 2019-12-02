@@ -31,7 +31,7 @@ if [[ -f "/etc/registry/pre_config.yml" ]]; then
         fi
     fi
     
-    sed -e "s|\$HARBOR_NGINX_ENDPOINT|$HARBOR_NGINX_ENDPOINT|g" -e "s|\$STORAGE_AMAZON_REGION|$STORAGE_AMAZON_REGION|g" -e "s|\$STORAGE_AMAZON_BUCKET|$STORAGE_AMAZON_BUCKET|g" /etc/registry/pre_config.yml > /etc/registry/config.yml
+    sed -e "s|\$HARBOR_NGINX_ENDPOINT|$HARBOR_NGINX_ENDPOINT|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_REGION|$HARBOR_REGISTRY_STORAGE_AMAZON_REGION|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET|$HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET|g" /etc/registry/pre_config.yml > /etc/registry/config.yml
 fi
 
 /harbor/install_cert.sh

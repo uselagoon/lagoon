@@ -80,7 +80,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-redis
         containers:
         - name: ${SERVICE_NAME} # harbor-redis
-          image: ${SERVICE_IMAGE} # cdchris12/redis-photon:dev
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             tcpSocket:

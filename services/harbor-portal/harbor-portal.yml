@@ -80,7 +80,7 @@ objects:
         hostname: ${SERVICE_NAME} # harbor-portal
         containers:
         - name: ${SERVICE_NAME} # harbor-portal
-          image: ${SERVICE_IMAGE} # cdchris12/harbor-portal:v1.9.0-dev-amazee
+          image: ${SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
