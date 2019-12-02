@@ -1,4 +1,4 @@
-const path = require('path');
+const webpackShared = require('./webpack.shared-config');
 require('dotenv-extended').load();
 
 const lagoonRoutes =
@@ -29,10 +29,8 @@ module.exports = {
   },
   distDir: '../build',
   webpack(config, options) {
-    config.resolve.alias['components'] = path.join(__dirname, 'components');
-    config.resolve.alias['layouts'] = path.join(__dirname, 'layouts');
-    config.resolve.alias['lib'] = path.join(__dirname, 'lib');
-    config.resolve.alias['pages'] = path.join(__dirname, 'pages');
+    // Add aliases from shared config file.
+    Object.keys(webpackShared.alias).forEach(name => config.resolve.alias[name] = webpackShared.alias[name]);
 
     const originalEntry = config.entry;
     config.entry = async () => {

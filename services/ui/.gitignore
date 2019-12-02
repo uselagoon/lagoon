@@ -4,6 +4,7 @@ node_modules
 #artifacts
 .next
 build
+storybook-static
 
 #environment
 .env
