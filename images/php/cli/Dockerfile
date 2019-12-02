@@ -57,7 +57,8 @@ COPY 61-php-xdebug-cli-env.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 
 # Copy mariadb-client configuration.
-COPY mariadb-client.cnf /etc/my.cnf.d
+COPY 200-mariadb-envplate.sh /lagoon/entrypoints/
+COPY mariadb-client.cnf /etc/my.cnf.d/
 
 # helper functions
 COPY 55-cli-helpers.sh /lagoon/entrypoints/

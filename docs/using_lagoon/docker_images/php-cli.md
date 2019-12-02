@@ -1,8 +1,8 @@
 # php-cli Image
 
-Lagoon `php-cli` Docker image, based on Lagoon `php-fpm` image, with all needed tools for daily operations.  
-Containers (or PODS) started from `cli` images are responsible for building code for `composer` or `node` based projects.  
-The image also owns database CLIs for both **MariaDB** and **PostgreSQL**.  
+Lagoon `php-cli` Docker image, based on Lagoon `php-fpm` image, with all needed tools for daily operations.
+Containers (or PODS) started from `cli` images are responsible for building code for `composer` or `node` based projects.
+The image also owns database CLIs for both **MariaDB** and **PostgreSQL**.
 
 This Dockerfile is intended to be used as an base for any cli needs within Lagoon.
 
@@ -29,5 +29,28 @@ The included cli tools are:
 
 ### Change NodeJS Version
 
-By default this Image ships with the current Nodejs Version (v12 at time of writing this).  
+By default this Image ships with the current Nodejs Version (v12 at time of writing this).
 If you need another Version you can remove the current version and install the one of your choice.
+
+## Environment variables
+
+Environment variables allow some configuration to be customised in a repeatable way.
+
+| Name                       | Default | Description                                           |
+|----------------------------|---------|-------------------------------------------------------|
+| MARIADB_MAX_ALLOWED_PACKET | 64M     | Controls the max allowed packet for the mysql client. |
+
+### Changing an environment variable
+
+Environment variables can be changed in the docker-compose file.
+
+```
+x-environment:
+  &default-environment
+    MARIADB_MAX_ALLOWED_PACKET: 128M
+
+service:
+  cli:
+    environment:
+    << : *default-environment
+```
