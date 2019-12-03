@@ -236,6 +236,7 @@ const addProject = async (
         :id,
         :name,
         :git_url,
+        :availability,
         :private_key,
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
@@ -395,6 +396,7 @@ const updateProject = async (
       patch: {
         name,
         gitUrl,
+        availability,
         privateKey,
         subfolder,
         activeSystemsDeploy,
@@ -476,6 +478,7 @@ const updateProject = async (
       patch: {
         name,
         gitUrl,
+        availability,
         privateKey,
         subfolder,
         activeSystemsDeploy,
