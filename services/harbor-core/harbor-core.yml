@@ -79,7 +79,6 @@ objects:
       5uH8ORiaQ6ht2+WHklxic1Rj5yTYQwVlH70CBOn+qVEdo63yQwzAMJKFIwlGUQEX
       jiljgc86q4cZtUTFrcwMidbk+8Q6+JbDVg7HV/+pnC+wnv197kwe
       -----END CERTIFICATE-----
-    # Bogus cert, but should be fine to keep indefinitely.
     tls.key: |
       -----BEGIN RSA PRIVATE KEY-----
       MIIJKQIBAAKCAgEA3xlUJs2b/aI2NLoy4OIQ+dn/yMb/O99iKDRyZKpH8rSOmS+o
@@ -132,7 +131,6 @@ objects:
       cV6AFHEK2H8wBHviNyehsRQiDkl2AiWOcJNvkzW68ck2nJjRWyPYK1JL3NCKpB3Q
       OohrP0fHcWAXMW97wFXZhRfnQfDxxIOlj3McYT0AlanXd0F4NGc2Nvmphx04
       -----END RSA PRIVATE KEY----- 
-    # Bogus cert, but should be fine to keep indefinitely.
 - apiVersion: v1
   kind: ConfigMap
   metadata:
