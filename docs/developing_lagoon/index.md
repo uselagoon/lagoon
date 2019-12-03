@@ -10,15 +10,14 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
-## Install VirtualBox 
+## Install VirtualBox
 
 We are using VitualBox to run the Openshift Minishift VM. For download and instalation instructions see here:
 [https://www.virtualbox.org/](https://www.virtualbox.org/)
 
 ## Start Services
 
-1. Add `192.168.99.0/24` to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
-
+1. Add `192.168.99.0/24` (`192.168.42.0/24` on linux) to insecure registries in Docker (see [here](https://docs.docker.com/registry/insecure/) how to do that). Also make sure that you give your Docker Host minimum 4 CPUs and 4GB Ram.
 
 Important: Lagoon consists of a lot of Services and Docker Images, building and running them locally might not even be necessary.
 We're using make (see the [Makefile](https://github.com/amazeeio/lagoon/blob/master/Makefile)) in order to only build the needed Docker Images specifically for a part of Lagoon.
@@ -50,7 +49,7 @@ make logs
 make tests
 ```
 
-6\. Look what happens in OpenShift: [https://192.168.99.100:8443/console](https://192.168.99.100:8443/console) (developer/developer)
+6\. Look what happens in OpenShift: [https://192.168.42.100:8443/console](https://192.168.42.100:8443/console) (developer/developer)
 
 ## Local Development
 

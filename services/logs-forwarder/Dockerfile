@@ -1,4 +1,6 @@
 FROM fluent/fluentd:v0.12
+# Note; we are _NOT_ running fluentd v0.12
+# One of the gem commands below is upgrading fluentd to the newest version
 
 USER root
 
@@ -9,7 +11,7 @@ RUN apk add --no-cache tini \
         fluent-plugin-elasticsearch \
         fluent-plugin-secure-forward \
         fluent-plugin-record-modifier \
- && gem install fluent-plugin-prometheus --version='~>1.0.0' \
+        fluent-plugin-prometheus \
  && gem sources --clear-all \
  && apk del .build-deps \
  && rm -rf /var/cache/apk/* \

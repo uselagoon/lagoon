@@ -1,12 +1,14 @@
 # php-fpm Image
 
-amazee.io Alpine 7 Dockerfile with php-fpm installed, based on the official PHP Alpine images at (https://hub.docker.com/_/php/)
+Lagoon `php-fpm` Docker image, based on the official PHP Alpine images at (https://hub.docker.com/_/php/).
+The supported versions of PHP on Lagoon are 7.2 and 7.3.  Older versions (5.6, 7.0, 7.1) may also be available for compatibility, and more recent versions (7.4) wil be available for testing.
 
-This Dockerfile is intended to be used as an base for any php needs within amazee.io. This image itself does not create a webserver, rather just an php-fpm fastcgi listener. You maybe need to adapt the php-fpm pool config.
+This Dockerfile is intended to be used as an base for any php needs within Lagoon.
+This image itself does not create a webserver, rather just an php-fpm fastcgi listener. You maybe need to adapt the php-fpm pool config.
 
-## amazee.io & OpenShift adaptions
+## Lagoon & OpenShift adaptions
 
-This image is prepared to be used on amazee.io which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
 
 - Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
 - The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf` plus all files within `/usr/local/etc/php-fpm.d/` are parsed through [envplate](https://github.com/kreuzwerker/envplate) with an container-entrypoint.
@@ -15,7 +17,8 @@ This image is prepared to be used on amazee.io which leverages OpenShift. There 
 
 ## Included php config
 
-The included php config contains sane values that will make the creation of php pools configs easier. Here a list these, check `/usr/local/etc/php.ini`, `/usr/local/etc/php-fpm.conf` for all of it:
+The included php config contains sane values that will make the creation of php pools configs easier.
+Here a list these, check `/usr/local/etc/php.ini`, `/usr/local/etc/php-fpm.conf` for all of it:
 
 - `max_execution_time = 900` (changeable via `PHP_MAX_EXECUTION_TIME`)
 - `realpath_cache_size = 256k` for handling big php projects
@@ -36,7 +39,9 @@ Hint: If you don't like any of these configs, you have three possibilities:
 
 ## default fpm-pool
 
-This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000. This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :) Here a short description of what this file does:
+This image is shipped with an fpm-pool config ([`php-fpm.d/www.conf`](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/php-fpm.d/www.conf)) that creates a fpm-pool and listens on port 9000.
+This is because we try to provide an image which covers already most needs for PHP and so you don't need to create your own. You are happy to do so if you like though :)
+Here a short description of what this file does:
 
 - listens on port 9000 via ipv4 and ipv6
 - uses the pm `dynamic` and creates between 2-50 children

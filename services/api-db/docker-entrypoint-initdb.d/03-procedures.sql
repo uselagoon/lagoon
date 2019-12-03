@@ -248,6 +248,17 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  DeleteSshKeyById
+  (
+    IN s_id int
+  )
+  BEGIN
+    DELETE FROM user_ssh_key WHERE skid = s_id;
+    DELETE FROM ssh_key WHERE id = s_id;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   CreateOpenshift
   (
     IN id              int,
@@ -319,6 +330,50 @@ CREATE OR REPLACE PROCEDURE
     END IF;
 
     DELETE FROM openshift WHERE name = o_name;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationMicrosoftTeams
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_microsoftteams (
+      name,
+      webhook
+    )
+    VALUES (
+      name,
+      webhook
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook
+    FROM notification_microsoftteams
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationMicrosoftTeams
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_microsoftteams ns WHERE ns.name = name;
+
+    DELETE FROM notification_microsoftteams WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'microsoftteams';
   END;
 $$
 
@@ -415,6 +470,50 @@ CREATE OR REPLACE PROCEDURE
 
     DELETE FROM notification_slack WHERE id = nsid;
     DELETE FROM project_notification WHERE nid = nsid AND type = 'slack';
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationEmail
+  (
+    IN name          varchar(50),
+    IN email_address varchar(300)
+  )
+  BEGIN
+    DECLARE new_sid int;
+
+    INSERT INTO notification_email (
+      name,
+      email_address
+    )
+    VALUES (
+      name,
+      email_address
+    );
+
+    SET new_sid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      email_address
+    FROM notification_email
+    WHERE id = new_sid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationEmail
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE nsid int;
+
+    SELECT id INTO nsid FROM notification_email ns WHERE ns.name = name;
+
+    DELETE FROM notification_email WHERE id = nsid;
+    DELETE FROM project_notification WHERE nid = nsid AND type = 'email';
   END;
 $$
 

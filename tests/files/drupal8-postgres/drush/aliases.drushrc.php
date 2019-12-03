@@ -7,7 +7,7 @@ if (empty($aliases_stub)) {
     curl_setopt($ch, CURLOPT_AUTOREFERER, TRUE);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_URL, 'http://192.168.99.1:8087/aliases.drushrc.php.stub');
+    curl_setopt($ch, CURLOPT_URL, 'http://192.168.42.1:8087/aliases.drushrc.php.stub');
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
     $aliases_stub = curl_exec($ch);
     curl_close($ch);
