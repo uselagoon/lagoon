@@ -107,11 +107,15 @@ objects:
             initialDelaySeconds: 120
             periodSeconds: 5
           env:
-            - name: POSTGRESQL_PASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgresql-password
                   key: POSTGRESQL_PASSWORD
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "postgres"
           volumeMounts:
           - name: database-data
             mountPath: /var/lib/postgresql/data
