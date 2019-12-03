@@ -120,15 +120,6 @@ objects:
           - name: database-data
             mountPath: /var/lib/postgresql/data
             subPath: 
-    volumeClaimTemplates:
-    - metadata:
-        name: "database-data"
-        labels:
-          service: ${SERVICE_NAME}
-          branch: ${SAFE_BRANCH}
-          project: ${SAFE_PROJECT}
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: "5Gi"
+        volumes:
+          - name: database-data
+            emptyDir: {}
