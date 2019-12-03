@@ -4,12 +4,7 @@ const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createRemoveTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
-const {
-  isPatchEmpty,
-  prepare,
-  query,
-  whereAnd,
-} = require('../../util/db');
+const { isPatchEmpty, prepare, query, whereAnd } = require('../../util/db');
 const Helpers = require('./helpers');
 const Sql = require('./sql');
 const projectSql = require('../project/sql');
@@ -37,10 +32,7 @@ const envTypeToString = R.cond([
 const getEnvironmentByName = async (
   root,
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const str = `
     SELECT *
@@ -68,10 +60,7 @@ const getEnvironmentByName = async (
 const getEnvironmentsByProjectId = async (
   project,
   unformattedArgs,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const { id: pid } = project;
   const args = R.compose(R.over(R.lensProp('type'), envTypeToString))(
@@ -108,10 +97,7 @@ const getEnvironmentsByProjectId = async (
 const getEnvironmentByDeploymentId = async (
   { id: deployment_id },
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const prep = prepare(
     sqlClient,
@@ -143,10 +129,7 @@ const getEnvironmentByDeploymentId = async (
 const getEnvironmentByTaskId = async (
   { id: task_id },
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const prep = prepare(
     sqlClient,
@@ -178,10 +161,7 @@ const getEnvironmentByTaskId = async (
 const getEnvironmentByBackupId = async (
   { id: backup_id },
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const prep = prepare(
     sqlClient,
@@ -374,7 +354,7 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
                   '@timestamp': {
                     gte: `${interested_year_month}||/M`,
                     lte: `${interested_year_month}||/M`,
-                    format: "strict_year_month"
+                    format: 'strict_year_month',
                   },
                 },
               },
@@ -427,10 +407,7 @@ const getEnvironmentServicesByEnvironmentId = async (
 const getEnvironmentByOpenshiftProjectName = async (
   root,
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const str = `
     SELECT
@@ -461,10 +438,7 @@ const getEnvironmentByOpenshiftProjectName = async (
 const addOrUpdateEnvironment = async (
   root,
   { input: unformattedInput },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const input = R.compose(
     R.over(R.lensProp('environmentType'), envTypeToString),
@@ -552,10 +526,7 @@ const addOrUpdateEnvironmentStorage = async (
 const deleteEnvironment = async (
   root,
   { input: { project: projectName, name, execute } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const projectId = await projectHelpers(sqlClient).getProjectIdByName(
     projectName,
@@ -591,7 +562,10 @@ const deleteEnvironment = async (
         project: projectId,
       });
 
-      const prep = prepare(sqlClient, 'CALL DeleteEnvironment(:name, :project)');
+      const prep = prepare(
+        sqlClient,
+        'CALL DeleteEnvironment(:name, :project)',
+      );
       await query(sqlClient, prep({ name, project: projectId }));
 
       return 'success';
@@ -644,9 +618,7 @@ const deleteEnvironment = async (
         '',
         'api:deleteEnvironment:error',
         meta,
-        `*[${data.projectName}]* Unknown deploy type ${
-          environment.deployType
-        } \`${environment.name}\``,
+        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``,
       );
       return `Error: unknown deploy type ${environment.deployType}`;
   }
@@ -685,7 +657,11 @@ const updateEnvironment = async (
     project: curEnv.project,
   });
 
-  const newType = R.pathOr(curEnv.environment_type, ['patch', 'environmentType'], input);
+  const newType = R.pathOr(
+    curEnv.environment_type,
+    ['patch', 'environmentType'],
+    input,
+  );
   const newProject = R.pathOr(curEnv.project, ['patch', 'project'], input);
 
   await hasPermission('environment', `update:${newType}`, {
@@ -740,12 +716,11 @@ const deleteAllEnvironments = async (
 const setEnvironmentServices = async (
   root,
   { input: { environment: environmentId, services } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
-  const environment = await Helpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await Helpers(sqlClient).getEnvironmentById(
+    environmentId,
+  );
   await hasPermission('environment', `update:${environment.environmentType}`, {
     project: environment.project,
   });
@@ -762,10 +737,7 @@ const setEnvironmentServices = async (
 const userCanSshToEnvironment = async (
   root,
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission },
 ) => {
   const str = `
     SELECT
