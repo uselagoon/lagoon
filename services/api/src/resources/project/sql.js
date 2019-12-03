@@ -17,8 +17,12 @@ const Sql /* : SqlObj */ = {
     knex('project')
       .select('name')
       .toString(),
-  selectAllProjects: () =>
+  selectAllProjects: () => knex('project').toString(),
+  selectAllProjectNotIn: (ids /* : number */) =>
     knex('project')
+      .select('id', 'name')
+      .whereNotIn('id', ids)
+      .orderBy('id', 'asc')
       .toString(),
   selectProjectByName: (name /* : string */) =>
     knex('project')
@@ -28,6 +32,10 @@ const Sql /* : SqlObj */ = {
     knex('project')
       .where('name', name)
       .select('id')
+      .toString(),
+  selectProjectsByIds: (projectIds /* : Array<number> */) =>
+    knex('project as p')
+      .whereIn('p.id', projectIds)
       .toString(),
   // Select projects by project ids where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
   selectProjectsWithoutDirectUserAccess: (

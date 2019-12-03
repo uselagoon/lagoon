@@ -5,6 +5,110 @@ USE infrastructure;
 DELIMITER $$
 
 CREATE OR REPLACE PROCEDURE
+  CreateProject
+  (
+    IN id                              int,
+    IN name                            varchar(100),
+    IN git_url                         varchar(300),
+    IN availability                      varchar(50),
+    IN private_key                     varchar(5000),
+    IN subfolder                       varchar(300),
+    IN openshift                       int,
+    IN openshift_project_pattern       varchar(300),
+    IN active_systems_deploy           varchar(300),
+    IN active_systems_promote          varchar(300),
+    IN active_systems_remove           varchar(300),
+    IN active_systems_task             varchar(300),
+    IN branches                        varchar(300),
+    IN pullrequests                    varchar(300),
+    IN production_environment          varchar(100),
+    IN auto_idle                       int(1),
+    IN storage_calc                    int(1),
+    IN development_environments_limit  int
+  )
+  BEGIN
+    DECLARE new_pid int;
+    DECLARE v_oid int;
+
+
+    SELECT o.id INTO v_oid FROM openshift o WHERE o.id = openshift;
+
+
+    IF (v_oid IS NULL) THEN
+      SET @message_text = concat('Openshift ID: "', openshift, '" does not exist');
+      SIGNAL SQLSTATE '02000'
+      SET MESSAGE_TEXT = @message_text;
+    END IF;
+
+
+    IF (id IS NULL) THEN
+      SET id = 0;
+    END IF;
+
+
+    INSERT INTO project (
+        id,
+        name,
+        git_url,
+        availability,
+        private_key,
+        subfolder,
+        active_systems_deploy,
+        active_systems_promote,
+        active_systems_remove,
+        active_systems_task,
+        branches,
+        production_environment,
+        auto_idle,
+        storage_calc,
+        pullrequests,
+        openshift,
+        openshift_project_pattern,
+        development_environments_limit
+    )
+    SELECT
+        id,
+        name,
+        git_url,
+        availability,
+        private_key,
+        subfolder,
+        active_systems_deploy,
+        active_systems_promote,
+        active_systems_remove,
+        active_systems_task,
+        branches,
+        production_environment,
+        auto_idle,
+        storage_calc,
+        pullrequests,
+        os.id,
+        openshift_project_pattern,
+        development_environments_limit
+    FROM
+        openshift AS os
+    WHERE
+        os.id = openshift;
+
+
+    -- id = 0 explicitly tells auto-increment field
+    -- to auto-generate a value
+    IF (id = 0) THEN
+      SET new_pid = LAST_INSERT_ID();
+    ELSE
+      SET new_pid = id;
+    END IF;
+
+
+    -- Return the constructed project
+    SELECT
+      p.*
+    FROM project p
+    WHERE p.id = new_pid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_production_environment_to_project()
 
   BEGIN
