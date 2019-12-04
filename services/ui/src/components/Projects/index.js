@@ -19,6 +19,9 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
   }
 `;
 
+/**
+ * The primary list of projects.
+ */
 const Projects = ({ projects = [] }) => {
   const [searchInput, setSearchInput] = useState('');
 
