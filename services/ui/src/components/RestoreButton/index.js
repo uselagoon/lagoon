@@ -2,6 +2,9 @@ import React from 'react';
 import Button from 'components/Button';
 import Prepare from 'components/RestoreButton/Prepare';
 
+/**
+ * A button to restore a backup.
+ */
 const RestoreButton = ({ backup: { backupId, restore } }) => {
   if (!restore)
     return <Prepare backupId={backupId} />;
