@@ -130,7 +130,7 @@ objects:
       Ex7l2m//5SE4DLtn70J9CgG1HtXCS8dWrGPL1pzDnk8VXtnoXzb0LChLUFEgZRmh
       cV6AFHEK2H8wBHviNyehsRQiDkl2AiWOcJNvkzW68ck2nJjRWyPYK1JL3NCKpB3Q
       OohrP0fHcWAXMW97wFXZhRfnQfDxxIOlj3McYT0AlanXd0F4NGc2Nvmphx04
-      -----END RSA PRIVATE KEY----- 
+      -----END RSA PRIVATE KEY-----
 - apiVersion: v1
   kind: ConfigMap
   metadata:
