@@ -477,6 +477,10 @@ build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
+build/harbor-clair: images/harbor-database/Dockerfile images/harbor-redis/Dockerfile
+build/harborregistry: build/harbor-clair images/harbor-jobservice/Dockerfile
+build/harborregistryctl: build/harborregistry
+build/harbor-nginx: build/harborregistryctl images/harbor-core/Dockerfile images/harbor-portal/Dockerfile
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
