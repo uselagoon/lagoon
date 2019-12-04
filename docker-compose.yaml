@@ -353,6 +353,10 @@ services:
       KEYCLOAK_URL: http://docker.for.mac.localhost:8088
     ports:
       - '9200:9200'
+    networks:
+      default:
+        aliases:
+          - logs-db-service
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml

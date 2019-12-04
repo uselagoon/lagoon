@@ -11,7 +11,10 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
   const GroupModel = Group({ keycloakAdminClient });
 
   const allGroups = await GroupModel.loadAllGroups();
-  let groupsQueue = allGroups.map(group => ({ group, retries: 0}));
+  let groupsQueue = (allGroups as Group[]).map(group => ({
+    group,
+    retries: 0
+  }));
 
   logger.info(`Syncing ${allGroups.length} groups`);
 

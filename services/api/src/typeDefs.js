@@ -11,6 +11,7 @@ const gql = require('./util/gql');
 const typeDefs = gql`
   scalar Upload
   scalar Date
+  scalar JSON
 
   enum SshKeyType {
     SSH_RSA
@@ -79,12 +80,26 @@ const typeDefs = gql`
     CREATED
   }
 
+  enum ProjectAvailability {
+    STANDARD
+    HIGH
+  }
+
   enum GroupRole {
     GUEST
     REPORTER
     DEVELOPER
     MAINTAINER
     OWNER
+  }
+
+  enum Currency {
+    AUD
+    EUR
+    GBP
+    USD
+    CHF
+    ZAR
   }
 
   type File {
@@ -111,7 +126,7 @@ const typeDefs = gql`
     comment: String
     gitlabId: Int
     sshKeys: [SshKey]
-    groups: [Group]
+    groups: [GroupInterface]
   }
 
   type GroupMembership {
@@ -119,11 +134,33 @@ const typeDefs = gql`
     role: GroupRole
   }
 
-  type Group {
+  interface GroupInterface {
     id: String
     name: String
-    groups: [Group]
+    type: String
+    groups: [GroupInterface]
     members: [GroupMembership]
+    projects: [Project]
+  }
+
+  type Group implements GroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [GroupInterface]
+    members: [GroupMembership]
+    projects: [Project]
+  }
+
+  type BillingGroup implements GroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [GroupInterface]
+    members: [GroupMembership]
+    projects: [Project]
+    currency: String
+    billingSoftware: String
   }
 
   type Openshift {
@@ -190,6 +227,10 @@ const typeDefs = gql`
     - ssh://git@192.168.42.1:2222/project1.git
     """
     gitUrl: String
+    """
+    Project Availability STANDARD|HIGH
+    """
+    availability: ProjectAvailability
     """
     SSH Private Key for Project
     Will be used to authenticate against the Git Repo of the Project
@@ -291,7 +332,7 @@ const typeDefs = gql`
     """
     Which groups are directly linked to project
     """
-    groups: [Group]
+    groups: [GroupInterface]
   }
 
   """
@@ -474,6 +515,10 @@ const typeDefs = gql`
     """
     projectByName(name: String!): Project
     """
+    Returns Group Object by a given name
+    """
+    groupByName(name: String!): Group
+    """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
@@ -504,7 +549,19 @@ const typeDefs = gql`
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
-    allGroups(name: String): [Group]
+    allGroups(name: String, type: String): [GroupInterface]
+    """
+    Returns all projects in a given group
+    """
+    allProjectsInGroup(input: GroupInput): [Project]
+    """
+    Returns the costs for a given billing group
+    """
+    billingGroupCost(input: GroupInput, month: String): JSON
+    """
+    Returns the costs for all billing groups
+    """
+    allBillingGroupsCost(month: String): JSON
   }
 
   # Must provide id OR name
@@ -557,6 +614,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int
@@ -778,6 +836,7 @@ const typeDefs = gql`
   input UpdateProjectPatchInput {
     name: String
     gitUrl: String
+    availability: ProjectAvailability
     privateKey: String
     subfolder: String
     activeSystemsDeploy: String
@@ -981,6 +1040,28 @@ const typeDefs = gql`
     groups: [GroupInput!]!
   }
 
+  input BillingGroupInput {
+    name: String!
+    currency: Currency!
+    billingSoftware: String
+  }
+
+  input ProjectBillingGroupInput {
+    group: GroupInput!
+    project: ProjectInput!
+  }
+
+  input UpdateBillingGroupPatchInput {
+    name: String!
+    currency: Currency
+    billingSoftware: String
+  }
+
+  input UpdateBillingGroupInput {
+    group: GroupInput!
+    patch: UpdateBillingGroupPatchInput!
+  }
+
   type Mutation {
     """
     Add Environment or update if it is already existing
@@ -1097,6 +1178,12 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): Group
     removeUserFromGroup(input: UserGroupInput!): Group
     addGroupsToProject(input: ProjectGroupsInput): Project
+    addBillingGroup(input: BillingGroupInput!): BillingGroup
+    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
+    deleteBillingGroup(input: DeleteGroupInput!): String
+    addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
+    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
+    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 

@@ -3,6 +3,8 @@
     "allowJs": true,
     "module": "CommonJS",
     "skipLibCheck": true,
-    "target": "ES6"
+    "target": "ES6",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }
