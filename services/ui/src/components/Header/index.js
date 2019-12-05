@@ -3,14 +3,25 @@ import Link from 'next/link';
 import getConfig from 'next/config';
 import { AuthContext } from 'lib/Authenticator';
 import { color } from 'lib/variables';
+import lagoonLogo from '!svg-inline-loader?classPrefix!./lagoon.svg';
 
-const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
+const { publicRuntimeConfig } = getConfig();
 
-const Header = () => (
+/**
+ * Displays the header using the provided logo.
+ */
+const Header = ({ logo }) => (
   <div className='header'>
     <Link href="/">
       <a className="home">
-        <img src={`data:image/svg+xml;utf8,${publicRuntimeConfig.LAGOON_UI_ICON}`} />
+        <img
+          alt="Home"
+          src={logo ? logo : `data:image/svg+xml;utf8,${
+            publicRuntimeConfig.LAGOON_UI_ICON
+              ? publicRuntimeConfig.LAGOON_UI_ICON
+              : encodeURIComponent(lagoonLogo)
+          }`}
+        />
       </a>
     </Link>
     <AuthContext.Consumer>
@@ -63,7 +74,7 @@ const Header = () => (
           }
         }
       }
-  `}</style>
+    `}</style>
   </div>
 );
 

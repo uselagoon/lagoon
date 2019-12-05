@@ -1,22 +1,12 @@
 import React from 'react';
 import moment from 'moment';
-import momentDurationFormatSetup from 'moment-duration-format';
 import DeploymentLink from 'components/link/Deployment';
+import { getDeploymentDuration } from 'components/Deployment';
 import { bp, color } from 'lib/variables';
 
-const getDuration = deployment => {
-  const deploymentStart = deployment.started || deployment.created;
-  const durationStart =
-    (deploymentStart && moment.utc(deploymentStart)) || moment.utc();
-  const durationEnd =
-    (deployment.completed && moment.utc(deployment.completed)) || moment.utc();
-  const duration = moment
-    .duration(durationEnd - durationStart)
-    .format('HH[hr] mm[m] ss[sec]');
-
-  return duration;
-};
-
+/**
+ * Displays a list of deployments.
+ */
 const Deployments = ({ deployments }) => (
   <div className="deployments">
     <div className="header">
@@ -46,7 +36,7 @@ const Deployments = ({ deployments }) => (
               {deployment.status.charAt(0).toUpperCase() +
                 deployment.status.slice(1)}
             </div>
-            <div className="duration">{getDuration(deployment)}</div>
+            <div className="duration">{getDeploymentDuration(deployment)}</div>
           </div>
         </DeploymentLink>
       ))}

@@ -3,6 +3,9 @@ import moment from 'moment';
 import TaskLink from 'components/link/Task';
 import { bp, color } from 'lib/variables';
 
+/**
+ * Displays an environment's list of tasks.
+ */
 const Tasks = ({ tasks }) => (
   <div className="tasks">
     <div className="header">

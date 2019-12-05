@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
-import Box from 'components/style/Box';
+import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
 
 const bgImages = {
