@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from 'layouts/main';
+import MainLayout from 'layouts/MainLayout';
 import ProjectByNameQuery from 'lib/query/ProjectByName';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
@@ -14,7 +14,10 @@ import withQueryError from 'lib/withQueryError';
 import { withProjectRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
 
-const PageProject = ({ router }) => (
+/**
+ * Displays a project page, given the project name.
+ */
+export const PageProject = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.projectName} | Project`}</title>

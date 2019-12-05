@@ -8,6 +8,9 @@ export const getLinkData = (environmentSlug, projectSlug) => ({
   asPath: `/projects/${projectSlug}/${environmentSlug}/backups`
 });
 
+/**
+ * Links to the backups page given the project name and the openshift project name.
+ */
 const BackupsLink = ({
   environmentSlug,
   projectSlug,
