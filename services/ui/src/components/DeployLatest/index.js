@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
-import ButtonAction from 'components/Button/ButtonAction';
+import Button from 'components/Button';
 import { bp, color, fontSize } from 'lib/variables';
 
 const DEPLOY_ENVIRONMENT_LATEST_MUTATION = gql`
@@ -10,6 +10,9 @@ const DEPLOY_ENVIRONMENT_LATEST_MUTATION = gql`
   }
 `;
 
+/**
+ * Button that deploys the latest environment.
+ */
 const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
   let deploymentsEnabled = true;
 
@@ -39,7 +42,7 @@ const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
           <div className="description">
             Manual deployments are not available for this environment.
           </div>
-          <ButtonAction disabled={true}>Deploy</ButtonAction>
+          <Button disabled>Deploy</Button>
         </React.Fragment>
       )}
       {deploymentsEnabled && (
@@ -67,9 +70,9 @@ const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
                 data && data.deployEnvironmentLatest === 'success';
               return (
                 <React.Fragment>
-                  <ButtonAction action={deploy} disabled={loading}>
+                  <Button action={deploy} disabled={loading}>
                     Deploy
-                  </ButtonAction>
+                  </Button>
 
                   {success && (
                     <div className="deploy_result">Deployment queued.</div>

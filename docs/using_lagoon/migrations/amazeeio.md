@@ -1,4 +1,4 @@
-# Migration from amazee.io
+# Migration from amazee.io (legacy)
 
 If you are migrating from the amazee.io Legacy infrastructure over to Lagoon you will feel very familiar with everything. In the end, the same brains are behind both projects. There are some changes though and this will explain you each of them.
 

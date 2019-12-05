@@ -2,7 +2,7 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
-import ButtonAction from 'components/Button/ButtonAction';
+import Button from 'components/Button';
 import withLogic from 'components/AddTask/components/logic';
 import { bp, color, fontSize } from 'lib/variables';
 
@@ -84,7 +84,7 @@ const DrushSqlSync = ({
               required
             />
           </div>
-          <ButtonAction
+          <Button
             action={() =>
               taskDrushSqlSync({
                 variables: {
@@ -96,7 +96,7 @@ const DrushSqlSync = ({
             disabled={!selectedSourceEnv}
           >
             Add task
-          </ButtonAction>
+          </Button>
           <style jsx>{`
             .warning {
               background-color: red;

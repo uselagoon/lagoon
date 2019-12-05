@@ -431,7 +431,16 @@ services :=       api \
 									drush-alias \
 									keycloak \
 									keycloak-db \
-									ui
+									ui \
+									harbor-clair \
+									harbor-core \
+									harbor-database \
+									harbor-jobservice \
+									harbor-nginx \
+									harbor-portal \
+									harbor-redis \
+									harborregistry \
+									harborregistryctl
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera
@@ -468,6 +477,11 @@ build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
+build/harbor-database: build/postgres
+build/harbor-clair: build/harbor-database images/harbor-redis/Dockerfile
+build/harborregistry: build/harbor-clair images/harbor-jobservice/Dockerfile
+build/harborregistryctl: build/harborregistry
+build/harbor-nginx: build/harborregistryctl images/harbor-core/Dockerfile images/harbor-portal/Dockerfile
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -753,7 +767,7 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
-ifeq ($(ARCH), Darwin)
+ifeq ($(ARCH), darwin)
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --host-only-cidr "192.168.42.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
 else
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"
