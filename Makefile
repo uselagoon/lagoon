@@ -431,7 +431,16 @@ services :=       api \
 									drush-alias \
 									keycloak \
 									keycloak-db \
-									ui
+									ui \
+									harbor-clair \
+									harbor-core \
+									harbor-database \
+									harbor-jobservice \
+									harbor-nginx \
+									harbor-portal \
+									harbor-redis \
+									harborregistry \
+									harborregistryctl
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera
@@ -468,6 +477,11 @@ build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
+build/harbor-database: build/postgres
+build/harbor-clair: build/harbor-database images/harbor-redis/Dockerfile
+build/harborregistry: build/harbor-clair images/harbor-jobservice/Dockerfile
+build/harborregistryctl: build/harborregistry
+build/harbor-nginx: build/harborregistryctl images/harbor-core/Dockerfile images/harbor-portal/Dockerfile
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
