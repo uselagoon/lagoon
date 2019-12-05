@@ -8,6 +8,9 @@ export const getLinkData = projectSlug => ({
   asPath: `/projects/${projectSlug}`
 });
 
+/**
+ * Links to the project page given the project name.
+ */
 const ProjectLink = ({
   projectSlug,
   children,

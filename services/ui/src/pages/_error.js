@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Head from 'next-server/head';
-import StatusLayout from 'layouts/status';
+import StatusLayout from 'layouts/StatusLayout';
 
 const statusCodes = {
   400: 'Bad Request',
@@ -11,6 +11,9 @@ const statusCodes = {
   501: 'Not Implemented'
 };
 
+/**
+ * Displays an error page, given a status code and optional error message.
+ */
 export default class Error extends React.Component {
   static displayName = 'ErrorPage';
 
@@ -40,6 +43,7 @@ export default class Error extends React.Component {
 
 if (process.env.NODE_ENV !== 'production') {
   Error.propTypes = {
-    statusCode: PropTypes.number
+    statusCode: PropTypes.number,
+    errorMessage: PropTypes.string,
   };
 }

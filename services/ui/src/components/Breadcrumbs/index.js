@@ -1,6 +1,9 @@
 import React from 'react';
 import { color } from 'lib/variables';
 
+/**
+ * Displays the Project and, optionally, the Environment breadcrumbs.
+ */
 const Breadcrumbs = ({ children }) => (
   <div className="breadcrumbs-wrapper">
     <div className="breadcrumbs">{children}</div>

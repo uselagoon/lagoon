@@ -1,8 +1,7 @@
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
-import ButtonAction from 'components/Button/ButtonAction';
-import { bp, color, fontSize } from 'lib/variables';
+import Button from 'components/Button';
 
 const CANCEL_DEPLOYMENT_MUTATION = gql`
   mutation cancelDeployment($deploymentId: Int!) {
@@ -10,30 +9,41 @@ const CANCEL_DEPLOYMENT_MUTATION = gql`
   }
 `;
 
-const CancelDeployment = ({ deployment, ...rest }) => (
+export const CancelDeploymentButton = ({
+  action,
+  success,
+  loading,
+  error
+}) => (
+  <>
+    <Button action={action} disabled={loading || success}>
+      {success ? 'Cancellation requested' : 'Cancel deployment'}
+    </Button>
+
+    {error && (
+      <div className="deploy_result">
+        <p>There was a problem cancelling deployment.</p>
+        <p>{error.message}</p>
+      </div>
+    )}
+  </>
+);
+
+const CancelDeployment = ({ deployment }) => (
   <Mutation
     mutation={CANCEL_DEPLOYMENT_MUTATION}
     variables={{
       deploymentId: deployment.id
     }}
   >
-    {(cancelDeploy, { loading, error, data }) => {
-      const success = data && data.cancelDeployment === 'success';
-      return (
-        <React.Fragment>
-          <ButtonAction action={cancelDeploy} disabled={loading || success}>
-            {success ? 'Cancellation requested' : 'Cancel deployment'}
-          </ButtonAction>
-
-          {error && (
-            <div className="deploy_result">
-              <p>There was a problem cancelling deployment.</p>
-              <p>{error.message}</p>
-            </div>
-          )}
-        </React.Fragment>
-      );
-    }}
+    {(cancelDeploy, { loading, error, data }) => (
+      <CancelDeploymentButton
+        action={cancelDeploy}
+        success={data && data.cancelDeployment === 'success'}
+        loading={loading}
+        error={error}
+      />
+    )}
   </Mutation>
 );
 

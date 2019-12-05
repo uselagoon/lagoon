@@ -3,6 +3,9 @@ import moment from 'moment';
 import LogViewer from 'components/LogViewer';
 import { bp } from 'lib/variables';
 
+/**
+ * Displays information about an environment task.
+ */
 const Task = ({ task }) => (
   <div className="task">
     <div className="details">
