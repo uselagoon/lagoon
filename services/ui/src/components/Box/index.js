@@ -1,6 +1,9 @@
 import React from 'react';
 import { color } from 'lib/variables';
 
+/**
+ * Displays a box, given an optional class name.
+ */
 const Box = ({ className = '', children }) => (
   <>
     <div className={`box ${className}`}>
