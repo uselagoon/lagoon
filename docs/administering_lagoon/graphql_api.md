@@ -188,7 +188,7 @@ mutation {
       # This is the notification name
       notificationName: ""
     }
-  ) 
+  ) {
     id
   }
 }
