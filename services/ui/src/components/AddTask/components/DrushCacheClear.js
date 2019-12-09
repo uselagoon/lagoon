@@ -2,7 +2,7 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
-import ButtonAction from 'components/Button/ButtonAction';
+import Button from 'components/Button';
 import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushCacheClear = gql`
@@ -52,7 +52,7 @@ const DrushCacheClear = ({ pageEnvironment, onCompleted, onError }) => (
               required
             />
           </div>
-          <ButtonAction action={taskDrushCacheClear}>Add task</ButtonAction>
+          <Button action={taskDrushCacheClear}>Add task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;

@@ -431,7 +431,16 @@ services :=       api \
 									drush-alias \
 									keycloak \
 									keycloak-db \
-									ui
+									ui \
+									harbor-clair \
+									harbor-core \
+									harbor-database \
+									harbor-jobservice \
+									harbor-nginx \
+									harbor-portal \
+									harbor-redis \
+									harborregistry \
+									harborregistryctl
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera
@@ -468,6 +477,11 @@ build/broker: build/rabbitmq-cluster
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
+build/harbor-database: build/postgres
+build/harbor-clair: build/harbor-database images/harbor-redis/Dockerfile
+build/harborregistry: build/harbor-clair images/harbor-jobservice/Dockerfile
+build/harborregistryctl: build/harborregistry
+build/harbor-nginx: build/harborregistryctl images/harbor-core/Dockerfile images/harbor-portal/Dockerfile
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -559,12 +573,12 @@ deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind build/broker-single $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
-		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
-		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab bitbucket
@@ -575,7 +589,7 @@ deployment-test-services-webhooks = $(deployment-test-services-main) webhook-han
 $(run-webhook-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
-		IMAGE_REPO=$(CI_BUILD_TAG) docker exec -i $$(docker-compose -p $(CI_BUILD_TAG) ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
 end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
@@ -753,7 +767,7 @@ openshift:
 # that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
 minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
-ifeq ($(ARCH), Darwin)
+ifeq ($(ARCH), darwin)
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --host-only-cidr "192.168.42.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
 else
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"

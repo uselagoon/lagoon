@@ -200,7 +200,8 @@ GrantManager.prototype.checkPermissions = function obtainPermissions (authzReque
  *
  * This method returns or promise or may optionally take a callback function.
  *
- * @param {Function} callback Optional callback, if not using promises.
+ * @param {Function} [callback] Optional callback, if not using promises.
+ * @param {String} [scopeParam]
  */
 GrantManager.prototype.obtainFromClientCredentials = function obtainFromlientCredentials (callback, scopeParam) {
   const params = {
@@ -330,7 +331,7 @@ GrantManager.prototype.isGrantRefreshable = function isGrantRefreshable (grant) 
  * if available, and validates each for expiration and
  * against the known public-key of the server.
  *
- * @param {String} rawData The raw JSON string received from the Keycloak server or from a client.
+ * @param {String|Object} rawData The raw JSON string received from the Keycloak server or from a client.
  * @return {Promise} A promise reoslving a grant.
  */
 GrantManager.prototype.createGrant = function createGrant (rawData) {

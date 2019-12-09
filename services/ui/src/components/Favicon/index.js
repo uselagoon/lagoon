@@ -2,6 +2,9 @@ import React from 'react';
 import Head from 'next/head';
 import { color } from 'lib/variables';
 
+/**
+ * Adds the Lagoon icon as the favicon for the website.
+ */
 const Favicon = () => (
   <Head>
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/favicons/apple-touch-icon.png" />

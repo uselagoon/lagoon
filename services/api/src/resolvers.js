@@ -1,6 +1,7 @@
 // @flow
 
 const GraphQLDate = require('graphql-iso-date');
+const GraphQLJSON = require('graphql-type-json');
 
 const {
   getDeploymentsByEnvironmentId,
@@ -124,7 +125,17 @@ const {
   getAllGroups,
   getGroupsByProjectId,
   getGroupsByUserId,
+  getGroupByName,
   addGroup,
+  addBillingGroup,
+  updateBillingGroup,
+  addProjectToBillingGroup,
+  updateProjectBillingGroup,
+  removeProjectFromBillingGroup,
+  getAllProjectsInGroup,
+  getBillingGroupCost,
+  getAllBillingGroupsCost,
+  getAllProjectsByGroupId,
   updateGroup,
   deleteGroup,
   deleteAllGroups,
@@ -172,6 +183,22 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
+  },
+  GroupInterface: {
+    __resolveType(group) {
+      switch (group.type) {
+        case 'billing':
+          return 'BillingGroup';
+        default:
+          return 'Group';
+      }
+    },
+  },
+  Group: {
+    projects: getAllProjectsByGroupId,
+  },
+  BillingGroup: {
+    projects: getAllProjectsByGroupId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -221,6 +248,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
+    groupByName: getGroupByName,
     environmentByName: getEnvironmentByName,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     userCanSshToEnvironment,
@@ -230,6 +258,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
     allGroups: getAllGroups,
+    allProjectsInGroup: getAllProjectsInGroup,
+    billingGroupCost: getBillingGroupCost,
+    allBillingGroupsCost: getAllBillingGroupsCost,
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -302,6 +333,12 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
     addGroup,
+    addBillingGroup,
+    updateBillingGroup,
+    deleteBillingGroup: deleteGroup,
+    addProjectToBillingGroup,
+    updateProjectBillingGroup,
+    removeProjectFromBillingGroup,
     updateGroup,
     deleteGroup,
     deleteAllGroups,
@@ -316,6 +353,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskChanged: taskSubscriber,
   },
   Date: GraphQLDate,
+  JSON: GraphQLJSON,
 };
 
 module.exports = resolvers;

@@ -7,6 +7,9 @@ import DeleteEnvironmentMutation from 'lib/mutation/DeleteEnvironment';
 import DeleteConfirm from 'components/DeleteConfirm';
 import { bp, color } from 'lib/variables';
 
+/**
+ * Displays the environment information.
+ */
 const Environment = ({ environment }) => {
   const gitUrlParsed = giturlparse(environment.project.gitUrl);
   const gitBranchLink = `${gitUrlParsed.resource}/${

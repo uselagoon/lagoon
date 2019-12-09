@@ -38,7 +38,6 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError('Auth token missing.');
       }
 
-
       const sqlClientKeycloak = getSqlClient();
       try {
         grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
@@ -113,11 +112,13 @@ const apolloServer = new ApolloServer({
         keycloakAdminClient,
         sqlClient: getSqlClient(),
         hasPermission: req.kauth
-          ? keycloakHasPermission(req.kauth.grant, requestCache, keycloakAdminClient)
+          ? keycloakHasPermission(
+              req.kauth.grant,
+              requestCache,
+              keycloakAdminClient,
+            )
           : legacyHasPermission(req.legacyCredentials),
-        keycloakGrant: req.kauth
-          ? req.kauth.grant
-          : null,
+        keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         models: {
           UserModel: User.User({ keycloakAdminClient }),
@@ -132,6 +133,9 @@ const apolloServer = new ApolloServer({
       message: error.message,
       locations: error.locations,
       path: error.path,
+      ...(process.env.NODE_ENV === 'development'
+        ? { extensions: error.extensions }
+        : {}),
     };
   },
   plugins: [

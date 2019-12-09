@@ -1,19 +1,21 @@
 import React from 'react';
-import ButtonAction from 'components/Button/ButtonAction';
-import ButtonLink from 'components/Button/ButtonLink';
+import Button from 'components/Button';
 import Prepare from 'components/RestoreButton/Prepare';
 
+/**
+ * A button to restore a backup.
+ */
 const RestoreButton = ({ backup: { backupId, restore } }) => {
   if (!restore)
     return <Prepare backupId={backupId} />;
 
   if (restore.status === 'pending')
-    return <ButtonAction disabled>Retrieving ...</ButtonAction>;
+    return <Button disabled>Retrieving ...</Button>;
 
   if (restore.status === 'failed')
-    return <ButtonAction disabled>Retrieve failed</ButtonAction>;
+    return <Button disabled>Retrieve failed</Button>;
 
-  return <ButtonLink href={restore.restoreLocation}>Download</ButtonLink>;
+  return <Button href={restore.restoreLocation}>Download</Button>;
 };
 
 export default RestoreButton;

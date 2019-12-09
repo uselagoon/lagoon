@@ -146,7 +146,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2microsoftteams/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2microsoftteams:v1-0-0
+      lagoon.image: amazeeiolagoon/logs2microsoftteams:master
   logs2email:
     image: ${IMAGE_REPO:-lagoon}/logs2email
     command: yarn run dev
@@ -353,6 +353,10 @@ services:
       KEYCLOAK_URL: http://docker.for.mac.localhost:8088
     ports:
       - '9200:9200'
+    networks:
+      default:
+        aliases:
+          - logs-db-service
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml
@@ -425,3 +429,59 @@ services:
       lagoon.type: custom
       lagoon.template: services/logs-collector/.lagoon.yml
       lagoon.rollout: daemonset
+  harbor-clair:
+    image: ${IMAGE_REPO:-lagoon}/harbor-clair
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-clair/harbor-clair.yml
+      lagoon.image: amazeeiolagoon/harbor-clair:v1-1-4
+  harbor-core:
+    image: ${IMAGE_REPO:-lagoon}/harbor-core
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-core/harbor-core.yml
+      lagoon.image: amazeeiolagoon/harbor-core:v1-1-4
+  harbor-database:
+    image: ${IMAGE_REPO:-lagoon}/harbor-database
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-database/harbor-database.yml
+      lagoon.image: amazeeiolagoon/harbor-database:v1-1-4
+  harbor-jobservice:
+    image: ${IMAGE_REPO:-lagoon}/harbor-jobservice
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-jobservice/harbor-jobservice.yml
+      lagoon.image: amazeeiolagoon/harbor-jobservice:v1-1-4
+  harbor-nginx:
+    image: ${IMAGE_REPO:-lagoon}/harbor-nginx
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-nginx/harbor-nginx.yml
+      lagoon.image: amazeeiolagoon/harbor-nginx:v1-1-4
+  harbor-portal:
+    image: ${IMAGE_REPO:-lagoon}/harbor-portal
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-portal/harbor-portal.yml
+      lagoon.image: amazeeiolagoon/harbor-portal:v1-1-4
+  harbor-redis:
+    image: ${IMAGE_REPO:-lagoon}/harbor-redis
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-redis/harbor-redis.yml
+      lagoon.image: amazeeiolagoon/harbor-redis:v1-1-4
+  harborregistry:
+    image: ${IMAGE_REPO:-lagoon}/harborregistry
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harborregistry/harborregistry.yml
+      lagoon.name: harborregistry
+      lagoon.image: amazeeiolagoon/harborregistry:v1-1-4
+  harborregistryctl:
+    image: ${IMAGE_REPO:-lagoon}/harborregistryctl
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harborregistryctl/harborregistry.yml
+      lagoon.name: harborregistry
+      lagoon.image: amazeeiolagoon/harborregistryctl:v1-1-4
