@@ -499,6 +499,8 @@ async function createRemoveTask(removeData: Object) {
             );
           }
         }
+      } else if (type === 'promote') {
+        return sendToLagoonTasks('remove-openshift', removeData);
       }
       break;
 
