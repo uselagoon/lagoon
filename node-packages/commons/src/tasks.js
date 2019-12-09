@@ -408,7 +408,6 @@ async function createRemoveTask(removeData: Object) {
 
   switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
-    case 'lagoon_openshiftBuildDeploy':
       if (type === 'branch') {
         switch (project.branches) {
           case undefined:
