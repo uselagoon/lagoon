@@ -78,7 +78,7 @@ objects:
       spec:
         serviceAccountName: ${SERVICE_NAME}-sa
         affinity:
-         podAntiAffinity:
+          podAntiAffinity:
            requiredDuringSchedulingIgnoredDuringExecution:
              - labelSelector:
                  matchExpressions:
