@@ -1,11 +1,23 @@
-const R = require('ramda');
-const jwt = require('jsonwebtoken');
-const logger = require('../logger');
-const { keycloakGrantManager } = require('../clients/keycloakClient');
-const User = require('../models/user');
-const Group = require('../models/group');
+import * as R from 'ramda';
+import { verify } from 'jsonwebtoken';
+import * as logger from '../logger';
+import { keycloakGrantManager } from'../clients/keycloakClient';
+import { User } from '../models/user';
+import { Group } from '../models/group';
+
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
+
+interface ILegacyToken {
+  aud: string,
+  role: string,
+}
+
+interface IKeycloakAuthAttributes {
+  project?: number,
+  group?: string,
+  users?: number[],
+};
 
 const sortRolesByWeight = (a, b) => {
   const roleWeights = {
@@ -25,7 +37,7 @@ const sortRolesByWeight = (a, b) => {
   return 0;
 };
 
-const getGrantForKeycloakToken = async (sqlClient, token) => {
+export const getGrantForKeycloakToken = async (sqlClient, token) => {
   let grant = '';
   try {
     grant = await keycloakGrantManager.createGrant({
@@ -38,10 +50,10 @@ const getGrantForKeycloakToken = async (sqlClient, token) => {
   return grant;
 };
 
-const getCredentialsForLegacyToken = async (sqlClient, token) => {
-  let decoded = '';
+export const getCredentialsForLegacyToken = async (sqlClient, token) => {
+  let decoded: ILegacyToken;
   try {
-    decoded = jwt.verify(token, JWTSECRET);
+    decoded = verify(token, JWTSECRET);
 
     if (decoded == null) {
       throw new Error('Decoding token resulted in "null" or "undefined".');
@@ -70,7 +82,7 @@ const getCredentialsForLegacyToken = async (sqlClient, token) => {
 };
 
 // Legacy tokens should only be granted by services, which will have admin role.
-const legacyHasPermission = (legacyCredentials) => {
+export const legacyHasPermission = (legacyCredentials) => {
   const { role } = legacyCredentials;
 
   return async (resource, scope) => {
@@ -80,19 +92,20 @@ const legacyHasPermission = (legacyCredentials) => {
   };
 };
 
-class KeycloakUnauthorizedError extends Error {
+export class KeycloakUnauthorizedError extends Error {
   constructor(message) {
     super(message);
     this.name = 'KeycloakUnauthorizedError';
   }
 }
 
-const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
-  const UserModel = User.User({ keycloakAdminClient });
-  const GroupModel = Group.Group({ keycloakAdminClient });
+export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
+  const UserModel = User({ keycloakAdminClient });
+  const GroupModel = Group({ keycloakAdminClient });
 
-  return async (resource, scope, attributes = {}) => {
-    const currentUserId = grant.access_token.content.sub;
+  return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
+    const currentUserId: string = grant.access_token.content.sub;
+    const currentUser = await UserModel.loadUserById(currentUserId);
 
     // Check if the same set of permissions has been granted already for this
     // api query.
@@ -106,7 +119,14 @@ const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
 
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
-    let claims = {
+    let claims: {
+      currentUser: [string],
+      usersQuery?: [string],
+      projectQuery?: [string],
+      userProjects?: [string],
+      userProjectRole?: [string],
+      userGroupRole?: [string],
+    } = {
       currentUser: [currentUserId],
     };
 
@@ -125,15 +145,17 @@ const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
     }
 
     if (R.prop('project', attributes)) {
+      // TODO: This shouldn't be needed when typescript is implemented top down?
+      // @ts-ignore
+      const projectId = parseInt(R.prop('project', attributes), 10);
+
       try {
         claims = {
           ...claims,
-          projectQuery: [`${R.prop('project', attributes)}`],
+          projectQuery: [`${projectId}`],
         };
 
-        const userProjects = await UserModel.getAllProjectsIdsForUser({
-          id: currentUserId,
-        });
+        const userProjects = await UserModel.getAllProjectsIdsForUser(currentUser);
 
         if (userProjects.length) {
           claims = {
@@ -142,9 +164,7 @@ const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
           };
         }
 
-        const roles = await UserModel.getUserRolesForProject({
-          id: currentUserId,
-        }, R.prop('project', attributes));
+        const roles = await UserModel.getUserRolesForProject(currentUser, projectId);
 
         const highestRoleForProject = R.pipe(
           R.uniq,
@@ -161,7 +181,7 @@ const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
           };
         }
       } catch (err) {
-        logger.error(`Could not submit project (${R.prop('project', attributes)}) claims for authz request: ${err.message}`);
+        logger.error(`Could not submit project (${projectId}) claims for authz request: ${err.message}`);
       }
     }
 
@@ -196,7 +216,11 @@ const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
     }
 
     // Ask keycloak for a new token (RPT).
-    let authzRequest = {
+    let authzRequest: {
+      permissions: object[],
+      claim_token_format?: string,
+      claim_token?: string,
+    } = {
       permissions: [
         {
           id: resource,
@@ -236,12 +260,4 @@ const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
     requestCache.set(cacheKey, false);
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
-};
-
-module.exports = {
-  getCredentialsForLegacyToken,
-  getGrantForKeycloakToken,
-  legacyHasPermission,
-  KeycloakUnauthorizedError,
-  keycloakHasPermission,
 };
