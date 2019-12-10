@@ -181,6 +181,7 @@ logs: ## Show Lagoon service logs
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) logs --tail=10 -f $(service)
 
 up: ## Start all Lagoon services
+	touch ./fluentd.token ./fluentd.ca.crt
 ifeq ($(ARCH), darwin)
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 else
@@ -234,6 +235,12 @@ endif
 	sleep 60
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
+	@# create fluentd system account to get access to the k8s API
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+	oc create sa fluentd && \
+	oc adm policy add-cluster-role-to-user cluster-reader -z fluentd && \
+	oc get secret -o json | jq -r '.items[] | select(.metadata.annotations."kubernetes.io/service-account.name" == "fluentd") | select(.metadata.annotations."kubernetes.io/created-by" | not) | select(.metadata.name | test("^fluentd-token")) | .data.token' | base64 -d > fluentd.token && \
+	oc get secret -o json | jq -r '.items[] | select(.metadata.annotations."kubernetes.io/service-account.name" == "fluentd") | select(.metadata.annotations."kubernetes.io/created-by" | not) | select(.metadata.name | test("^fluentd-token")) | .data."ca.crt"' | base64 -d > fluentd.ca.crt
 
 .PHONY: minishift/start
 minishift/start: minishift minishift/configure-lagoon-local push-docker-host-image ## Create and start local minishift cluster, and configure for Lagoon
