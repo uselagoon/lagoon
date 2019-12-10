@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# to create serviceaccounts:
+#    oc -n $namespace create serviceaccount lagoon-sync
+#    oc -n $namespace adm policy add-role-to-user edit -z lagoon-sync
+#    oc -n $namespace serviceaccounts get-token lagoon-sync
+
 set -eu -o pipefail
 
 if [ -z "$SOURCE_CONSOLE" ]; then
