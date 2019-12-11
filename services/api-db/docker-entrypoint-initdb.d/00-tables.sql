@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS project (
   name                             varchar(100) UNIQUE,
   customer                         int REFERENCES customer (id),
   git_url                          varchar(300),
-  availability                       varchar(50),
+  availability                     varchar(50) NOT NULL DEFAULT 'STANDARD',
   subfolder                        varchar(300),
   active_systems_deploy            varchar(300),
   active_systems_promote           varchar(300),
