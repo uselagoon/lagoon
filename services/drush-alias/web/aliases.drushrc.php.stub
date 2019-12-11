@@ -205,7 +205,7 @@ if (getenv('LAGOON_OVERRIDE_JWT_TOKEN')) {
   }
 
 } else {
-  exec("ssh -p $ssh_port -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t lagoon@$ssh_host token 2>&1", $token_array, $rc);
+  exec("timeout $ssh_port_timeout ssh -p $ssh_port -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t lagoon@$ssh_host token 2>&1", $token_array, $rc);
   if ($rc !== 0) {
     drush_log("Could not load API JWT Token, error was: '" . implode(",", $token_array), 'warning');
     return;
