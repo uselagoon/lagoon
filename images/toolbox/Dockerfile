@@ -1,4 +1,7 @@
 ARG IMAGE_REPO
+
+FROM ${IMAGE_REPO:-lagoon}/mariadb as mariadb
+
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 
 LABEL maintainer="amazee.io"
@@ -11,4 +14,4 @@ RUN apk update \
     && wget https://raw.githubusercontent.com/major/MySQLTuner-perl/master/mysqltuner.pl -O mysqltuner.pl \
     && chmod +x mysqltuner.pl
 
-COPY --from=lagoon/mariadb /usr/bin/my_print_defaults /usr/bin/my_print_defaults
+COPY --from=mariadb /usr/bin/my_print_defaults /usr/bin/my_print_defaults
