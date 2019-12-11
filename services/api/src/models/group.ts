@@ -285,6 +285,7 @@ export const Group = (clients): GroupModel => {
   ): Promise<number[]> => {
     const projectIds = R.pipe(
       R.view(attrLagoonProjectsLens),
+      R.defaultTo(''),
       R.split(','),
       R.reject(R.isEmpty),
       R.map(id => parseInt(id, 10)),
@@ -308,6 +309,7 @@ export const Group = (clients): GroupModel => {
   ): Promise<number[]> => {
     const groupProjectIds = R.pipe(
       R.view(attrLagoonProjectsLens),
+      R.defaultTo(''),
       R.split(','),
       R.reject(R.isEmpty),
       R.map(id => parseInt(id, 10)),
