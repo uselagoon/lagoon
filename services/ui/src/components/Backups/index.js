@@ -20,7 +20,7 @@ const Backups = ({ backups }) => (
             {moment
               .utc(backup.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss (z)')}
+              .format('DD MMM YYYY, HH:mm:ss (Z)')}
           </div>
 
           <div className="backupid">{backup.backupId}</div>
