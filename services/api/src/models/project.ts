@@ -30,7 +30,7 @@ export interface Project {
 export const projectsByGroup = async (group: Group) => {
   const sqlClient = getSqlClient(USE_SINGLETON);
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group(keycloakAdminClient);
+  const GroupModel = Group({keycloakAdminClient});
   const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
   const projects = await Helpers(sqlClient).getProjectsByIds(projectIds);
   return projects;

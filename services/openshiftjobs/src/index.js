@@ -33,14 +33,14 @@ const lagoonSshPort = R.propOr('2020', 'LAGOON_SSH_PORT', process.env);
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
-const failTask = async task => {
+const failTask = async taskId => {
   try {
-    await updateTask(task.id, {
+    await updateTask(taskId, {
       status: 'FAILED',
     });
   } catch (error) {
     logger.error(
-      `Could not fail task ${task.id}. Message: ${error}`
+      `Could not fail task ${taskId}. Message: ${error}`
     );
   }
 }
@@ -52,6 +52,7 @@ const messageConsumer = async msg => {
     `Received JobOpenshift task for project: ${project.name}, task: ${task.id}`
   );
 
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
   const result = await getOpenShiftInfoForProject(project.name);
   const projectOpenShift = result.project;
 
@@ -128,7 +129,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Project ${openshiftProject} does not exist, bailing`);
-      failTask(task);
+      failTask(taskId);
       return;
     } else {
       logger.error(err);
@@ -161,7 +162,7 @@ const messageConsumer = async msg => {
 
     if (!oneContainerPerSpec[task.service]) {
       logger.error(`No spec for service ${task.service}, bailing`);
-      failTask(task);
+      failTask(taskId);
       return;
     }
 
@@ -183,7 +184,7 @@ const messageConsumer = async msg => {
       },
       {
         name: 'TASK_DATA_ID',
-        value: task.id,
+        value: `${taskId}`,
       },
     ]));
 
@@ -228,7 +229,7 @@ const messageConsumer = async msg => {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
-    updatedTask = await updateTask(task.id, {
+    updatedTask = await updateTask(taskId, {
       remoteId: openshiftJob.metadata.uid,
       created: convertDateFormat(openshiftJob.metadata.creationTimestamp),
       started: dateOrNull(openshiftJob.status.startTime)
@@ -265,7 +266,7 @@ const messageConsumer = async msg => {
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
-  failTask(task);
+  failTask(taskId);
 
   sendToLagoonLogs(
     'error',

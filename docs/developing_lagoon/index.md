@@ -10,9 +10,14 @@ Please check the [official Docs of Docker](https://docs.docker.com/engine/instal
 
 Docker compose is included in Docker for Mac installations.  For linux installations see the directions here: [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
+## Install KVM
+
+For GNU/Linux hosts, we are using KVM as default virtualization engine to run Openshift Minishift VM. For installation instuctions, see here:
+[https://docs.okd.io/latest/minishift/getting-started/setting-up-virtualization-environment.html#for-linux](https://docs.okd.io/latest/minishift/getting-started/setting-up-virtualization-environment.html#for-linux)
+
 ## Install VirtualBox
 
-We are using VitualBox to run the Openshift Minishift VM. For download and instalation instructions see here:
+For hosts other than GNU/Linux, we are using VitualBox to run the Openshift Minishift VM. For download and installation instructions see here:
 [https://www.virtualbox.org/](https://www.virtualbox.org/)
 
 ## Start Services
