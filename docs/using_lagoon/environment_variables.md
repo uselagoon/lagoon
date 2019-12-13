@@ -27,7 +27,15 @@ Runtime Environment Variables are automatically made available in all containers
 This defines a project wide runtime variable (available in all environments) for the project with id `463`:
 ```
 mutation addRuntimeEnv {
-  addEnvVariable(input:{type:PROJECT, typeId:463, scope:RUNTIME, name:"MYVARIABLENAME", value:"MyVariableValue"}) {
+  addEnvVariable(
+    input:{
+      type:PROJECT,
+      typeId:463,
+      scope:RUNTIME,
+      name:"MYVARIABLENAME",
+      value:"MyVariableValue"
+    }
+  ) {
     id
   }
 }
@@ -36,7 +44,15 @@ mutation addRuntimeEnv {
 This defines a environment id `546` specific runtime variable (available only in that specific environment):
 ```
 mutation addRuntimeEnv {
-  addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:RUNTIME, name:"MYVARIABLENAME", value:"MyVariableValue"}) {
+  addEnvVariable(
+    input:{
+      type:ENVIRONMENT,
+      typeId:546,
+      scope:RUNTIME,
+      name:"MYVARIABLENAME",
+      value:"MyVariableValue"
+    }
+  ) {
     id
   }
 }
@@ -53,7 +69,14 @@ ARG MYVARIABLENAME
 This defines a project wide buildtime variable (available in all environments) for the project with id `463`:
 ```
 mutation addBuildtimeEnv {
-  addEnvVariable(input:{type:PROJECT, typeId:463, scope:BUILD, name:"MYVARIABLENAME", value:"MyVariableValue"}) {
+  addEnvVariable(
+    input:{
+      type:PROJECT,
+      typeId:463,
+      scope:BUILD,
+      name:"MYVARIABLENAME",
+      value:"MyVariableValue"}
+  ) {
     id
   }
 }
@@ -74,7 +97,14 @@ Container Registry Environment Variables are only available during a Build and a
 This defines a project wide container registry variable (available in all environments) for the project with id `463`:
 ```
 mutation addContainerRegistryEnv {
-  addEnvVariable(input:{type:PROJECT, typeId:463, scope:CONTAINER_REGISTRY, name:"MY_OWN_REGISTRY_PASSWORD", value:"MySecretPassword"}) {
+  addEnvVariable(
+    input:{
+      type:PROJECT,
+      typeId:463,
+      scope:CONTAINER_REGISTRY,
+      name:"MY_OWN_REGISTRY_PASSWORD",
+      value:"MySecretPassword"})
+  ) {
     id
   }
 }
@@ -83,7 +113,14 @@ mutation addContainerRegistryEnv {
 This defines a environment id `546` specific container registry variable (available only in that specific environment):
 ```
 mutation addContainerRegistryEnv {
-  addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:CONTAINER_REGISTRY, name:"MY_OWN_REGISTRY_PASSWORD", value:"MySecretPassword"}) {
+  addEnvVariable(
+    input:{
+      type:ENVIRONMENT,
+      typeId:546,
+      scope:CONTAINER_REGISTRY,
+      name:"MY_OWN_REGISTRY_PASSWORD",
+      value:"MySecretPassword"}
+  ) {
     id
   }
 }
@@ -92,6 +129,14 @@ mutation addContainerRegistryEnv {
 ## Environment Files (existing directly in the Git Repo)
 
 If you have environment variables that are safe to be saved within a Git repository, we suggest to add them directly into the Git Repo. As these variables will also be available within local development enviornments and are therfore more portable.
+
+The Syntax in the environment files is as following:
+
+```
+MYVARIABLENAME="MyVariableValue"
+MVARIABLENUMBER=4242
+DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if your applications expects another variable name for the lagoon provided variables
+```
 
 ### `.lagoon.env.$BRANCHNAME`
 If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the master branch `.lagoon.env.master`. This helps you keeping environment variables apart between environments.
