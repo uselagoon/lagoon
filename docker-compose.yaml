@@ -434,7 +434,15 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-clair/harbor-clair.yml
+      lagoon.name: harbor-clair
       lagoon.image: amazeeiolagoon/harbor-clair:v1-1-4
+  harbor-clairadapter:
+    image: ${IMAGE_REPO:-lagoon}/harbor-clairadapter
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-clairadapter/harbor-clair.yml
+      lagoon.name: harbor-clair
+      lagoon.image: amazeeiolagoon/harbor-clairadapter:v1-1-4
   harbor-core:
     image: ${IMAGE_REPO:-lagoon}/harbor-core
     labels:

@@ -433,6 +433,7 @@ services :=       api \
 									keycloak-db \
 									ui \
 									harbor-clair \
+									harbor-clairadapter \
 									harbor-core \
 									harbor-database \
 									harbor-jobservice \
@@ -479,7 +480,7 @@ build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
 build/harbor-clair: build/harbor-database services/harbor-redis/Dockerfile
-build/harborregistry: build/harbor-clair services/harbor-jobservice/Dockerfile
+build/harborregistry: build/harbor-clair services/harbor-clairadapter services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 
