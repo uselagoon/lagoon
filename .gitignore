@@ -9,8 +9,6 @@ local-dev/oc
 minishift
 **/v8-*
 node_modules/
-build/*
-!build/.gitkeep
 openshift
 !services/api/src/resources/openshift
 .loopback

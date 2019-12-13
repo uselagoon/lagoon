@@ -10,6 +10,7 @@ SHELL := /bin/bash
 # make build:all - build all images
 # make build:list - list all the generated build targets
 # make build:s3-save - save to s3
+# make build:s3-load - load from s3
 # make build:pull - pulls all the base images that lagoon builds on into the local cache. It then generates a pull-report.json containing the image names/tags and hashes of these base images.
 
 # make tests/<testname>
@@ -68,468 +69,9 @@ LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo 
 BRANCH_NAME :=
 
 #######
-####### Functions
-#######
-
-# Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
-# Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
-
-# Build a Python docker image. Expects as arguments:
-# 1. Python version
-# 2. Location of Dockerfile
-# 3. Path of Docker Build context
-docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
-
-docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
-
-# Build a PHP docker image. Expects as arguments:
-# 1. PHP version
-# 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
-# 3. Location of Dockerfile
-# 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
-
-docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
-
-docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
-
-# Tags an image with the `amazeeio` repository and pushes it
-docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
-
-# Tags an image with the `amazeeiolagoon` repository and pushes it
-docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2) | cat
-
-
-#######
-####### Base Images
-#######
-####### Base Images are the base for all other images and are also published for clients to use during local development
-
-images :=     oc \
-							mariadb \
-							mariadb-drupal \
-							mariadb-galera \
-							mariadb-galera-drupal \
-							postgres \
-							postgres-ckan \
-							postgres-drupal \
-							oc-build-deploy-dind \
-							commons \
-							nginx \
-							nginx-drupal \
-							varnish \
-							varnish-drupal \
-							varnish-persistent \
-							varnish-persistent-drupal \
-							redis \
-							redis-persistent \
-							rabbitmq \
-							rabbitmq-cluster \
-							mongo \
-							athenapdf-service \
-							curator \
-							docker-host \
-							toolbox
-
-# base-images is a variable that will be constantly filled with all base image there are
-base-images += $(images)
-s3-images += $(images)
-
-# List with all images prefixed with `build/`. Which are the commands to actually build images
-build-images = $(foreach image,$(images),build/$(image))
-
-# Define the make recipe for all base images
-$(build-images):
-#	Generate variable image without the prefix `build/`
-	$(eval image = $(subst build/,,$@))
-# Call the docker build
-	$(call docker_build,$(image),images/$(image)/Dockerfile,images/$(image))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-# Define dependencies of Base Images so that make can build them in the right order. There are two
-# types of Dependencies
-# 1. Parent Images, like `build/centos7-node6` is based on `build/centos7` and need to be rebuild
-#    if the parent has been built
-# 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
-#    changed on the Dockerfiles
-build/mariadb: build/commons images/mariadb/Dockerfile
-build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
-build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
-build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
-build/postgres: build/commons images/postgres/Dockerfile
-build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
-build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
-build/commons: images/commons/Dockerfile
-build/nginx: build/commons images/nginx/Dockerfile
-build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
-build/varnish: build/commons images/varnish/Dockerfile
-build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
-build/varnish-persistent: build/varnish build/commons images/varnish/Dockerfile
-build/varnish-persistent-drupal: build/varnish-drupal images/varnish-drupal/Dockerfile
-build/redis: build/commons images/redis/Dockerfile
-build/redis-persistent: build/redis images/redis-persistent/Dockerfile
-build/rabbitmq: build/commons images/rabbitmq/Dockerfile
-build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
-build/mongo: build/commons images/mongo/Dockerfile
-build/docker-host: build/commons images/docker-host/Dockerfile
-build/oc: build/commons images/oc/Dockerfile
-build/curator: build/commons images/curator/Dockerfile
-build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
-build/toolbox: build/commons images/toolbox/Dockerfile
-
-#######
-####### Elastic Images
-#######
-
-elasticimages :=  elasticsearch__6 \
-								  elasticsearch__7 \
-								  elasticsearch__7.1 \
-									kibana__6 \
-									kibana__7 \
-									kibana__7.1 \
-									logstash__6 \
-									logstash__7
-
-build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-elasticimages): build/commons
-	$(eval clean = $(subst build/,,$@))
-	$(eval tool = $(word 1,$(subst __, ,$(clean))))
-	$(eval version = $(word 2,$(subst __, ,$(clean))))
-# Call the docker build
-	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(elasticimages)
-s3-images += $(elasticimages)
-
-build/elasticsearch__6 build/elasticsearch__7 build/elasticsearch__7.1 build/kibana__6 build/kibana__7 build/kibana__7.1 build/logstash__6 build/logstash__7: images/commons
-
-#######
-####### Python Images
-#######
-####### Python Images are alpine linux based Python images.
-
-pythonimages :=  python__2.7 \
-								 python__3.7 \
-								 python__2.7-ckan \
-								 python__2.7-ckandatapusher
-
-build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-pythonimages): build/commons
-	$(eval clean = $(subst build/python__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-# Call the docker build
-	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(pythonimages)
-s3-images += $(pythonimages)
-
-build/python__2.7 build/python__3.7: images/commons
-build/python__2.7-ckan: build/python__2.7
-build/python__2.7-ckandatapusher: build/python__2.7
-
-
-#######
-####### PHP Images
-#######
-####### PHP Images are alpine linux based PHP images.
-
-phpimages := 	php__5.6-fpm \
-				php__7.0-fpm \
-				php__7.1-fpm  \
-				php__7.2-fpm \
-				php__7.3-fpm \
-				php__7.4-fpm \
-				php__5.6-cli \
-				php__7.0-cli \
-				php__7.1-cli \
-				php__7.2-cli \
-				php__7.3-cli \
-				php__7.4-cli \
-				php__5.6-cli-drupal \
-				php__7.0-cli-drupal \
-				php__7.1-cli-drupal \
-				php__7.2-cli-drupal \
-				php__7.3-cli-drupal \
-				php__7.4-cli-drupal
-
-
-build-phpimages = $(foreach image,$(phpimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-phpimages): build/commons
-	$(eval clean = $(subst build/php__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval subtype = $(word 3,$(subst -, ,$(clean))))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-	$(eval type_slash = $(if $(type),/$(type)))
-# if there is a subtype, add it. If not, just keep what we already had
-	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
-	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
-# Call the docker build
-	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(phpimages)
-s3-images += $(phpimages)
-
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm build/php__7.4-fpm: images/commons
-build/php__5.6-cli: build/php__5.6-fpm
-build/php__7.0-cli: build/php__7.0-fpm
-build/php__7.1-cli: build/php__7.1-fpm
-build/php__7.2-cli: build/php__7.2-fpm
-build/php__7.3-cli: build/php__7.3-fpm
-build/php__7.4-cli: build/php__7.4-fpm
-build/php__5.6-cli-drupal: build/php__5.6-cli
-build/php__7.0-cli-drupal: build/php__7.0-cli
-build/php__7.1-cli-drupal: build/php__7.1-cli
-build/php__7.2-cli-drupal: build/php__7.2-cli
-build/php__7.3-cli-drupal: build/php__7.3-cli
-build/php__7.4-cli-drupal: build/php__7.4-cli
-
-#######
-####### Solr Images
-#######
-####### Solr Images are alpine linux based Solr images.
-
-solrimages := 	solr__5.5 \
-								solr__6.6 \
-								solr__7.5 \
-								solr__5.5-drupal \
-								solr__6.6-drupal \
-								solr__7.5-drupal \
-								solr__5.5-ckan \
-								solr__6.6-ckan
-
-
-build-solrimages = $(foreach image,$(solrimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-solrimages): build/commons
-	$(eval clean = $(subst build/solr__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-# Call the docker build
-	$(call docker_build_solr,$(version),$(version)$(type_dash),images/solr$(type_dash)/Dockerfile,images/solr$(type_dash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(solrimages)
-s3-images += $(solrimages)
-
-build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
-build/solr__5.5-drupal: build/solr__5.5
-build/solr__6.6-drupal: build/solr__6.6
-build/solr__7.5-drupal: build/solr__7.5
-build/solr__5.5-ckan: build/solr__5.5
-build/solr__6.6-ckan: build/solr__6.6
-
-#######
-####### Node Images
-#######
-####### Node Images are alpine linux based Node images.
-
-nodeimages := node__12 \
-						node__10 \
-						node__9 \
-						node__8 \
-						node__6 \
-						node__12-builder \
-						node__10-builder \
-						node__9-builder \
-						node__8-builder \
-						node__6-builder
-
-build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-nodeimages): build/commons
-	$(eval clean = $(subst build/node__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-	$(eval type_slash = $(if $(type),/$(type)))
-# Call the docker build
-	$(call docker_build_node,$(version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(nodeimages)
-s3-images += $(nodeimages)
-
-build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
-build/node__12-builder: build/node__12 images/node/builder/Dockerfile
-build/node__10-builder: build/node__10 images/node/builder/Dockerfile
-build/node__9-builder: build/node__9 images/node/builder/Dockerfile
-build/node__8-builder: build/node__8 images/node/builder/Dockerfile
-build/node__6-builder: build/node__6 images/node/builder/Dockerfile
-
-#######
-####### Service Images
-#######
-####### Services Images are the Docker Images used to run the Lagoon Microservices, these images
-####### will be expected by docker-compose to exist.
-
-# Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
-# used by all microservices based on Node.js to not build similar node packages again
-build-images += yarn-workspace-builder
-build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-builder/Dockerfile
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
-	touch $@
-
-# Variables of service images we manage and build
-services :=       api \
-									auth-server \
-									logs2email \
-									logs2slack \
-									logs2rocketchat \
-									logs2microsoftteams \
-									openshiftbuilddeploy \
-									openshiftbuilddeploymonitor \
-									openshiftjobs \
-									openshiftjobsmonitor \
-									openshiftmisc \
-									openshiftremove \
-									rest2tasks \
-									webhook-handler \
-									webhooks2tasks \
-									broker \
-									broker-single \
-									logs-forwarder \
-									logs-db \
-									logs-db-ui \
-									logs-db-curator \
-									logs2logs-db \
-									auto-idler \
-									storage-calculator \
-									api-db \
-									drush-alias \
-									keycloak \
-									keycloak-db \
-									ui \
-									harborclair \
-									harborclairadapter \
-									harbor-core \
-									harbor-database \
-									harbor-jobservice \
-									harbor-nginx \
-									harbor-portal \
-									harbor-redis \
-									harborregistry \
-									harborregistryctl
-
-services-galera := 	api-db-galera \
-										keycloak-db-galera
-
-service-images += $(services) $(services-galera)
-
-build-services = $(foreach image,$(services),build/$(image))
-
-# Recipe for all building service-images
-$(build-services):
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
-	touch $@
-
-build-services-galera = $(foreach image,$(services-galera),build/$(image))
-
-$(build-services-galera):
-	$(eval image = $(subst build/,,$@))
-	$(eval service = $(subst -galera,,$(image)))
-	$(call docker_build,$(image),services/$(service)/Dockerfile-galera,services/$(service))
-	touch $@
-
-# Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash__7
-build/logs-db: build/elasticsearch__7.1
-build/logs-db-ui: build/kibana__7.1
-build/logs-db-curator: build/curator
-build/auto-idler: build/oc
-build/storage-calculator: build/oc
-build/api-db build/keycloak-db: build/mariadb
-build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
-build/broker: build/rabbitmq-cluster
-build/broker-single: build/rabbitmq
-build/drush-alias: build/nginx
-build/keycloak: build/commons
-build/harbor-database: build/postgres
-build/harborclair: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
-build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
-build/harborregistryctl: build/harborregistry
-build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
-
-# Auth SSH needs the context of the root folder, so we have it individually
-build/ssh: build/commons
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
-	touch $@
-service-images += ssh
-
-# Images for local helpers that exist in another folder than the service images
-localdevimages := local-git \
-									local-api-data-watcher-pusher
-service-images += $(localdevimages)
-build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
-
-$(build-localdevimages):
-	$(eval folder = $(subst build/local-,,$@))
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
-	touch $@
-
-# Images for local helpers that exist in another folder than the service images
-cliimages := cli
-service-images += $(cliimages)
-
-build/cli: build/ssh cli/Dockerfile
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),cli/Dockerfile,cli)
-	touch $@
-
-# Image with ansible test
-build/tests:
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
-	touch $@
-service-images += tests
-
-s3-images += $(service-images)
-
-#######
 ####### Commands
 #######
 ####### List of commands in our Makefile
-
-# Builds all Images
-.PHONY: build
-build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images),build/$(image))
-# Outputs a list of all Images we manage
-.PHONY: build-list
-build-list:
-	@for number in $(foreach image,$(build-images),build/$(image)); do \
-			echo $$number ; \
-	done
 
 # Define list of all tests
 all-tests-list:=	features \
@@ -619,22 +161,6 @@ $(end2end-all-tests): start-end2end-ansible
 end2end-tests/clean:
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
 
-# push command of our base images into minishift
-push-minishift-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-minishift]-$(image))
-# tag and push all images
-.PHONY: push-minishift
-push-minishift: minishift/login-docker-registry $(push-minishift-images)
-# tag and push of each image
-.PHONY: $(push-minishift-images)
-$(push-minishift-images):
-	$(eval image = $(subst [push-minishift]-,,$@))
-	$(eval image = $(subst __,:,$(image)))
-	$(info pushing $(image) to minishift registry)
-	if docker inspect $(CI_BUILD_TAG)/$(image) > /dev/null 2>&1; then \
-		docker tag $(CI_BUILD_TAG)/$(image) $$(cat minishift):30000/lagoon/$(image) && \
-		docker push $$(cat minishift):30000/lagoon/$(image) | cat; \
-	fi
-
 push-docker-host-image: minishift build\:docker-host minishift/login-docker-registry
 	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
 	docker push $$(cat minishift):30000/lagoon/docker-host | cat
@@ -644,115 +170,6 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build\:$(imag
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
-publish-amazeeio-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeio-baseimages-with-versions]-$(image))
-# tag and push all images
-.PHONY: publish-amazeeio-baseimages
-publish-amazeeio-baseimages: $(publish-amazeeio-baseimages) $(publish-amazeeio-baseimages-with-versions)
-
-
-# tag and push of each image
-.PHONY: $(publish-amazeeio-baseimages)
-$(publish-amazeeio-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages]-' first
-		$(eval image = $(subst [publish-amazeeio-baseimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_amazeeio,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
-
-
-# tag and push of base image with version
-.PHONY: $(publish-amazeeio-baseimages-with-versions)
-$(publish-amazeeio-baseimages-with-versions):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages-with-versions]-' first
-		$(eval image = $(subst [publish-amazeeio-baseimages-with-versions]-,,$@))
-#   The underline is a placeholder for a colon, replace that
-		$(eval image = $(subst __,:,$(image)))
-#		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
-#		We push a version without the `-latest` suffix
-		$(call docker_publish_amazeeio,$(image),$(image))
-#		Plus a version with the `-latest` suffix, this makes it easier for people with automated testing
-		$(call docker_publish_amazeeio,$(image),$(image)-latest)
-#		We add the Lagoon Version just as a dash
-		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
-
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
-publish-amazeeiolagoon-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeiolagoon-baseimages-with-versions]-$(image))
-# tag and push all images
-.PHONY: publish-amazeeiolagoon-baseimages
-publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages) $(publish-amazeeiolagoon-baseimages-with-versions)
-
-
-# tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-baseimages)
-$(publish-amazeeiolagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-baseimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# tag and push of base image with version
-.PHONY: $(publish-amazeeiolagoon-baseimages-with-versions)
-$(publish-amazeeiolagoon-baseimages-with-versions):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages-with-versions]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-baseimages-with-versions]-,,$@))
-#   The underline is a placeholder for a colon, replace that
-		$(eval image = $(subst __,:,$(image)))
-#		We add the Lagoon Version just as a dash
-		$(call docker_publish_amazeeiolagoon,$(image),$(image)-$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeiolagoon-serviceimages = $(foreach image,$(service-images),[publish-amazeeiolagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-amazeeiolagoon-serviceimages
-publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
-
-
-# tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-serviceimages)
-$(publish-amazeeiolagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
-# save all images to s3
-.PHONY: s3-save
-s3-save: $(s3-save)
-# tag and push of each image
-.PHONY: $(s3-save)
-$(s3-save):
-#   remove the prefix '[s3-save]-' first
-		$(eval image = $(subst [s3-save]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		docker save $(CI_BUILD_TAG)/$(image) $$(docker history -q $(CI_BUILD_TAG)/$(image) | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
-
-s3-load = $(foreach image,$(s3-images),[s3-load]-$(image))
-# save all images to s3
-.PHONY: s3-load
-s3-load: $(s3-load)
-# tag and push of each image
-.PHONY: $(s3-load)
-$(s3-load):
-#   remove the prefix '[s3-load]-' first
-		$(eval image = $(subst [s3-load]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		curl -s https://s3.us-east-2.amazonaws.com/lagoon-images/$(image).tar.gz | gunzip -c | docker load
-
-# Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
-# still active, so this is a very safe command)
-clean:
-	rm -rf build/*
 
 # Show Lagoon Service Logs
 logs:
@@ -890,18 +307,16 @@ endif
 
 .PHONY: push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
-	rm -rf build/oc-build-deploy-dind
-	$(MAKE) minishift/login-docker-registry build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
-
-
+	$(MAKE) minishift/login-docker-registry build:oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db
+ui-development: build\:api build\:api-db build\:local-api-data-watcher-pusher build\:ui build\:keycloak build\:keycloak-db
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db
 
-#
-# experimental dynamic build system that does away with the local build directory
-#
+#######
+####### Container image build system
+#######
+
 DOCKERFILES = $(shell find images services local-dev cli tests -type f -name 'Dockerfile*')
 DOCKERRULES = .docker.mk
 PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4
@@ -911,6 +326,13 @@ SOLR_VERSIONS := 5.5 6.6 7.5
 # IMPORTANT: only one of each minor version, as the images are tagged based on minor version
 ELASTIC_VERSIONS := 7.1.1 7.2.1 7.3.2
 
+# Build a docker image.
+# $1: image name
+# $2: Dockerfile path
+# $3: docker build context directory
+docker_build_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+
+# Build a docker image with a version build-arg.
 # $1: image name
 # $2: base image version
 # $3: image tag
@@ -918,15 +340,15 @@ ELASTIC_VERSIONS := 7.1.1 7.2.1 7.3.2
 # $5: docker build context directory
 docker_build_version_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg BASE_VERSION=$(2) -t $(CI_BUILD_TAG)/$(1):$(3) -f $(4) $(5)
 
-# $1: image name
-# $2: Dockerfile path
-# $3: docker build context directory
-docker_build_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+# Tag an image with the `amazeeio` repository and push it.
+# $1: source image name:tag
+# $2: target image name:tag
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2)
 
-include $(DOCKERRULES)
-
-# TODO:
-# - build:publish target
+# Tag an image with the `amazeeiolagoon` repository and push it.
+# $1: source image name:tag
+# $2: target image name:tag
+docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2)
 
 $(DOCKERRULES): $(DOCKERFILES) Makefile docker-build.awk docker-pull.awk
 	@# generate build commands for all lagoon docker images
@@ -949,3 +371,5 @@ $(DOCKERRULES): $(DOCKERFILES) Makefile docker-build.awk docker-pull.awk
 		-v SOLR_VERSIONS="$(SOLR_VERSIONS)" \
 		-v ELASTIC_VERSIONS="$(ELASTIC_VERSIONS)" \
 		>> $@
+
+include $(DOCKERRULES)
