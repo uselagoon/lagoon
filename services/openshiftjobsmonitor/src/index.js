@@ -47,14 +47,14 @@ const getJobStatus = jobInfo => {
   return 'unknown';
 };
 
-const failTask = async task => {
+const failTask = async taskId => {
   try {
-    await updateTask(task.id, {
+    await updateTask(taskId, {
       status: 'FAILED',
     });
   } catch (error) {
     logger.error(
-      `Could not fail task ${task.id}. Message: ${error}`
+      `Could not fail task ${taskId}. Message: ${error}`
     );
   }
 }
@@ -68,6 +68,7 @@ const messageConsumer = async msg => {
     }, task: ${task.id}`
   );
 
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
   const projectResult = await getOpenShiftInfoForProject(project.name);
   const projectOpenShift = projectResult.project;
 
@@ -128,7 +129,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Project ${openshiftProject} does not exist, bailing`);
-      failTask(task);
+      failTask(taskId);
       return;
     } else {
       logger.error(err);
@@ -145,7 +146,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Job ${jobName} does not exist, bailing`);
-      failTask(task);
+      failTask(taskId);
       return;
     } else {
       logger.error(err);
@@ -212,7 +213,7 @@ ${podLog}`;
       completedDate = dateOrNull(jobInfo.status.conditions[0].lastTransitionTime);
     }
 
-    await updateTask(task.id, {
+    await updateTask(taskId, {
       status: jobStatus.toUpperCase(),
       created: convertDateFormat(jobInfo.metadata.creationTimestamp),
       started: dateOrNull(jobInfo.status.startTime),
@@ -304,7 +305,7 @@ const saveTaskLog = async (jobName, projectName, jobInfo, log) => {
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
-  failTask(task);
+  failTask(taskId);
 
   sendToLagoonLogs(
     'error',
