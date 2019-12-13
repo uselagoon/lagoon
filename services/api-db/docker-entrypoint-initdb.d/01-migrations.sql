@@ -867,6 +867,7 @@ $$
 
 DELIMITER ;
 
+CALL add_availability_to_project();
 CALL add_production_environment_to_project();
 CALL add_ssh_to_openshift();
 CALL convert_project_pullrequest_to_varchar();
