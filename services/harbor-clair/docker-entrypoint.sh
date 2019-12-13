@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-/harbor/install_cert.sh
-exec "/dumb-init" "--" "/home/clair/clair" "-config" "/etc/clair/config.yaml"
+/home/clair/install_cert.sh
+exec "/home/clair/dumb-init" "--" "/home/clair/clair" "-config" "/etc/clair/config.yaml"
 set +e

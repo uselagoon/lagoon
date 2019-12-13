@@ -1,7 +1,7 @@
 FROM goharbor/clair-photon:v2.1.1-v1.10.0
 LABEL maintainer="amazee.io"
 
-COPY docker-entrypoint.sh /
+COPY docker-entrypoint.sh /home/clair/
 
 USER root
 
