@@ -24,7 +24,7 @@ const Project = ({ project }) => {
             {moment
               .utc(project.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss (z)')}
+              .format('DD MMM YYYY, HH:mm:ss (Z)')}
           </div>
         </div>
       </div>

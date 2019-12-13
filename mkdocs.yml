@@ -24,6 +24,7 @@ pages:
     - PHP CLI Drupal: using_lagoon/docker_images/php-cli-drupal.md
     - PHP CLI: using_lagoon/docker_images/php-cli.md
     - PHP-FPM: using_lagoon/docker_images/php-fpm.md
+    - Postgres: using_lagoon/docker_images/postgres.md
     - RabbitMQ: using_lagoon/docker_images/rabbitmq.md
     - Redis Permanent: using_lagoon/docker_images/redis-permanent.md
     - Redis: using_lagoon/docker_images/redis.md
@@ -61,6 +62,7 @@ pages:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md
   - Contributing: developing_lagoon/contributing.md
+  - API Debugging: developing_lagoon/api-debugging.md
 - Code Of Conduct: code_of_conduct.md
 theme: readthedocs
 
