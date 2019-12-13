@@ -43,7 +43,7 @@ interface IGroup {
 export const getAllProjectsNotInBillingGroup = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
   const sqlClient = getSqlClient(USE_SINGLETON);
-  const GroupModel = Group(keycloakAdminClient);
+  const GroupModel = Group({keycloakAdminClient });
 
   // GET ALL GROUPS
   const groups = await GroupModel.loadAllGroups();
@@ -73,7 +73,7 @@ export const getAllProjectsNotInBillingGroup = async () => {
 
 export const getAllBillingGroupsWithoutProjects = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group(keycloakAdminClient);
+  const GroupModel = Group({keycloakAdminClient });
 
   // Get All Billing Groups
   const groupTypeFilterFn = ({ name, value }, group) => {
@@ -102,7 +102,7 @@ export const getAllBillingGroupsWithoutProjects = async () => {
 
 export const deleteAllBillingGroupsWithoutProjects = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group(keycloakAdminClient);
+  const GroupModel = Group({keycloakAdminClient });
   const groups = await getAllBillingGroupsWithoutProjects();
   await Promise.all(
     groups.map(async group => {
