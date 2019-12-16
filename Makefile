@@ -308,8 +308,8 @@ else
 endif
 
 .PHONY: rebuild-push-oc-build-deploy-dind
-rebuild-push-oc-build-deploy-dind:
-	$(MAKE) minishift/login-docker-registry build:oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind: minishift/login-docker-registry build\:oc-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/oc-build-deploy-dind $$(cat minishift):30000/lagoon/oc-build-deploy-dind && docker push $$(cat minishift):30000/lagoon/oc-build-deploy-dind
 
 .PHONY: ui-development
 ui-development: build\:api build\:api-db build\:local-api-data-watcher-pusher build\:ui build\:keycloak build\:keycloak-db
