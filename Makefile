@@ -189,6 +189,7 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+.PHONY: openshift
 openshift:
 	$(info the openshift command has been renamed to minishift)
 
@@ -226,7 +227,8 @@ endif
 .PHONY: minishift/start
 minishift/start: minishift minishift/configure-lagoon-local push-docker-host-image
 
-minishift/login-docker-registry:
+.PHONY: minishift/login-docker-registry
+minishift/login-docker-registry: minishift
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login --insecure-skip-tls-verify -u developer -p developer $$(cat minishift):8443; \
 	oc whoami -t | docker login --username developer --password-stdin $$(cat minishift):30000
@@ -305,7 +307,7 @@ else
 	curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-$(ARCH)-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
 
-.PHONY: push-oc-build-deploy-dind
+.PHONY: rebuild-push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
 	$(MAKE) minishift/login-docker-registry build:oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
 
