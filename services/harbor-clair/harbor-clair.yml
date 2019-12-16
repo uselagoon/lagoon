@@ -90,6 +90,8 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        securityContext:
+          fsGroup: 10000
         containers:
         - name: ${CLAIR_SERVICE_NAME} # harbor-clair
           image: ${CLAIR_SERVICE_IMAGE}
