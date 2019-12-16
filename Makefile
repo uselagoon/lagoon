@@ -479,9 +479,7 @@ push-kubectl-build-deploy-dind: build\:kubectl-build-deploy-dind
 	docker push localhost:5000/lagoon/kubectl-build-deploy-dind
 
 .PHONY: rebuild-push-kubectl-build-deploy-dind
-rebuild-push-kubectl-build-deploy-dind:
-	rm -rf build/kubectl-build-deploy-dind
-	$(MAKE) push-kubectl-build-deploy-dind
+rebuild-push-kubectl-build-deploy-dind: push-kubectl-build-deploy-dind
 
 k3d-kubeconfig:
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name=$$(cat k3d))"
@@ -545,8 +543,8 @@ kubernetes-get-kubernetesbuilddeploy-token:
 	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
 .PHONY: rebuild-push-oc-build-deploy-dind
-rebuild-push-oc-build-deploy-dind:
-	$(MAKE) minishift/login-docker-registry build:oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
+rebuild-push-oc-build-deploy-dind: minishift/login-docker-registry build\:oc-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/oc-build-deploy-dind $$(cat minishift):30000/lagoon/oc-build-deploy-dind && docker push $$(cat minishift):30000/lagoon/oc-build-deploy-dind
 
 .PHONY: ui-development
 ui-development: build\:api build\:api-db build\:local-api-data-watcher-pusher build\:ui build\:keycloak build\:keycloak-db build\:broker build\:broker-single
