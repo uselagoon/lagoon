@@ -56,6 +56,13 @@ class NoNeedToDeployBranch extends Error {
   }
 }
 
+class NoNeedToRemoveBranch extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NoNeedToRemoveBranch';
+  }
+}
+
 class CannotDeleteProductionEnvironment extends Error {
   constructor(message: string) {
     super(message);
@@ -370,7 +377,14 @@ async function createPromoteTask(promoteData: Object) {
 }
 
 async function createRemoveTask(removeData: Object) {
-  const { projectName, branch, forceDeleteProductionEnvironment } = removeData;
+  const {
+    projectName,
+    branch,
+    branchName,
+    pullrequestTitle,
+    forceDeleteProductionEnvironment,
+    type,
+  } = removeData;
 
   const productionEnvironment = await getProductionEnvironmentForProject(
     projectName,
@@ -394,7 +408,101 @@ async function createRemoveTask(removeData: Object) {
 
   switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
-      return sendToLagoonTasks('remove-openshift', removeData);
+      if (type === 'branch') {
+        switch (project.branches) {
+          case undefined:
+          case null:
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
+            );
+            return sendToLagoonTasks('remove-openshift', removeData);
+          case 'true':
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
+            );
+            return sendToLagoonTasks('remove-openshift', removeData);
+          case 'false':
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
+            );
+            throw new NoNeedToRemoveBranch('Branch deployments disabled');
+          default: {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, regex ${
+                project.branches
+              }, testing if it matches`,
+            );
+            const branchRegex = new RegExp(project.branches);
+            if (branchRegex.test(branchName)) {
+              logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, regex ${
+                  project.branches
+                } matched branchname, starting deploy`,
+              );
+              return sendToLagoonTasks('remove-openshift', removeData);
+            }
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, regex ${
+                project.branches
+              } did not match branchname, not deploying`,
+            );
+            throw new NoNeedToDeployBranch(
+              `configured regex '${
+                project.branches
+              }' does not match branchname '${branchName}'`,
+            );
+          }
+        }
+      } else if (type === 'pullrequest') {
+        switch (project.pullrequests) {
+          case undefined:
+          case null:
+            logger.debug(
+              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
+            );
+            return sendToLagoonTasks('remove-openshift', removeData);
+          case 'true':
+            logger.debug(
+              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
+            );
+            return sendToLagoonTasks('remove-openshift', removeData);
+          case 'false':
+            logger.debug(
+              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
+            );
+            throw new NoNeedToDeployBranch('PullRequest deployments disabled');
+          default: {
+            logger.debug(
+              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
+                project.pullrequests
+              }, testing if it matches PR Title '${pullrequestTitle}'`,
+            );
+
+            const branchRegex = new RegExp(project.pullrequests);
+            if (branchRegex.test(pullrequestTitle)) {
+              logger.debug(
+                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
+                  project.pullrequests
+                } matched PR Title '${pullrequestTitle}', starting deploy`,
+              );
+              return sendToLagoonTasks('remove-openshift', removeData);
+            }
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, regex ${
+                project.pullrequests
+              } did not match PR Title, not removing`,
+            );
+            throw new NoNeedToDeployBranch(
+              `configured regex '${
+                project.pullrequests
+              }' does not match PR Title '${pullrequestTitle}'`,
+            );
+          }
+        }
+      } else if (type === 'promote') {
+        return sendToLagoonTasks('remove-openshift', removeData);
+      }
+      break;
 
     default:
       throw new UnknownActiveSystem(

@@ -5,7 +5,7 @@ Lagoon tries to run on a standard installation of OpenShift as possible, but it 
 
 ### OpenShift Version
 
-Currently Lagoon is tested and supported with OpenShift 3.9.
+Currently Lagoon is tested and supported with OpenShift 3.11.
 
 ### Permissions
 

@@ -24,6 +24,7 @@ const Button = ({ action = null, href = null, disabled, children }) => {
       <style jsx>
         {`
           .btn {
+            display: inline-block;
             background-color: ${color.lightBlue};
             border: none;
             border-radius: 3px;
