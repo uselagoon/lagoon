@@ -37,7 +37,7 @@ async function githubPullRequestClosed(webhook: WebhookRequestData, project: Pro
     try {
       const taskResult = await createRemoveTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:closed:handled`, meta,
-        `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> by <${user.html_url}|${user.login}> changed by <${sender.html_url}|${sender.login}> closed in <${body.repository.html_url}|${body.repository.full_name}>`
+        `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> by <${body.pull_request.user.html_url}|${body.pull_request.user.login}> changed by <${body.sender.html_url}|${body.sender.login}> closed in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;
     } catch (error) {
