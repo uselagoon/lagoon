@@ -847,6 +847,7 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+.PHONY: openshift
 openshift:
 	$(info the openshift command has been renamed to minishift)
 
@@ -882,7 +883,8 @@ endif
 	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
 	$(MAKE) minishift/configure-lagoon-local push-docker-host-image
 
-minishift/login-docker-registry:
+.PHONY: minishift/login-docker-registry
+minishift/login-docker-registry: minishift
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	oc login --insecure-skip-tls-verify -u developer -p developer $$(cat minishift):8443; \
 	oc whoami -t | docker login --username developer --password-stdin $$(cat minishift):30000
@@ -1112,7 +1114,7 @@ kubernetes-lagoon-setup:
 kubernetes-get-kubernetesbuilddeploy-token:
 	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
-.PHONY: push-oc-build-deploy-dind
+.PHONY: rebuild-push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
 	rm -rf build/oc-build-deploy-dind
 	$(MAKE) minishift/login-docker-registry build/oc-build-deploy-dind [push-minishift]-oc-build-deploy-dind
