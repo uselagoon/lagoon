@@ -59,6 +59,7 @@ oc --context=$source_context -n $SOURCE_NAMESPACE exec $source_api_db_pod -- cat
 
 
 destination_api_db_pod=$(oc --context=$destination_context -n $DESTINATION_NAMESPACE get pod -o custom-columns=NAME:.metadata.name --no-headers -l service=api-db)
+oc --context=$destination_context -n $DESTINATION_NAMESPACE exec -i $destination_api_db_pod -- sh -c "mkdir -p backup"
 oc --context=$destination_context -n $DESTINATION_NAMESPACE exec -i $destination_api_db_pod -- sh -c "cat > $source_api_db_backup" < /tmp/lagoon-sync/$source_api_db_backup
 oc --context=$destination_context -n $DESTINATION_NAMESPACE exec -i $destination_api_db_pod -- sh -c "zcat $source_api_db_backup | mysql infrastructure"
 
@@ -69,6 +70,7 @@ source_keycloak_db_backup=$(oc --context=$source_context -n $SOURCE_NAMESPACE ex
 oc --context=$source_context -n $SOURCE_NAMESPACE exec $source_keycloak_db_pod -- cat $source_keycloak_db_backup > /tmp/lagoon-sync/$source_keycloak_db_backup
 
 destination_keycloak_db_pod=$(oc --context=$destination_context -n $DESTINATION_NAMESPACE get pod -o custom-columns=NAME:.metadata.name --no-headers -l service=keycloak-db)
+oc --context=$destination_context -n $DESTINATION_NAMESPACE exec -i $destination_keycloak_db_pod -- sh -c "mkdir -p backup"
 oc --context=$destination_context -n $DESTINATION_NAMESPACE exec -i $destination_keycloak_db_pod -- sh -c "cat > $source_keycloak_db_backup" < /tmp/lagoon-sync/$source_keycloak_db_backup
 oc --context=$destination_context -n $DESTINATION_NAMESPACE exec -i $destination_keycloak_db_pod -- sh -c "zcat $source_keycloak_db_backup | mysql keycloak"
 
