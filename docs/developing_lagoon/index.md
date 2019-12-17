@@ -54,7 +54,10 @@ make logs
 make tests
 ```
 
-6\. Look what happens in OpenShift: [https://192.168.42.100:8443/console](https://192.168.42.100:8443/console) (developer/developer)
+6\. Look what happens in OpenShift (credentials: developer/developer).
+```sh
+echo "visit https://$(minishift --profile lagoon ip):8443/console"
+```
 
 ## Local Development
 
