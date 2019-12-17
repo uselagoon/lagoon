@@ -32,7 +32,7 @@ node {
         }
 
         stage ('build images') {
-          sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
+          sh "make -O${SYNC_MAKE_OUTPUT} -j6 build:all"
         }
 
         openshift_versions.each { openshift_version ->
@@ -53,14 +53,14 @@ node {
               'start minishift': {
                 stage ('start minishift') {
                   sh 'make minishift/cleanall || echo'
-                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                  sh "make minishift/start MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
                 }
               },
               'push images to amazeeiolagoon': {
                 stage ('push images to amazeeiolagoon/*') {
                   withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
                     sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                    sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish:amazeeiolagoon-baseimages publish:amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
                   }
                 }
               }
@@ -75,7 +75,7 @@ node {
             "_tests_${openshift_version}": {
                 stage ('run tests') {
                   try {
-                    sh "make -O${SYNC_MAKE_OUTPUT} -j5 push-minishift"
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j5 build:push-minishift"
                     sh "make up"
                     sh "make -O${SYNC_MAKE_OUTPUT} -j2 tests"
                   } catch (e) {
@@ -98,14 +98,14 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeio-baseimages"
+              sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish:amazeeio-baseimages"
             }
           }
         }
 
         if (env.BRANCH_NAME == 'master') {
           stage ('save-images-s3') {
-            sh "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save"
+            sh "make -O${SYNC_MAKE_OUTPUT} -j8 build:s3-save"
           }
         }
 
@@ -124,7 +124,6 @@ def cleanup() {
   try {
     sh "make down"
     sh "make minishift/cleanall"
-    sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }
