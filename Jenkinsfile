@@ -39,8 +39,13 @@ node {
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
 
+        stage ('pull base images') {
+          sh "make build:pull"
+          sh "cat pull-report.json"
+        }
+
         stage ('build images') {
-          sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
+          sh "make -O${SYNC_MAKE_OUTPUT} -j6 build:all"
         }
 
         try {
@@ -95,7 +100,7 @@ node {
                   try {
                     if (env.SKIP_IMAGE_PUBLISH != 'true') {
                       sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                      sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                      sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish:amazeeiolagoon-baseimages publish:amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
                     } else {
                       sh 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"'
                     }
@@ -118,14 +123,14 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeio-baseimages"
+              sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish:amazeeio-baseimages"
             }
           }
         }
 
         if (env.BRANCH_NAME == 'master' && env.SKIP_IMAGE_PUBLISH != 'true') {
           stage ('save-images-s3') {
-            sh "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save"
+            sh "make -O${SYNC_MAKE_OUTPUT} -j8 build:s3-save"
           }
         }
 
