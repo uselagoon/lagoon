@@ -23,7 +23,7 @@ node {
         }
 
         stage ('build images') {
-          sh "make build -j6"
+          sh "make -O -j6 build"
         }
 
         openshift_versions.each { openshift_version ->
@@ -51,7 +51,7 @@ node {
                 stage ('push images to amazeeiolagoon/*') {
                   withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
                     sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                    sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME} -j4"
+                    sh "make -O -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
                   }
                 }
               }
@@ -66,9 +66,9 @@ node {
             "_tests_${openshift_version}": {
                 stage ('run tests') {
                   try {
-                    sh "make push-minishift -j5"
+                    sh "make -O -j5 push-minishift"
                     sh "make up"
-                    sh "make tests -j2"
+                    sh "make -O -j2 tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -89,14 +89,14 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeio-baseimages -j4"
+              sh "make -O -j4 publish-amazeeio-baseimages"
             }
           }
         }
 
         if (env.BRANCH_NAME == 'master') {
           stage ('save-images-s3') {
-            sh "make s3-save -j8"
+            sh "make -O -j8 s3-save"
           }
         }
 
