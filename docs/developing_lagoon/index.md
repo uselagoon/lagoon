@@ -36,7 +36,7 @@ If still want to build and start all services, go ahead:
 2\. Build images
 
 ```sh
-make build
+make build:all
 ```
 
 3\. start Lagoon Services
@@ -76,15 +76,6 @@ The services not only share many node packages, but also share actual custom cod
 The API uses a puppet compatible yaml format to store it's data. On production this hiera is in another git repository. For local development there is a folder `local-hiera` which contains testdata that is used during development and testing, plus has no client related data in them. For easier development there is `local-hiera-watcher-pusher` which watches the `local-hiera` folder and on every changes pushes the changes into `local-git-server` which emulates a git server like it is on production. The api service is connecting to this local git server and updates it's data from it.
 
 ## Troubleshooting
-
-**I can't build any docker image for any Node.js based service**
-
-Rebuild the images via
-
-```sh
-make clean
-make build
-```
 
 **I get errors about missing node_modules content when I try to build / run a NodeJS based image**
 

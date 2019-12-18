@@ -15,7 +15,7 @@ This process consists of 3 main stages, which are in short:
 
 ### Configure existing OpenShift
 
-Hint: This also works with the OpenShift provided via MiniShift that can be started via `make minishift`.
+Hint: This also works with the OpenShift provided via MiniShift that can be started via `make minishift/start`.
 
 In order to create resources inside OpenShift and push into the OpenShift Registry, Lagoon needs a Service Account within OpenShift \([read more about Service Accounts](https://docs.openshift.org/latest/dev_guide/service_accounts.html)\).
 
