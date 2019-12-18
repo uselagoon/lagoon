@@ -93,8 +93,8 @@ objects:
         securityContext:
           fsGroup: 10000
         containers:
-        - name: ${CLAIR_SERVICE_NAME} # harborclair
-          image: ${CLAIR_SERVICE_IMAGE}
+        - name: ${HARBORCLAIR_SERVICE_NAME} # harborclair
+          image: ${HARBORCLAIR_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -130,8 +130,8 @@ objects:
           - name: config
             mountPath: /etc/clair/config.yaml
             subPath: config.yaml
-        - name: ${CLAIRADAPTER_SERVICE_NAME} # harborclairadapter
-          image: ${CLAIRADAPTER_SERVICE_IMAGE}
+        - name: ${HARBORCLAIRADAPTER_SERVICE_NAME} # harborclairadapter
+          image: ${HARBORCLAIRADAPTER_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
