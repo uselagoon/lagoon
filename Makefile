@@ -883,7 +883,7 @@ minishift/cleanall: minishift/stopall
 # installed, otherwise downloads it.
 local-dev/minishift/minishift:
 	@mkdir -p ./local-dev/minishift
-ifeq ($(MINISHIFT_VERSION), $(shell minishift version | sed -E 's/^minishift v([0-9.]+).*/\1/'))
+ifeq ($(MINISHIFT_VERSION), $(shell minishift version 2>/dev/null | sed -E 's/^minishift v([0-9.]+).*/\1/'))
 	$(info linking local minishift version $(MINISHIFT_VERSION))
 	ln -s $(shell command -v minishift) ./local-dev/minishift/minishift
 else
