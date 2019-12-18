@@ -6,10 +6,11 @@ COPY docker-entrypoint.sh /home/clair/
 USER root
 
 RUN chmod -R g+w /etc/pki/tls/certs \
+&& chgrp -R root /etc/pki/tls/certs \
 && chmod +x /home/clair/clair \
 && chmod -R g+w /config \
 && chgrp -R root /home/clair \
-&& chmod -R g+w /home/clair \
+&& chmod -R g+w /home/ \
 && mkdir -p /etc/clair \
 && chmod -R g+w /etc/clair \
 && touch /etc/clair/config.yaml
