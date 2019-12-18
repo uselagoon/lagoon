@@ -90,8 +90,6 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
-        securityContext:
-          fsGroup: 10000
         containers:
         - name: ${HARBORCLAIR_SERVICE_NAME} # harborclair
           image: ${HARBORCLAIR_SERVICE_IMAGE}
