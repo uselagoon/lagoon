@@ -42,16 +42,16 @@ parameters:
     description: Pullable image of clair adapter service
     required: true
   - name: CLAIR_SERVICE_NAME
-    description: Pullable image of clair service
-    value: harbor-clair
+    description: Name of clair service
+    value: harborclair
   - name: CLAIRADAPTER_SERVICE_NAME
-    description: Pullable image of clair adapter service
-    value: harbor-clairadapter
+    description: Name of clair adapter service
+    value: harborclairadapter
 objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: ${SERVICE_NAME} # harbor-clair
+    name: ${SERVICE_NAME} # harborclair
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -71,7 +71,7 @@ objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: ${SERVICE_NAME} # harbor-clair
+    name: ${SERVICE_NAME} # harborclair
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -90,8 +90,10 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
+        securityContext:
+          fsGroup: 10000
         containers:
-        - name: ${CLAIR_SERVICE_NAME} # harbor-clair
+        - name: ${CLAIR_SERVICE_NAME} # harborclair
           image: ${CLAIR_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
@@ -128,7 +130,7 @@ objects:
           - name: config
             mountPath: /etc/clair/config.yaml
             subPath: config.yaml
-        - name: ${CLAIRADAPTER_SERVICE_NAME}
+        - name: ${CLAIRADAPTER_SERVICE_NAME} # harborclairadapter
           image: ${CLAIRADAPTER_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
@@ -162,4 +164,4 @@ objects:
         volumes:
         - name: config
           configMap:
-            name: ${SERVICE_NAME} # harbor-clair
+            name: ${SERVICE_NAME}
