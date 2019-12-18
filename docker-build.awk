@@ -1,6 +1,7 @@
 #!/usr/bin/awk -f
 
-# generate rules to build all dockerfiles in the repository
+# Generate rules to build and manipulate lagoon docker images.
+# For usage, see the Makefile.
 
 # use the Dockerfile path to generate a make target
 function genTarget(dockerfile)
@@ -169,6 +170,7 @@ function genBuildRules(fullTarget, dockerfile) {
 	return rules
 }
 
+# generate the s3-save rules
 function genSaveRules(allTags) {
 	split(allTags, tags, " ")
 	allRules = "build\:s3-save:"
@@ -185,9 +187,10 @@ function genSaveRules(allTags) {
 					" | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/" \
 					tags[i] ".tar.gz\n"
 	}
-	return allRules "\n" rules
+	return allRules " ## Save container images to S3\n" rules
 }
 
+# generate the s3-load rules
 function genLoadRules(allTags) {
 	split(allTags, tags, " ")
 	allRules = "build\:s3-load:"
@@ -202,10 +205,10 @@ function genLoadRules(allTags) {
 					"\tcurl -s https://s3.us-east-2.amazonaws.com/lagoon-images/" \
 					tags[i] ".tar.gz | gunzip -c | docker load\n"
 	}
-	return allRules "\n" rules
+	return allRules " ## Load container images from S3\n" rules
 }
 
-# generate the push-minishift recipe
+# generate the push-minishift rules
 function genPushMinishiftRules(allTags) {
 	split(allTags, tags, " ")
 	allRules = "build\:push-minishift:"
@@ -232,10 +235,10 @@ function genPushMinishiftRules(allTags) {
 					"\t\tdocker push $$(cat minishift):30000/lagoon/" tags[i] "; \\\n" \
 					"\tfi\n"
 	}
-	return allRules "\n" rules
+	return allRules " ## Push any available built images to the local minishift registry\n" rules
 }
 
-# generate the publish:amazeeio-baseimages recipe
+# generate the publish:amazeeio-baseimages rules
 function genPublishAmazeeioBaseimages(allTags) {
 	split(allTags, tags, " ")
 	allRules = "publish\:amazeeio-baseimages:"
@@ -268,10 +271,10 @@ function genPublishAmazeeioBaseimages(allTags) {
 						"\t$(call docker_publish_amazeeio," tags[i] "," tags[i] ":$(LAGOON_VERSION))\n"
 		}
 	}
-	return allRules "\n" rules
+	return allRules " ## Push base images to the amazeeio org on docker hub\n" rules
 }
 
-# generate the publish:amazeeiolagoon-baseimages recipe
+# generate the publish:amazeeiolagoon-baseimages rules
 function genPublishAmazeeiolagoonBaseimages(allTags) {
 	split(allTags, tags, " ")
 	allRules = "publish\:amazeeiolagoon-baseimages:"
@@ -300,16 +303,16 @@ function genPublishAmazeeiolagoonBaseimages(allTags) {
 						"\t$(call docker_publish_amazeeiolagoon," tags[i] "," tags[i] ":$(BRANCH_NAME))\n"
 		}
 	}
-	return allRules "\n" rules
+	return allRules " ## Push base images to the amazeeiolagoon org on docker hub\n" rules
 }
 
-# generate the publish:amazeeiolagoon-serviceimages recipe
+# generate the publish:amazeeiolagoon-serviceimages rules
 function genPublishAmazeeiolagoonServiceimages(allTags) {
 	split(allTags, tags, " ")
 	allRules = "publish\:amazeeiolagoon-serviceimages:"
 	rules = ""
 	for (i in tags) {
-		# select only the base images
+		# select only the service images
 		if (tags[i] !~ /^(api|auth|auto|broker|cli|drush-alias$|harbor)/ &&
 				tags[i] !~ /^(keycloak|local|logs-|logs2|openshift|rest|ssh)/ &&
 				tags[i] !~ /^(storage|tests$|ui|webhook)/) {
@@ -322,7 +325,7 @@ function genPublishAmazeeiolagoonServiceimages(allTags) {
 		rules = rules ".PHONY: " cleanTarget "\n" cleanTarget ":\n" \
 						 "\t$(call docker_publish_amazeeiolagoon," tags[i] "," tags[i] ":$(BRANCH_NAME))\n"
 	}
-	return allRules "\n" rules
+	return allRules " ## Push service images to the amazeeio org on docker hub\n" rules
 }
 
 # set the field separator so that
@@ -363,15 +366,15 @@ END {
 	printf genPublishAmazeeiolagoonBaseimages(allTags)
 	printf genPublishAmazeeiolagoonServiceimages(allTags)
 	# print the build:all target, with dependencies on all others
-	print "build\:all:" allTargets
+	print "build\:all:" allTargets " ## Build all lagoon images"
 	# .PHONY-ify all the things
 	print ".PHONY: build\:all build\:list build\:s3-save build\:s3-load" \
 					 " build\:push-minishift publish\:amazeeio-baseimages" \
 					 " publish\:amazeeiolagoon-baseimages" \
 					 " publish\:amazeeiolagoon-serviceimages" allTargets
-	# generate the build-list recipe
+	# generate the build-list rule
 	# this one is last because we mutate allTargets for it
 	gsub(/\\/, "", allTargets)
 	gsub(/ /, "\\n", allTargets)
-	print "build\:list:\n\t@printf \"build:all" allTargets "\\n\""
+	print "build\:list: ## List all image build targets\n\t@printf \"build:all" allTargets "\\n\""
 }

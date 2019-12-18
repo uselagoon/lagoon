@@ -7,11 +7,15 @@ SHELL := /bin/bash
 #
 # The main commands are:
 #
-# make build:all - build all images
-# make build:list - list all the generated build targets
-# make build:s3-save - save to s3
-# make build:s3-load - load from s3
-# make build:pull - pulls all the base images that lagoon builds on into the local cache. It then generates a pull-report.json containing the image names/tags and hashes of these base images.
+# make help           show a list of the main commands
+# make build:all      build all images
+# make build:list     list all the generated build targets
+# make build:s3-save  save to s3
+# make build:s3-load  load from s3
+# make build:pull     pulls all the base images that lagoon builds on into the
+#                     local docker cache, and generates pull-report.json
+#                     containing the image names/tags and hashes of these base
+#                     images.
 
 # make tests/<testname>
 # Runs individual tests. In a nutshell it does:
@@ -42,6 +46,10 @@ SHELL := /bin/bash
 
 # make minishift/clean
 # Removes all openshift related things: OpenShift itself and the minishift cli
+
+.PHONY: help
+help: ## Display this help section
+	@awk 'BEGIN {FS = ": .*## "} /^[\\:\/a-zA-Z0-9_-]+: .*## / { sub(/\\/, ""); printf "\033[36m%-36s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 #######
 ####### Default Variables
@@ -87,13 +95,11 @@ all-tests-list:=	features \
 									elasticsearch
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
-# Run all tests
 .PHONY: tests
-tests: $(all-tests)
+tests: $(all-tests) ## Run all tests
 
-# List of tests existing
 .PHONY: tests-list
-tests-list:
+tests-list: ## List all tests
 	@for number in $(all-tests); do \
 			echo $$number ; \
 	done
@@ -171,12 +177,10 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build\:$(imag
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
 
-# Show Lagoon Service Logs
-logs:
+logs: ## Show Lagoon service logs
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) logs --tail=10 -f $(service)
 
-# Start all Lagoon Services
-up:
+up: ## Start all Lagoon services
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
 	grep -m 1 ".opendistro_security index does not exist yet" <(docker-compose -p $(CI_BUILD_TAG) logs -f logs-db 2>&1)
 	while ! docker exec "$$(docker-compose -p $(CI_BUILD_TAG) ps -q logs-db)" ./securityadmin_demo.sh; do sleep 5; done
@@ -185,8 +189,7 @@ up:
 down:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v
 
-# kill all containers containing the name "lagoon"
-kill:
+kill: ## Kill all containers containing the name "lagoon"
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
 .PHONY: openshift
@@ -225,7 +228,7 @@ endif
 	for i in {10..30}; do oc --context="myproject/$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip | sed 's/\./-/g'):8443/system:admin" patch pv pv00$${i} -p '{"spec":{"storageClassName":"bulk"}}'; done;
 
 .PHONY: minishift/start
-minishift/start: minishift minishift/configure-lagoon-local push-docker-host-image
+minishift/start: minishift minishift/configure-lagoon-local push-docker-host-image ## Create and start local minishift cluster, and configure for Lagoon
 
 .PHONY: minishift/login-docker-registry
 minishift/login-docker-registry: minishift
@@ -273,9 +276,8 @@ minishift/configure-lagoon-local: minishift openshift-lagoon-setup
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140;
 
-# Stop MiniShift
 .PHONY: minishift/stop
-minishift/stop: local-dev/minishift/minishift
+minishift/stop: local-dev/minishift/minishift ## Stop and remove local minishift cluster
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) delete --force
 	rm -f minishift
 
@@ -285,9 +287,8 @@ minishift/stopall: local-dev/minishift/minishift
 	for profile in $$(./local-dev/minishift/minishift profile list | awk '{ print $$2 }'); do ./local-dev/minishift/minishift --profile $$profile delete --force; done
 	rm -f minishift
 
-# Stop MiniShift, remove downloaded minishift
 .PHONY: minishift/clean
-minishift/clean: minishift/stop
+minishift/clean: minishift/stop ## Stop and remove local minishift cluster, and remove local client binary
 	rm -rf ./local-dev/minishift/minishift
 
 # Stop All Minishifts, remove downloaded minishift

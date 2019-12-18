@@ -57,7 +57,7 @@ $2 ~ /^docker.elastic.co/ {
 }
 
 END {
-	print "build\:pull:"
+	print "build\:pull: ## Pull all third-party images that Lagoon bases its images on, and write report to pull-report.json"
 	print "\tumask 077 && PULL_REPORT_TMP=$$(mktemp) && \\"
 	printf pullCmdList | "sort -u"
 	print "\tawk 'BEGIN {json = \"[\"} {json = json $$0} END {sub(/,$$/, \"\", json); print json \"]\"}' $$PULL_REPORT_TMP > pull-report.json"
