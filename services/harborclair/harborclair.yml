@@ -35,16 +35,16 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
-  - name: CLAIR_SERVICE_IMAGE
+  - name: HARBORCLAIR_SERVICE_IMAGE
     description: Pullable image of clair service
     required: true
-  - name: CLAIRADAPTER_SERVICE_IMAGE
+  - name: HARBORCLAIRADAPTER_SERVICE_IMAGE
     description: Pullable image of clair adapter service
     required: true
-  - name: CLAIR_SERVICE_NAME
+  - name: HARBORCLAIR_SERVICE_NAME
     description: Name of clair service
     value: harborclair
-  - name: CLAIRADAPTER_SERVICE_NAME
+  - name: HARBORCLAIRADAPTER_SERVICE_NAME
     description: Name of clair adapter service
     value: harborclairadapter
 objects:
@@ -118,7 +118,7 @@ objects:
           - name: HTTPS_PROXY
             value: ""
           - name: NO_PROXY
-            value: "harbor-core,harbor-jobservice,harbor-database,harbor-clair,harbor-clairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal"
+            value: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal"
           - name: CLAIR_DB_PASSWORD
             valueFrom:
               secretKeyRef:

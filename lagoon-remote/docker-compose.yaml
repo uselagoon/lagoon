@@ -34,12 +34,14 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: harborclair/harborclair.yml
+      lagoon.name: harborclair
       lagoon.image: amazeeiolagoon/harborclair:master
   harborclairadapter:
     image: ${IMAGE_REPO:-lagoon}/harborclairadapter
     labels:
       lagoon.type: custom
       lagoon.template: harborclairadapter/harborclair.yml
+      lagoon.name: harborclair
       lagoon.image: amazeeiolagoon/harborclairadapter:master
   harbor-core:
     image: ${IMAGE_REPO:-lagoon}/harbor-core
