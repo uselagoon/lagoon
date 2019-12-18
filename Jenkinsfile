@@ -31,6 +31,11 @@ node {
           sh "git fetch --tags"
         }
 
+        stage ('pull base images') {
+          sh "make build:pull"
+          sh "cat pull-report.json"
+        }
+
         stage ('build images') {
           sh "make -O${SYNC_MAKE_OUTPUT} -j6 build:all"
         }
