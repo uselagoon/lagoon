@@ -37,12 +37,6 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ""
-  - name: ELASTICSEARCH_HOST
-    description: Elasticsearch host to use
-    value: "logs-db-service"
-  - name: ELASTICSEARCH_HOST_PORT
-    description: Elasticsearch host port to use
-    value: 9200
 objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
