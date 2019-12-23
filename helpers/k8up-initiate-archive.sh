@@ -44,7 +44,7 @@ if oc get customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
     TEMPLATE_PARAMETERS=()
 
     # Run Archive on Monday at 0300-0600
-    ARCHIVE_SCHEDULE=$( $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(6-12) * * 2")
+    ARCHIVE_SCHEDULE=$( $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(6-12) 2 * *")
     TEMPLATE_PARAMETERS+=(-p ARCHIVE_SCHEDULE="${ARCHIVE_SCHEDULE}")
 
     TEMPLATE_PARAMETERS+=(-p ARCHIVE_BUCKET="${ARCHIVE_BUCKET}")
