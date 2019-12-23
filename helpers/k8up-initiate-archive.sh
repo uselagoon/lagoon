@@ -39,19 +39,24 @@ SERVICE_NAME="none"
 # If restic backups are supported by this cluster we create the schedule definition
 if oc get customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
 
-  TEMPLATE_PARAMETERS=()
+  # create archive only if there is a backup-schedule already existing for this project
+  if oc -n ${OPENSHIFT_PROJECT} get schedule backup-schedule 2> /dev/null; then
+    TEMPLATE_PARAMETERS=()
 
-  # Run Archive on Monday at 0300-0600
-  ARCHIVE_SCHEDULE=$( $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(6-12) * * 2")
-  TEMPLATE_PARAMETERS+=(-p ARCHIVE_SCHEDULE="${ARCHIVE_SCHEDULE}")
+    # Run Archive on Monday at 0300-0600
+    ARCHIVE_SCHEDULE=$( $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(6-12) * * 2")
+    TEMPLATE_PARAMETERS+=(-p ARCHIVE_SCHEDULE="${ARCHIVE_SCHEDULE}")
 
-  TEMPLATE_PARAMETERS+=(-p ARCHIVE_BUCKET="${ARCHIVE_BUCKET}")
+    TEMPLATE_PARAMETERS+=(-p ARCHIVE_BUCKET="${ARCHIVE_BUCKET}")
 
-  OPENSHIFT_TEMPLATE="$(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/openshift-templates/backup-archive-schedule.yml"
-  .  $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/exec-openshift-resources.sh
+    OPENSHIFT_TEMPLATE="$(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/openshift-templates/backup-archive-schedule.yml"
+    .  $(git rev-parse --show-toplevel)/images/oc-build-deploy-dind/scripts/exec-openshift-resources.sh
 
-  oc apply -n ${OPENSHIFT_PROJECT} -f /tmp/k8up-archive-initiate.yml
-  rm /tmp/k8up-archive-initiate.yml
+    oc apply -n ${OPENSHIFT_PROJECT} -f /tmp/k8up-archive-initiate.yml
+    rm /tmp/k8up-archive-initiate.yml
+  else
+    echo "${OPENSHIFT_PROJECT}: No backup-schedule found for project, not creating an archive-schedule"
+  fi
 else
   echo "k8up is not supported by this cluster"
   exit 1
