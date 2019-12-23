@@ -40,7 +40,7 @@ SERVICE_NAME="none"
 if oc get customresourcedefinition schedules.backup.appuio.ch > /dev/null; then
 
   # create archive only if there is a backup-schedule already existing for this project
-  if oc -n ${OPENSHIFT_PROJECT} get schedule backup-schedule 2> /dev/null; then
+  if oc -n ${OPENSHIFT_PROJECT} get schedule backup-schedule &> /dev/null; then
     TEMPLATE_PARAMETERS=()
 
     # Run Archive on Monday at 0300-0600
