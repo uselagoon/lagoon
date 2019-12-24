@@ -42,6 +42,10 @@ objects:
   kind: Schedule
   metadata:
     name: archive-schedule
+    labels:
+      schedule: archive
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
   spec:
     archive:
       restoreMethod:

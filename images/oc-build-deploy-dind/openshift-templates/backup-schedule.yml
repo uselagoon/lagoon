@@ -45,6 +45,10 @@ objects:
   kind: Schedule
   metadata:
     name: backup-schedule
+    labels:
+      schedule: backup
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
   spec:
     backend:
       repoPasswordSecretRef:
