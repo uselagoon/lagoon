@@ -1,7 +1,5 @@
 #!/bin/bash
 
-POD_RUN_INTERVAL=180
-
 DEVELOPMENT_ENVIRONMENTS=$(cat $2)
 # Filter only projects that actually have an environment
 # Loop through each found project
