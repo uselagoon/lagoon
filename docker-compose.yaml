@@ -409,6 +409,8 @@ services:
     volumes:
       - './services/auto-idler/idle-services.sh:/idle-services.sh'
       - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
+      - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
+      - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
       - './services/auto-idler/create_jwt.sh:/create_jwt.sh'
     labels:
       lagoon.type: custom
