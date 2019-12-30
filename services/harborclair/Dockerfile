@@ -8,6 +8,7 @@ USER root
 RUN chmod -R g+w /etc/pki/tls/certs \
 && chgrp -R root /etc/pki/tls/certs \
 && chmod +x /home/clair/clair \
+&& chmod +x /home/clair/dumb-init \
 && chmod -R g+w /config \
 && chgrp -R root /home/clair \
 && chmod -R g+w /home/ \
