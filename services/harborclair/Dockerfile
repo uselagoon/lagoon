@@ -16,4 +16,4 @@ RUN chmod -R g+w /etc/pki/tls/certs \
 && chmod -R g+w /etc/clair \
 && touch /etc/clair/config.yaml
 
-USER 10000
+USER clair
