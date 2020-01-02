@@ -76,13 +76,13 @@ Now you should be able to test Varnish, here a short example assuming there is a
 
 1. Run `curl -I drupal-example.docker.amazee.io/node/1` and look for these Headers:
     - `X-LAGOON` should include `varnish` which tells you that the request actually went through `varnish`
-    - `Age:` will be still `0` as varnish probably never saw this site before and the first request will warm the varnish cache.
+    - `Age:` will be still `0` as Varnish probably never saw this site before and the first request will warm the varnish cache.
     - `X-Varnish-Cache` will be `MISS` telling you as well that Varnish didn't find a previously cached version of this request.
-2. Now run `curl -I drupal-example.docker.amazee.io/node/1` again and the Headers should now be:
+2. Now run `curl -I drupal-example.docker.amazee.io/node/1` again and the headers should now be:
     - `Age:` will show you how many seconds ago the request has been cached, in our example it will probably something between 1-30, depending on how fast you are executing the command
-    - `X-Varnish-Cache` will be `HIT`, telling you that varnish successfully found a cached version of the request and returned that one to you.
+    - `X-Varnish-Cache` will be `HIT`, telling you that Varnish successfully found a cached version of the request and returned that one to you.
 3. Change the Node 1 in Drupal
-4. Run `curl -I drupal-example.docker.amazee.io/node/1` and the Headers should be like on the very first request:
+4. Run `curl -I drupal-example.docker.amazee.io/node/1` and the headers should be like on the very first request:
     - `Age:0`
     - `X-Varnish-Cache: MISS`
 
