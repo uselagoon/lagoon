@@ -7,7 +7,7 @@
 - include: features/remote-shell.yaml
   vars:
     testname: "REMOTE SHELL"
-    node_version: 8
+    node_version: 10
     git_repo_name: features.git
     project: ci-features
     branch: remoteshell
@@ -45,7 +45,7 @@
 - include: features/openshift-limit.yaml
   vars:
     testname: "openshift-character-limit"
-    node_version: 8
+    node_version: 10
     git_repo_name: features.git
     project: ci-features
     branch: very-long-branch-name-what-would-otherwise-overflow-the-sixty-three-limit

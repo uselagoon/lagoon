@@ -252,21 +252,12 @@ build/python__2.7-ckandatapusher: build/python__2.7
 #######
 ####### PHP Images are alpine linux based PHP images.
 
-phpimages := 	php__5.6-fpm \
-				php__7.0-fpm \
-				php__7.1-fpm  \
-				php__7.2-fpm \
+phpimages := 	php__7.2-fpm \
 				php__7.3-fpm \
 				php__7.4-fpm \
-				php__5.6-cli \
-				php__7.0-cli \
-				php__7.1-cli \
 				php__7.2-cli \
 				php__7.3-cli \
 				php__7.4-cli \
-				php__5.6-cli-drupal \
-				php__7.0-cli-drupal \
-				php__7.1-cli-drupal \
 				php__7.2-cli-drupal \
 				php__7.3-cli-drupal \
 				php__7.4-cli-drupal
@@ -294,16 +285,10 @@ $(build-phpimages): build/commons
 base-images-with-versions += $(phpimages)
 s3-images += $(phpimages)
 
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm build/php__7.4-fpm: images/commons
-build/php__5.6-cli: build/php__5.6-fpm
-build/php__7.0-cli: build/php__7.0-fpm
-build/php__7.1-cli: build/php__7.1-fpm
+build/php__7.2-fpm build/php__7.3-fpm build/php__7.4-fpm: images/commons
 build/php__7.2-cli: build/php__7.2-fpm
 build/php__7.3-cli: build/php__7.3-fpm
 build/php__7.4-cli: build/php__7.4-fpm
-build/php__5.6-cli-drupal: build/php__5.6-cli
-build/php__7.0-cli-drupal: build/php__7.0-cli
-build/php__7.1-cli-drupal: build/php__7.1-cli
 build/php__7.2-cli-drupal: build/php__7.2-cli
 build/php__7.3-cli-drupal: build/php__7.3-cli
 build/php__7.4-cli-drupal: build/php__7.4-cli
@@ -314,13 +299,13 @@ build/php__7.4-cli-drupal: build/php__7.4-cli
 ####### Solr Images are alpine linux based Solr images.
 
 solrimages := 	solr__5.5 \
-								solr__6.6 \
-								solr__7.5 \
-								solr__5.5-drupal \
-								solr__6.6-drupal \
-								solr__7.5-drupal \
-								solr__5.5-ckan \
-								solr__6.6-ckan
+				solr__6.6 \
+				solr__7.5 \
+				solr__5.5-drupal \
+				solr__6.6-drupal \
+				solr__7.5-drupal \
+				solr__5.5-ckan \
+				solr__6.6-ckan
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -352,16 +337,12 @@ build/solr__6.6-ckan: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__12 \
-						node__10 \
-						node__9 \
-						node__8 \
-						node__6 \
-						node__12-builder \
-						node__10-builder \
-						node__9-builder \
-						node__8-builder \
-						node__6-builder
+nodeimages := 	node__12 \
+				node__10 \
+				node__9 \
+				node__12-builder \
+				node__10-builder \
+				node__9-builder \
 
 build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 
@@ -381,12 +362,10 @@ $(build-nodeimages): build/commons
 base-images-with-versions += $(nodeimages)
 s3-images += $(nodeimages)
 
-build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__9 build/node__10 build/node__12: images/commons images/node/Dockerfile
 build/node__12-builder: build/node__12 images/node/builder/Dockerfile
 build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 build/node__9-builder: build/node__9 images/node/builder/Dockerfile
-build/node__8-builder: build/node__8 images/node/builder/Dockerfile
-build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 
 #######
 ####### Service Images
@@ -403,44 +382,44 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 	touch $@
 
 # Variables of service images we manage and build
-services :=       api \
-									auth-server \
-									logs2email \
-									logs2slack \
-									logs2rocketchat \
-									logs2microsoftteams \
-									openshiftbuilddeploy \
-									openshiftbuilddeploymonitor \
-									openshiftjobs \
-									openshiftjobsmonitor \
-									openshiftmisc \
-									openshiftremove \
-									rest2tasks \
-									webhook-handler \
-									webhooks2tasks \
-									broker \
-									broker-single \
-									logs-forwarder \
-									logs-db \
-									logs-db-ui \
-									logs-db-curator \
-									logs2logs-db \
-									auto-idler \
-									storage-calculator \
-									api-db \
-									drush-alias \
-									keycloak \
-									keycloak-db \
-									ui \
-									harbor-clair \
-									harbor-core \
-									harbor-database \
-									harbor-jobservice \
-									harbor-nginx \
-									harbor-portal \
-									harbor-redis \
-									harborregistry \
-									harborregistryctl
+services :=     api \
+				auth-server \
+				logs2email \
+				logs2slack \
+				logs2rocketchat \
+				logs2microsoftteams \
+				openshiftbuilddeploy \
+				openshiftbuilddeploymonitor \
+				openshiftjobs \
+				openshiftjobsmonitor \
+				openshiftmisc \
+				openshiftremove \
+				rest2tasks \
+				webhook-handler \
+				webhooks2tasks \
+				broker \
+				broker-single \
+				logs-forwarder \
+				logs-db \
+				logs-db-ui \
+				logs-db-curator \
+				logs2logs-db \
+				auto-idler \
+				storage-calculator \
+				api-db \
+				drush-alias \
+				keycloak \
+				keycloak-db \
+				ui \
+				harbor-clair \
+				harbor-core \
+				harbor-database \
+				harbor-jobservice \
+				harbor-nginx \
+				harbor-portal \
+				harbor-redis \
+				harborregistry \
+				harborregistryctl
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera
@@ -537,16 +516,16 @@ build-list:
 
 # Define list of all tests
 all-tests-list:=	features \
-									node \
-									drupal \
-									drupal-postgres \
-									drupal-galera \
-									github \
-									gitlab \
-									bitbucket \
-									rest \
-									nginx \
-									elasticsearch
+					node \
+					drupal \
+					drupal-postgres \
+					drupal-galera \
+					github \
+					gitlab \
+					bitbucket \
+					rest \
+					nginx \
+					elasticsearch
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 # Run all tests
@@ -575,7 +554,7 @@ $(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/o
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
-tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
@@ -586,7 +565,7 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
-$(run-webhook-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift
+$(run-webhook-tests): openshift build/node__10-builder build/node__12-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
