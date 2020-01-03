@@ -2,9 +2,8 @@ ARG PYTHON_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/python:${PYTHON_VERSION}
 
-RUN apk update \
-    && apk upgrade \
-    && apk add --no-cache git \
+RUN apk add --no-cache \
+    git \
     libpq \
     postgresql-dev \
     gcc \
@@ -13,7 +12,9 @@ RUN apk update \
     libxslt-dev \
     libxml2-dev \
     libffi-dev \
-    pcre-dev
+    pcre-dev \
+    uwsgi-http \
+    uwsgi-python
 
 RUN virtualenv /app/ckan/datapusher
 
@@ -22,7 +23,6 @@ RUN mkdir -p /app/ckan/datapusher/src \
     && fix-permissions /app/ckan \
     && ln -s /app/ckan /usr/lib/ckan \
     && . /app/ckan/datapusher/bin/activate \
-    && pip install uwsgi \
     && cd /app/ckan/datapusher/src \
     && git clone -b 0.0.14 https://github.com/ckan/datapusher.git \
     && cd datapusher \
@@ -33,4 +33,4 @@ RUN mkdir -p /app/ckan/datapusher/src \
 
 ENV LISTEN_PORT=8800
 
-CMD ["sh", "-c", ". /app/ckan/datapusher/bin/activate && uwsgi --http :${LISTEN_PORT} --wsgi-file /etc/ckan/datapusher.wsgi"]
+CMD ["sh", "-c", ". /app/ckan/datapusher/bin/activate && uwsgi --need-plugins http,python --http :${LISTEN_PORT} --wsgi-file /etc/ckan/datapusher.wsgi"]
