@@ -2,7 +2,7 @@ FROM goharbor/harbor-core:v1.10.0
 LABEL maintainer="amazee.io"
 
 COPY entrypoint.sh /
-COPY 0015_1.10.0_schema.up.sql /harbor/migrations/postgres/
+COPY 0015_1.10.0_schema.up.sql /harbor/migrations/postgresql/
 
 USER root
 
