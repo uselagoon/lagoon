@@ -1,10 +1,11 @@
 # php-fpm Image
 
-Lagoon `php-fpm` Docker image, based on the official PHP Alpine images at (https://hub.docker.com/_/php/).
+Lagoon `php-fpm` Docker image, based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
 The supported versions of PHP on Lagoon are 7.2 and 7.3.  Older versions (5.6, 7.0, 7.1) may also be available for compatibility, and more recent versions (7.4) wil be available for testing.
 
-This Dockerfile is intended to be used as an base for any php needs within Lagoon.
-This image itself does not create a webserver, rather just an php-fpm fastcgi listener. You maybe need to adapt the php-fpm pool config.
+!!!hint
+    This Dockerfile is intended to be used as a base for any php needs within Lagoon.
+    This image itself does not create a webserver, rather just a php-fpm fastcgi listener. You may need to adapt the php-fpm pool config.
 
 ## Lagoon & OpenShift adaptions
 
@@ -18,19 +19,23 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 ## Included php config
 
 The included php config contains sane values that will make the creation of php pools configs easier.
-Here a list these, check `/usr/local/etc/php.ini`, `/usr/local/etc/php-fpm.conf` for all of it:
+Here is a list of some of these, check `/usr/local/etc/php.ini`, `/usr/local/etc/php-fpm.conf` for all of it:
 
-- `max_execution_time = 900` (changeable via `PHP_MAX_EXECUTION_TIME`)
-- `realpath_cache_size = 256k` for handling big php projects
-- `memory_limit = 400M` for big php projects (changeable via `PHP_MEMORY_LIMIT`)
-- `opcache.memory_consumption = 265` for big php projects
-- `opcache.enable_file_override = 1` and `opcache.huge_code_pages = 1` for faster php
-- `display_errors = Off` and `display_startup_errors = Off` for sane production values (changeable via `PHP_DISPLAY_ERRORS` and `PHP_DISPLAY_STARTUP_ERRORS`)
-- `upload_max_filesize = 2048M` for big file uploads
-- `apc.shm_size = 32m` and `apc.enabled = 1` (changeable via `PHP_APC_SHM_SIZE` and `PHP_APC_ENABLED`)
-- php-fpm error logging happens in stderr
+| Value  | Details  |
+|---|---|
+|`max_execution_time = 900`|(changeable via `PHP_MAX_EXECUTION_TIME`)|
+|`realpath_cache_size = 256k`|for handling big php projects|
+|`memory_limit = 400M`|for big php projects (changeable via `PHP_MEMORY_LIMIT`)|
+|`opcache.memory_consumption = 265`|for big php projects|
+|`opcache.enable_file_override = 1` and `opcache.huge_code_pages = 1`|for faster php|
+|`display_errors = Off` and `display_startup_errors = Off`|for sane production values (changeable via `PHP_DISPLAY_ERRORS` and `PHP_DISPLAY_STARTUP_ERRORS`)|
+|`upload_max_filesize = 2048M`|for big file uploads|
+|`apc.shm_size = 32m` and `apc.enabled = 1`|(changeable via `PHP_APC_SHM_SIZE` and `PHP_APC_ENABLED`)|
+
+Also, php-fpm error logging happens in stderr.
 
 Hint: If you don't like any of these configs, you have three possibilities:
+
 1. If they are changeable via environment variables, use them (preferred version, see list of environment variables below)
 2. Create your own fpm-pool config and set configs them via `php_admin_value` and `php_admin_flag` in there (learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes this refers to Apache, but it is also the case for php-fpm). _Important:_
     1. If you like to provide your own php-fpm pool, overwrite the file `/usr/local/etc/php-fpm.d/www.conf` with your own config or remove this file if you like another name. If you don't do that the provided pool will be started!

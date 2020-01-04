@@ -1,6 +1,7 @@
 # Kibana Examples
 
-Have you seen the Kibana getting started video and are now ready to work with logs? We are here to help!  This page will give you examples of Kibana queries you can use.  This is not a Kibana 101 class, but it can help you understand some of what you can do in Kibana.  Ready to get started? Good!
+Have you seen [the Kibana getting started video](https://www.elastic.co/webinars/getting-started-kibana)
+ and are now ready to work with logs? We are here to help!  This page will give you examples of Kibana queries you can use.  This is not a Kibana 101 class, but it can help you understand some of what you can do in Kibana.  Ready to get started? Good!
 
 !!!hint
     Make sure that you have selected your tenant before starting! You can do that by on the  ```Tenant``` icon on the left-hand menu.  Once you have selected your tenant, click on the ```Discover``` icon again to get started.

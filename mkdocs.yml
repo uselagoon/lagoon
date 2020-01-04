@@ -25,17 +25,16 @@ pages:
   - Environment Variables: using_lagoon/environment_variables.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
+  - Going Live: using_lagoon/golive.md
   - Logs:
      - Logging: using_lagoon/logging/logging.md
      - Kibana Examples: using_lagoon/logging/kibana_examples.md
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
-
   - Node.js:
     - Gracefull Shutdown: using_lagoon/nodejs/gracefull_shutdown.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
-  - GoLive: using_lagoon/golive.md
 - Administration:
   - Installing Lagoon: administering_lagoon/install.md
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
