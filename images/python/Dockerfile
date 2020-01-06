@@ -27,7 +27,7 @@ RUN apk update \
     && apk upgrade \
     && apk add --no-cache python-dev \
     py2-pip \
-    && pip install --user virtualenv
+    && pip install virtualenv
 
 # Make sure shells are not running forever
 COPY 80-shell-timeout.sh /lagoon/entrypoints/
