@@ -1,7 +1,8 @@
+  
 ARG PYTHON_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM python:${PYTHON_VERSION}-alpine3.10
+FROM python:${PYTHON_VERSION}-alpine
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=python
@@ -26,8 +27,15 @@ ENV TMPDIR=/tmp \
 
 RUN apk update \
     && apk upgrade \
-    && apk add --no-cache python-dev \
-    && pip install virtualenv
+    && pip install virtualenv \
+    && case ${PYTHON_VERSION} in \
+      2*) \
+        apk add --no-cache python-dev \
+        ;; \
+      3*) \
+        apk add --no-cache python3-dev \
+        ;; \
+      esac
 
 # Make sure shells are not running forever
 COPY 80-shell-timeout.sh /lagoon/entrypoints/
