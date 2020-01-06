@@ -1,3 +1,4 @@
+  
 ARG PYTHON_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
@@ -26,8 +27,7 @@ ENV TMPDIR=/tmp \
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache python-dev \
-    py2-pip \
-    py2-virtualenv
+    && pip install virtualenv
 
 # Make sure shells are not running forever
 COPY 80-shell-timeout.sh /lagoon/entrypoints/
