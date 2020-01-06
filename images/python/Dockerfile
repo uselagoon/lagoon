@@ -26,7 +26,6 @@ ENV TMPDIR=/tmp \
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache python-dev \
-    py2-pip \
     && pip install virtualenv
 
 # Make sure shells are not running forever
