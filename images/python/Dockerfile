@@ -1,8 +1,7 @@
-  
 ARG PYTHON_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM python:${PYTHON_VERSION}-alpine
+FROM python:${PYTHON_VERSION}-alpine3.10
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=python
@@ -23,6 +22,7 @@ ENV TMPDIR=/tmp \
     ENV=/home/.bashrc \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
+
 
 RUN apk update \
     && apk upgrade \
