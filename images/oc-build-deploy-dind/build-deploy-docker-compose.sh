@@ -697,10 +697,12 @@ if [[ $THIS_IS_TUG == "true" ]]; then
   # Allow to disable registry auth
   if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
     # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
-    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry; then
+    echo "debug starts here"
+    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry &> /dev/null; then
+      echo "removing existing secret"
       oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
     fi
-
+    echo "creating new secret"
     oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret docker-registry tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
     oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets link default tug-registry --for=pull
   fi
