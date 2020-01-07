@@ -7,7 +7,7 @@
 "dev": "NODE_ENV=development nodemon --ignore '*.test.ts' --watch src -e js,json,ts --exec 'tsc --sourceMap && flow-node --inspect=0.0.0.0:9229 -r dotenv-extended/config' -- dist"
 ```
 
-2 . Update `docker-compose.yml` to map the dist folder and expose the `9229` port:
+2 . Update `docker-compose.yml` to map the `dist` folder and expose the `9229` port:
 ```
   api:
     image: ${IMAGE_REPO:-lagoon}/api
@@ -56,4 +56,4 @@
 $ rm build/api && make build/api && docker-compose restart api
 ```
 
-5 . Restart vscode.
+5 . Restart VScode.
