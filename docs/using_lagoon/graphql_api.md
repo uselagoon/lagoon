@@ -2,7 +2,7 @@
 
 ## Connect to GraphQL API
 
-API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need a JWT (JSON Web Token) which will authenticate you against the API via your SSH Public Key. To generate such token, use the Remote Shell via the `token` command:
+API interactions in Lagoon are done via GraphQL, we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, we also need a JWT (JSON Web Token) which will authenticate you against the API via your SSH public key. To generate this token, use the remote shell via the `token` command:
 
 ```bash
 ssh -p [PORT] -t lagoon@[HOST] token
@@ -14,9 +14,9 @@ Example for amazee.io:
 ssh -p 32222 -t lagoon@ssh.lagoon.amazeeio.cloud token
 ```
 
-This will return you with a long string, which is the jwt token.
+This will return a long string, which is the JWT token.
 
-We also need the URL of the API Endpoint, ask your Lagoon Administrator for this. On amazee.io this is https://api.lagoon.amazeeio.cloud/graphql
+We also need the URL of the API Endpoint, ask your Lagoon Administrator for this. On amazee.io this is `https://api.lagoon.amazeeio.cloud/graphql`.
 
 Now we need a GraphQL client, technically this is just HTTP, but there is a nice UI that allows you to write GraphQL requests with autocomplete. Download, install and start it.
 
