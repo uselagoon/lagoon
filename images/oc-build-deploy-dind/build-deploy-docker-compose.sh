@@ -697,7 +697,7 @@ if [[ $THIS_IS_TUG == "true" ]]; then
   # Allow to disable registry auth
   if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
     # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
-    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
+    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry; then
       oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
     fi
 
