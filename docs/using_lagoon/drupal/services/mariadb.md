@@ -2,6 +2,8 @@
 
 ### Galera
 
+[MariaDB Galera Cluster](https://mariadb.com/kb/en/galera-cluster/) is a synchronous multi-master cluster for MariaDB.
+
 For improved reliability, MariaDB can be used in a cluster for production sites.
 This example, when placed in `.lagoon.yml` will enable Galera on the
 `production` branch.
@@ -13,7 +15,7 @@ environments:
       mariadb: mariadb-galera
 ```
 
-also you will need to change your service definition in your `docker-compose.yml`
+Also, you will need to change your service definition in your `docker-compose.yml`
 
 ```
   mariadb:
@@ -26,22 +28,22 @@ also you will need to change your service definition in your `docker-compose.yml
       << : *default-environment
 ```
 
-It is recommended to configure the environment before the initial deploy of the
-production site, otherwise manual intervention may be needed from your lagoon
-administrator.
+It is recommended that you configure the environment before the initial deploy of the
+production site, otherwise manual intervention may be needed from your Lagoon
+Administrator.
 
 ### Additional MariaDB Logging
 
 During the course of development, it may be necessary to enable either query
-logging or slow query logging. To do so just set the environment variables
+logging or slow query logging. To do so, set the environment variables
 `MARIADB_LOG_SLOW` or `MARIADB_LOG_QUERIES`. This can be done in
 `docker-compose.yaml`.
 
 
 
-### Connecting to MySQL's container from the host
+### Connecting to MySQL container from the host
 
-If you like to connect to MySQL's Database inside the Docker container with an external Tool like [Sequel Pro](http://www.sequelpro.com/), [MySQL Workbench](http://www.mysql.com/products/workbench/), [HeidiSQL](http://www.heidisql.com/), [DBeaver](http://dbeaver.jkiss.org/), just plain old `mysql-cli` or anything else.
+If you would like to connect to your MYSQL database inside the Docker container with an external Ttol like [Sequel Pro](http://www.sequelpro.com/), [MySQL Workbench](http://www.mysql.com/products/workbench/), [HeidiSQL](http://www.heidisql.com/), [DBeaver](http://dbeaver.jkiss.org/), just plain old `mysql-cli` or anything else, here's how to get the IP and port info.
 
 #### Get published MySQL port from the container
 
@@ -49,7 +51,7 @@ By default, Docker assigns a randomly published port for MySQL during each conta
 
 To get the published port via `docker`:
 
-Run: ```docker port[container_name]```
+Run: ```docker port [container_name]```
 
     $ docker port drupal_example_mariadb_1
     3306/tcp -> 0.0.0.0:32797
@@ -75,13 +77,15 @@ To set a static port; edit your service definition in your `docker-compose.yml`
 ```
 
 !!! note
-    By setting a static port you become responsible for maniging port collisions.
+    By setting a static port you become responsible for managing port collisions.
 
 #### Connect to MySQL
+Now you can use these details to connect to whatever database management tool you'd like.
+
 
 |          | Linux                         | OS X                          |
 |----------|-------------------------------|-------------------------------|
-| IP/Host  | ip from container             | `docker.amazee.io`            |
+| IP/Host  | IP from container             | `docker.amazee.io`            |
 | Port     | published port from container | published port from container |
 | Username | `drupal`                      | `drupal`                      |
 | Password | `drupal`                      | `drupal`                      |
