@@ -51,7 +51,7 @@ type Group = {
 
 const defaultProject: Project = {
   name: 'PLACEHOLDER',
-  gitUrl: 'http://github.com',
+  gitUrl: 'http://github.com/amazeeio/lagoon.git',
   openshift: 1,
   productionEnvironment: 'master',
   availability: 'STANDARD',
