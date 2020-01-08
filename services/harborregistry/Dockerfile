@@ -1,6 +1,7 @@
 FROM goharbor/registry-photon:v2.7.1-patch-2819-2553-v1.10.0
 
 COPY entrypoint.sh /
+COPY --chown=harbor:root install_cert.sh /home/harbor/
 
 USER root
 

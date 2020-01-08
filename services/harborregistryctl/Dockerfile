@@ -1,6 +1,7 @@
 FROM goharbor/harbor-registryctl:v1.10.0
 
 COPY start.sh /harbor/
+COPY --chown=harbor:root install_cert.sh /home/harbor/
 
 USER root
 

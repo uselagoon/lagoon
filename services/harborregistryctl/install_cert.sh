@@ -2,13 +2,13 @@
 
 set -e
 
-if [ ! -f /home/harbor/ca-bundle.crt.original ]; then
-    cp /etc/pki/tls/certs/ca-bundle.crt /home/harbor/ca-bundle.crt.original
+if [ ! -f /home/clair/ca-bundle.crt.original ]; then
+    cp /etc/pki/tls/certs/ca-bundle.crt /home/clair/ca-bundle.crt.original
 else
     exit 0
 fi
 
-cp /home/harbor/ca-bundle.crt.original /etc/pki/tls/certs/ca-bundle.crt
+cp /home/clair/ca-bundle.crt.original /etc/pki/tls/certs/ca-bundle.crt
 
 if [ -f /harbor_cust_cert ]; then
     if grep -q "Photon" /etc/lsb-release; then
