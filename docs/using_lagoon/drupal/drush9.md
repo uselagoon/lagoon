@@ -1,14 +1,14 @@
 # Drush 9
 
-Lagoon defaults to Drush 8. Drush 9 is used if you install Drush 9 into your Drupal site via Composer. 
+Lagoon defaults to Drush 8. Drush 9 is used if you install Drush 9 into your Drupal site via Composer.
 
 ## Aliases
 
-Unfortunately Drush 9 does not provide the possibility to inject dynamic Site Aliases like Drush 8 did. We are working with the Drush team to implement this again. In the meantime we have a workaround that allows you to use Drush 9 with Lagoon.
+Unfortunately Drush 9 does not provide the possibility to inject dynamic site aliases like Drush 8 did. We are working with the Drush team to implement this again. In the meantime we have a workaround that allows you to use Drush 9 with Lagoon.
 
 ### Basic Idea
 
-Drush 9 provides a new command `drush site:alias-convert` which can convert Drush 8 style site aliases over to the Drush 9 yaml site alias style. This will create a one time export of the site aliases currently existing in Lagoon and save them within `/app/drush/sites` which then are used when running a command like `drush sa`.
+Drush 9 provides a new command `drush site:alias-convert` which can convert Drush 8 style site aliases over to the Drush 9 YAML site alias style. This will create a one time export of the site aliases currently existing in Lagoon and save them within `/app/drush/sites` which then are used when running a command like `drush sa`.
 
 ### Preparation
 
@@ -22,7 +22,7 @@ You can now convert your Drush aliases by running the following command in your 
 
 - `docker-compose exec cli drush site:alias-convert /app/drush/sites --yes`
 
-It's a good practice to commit the resulting yaml files into your git repo, so your fellow developers don't need to do the same all the time.
+It's a good practice to commit the resulting YAML files into your git repo, so your fellow developers don't need to do the same all the time.
 
 ### Use Site Aliases
 
@@ -46,9 +46,15 @@ If you would like to sync files from a local environment to a remote environment
 drush rsync @self:%files @lagoon.master:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
-This is also applies to syncing a remote environment to another remote environment, if you're not using the Lagoon Tasks UI to copy files between environments. 
-For example, if you wanted to sync the files from `@lagoon.master` to `@lagoon.dev` and ran `drush rsync @lagoon.master @lagoon.dev` locally, you will probably run into a "Cannot specify two remote aliases" error. 
-To resolve this, you would first need to ssh into your destination environment `drush @lagoon.dev ssh`, then execute the rsync command with parameters similar to the above: `drush rsync @lagoon.master:%files  @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX`. 
+This is also applies to syncing a remote environment to another remote environment, if you're not using the Lagoon Tasks UI to copy files between environments.
+
+For example, if you wanted to sync the files from `@lagoon.master` to `@lagoon.dev` and ran `drush rsync @lagoon.master @lagoon.dev` locally, you would probably run into a "Cannot specify two remote aliases" error.
+
+To resolve this, you would first need to ssh into your destination environment `drush @lagoon.dev ssh`, then execute the rsync command with parameters similar to the above:
+
+```
+drush rsync @lagoon.master:%files  @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
+```
 
 This is not necessary if you rsync from a remote to a local environment.
 
