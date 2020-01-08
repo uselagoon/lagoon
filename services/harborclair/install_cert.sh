@@ -10,7 +10,7 @@ fi
 
 cp /home/clair/ca-bundle.crt.original /etc/pki/tls/certs/ca-bundle.crt
 
-if [ "$(ls -A /harbor_cust_cert)" ]; then
+if [ -f /harbor_cust_cert ]; then
     if grep -q "Photon" /etc/lsb-release; then
         echo "Appending trust CA to ca-bundle ..."
         for z in /harbor_cust_cert/*; do
