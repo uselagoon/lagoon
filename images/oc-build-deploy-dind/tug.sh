@@ -35,10 +35,10 @@ fi
 # Possibility to switch to legacy OC version via Environment variable OC_VERSION_OVERRIDE
 if [[ $OC_VERSION_OVERRIDE == "true" ]]; then
   echo "Switching to legacy OC"
-  # Defining Versions - this version is supposed to be v3.9.0 to be backwards compatible
-  LEGACY_OC_VERSION=v3.9.0
-  LEGACY_OC_HASH=191fece
-  LEGACY_OC_SHA256=6ed2fb1579b14b4557e4450a807c97cd1b68a6c727cd1e12deedc5512907222e
+  # Defining Versions - this version is supposed to be v3.7.2 to be backwards compatible
+  LEGACY_OC_VERSION=v3.7.2
+  LEGACY_OC_HASH=282e43f
+  LEGACY_OC_SHA256=abc89f025524eb205e433622e59843b09d2304cc913534c4ed8af627da238624
   curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${LEGACY_OC_VERSION}/openshift-origin-client-tools-${LEGACY_OC_VERSION}-${LEGACY_OC_HASH}-linux-64bit.tar.gz \
       && echo "$LEGACY_OC_SHA256  /tmp/openshift-origin-client-tools.tar" | sha256sum -c - \
       && mkdir /tmp/openshift-origin-client-tools \
