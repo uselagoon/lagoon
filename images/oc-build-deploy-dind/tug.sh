@@ -47,9 +47,6 @@ if [[ $OC_VERSION_OVERRIDE == "true" ]]; then
       && install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 fi
 
-echo OC VERSION DEBUG:
-oc version
-
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
