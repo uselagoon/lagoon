@@ -1,12 +1,23 @@
-FROM unixtastic/git-ssh-server
+FROM alpine:3.10
 
-RUN apt-get update && apt-get install -y nginx fcgiwrap
+RUN apk add --no-cache \
+      bash \
+      fcgiwrap \
+      git-daemon \
+      nginx \
+      openssh-server-pam \
+      runit \
+      spawn-fcgi
 
 COPY service/fcgiwrap.sh /etc/service/fcgiwrap/run
 COPY service/nginx.sh /etc/service/nginx/run
-COPY nginx/git /etc/nginx/sites-enabled/git
-RUN rm /etc/nginx/sites-enabled/default
+COPY service/sshd.sh /etc/service/sshd/run
+COPY nginx/git /etc/nginx/conf.d/git.conf
 
+RUN rm /etc/nginx/conf.d/default.conf && mkdir /run/nginx \
+      && adduser --disabled-password --home /git git \
+      && ssh-keygen -A \
+      && sed -E -i.bak -e 's/[# ]+UsePAM.*/UsePAM yes/g' /etc/ssh/sshd_config
 
 USER git
 
@@ -31,4 +42,6 @@ RUN mkdir -m 700 /git/.ssh && \
 
 USER root
 
-COPY authorized-keys.sh /etc/my_init.d/authorized-keys.sh
+COPY entrypoint.sh /usr/sbin/entrypoint.sh
+
+ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
