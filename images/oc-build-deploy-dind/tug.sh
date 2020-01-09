@@ -35,6 +35,7 @@ fi
 # Possibility to switch to legacy OC version via Environment variable OC_VERSION_OVERRIDE
 if [[ $OC_VERSION_OVERRIDE == "true" ]]; then
   echo "Switching to legacy OC"
+  # Defining Versions - this version is supposed to be v3.9.0 to be backwards compatible
   LEGACY_OC_VERSION=v3.9.0
   LEGACY_OC_HASH=191fece
   LEGACY_OC_SHA256=6ed2fb1579b14b4557e4450a807c97cd1b68a6c727cd1e12deedc5512907222e
