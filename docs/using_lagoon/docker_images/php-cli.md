@@ -35,7 +35,6 @@ The included cli tools are:
 - `mariadb-client`
 - `postgresql-client`
 
-
 ### Change Node.js Version
 
 By default this image ships with the current Node.js Version (v12 as of Jan 2020).

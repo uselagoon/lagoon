@@ -1,4 +1,5 @@
 # MariaDB Image
+
 MariaDB is the open source successor to MySQL.
 
 [Lagoon `MariaDB` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile),
@@ -8,6 +9,7 @@ based on offical packages `mariadb` and `mariadb-client` provided by the
 This Dockerfile is intended to be used to setup a standalone MariaDB database server.
 
 ## Lagoon & OpenShift adaptions
+
 This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
 
 - Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions)
@@ -22,22 +24,24 @@ development machine.
 - [`pwgen`](https://linux.die.net/man/1/pwgen) - Utility to generate random and complex passwords.
 
 ## Included `my.cnf` configuration file
+
 The image ships a *default* MariaDB configuration file, optimized to work on Lagoon.
 Some options are configurable via environments variables (see [Environment Variables](#environment-variables)).
 
 ## Environment Variables
+
 Environment variables defined in MariaDB base image:
 
 | Environment Variable                   | Default        | Description                                    |
 | ---------------------------------------| ---------------| ---------------------------------------------- |
-| `MARIADB_DATABASE`                     |   lagoon 	    | Database name created at startup               |
-| `MARIADB_USER`                         |   lagoon 	    | Default user created at startup                |
-| `MARIADB_PASSWORD`                     |   lagoon 	    | Password of default user createt at startup    |
-| `MARIADB_ROOT_PASSWORD`                |   Lag00n 	    | MariaDB root user's password                   |
-| `MARIADB_CHARSET`                      |   utf8mb4 	    | Set the server charset                         |
-| `MARIADB_COLLATION`                    |   utf8mb4_bin 	| Set server collation                           |
+| `MARIADB_DATABASE`                     |   lagoon       | Database name created at startup               |
+| `MARIADB_USER`                         |   lagoon       | Default user created at startup                |
+| `MARIADB_PASSWORD`                     |   lagoon       | Password of default user createt at startup    |
+| `MARIADB_ROOT_PASSWORD`                |   Lag00n       | MariaDB root user's password                   |
+| `MARIADB_CHARSET`                      |   utf8mb4      | Set the server charset                         |
+| `MARIADB_COLLATION`                    |   utf8mb4_bin  | Set server collation                           |
 | `MARIADB_MAX_ALLOWED_PACKET`           |   64M          | Set the max_allowed_packet size                |
-| `MARIADB_INNODB_BUFFER_POOL_SIZE`      |   256M	        | Set the MariaDB InnoDB Buffer Pool Size        |
+| `MARIADB_INNODB_BUFFER_POOL_SIZE`      |   256M         | Set the MariaDB InnoDB Buffer Pool Size        |
 | `MARIADB_INNODB_BUFFER_POOL_INSTANCES` |   1            | Number of InnoDB Buffer Pool instances         |
 | `MARIADB_INNODB_LOG_FILE_SIZE`         |   64M          | Size of InnoDB log file                        |
 | `MARIADB_LOG_SLOW`                     |   empty        | Variable to control the save of slow queries   |

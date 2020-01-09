@@ -9,8 +9,6 @@ has all the command line tools needed for daily maintenance of a Drupal website:
 - `drush launcher` (which will fallback to Drush 8 if there is no site installed
 Drush found)
 
-
-
 ## Lagoon & OpenShift adaptions
 
 This image is prepared to be used on Lagoon which leverages OpenShift. There are
