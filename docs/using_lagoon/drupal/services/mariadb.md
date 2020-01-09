@@ -1,4 +1,5 @@
 # MariaDB
+MariaDB is the open source successor to MySQL.
 
 ### Galera
 
