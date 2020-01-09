@@ -865,6 +865,25 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_group_to_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'group'
+    ) THEN
+      ALTER TABLE `env_vars`
+      ADD `group` varchar(36),
+      ADD UNIQUE KEY `name_group` (`name`,`group`);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_availability_to_project();
@@ -904,6 +923,7 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_group_to_env_vars();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

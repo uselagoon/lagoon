@@ -156,8 +156,10 @@ CREATE TABLE IF NOT EXISTS env_vars (
   scope       ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
   environment int NULL REFERENCES environent (id),
+  group       varchar(36),
   UNIQUE KEY `name_project` (`name`,`project`),
-  UNIQUE KEY `name_environment` (`name`,`environment`)
+  UNIQUE KEY `name_environment` (`name`,`environment`),
+  unique KEY `name_group` (`name`, `group`)
 );
 
 ALTER TABLE env_vars MODIFY COLUMN scope ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
