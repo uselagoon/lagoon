@@ -136,9 +136,9 @@ You can also overwrite the templates only for a specific environment, this is do
 
 By default Lagoon expects that the way services from custom templates are rolled out is done via a `DeploymentConfig` object within Openshift/Kubernetes and monitors the rollout based on this object. In some cases the services that are defined via custom deployment need a different way of monitoring, this can be defined via `lagoon.rollout`:
 
-- `deploymentconfig` (this is the default) - expects a `DeplomentConfig` object in the template for the service.
-- `statefulset` - expects a `Statefulset` object in the template for the service.
-- `daemonset` - expects a `Daemonset` object in the template for the service.
+- `deploymentconfig` (this is the default) - expects [a `DeploymentConfig` object](https://docs.openshift.com/container-platform/4.2/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) in the template for the service.
+- `statefulset` - expects [a `Statefulset` object](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) in the template for the service.
+- `daemonset` - expects [a `Daemonset` object](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) in the template for the service.
 - `false` - will not monitor any rollouts and just be happy of the template applies and does not throw any errors.
 
 You can also overwrite the rollout only for a specific environment, this is done in [`.lagoon.yml`](lagoon_yml.md#environmentsnamerollouts)
