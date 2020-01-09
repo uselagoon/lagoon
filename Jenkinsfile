@@ -82,7 +82,7 @@ node {
                   try {
                     sh "make -O${SYNC_MAKE_OUTPUT} -j5 build:push-minishift"
                     sh "make up"
-                    sh "make -O${SYNC_MAKE_OUTPUT} -j2 tests"
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j8 tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
