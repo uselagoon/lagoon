@@ -158,7 +158,7 @@ objects:
                 name: ${SERVICE_NAME}
                 key: database
           - name: SCANNER_LOG_LEVEL
-            value: "debug"
+            value: "error"
         volumes:
         - name: config
           configMap:
