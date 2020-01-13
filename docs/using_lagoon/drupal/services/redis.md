@@ -1,6 +1,6 @@
 # Redis
 
-We recommend using Redis for internal caching. Add the redis
+We recommend using [Redis](https://redis.io/) for internal caching. Add the redis
 service to `docker-compose.yaml`.
 
 ```
@@ -13,7 +13,7 @@ service to `docker-compose.yaml`.
       << : *default-environment
 ```
 
-Also, to configure redis, add the following to your `settings.php`.
+Also, to configure Redis, add the following to your `settings.php`.
 
 
 ### Drupal 7
@@ -34,7 +34,7 @@ Depending on file system structure, the module paths may need to be updated.
 
 ### Drupal 8
 
-The Drupal 8 config is largely stock. Notably, redis is disabled while drupal is being installed.
+The Drupal 8 config is largely stock. Notably, Redis is disabled while drupal is being installed.
 
 ```
 if (getenv('LAGOON')){
@@ -43,11 +43,11 @@ if (getenv('LAGOON')){
   $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
   $settings['cache_prefix']['default'] = getenv('LAGOON_PROJECT') . '_' . getenv('LAGOON_GIT_SAFE_BRANCH');
 
-  // Do not set the cache during installations of Drupal
+  // Do not set the cache during installations of Drupal.
   if (!drupal_installation_attempted() && extension_loaded('redis')) {
     $settings['cache']['default'] = 'cache.backend.redis';
 
-    // and allows to use it without the redis module being enabled.
+    // And allows to use it without the redis module being enabled.
     $class_loader->addPsr4('Drupal\\redis\\', 'modules/contrib/redis/src');
 
     $settings['bootstrap_container_definition'] = [
@@ -92,7 +92,7 @@ redis:
 ```
 
 ## Environment Variables
-Environment variables are meant to do common behavior changes of redis.
+Environment variables are meant to do common behavior changes of Redis.
 
 | Environment Variable   | Default   | Description                                    |
 | -----------------------| --------- | ---------------------------------------------- |

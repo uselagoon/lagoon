@@ -26,7 +26,9 @@ RUN find "/fluentd" -type d -exec chmod g+x {} +
 
 ENV LOGS_FORWARDER_SHARED_KEY=secret \
     LOGS_FORWARDER_TARGET_SHARED_KEY=secret \
-    LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE=amazing1
+    LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE=amazing1 \
+    ELASTICSEARCH_HOST=logs-db-service \
+    ELASTICSEARCH_HOST_PORT=9200
 
 ENTRYPOINT ["/sbin/tini", "--", "/bin/entrypoint.sh"]
 CMD ["sh", "-c", "exec fluentd -c /fluentd/etc/fluent.conf -p /fluentd/plugins $FLUENTD_OPT"]

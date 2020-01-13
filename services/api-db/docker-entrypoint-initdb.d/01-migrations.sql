@@ -109,6 +109,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_availability_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'availability'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `availability` varchar(50);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_production_environment_to_project()
 
   BEGIN
@@ -849,6 +867,7 @@ $$
 
 DELIMITER ;
 
+CALL add_availability_to_project();
 CALL add_production_environment_to_project();
 CALL add_ssh_to_openshift();
 CALL convert_project_pullrequest_to_varchar();
