@@ -1,6 +1,13 @@
-FROM williamyeh/ansible:centos7
+FROM alpine:3.10
 
-RUN yum -y install git && yum clean all && pip install pyjwt requests
+RUN apk add --no-cache \
+      ansible \
+      bash \
+      git \
+      openssh-client \
+      py2-jwt \
+      py2-requests \
+      rsync
 
 RUN git config --global user.email "deploytest@amazee.io" && git config --global user.name deploytest
 

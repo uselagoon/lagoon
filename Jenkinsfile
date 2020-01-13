@@ -39,13 +39,12 @@ node {
                 stage ('start services') {
                   sh "make kill"
                   sh "make up"
-                  sh "sleep 60"
                 }
               },
               'start minishift': {
                 stage ('start minishift') {
                   sh 'make minishift/cleanall || echo'
-                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=64GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
                 }
               },
               'push images to amazeeiolagoon': {
