@@ -25,7 +25,7 @@ If you just have a few redirects there's a handy trick to create the redirects w
 Example for redirecting `www.example.com` to `example.com` and preserving the request.
 
 ```
-RUN echo "~^www.example.com           http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
+RUN echo "~^www\.example\.com\/           http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
 
 ```
 
