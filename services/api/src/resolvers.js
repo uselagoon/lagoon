@@ -114,6 +114,7 @@ const {
 } = require('./resources/sshKey/resolvers');
 
 const {
+  getMe,
   getUserBySshKey,
   addUser,
   updateUser,
@@ -245,6 +246,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     environment: getEnvironmentByBackupId,
   },
   Query: {
+    me: getMe,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
