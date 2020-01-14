@@ -81,7 +81,7 @@ const SshKeys = ({ keys }) => (
           &.name {
             width: 15%;
             @media ${bp.extraWideUp} {
-              width: 10%;
+              width: 50%;
             }
           }
 
@@ -135,7 +135,7 @@ const SshKeys = ({ keys }) => (
             }
             @media ${bp.wideUp} {
               &.name {
-                width: 10%;
+                width: 50%;
               }
 
               &.type {

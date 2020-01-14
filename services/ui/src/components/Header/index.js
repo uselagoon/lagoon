@@ -27,7 +27,7 @@ const Header = ({ logo }) => (
     <AuthContext.Consumer>
       {auth => {
         if (auth.authenticated) {
-          return <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a>;
+          return (<div className="authContainer"><a className="settings" href="/settings">settings</a> <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a></div>);
         }
 
         return null;
@@ -43,6 +43,11 @@ const Header = ({ logo }) => (
         filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='${color.brightBlue}', endColorstr='${color.lightBlue}',GradientType=1 );
         display: flex;
         justify-content: space-between;
+
+        .authContainer {
+          display: flex;
+        }
+
         a {
           color: ${color.almostWhite};
           padding: 10px 20px;
@@ -66,9 +71,25 @@ const Header = ({ logo }) => (
               width: 14px;
             }
           }
-          &.logout {
+          &.settings {
             align-items: center;
             border-left: 1px solid ${color.blue};
+            cursor: pointer;
+            display: flex;
+            &::before {
+              background-position: center center;
+              background-repeat: no-repeat;
+              content: '';
+              display: block;
+              height: 35px;
+              transition: all 0.3s ease-in-out;
+              width: 35px;
+              background-image: url('/static/images/overview.svg');
+              background-size: 18px;
+            }
+          }
+          &.logout {
+            align-items: center;
             cursor: pointer;
             display: flex;
           }
