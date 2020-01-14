@@ -26,7 +26,7 @@ const SettingsPage = () => (
           <div className="content-wrapper">
             <h2>SSH KEYS</h2>
             <div className="content">
-              <SshKeys keys={data.me.sshKeys || []} />
+              <SshKeys me={data.me || []} />
             </div>
           </div>
           <style jsx>{`
