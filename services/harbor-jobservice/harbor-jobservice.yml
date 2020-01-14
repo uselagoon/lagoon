@@ -162,7 +162,7 @@ objects:
             - name: HTTPS_PROXY
               value: ""
             - name: NO_PROXY
-              value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harborregistry,127.0.0.1,localhost,.local,.internal"
+              value: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal"
           ports:
           - containerPort: 8080
           volumeMounts:
