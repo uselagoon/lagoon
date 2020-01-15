@@ -1,4 +1,4 @@
-FROM goharbor/nginx-photon:v1.9.3
+FROM goharbor/nginx-photon:v1.10.0
 LABEL maintainer="amazee.io"
 
 COPY nginx.conf /etc/nginx/nginx.conf
