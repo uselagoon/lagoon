@@ -94,7 +94,8 @@ all-tests-list:=	features \
 									bitbucket \
 									rest \
 									nginx \
-									elasticsearch
+									elasticsearch \
+									logs
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 .PHONY: tests
@@ -152,6 +153,12 @@ $(run-webhook-tests): minishift build\:node-6-builder build\:node-8-builder buil
 		$(eval testname = $(subst tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
+.PHONY: tests/logs
+tests/logs:
+	$(eval testname = $(subst tests/,,$@))
+	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml \
+		--extra-vars "oc_login_cmd=\"oc --insecure-skip-tls-verify login '$$(oc whoami --show-server)' --token '$$(oc whoami --show-token)'\" minishift_ip=\"$(shell ./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip)\" es_index_date=\"$(shell date +%Y.%m)\""
 
 end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
 
