@@ -1,0 +1,51 @@
+---
+
+- name: "LOGGING - Install app and test router logging"
+  hosts: localhost
+  tasks:
+  - name: "Check that router index for \"myproject\" does not exist yet"
+    uri:
+      url: "http://logs-db:9200/_aliases"
+      http_agent: lagoon-logging-test-agent
+      user: admin
+      password: admin
+      force_basic_auth: yes
+    register: _es_result
+    until: >
+      _es_result.status == 200 and
+      _es_result.json["router-logs-local_development_cluster-mytestproject-" ~ es_index_date] is not defined
+    retries: 30
+    delay: 10
+  - name: Log in
+    shell: "{{ oc_login_cmd }}"
+  - name: Switch to myproject
+    shell: oc project myproject
+  - name: Ensure namespace is appropriately labelled
+    shell: oc label --overwrite namespace myproject lagoon/project=mytestproject
+  - name: Deploy test app
+    shell: oc new-app https://github.com/sclorg/nodejs-ex -l name=mytestapp
+  - name: Expose test app
+    shell: oc expose svc/nodejs-ex --hostname="{{ minishift_ip }}"
+  - name: Check if URL is routing correctly
+    uri:
+      url: http://{{ minishift_ip }}
+      http_agent: lagoon-logging-test-agent
+    register: _app_result
+    until: _app_result.status == 200
+    retries: 30
+    delay: 10
+  - name: "Clean up mytestapp"
+    shell: oc delete all -l name=mytestapp
+  - name: "Check that router index for \"mytestproject\" now exists"
+    uri:
+      url: "http://logs-db:9200/_aliases"
+      http_agent: lagoon-logging-test-agent
+      user: admin
+      password: admin
+      force_basic_auth: yes
+    register: _es_result
+    until: >
+      _es_result.status == 200 and
+      _es_result.json["router-logs-local_development_cluster-mytestproject-" ~ es_index_date] is defined
+    retries: 30
+    delay: 10
