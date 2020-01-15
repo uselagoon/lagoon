@@ -1075,6 +1075,21 @@ const updateTask = (id: number, patch: TaskPatch): Promise<Object> =>
 const sanitizeGroupName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 const sanitizeProjectName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 
+const getProjectsByGroupName = groupName => graphqlapi.query(
+  `query groupByName($name: String!) {
+    groupByName(name: $name) {
+      id
+      name
+      projects {
+        id
+        name
+        gitUrl
+      }
+    }
+  }`,
+  { name: groupName }
+);
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -1120,4 +1135,5 @@ module.exports = {
   removeGroupFromProject,
   sanitizeGroupName,
   sanitizeProjectName,
+  getProjectsByGroupName,
 };
