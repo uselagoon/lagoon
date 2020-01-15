@@ -875,11 +875,11 @@ CREATE OR REPLACE PROCEDURE
       WHERE
         table_name = 'env_vars'
         AND table_schema = 'infrastructure'
-        AND column_name = 'group'
+        AND column_name = 'group_id'
     ) THEN
       ALTER TABLE `env_vars`
-      ADD `group` varchar(36),
-      ADD UNIQUE KEY `name_group` (`name`,`group`);
+      ADD `group_id` varchar(36),
+      ADD UNIQUE KEY `name_group` (`name`,`group_id`);
     END IF;
   END;
 $$
