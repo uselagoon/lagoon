@@ -321,7 +321,7 @@ const getUserBySshKey = (sshKey: string): Promise<Object> =>
 
 const addUser = (
   email: string,
-  firstName: string,
+  firstName: ?string = null,
   lastName: ?string = null,
   comment: ?string = null,
   gitlabId: ?number = null,
