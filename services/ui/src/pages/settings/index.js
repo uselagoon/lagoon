@@ -8,6 +8,7 @@ import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { bp } from 'lib/variables';
 import SshKeys from '../../components/SshKeys';
+import AddSshKey from '../../components/SshKeys/AddSshKey';
 
 /**
  * Displays the user settings page.
@@ -17,7 +18,7 @@ const SettingsPage = () => (
     <Head>
       <title>Settings</title>
     </Head>
-    <Query query={Me} displayName="Me">
+    <Query query={Me} displayName="Me" fetchPolicy="cache-and-network">
       {R.compose(
         withQueryLoading,
         withQueryError
@@ -26,7 +27,8 @@ const SettingsPage = () => (
           <div className="content-wrapper">
             <h2>SSH KEYS</h2>
             <div className="content">
-              <SshKeys me={data.me || []} />
+              <SshKeys me={data.me || {}} />
+              <AddSshKey me={data.me || {}} />
             </div>
           </div>
           <style jsx>{`

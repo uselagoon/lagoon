@@ -1,24 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import css from 'styled-jsx/css';
 import moment from 'moment';
 import Button from 'components/Button';
 import { Mutation } from 'react-apollo';
 import DeleteSshKeyById from 'lib/mutation/DeleteSshKeyById';
+import Me from 'lib/query/Me';
 import { bp, color, fontSize } from 'lib/variables';
-import AddSshKey from '../../lib/mutation/AddSshKey';
 
-
-const SshKeys = (me) => {
-
-
-  const { me: { id, email, sshKeys: keys } } = me;
-
-  const handleInputChange = e => {
-    const {name, value} = e.target
-    setValues({...values, [name]: value})
-  }
-
-  const [values, setValues] = useState({sshKeyName: '', sshKey: '', sshKeyType: ''});
+const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
 
   return(
     <div className="keys">
@@ -38,14 +27,15 @@ const SshKeys = (me) => {
                 .local()
                 .format('DD MMM YYYY, HH:mm:ss (Z)')}</div>
             <div className="delete">
-              <Mutation mutation={DeleteSshKeyById}>
+              <Mutation mutation={DeleteSshKeyById} refetchQueries={[{ query: Me}]}>
                 {(deleteSshKeyById, { loading, called, error, data }) => {
+                  
                   if (error) {
                     return <div>{error.message}</div>;
                   }
 
                   if (called) {
-                    return <div>Delete queued</div>;
+                    return <div>Deleting SSH Key...</div>;
                   }
 
                   return (
@@ -63,82 +53,6 @@ const SshKeys = (me) => {
           </div>
         ))}
       </div>
-
-
-      <Mutation mutation={AddSshKey}>
-        {(addSshKey, { loading, called, error, data }) => {
-          if (error) {
-            return <div>{error.message}</div>;
-          }
-
-          if (called) {
-            return <div>Adding queued</div>;
-          }
-
-          return (
-            <div className="addNew">
-
-            <div>
-              <label>SSH Key Name</label>
-              <input
-                aria-labelledby="addSshKeyName"
-                name="sshKeyName"
-                label='SSH Key Name'
-                className="addSshKeyInput"
-                type="text"
-                value={values.sshKeyName}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div>
-            <label>SSH Key Type</label>
-            <input
-                aria-labelledby="addSshKeyType"
-                name='sshKeyType'
-                label='SSH Key Type'
-                className="addSshKeyInput"
-                type="text"
-                onChange={handleInputChange}
-                value={values.sshKeyType}
-                placeholder="SSH_RSA | SSH_ED25519"/>
-
-            </div>
-
-            <div>
-              <label>SSH Key</label>
-              <textarea
-                  aria-labelledby="addSshKey"
-                  name='sshKey'
-                  label='SSH Key'
-                  className="addSshKeyInput"
-                  type="text"
-                  onChange={handleInputChange}
-                  value={values.sshKey}
-                  placeholder="Begins with 'ssh-rsa', 'ssh-ed25519'"/>
-            </div>
-
-
-              <Button action={() => addSshKey({
-                  variables: {
-                    input: {
-                      name: values.sshKeyName,
-                      keyValue: values.sshKey,
-                      keyType: values.sshKeyType,
-                      user: {
-                        id,
-                        email
-                      }
-                    }
-                  }
-                })}>Add</Button>
-
-          </div>
-
-          );
-        }}
-      </Mutation>
-
 
       <style jsx>{`
         .header {
@@ -163,25 +77,26 @@ const SshKeys = (me) => {
             }
 
             &.name {
-              width: 15%;
+              width: 40%;
               @media ${bp.extraWideUp} {
-                width: 50%;
+                width: 40%;
               }
             }
 
             &.type {
-              width: 25%;
+              width: 20%;
               @media ${bp.extraWideUp} {
-                width: 20%;
+                width: 25%;
               }
             }
 
             &.created {
-              width: 45%;
+              width: 55%;
               @media ${bp.extraWideUp} {
                 width: 55%;
               }
             }
+            
           }
         }
 
@@ -219,15 +134,22 @@ const SshKeys = (me) => {
               }
               @media ${bp.wideUp} {
                 &.name {
-                  width: 50%;
+                  width: 40%;
                 }
 
                 &.type {
                   width: 20%;
                 }
 
-                &.download {
+                &.created {
                   align-self: center;
+                  width: 25%;
+                  @media ${bp.extraWideUp} {
+                    width: 20%;
+                  }
+                }
+
+                &.delete {
                   width: 25%;
                   @media ${bp.extraWideUp} {
                     width: 20%;
@@ -264,13 +186,6 @@ const SshKeys = (me) => {
           }
         }
 
-        .addNew {
-          margin-top: 3em;
-        }
-        .addSshKeyInput {
-          width: 100%;
-          margin-bottom: 15px;
-        }
       `}</style>
     </div>
   );
