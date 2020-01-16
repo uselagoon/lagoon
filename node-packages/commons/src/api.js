@@ -919,6 +919,32 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
     }
 `);
 
+const getOpenShiftInfoForProjectWithGroupEnvVars = (project: string): Promise<Object> =>
+  graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}"){
+        id
+        openshift  {
+          name
+          consoleUrl
+          token
+          projectUser
+          routerPattern
+        }
+        gitUrl
+        privateKey
+        subfolder
+        openshiftProjectPattern
+        productionEnvironment
+        envVariables {
+          name
+          value
+          scope
+        }
+      }
+    }
+`);
+
 const getEnvironmentsForProject = (project: string): Promise<Object> =>
   graphqlapi.query(`
   {
