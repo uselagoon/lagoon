@@ -84,7 +84,7 @@ const Header = ({ logo }) => (
               height: 35px;
               transition: all 0.3s ease-in-out;
               width: 35px;
-              background-image: url('/static/images/overview.svg');
+              background-image: url('/static/images/cog.svg');
               background-size: 18px;
             }
           }
