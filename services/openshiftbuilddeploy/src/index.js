@@ -38,7 +38,7 @@ const messageConsumer = async msg => {
 
   logger.verbose(`Received DeployOpenshift task for project: ${projectName}, branch: ${branchName}, sha: ${sha}`);
 
-  const result = await getOpenShiftInfoForProject(projectName);
+  const result = await getOpenShiftInfoForProjectWithGroupEnvVars(projectName);
   const projectOpenShift = result.project
 
   const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
