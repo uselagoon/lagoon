@@ -5,5 +5,3 @@ export default gql`
   deleteSshKeyById(input:$input)
 }
 `;
-
-// input: { id: ""}
