@@ -1090,6 +1090,23 @@ const getProjectsByGroupName = groupName => graphqlapi.query(
   { name: groupName }
 );
 
+const getGroupMembersByGroupName = groupName => graphqlapi.query(
+  `query groupByName($name: String!) {
+    groupByName(name: $name) {
+      id
+      name
+      members {
+        user {
+          id
+          email
+        }
+        role
+      }
+    }
+  }`,
+  { name: groupName }
+);
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -1136,4 +1153,5 @@ module.exports = {
   sanitizeGroupName,
   sanitizeProjectName,
   getProjectsByGroupName,
+  getGroupMembersByGroupName,
 };
