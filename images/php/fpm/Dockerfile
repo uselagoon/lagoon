@@ -66,6 +66,11 @@ RUN apk add --no-cache fcgi \
         && yes '' | pecl install -f xdebug-2.7.0 \
         && yes '' | pecl install -f redis-4.3.0; \
         ;; \
+      7.0*) \
+        yes '' | pecl install -f apcu \
+        && yes '' | pecl install -f xdebug-2.6.0 \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
       7*) \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug \
