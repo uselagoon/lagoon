@@ -160,6 +160,7 @@ const messageConsumer = async msg => {
               {
                 "name": "lagoon-build",
                 "image": buildImage,
+                "imagePullPolicy": "IfNotPresent",
                 "env": [
                   {
                       "name": "TYPE",

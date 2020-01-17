@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: docker-host
+  name: docker-host
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: docker-host
+  template:
+    metadata:
+      labels:
+        service: docker-host
+    spec:
+      containers:
+      - image: lagoon/docker-host
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 2375
+          timeoutSeconds: 1
+        name: docker-host
+        env:
+          - name: DOCKER_HOST
+            value: localhost
+          - name: REPOSITORY_TO_UPDATE
+            value: ${REPOSITORY_TO_UPDATE}
+          - name: CRONJOBS
+            value: |
+              22 1 * * * /lagoon/cronjob.sh "/prune-images.sh"
+              22 */4 * * * /lagoon/cronjob.sh "/remove-exited.sh"
+              */15 * * * * /lagoon/cronjob.sh "/update-push-images.sh"
+        ports:
+        - containerPort: 2375
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 2375
+          timeoutSeconds: 1
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /var/lib/docker
+          name: docker-lib
+      restartPolicy: Always
+      volumes:
+      - name: docker-lib
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: docker-host
+  name: docker-host
+spec:
+  ports:
+  - port: 2375
+    protocol: TCP
+    targetPort: 2375
+  selector:
+    service: docker-host

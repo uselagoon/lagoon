@@ -76,6 +76,9 @@ MINIKUBE_CPUS := 6
 MINIKUBE_MEMORY := 2048
 MINIKUBE_DISK_SIZE := 30g
 
+K3D_VERSION := 1.4.0
+K3D_NAME := k3s-$(CI_BUILD_TAG)
+
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Name of the Branch we are currently in
@@ -905,28 +908,80 @@ else
 	curl -L https://github.com/minishift/minishift/releases/download/v$(MINISHIFT_VERSION)/minishift-$(MINISHIFT_VERSION)-$(ARCH)-amd64.tgz | tar xzC local-dev/minishift --strip-components=1
 endif
 
-# Start Local kubernetes Cluster within a docker machine with a given name, also check if the IP
-# that has been assigned to the machine is not the default one and then replace the IP in the yaml files with it
-minikube: local-dev/minikube
-	$(info starting minikube with name $(MINIKUBE_PROFILE))
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) start --cpus $(MINIKUBE_CPUS) --memory $(MINIKUBE_MEMORY) --disk-size $(MINIKUBE_DISK_SIZE) --vm-driver virtualbox --kubernetes-version="$(KUBERNETES_VERSION)"
-# ifeq ($(ARCH), Darwin)
-# 	@MINIKUBE_MACHINE_IP=$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip); \
-# 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$MINIKUBE_MACHINE_IP'"; \
-# 	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${MINIKUBE_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
-# else
-# 	@MINIKUBE_MACHINE_IP=$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip); \
-# 	echo "replacing IP in local-dev/api-data/01-populate-api-data.gql and docker-compose.yaml with the IP '$$MINIKUBE_MACHINE_IP'"; \
-# 	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${MINIKUBE_MACHINE_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
-# endif
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- config set-context $(MINIKUBE_PROFILE)
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- --context="$(MINIKUBE_PROFILE)" create -f kubernetes-setup/anonymous-clusteradmin.yaml
-	@echo "$$(./local-dev/minikube --profile $(MINIKUBE_PROFILE) ip)" >d $@
-#	create bulk storageclass
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- get storageclass/standard -o yaml | sed 's/name: standard/name: bulk/' | sed '/is-default-class/d' | ./local-dev/minikube --profile $(MINIKUBE_PROFILE) kubectl -- create -f -
-	$(MAKE) kubernetes-lagoon-setup
+# Symlink the installed k3d client if the correct version is already
+# installed, otherwise downloads it.
+local-dev/k3d:
+ifeq ($(K3D_VERSION), $(shell k3d version | grep k3d | sed -E 's/^k3d version v([0-9.]+).*/\1/'))
+	$(info linking local k3d version $(K3D_VERSION))
+	ln -s $(shell command -v k3d) ./local-dev/k3d
+else
+	$(info downloading k3d version $(K3D_VERSION) for $(ARCH))
+	curl -Lo local-dev/k3d https://github.com/rancher/k3d/releases/download/v$(K3D_VERSION)/k3d-$(ARCH)-amd64
+	chmod a+x local-dev/k3d
+endif
 
+k3d: local-dev/k3d
+	$(info starting k3d with name $(K3D_NAME))
+	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME)
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
+	k3d import-images -n $(K3D_NAME) lagoon/docker-host; \
+	kubectl create namespace lagoon; \
+	kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
+	kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
+	kubectl -n lagoon create -f kubernetes-setup/k3d-docker-host.yaml; \
+	kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
+	kubectl -n lagoon rollout status deployment docker-host -w;
+ifeq ($(ARCH), darwin)
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/01-populate-api-data.gql; \
+	sed -i '' -e "s/https:\/\/.*:16643\//https:\/\/host.docker.internal:16643\//g" local-dev/api-data/01-populate-api-data.gql;
+else
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/01-populate-api-data.gql; \
+	DOCKER_HOST="$$(ip route | grep docker0 | awk '{print $9}')"; \
+	sed -i "s/https:\/\/.*:16643\//https:\/\/${DOCKER_HOST}:16643\//g" local-dev/api-data/01-populate-api-data.gql;
+endif
+	touch $@
+
+.PHONY: rebuild-push-kubectl-build-deploy-dind
+rebuild-push-kubectl-build-deploy-dind:
+	rm -rf build/kubectl-build-deploy-dind
+	$(MAKE) build/kubectl-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
+	k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+
+k3d-dashboard:
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
+	echo -e "\nUse this token:"; \
+	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ;
+	kubectl proxy
+
+# Stop k3d
+.PHONY: k3d/stop
+k3d/stop: local-dev/k3d
+	./local-dev/k3d delete --name $(K3D_NAME)
+	rm -f k3d
+
+# Stop All k3d
+.PHONY: k3d/stopall
+k3d/stopall: local-dev/k3d
+	./local-dev/k3d delete --all
+	rm -f k3d
+
+# Stop k3d, remove downloaded k3d
+.PHONY: k3d/clean
+k3d/clean: k3d/stop
+	rm -rf ./local-dev/k3d
+
+# Stop All k3d, remove downloaded k3d
+.PHONY: k3d/cleanall
+k3d/cleanall: k3d/stopall
+	rm -rf ./local-dev/k3d
 
 # Configures an openshift to use with Lagoon
 .PHONY: kubernetes-lagoon-setup
@@ -938,27 +993,6 @@ kubernetes-lagoon-setup:
 	kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:"; \
 	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
-
-# Stop kubernetes Cluster
-.PHONY: minikube/stop
-minikube/stop: local-dev/minikube
-	./local-dev/minikube --profile $(MINIKUBE_PROFILE) delete
-	rm -f minikube
-
-# Stop kubernetes, remove downloaded minikube
-.PHONY: minikube/clean
-minikube/clean: minikube/stop
-	rm -rf ./local-dev/minikube
-
-# Downloads the correct minikube cli client based on if we are on OS X or Linux
-local-dev/minikube:
-	$(info downloading minikube)
-ifeq ($(ARCH), Darwin)
-		curl -Lo local-dev/minikube https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-darwin-amd64
-else
-		curl -Lo local-dev/minikube https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-linux-amd64
-endif
-	chmod +x local-dev/minikube
 
 .PHONY: push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
