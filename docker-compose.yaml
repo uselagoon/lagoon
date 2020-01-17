@@ -518,3 +518,12 @@ services:
         source: ./fluentd.ca.crt
         target: /run/secrets/kubernetes.io/serviceaccount/ca.crt
         read_only: true
+  logs-dispatcher:
+    image: ${IMAGE_REPO:-lagoon}/logs-dispatcher
+    user: '111111111'
+    environment:
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - CLUSTER_NAME=local_development_cluster
+      - ELASTICSEARCH_USER=admin
+      - ELASTICSEARCH_PASS=admin
