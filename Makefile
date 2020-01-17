@@ -382,6 +382,7 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 	touch $@
 
 # Variables of service images we manage and build
+<<<<<<< HEAD
 services :=     api \
 				auth-server \
 				logs2email \
@@ -420,6 +421,47 @@ services :=     api \
 				harbor-redis \
 				harborregistry \
 				harborregistryctl
+=======
+services :=       api \
+									auth-server \
+									logs2email \
+									logs2slack \
+									logs2rocketchat \
+									logs2microsoftteams \
+									openshiftbuilddeploy \
+									openshiftbuilddeploymonitor \
+									openshiftjobs \
+									openshiftjobsmonitor \
+									openshiftmisc \
+									openshiftremove \
+									rest2tasks \
+									webhook-handler \
+									webhooks2tasks \
+									broker \
+									broker-single \
+									logs-forwarder \
+									logs-db \
+									logs-db-ui \
+									logs-db-curator \
+									logs2logs-db \
+									auto-idler \
+									storage-calculator \
+									api-db \
+									drush-alias \
+									keycloak \
+									keycloak-db \
+									ui \
+									harborclair \
+									harborclairadapter \
+									harbor-core \
+									harbor-database \
+									harbor-jobservice \
+									harbor-nginx \
+									harbor-portal \
+									harbor-redis \
+									harborregistry \
+									harborregistryctl
+>>>>>>> master
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera
@@ -457,8 +499,8 @@ build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
-build/harbor-clair: build/harbor-database services/harbor-redis/Dockerfile
-build/harborregistry: build/harbor-clair services/harbor-jobservice/Dockerfile
+build/harborclair: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
+build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 
@@ -543,20 +585,44 @@ tests-list:
 # Define a list of which Lagoon Services are needed for running any deployment testing
 deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
 
+# These targets are used as dependencies to bring up containers in the right order.
+.PHONY: test-services-main
+test-services-main:
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-main)
+
+.PHONY: test-services-rest
+test-services-rest: test-services-main
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d rest2tasks
+
+.PHONY: test-services-drupal
+test-services-drupal: test-services-rest
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d drush-alias
+
+.PHONY: test-services-webhooks
+test-services-webhooks: test-services-main
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d webhook-handler webhooks2tasks
+
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
 .PHONY: $(run-rest-tests)
+<<<<<<< HEAD
 $(run-rest-tests): minishift build/node__10-builder build/node__12-builder build/oc-build-deploy-dind build/broker-single $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift
+=======
+$(run-rest-tests): minishift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind build/broker-single $(foreach image,$(deployment-test-services-rest),build/$(image)) push-minishift test-services-rest
+>>>>>>> master
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
+<<<<<<< HEAD
 tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift
+=======
+.PHONY: tests/drupal tests/drupal-postgres tests/drupal-galera
+tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/api-db build/postgres-drupal build/mariadb-drupal build/postgres-ckan build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-rest),build/$(image)) build/drush-alias push-minishift test-services-drupal
+>>>>>>> master
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest) drush-alias
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 # All tests that use Webhook endpoints
@@ -565,9 +631,12 @@ run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
 deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
 .PHONY: $(run-webhook-tests)
+<<<<<<< HEAD
 $(run-webhook-tests): openshift build/node__10-builder build/node__12-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift
+=======
+$(run-webhook-tests): openshift build/node__6-builder build/node__8-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift test-services-webhooks
+>>>>>>> master
 		$(eval testname = $(subst tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-webhooks)
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 
@@ -728,9 +797,9 @@ logs:
 
 # Start all Lagoon Services
 up:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api-db
-	sleep 20
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d
+	sleep 20
+	while ! docker exec "$$(docker-compose -p $(CI_BUILD_TAG) ps -q logs-db)" ./securityadmin_demo.sh; do sleep 5; done
 
 down:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v

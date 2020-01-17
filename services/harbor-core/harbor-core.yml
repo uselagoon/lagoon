@@ -147,6 +147,9 @@ objects:
 
       [dev]
       httpport = 8080
+      EnableXSRF = true
+      XSRFKey = {{ randAlphaNum 40 }}
+      XSRFExpire = 3600
     DATABASE_TYPE: "postgresql"
     POSTGRESQL_HOST: "harbor-database"
     POSTGRESQL_PORT: "5432"
@@ -170,7 +173,8 @@ objects:
     CLAIR_DB_USERNAME: "postgres"
     CLAIR_DB: "postgres"
     CLAIR_DB_SSLMODE: "disable"
-    CLAIR_URL: "http://harbor-clair:6060"
+    CLAIR_URL: "http://harborclair:6060"
+    CLAIR_ADAPTER_URL: "http://harborclair:6060"
     REGISTRY_STORAGE_PROVIDER_NAME: "s3"
     WITH_CHARTMUSEUM: "false"
     #CHART_REPOSITORY_URL: "http://harbor-chartmuseum"
@@ -182,10 +186,10 @@ objects:
     _REDIS_URL_REG: "redis://harbor-redis:6379/2"
     PORTAL_URL: "http://harbor-portal"
     REGISTRYCTL_URL: "http://harborregistry:8080"
-    CLAIR_HEALTH_CHECK_SERVER_URL: "http://harbor-clair:6061"
+    CLAIR_HEALTH_CHECK_SERVER_URL: "http://harborclair:6061"
     HTTP_PROXY: ""
     HTTPS_PROXY: ""
-    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harbor-clair,harborregistry,127.0.0.1,localhost,.local,.internal"
+    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal"
 - apiVersion: v1
   kind: Service
   metadata:

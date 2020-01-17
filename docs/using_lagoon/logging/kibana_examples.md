@@ -1,6 +1,10 @@
 # Kibana Examples
 
-Have you seen the Kibana getting started video and are now ready to work with logs? We are here to help!  This page will give you examples of Kibana queries you can use.  This is not a Kibana 101 class, but it can help you understand some of what you can do in Kibana.  Ready to get started? Good!   **NOTE:** Make sure that you have selected your tenant before starting! You can do that by on the  ```Tenant``` icon on the left-hand menu.  Once you have selected your tenant, click on the ```Discover``` icon again to get started.
+Have you seen [the Kibana getting started video](https://www.elastic.co/webinars/getting-started-kibana)
+ and are now ready to work with logs? We are here to help!  This page will give you examples of Kibana queries you can use.  This is not a Kibana 101 class, but it can help you understand some of what you can do in Kibana.  Ready to get started? Good!
+
+!!!hint
+    Make sure that you have selected your tenant before starting! You can do that by on the  ```Tenant``` icon on the left-hand menu.  Once you have selected your tenant, click on the ```Discover``` icon again to get started.
 
 ## Router Logs
 
@@ -8,7 +12,7 @@ Below you'll find examples for two common log requests: Viewing the total number
 
 ### Total Number of hits/requests to your site
 
-Let's start Kibana up and select Discovery(#1 in screen shot below) then the Router logs for your project(#2).  From there, we will filter some of this information down a bit.  Let's focus on our main production environment.  In the search bar (#3), let's enter:
+Let's start Kibana up and select Discovery (#1 in screen shot below) then the Router logs for your project(#2).  From there, we will filter some of this information down a bit.  Let's focus on our main production environment.  In the search bar (#3), let's enter:
 
 `openshift_project: "name of your production project"`
 
@@ -60,7 +64,7 @@ Kibana will also give you the option to create visualizations or graphs.  We are
 3.  For this example, we are going to select a Vertical Bar chart.
 4.  Select the router logs for your project
 5.  Click on X-Axis under Buckets and select Date Histogram, with the interval set to Daily
-6.  Success!! You should now see a nice bar graph showing your daily traffic.  
+6.  Success!! You should now see a nice bar graph showing your daily traffic.
 
 Note: Make sure that you select an appropriate time frame for the data in the upper right hand corner.
 

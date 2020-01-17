@@ -428,12 +428,20 @@ services:
       lagoon.type: custom
       lagoon.template: services/logs-collector/.lagoon.yml
       lagoon.rollout: daemonset
-  harbor-clair:
-    image: ${IMAGE_REPO:-lagoon}/harbor-clair
+  harborclair:
+    image: ${IMAGE_REPO:-lagoon}/harborclair
     labels:
       lagoon.type: custom
-      lagoon.template: services/harbor-clair/harbor-clair.yml
-      lagoon.image: amazeeiolagoon/harbor-clair:v1-2-0
+      lagoon.template: services/harborclair/harborclair.yml
+      lagoon.name: harborclair
+      lagoon.image: amazeeiolagoon/harborclair:v1-2-0
+  harborclairadapter:
+    image: ${IMAGE_REPO:-lagoon}/harborclairadapter
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harborclairadapter/harborclair.yml
+      lagoon.name: harborclair
+      lagoon.image: amazeeiolagoon/harborclairadapter:v1-2-0
   harbor-core:
     image: ${IMAGE_REPO:-lagoon}/harbor-core
     labels:
