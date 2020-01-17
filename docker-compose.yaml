@@ -394,7 +394,6 @@ services:
       - '--config.reload.interval'
       - '1s'
     ports:
-      - '5140:5140/udp'
       - '5141:5141/udp'
     volumes:
       - './services/logs2logs-db/pipeline:/usr/share/logstash/pipeline'
@@ -492,3 +491,30 @@ services:
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:v1-2-0
+  logs-tee:
+    image: ${IMAGE_REPO:-lagoon}/logs-tee
+    user: '111111111'
+    ports:
+      - '5140:5140/udp'
+    command:
+      # logs will be copied to these endpoints
+      - 'logs2logs-db:5140'
+      - 'router-logs-collector:5140'
+  router-logs-collector:
+    image: ${IMAGE_REPO:-lagoon}/router-logs-collector
+    user: '111111111'
+    environment:
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - CLUSTER_NAME=local_development_cluster
+      - KUBERNETES_SERVICE_HOST=192.168.42.92
+      - KUBERNETES_SERVICE_PORT=8443
+    volumes:
+      - type: bind
+        source: ./fluentd.token
+        target: /run/secrets/kubernetes.io/serviceaccount/token
+        read_only: true
+      - type: bind
+        source: ./fluentd.ca.crt
+        target: /run/secrets/kubernetes.io/serviceaccount/ca.crt
+        read_only: true
