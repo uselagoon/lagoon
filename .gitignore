@@ -8,6 +8,7 @@ startVagrant.sh
 local-dev/oc
 minishift
 minikube
+k3d
 **/v8-*
 node_modules/
 build/*

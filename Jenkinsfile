@@ -2,6 +2,8 @@ node {
 
   openshift_versions = ['v3.11.0']
 
+  kubernetes_versions = ['v1.17.0']
+
   env.MINISHIFT_HOME = "/data/jenkins/.minishift"
 
   withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
@@ -24,6 +26,51 @@ node {
 
         stage ('build images') {
           sh "make build -j6"
+        }
+
+        kubernetes_versions.each { kubernetes_version ->
+          notifySlack()
+
+          try {
+            parallel (
+              'start services': {
+                stage ('start services') {
+                  sh "make kill"
+                  sh "make up"
+                }
+              },
+              'start k3d': {
+                stage ('start k3d') {
+                  sh "make k3d KUBERNETES_VERSION=${kubernetes_version}"
+                }
+              }
+            )
+          } catch (e) {
+            echo "Something went wrong, trying to cleanup"
+            cleanup()
+            throw e
+          }
+
+          parallel (
+            "_tests_${kubernetes_version}": {
+                stage ('run tests') {
+                  try {
+                    sh "make up"
+                    sh "make k8s-tests"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
+                  cleanup()
+                }
+            },
+            "logs_${kubernetes_version}": {
+                stage ('all') {
+                  sh "make logs"
+                }
+            },
+          )
         }
 
         openshift_versions.each { openshift_version ->
@@ -115,6 +162,7 @@ def cleanup() {
   try {
     sh "make down"
     sh "make minishift/cleanall"
+    sh "make k3d/cleanall"
     sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."

@@ -17,6 +17,15 @@
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
+- name: "{{ testname }} - check if site for {{ project }} throws 443 error"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX_HTTP') }}"
+    expected_returncode: 403
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
 # - include: check-first.yaml
 #   vars:
 #     expected_head: "{{ current_head }}"

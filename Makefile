@@ -70,7 +70,7 @@ MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
 MINIKUBE_VERSION := 1.5.2
-KUBERNETES_VERSION := v1.16.2
+KUBERNETES_VERSION := v1.17.0
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := 6
 MINIKUBE_MEMORY := 2048
@@ -555,6 +555,24 @@ build-list:
 	done
 
 # Define list of all tests
+all-k8s-tests-list:=	nginx
+all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
+
+# Run all k8s tests
+.PHONY: k8s-tests
+k8s-tests: $(all-k8s-tests)
+
+deployment-k8s-test-services-main = broker kubernetesbuilddeploy api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
+
+.PHONY: k8s-test-services-main
+k8s-test-services-main:
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-k8s-test-services-main)
+
+$(all-k8s-tests): k3d k8s-test-services-main
+		$(eval testname = $(subst k8s-tests/,,$@))
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname)-kubernetes.yaml $(testparameter)
+
+# Define list of all tests
 all-tests-list:=	features \
 									node \
 									drupal \
@@ -581,7 +599,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = broker openshiftremove openshiftbuilddeploy kubernetesbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: test-services-main
@@ -920,12 +938,17 @@ else
 	chmod a+x local-dev/k3d
 endif
 
-k3d: local-dev/k3d
+k3d: local-dev/k3d build/docker-host build/kubectl-build-deploy-dind
 	$(info starting k3d with name $(K3D_NAME))
-	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME)
+	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
+ifeq ($(ARCH), darwin)
+	if ! ifconfig lo0 | grep $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}') -q; then sudo ifconfig lo0 alias $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}'); fi
+endif
+	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME) --image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind; \
 	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
-	k3d import-images -n $(K3D_NAME) lagoon/docker-host; \
+	k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind,lagoon/docker-host; \
 	kubectl create namespace lagoon; \
 	kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
 	kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
@@ -936,13 +959,14 @@ ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	KUBERNETESBUILDDEPLOY_TOKEN=$$(kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/01-populate-api-data.gql; \
-	sed -i '' -e "s/https:\/\/.*:16643\//https:\/\/host.docker.internal:16643\//g" local-dev/api-data/01-populate-api-data.gql;
+	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
+	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 else
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	KUBERNETESBUILDDEPLOY_TOKEN=$$(kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/01-populate-api-data.gql; \
-	DOCKER_HOST="$$(ip route | grep docker0 | awk '{print $9}')"; \
-	sed -i "s/https:\/\/.*:16643\//https:\/\/${DOCKER_HOST}:16643\//g" local-dev/api-data/01-populate-api-data.gql;
+	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
+	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 endif
 	touch $@
 
