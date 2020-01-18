@@ -950,7 +950,7 @@ else
 	chmod a+x local-dev/kubectl
 endif
 
-k3d: local-dev/k3d build/docker-host build/kubectl-build-deploy-dind
+k3d: local-dev/k3d local-dev/kubectl build/docker-host build/kubectl-build-deploy-dind
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
