@@ -938,6 +938,18 @@ else
 	chmod a+x local-dev/k3d
 endif
 
+# Symlink the installed kubectl client if the correct version is already
+# installed, otherwise downloads it.
+local-dev/kubectl:
+ifeq ($(KUBERNETES_VERSION), $(shell kubectl version --short --client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+	$(info linking local kubectl version $(K3D_VERSION))
+	ln -s $(shell command -v kubectl) ./local-dev/kubectl
+else
+	$(info downloading kubectl version $(KUBERNETES_VERSION) for $(ARCH))
+	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBERNETES_VERSION)/bin/$(ARCH)/amd64/kubectl
+	chmod a+x local-dev/kubectl
+endif
+
 k3d: local-dev/k3d build/docker-host build/kubectl-build-deploy-dind
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
@@ -948,22 +960,22 @@ endif
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind; \
 	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
-	k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind,lagoon/docker-host; \
-	kubectl create namespace lagoon; \
-	kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/k3d-docker-host.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
-	kubectl -n lagoon rollout status deployment docker-host -w;
+	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind,lagoon/docker-host; \
+	local-dev/kubectl create namespace lagoon; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/k3d-docker-host.yaml; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
+	local-dev/kubectl -n lagoon rollout status deployment docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	KUBERNETESBUILDDEPLOY_TOKEN=$$(kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/01-populate-api-data.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
 	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
 else
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	KUBERNETESBUILDDEPLOY_TOKEN=$$(kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/01-populate-api-data.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
 	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/01-populate-api-data.gql docker-compose.yaml;
@@ -975,15 +987,15 @@ rebuild-push-kubectl-build-deploy-dind:
 	rm -rf build/kubectl-build-deploy-dind
 	$(MAKE) build/kubectl-build-deploy-dind
 	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
-	k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
 
 k3d-dashboard:
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
+	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
 	echo -e "\nUse this token:"; \
-	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ;
-	kubectl proxy
+	local-dev/kubectl proxy
 
 # Stop k3d
 .PHONY: k3d/stop

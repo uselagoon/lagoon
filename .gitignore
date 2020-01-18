@@ -9,6 +9,7 @@ local-dev/oc
 minishift
 minikube
 k3d
+kubectl
 **/v8-*
 node_modules/
 build/*
