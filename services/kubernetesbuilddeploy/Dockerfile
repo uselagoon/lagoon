@@ -28,4 +28,4 @@ RUN ls -lisa; pwd
 
 RUN yarn run build
 
-CMD ["yarn", "start"]
+CMD ["yarn", "debug"]

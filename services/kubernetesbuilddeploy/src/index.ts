@@ -1,16 +1,12 @@
-// @flow
-
-const Promise = require("bluebird");
-const KubernetesClient = require('kubernetes-client');
-const sleep = require("es7-sleep");
-const R = require('ramda');
-const sha1 = require('sha1');
-const crypto = require('crypto');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
-
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
+import ApiClient from 'kubernetes-client';
+import sleep from "es7-sleep";
+import R from 'ramda';
+import sha1 from 'sha1';
+import crypto from 'crypto';
+import { logger } from '@lagoon/commons/src/local-logging';
+import { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } from '@lagoon/commons/src/api';
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { consumeTasks, initSendToLagoonTasks, createTaskMonitor } from '@lagoon/commons/src/tasks';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -38,7 +34,7 @@ const messageConsumer = async msg => {
 
   logger.verbose(`Received DeployKubernetes task for project: ${projectName}, branch: ${branchName}, sha: ${sha}`);
 
-  const result = await getOpenShiftInfoForProject(projectName);
+  const result: any = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project
 
   const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
@@ -84,25 +80,26 @@ const messageConsumer = async msg => {
     throw(error)
   }
 
+  let gitRef = '';
   // Deciding which git REF we would like deployed
   switch (type) {
     case "branch":
       // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
-      var gitRef = gitSha ? gitSha : `origin/${branchName}`
+      gitRef = gitSha ? gitSha : `origin/${branchName}`
       var deployBaseRef = branchName
       var deployHeadRef = null
       var deployTitle = null
       break;
 
     case "pullrequest":
-      var gitRef = gitSha
+      gitRef = gitSha
       var deployBaseRef = prBaseBranchName
       var deployHeadRef = prHeadBranchName
       var deployTitle = prPullrequestTitle
       break;
 
     case "promote":
-      var gitRef = `origin/${promoteSourceEnvironment}`
+      gitRef = `origin/${promoteSourceEnvironment}`
       var deployBaseRef = promoteSourceEnvironment
       var deployHeadRef = null
       var deployTitle = null
@@ -111,7 +108,7 @@ const messageConsumer = async msg => {
 
 
   // Generates a jobconfig object
-  const generateJobConfig = (buildName, secret, type, environment = {}) => {
+  const generateJobConfig = (buildName, secret, type, environment: { [key: string]: any } = {}) => {
 
     let buildImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
@@ -252,9 +249,11 @@ const messageConsumer = async msg => {
     return jobconfig
   }
 
+  const Client = ApiClient.Client1_13;
+
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const kubernetes = new KubernetesClient.Core({
+  const kubernetes = new Client({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -265,16 +264,16 @@ const messageConsumer = async msg => {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const kubernetesApi = new KubernetesClient.Api({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    },
-  });
+  // const kubernetesApi = new KubernetesClient.Api({
+  //   url: openshiftConsole,
+  //   insecureSkipTlsVerify: true,
+  //   auth: {
+  //     bearer: openshiftToken
+  //   },
+  // });
 
   // kubernetes-client does not know about the OpenShift Resources, let's teach it.
-  kubernetes.ns.addResource('rolebindings');
+  // kubernetes.ns.addResource('rolebindings');
 
   // // If we should promote, first check if the source project does exist
   // if (type == "promote") {
@@ -293,8 +292,11 @@ const messageConsumer = async msg => {
   // Create a new Namespace if it does not exist
   let namespaceStatus = {}
   try {
-    const namespacePost = Promise.promisify(kubernetes.namespace.post, { context: kubernetes.namespace })
-    namespaceStatus = await namespacePost({ body: {"apiVersion":"v1","kind":"Namespace","metadata":{"name":openshiftProject}} })
+    const body = { body: {"apiVersion":"v1","kind":"Namespace","metadata": { "name":openshiftProject } } };
+    const result = await kubernetes.apis.apps.v1.namespaces('default').deployments.post(body);
+
+    // const namespacePost = Bluebird.Promise.promisify(kubernetes.namespace.post, { context: kubernetes.namespace })
+    // namespaceStatus = await namespacePost({ body: {"apiVersion":"v1","kind":"Namespace","metadata":{"name":openshiftProject}} })
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
     console.log(err.code)
@@ -321,18 +323,27 @@ const messageConsumer = async msg => {
   // Create ServiceAccount if it does not exist yet.
   try {
     logger.info(`${openshiftProject}: Check if ServiceAccount lagoon-deployer already exists`)
-    const serviceaccountsGet = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer').get, { context: kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer') })
-    projectStatus = await serviceaccountsGet()
+
+    // const serviceaccountsGet = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer').get, { context: kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer') })
+    const result = await kubernetes.api.v1.namespaces(openshiftProject).serviceaccounts('lagoon-deployer').get();
+
+    // const projectStatus = await serviceaccountsGet()
     logger.info(`${openshiftProject}: ServiceAccount lagoon-deployer already exists, continuing`)
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: ServiceAccount lagoon-deployer does not exists, creating`)
-      const serviceaccountsPost = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
-      await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
+      const serviceAccountsPost = await kubernetes.api.v1.namespaces(openshiftProject).serviceaccounts.post({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
+
+      // const serviceaccountsPost = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
+      // await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
       await sleep(2000); // sleep a bit after creating the ServiceAccount for Kubernetes to create all the secrets
+
       const serviceaccountsRolebindingsBody = {"kind":"RoleBinding","apiVersion":"rbac.authorization.k8s.io/v1","metadata":{"name":"lagoon-deployer-admin","namespace":openshiftProject},"roleRef":{"name":"admin","kind":"ClusterRole","apiGroup":"rbac.authorization.k8s.io"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]};
-      const serviceaccountsRolebindingsPost = Promise.promisify(kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings.post, { context: kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings })
-      await serviceaccountsRolebindingsPost({ body: serviceaccountsRolebindingsBody })
+      const serviceAccountsRoleBindingsPost = await kubernetes.apis["rbac.authorization.k8s.io"].v1alpha1.clusterrolebindings.post(serviceaccountsRolebindingsBody)
+
+      // const serviceaccountsRolebindingsPost = Bluebird.Promise.promisify(kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings.post, { context: kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings })
+      // await serviceaccountsRolebindingsPost({ body: serviceaccountsRolebindingsBody })
+
     } else {
       logger.error(err)
       throw new Error
@@ -372,20 +383,34 @@ const messageConsumer = async msg => {
   // }
 
   // Create SSH Key Secret if not exist yet, if it does update it.
-  let sshKey = {}
+  let sshKey: {[type:string]: any} = {}
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   try {
     logger.info(`${openshiftProject}: Check if secret lagoon-sshkey exists`)
-    const secretsGet = Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').get, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
-    sshKey = await secretsGet()
+
+
+    sshKey = kubernetes.api.v1.namespaces(openshiftProject).secrets.get('lagoon-sshkey');
+    // const secretsGet = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').get, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
+    // sshKey = await secretsGet()
+
     logger.info(`${openshiftProject}: Secret lagoon-sshkey already exists, updating`)
-    const secretsPut = Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
-    await secretsPut({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+
+
+    const secretBody = { body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}};
+    const secretsPut = kubernetes.api.v1.namespaces(openshiftProject).secrets('lagoon-sshkey').put(secretBody)
+    // const secretsPut = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
+    // await secretsPut(secretBody)
+
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: Secret lagoon-sshkey does not exists, creating`)
-      const secretsPost = Promise.promisify(kubernetes.ns(openshiftProject).secrets.post, { context: kubernetes.ns(openshiftProject).secrets })
-      await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+
+      const secretBody = { body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}};
+      const secretsPut = kubernetes.api.v1.namespaces(openshiftProject).secrets('lagoon-sshkey').put(secretBody)
+
+      // const secretsPost = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).secrets.post, { context: kubernetes.ns(openshiftProject).secrets })
+      // await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+
     } else {
       logger.error(err)
       throw new Error
@@ -393,13 +418,18 @@ const messageConsumer = async msg => {
   }
 
   // Load the Token Secret Name for our created ServiceAccount
-  const serviceaccountsGet = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer").get, { context: kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer") })
-  serviceaccount = await serviceaccountsGet()
+
+
+  const serviceAccount = kubernetes.api.v1.namespaces(openshiftProject).get()
+  // const serviceaccountsGet = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer").get, { context: kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer") })
+  // const serviceaccount: {[key:string]: any} = await serviceaccountsGet()
+
+
   // a ServiceAccount can have multiple secrets, we are interested in one that has starts with 'lagoon-deployer-token'
   let serviceaccountTokenSecret = '';
-  for (var key in serviceaccount.secrets) {
-    if(/^lagoon-deployer-token/.test(serviceaccount.secrets[key].name)) {
-      serviceaccountTokenSecret = serviceaccount.secrets[key].name
+  for (var key in serviceAccount.secrets) {
+    if(/^lagoon-deployer-token/.test(serviceAccount.secrets[key].name)) {
+      serviceaccountTokenSecret = serviceAccount.secrets[key].name
       break;
     }
   }
@@ -408,13 +438,18 @@ const messageConsumer = async msg => {
   }
 
   // Create Job
-  let job = {};
+  let job: {[key:string]: any} = {};
   try {
+
     // @TODO: generate names with incremential numbers from the previous build number
     const buildName = `lagoon-build-${Math.random().toString(36).substring(7)}`;
-    const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment)
-    const jobPost = Promise.promisify(kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post, { context: kubernetesApi.group(jobConfig).ns(openshiftProject).jobs })
-    job = await jobPost({ body: jobConfig })
+    const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment);
+
+
+    const jobPost = await kubernetes.apis.batch.v1.namespaces(openshiftProject).jobs.post(jobConfig);
+    // const jobPost = Bluebird.Promise.promisify(kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post, { context: kubernetesApi.group(jobConfig).ns(openshiftProject).jobs })
+    // job = await jobPost({ body: jobConfig })
+
     logger.info(`${openshiftProject}: Created job`)
   } catch (err) {
     logger.error(err)
@@ -425,7 +460,7 @@ const messageConsumer = async msg => {
 
   try {
     const convertDateFormat = R.init;
-    const apiEnvironment = await getEnvironmentByName(branchName, projectId);
+    const apiEnvironment: any = await getEnvironmentByName(branchName, projectId);
     await addDeployment(jobName, "RUNNING", convertDateFormat(job.metadata.creationTimestamp), apiEnvironment.environmentByName.id, job.metadata.uid);
   } catch (error) {
     logger.error(`Could not save deployment for project ${projectId}, job ${jobName}. Message: ${error}`);
@@ -443,7 +478,8 @@ const messageConsumer = async msg => {
 
   const taskMonitorLogs = await createTaskMonitor('builddeploy-kubernetes', monitorPayload)
 
-  let logMessage = ''
+  let logMessage = '';
+  let buildName = '';
   if (gitSha) {
     logMessage = `\`${branchName}\` (${buildName})`
   } else {
