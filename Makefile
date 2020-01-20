@@ -996,7 +996,7 @@ k3d-dashboard:
 	echo -e "\nUse this token:"; \
 	local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ;
-	local-dev/kubectl proxy
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; local-dev/kubectl proxy
 
 # Stop k3d
 .PHONY: k3d/stop
