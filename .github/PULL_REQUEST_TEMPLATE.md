@@ -4,24 +4,22 @@
 
 Please provide enough information so that others can review your pull request:
  -->
- 
+
 <!-- You can skip this if you're fixing a typo. -->
 # Checklist
 - [ ] Affected Issues have been mentioned in the Closing issues section
-- [ ] Documentation has been written/updated.
-- [ ] Changelog entry has been written
+- [ ] Documentation has been written/updated
+- [ ] PR title is ready for changelog and subsystem label(s) applied
 
 Explain the **details** for making this change. What existing problem does the pull request solve?
 
-# Changelog Entry
 <!--
-Describe the change in order to make it visible in the changelog
-If the change breaks anything document this - how was the functionality before - how does it work after the change
+# Changelog Entry
+Lagoon is using "Release Drafter" to create changelogs using PR titles and labels
 
-Prefix the change with: Feature, Change, Bugfix, Improvement, Documentation
-
-Use following format:
-Improvement - Description (#ISSUENUMBER)
+Please ensure that this PR has a concise and descriptive title - they can be edited after merging, but not after release.
+Please ensure that this PR has the correct [0-9]-subsystem label(s) attached - this can be edited after merging if needed.
+To skip changelog entry for this PR, use the `skip-changelog` label - ONLY do this for very minor changes - it will not appear in the release notes.
 -->
 
 # Closing issues

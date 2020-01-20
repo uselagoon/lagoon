@@ -35,14 +35,23 @@ parameters:
   - name: DEPLOYMENT_STRATEGY
     description: Strategy of Deploymentconfig
     value: "Rolling"
-  - name: SERVICE_IMAGE
-    description: Pullable image of service
+  - name: HARBORCLAIR_SERVICE_IMAGE
+    description: Pullable image of clair service
     required: true
+  - name: HARBORCLAIRADAPTER_SERVICE_IMAGE
+    description: Pullable image of clair adapter service
+    required: true
+  - name: HARBORCLAIR_SERVICE_NAME
+    description: Name of clair service
+    value: harborclair
+  - name: HARBORCLAIRADAPTER_SERVICE_NAME
+    description: Name of clair adapter service
+    value: harborclairadapter
 objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: ${SERVICE_NAME} # harbor-clair
+    name: ${SERVICE_NAME} # harborclair
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -53,6 +62,8 @@ objects:
         port: 6060
       - name: health
         port: 6061
+      - name: adapter
+        port: 8080
     selector:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -60,7 +71,7 @@ objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: ${SERVICE_NAME} # harbor-clair
+    name: ${SERVICE_NAME} # harborclair
     labels:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
@@ -79,16 +90,15 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
       spec:
-        hostname: ${SERVICE_NAME} # harbor-clair
         containers:
-        - name: ${SERVICE_NAME} # harbor-clair
-          image: ${SERVICE_IMAGE}
+        - name: ${HARBORCLAIR_SERVICE_NAME} # harborclair
+          image: ${HARBORCLAIR_SERVICE_IMAGE}
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /health
               port: 6061
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
           readinessProbe:
             httpGet:
@@ -106,7 +116,7 @@ objects:
           - name: HTTPS_PROXY
             value: ""
           - name: NO_PROXY
-            value: "harbor-core,harbor-jobservice,harbor-database,harbor-chartmuseum,harbor-clair,harbor-notary-server,harbor-notary-signer,harborregistry,127.0.0.1,localhost,.local,.internal"
+            value: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal"
           - name: CLAIR_DB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -118,7 +128,38 @@ objects:
           - name: config
             mountPath: /etc/clair/config.yaml
             subPath: config.yaml
+        - name: ${HARBORCLAIRADAPTER_SERVICE_NAME} # harborclairadapter
+          image: ${HARBORCLAIRADAPTER_SERVICE_IMAGE}
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              path: /probe/healthy
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /probe/ready
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          env:
+          - name: SCANNER_CLAIR_URL
+            # To avoid a pod cannot reach itself via service IP when the clusters disable hairpin
+            value: "http://127.0.0.1:6060"
+          - name: SCANNER_STORE_REDIS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: ${SERVICE_NAME}
+                key: redis
+          - name: SCANNER_CLAIR_DATABASE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: ${SERVICE_NAME}
+                key: database
+          - name: SCANNER_LOG_LEVEL
+            value: "error"
         volumes:
         - name: config
           configMap:
-            name: ${SERVICE_NAME} # harbor-clair
+            name: ${SERVICE_NAME}
