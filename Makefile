@@ -957,7 +957,7 @@ k3d: local-dev/k3d local-dev/kubectl build/docker-host build/kubectl-build-deplo
 ifeq ($(ARCH), darwin)
 	if ! ifconfig lo0 | grep $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}') -q; then sudo ifconfig lo0 alias $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}'); fi
 endif
-	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME) --image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 --volume $$(PWD)/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml
+	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME) --image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 --volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind; \
 	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
