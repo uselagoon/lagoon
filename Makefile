@@ -930,7 +930,7 @@ endif
 # Symlink the installed k3d client if the correct version is already
 # installed, otherwise downloads it.
 local-dev/k3d:
-ifeq ($(K3D_VERSION), $(shell k3d version | grep k3d | sed -E 's/^k3d version v([0-9.]+).*/\1/'))
+ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | grep k3d | sed -E 's/^k3d version v([0-9.]+).*/\1/'))
 	$(info linking local k3d version $(K3D_VERSION))
 	ln -s $(shell command -v k3d) ./local-dev/k3d
 else
