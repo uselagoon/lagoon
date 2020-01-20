@@ -26,7 +26,8 @@ RUN apk add --no-cache bash
 
 ENV DOCKER_HOST=docker-host \
     OPENSHIFT_REGISTRY=docker-registry.default.svc:5000 \
-    REPOSITORY_TO_UPDATE=amazeeio
+    REPOSITORY_TO_UPDATE=amazeeio \
+    BIP=172.16.0.1/16
 
 RUN fix-permissions /home
 
@@ -36,4 +37,4 @@ COPY remove-exited.sh /remove-exited.sh
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 
-CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${OPENSHIFT_REGISTRY} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1"]
+CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${OPENSHIFT_REGISTRY} --bip=${BIP} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1"]

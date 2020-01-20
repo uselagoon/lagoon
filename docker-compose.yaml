@@ -349,6 +349,12 @@ services:
       - MINIO_SECRET_KEY=minio123
     labels:
       lagoon.type: none
+  local-registry:
+    image: registry:2
+    ports:
+      - '5000:5000'
+    labels:
+      lagoon.type: none
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:

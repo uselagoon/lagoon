@@ -28,6 +28,8 @@ spec:
         env:
           - name: DOCKER_HOST
             value: localhost
+          - name: OPENSHIFT_REGISTRY
+            value: '172.17.0.1:5000'
           - name: REPOSITORY_TO_UPDATE
             value: ${REPOSITORY_TO_UPDATE}
           - name: CRONJOBS

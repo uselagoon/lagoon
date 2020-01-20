@@ -60,6 +60,7 @@ declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
+declare -A IMAGE_HASHES
 
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
@@ -659,47 +660,49 @@ done
 ##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
-# if [[ $THIS_IS_TUG == "true" ]]; then
-#   # Allow to disable registry auth
-#   if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
-#     # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
-#     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret tug-registry 2> /dev/null; then
-#       kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret tug-registry
-#     fi
 
-#     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-#     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets add serviceaccount/default secrets/tug-registry --for=pull
-#   fi
+if [[ $THIS_IS_TUG == "true" ]]; then
+  # Allow to disable registry auth
+  if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
+    # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret tug-registry 2> /dev/null; then
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret tug-registry
+    fi
 
-#   # Import all remote Images into ImageStreams
-#   readarray -t TUG_IMAGES < /kubectl-build-deploy/tug/images
-#   for TUG_IMAGE in "${TUG_IMAGES[@]}"
-#   do
-#     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} tag --source=docker "${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" "${TUG_IMAGE}:latest"
-#   done
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets add serviceaccount/default secrets/tug-registry --for=pull
+  fi
 
-# elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
+  # Import all remote Images into ImageStreams
+  readarray -t TUG_IMAGES < /kubectl-build-deploy/tug/images
+  for TUG_IMAGE in "${TUG_IMAGES[@]}"
+  do
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} tag --source=docker "${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" "${TUG_IMAGE}:latest"
+  done
 
-#   # All images that should be pulled are tagged as Images directly in OpenShift Registry
-#   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
-#   do
-#     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-#     . /kubectl-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
-#   done
+elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-#   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
-#   do
-#     # Before the push the temporary name is resolved to the future tag with the registry in the image name
-#     TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
+  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  for IMAGE_NAME in "${!IMAGES_PULL[@]}"
+  do
+    PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
+    # . /kubectl-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${PULL_IMAGE} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+  done
 
-#     # This will actually not push any images and instead just add them to the file /kubectl-build-deploy/lagoon/push
-#     . /kubectl-build-deploy/scripts/exec-push-parallel.sh
-#   done
+  for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+  do
+    # Before the push the temporary name is resolved to the future tag with the registry in the image name
+    TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
 
-#   # If we have Images to Push to the OpenRegistry, let's do so
-#   if [ -f /kubectl-build-deploy/lagoon/push ]; then
-#     parallel --retries 4 < /kubectl-build-deploy/lagoon/push
-#   fi
+    # This will actually not push any images and instead just add them to the file /kubectl-build-deploy/lagoon/push
+    . /kubectl-build-deploy/scripts/exec-push-parallel.sh
+  done
+
+  # If we have Images to Push to the OpenRegistry, let's do so
+  if [ -f /kubectl-build-deploy/lagoon/push ]; then
+    parallel --retries 4 < /kubectl-build-deploy/lagoon/push
+  fi
 
 # elif [ "$TYPE" == "promote" ]; then
 
@@ -708,7 +711,7 @@ done
 #     .  /kubectl-build-deploy/scripts/exec-openshift-tag.sh
 #   done
 
-# fi
+fi
 
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
@@ -849,7 +852,10 @@ do
   #   fi
   # fi
 
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${IMAGES_PULL[${SERVICE_NAME}]}" | outputToYaml
+  SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+  SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
 
 done
 

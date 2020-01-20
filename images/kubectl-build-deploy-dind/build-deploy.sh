@@ -3,7 +3,7 @@ set -x
 set -eo pipefail
 set -o noglob
 
-REGISTRY=docker-registry.default.svc:5000
+REGISTRY=172.17.0.1:5000
 NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
 
@@ -48,9 +48,6 @@ kubectl config set-context default/lagoon/kubernetes.default.svc --user=lagoon/k
 kubectl config use-context default/lagoon/kubernetes.default.svc
 
 set -x
-
-kubectl get pods
-
 
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 
