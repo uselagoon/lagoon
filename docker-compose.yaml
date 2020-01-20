@@ -130,6 +130,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploy/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:v1-2-0
+  kubernetesremove:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesremove
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesremove/src:/app/services/kubernetesremove/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesremove/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesremove:v1-2-0
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
