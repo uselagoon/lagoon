@@ -566,9 +566,9 @@ deployment-k8s-test-services-main = broker kubernetesbuilddeploy api api-db keyc
 
 .PHONY: k8s-test-services-main
 k8s-test-services-main:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-k8s-test-services-main)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-k8s-test-services-main) local-registry
 
-$(all-k8s-tests): k3d k8s-test-services-main
+$(all-k8s-tests): k3d $(foreach image,$(deployment-k8s-test-services-main),build/$(image)) k8s-test-services-main
 		$(eval testname = $(subst k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests ansible-playbook /ansible/tests/$(testname)-kubernetes.yaml $(testparameter)
 
