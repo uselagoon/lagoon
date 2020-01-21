@@ -52,10 +52,9 @@ node {
           }
 
           parallel (
-            "_tests_${kubernetes_version}": {
+            "_tests_kubernetes_${kubernetes_version}": {
                 stage ('run tests') {
                   try {
-                    sh "make up"
                     sh "make k8s-tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
@@ -65,7 +64,7 @@ node {
                   cleanup()
                 }
             },
-            "logs_${kubernetes_version}": {
+            "logs_kubernetes_${kubernetes_version}": {
                 stage ('all') {
                   sh "make logs"
                 }
@@ -82,12 +81,6 @@ node {
 
           try {
             parallel (
-              'start services': {
-                stage ('start services') {
-                  sh "make kill"
-                  sh "make up"
-                }
-              },
               'start minishift': {
                 stage ('start minishift') {
                   sh 'make minishift/cleanall || echo'
@@ -110,12 +103,11 @@ node {
           }
 
           parallel (
-            "_tests_${openshift_version}": {
+            "_tests_openshift_${openshift_version}": {
                 stage ('run tests') {
                   try {
                     sh "make push-minishift -j5"
-                    sh "make up"
-                    sh "make tests -j2"
+                    sh "make openshift-tests -j2"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -124,7 +116,7 @@ node {
                   cleanup()
                 }
             },
-            "logs_${openshift_version}": {
+            "logs_openshift_${openshift_version}": {
                 stage ('all') {
                   sh "make logs"
                 }
