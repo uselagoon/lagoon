@@ -1,6 +1,6 @@
 node {
 
-  openshift_versions = 'v3.11.0'
+  openshift_version = 'v3.11.0'
   minishift_version = '1.34.1'
   kubernetes_versions = ['v1.17.0']
 
@@ -50,9 +50,9 @@ node {
             '1 tests': {
               kubernetes_versions.each { kubernetes_version ->
                 stage ("kubernetes ${kubernetes_version} tests") {
+                  sh "make k3d/clean KUBERNETES_VERSION=${kubernetes_version}"
                   sh "make k3d KUBERNETES_VERSION=${kubernetes_version}"
                   sh "make k8s-tests"
-                  sh "make k3d/clean KUBERNETES_VERSION=${kubernetes_version}"
                 }
               }
               stage ('minishift tests') {

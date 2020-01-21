@@ -1021,13 +1021,13 @@ k3d-dashboard:
 # Stop k3d
 .PHONY: k3d/stop
 k3d/stop: local-dev/k3d
-	./local-dev/k3d delete --name $(K3D_NAME)
+	./local-dev/k3d delete --name $(K3D_NAME) || true
 	rm -f k3d
 
 # Stop All k3d
 .PHONY: k3d/stopall
 k3d/stopall: local-dev/k3d
-	./local-dev/k3d delete --all
+	./local-dev/k3d delete --all || true
 	rm -f k3d
 
 # Stop k3d, remove downloaded k3d
