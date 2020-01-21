@@ -293,7 +293,7 @@ const messageConsumer = async msg => {
   let namespaceStatus = {}
   try {
     const body = { body: {"apiVersion":"v1","kind":"Namespace","metadata": { "name":openshiftProject } } };
-    const result = await kubernetes.apis.apps.v1.namespaces('default').deployments.post(body);
+    const result = await kubernetes.apis.apps.v1.namespaces(openshiftProject).deployments.post(body);
 
     // const namespacePost = Bluebird.Promise.promisify(kubernetes.namespace.post, { context: kubernetes.namespace })
     // namespaceStatus = await namespacePost({ body: {"apiVersion":"v1","kind":"Namespace","metadata":{"name":openshiftProject}} })

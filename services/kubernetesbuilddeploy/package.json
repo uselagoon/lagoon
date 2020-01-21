@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/index.js",
     "build": "tsc -p .",
-    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'ts-node' src/index.ts"
+    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'node --inspect=0.0.0.0:9229 --require ts-node/register src/index.ts'"
   },
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
