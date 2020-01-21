@@ -1,2 +1,0 @@
-# docker\_images
-
