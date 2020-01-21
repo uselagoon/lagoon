@@ -97,6 +97,8 @@ do
   fi
 
   if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
+    echo "TODO: mariadb-shared needs to be implemented"
+    exit 1
     # Load a possible defined mariadb-shared
     MARIADB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
 
@@ -275,7 +277,8 @@ fi
 # of ourselves and push it into `lagoon-tug` image which is then executed in the destination openshift
 # If though this is the actual tug deployment in the destination openshift, we don't run this
 if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
-
+echo "TODO: lagoon-tug is not implemented yet in kubernetes"
+exit 1
   . /kubectl-build-deploy/tug/tug-build-push.sh
 
   # exit here, we are done
@@ -396,7 +399,7 @@ do
     # Load the requested class and plan for this service
     SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
     SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
-    . /kubectl-build-deploy/scripts/exec-openshift-create-servicebroker.sh
+    . /kubectl-build-deploy/scripts/exec-kubernetes-create-servicebroker.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -440,7 +443,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
-      .  /kubectl-build-deploy/scripts/exec-openshift-create-route.sh
+      .  /kubectl-build-deploy/scripts/exec-kubernetes-create-route.sh
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -476,7 +479,7 @@ else
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
-      .  /kubectl-build-deploy/scripts/exec-openshift-create-route.sh
+      .  /kubectl-build-deploy/scripts/exec-kubernetes-create-route.sh
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -500,7 +503,7 @@ if kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedule
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
-
+  # TODO: -p == --set in helm
   # Run Checks on Sunday at 0300-0600
   CHECK_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
   TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
@@ -510,7 +513,7 @@ if kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedule
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
-  .  /kubectl-build-deploy/scripts/exec-openshift-resources.sh
+  .  /kubectl-build-deploy/scripts/exec-kubernetes-resources.sh
 fi
 
 if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
@@ -662,6 +665,9 @@ done
 ##############################################
 
 if [[ $THIS_IS_TUG == "true" ]]; then
+  # TODO: lagoon-tug is not implemented yet in kubernetes
+  echo "lagoon-tug is not implemented yet in kubernetes"
+  exit 1
   # Allow to disable registry auth
   if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
     # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
@@ -686,7 +692,8 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    # . /kubectl-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+    # . /kubectl-build-deploy/scripts/exec-kubernetes-tag-dockerhub.sh
+    # TODO: check if we can download and push the images to harbour (e.g. how artifactory does this)
     IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${PULL_IMAGE} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
   done
 
@@ -701,6 +708,7 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
   # If we have Images to Push to the OpenRegistry, let's do so
   if [ -f /kubectl-build-deploy/lagoon/push ]; then
+    # TODO: check if we still need the paralelism
     parallel --retries 4 < /kubectl-build-deploy/lagoon/push
   fi
 
@@ -714,7 +722,7 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
 #   for IMAGE_NAME in "${IMAGES[@]}"
 #   do
-#     .  /kubectl-build-deploy/scripts/exec-openshift-tag.sh
+#     .  /kubectl-build-deploy/scripts/exec-kubernetes-tag.sh
 #   done
 
 fi
@@ -759,6 +767,7 @@ do
   #   fi
   # fi
 
+# TODO: we don't need this anymore
   # DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
   # if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
   #   TEMPLATE_PARAMETERS+=(-p DEPLOYMENT_STRATEGY="${DEPLOYMENT_STRATEGY}")
@@ -805,7 +814,7 @@ do
   #         TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
   #         TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
 
-  #         . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
+  #         . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
 
   #         # restore template parameters without any cronjobs in them (allows to create a secondary cronjob, plus also any other templates)
   #         TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
@@ -831,14 +840,14 @@ do
   #   OPENSHIFT_DEPLOYMENT_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
   #   if [ -f $OPENSHIFT_DEPLOYMENT_TEMPLATE ]; then
   #     OPENSHIFT_TEMPLATE=$OPENSHIFT_DEPLOYMENT_TEMPLATE
-  #     . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
+  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
   #   fi
 
   #   # Generate statefulset if service type defines it
   #   OPENSHIFT_STATEFULSET_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
   #   if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
   #     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-  #     . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
+  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
   #   fi
   # elif [[ "${ENVIRONMENT_OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in .lagoon.yml, trying to use it
 
@@ -846,7 +855,7 @@ do
   #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
   #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in .lagoon.yml not found"; exit 1;
   #   else
-  #     . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
+  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
   #   fi
   # elif [[ "${OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in docker-compose, trying to use it
 
@@ -854,7 +863,7 @@ do
   #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
   #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in $DOCKER_COMPOSE_YAML not found"; exit 1;
   #   else
-  #     . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
+  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
   #   fi
   # fi
 
