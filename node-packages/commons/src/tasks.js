@@ -1,5 +1,3 @@
-// @flow
-
 const amqp = require('amqp-connection-manager');
 const { logger } = require('./local-logging');
 
@@ -13,8 +11,6 @@ exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
 
-import type { ChannelWrapper } from './types';
-
 const {
   getActiveSystemForProject,
   getProductionEnvironmentForProject,
@@ -22,16 +18,16 @@ const {
 } = require('./api');
 
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
-  task: string,
-  payload?: Object,
+  task,
+  payload,
 ) {
   // TODO: Actually do something here?
   return payload && undefined;
 });
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
-  task: string,
-  payload?: Object,
+  task,
+  payload,
 ) {
   // TODO: Actually do something here?
   return payload && undefined;
@@ -43,35 +39,35 @@ const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
 class UnknownActiveSystem extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'UnknownActiveSystem';
   }
 }
 
 class NoNeedToDeployBranch extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'NoNeedToDeployBranch';
   }
 }
 
 class NoNeedToRemoveBranch extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'NoNeedToRemoveBranch';
   }
 }
 
 class CannotDeleteProductionEnvironment extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'CannotDeleteProductionEnvironment';
   }
 }
 
 class EnvironmentLimit extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'EnvironmentLimit';
   }
@@ -96,7 +92,7 @@ function initSendToLagoonTasks() {
     }),
   );
 
-  const channelWrapperTasks: ChannelWrapper = connection.createChannel({
+  const channelWrapperTasks = connection.createChannel({
     setup(channel) {
       return Promise.all([
         // Our main Exchange for all lagoon-tasks
@@ -128,9 +124,9 @@ function initSendToLagoonTasks() {
   });
 
   exports.sendToLagoonTasks = sendToLagoonTasks = async (
-    task: string,
-    payload: Object,
-  ): Promise<string> => {
+    task,
+    payload,
+  ) => {
     try {
       const buffer = Buffer.from(JSON.stringify(payload));
       await channelWrapperTasks.publish('lagoon-tasks', task, buffer, {
@@ -153,9 +149,9 @@ function initSendToLagoonTasks() {
   };
 
   exports.sendToLagoonTasksMonitor = sendToLagoonTasksMonitor = async (
-    task: string,
-    payload: Object,
-  ): Promise<string> => {
+    task,
+    payload,
+  ) => {
     try {
       const buffer = Buffer.from(JSON.stringify(payload));
       await channelWrapperTasks.publish('lagoon-tasks-monitor', task, buffer, {
@@ -181,11 +177,11 @@ function initSendToLagoonTasks() {
   };
 }
 
-async function createTaskMonitor(task: string, payload: Object) {
+async function createTaskMonitor(task, payload) {
   return sendToLagoonTasksMonitor(task, payload);
 }
 
-async function createDeployTask(deployData: Object) {
+async function createDeployTask(deployData) {
   const {
     projectName,
     branchName,
@@ -381,7 +377,7 @@ async function createDeployTask(deployData: Object) {
   }
 }
 
-async function createPromoteTask(promoteData: Object) {
+async function createPromoteTask(promoteData) {
   const {
     projectName,
     // branchName,
@@ -410,7 +406,7 @@ async function createPromoteTask(promoteData: Object) {
   }
 }
 
-async function createRemoveTask(removeData: Object) {
+async function createRemoveTask(removeData) {
   const {
     projectName,
     branch,
@@ -547,7 +543,7 @@ async function createRemoveTask(removeData: Object) {
   }
 }
 
-async function createTaskTask(taskData: Object) {
+async function createTaskTask(taskData) {
   const {
     project,
   } = taskData;
@@ -573,15 +569,15 @@ async function createTaskTask(taskData: Object) {
   }
 }
 
-async function createMiscTask(taskData: Object) {
+async function createMiscTask(taskData) {
   return sendToLagoonTasks('misc-openshift', taskData);
 }
 
 async function consumeTasks(
-  taskQueueName: string,
-  messageConsumer: Function,
-  retryHandler: Function,
-  deathHandler: Function,
+  taskQueueName,
+  messageConsumer,
+  retryHandler,
+  deathHandler,
 ) {
   const onMessage = async msg => {
     try {
@@ -660,9 +656,9 @@ async function consumeTasks(
 }
 
 async function consumeTaskMonitor(
-  taskMonitorQueueName: string,
-  messageConsumer: Function,
-  deathHandler: Function,
+  taskMonitorQueueName,
+  messageConsumer,
+  deathHandler,
 ) {
   const onMessage = async msg => {
     try {
@@ -732,4 +728,16 @@ async function consumeTaskMonitor(
       ]);
     },
   });
+}
+
+module.exports = {
+  initSendToLagoonTasks,
+  createTaskMonitor,
+  createDeployTask,
+  createPromoteTask,
+  createRemoveTask,
+  createTaskTask,
+  createMiscTask,
+  consumeTasks,
+  createTaskMonitor
 }
