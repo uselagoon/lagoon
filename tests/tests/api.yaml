@@ -6,17 +6,17 @@
 
 - include: api/deploy-pullrequest.yaml
   vars:
-    testname: "API - deploy pullrequest"
+    testname: "API {{ lookup('env','CLUSTER_TYPE')|upper }} - deploy pullrequest"
     node_version: 8
     git_repo_name: api.git
-    project: ci-api
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    project: ci-api-{{ lookup('env','CLUSTER_TYPE') }}
+    check_url: "http://node-{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "API - deploy regular branch"
+    testname: "API {{ lookup('env','CLUSTER_TYPE')|upper }} - deploy regular branch"
     node_version: 8
     git_repo_name: api.git
-    project: ci-api
+    project: ci-api-{{ lookup('env','CLUSTER_TYPE') }}
     branch: api/slash/branch
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
