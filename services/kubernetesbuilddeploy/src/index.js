@@ -336,7 +336,7 @@ const messageConsumer = async msg => {
       // create the rolebinding for the mariadb operator to be able to create mariadbconsumer kinds
       const serviceaccountsMariaDBRolebindingsBody = {"kind":"RoleBinding","apiVersion":"rbac.authorization.k8s.io/v1","metadata":{"name":"lagoon-deployer-mariadb-operator","namespace":openshiftProject},"roleRef":{"name":"mariadb-operator-role","kind":"ClusterRole","apiGroup":"rbac.authorization.k8s.io"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]};
       const serviceaccountsMariaDBRolebindingsPost = Promise.promisify(kubernetesApi.group(serviceaccountsMariaDBRolebindingsBody).ns(openshiftProject).rolebindings.post, { context: kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings })
-      await serviceaccountsRolebindingsPost({ body: serviceaccountsMariaDBRolebindingsPost })
+      await serviceaccountsMariaDBRolebindingsPost({ body: serviceaccountsMariaDBRolebindingsBody })
     } else {
       logger.error(err)
       throw new Error

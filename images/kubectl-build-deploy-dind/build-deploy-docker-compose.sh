@@ -86,10 +86,11 @@ do
     # if there is already a service existing with the service_name we assume that for this project there has been a
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
-      SERVICE_TYPE="mariadb-shared"
+      SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
-    # elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
-      # SERVICE_TYPE="mariadb-shared"
+    # real basic check to see if the mariadbconsumer exists as a kind
+    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer &> /dev/null
+      SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
     fi
@@ -106,14 +107,14 @@ do
       MARIADB_SHARED_CLASS=$ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE
     fi
 
-    # check if the defined service broker class exists
-    # if svcat --scope cluster get class $MARIADB_SHARED_CLASS > /dev/null; then
-    #   SERVICE_TYPE="mariadb-shared"
+    # check if the defined operator class exists
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer &> /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
       MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
-    # else
-    #   echo "defined mariadb-shared service broker class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
-    #   exit 1
-    # fi
+    else
+      echo "defined mariadb-shared operator class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
+      exit 1
+    fi
 
     # Default plan is the enviroment type
     MARIADB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
@@ -125,6 +126,7 @@ do
     fi
 
     # Check if the defined service broker plan  exists
+    # @TODO: how to check if the operator has any supported plans/environments or not. might not even be required as the build job will fail if the credentials aren't created in tim
     # if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
         MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
     # else
