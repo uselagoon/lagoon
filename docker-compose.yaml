@@ -130,6 +130,20 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploy/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:v1-2-0
+  kubernetesbuilddeploymonitor:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploymonitor
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesbuilddeploymonitor/src:/app/services/kubernetesbuilddeploymonitor/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-XXXXXXXXXXXXXXXXXXXX}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-xxxxxxxxxxxxxxxxxxxx}
+      - AWS_BUCKET=${AWS_BUCKET:-aws-bucket}
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesbuilddeploymonitor/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesbuilddeploymonitor:v1-2-0
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
