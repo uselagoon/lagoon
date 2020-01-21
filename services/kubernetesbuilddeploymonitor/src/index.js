@@ -1,7 +1,6 @@
 // @flow
 
-
-const Promise = require("bluebird");
+const promisify = require('util').promisify;
 const kubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
@@ -9,9 +8,6 @@ const uuidv4 = require('uuid/v4');
 const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 
-
-logger.verbose(`Hello from inside kubernetesbuilddeploymonitor container`);
-/*
 const {
   getOpenShiftInfoForProject,
   getEnvironmentByName,
@@ -36,7 +32,6 @@ const secretAccessKey =  process.env.AWS_SECRET_ACCESS_KEY
 const bucket = process.env.AWS_BUCKET
 const region = process.env.AWS_REGION || 'us-east-2'
 
-
 if ( !accessKeyId || !secretAccessKey || !bucket) {
   logger.error('AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
 }
@@ -49,14 +44,15 @@ initSendToLagoonTasks();
 
 const messageConsumer = async msg => {
   const {
-    buildName,
+    buildName: jobName,
     projectName,
-    kubernetesProject,
+    openshiftProject,
     branchName,
     sha
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received BuildDeploykubernetes monitoring task for project: ${projectName}, buildName: ${buildName}, kubernetesProject: ${kubernetesProject}, branch: ${branchName}, sha: ${sha}`);
+  logger.verbose(`Received BuildDeploykubernetes monitoring task for project: ${projectName}, jobName: ${jobName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
+  
   const projectResult = await getOpenShiftInfoForProject(projectName);
   const project = projectResult.project
 
@@ -73,7 +69,7 @@ const messageConsumer = async msg => {
   }
 
   // kubernetes API object
-  const kubernetes = new kubernetesClient.OApi({
+  const kubernetesApi = new kubernetesClient.Api({
     url: kubernetesConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -83,7 +79,7 @@ const messageConsumer = async msg => {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of kubernetes and
   // the kubernetes API does not support them.
-  const kubernetes = new kubernetesClient.Core({
+  const kubernetesCore = new kubernetesClient.Core({
     url: kubernetesConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -91,20 +87,31 @@ const messageConsumer = async msg => {
     },
   });
 
+  const kubernetesBatchApi = new OpenShiftClient.Batch({
+    url: openshiftConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: openshiftToken
+    }
+  });
 
-  // kubernetes-client does not know about the kubernetes Resources, let's teach it.
-  // kubernetes.ns.addResource('builds');
-  // kubernetes.ns.addResource('deploymentconfigs');
-
-  let projectStatus = {}
+  let project = {}
   try {
-    // TODO: kubernetes does not have "projects" - 
-    const projectsGet = Promise.promisify(kubernetes.projects(kubernetesProject).get, { context: kubernetes.projects(kubernetesProject) })
-    projectStatus = await projectsGet()
+    const namespacesSearch = promisify(kubernetesCore.namespaces.get);
+    const namespacesResult = await namespacesSearch({
+      qs: {
+        fieldSelector: `metadata.name=${openshiftProject}`
+      }
+    });
+  
+    const namespaces = R.propOr([], 'items', namespacesResult);
+    if (!R.isEmpty(namespaces)) {
+      project = namespaces[0];
+    }
   } catch (err) {
     // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
     if (err.code == 404) {
-      logger.error(`Project ${kubernetesProject} does not exist, bailing`)
+      logger.error(`Project ${openshiftProject} does not exist, bailing`)
       return
     } else {
       logger.error(err)
@@ -112,24 +119,58 @@ const messageConsumer = async msg => {
     }
   }
 
+  let jobInfo;
   try {
-    const buildsGet = Promise.promisify(kubernetes.ns(kubernetesProject).builds(buildName).get, { context: kubernetes.ns(kubernetesProject).builds(buildName) })
-    buildstatus = await buildsGet()
+    const jobsGet = promisify(
+      kubernetesBatchApi.namespaces(openshiftProject).jobs(jobName).get
+    );
+    jobInfo = await jobsGet();
   } catch (err) {
     if (err.code == 404) {
-      logger.error(`Build ${buildName} does not exist, bailing`)
-      return
+      logger.error(`Job ${jobName} does not exist, bailing`);
+      failTask(taskId);
+      return;
     } else {
-      logger.error(err)
-      throw new Error
+      logger.error(err);
+      throw new Error();
     }
   }
 
+  const buildPhase = project.status.phase.toLowerCase();
 
 
-  const buildPhase = buildstatus.status.phase.toLowerCase();
-  const buildsLogGet = Promise.promisify(kubernetes.ns(kubernetesProject).builds(`${buildName}/log`).get, { context: kubernetes.ns(kubernetesProject).builds(`${buildName}/log`) })
-  const routesGet = Promise.promisify(kubernetes.ns(kubernetesProject).routes.get, { context: kubernetes.ns(kubernetesProject).routes })
+  const jobsLogGet = async () => {
+    // First fetch the pod(s) used to run this job
+    const podsGet = promisify(kubernetesCore.ns(openshiftProject).pods.get);
+    const pods = await podsGet({
+      qs: {
+        labelSelector: `job-name=${jobName}`
+      }
+    });
+    const podNames = pods.items.map(pod => pod.metadata.name);
+
+    // Combine all logs from all pod(s)
+    let finalLog = '';
+    for (const podName of podNames) {
+      const podLogGet = promisify(
+        kubernetesCore.ns(openshiftProject).pods(podName).log.get
+      );
+      const podLog = await podLogGet();
+
+      finalLog =
+        finalLog +
+        `
+========================================
+Logs on pod ${podName}
+========================================
+${podLog}`;
+    }
+
+    return finalLog;
+  };
+
+  // const buildsLogGet = Promise.promisify(kubernetes.ns(openshiftProject).builds(`${jobName}/log`).get, { context: kubernetes.ns(openshiftProject).builds(`${jobName}/log`) })
+  // const routesGet = Promise.promisify(kubernetes.ns(openshiftProject).routes.get, { context: kubernetes.ns(openshiftProject).routes })
 
   try {
     const deployment = await getDeploymentByRemoteId(buildstatus.metadata.uid);
@@ -147,7 +188,7 @@ const messageConsumer = async msg => {
       completed: dateOrNull(buildstatus.status.completionTimestamp),
     });
   } catch (error) {
-    logger.error(`Could not update deployment ${projectName} ${buildName}. Message: ${error}`);
+    logger.error(`Could not update deployment ${projectName} ${jobName}. Message: ${error}`);
   }
 
   const meta = JSON.parse(msg.content.toString())
@@ -163,64 +204,76 @@ const messageConsumer = async msg => {
     case "new":
     case "pending":
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` not yet started`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` not yet started`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${buildName}\` not yet started`)
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` not yet started`)
       break;
 
     case "running":
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` running`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` running`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${buildName}\` running`)
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` running`)
       break;
 
     case "cancelled":
     case "error":
       try {
-        const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
+        const buildLog = await jobsLogGet()
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
-        logger.warn(`${kubernetesProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        logger.warn(`${openshiftProject} ${jobName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
         meta.logLink = ''
       }
       sendToLagoonLogs('warn', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` cancelled. <${logLink}|Logs>`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` cancelled. <${logLink}|Logs>`
       )
       break;
 
     case "failed":
       try {
-        const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
+        const buildLog = await jobsLogGet()
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
-        logger.warn(`${kubernetesProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        logger.warn(`${openshiftProject} ${jobName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
         meta.logLink = ''
       }
 
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. <${logLink}|Logs>`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` failed. <${logLink}|Logs>`
       )
       break;
 
     case "complete":
       try {
-        const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
+        const buildLog = await jobsLogGet()
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
-        logger.warn(`${kubernetesProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
+        logger.warn(`${openshiftProject} ${jobName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
         meta.logLink = ''
       }
 
+      let configMap = {};
       try {
-        const configMapGet = Promise.promisify(kubernetes.ns(kubernetesProject).configmaps('lagoon-env').get, { context: kubernetes.ns(kubernetesProject).configmaps('lagoon-env') })
-        configMap = await configMapGet()
+        const configMapSearch = promisify(kubernetesCore.namespaces(openshiftProject).configmaps.get);
+        const configMapSearchResult = await configMapSearch({
+          qs: {
+            fieldSelector: `metadata.name=lagoon-env`
+          }
+        });
+      
+        if (!R.isNil(configMapSearchResult)) {
+          configMap = configMapSearchResult
+        }
+
+        // const configMapGet = Promise.promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get, { context: kubernetes.ns(openshiftProject).configmaps('lagoon-env') })
+        // configMap = await configMapGet()
       } catch (err) {
         if (err.code == 404) {
           logger.error(`configmap lagoon-env does not exist, continuing without routes information`)
@@ -230,12 +283,12 @@ const messageConsumer = async msg => {
         }
       }
 
-      const route = configMap.data.LAGOON_ROUTE
-      const routes = configMap.data.LAGOON_ROUTES.split(',').filter(e => e !== route);
+      const route = configMap.data.ROUTE
+      const routes = configMap.data.ROUTES.split(',').filter(e => e !== route);
       meta.route = route
       meta.routes = routes
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. <${logLink}|Logs> \n ${route}\n ${routes.join("\n")}`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` complete. <${logLink}|Logs> \n ${route}\n ${routes.join("\n")}`
       )
       try {
         const updateEnvironmentResult = await updateEnvironment(
@@ -247,15 +300,27 @@ const messageConsumer = async msg => {
             project: ${project.id}
           }`)
         } catch (err) {
-          logger.warn(`${kubernetesProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+          logger.warn(`${openshiftProject} ${jobName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
         }
 
       // Tell api what services are running in this environment
       try {
         // Get pod template from existing service
-        const deploymentConfigsGet = Promise.promisify(
-          kubernetes.ns(kubernetesProject).deploymentconfigs.get, { context: kubernetes.ns(kubernetesProject).deploymentconfigs }
-        );
+        // TODO: This should work but does not
+
+
+        const deploymentConfigsGet = promisify(kubernetesCore.namespaces(openshiftProject).deployments.get);
+        const qs = {
+          fieldSelector: `metadata.name=${openshiftProject}`
+        };
+        const deploymentConfigs = await deployments({});
+
+
+        // const deploymentConfigsGet = Promise.promisify(
+        //   kubernetes.ns(openshiftProject).deploymentconfigs.get, { context: kubernetes.ns(openshiftProject).deploymentconfigs }
+        // );
+
+
         const deploymentConfigs = await deploymentConfigsGet();
 
         const serviceNames = deploymentConfigs.items.reduce(
@@ -274,35 +339,35 @@ const messageConsumer = async msg => {
 
         await setEnvironmentServices(environment.id, serviceNames);
       } catch (err) {
-        logger.error(`${kubernetesProject} ${buildName}: Error while updating environment services in API, Error: ${err}`)
+        logger.error(`${openshiftProject} ${jobName}: Error while updating environment services in API, Error: ${err}`)
       }
       break;
 
     default:
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${buildName}\` phase ${buildPhase}`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${buildPhase}`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${buildName}\` phase ${buildPhase}`)
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${buildPhase}`)
       break;
   }
 
 }
 
-const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildStatus) => {
+const saveBuildLog = async(jobName, projectName, branchName, buildLog, buildStatus) => {
   const meta = {
-    buildName,
+    jobName,
     branchName,
     buildPhase: buildStatus.status.phase.toLowerCase(),
     remoteId: buildStatus.metadata.uid
   };
 
-  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-kubernetes:${buildName}`, meta,
+  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-kubernetes:${jobName}`, meta,
     buildLog
   );
-  return await uploadLogToS3(buildName, projectName, branchName, buildLog);
-}
+  return await uploadLogToS3(jobName, projectName, branchName, buildLog);
+};
 
-const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
+const uploadLogToS3 = async (jobName, projectName, branchName, buildLog) => {
   const uuid = uuidv4();
   const path = `${projectName}/${branchName}/${uuid}.txt`
 
@@ -315,15 +380,13 @@ const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
   };
   const s3Upload = Promise.promisify(s3.upload, { context: s3 })
   return s3Upload(params);
-
 };
-
 
 const deathHandler = async (msg, lastError) => {
   const {
-    buildName,
+    jobName,
     projectName,
-    kubernetesProject,
+    openshiftProject,
     branchName,
     sha
   } = JSON.parse(msg.content.toString())
@@ -335,14 +398,10 @@ const deathHandler = async (msg, lastError) => {
     logMessage = `\`${branchName}\``
   }
 
-  sendToLagoonLogs('error', projectName, "", "task:builddeploy-kubernetes:error",  {},
-`*[${projectName}]* ${logMessage} Build \`${buildName}\` ERROR:
-\`\`\`
-${lastError}
-\`\`\``
-  )
+  const task = "task:builddeploy-kubernetes:error";
+  const msg = `*[${projectName}]* ${logMessage} Build \`${jobName}\` ERROR: \`\`\` ${lastError} \`\`\``;
+  sendToLagoonLogs('error', projectName, "", task,  {}, msg);
 
 }
 
-consumeTaskMonitor('builddeploy-kubernetes', messageConsumer, deathHandler)
-*/
+consumeTaskMonitor('builddeploy-kubernetes', messageConsumer, deathHandler);
