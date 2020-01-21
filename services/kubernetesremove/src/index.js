@@ -1,5 +1,3 @@
-// @flow
-
 const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
 const { ServiceCatalog } = require('@lagoon/commons/src/openshiftApi');
