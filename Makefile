@@ -598,7 +598,7 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy tests-kubernetes
+kubernetes-test-services = kubernetesbuilddeploy tests-kubernetes local-registry
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks
@@ -1002,6 +1002,9 @@ rebuild-push-kubectl-build-deploy-dind:
 	$(MAKE) build/kubectl-build-deploy-dind
 	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
 	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+
+k3d-kubeconfig:
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"
 
 k3d-dashboard:
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
