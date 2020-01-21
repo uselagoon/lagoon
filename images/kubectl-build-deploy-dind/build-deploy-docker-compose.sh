@@ -45,7 +45,7 @@ DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.d
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Default shared mariadb service broker
-MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
+MARIADB_SHARED_DEFAULT_CLASS="mariadbconsumer"
 MONGODB_SHARED_DEFAULT_CLASS="lagoon-maas-mongodb-apb"
 
 # Figure out which services should we handle
@@ -88,8 +88,8 @@ do
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
-    elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
-      SERVICE_TYPE="mariadb-shared"
+    # elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
+      # SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
     fi
@@ -107,13 +107,13 @@ do
     fi
 
     # check if the defined service broker class exists
-    if svcat --scope cluster get class $MARIADB_SHARED_CLASS > /dev/null; then
-      SERVICE_TYPE="mariadb-shared"
-      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
-    else
-      echo "defined mariadb-shared service broker class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
-      exit 1
-    fi
+    # if svcat --scope cluster get class $MARIADB_SHARED_CLASS > /dev/null; then
+    #   SERVICE_TYPE="mariadb-shared"
+    #   MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
+    # else
+    #   echo "defined mariadb-shared service broker class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
+    #   exit 1
+    # fi
 
     # Default plan is the enviroment type
     MARIADB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
@@ -125,12 +125,12 @@ do
     fi
 
     # Check if the defined service broker plan  exists
-    if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
-        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
-    else
-        echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
-        exit 1
-    fi
+    # if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
+    #     MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
+    # else
+    #     echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
+    #     exit 1
+    # fi
   fi
 
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
@@ -391,12 +391,12 @@ do
   fi
 
 
-  OPENSHIFT_SERVICES_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
-  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+  KUBERNETES_SERVICES_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/crd.yml"
+  if [ -f $KUBERNETES_SERVICES_TEMPLATE ]; then
     # Load the requested class and plan for this service
     SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
     SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
-    . /kubectl-build-deploy/scripts/exec-openshift-create-servicebroker.sh
+    . /kubectl-build-deploy/scripts/exec-openshift-create-crd.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
