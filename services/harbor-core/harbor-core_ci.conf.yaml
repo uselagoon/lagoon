@@ -1,0 +1,9 @@
+appname = Harbor
+runmode = dev
+enablegzip = true
+
+[dev]
+httpport = 8080
+EnableXSRF = true
+XSRFKey = abcdefghijklmnopqrstuvwxyz1234567890ABCD
+XSRFExpire = 3600
