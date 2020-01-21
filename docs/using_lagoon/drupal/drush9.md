@@ -14,13 +14,13 @@ Drush 9 provides a new command `drush site:alias-convert` which can convert Drus
 
 In order to be able to use `drush site:alias-convert` you need to do the following:
 
-- rename the `aliases.drushrc.php` inside the `drush` folder to `lagoon.aliases.drushrc.php`
+* rename the `aliases.drushrc.php` inside the `drush` folder to `lagoon.aliases.drushrc.php`
 
 ### Generate Site aliases
 
 You can now convert your Drush aliases by running the following command in your project using the CLI container
 
-- `docker-compose exec cli drush site:alias-convert /app/drush/sites --yes`
+* `docker-compose exec cli drush site:alias-convert /app/drush/sites --yes`
 
 It's a good practice to commit the resulting YAML files into your git repo, so your fellow developers don't need to do the same all the time.
 
@@ -28,7 +28,7 @@ It's a good practice to commit the resulting YAML files into your git repo, so y
 
 In Drush 9 all site aliases are prefixed with a group, in our case this is `lagoon`. You can show all site aliases with their prefix via:
 
-```
+```text
 drush sa --format=list
 ```
 
@@ -42,7 +42,7 @@ If a new environment in Lagoon has been created, you can just run `drush site:al
 
 If you would like to sync files from a local environment to a remote environment, you need to pass additional parameters:
 
-```
+```text
 drush rsync @self:%files @lagoon.master:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
@@ -52,10 +52,11 @@ For example, if you wanted to sync the files from `@lagoon.master` to `@lagoon.d
 
 To resolve this, you would first need to ssh into your destination environment `drush @lagoon.dev ssh`, then execute the rsync command with parameters similar to the above:
 
-```
+```text
 drush rsync @lagoon.master:%files  @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
 This is not necessary if you rsync from a remote to a local environment.
 
 Also we're [working with the Drush Maintainers](https://github.com/drush-ops/drush/issues/3491) to find a way to inject this fully automatically.
+

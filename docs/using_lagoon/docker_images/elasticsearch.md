@@ -1,16 +1,14 @@
 # Elasticsearch Image
 
-> _[Elasticsearch](https://www.elastic.co/) is a distributed, open source search
-> and analytics engine for all types of data, including textual, numerical,
-> geospatial, structured, and unstructured._
+> [_Elasticsearch_](https://www.elastic.co/) _is a distributed, open source search and analytics engine for all types of data, including textual, numerical, geospatial, structured, and unstructured._
 >
-> \- from [https://www.elastic.co/](https://www.elastic.co/)
+> - from [https://www.elastic.co/](https://www.elastic.co/)
 
 ## Supported versions
 
-- 6.8.2 [[Dockerfile]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile6)
-- 7.1.1 [[Dockerfile]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7.1)
-- 7.3.0 [[Dockerfile]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7)
+* 6.8.2 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile6)
+* 7.1.1 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7.1)
+* 7.3.0 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7)
 
 ## Known issues
 
@@ -22,3 +20,4 @@ elasticsearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too
 ```
 
 [Solution to this issue can be found here](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_set_vm_max_map_count_to_at_least_262144).
+

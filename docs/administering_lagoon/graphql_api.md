@@ -4,9 +4,9 @@
 
 Direct API interactions in Lagoon are done via GraphQL.
 
-In order to authenticate with the API, we need a JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI or `oc rsh` on the command line and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI or `oc rsh` on the command line and run the following command:
 
-```
+```text
 ./create_jwt.sh
 ```
 
@@ -18,8 +18,8 @@ To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.
 
 Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end. Then click on "Edit HTTP Headers" and add a new header:
 
-- "Header name": `Authorization`
-- "Header value": `Bearer [JWT token]` (make sure that the JWT token has no spaces, as this would not work)
+* "Header name": `Authorization`
+* "Header value": `Bearer [JWT token]` \(make sure that the JWT token has no spaces, as this would not work\)
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
@@ -33,20 +33,20 @@ query allProjects{
 }
 ```
 
-And press the ▶️ button (or press CTRL+ENTER). If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
+And press the ▶️ button \(or press CTRL+ENTER\). If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
 
 ## Creating the first project
 
 Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/blob/master/docs/administering_lagoon/create-project.gql).
 
-For each of the queries (the blocks starting with `mutation {`), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
+For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
 1. `openshift` The OpenShift cluster that Lagoon should deploy to. Lagoon is not only capable of deploying to its own OpenShift but also to any OpenShift anywhere in the world.
 2. `project` The project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
 
-In Lagoon each developer authenticates via their SSH key(s). This determines their access to:
+In Lagoon each developer authenticates via their SSH key\(s\). This determines their access to:
 
 1. The Lagoon API, where they can see and edit projects they have access to
 2. Remote Shell Access to containers that are running in projects they have access to
@@ -145,10 +145,10 @@ After running one or more of these kinds of queries, the user will be granted ac
 
 If you want to know what is going on during a deployment, we suggest configuring notifications for your project, which provide:
 
-- Push messages
-- Build start information
-- Build success or failure messages
-- Many more
+* Push messages
+* Build start information
+* Build success or failure messages
+* Many more
 
 As notifications can be quite different of their information they need, each notification type has its own mutation.
 
@@ -225,7 +225,7 @@ mutation {
 
 ### Adding a group to a project
 
-This query will add a group to a project.  Users of that group will be able to access the project.  They will be able to make changes, based on their role in that group.
+This query will add a group to a project. Users of that group will be able to access the project. They will be able to make changes, based on their role in that group.
 
 ```graphql
 mutation {
@@ -251,8 +251,7 @@ mutation {
 
 This query adds a new project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
-If you omit the `privateKey` field a new SSH Key will for the project will be generated automatically. If you would like to reuse a key from another project you
-will need to supply the key in the `addProject` mutation.
+If you omit the `privateKey` field a new SSH Key will for the project will be generated automatically. If you would like to reuse a key from another project you will need to supply the key in the `addProject` mutation.
 
 ```graphql
 mutation {
@@ -387,7 +386,7 @@ mutation {
 }
 ```
 
-Update the production environment within a project (important: this needs a redeploy in order for the changes to be reflected in the containers):
+Update the production environment within a project \(important: this needs a redeploy in order for the changes to be reflected in the containers\):
 
 ```graphql
 mutation {
@@ -419,7 +418,7 @@ mutation {
 
 ### Deleting Environments
 
-You can also use the Lagoon GraphQL API to delete an environment.  You'll need to know the project name and the environment name in order to run the command.
+You can also use the Lagoon GraphQL API to delete an environment. You'll need to know the project name and the environment name in order to run the command.
 
 ```graphql
 mutation {
@@ -439,7 +438,7 @@ mutation {
 
 ### Querying a project to see what groups and users are assigned
 
-Want to see what groups and users have access to a project? Want to know what their roles are? Do I have a query for you!  Using the query below you can search for a project and display the groups, users, and roles that are assigned to that project.
+Want to see what groups and users have access to a project? Want to know what their roles are? Do I have a query for you! Using the query below you can search for a project and display the groups, users, and roles that are assigned to that project.
 
 ```graphql
 query search{
@@ -473,3 +472,4 @@ query search{
   }
 }
 ```
+

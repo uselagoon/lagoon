@@ -1,9 +1,8 @@
 # Redis
 
-We recommend using [Redis](https://redis.io/) for internal caching. Add the redis
-service to `docker-compose.yaml`.
+We recommend using [Redis](https://redis.io/) for internal caching. Add the redis service to `docker-compose.yaml`.
 
-```
+```text
   redis:
     image: amazeeio/redis
     labels:
@@ -15,9 +14,9 @@ service to `docker-compose.yaml`.
 
 Also, to configure Redis, add the following to your `settings.php`.
 
-
 ### Drupal 7
-```
+
+```text
 if(getenv('LAGOON')){
   $conf['redis_client_interface'] = 'PhpRedis';
   $conf['redis_client_host'] = 'redis';
@@ -36,7 +35,7 @@ Depending on file system structure, the module paths may need to be updated.
 
 The Drupal 8 config is largely stock. Notably, Redis is disabled while drupal is being installed.
 
-```
+```text
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
@@ -82,7 +81,7 @@ if (getenv('LAGOON')){
 
 Redis can also be configured as a persistent backend.
 
-```
+```text
 redis:
   image: amazeeio/redis-persistent
   labels:
@@ -92,10 +91,12 @@ redis:
 ```
 
 ## Environment Variables
+
 Environment variables are meant to do common behavior changes of Redis.
 
-| Environment Variable   | Default   | Description                                    |
-| -----------------------| --------- | ---------------------------------------------- |
-| `LOGLEVEL`             | `notice`  | Redis Loglevel                                 |
-| `DATABASES`            | `1`       | Number of Databases                            |
-| `MAXMEMORY`            | `100mb`   | Maximum Memory usage of Redis                  |
+| Environment Variable | Default | Description |
+| :--- | :--- | :--- |
+| `LOGLEVEL` | `notice` | Redis Loglevel |
+| `DATABASES` | `1` | Number of Databases |
+| `MAXMEMORY` | `100mb` | Maximum Memory usage of Redis |
+
