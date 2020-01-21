@@ -291,22 +291,13 @@ const messageConsumer = async msg => {
 
 
   // Create a new Namespace if it does not exist
-  let namespaceStatus = {}
   try {
-    // const namespaces = await kubernetes.api.v1.namespaces.get();
-    // console.log(JSON.stringify(namespaces));
-
     const body = { apiVersion:"v1", kind:"Namespace", metadata: { name: openshiftProject } };
-    const create = await kubernetes.api.v1.namespace.post({ body });
-
-    console.log(JSON.stringify(create));
-
-    // const namespacePost = Bluebird.Promise.promisify(kubernetes.namespace.post, { context: kubernetes.namespace })
-    // namespaceStatus = await namespacePost({ body: {"metadata":{"name":openshiftProject}} })
+    await kubernetes.api.v1.namespace.post({ body });
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
     console.log(err.code)
-    // an already existing namespace  throws an error, we check if it's a 409, means it does already exist, so we ignore that error.
+    // An already existing namespace throws an error, we check if it's a 409, means it does already exist, so we ignore that error.
     if (err.code == 409) {
       logger.info(`${openshiftProject}: Namespace ${openshiftProject} already exists`)
     } else {
