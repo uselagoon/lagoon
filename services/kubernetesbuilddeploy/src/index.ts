@@ -253,14 +253,15 @@ const messageConsumer = async msg => {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const kubernetes = new Client({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    },
+  const kubernetes = new Client({ 
+    config: {
+      url: openshiftConsole,
+      insecureSkipTlsVerify: true,
+      auth: {
+        bearer: openshiftToken
+      },
+    }
   });
-
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
@@ -292,11 +293,16 @@ const messageConsumer = async msg => {
   // Create a new Namespace if it does not exist
   let namespaceStatus = {}
   try {
-    const body = { body: {"apiVersion":"v1","kind":"Namespace","metadata": { "name":openshiftProject } } };
-    const result = await kubernetes.apis.apps.v1.namespaces(openshiftProject).deployments.post(body);
+    // const namespaces = await kubernetes.api.v1.namespaces.get();
+    // console.log(JSON.stringify(namespaces));
+
+    const body = { apiVersion:"v1", kind:"Namespace", metadata: { name: openshiftProject } };
+    const create = await kubernetes.api.v1.namespace.post({ body });
+
+    console.log(JSON.stringify(create));
 
     // const namespacePost = Bluebird.Promise.promisify(kubernetes.namespace.post, { context: kubernetes.namespace })
-    // namespaceStatus = await namespacePost({ body: {"apiVersion":"v1","kind":"Namespace","metadata":{"name":openshiftProject}} })
+    // namespaceStatus = await namespacePost({ body: {"metadata":{"name":openshiftProject}} })
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
     console.log(err.code)
@@ -332,10 +338,10 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: ServiceAccount lagoon-deployer does not exists, creating`)
-      const serviceAccountsPost = await kubernetes.api.v1.namespaces(openshiftProject).serviceaccounts.post({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
+      const serviceAccountsPost = await kubernetes.api.v1.namespaces(openshiftProject).serviceaccounts.post({ body: {"kind":"ServiceAccount","metadata":{"name":"lagoon-deployer"} }})
 
       // const serviceaccountsPost = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
-      // await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
+      // await serviceaccountsPost({ body: {"kind":"ServiceAccount","metadata":{"name":"lagoon-deployer"} }})
       await sleep(2000); // sleep a bit after creating the ServiceAccount for Kubernetes to create all the secrets
 
       const serviceaccountsRolebindingsBody = {"kind":"RoleBinding","apiVersion":"rbac.authorization.k8s.io/v1","metadata":{"name":"lagoon-deployer-admin","namespace":openshiftProject},"roleRef":{"name":"admin","kind":"ClusterRole","apiGroup":"rbac.authorization.k8s.io"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]};
@@ -360,7 +366,7 @@ const messageConsumer = async msg => {
   //     if (err.code == 404) {
   //       logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does not exists, creating`)
   //       const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
-  //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-view`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"view"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+  //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","metadata":{"name":`${openshiftProject}-lagoon-deployer-view`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"view"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
   //     } else {
   //       logger.error(err)
   //       throw new Error
@@ -374,7 +380,7 @@ const messageConsumer = async msg => {
   //     if (err.code == 404) {
   //       logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does not exists, creating`)
   //       const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
-  //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+  //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","metadata":{"name":`${openshiftProject}-lagoon-deployer-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
   //     } else {
   //       logger.error(err)
   //       throw new Error
@@ -396,7 +402,7 @@ const messageConsumer = async msg => {
     logger.info(`${openshiftProject}: Secret lagoon-sshkey already exists, updating`)
 
 
-    const secretBody = { body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}};
+    const secretBody = { body: {"kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}};
     const secretsPut = kubernetes.api.v1.namespaces(openshiftProject).secrets('lagoon-sshkey').put(secretBody)
     // const secretsPut = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
     // await secretsPut(secretBody)
@@ -405,11 +411,11 @@ const messageConsumer = async msg => {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: Secret lagoon-sshkey does not exists, creating`)
 
-      const secretBody = { body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}};
+      const secretBody = { body: {"kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}};
       const secretsPut = kubernetes.api.v1.namespaces(openshiftProject).secrets('lagoon-sshkey').put(secretBody)
 
       // const secretsPost = Bluebird.Promise.promisify(kubernetes.ns(openshiftProject).secrets.post, { context: kubernetes.ns(openshiftProject).secrets })
-      // await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+      // await secretsPost({ body: {"kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
 
     } else {
       logger.error(err)
