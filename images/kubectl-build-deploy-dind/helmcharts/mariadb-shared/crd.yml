@@ -1,0 +1,7 @@
+# see build-deploy-docker-compose.sh & exec-kubernetes-create-crd.sh for kubernetes build deploy
+apiVersion: mariadb.amazee.io/v1
+kind: MariaDBConsumer
+metadata:
+  name: {{SERVICE_NAME}}
+spec:
+  environment: {{SERVICEBROKER_PLAN}}
