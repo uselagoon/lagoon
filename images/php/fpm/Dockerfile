@@ -35,8 +35,11 @@ COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
-# Defining Versions - https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/ / https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.3.0.248
+# New Relic PHP Agent.
+# Support for PHP 7.4 added in 9.4.
+# @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
+# @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
+ENV NEWRELIC_VERSION=9.6.0.255
 
 RUN apk add --no-cache fcgi \
         ssmtp \
@@ -61,6 +64,11 @@ RUN apk add --no-cache fcgi \
       7.3*) \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug-2.7.0 \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
+      7.0*) \
+        yes '' | pecl install -f apcu \
+        && yes '' | pecl install -f xdebug-2.6.0 \
         && yes '' | pecl install -f redis-4.3.0; \
         ;; \
       7*) \
