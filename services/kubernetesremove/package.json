@@ -14,8 +14,8 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
-    "bluebird": "^3.5.1",
-    "openshift-client": "^3.10.8"
+    "kubernetes-client": "^4.0.0",
+    "ramda": "^0.26.1"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"

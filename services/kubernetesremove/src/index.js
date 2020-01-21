@@ -1,6 +1,6 @@
 const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const { ServiceCatalog } = require('@lagoon/commons/src/openshiftApi');
+const R = require('ramda');
+const KubernetesClient = require('kubernetes-client');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   sendToLagoonLogs,
@@ -21,23 +21,13 @@ initSendToLagoonTasks();
 const ocsafety = string =>
   string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
-const pause = duration => new Promise(res => setTimeout(res, duration));
-
-const retry = (retries, fn, delay = 1000) =>
-  fn().catch(
-    err =>
-      retries > 1
-        ? pause(delay).then(() => retry(retries - 1, fn, delay))
-        : Promise.reject(err)
-  );
-
 const messageConsumer = async function(msg) {
   const { projectName, branch, pullrequestNumber, type } = JSON.parse(
     msg.content.toString()
   );
 
   logger.verbose(
-    `Received RemoveOpenshift task for project ${projectName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`
+    `Received RemoveKubernetes task for project ${projectName}, type ${type}, branch ${branch}, pullrequest ${pullrequestNumber}`
   );
 
   const result = await getOpenShiftInfoForProject(projectName);
@@ -79,96 +69,18 @@ const messageConsumer = async function(msg) {
   }
 
   logger.info(
-    `Will remove OpenShift Project ${openshiftProject} on ${openshiftConsole}`
+    `Will remove Kubernetes Namespace ${openshiftProject} on ${openshiftConsole}`
   );
-
-  // OpenShift API object
-  const openshift = new OpenShiftClient.OApi({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    }
-  });
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const kubernetes = new OpenShiftClient.Core({
+  const kubernetes = new KubernetesClient.Core({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
       bearer: openshiftToken
     }
   });
-
-  const serviceCatalog = new ServiceCatalog({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    }
-  });
-
-  const serviceInstancesGet = promisify(
-    serviceCatalog.ns(openshiftProject).serviceinstances.get
-  );
-
-  const serviceInstanceDelete = async name => {
-    const deleteFn = promisify(
-      serviceCatalog.ns(openshiftProject).serviceinstances(name).delete
-    );
-
-    return deleteFn({
-      body: {
-        kind: 'DeleteOptions',
-        apiVersion: 'servicecatalog.k8s.io/v1beta1'
-      }
-    });
-  };
-
-  const serviceBindingsGet = promisify(
-    serviceCatalog.ns(openshiftProject).servicebindings.get
-  );
-
-  const serviceBindingDelete = async name => {
-    const deleteFn = promisify(serviceCatalog.ns(openshiftProject).servicebindings(name).delete);
-
-    return deleteFn({
-      body: {
-        kind: 'DeleteOptions',
-        apiVersion: 'servicecatalog.k8s.io/v1beta1'
-      }
-    });
-  };
-
-
-  const hasZeroServiceBindings = () =>
-    new Promise(async (resolve, reject) => {
-      const serviceBindings = await serviceBindingsGet();
-      if (serviceBindings.items.length === 0) {
-        logger.info(`${openshiftProject}: All ServiceBindings deleted`);
-        resolve();
-      } else {
-        logger.info(
-          `${openshiftProject}: ServiceBindings not deleted yet, will try again in 2sec`
-        );
-        reject();
-      }
-    });
-
-  const hasZeroServiceInstances = () =>
-    new Promise(async (resolve, reject) => {
-      const serviceInstances = await serviceInstancesGet();
-      if (serviceInstances.items.length === 0) {
-        logger.info(`${openshiftProject}: All ServiceInstances deleted`);
-        resolve();
-      } else {
-        logger.info(
-          `${openshiftProject}: ServiceInstances not deleted yet, will try again in 10sec`
-        );
-        reject();
-      }
-    });
 
   const meta = {
     projectName: projectName,
@@ -177,11 +89,16 @@ const messageConsumer = async function(msg) {
 
   // Check if project exists
   try {
-    const projectsGet = promisify(openshift.projects(openshiftProject).get);
-    await projectsGet();
-  } catch (err) {
-    // a non existing project also throws an error, we check if it's a 404, means it does not exist, and we assume it's already removed
-    if (err.code == 404) {
+    const namespacesSearch = promisify(kubernetes.namespaces.get);
+    const namespacesResult = await namespacesSearch({
+      qs: {
+        fieldSelector: `metadata.name=${openshiftProject}`
+      }
+    });
+    const namespaces = R.propOr([], 'items', namespacesResult);
+
+    // An empty list means the namespace does not exist and we assume it's already removed
+    if (R.isEmpty(namespaces)) {
       logger.info(
         `${openshiftProject} does not exist, assuming it was removed`
       );
@@ -189,76 +106,36 @@ const messageConsumer = async function(msg) {
         'success',
         projectName,
         '',
-        'task:remove-openshift:finished',
+        'task:remove-kubernetes:finished',
         meta,
         `*[${projectName}]* remove \`${openshiftProject}\``
       );
+
       // Update GraphQL API that the Environment has been deleted
-      try {
-        await deleteEnvironment(environmentName, projectName, false);
-        logger.info(
-          `${openshiftProject}: Deleted Environment '${environmentName}' in API`
-        );
-      } catch (err) {
-        logger.error(err);
-        throw new Error();
-      }
+      await deleteEnvironment(environmentName, projectName, false);
+      logger.info(
+        `${openshiftProject}: Deleted Environment '${environmentName}' in API`
+      );
+
       return; // we are done here
-    } else {
-      logger.error(err);
-      throw new Error();
     }
+  } catch (err) {
+    logger.error(err);
+    throw new Error();
   }
 
   // Project exists, let's remove it
   try {
-    const serviceBindings = await serviceBindingsGet();
-    for (let serviceBinding of serviceBindings.items) {
-      await serviceBindingDelete(serviceBinding.metadata.name);
+    /**
+     * TODO: When lagoon-k8s gets it's own operator or uses ServiceCatalog, remove
+     * any of those project dependencies first (see service catalog examples
+     * in openshiftremove).
+     */
 
-      logger.info(
-        `${openshiftProject}: Deleting ServiceBinding ${
-          serviceBinding.metadata.name
-        }`
-      );
-    }
-
-    // ServiceBindings are deleted quickly, but we still have to wait before
-    // we attempt to delete the ServiceInstance.
-    try {
-      await retry(10, hasZeroServiceBindings, 2000);
-    } catch (err) {
-      throw new Error(
-        `${openshiftProject}: ServiceBindings not deleted`
-      );
-    }
-
-    const serviceInstances = await serviceInstancesGet();
-    for (let serviceInstance of serviceInstances.items) {
-      await serviceInstanceDelete(serviceInstance.metadata.name);
-
-      logger.info(
-        `${openshiftProject}: Deleting ServiceInstance ${
-          serviceInstance.metadata.name
-        }`
-      );
-    }
-
-    // Confirm all ServiceInstances are deleted.
-    try {
-      await Promise.all([
-        retry(12, hasZeroServiceInstances, 10000)
-      ]);
-    } catch (err) {
-      throw new Error(
-        `${openshiftProject}: ServiceInstances not deleted`
-      );
-    }
-
-    const projectsDelete = promisify(
-      openshift.projects(openshiftProject).delete
+    const namespaceDelete = promisify(
+      kubernetes.namespaces(openshiftProject).delete
     );
-    await projectsDelete({
+    await namespaceDelete({
       body: {
         kind: 'DeleteOptions',
         apiVersion: 'v1',
@@ -270,7 +147,7 @@ const messageConsumer = async function(msg) {
       'success',
       projectName,
       '',
-      'task:remove-openshift:finished',
+      'task:remove-kubernetes:finished',
       meta,
       `*[${projectName}]* remove \`${openshiftProject}\``
     );
@@ -304,7 +181,7 @@ const deathHandler = async (msg, lastError) => {
     'error',
     projectName,
     '',
-    'task:remove-openshift:error',
+    'task:remove-kubernetes:error',
     {},
     `*[${projectName}]* remove \`${openshiftProject}\` ERROR:
 \`\`\`
@@ -317,4 +194,4 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
   return;
 };
 
-consumeTasks('remove-openshift', messageConsumer, retryHandler, deathHandler);
+consumeTasks('remove-kubernetes', messageConsumer, retryHandler, deathHandler);
