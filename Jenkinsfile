@@ -1,7 +1,7 @@
 node {
 
-  openshift_versions = ['v3.11.0']
-
+  openshift_versions = 'v3.11.0'
+  minishift_version = '1.34.1'
   kubernetes_versions = ['v1.17.0']
 
   env.MINISHIFT_HOME = "/data/jenkins/.minishift"
@@ -37,100 +37,44 @@ node {
           sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
         }
 
-        kubernetes_versions.each { kubernetes_version ->
-          notifySlack()
-
-          try {
-            parallel (
-              'start services': {
-                stage ('start services') {
-                  sh "make kill"
-                  sh "make up"
-                }
-              },
-              'start k3d': {
-                stage ('start k3d') {
+        try {
+          parallel (
+            '2 start services': {
+              stage ('start services') {
+                notifySlack()
+                sh "make kill"
+                sh "make up"
+                sh "make logs"
+              }
+            },
+            '1 tests': {
+              kubernetes_versions.each { kubernetes_version ->
+                stage ("kubernetes ${kubernetes_version} tests") {
                   sh "make k3d KUBERNETES_VERSION=${kubernetes_version}"
+                  sh "make k8s-tests"
+                  sh "make k3d/clean KUBERNETES_VERSION=${kubernetes_version}"
                 }
               }
-            )
-          } catch (e) {
-            echo "Something went wrong, trying to cleanup"
-            cleanup()
-            throw e
-          }
-
-          parallel (
-            "_tests_kubernetes_${kubernetes_version}": {
-                stage ('run tests') {
-                  try {
-                    sh "make -O${SYNC_MAKE_OUTPUT} k8s-tests"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup()
-                    throw e
-                  }
-                  cleanup()
-                }
+              stage ('minishift tests') {
+                sh 'make minishift/cleanall || echo'
+                sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
+                sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2"
+              }
             },
-            "logs_kubernetes_${kubernetes_version}": {
-                stage ('all') {
-                  sh "make logs"
-                }
-            },
-          )
-        }
-
-        openshift_versions.each { openshift_version ->
-          notifySlack()
-
-          if (openshift_version == 'v3.11.0') {
-            minishift_version = '1.34.1'
-          }
-
-          try {
-            parallel (
-              'start minishift': {
-                stage ('start minishift') {
-                  sh 'make minishift/cleanall || echo'
-                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
-                }
-              },
-              'push images to amazeeiolagoon': {
-                stage ('push images to amazeeiolagoon/*') {
-                  withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-                    sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                    sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
-                  }
+            '3 push images to amazeeiolagoon': {
+              stage ('push images to amazeeiolagoon/*') {
+                withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+                  sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                  sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
                 }
               }
-            )
-          } catch (e) {
-            echo "Something went wrong, trying to cleanup"
-            cleanup()
-            throw e
-          }
-
-          parallel (
-            "_tests_openshift_${openshift_version}": {
-                stage ('run tests') {
-                  try {
-                    sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
-                    sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup()
-                    throw e
-                  }
-                  cleanup()
-                }
-            },
-            "logs_openshift_${openshift_version}": {
-                stage ('all') {
-                  sh "make logs"
-                }
-            },
+            }
           )
+        } catch (e) {
+          echo "Something went wrong, trying to cleanup"
+          cleanup()
+          throw e
         }
 
         if (env.TAG_NAME) {

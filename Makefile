@@ -581,9 +581,12 @@ all-openshift-tests-list:=	features \
 														elasticsearch
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
+.PHONY: openshift-tests
+openshift-tests: $(all-openshift-tests)
+
 # Run all tests
 .PHONY: tests
-tests: $(all-k8s-tests) $(all-openshift-tests)
+tests: k8s-tests openshift-tests
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
