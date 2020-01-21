@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/index.js",
     "build": "tsc -p .",
-    "debug": "cross-env TZ=UTC NODE_ENV=development tsnd --inspect --respawn src/main.ts"
+    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'ts-node' src/index.ts"
   },
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
