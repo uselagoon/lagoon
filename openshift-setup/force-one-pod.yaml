@@ -216,20 +216,6 @@ spec:
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: rest2tasks
-spec:
-  maxReplicas: 1
-  minReplicas: 1
-  scaleTargetRef:
-    apiVersion: v1
-    kind: DeploymentConfig
-    name: rest2tasks
-  targetCPUUtilizationPercentage: 80
-
----
-apiVersion: autoscaling/v1
-kind: HorizontalPodAutoscaler
-metadata:
   name: ssh
 spec:
   maxReplicas: 1
