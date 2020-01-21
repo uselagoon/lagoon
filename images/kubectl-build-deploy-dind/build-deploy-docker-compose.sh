@@ -393,7 +393,6 @@ do
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
   fi
 
-
   OPENSHIFT_SERVICES_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     # Load the requested class and plan for this service
@@ -411,6 +410,9 @@ TEMPLATE_PARAMETERS=()
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
+# TODO: working here
+# TODO: working here
+# TODO: working here
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
@@ -443,7 +445,17 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
-      .  /kubectl-build-deploy/scripts/exec-kubernetes-create-route.sh
+cat /kubectl-build-deploy/values.yaml
+
+      helm template ${ROUTE_SERVICE} \
+        /kubectl-build-deploy/helmcharts/customroute \
+        -s ingress.yaml \
+        --set route_domain="${ROUTE_DOMAIN}" \
+        --set route_service="${ROUTE_SERVICE}" \
+        --set route_tls_acme="${ROUTE_TLS_ACME}" \
+        --set route_insecure="${ROUTE_INSECURE}" \
+        --set route_hsts="${ROUTE_HSTS}" \
+        -f /kubectl-build-deploy/values.yaml | echo
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -479,7 +491,15 @@ else
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
-      .  /kubectl-build-deploy/scripts/exec-kubernetes-create-route.sh
+      helm template ${ROUTE_SERVICE} \
+        /kubectl-build-deploy/helmcharts/customroute \
+        -s ingress.yaml  \
+        --set route_domain="${ROUTE_DOMAIN}" \
+        --set route_service="${ROUTE_SERVICE}" \
+        --set route_tls_acme="${ROUTE_TLS_ACME}" \
+        --set route_insecure="${ROUTE_INSECURE}" \
+        --set route_hsts="${ROUTE_HSTS}" \
+        -f /kubectl-build-deploy/values.yaml | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -709,7 +729,7 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
   # If we have Images to Push to the OpenRegistry, let's do so
   if [ -f /kubectl-build-deploy/lagoon/push ]; then
     # TODO: check if we still need the paralelism
-    parallel --retries 4 < /kubectl-build-deploy/lagoon/push
+    parallel --retries 1 < /kubectl-build-deploy/lagoon/push
   fi
 
   # load the image hashes for just pushed Images
