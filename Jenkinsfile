@@ -39,34 +39,58 @@ node {
 
         try {
           parallel (
-            '2 start services': {
-              stage ('start services') {
-                notifySlack()
-                sh "make kill"
-                sh "make up"
-                sh "make logs"
-              }
-            },
             '1 tests': {
               kubernetes_versions.each { kubernetes_version ->
                 stage ("kubernetes ${kubernetes_version} tests") {
-                  sh "make k3d/clean KUBERNETES_VERSION=${kubernetes_version}"
-                  sh "make k3d KUBERNETES_VERSION=${kubernetes_version}"
-                  sh "make k8s-tests"
+                  try {
+                    sh "make k3d/clean KUBERNETES_VERSION=${kubernetes_version}"
+                    sh "make k3d KUBERNETES_VERSION=${kubernetes_version}"
+                    sh "make k8s-tests"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
                 }
               }
               stage ('minishift tests') {
-                sh 'make minishift/cleanall || echo'
-                sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
-                sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
-                sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2"
+                try {
+                  sh 'make minishift/cleanall || echo'
+                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                  sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
+                  sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2"
+                } catch (e) {
+                  echo "Something went wrong, trying to cleanup"
+                  cleanup()
+                  throw e
+                }
+              }
+            },
+            '2 start services': {
+              stage ('start services') {
+                try {
+                  notifySlack()
+                  sh "make kill"
+                  sh "make up"
+                  sh "make logs"
+                } catch (e) {
+                  echo "Something went wrong, trying to cleanup"
+                  cleanup()
+                  throw e
+                }
               }
             },
             '3 push images to amazeeiolagoon': {
               stage ('push images to amazeeiolagoon/*') {
                 withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-                  sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                  sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                  try {
+                    sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
+                  }
                 }
               }
             }
