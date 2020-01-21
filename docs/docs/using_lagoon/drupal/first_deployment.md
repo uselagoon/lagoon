@@ -6,7 +6,7 @@ It's time! It's time for the first deployment into Lagoon! We hope you are as ex
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](lagoonize.md) and you have setup the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides]() which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](lagoonize.md) and you have setup the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides](../index.md) which show you how this works.
 
 ## 2. Push!
 
@@ -23,7 +23,7 @@ This will trigger a push and the Git hosting should inform Lagoon about this pus
 
 If all is correct you should see a notification in your configured chat system \(this is configured by your friendly Lagoon Administrator\):
 
-![Deployment in Slack Start](https://github.com/amazeeio/lagoon/tree/03719ed693f774568e4a225aaeb91e67c8ba4854/images/first_deployment_slack_start.jpg)
+![Deployment in Slack Start](https://github.com/amazeeio/lagoon/tree/384b9864a518e73f7ad13bb6a67ed7c688e06a1e/images/first_deployment_slack_start.jpg)
 
 This tells your that Lagoon just started to deploy your code. Depending on the size of the code and amount of containers this will take a couple of seconds. Just relax. If you'd like to know whats happening now, check out the [Deployment & Build Process of Lagoon](../build_deploy_process.md)
 
@@ -84,7 +84,7 @@ git push
 
 This time all should be green:
 
-![Deployment in Slack Success](https://github.com/amazeeio/lagoon/tree/03719ed693f774568e4a225aaeb91e67c8ba4854/images/first_deployment_slack_2nd_success.jpg)
+![Deployment in Slack Success](https://github.com/amazeeio/lagoon/tree/384b9864a518e73f7ad13bb6a67ed7c688e06a1e/images/first_deployment_slack_2nd_success.jpg)
 
 Click on the links and you should see your Drupal site loaded in all its beauty, just most probably without iamge, which we will handle in Step 6.
 
@@ -120,7 +120,7 @@ The reason for that is, that the Drupal cannot resolve the path of the files dir
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, like so:
 
-![Deployment in Slack Success](https://github.com/amazeeio/lagoon/tree/03719ed693f774568e4a225aaeb91e67c8ba4854/images/first_deployment_slack_success.jpg)
+![Deployment in Slack Success](https://github.com/amazeeio/lagoon/tree/384b9864a518e73f7ad13bb6a67ed7c688e06a1e/images/first_deployment_slack_success.jpg)
 
 This tells you:
 

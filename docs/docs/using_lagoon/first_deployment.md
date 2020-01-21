@@ -8,7 +8,7 @@ It's time! It's time for the first deployment into Lagoon! We hope you are as ex
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your project is Lagoonized and you have setup the project in Lagoon. If not, don't worry, go back and follow the [Step-by-Step Guides]() which show you how this works, and then come back and deploy!
+In order to make your first deployment a successful one, please make sure that your project is Lagoonized and you have setup the project in Lagoon. If not, don't worry, go back and follow the [Step-by-Step Guides](index.md) which show you how this works, and then come back and deploy!
 
 ## 2. Push!
 
@@ -25,7 +25,7 @@ This will trigger a push and the Git hosting will inform Lagoon about this push 
 
 If all is correct you should see a notification in your configured chat system \(this has been configured by your friendly Lagoon Administrator\):
 
-![Deployment in Slack Start](https://github.com/amazeeio/lagoon/tree/03719ed693f774568e4a225aaeb91e67c8ba4854/images/first_deployment_slack_start.jpg)
+![Deployment in Slack Start](https://github.com/amazeeio/lagoon/tree/384b9864a518e73f7ad13bb6a67ed7c688e06a1e/images/first_deployment_slack_start.jpg)
 
 This is the information for you that Lagoon just started to deploy your code. Depending on the size of the code and amount of containers this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Deployment & Build Process of Lagoon](build_deploy_process.md)
 
@@ -35,7 +35,7 @@ You can also check your Lagoon UI to see the progress of any deployment \(your L
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, here an example:
 
-![Deployment in Slack Success](https://github.com/amazeeio/lagoon/tree/03719ed693f774568e4a225aaeb91e67c8ba4854/images/first_deployment_slack_success.jpg)
+![Deployment in Slack Success](https://github.com/amazeeio/lagoon/tree/384b9864a518e73f7ad13bb6a67ed7c688e06a1e/images/first_deployment_slack_success.jpg)
 
 It tells you:
 
