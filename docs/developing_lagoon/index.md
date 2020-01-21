@@ -104,7 +104,7 @@ Make sure to run `yarn` in lagoon's root directory, since some services have com
 
 Some Internet Service Providers \(ISPs\) set up a "search domain" to catch domain name errors. Virtualbox will copy this setting into minishift, which can cause domain resolution errors in the openshift pods. To check for this problem, look at the `/etc/resolv.conf` in your failing pod and check for errant search domains.
 
-![OpenShift pod resolver settings](../.gitbook/assets/pod_search_domains%20%281%29.jpg)
+![OpenShift pod resolver settings](../.gitbook/assets/pod_search_domains%20%282%29.jpg)
 
 To fix, you must remove the extra search domain.
 

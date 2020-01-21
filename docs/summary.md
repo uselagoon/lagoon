@@ -1,10 +1,10 @@
-# contents
+# summary
 
-* [Home](index.md)
+* [Home]()
 
   **Using Lagoon**
 
-  * [Overview:](using_lagoon/index.md)
+  * [Overview:]()
     * [Local Development Environments](using_lagoon/local_development_environments.md)
     * [Setup a new Project in Lagoon](using_lagoon/setup_project.md)
     * [Configure Webhooks](using_lagoon/configure_webhooks.md)
@@ -84,8 +84,8 @@
 ## Development
 
 * [Overview](developing_lagoon/index.md)
-* [Contributing](developing_lagoon/contributing.md)
+* [Contributing]()
 * [Tests](developing_lagoon/tests.md)
 * [API Debugging](developing_lagoon/api-debugging.md)
-* [Code Of Conduct](code_of_conduct.md)
+* [Code Of Conduct](developing_lagoon/code_of_conduct.md)
 

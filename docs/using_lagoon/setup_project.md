@@ -17,7 +17,7 @@ We suggest that you deploy specific important Branches \(like `develop` and `mas
 
 This means that the `.lagoon.yml` and `docker-compose.yml` files are available in your Git repository and configured accordingly.
 
-If this is not the case, check out the list of [Step-by-Step Guides](index.md) on how to do so before proceeeding.
+If this is not the case, check out the list of [Step-by-Step Guides]() on how to do so before proceeeding.
 
 ## 2. Provide access to your code
 
