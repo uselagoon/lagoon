@@ -397,7 +397,7 @@ do
     # Load the requested class and plan for this service
     SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
     SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
-    . /kubectl-build-deploy/scripts/exec-openshift-create-crd.sh
+    . /kubectl-build-deploy/scripts/exec-kubernetes-create-crd.sh
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
