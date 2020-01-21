@@ -967,6 +967,7 @@ endif
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/k3d-docker-host.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/role-mariadb-operator.yaml; \
 	local-dev/kubectl -n lagoon rollout status deployment docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
