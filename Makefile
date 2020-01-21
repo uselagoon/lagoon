@@ -432,7 +432,6 @@ services :=       api \
 									openshiftmisc \
 									openshiftremove \
 									kubernetesbuilddeploy \
-									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
 									broker \
@@ -482,7 +481,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -581,9 +580,12 @@ all-openshift-tests-list:=	features \
 														elasticsearch
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
+.PHONY: openshift-tests
+openshift-tests: $(all-openshift-tests)
+
 # Run all tests
 .PHONY: tests
-tests: $(all-k8s-tests) $(all-openshift-tests)
+tests: k8s-tests openshift-tests
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -598,7 +600,7 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy tests-kubernetes
+kubernetes-test-services = kubernetesbuilddeploy tests-kubernetes local-registry
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks
@@ -1003,6 +1005,9 @@ rebuild-push-kubectl-build-deploy-dind:
 	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
 	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
 
+k3d-kubeconfig:
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"
+
 k3d-dashboard:
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
@@ -1015,13 +1020,13 @@ k3d-dashboard:
 # Stop k3d
 .PHONY: k3d/stop
 k3d/stop: local-dev/k3d
-	./local-dev/k3d delete --name $(K3D_NAME)
+	./local-dev/k3d delete --name $(K3D_NAME) || true
 	rm -f k3d
 
 # Stop All k3d
 .PHONY: k3d/stopall
 k3d/stopall: local-dev/k3d
-	./local-dev/k3d delete --all
+	./local-dev/k3d delete --all || true
 	rm -f k3d
 
 # Stop k3d, remove downloaded k3d

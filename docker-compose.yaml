@@ -188,18 +188,6 @@ services:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhooks2tasks:v1-2-0
-  rest2tasks:
-    image: ${IMAGE_REPO:-lagoon}/rest2tasks
-    command: yarn run dev
-    volumes:
-      - ./services/rest2tasks/src:/app/services/rest2tasks/src
-      - ./node-packages:/app/node-packages:delegated
-    ports:
-      - '5555:3000'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/rest2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rest2tasks:v1-2-0
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
