@@ -704,6 +704,12 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
     parallel --retries 4 < /kubectl-build-deploy/lagoon/push
   fi
 
+  # load the image hashes for just pushed Images
+  for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+  do
+    IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{index .RepoDigests 0}}')
+  done
+
 # elif [ "$TYPE" == "promote" ]; then
 
 #   for IMAGE_NAME in "${IMAGES[@]}"
