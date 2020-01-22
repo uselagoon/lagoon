@@ -10346,6 +10346,17 @@ kubernetes-client@^3.15.0:
     request "^2.83.0"
     util.promisify "^1.0.0"
 
+kubernetes-client@^4.0.0:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/kubernetes-client/-/kubernetes-client-4.0.1.tgz#fcdb57bf23d1f882f01c9d8e4b82e49782bc44e3"
+  integrity sha512-MtIeo4oROj8n1XVthrxFe1337KfcGvvSPC3tkFRKuK5pkgumCckv0yanaoupQp7KHhDzzwCiBfz9LED0XyuerQ==
+  dependencies:
+    async "^2.6.0"
+    js-yaml "^3.10.0"
+    lodash.merge "^4.6.0"
+    promy "^0.1.0"
+    request "^2.83.0"
+
 latest-version@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-3.1.0.tgz#a205383fea322b33b5ae3b18abee0dc2f356ee15"
@@ -12973,6 +12984,11 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.3"
 
+promy@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/promy/-/promy-0.1.0.tgz#ff19c3953e1074cf03f22f3f3245c85b7c715d40"
+  integrity sha1-/xnDlT4QdM8D8i8/MkXIW3xxXUA=
+
 prop-types-exact@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/prop-types-exact/-/prop-types-exact-1.2.0.tgz#825d6be46094663848237e3925a98c6e944e9869"
@@ -13303,6 +13319,11 @@ ramda@^0.25.0:
   version "0.25.0"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.25.0.tgz#8fdf68231cffa90bc2f9460390a0cb74a29b29a9"
   integrity sha512-GXpfrYVPwx3K7RQ6aYT8KPS8XViSXUVJT1ONhoKPE9VAleW42YE+U+8VEyGWt41EnEQW7gwecYJriTI0pKoecQ==
+
+ramda@^0.26.1:
+  version "0.26.1"
+  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.26.1.tgz#8d41351eb8111c55353617fc3bbffad8e4d35d06"
+  integrity sha512-hLWjpy7EnsDBb0p+Z3B7rPi3GDeRG5ZtiI33kJhTt+ORCd38AbAIjB/9zRIUoeTbE/AVX5ZkU7m6bznsvrf8eQ==
 
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
   version "2.1.0"

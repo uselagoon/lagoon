@@ -76,14 +76,6 @@ objects:
         containers:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
-          ports:
-          - containerPort: 3000
-            protocol: TCP
-          readinessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
           envFrom:
           - configMapRef:
               name: lagoon-env
@@ -115,38 +107,3 @@ objects:
     triggers:
     - type: ConfigChange
   status: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    ports:
-    - name: 3000-tcp
-      port: 3000
-      protocol: TCP
-      targetPort: 3000
-    selector:
-      service: ${SERVICE_NAME}
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Route
-  metadata:
-    creationTimestamp: null
-    labels:
-      service: ${SERVICE_NAME}
-      branch: ${SAFE_BRANCH}
-      project: ${SAFE_PROJECT}
-    name: ${SERVICE_NAME}
-  spec:
-    host: ${SERVICE_ROUTER_URL}
-    port:
-      targetPort: 3000-tcp
-    to:
-      kind: Service
-      name: ${SERVICE_NAME}

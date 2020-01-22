@@ -144,6 +144,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploymonitor/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesbuilddeploymonitor:v1-2-0
+  kubernetesremove:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesremove
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesremove/src:/app/services/kubernetesremove/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesremove/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesremove:v1-2-0
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -202,18 +212,6 @@ services:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhooks2tasks:v1-2-0
-  rest2tasks:
-    image: ${IMAGE_REPO:-lagoon}/rest2tasks
-    command: yarn run dev
-    volumes:
-      - ./services/rest2tasks/src:/app/services/rest2tasks/src
-      - ./node-packages:/app/node-packages:delegated
-    ports:
-      - '5555:3000'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/rest2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/rest2tasks:v1-2-0
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
@@ -315,6 +313,7 @@ services:
       - API_PROTOCOL=http
       - API_PORT=3000
       - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=404
     volumes:
       - ./tests:/ansible
     labels:
@@ -337,6 +336,7 @@ services:
       - API_PROTOCOL=http
       - API_PORT=3000
       - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=503
     volumes:
       - ./tests:/ansible
     labels:

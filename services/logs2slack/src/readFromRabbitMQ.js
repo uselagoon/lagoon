@@ -73,6 +73,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:finished":
     case "task:remove-openshift:finished":
+    case "task:remove-kubernetes:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
       sendToSlack(project, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
@@ -80,12 +81,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
+    case "task:remove-kubernetes:retry":
     case "task:remove-openshift-resources:retry":
       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:error":
     case "task:remove-openshift:error":
+    case "task:remove-kubernetes:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
       sendToSlack(project, message, 'danger', ':bangbang:', channelWrapperLogs, msg, appId)
