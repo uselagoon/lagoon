@@ -1,5 +1,4 @@
 #!/bin/bash
-
 if [ -n "$ROUTER_URL" ]; then
   SERVICE_ROUTER_URL=${SERVICE_NAME}-${ROUTER_URL}
 else
@@ -9,33 +8,32 @@ fi
 # Inject Pullable Images into Template
 TEMPLATE_ADDITIONAL_PARAMETERS=()
 # First check if we need multiple Images in this Template (check for `_SERVICE_IMAGE` - see underline)
-if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep _service_image) ]]; then
+if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep images) ]]; then
   while read line
   do
     # SERVICE_IMAGE Parameters are configured like "[SERVICETYPE]_SERVICE_IMAGE", we split the servicetype away and lowercase it
     DEPLOYMENT_SERVICETYPE=$(echo $line | awk -F_ '{print $1}'  | tr '[:upper:]' '[:lower:]');
 
     # Load which pushed image matches this servicetype of this service name
-    echo "findme"
-    echo "${MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME}"
     DEPLOYMENT_SERVICETYPE_IMAGE_NAME="${MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME[${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}]}"
     # Load the Image Hash of the loaded Image
     DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH="${IMAGE_HASHES[${DEPLOYMENT_SERVICETYPE_IMAGE_NAME}]}"
+
     # Add the Image Hash as Parameter of "[SERVICETYPE]_SERVICE_IMAGE"
     TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "${line}=${DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH}")
-  done < <(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep _service_image | awk '{ print $1 }')
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
+  done < <(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep images | awk '{ print $1 }')
 # check if we need a single image to inject
-elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep _service_image) ]]; then
+elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep image) ]]; then
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
-  TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}")
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
 fi
 
 if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep environment_type ) ]]; then
-  TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}")
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set environment_type="${ENVIRONMENT_TYPE}" | outputToYaml
 fi
 
-helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set ${SERVICE_TYPE}_service_image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
 
 # oc process  --local -o yaml --insecure-skip-tls-verify \
 #   -n ${NAMESPACE} \

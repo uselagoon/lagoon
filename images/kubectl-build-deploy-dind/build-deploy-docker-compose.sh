@@ -722,9 +722,7 @@ fi
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
-
 YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs-backups"
-
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
@@ -860,6 +858,7 @@ do
   #   fi
   fi
 
+
 done
 
 ##############################################
@@ -875,7 +874,6 @@ if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
 
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
-
 # just exit here as we do work
 exit 1
 
