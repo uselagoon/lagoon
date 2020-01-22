@@ -35,7 +35,7 @@ First, we need to build the defined images:
 docker-compose build
 ```
 
-This will tell docker-compose to build the Docker images for all containers that have a `build:` definition in the `docker-compose.yml`. Usually for Drupal this is the case for the `cli`, `nginx` and `php`. We do this because we want to run specific **build** commands \(like `composer install`\) or inject specific environment variables \(like `WEBROOT`\) into the images.
+This will tell docker-compose to build the Docker images for all containers that have a `build:` definition in the `docker-compose.yml`. Usually for Drupal this is the case for the `CLI`, `Nginx` and `PHP`. We do this because we want to run specific **build** commands \(like `composer install`\) or inject specific environment variables \(like `WEBROOT`\) into the images.
 
 Usually building is not needed every time you edit your Drupal code \(as the code is mounted into the containers from your host\), but rebuilding does not hurt. Plus Lagoon will build the exact same Docker images also during a deploy, you can therefore check that your build will also work during a deployment with just running `docker-compose build` again.
 

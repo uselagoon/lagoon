@@ -77,16 +77,16 @@ If you'd like Lagoon to ignore a service completely, for example, you need a con
 
 ## Persistent Storage
 
-Some containers need persistent storage. In many cases, Lagoon knows where that persistent storage needs to go. For example, for a mariadb container it knows that the persistent storage should be put into `/var/lib/mysql` and puts it there automatically with the need to define that. For some situations though Lagoon needs your help to know where to put the persistent storage:
+Some containers need persistent storage. In many cases, Lagoon knows where that persistent storage needs to go. For example, for a MariaDB container, Lagoon knows that the persistent storage should be put into `/var/lib/mysql` and puts it there automatically without any extra configuration to define that. For some situations, though, Lagoon needs your help to know where to put the persistent storage:
 
 * `lagoon.persistent` - the **absolute** path where the persistent storage should be mounted \(the above example uses `/app/web/sites/default/files/` which is where Drupal expects it's persistent storage\).
 * `lagoon.persistent.name` - tells Lagoon to not create a new persistent storage for that service, but instead mounts the persistent storage of another defined service into this service.
 * `lagoon.persistent.size` - the size of persistent storage you require \(Lagoon usually gives you minimum `5G` of persistent storage, if you need more define it here\).
-* `lagoon.persistent.class` - by default Lagoon automatically assigns the right storage class for your service \(like SSDs for mysql, bulk storage for Nginx, etc.\). If you need to overwrite this, you can do so here. - This is highly depending on the underlining Kubernetes/OpenShift that Lagoon runs on. Ask your Lagoon Administrator about this.
+* `lagoon.persistent.class` - by default Lagoon automatically assigns the right storage class for your service \(like SSDs for MySQL, bulk storage for Nginx, etc.\). If you need to overwrite this, you can do so here. - This is highly depending on the underlining Kubernetes/OpenShift that Lagoon runs on. Ask your Lagoon Administrator about this.
 
 ## Multi-Container Pods
 
-Kubernetes and OpenShift don't deploy plain containers, instead they deploy pods, which each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined `docker-compose` service. For some cases though, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and nginx container that both contain PHP code of a web application like Drupal.
+Kubernetes and OpenShift don't deploy plain containers, instead they deploy pods, which each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined `docker-compose` service. For some cases though, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and Nginx container that both contain PHP code of a web application like Drupal.
 
 For these cases, it is possible to tell Lagoon which services should stay together, which is done the following way:
 
@@ -120,7 +120,7 @@ An example:
       lagoon.deployment.servicetype: php
 ```
 
-In the example above, the services are called `web` \(which is the nginx container\) and `phehaph` \(which is Swiss-German for `php`\). In order for Lagoon to realize which one is the `nginx` and which one is the `php` container, it is defined via `lagoon.deployment.servicetype: nginx` and `lagoon.deployment.servicetype: php`.
+In the example above, the services are called `web` \(which is the Nginx container\) and `phehaph` \(which is Swiss-German for `php`\). In order for Lagoon to realize which one is the `nginx` and which one is the `php` container, it is defined via `lagoon.deployment.servicetype: nginx` and `lagoon.deployment.servicetype: php`.
 
 Additionally, the `lagoon.name: nginx` is defined twice, which will cause Lagoon to give the pod the name `nginx` and not `web` \(Tip: Do not do this, it's way too confusing, name the things the same\).
 

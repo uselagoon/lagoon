@@ -14,17 +14,17 @@ Below you'll find examples for two common log requests: Viewing the total number
 
 ### Total Number of hits/requests to your site
 
-* Let's start Kibana up and select `Discovery` \(\#1 in screen shot below\) 
-* Then the Router logs for your project\(\#2\). 
+* Let's start Kibana up and select `Discovery` \(\#1 in screen shot below\)
+* Then the Router logs for your project\(\#2\).
 * From there, we will filter some of this information down a bit. Let's focus on our main production environment. I
 * In the search bar \(\#3\), let's enter:
 
   `openshift_project: "name of your production project"`
 
 * This will show you all the hits to your production environment in the given time frame.
-* You can change the time frame in the upper right hand corner \(\#4\). 
-* Clicking on the arrow next to the entry \(\#5\) will expand it and show you all the information that was captured. 
-* You can add any of those fields to the window by hovering over them and clicking add on the left hand side \(\#6\). 
+* You can change the time frame in the upper right hand corner \(\#4\).
+* Clicking on the arrow next to the entry \(\#5\) will expand it and show you all the information that was captured.
+* You can add any of those fields to the window by hovering over them and clicking add on the left hand side \(\#6\).
 * You can also further filter your results by using the search bar.
 
 ![How to get the total number of hits/requests to your site in Kibana.](../.gitbook/assets/kibana_example1.png)
@@ -35,14 +35,14 @@ Running the query above will give you a general look at all the traffic to your 
 
 We are going to start off with the same query as above, but we are going to add a couple of things.
 
-* First, add the following fields: `client_ip` and `http_request`. 
+* First, add the following fields: `client_ip` and `http_request`.
 * This will show you a list of all IP addresses and the page they requested. Here is what we see for the Amazee.io page:
 
 ![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2.png)
 
 That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria.
 
-* We are going to add: `AND client_ip: "IP address"`. 
+* We are going to add: `AND client_ip: "IP address"`.
 * That will filter the results to just show you hits from that specific IP address, and the page they were requesting. Here is what it looks like for our Amazee.io website:
 
 ![Hits from a specific IP address.](../.gitbook/assets/kibana_example3.png)
@@ -53,28 +53,28 @@ Container logs will show you all `stout` and `sterr` messages for your specific 
 
 ### Logs from a container
 
-Want to see the logs for a specific container \(php, nginx, etc\)? This section will help! Let's focus on looking at nginx logs.
+Want to see the logs for a specific container \(php, nginx, etc\)? This section will help! Let's focus on looking at Nginx logs.
 
-* We start by opening up Kibana and selecting Discover \(\#1 in the screen shot below\). 
-* From there, we select the container logs for our project \(\#2\). 
+* We start by opening up Kibana and selecting Discover \(\#1 in the screen shot below\).
+* From there, we select the container logs for our project \(\#2\).
 * Let's go to the search bar \(\#3\) and enter:
 
   `kubernetes.container_name: "nginx"`
 
-* This will display all nginx logs for our project.
-* Clicking on the arrow next to an entry \(\#4\) will expand that entry and show you all of the information it gathered. 
-* Let's add the message field and the level field to the view. You can do that by clicking on "Add" on the left hand side \(\#5\). 
+* This will display all Nginx logs for our project.
+* Clicking on the arrow next to an entry \(\#4\) will expand that entry and show you all of the information it gathered.
+* Let's add the message field and the level field to the view. You can do that by clicking on "Add" on the left hand side \(\#5\).
 * You can change the time frame in the upper right hand corner of the screen \(\#6\), in the example below I'm looking at logs for the last 4 hours.
 
 ![](../.gitbook/assets/kibana_example4.png)
 
 ### Specific errors in logs
 
-Want to see how many 500 Internal Server errors you've had in your nginx container? You can easily do that by changing the search query. If you search:
+Want to see how many 500 Internal Server errors you've had in your Nginx container? You can easily do that by changing the search query. If you search:
 
 `kubernetes.container_name: "nginx" AND message: "500"`
 
-That will only display 500 error messages in the nginx container. You can search for any error message in any container that you would like!
+That will only display 500 error messages in the Nginx container. You can search for any error message in any container that you would like!
 
 ## Visualization
 

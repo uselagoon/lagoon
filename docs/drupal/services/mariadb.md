@@ -38,7 +38,7 @@ During the course of development, it may be necessary to enable either query log
 
 ## Connecting to MySQL container from the host
 
-If you would like to connect to your MYSQL database inside the Docker container with an external tool like [Sequel Pro](http://www.sequelpro.com/), [MySQL Workbench](http://www.mysql.com/products/workbench/), [HeidiSQL](http://www.heidisql.com/), [DBeaver](http://dbeaver.jkiss.org/), just plain old `mysql-cli` or anything else, here's how to get the IP and port info.
+If you would like to connect to your MySQL database inside the Docker container with an external tool like [Sequel Pro](http://www.sequelpro.com/), [MySQL Workbench](http://www.mysql.com/products/workbench/), [HeidiSQL](http://www.heidisql.com/), [DBeaver](http://dbeaver.jkiss.org/), just plain old `mysql-cli` or anything else, here's how to get the IP and port info.
 
 ### Get published MySQL port from the container
 

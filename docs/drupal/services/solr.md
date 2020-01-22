@@ -27,11 +27,11 @@ RUN precreate-core drupal /solr-conf
 CMD ["solr-foreground"]
 ```
 
-The goal is to have your solr configuration files exist at `/solr-conf/conf` in the image you are building.
+The goal is to have your Solr configuration files exist at `/solr-conf/conf` in the image you are building.
 
 ## Multiple cores
 
-To implement multiple cores, you will also need to ship your own solr schema as above, the only change needed is to the `CMD` of the Dockerfile, repeat the pattern of `precreate-core corename /solr-conf/ ;` for each core you require.
+To implement multiple cores, you will also need to ship your own Solr schema as above, the only change needed is to the `CMD` of the Dockerfile, repeat the pattern of `precreate-core corename /solr-conf/ ;` for each core you require.
 
 ```
 
