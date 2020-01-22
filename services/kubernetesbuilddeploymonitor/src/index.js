@@ -95,7 +95,6 @@ const messageConsumer = async msg => {
     }
   });
 
-  let project = {}
   try {
     const namespacesSearch = promisify(kubernetesCore.namespaces.get);
     const namespacesResult = await namespacesSearch({
@@ -105,8 +104,9 @@ const messageConsumer = async msg => {
     });
   
     const namespaces = R.propOr([], 'items', namespacesResult);
-    if (!R.isEmpty(namespaces)) {
-      project = namespaces[0];
+    if (R.isEmpty(namespaces)) {
+      logger.error(`Namespaces are empty for ${openshiftProject}`);
+      throw new Error
     }
   } catch (err) {
     // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
@@ -414,8 +414,8 @@ const deathHandler = async (msg, lastError) => {
   }
 
   const task = "task:builddeploy-kubernetes:error";
-  const msg = `*[${projectName}]* ${logMessage} Build \`${jobName}\` ERROR: \`\`\` ${lastError} \`\`\``;
-  sendToLagoonLogs('error', projectName, "", task,  {}, msg);
+  const errorMsg = `*[${projectName}]* ${logMessage} Build \`${jobName}\` ERROR: \`\`\` ${lastError} \`\`\``;
+  sendToLagoonLogs('error', projectName, "", task,  {}, errorMsg);
 
 }
 
