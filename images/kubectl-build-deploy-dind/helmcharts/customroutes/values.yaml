@@ -64,3 +64,7 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+
+route_hsts: 'null'
+route_tls_acme: true
