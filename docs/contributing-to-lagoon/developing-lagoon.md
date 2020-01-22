@@ -40,31 +40,31 @@ All of it is based around tests. So if you want to only build the part that is n
 
 If you still want to build and start all services, go ahead:
 
-2. Build images:
+1. Build images:
 
 ```bash
 make build
 ```
 
-3. Start Lagoon services:
+1. Start Lagoon services:
 
 ```bash
 make up
 ```
 
-4. Follow the services logs:
+1. Follow the services logs:
 
 ```bash
 make logs
 ```
 
-5. Run tests \(read [Tests](tests.md) to learn more about testing\):
+1. Run tests \(read [Tests](tests.md) to learn more about testing\):
 
 ```bash
 make tests
 ```
 
-6. Look what happens in OpenShift \(credentials: `developer`/`developer`\):
+1. Look what happens in OpenShift \(credentials: `developer`/`developer`\):
 
 ```bash
 echo "visit https://$(minishift --profile lagoon ip):8443/console"

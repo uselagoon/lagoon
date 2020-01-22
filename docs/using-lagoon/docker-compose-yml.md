@@ -77,8 +77,6 @@ If you'd like Lagoon to ignore a service completely, for example, you need a con
 
 ## Persistent Storage
 
-
-
 Some containers need persistent storage. In many cases, Lagoon knows where that persistent storage needs to go. For example, for a mariadb container it knows that the persistent storage should be put into `/var/lib/mysql` and puts it there automatically with the need to define that. For some situations though Lagoon needs your help to know where to put the persistent storage:
 
 * `lagoon.persistent` - the **absolute** path where the persistent storage should be mounted \(the above example uses `/app/web/sites/default/files/` which is where Drupal expects it's persistent storage\).
@@ -152,6 +150,4 @@ Feeling adventurous and want to do something completely customized? Welcome to t
 With defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
 
 This also expects the label `lagoon.template` to be defined with the path to the yaml file where you define all the needed Kubernetes objects to be executed. In here you can define your own OpenShift templates like they ones in the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). Important: The template is called with `oc process`, so you should define the same parameters as in the default templates.
-
-
 
