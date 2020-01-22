@@ -56,6 +56,7 @@ const typeDefs = gql`
     RUNTIME
     GLOBAL
     CONTAINER_REGISTRY
+    INTERNAL_CONTIANER_REGISTRY
   }
 
   enum TaskStatusType {
