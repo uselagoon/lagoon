@@ -72,3 +72,6 @@ markdown_extensions:
       permalink: true
       baselevel: 1
   - admonition
+
+extra_css:
+  - css/theme_overrides.css
