@@ -1,4 +1,4 @@
-# Home
+# Lagoon
 
 ![](.gitbook/assets/lagoon-logo.png)
 
@@ -45,10 +45,4 @@ At the same time, we've been using Docker for multiple years for local developme
 Lagoon was born and has been developed since 2017 into a system that runs Docker in production and will replace our third generation hosting platform with a cutting edge all Docker based system.
 
 At amazee.io we also believe in open source, and it was always troubling for us why open source code like Drupal is hosted with proprietary hosting platforms. We believe the strength and success of a hosting company are not the deployment systems or service configurations, but rather the people and their knowledge that run the platform, their processes and skills to react quickly to unforeseen situations and last but not least, the support they provide their clients.
-
-  
-
-
-  
-
 

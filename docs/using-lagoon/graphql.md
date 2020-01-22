@@ -2,7 +2,7 @@
 
 ## Connect to GraphQL API
 
-API interactions in Lagoon are done via GraphQL, and we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, you also need a JWT \(JSON Web Token\) which will authenticate you against the API via your SSH public key. 
+API interactions in Lagoon are done via GraphQL, and we suggest the [GraphiQL App](https://github.com/skevy/graphiql-app) to connect. In order to authenticate to the API, you also need a JWT \(JSON Web Token\) which will authenticate you against the API via your SSH public key.
 
 To generate this token, use the remote shell via the `token` command:
 
@@ -18,7 +18,7 @@ ssh -p 32222 -t lagoon@ssh.lagoon.amazeeio.cloud token
 
 This will return a long string, which is the JWT token.
 
-We also need the URL of the API Endpoint, ask your Lagoon Administrator for this. On amazee.io this is 
+We also need the URL of the API Endpoint, ask your Lagoon Administrator for this. On amazee.io this is
 
 \`\`[`https://api.lagoon.amazeeio.cloud/graphql`](https://api.lagoon.amazeeio.cloud/graphql).
 

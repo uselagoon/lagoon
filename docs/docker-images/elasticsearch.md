@@ -2,7 +2,7 @@
 
 > [_Elasticsearch_](https://www.elastic.co/) _is a distributed, open source search and analytics engine for all types of data, including textual, numerical, geospatial, structured, and unstructured._
 >
-> - from [https://www.elastic.co/](https://www.elastic.co/)
+> * from [https://www.elastic.co/](https://www.elastic.co/)
 
 ## Supported versions
 

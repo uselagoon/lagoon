@@ -86,7 +86,7 @@ Creation of these objects will also automatically cause OpenShift/Kubernetes to 
 
 ## 9. Wait for all rollouts to be done
 
-Now Lagoon waits, it waits for all just triggered deployments of the new pods to be finished, as well as for  their healthchecks to be successful.
+Now Lagoon waits, it waits for all just triggered deployments of the new pods to be finished, as well as for their healthchecks to be successful.
 
 If any of the deployments or healthchecks fail, the deployment will be stopped here and you will be informed via the defined notification systems \(like Slack\) that the deployment has failed.
 

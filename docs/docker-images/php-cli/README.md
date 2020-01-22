@@ -1,6 +1,6 @@
 # php-cli
 
-[Lagoon `php-cli` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile), based on [Lagoon `php-fpm` image](php-fpm.md), with all the needed command line tools for daily operations.
+[Lagoon `php-cli` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile), based on [Lagoon `php-fpm` image](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docker-images/php-cli/php-fpm.md), with all the needed command line tools for daily operations.
 
 Containers \(or pods\) started from `cli` images are responsible for building code for Composer or Node.js based projects.
 

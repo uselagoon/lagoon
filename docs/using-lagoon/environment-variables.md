@@ -18,7 +18,7 @@ As there can be environment variables defined in either the Dockerfile of during
 
 We suggest using the Lagoon API environment variable system for variables that you don't want to keep in your Git repo \(like secrets or API keys\), as they could be compromised by somebody having them on their local development environment, etc.
 
-The Lagoon API allows you to define project-wide or environment-specific variables. Additionally they can be defined for a scope-only build-time or runtime. They are all created via the Lagoon GraphQL API. Read more how to use the GraphQL API at [Using Lagoon » GraphQL API](graphql_api.md).
+The Lagoon API allows you to define project-wide or environment-specific variables. Additionally they can be defined for a scope-only build-time or runtime. They are all created via the Lagoon GraphQL API. Read more how to use the GraphQL API at [Using Lagoon » GraphQL API](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docs/using-lagoon/graphql_api.md).
 
 ### Runtime Environment Variables \(Lagoon API\)
 
@@ -97,7 +97,7 @@ mutation addBuildtimeEnv {
 
 ### Container Registry Environment Variables \(Lagoon API\)
 
-Container registry environment variables are only available during a build and are used when attempting to log in to a private registry. It is used to store the password for the user defined in [Specials » `container-registries`](lagoon_yml.md). They can be applied at the project or environment level.
+Container registry environment variables are only available during a build and are used when attempting to log in to a private registry. It is used to store the password for the user defined in [Specials » `container-registries`](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docs/using-lagoon/lagoon_yml.md). They can be applied at the project or environment level.
 
 This defines a project wide container registry variable \(available in all environments\) for the project with id `463`:
 

@@ -4,7 +4,7 @@
 
 > _PHP-FPM \(FastCGI Process Manager\) is an alternative PHP FastCGI implementation with some additional features useful for sites of any size, especially busier sites._
 >
-> - from [https://php-fpm.org/](https://php-fpm.org/)
+> * from [https://php-fpm.org/](https://php-fpm.org/)
 >
 > FastCGI is a way of having server scripts execute time-consuming code just once instead of every time the script is loaded, reducing overhead.
 
@@ -38,14 +38,14 @@ The included `PHP` config contains sane values that will make the creation of `P
 
 Also, `php-fpm` error logging happens in `stderr`.
 
- ****💡 **If you don't like any of these configs, you have three possibilities:**
+**\*\*💡** If you don't like any of these configs, you have three possibilities:\*\*
 
 1. If they are changeable via environment variables, use environment variables \(this is the preferred method, see list of environment variables below\).
 2. Create your own `fpm-pool` config and set configs via `php_admin_value` and
 
    `php_admin_flag` \(learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes, this documentation refers to Apache, but it is also the case for `php-fpm`\).
 
-    _Important:_
+   _Important:_
 
    1. If you want to provide your own `php-fpm` pool, overwrite the file `/usr/local/etc/php-fpm.d/www.conf` with your own config, or rename this file if you want it to have another name. If you don't do that, the provided pool will be started!
    2. PHP values with the [`PHP_INI_SYSTEM` changeable mode](http://php.net/manual/en/configuration.changes.modes.php) cannot be changed via a `fpm-pool` config. They need to be changed either via already provided environment variables or:

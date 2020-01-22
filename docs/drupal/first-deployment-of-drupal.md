@@ -10,7 +10,7 @@ description: >-
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) and you have setup the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides](../) which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) and you have setup the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides]() which show you how this works.
 
 ## 2. Push!
 
@@ -42,9 +42,9 @@ Depending of your post-rollout tasks inside `.lagoon.yml` you might have run som
 With full Drush site alias support in Lagoon it is super easy to synchronize a local database with the remote lagoon environment.
 
 {% hint style="warning" %}
-You may have to tell pygmy about your public keys before the next step. 
+You may have to tell pygmy about your public keys before the next step.
 
-If you get an error like `Permission denied (publickey)`,  check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
 {% endhint %}
 
 First let's make sure that you can see the Drush Site Aliases:
@@ -116,7 +116,7 @@ Do you really want to continue? (y/n): y
 
 In some cases, though, it might not look correct, like here:
 
- 💡 _Tip: Scroll to the right to see the whole command!_
+💡 _Tip: Scroll to the right to see the whole command!_
 
 ```text
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
