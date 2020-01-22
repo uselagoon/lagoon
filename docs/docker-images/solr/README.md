@@ -4,7 +4,7 @@
 
 The supported versions of Solr on Lagoon are 5.5, 6.6 and 7.5.
 
-This Dockerfile is intended to be used to setup a standalone Solr server with an initial core `mycore`.
+This Dockerfile is intended to be used to set up a standalone Solr server with an initial core `mycore`.
 
 ## Lagoon & OpenShift adaptions
 

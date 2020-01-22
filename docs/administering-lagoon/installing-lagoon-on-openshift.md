@@ -26,7 +26,7 @@ Technically Lagoon can use any Service Account and also needs no admin permissio
 In this example we create the Service Account `lagoon` in the OpenShift Project `default`.
 
 1. Make sure you have the `oc` `cli` tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
-2. Log into OpenShift as an admin:
+2. Log in to OpenShift as an admin:
 
    ```text
     oc login <openshift console>
@@ -46,7 +46,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
 1. Edit `lagoon` inside `local-dev/api-data/01-populate-api-data.gql`, in the `Lagoon Kickstart Objects` section:
    1. `[REPLACE ME WITH OPENSHIFT URL]` - The URL to the OpenShift Console, without `console` at the end.
-   2. `[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUNT TOKEN]` - The token of the lagoon service account that was shown to you during `make openshift-lagoon-setup`
+   2. `[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUNT TOKEN]` - The token of the Lagoon service account that was shown to you during `make openshift-lagoon-setup`
 2. Build required images and start services:
 
    ```text
@@ -58,7 +58,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
    1. Build all required Lagoon service Images \(this can take a while\).
    2. Start all required Lagoon services.
    3. Wait 30 secs for all services to fully start.
-   4. Trigger a deployment of the `lagoon` sitegroup that you edited further, which will cause your local lagoon to connect to the defined OpenShift and trigger a new deployment
+   4. Trigger a deployment of the `lagoon` sitegroup that you edited further, which will cause your local Lagoon to connect to the defined OpenShift and trigger a new deployment
    5. Show the logs of all local Lagoon services
 
 3. As soon as you see messages like `Build lagoon-1 running` in the logs, it's time to connect to your OpenShift and check the build. The URL you will use for that depends on your system, but it's most probably the same as in `openshift.console`.

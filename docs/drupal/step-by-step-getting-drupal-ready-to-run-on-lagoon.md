@@ -101,7 +101,7 @@ Site path            :  sites/default
 ```
 
 {% hint style="warning" %}
-You may have to tell pygmy about your public key before the next step. 
+You may have to tell pygmy about your public key before the next step.
 
 If you get an error like `Permission denied (publickey)`,  check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
 {% endhint %}
@@ -163,7 +163,7 @@ A Drupal site also consists of the files directory. As the whole folder is mount
 
 ## 9. Done!
 
-You are done with your local setup. The Lagoon Team wishes Happy Drupalling!
+You are done with your local setup. The Lagoon team wishes happy Drupalling!
 
 If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](../setup_project.md).
 

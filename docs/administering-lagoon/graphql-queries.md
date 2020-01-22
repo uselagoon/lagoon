@@ -33,7 +33,7 @@ query allProjects{
 }
 ```
 
-And press the ▶️ button \(or press CTRL+ENTER\). 
+And press the ▶️ button \(or press CTRL+ENTER\).
 
 If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
 
@@ -253,7 +253,7 @@ mutation {
 
 This query adds a new project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
-If you omit the `privateKey` field, a new SSH Key will for the project will be generated automatically. 
+If you omit the `privateKey` field, a new SSH Key will for the project will be generated automatically.
 
 If you would like to reuse a key from another project. you will need to supply the key in the `addProject` mutation.
 
@@ -364,7 +364,7 @@ query {
 
 ### Querying a project by its Git URL
 
-Don't remember the name of a project, but know the git URL? Search no longer, there is an GraphQL query for that:
+Don't remember the name of a project, but know the Git URL? Search no longer, there is an GraphQL query for that:
 
 ```graphql
 query {

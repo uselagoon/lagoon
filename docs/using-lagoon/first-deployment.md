@@ -14,7 +14,7 @@ description: >-
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your project is Lagoonized and you have setup the project in Lagoon. If not, don't worry, go back and follow the [Step-by-Step Guides]() which show you how this works, and then come back and deploy!
+In order to make your first deployment a successful one, please make sure that your project is Lagoonized and you have set up the project in Lagoon. If not, don't worry, go back and follow the [Step-by-Step Guides]() which show you how this works, and then come back and deploy!
 
 ## 2. Push!
 
@@ -27,7 +27,7 @@ git commit --allow-empty -m "go, go! Power Rangers!"
 git push
 ```
 
-This will trigger a push and the Git hosting will inform Lagoon about this push via the configured Webhook.
+This will trigger a push and the Git hosting will inform Lagoon about this push via the configured webhook.
 
 If all is correct you should see a notification in your configured chat system \(this has been configured by your friendly Lagoon Administrator\):
 
@@ -43,7 +43,7 @@ It tells you:
 
 * Which project has been deployed.
 * Which branch and Git SHA have been deployed.
-* A link to the full logs of the build and deployment
+* A link to the full logs of the build and deployment.
 * Links to all routes \(URLs\) where the environment can be reached.
 
 That's it! We hope that wasn't too hard - making devops accessible is what we are striving for.

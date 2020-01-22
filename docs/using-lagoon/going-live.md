@@ -48,11 +48,11 @@ If you need non-www to www redirects make sure you have them set up in the `redi
 
 ### Cronjobs
 
-Check if your cronjobs have been setup for your production environment - see [.lagoon.yml](lagoon_yml.md#environmentsnamecronjobs)
+Check if your cronjobs have been set up for your production environment - see [.lagoon.yml](lagoon_yml.md#environmentsnamecronjobs)
 
 ## DNS
 
-To make it as easy as possible for you to get your site pointing to our servers we have dedicated load balancer DNS records. Those technical DNS resource records are used just for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record ask your Lagoon Administrator about the exact CNAME you need to setup.
+To make it as easy as possible for you to get your site pointing to our servers we have dedicated load balancer DNS records. Those technical DNS resource records are used just for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record ask your Lagoon Administrator about the exact CNAME you need to set up.
 
 **Example on amazee.io :** `<region-identifier>.amazee.io`
 

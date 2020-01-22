@@ -1,4 +1,4 @@
-# lagoon.yml
+# .lagoon.yml
 
 The `.lagoon.yml` file is the central file to set up your project:
 
@@ -280,7 +280,7 @@ Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in t
 
 * `path` - the path to the YAML file
 * `command` - can either be `create` or `apply`, depending on if you like to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`
-* `ignore_error` - either `true` or `false` \(default\), this allows you to instruct the lagoon build script to ignore any errors that might are returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist\).
+* `ignore_error` - either `true` or `false` \(default\), this allows you to instruct the Lagoon build script to ignore any errors that might are returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that eventual configurations are created, but don't want to fail if they already exist\).
 
 #### `container-registries`
 
