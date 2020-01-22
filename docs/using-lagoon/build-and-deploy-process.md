@@ -16,7 +16,7 @@ If the deployment is triggered via a webhook and is for a single branch, Lagoon 
 
 ### **Branch REST trigger**
 
-If you trigger a deployment via the REST API and do NOT define a `SHA` in the POST payload, Lagoon will just checkout the branch with the newest code without a specific given Git Sha.
+If you trigger a deployment via the REST API and do NOT define a `SHA` in the POST payload, Lagoon will just checkout the branch with the newest code without a specific given Git SHA.
 
 ### **Pull Requests**
 
