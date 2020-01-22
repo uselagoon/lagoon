@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: cronjob-{{ $cronjobName }}
+  name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
   labels:
     {{- include "nginx.labels" $ | nindent 4 }}
 spec:
@@ -38,7 +38,7 @@ spec:
               command:
                 - /lagoon/cronjob.sh
                 - "{{ $cronjobConfig.command }}"
-              name: cronjob-{{ include "nginx.fullname" $ }}
+              name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
               envFrom:
                 - configMapRef:
                     name: lagoon-env
