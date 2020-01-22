@@ -8,7 +8,7 @@ Even though Lagoon has only a hard dependency on Docker and [Docker Compose](htt
 * a system that receives and displays mail locally
 
 {% hint style="warning" %}
-You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that deploys your local development environment to your production environment, it's **not** the environment itself.
+You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that deploys your local development environment to your production environment, it's **not** the environment itself. 
 {% endhint %}
 
 Lagoon currently works best with `pygmy` which is the amazee.io flavored system of the above tools and works out of the box with Lagoon.

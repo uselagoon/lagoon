@@ -70,6 +70,6 @@
 
 ## Resources
 
-* [FAQ](resources/faq.md)
-* [Glossary](resources/glossary.md)
+* [FAQ](faq.md)
+* [Glossary](glossary.md)
 

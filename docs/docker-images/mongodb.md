@@ -2,7 +2,7 @@
 
 > _MongoDB is a general purpose, document-based, distributed database built for modern application developers and for the cloud era . MongoDB is a document database, which means it stores data in JSON-like documents._
 >
-> * from [mongodb.com](https://www.mongodb.com/)
+> - from [mongodb.com](https://www.mongodb.com/)
 
 [Lagoon `MongoDB` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile), based on offical package `mongodb` provided by the `alpine:3.8` image.
 

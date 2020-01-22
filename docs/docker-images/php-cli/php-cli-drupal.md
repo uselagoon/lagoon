@@ -1,6 +1,6 @@
 # php-cli-drupal
 
-[Lagoon `php-cli-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) optimized to work with Drupal, based on [Lagoon `php-cli` image](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docker-images/php-cli/php-cli.md), has all the command line tools needed for daily maintenance of a Drupal website:
+[Lagoon `php-cli-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) optimized to work with Drupal, based on [Lagoon `php-cli` image](php-cli.md), has all the command line tools needed for daily maintenance of a Drupal website:
 
 * `drush`
 * `drupal console`

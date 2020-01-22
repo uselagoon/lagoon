@@ -4,7 +4,7 @@ Lagoon is not only capable of deploying into OpenShift, it actually runs in Open
 
 Luckily we can use the local development environment to kickstart another Lagoon in any OpenShift, running somewhere in the world.
 
-Check the [Requirements for OpenShift by Lagoon](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/administering_lagoon/openshift_requirements.md) before continuing.
+Check the [Requirements for OpenShift by Lagoon](/administering_lagoon/openshift_requirements.md) before continuing.
 
 This process consists of 4 main stages, which are in short:
 
@@ -80,5 +80,5 @@ Once your Lagoon install is operational, you need to initialize OpendistroSecuri
 
 ## Configure Installed Lagoon
 
-We have now a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docs/administering-lagoon/untitled-1.md).
+We have now a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](untitled-1.md).
 

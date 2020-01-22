@@ -1,6 +1,6 @@
 # Kibana Examples
 
-Have you seen [the Kibana getting started video](https://www.elastic.co/webinars/getting-started-kibana) and are now ready to work with logs? We are here to help! This page will give you examples of Kibana queries you can use. This is not a Kibana 101 class, but it can help you understand some of what you can do in Kibana.
+Have you seen [the Kibana getting started video](https://www.elastic.co/webinars/getting-started-kibana) and are now ready to work with logs? We are here to help! This page will give you examples of Kibana queries you can use. This is not a Kibana 101 class, but it can help you understand some of what you can do in Kibana. 
 
 Ready to get started? Good!
 
@@ -21,7 +21,7 @@ Below you'll find examples for two common log requests: Viewing the total number
 
   `openshift_project: "name of your production project"`
 
-* This will show you all the hits to your production environment in the given time frame.
+* This will show you all the hits to your production environment in the given time frame. 
 * You can change the time frame in the upper right hand corner \(\#4\). 
 * Clicking on the arrow next to the entry \(\#5\) will expand it and show you all the information that was captured. 
 * You can add any of those fields to the window by hovering over them and clicking add on the left hand side \(\#6\). 
@@ -33,14 +33,14 @@ Below you'll find examples for two common log requests: Viewing the total number
 
 Running the query above will give you a general look at all the traffic to your site, but what if you want to narrow in on a specific IP address? Perhaps you want to see how many times an IP has hit your site and what specific pages they were looking at. This next query should help.
 
-We are going to start off with the same query as above, but we are going to add a couple of things.
+We are going to start off with the same query as above, but we are going to add a couple of things. 
 
 * First, add the following fields: `client_ip` and `http_request`. 
 * This will show you a list of all IP addresses and the page they requested. Here is what we see for the Amazee.io page:
 
 ![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2.png)
 
-That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria.
+That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria. 
 
 * We are going to add: `AND client_ip: "IP address"`. 
 * That will filter the results to just show you hits from that specific IP address, and the page they were requesting. Here is what it looks like for our Amazee.io website:
@@ -53,7 +53,7 @@ Container logs will show you all `stout` and `sterr` messages for your specific 
 
 ### Logs from a container
 
-Want to see the logs for a specific container \(php, nginx, etc\)? This section will help! Let's focus on looking at nginx logs.
+Want to see the logs for a specific container \(php, nginx, etc\)? This section will help! Let's focus on looking at nginx logs. 
 
 * We start by opening up Kibana and selecting Discover \(\#1 in the screen shot below\). 
 * From there, we select the container logs for our project \(\#2\). 
@@ -61,7 +61,7 @@ Want to see the logs for a specific container \(php, nginx, etc\)? This section 
 
   `kubernetes.container_name: "nginx"`
 
-* This will display all nginx logs for our project.
+* This will display all nginx logs for our project. 
 * Clicking on the arrow next to an entry \(\#4\) will expand that entry and show you all of the information it gathered. 
 * Let's add the message field and the level field to the view. You can do that by clicking on "Add" on the left hand side \(\#5\). 
 * You can change the time frame in the upper right hand corner of the screen \(\#6\), in the example below I'm looking at logs for the last 4 hours.
@@ -95,5 +95,5 @@ Here is an example of a daily hits visualization chart:
 
 ![Daily hits visualization chart.](../.gitbook/assets/kibana_example5.png)
 
-Also note that you can save your visualizations \(and searches\)! That will make it even faster to access them in the future. And because each account has their own Kibana Tenant, no searches or visualizations are shared with another account.
+Also note that you can save your visualizations \(and searches\)! That will make it even faster to access them in the future. And because each account has their own Kibana Tenant, no searches or visualizations are shared with another account. 
 

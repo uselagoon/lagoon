@@ -37,7 +37,7 @@ make logs service=webhook-handler
 
 Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here: [http://localhost:8888/](http://localhost:8888/) \(`admin`:`admin`\)
 
-Sometimes you just want to create another push webhook, without having to wait for the Git repository to be initialized and pushed.
+Sometimes you just want to create another push webhook, without having to wait for the Git repository to be initialized and pushed. 
 
 For this case, there is a small helper script, `tests/playbooks/helpers/just-push.yaml,` that will get the current head of the git repository and push a webhook push. It needs to know which Git repository and branch you would like to check and push:
 

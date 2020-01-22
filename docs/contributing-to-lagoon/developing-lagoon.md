@@ -31,7 +31,7 @@ For hosts other than GNU/Linux, we are using VirtualBox to run the Openshift Min
    Also make sure that you give your Docker host minimum 4 CPUs and 4GB Ram.
 
 {% hint style="warning" %}
-Lagoon consists of a lot of services and Docker images. Building and running them locally might not even be necessary.
+Lagoon consists of a lot of services and Docker images. Building and running them locally might not even be necessary. 
 
 We're using `make` \(see the [Makefile](https://github.com/amazeeio/lagoon/blob/master/Makefile)\) in order to only build the needed Docker images specifically for a part of Lagoon.
 {% endhint %}
@@ -40,31 +40,31 @@ All of it is based around tests. So if you want to only build the part that is n
 
 If you still want to build and start all services, go ahead:
 
-1. Build images:
+2. Build images:
 
 ```bash
 make build
 ```
 
-1. Start Lagoon Services:
+3. Start Lagoon Services:
 
 ```bash
 make up
 ```
 
-1. Follow the Services logs:
+4. Follow the Services logs:
 
 ```bash
 make logs
 ```
 
-1. Run tests \(read [Tests](tests.md) to learn more about testing\):
+5. Run tests \(read [Tests](tests.md) to learn more about testing\):
 
 ```bash
 make tests
 ```
 
-1. Look what happens in OpenShift \(credentials: developer/developer\):
+6. Look what happens in OpenShift \(credentials: developer/developer\):
 
 ```bash
 echo "visit https://$(minishift --profile lagoon ip):8443/console"

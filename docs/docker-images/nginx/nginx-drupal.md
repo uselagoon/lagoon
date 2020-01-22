@@ -1,6 +1,6 @@
 # nginxdrupal
 
-[Lagoon `nginx-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) optimized to work with Drupal, based on [Lagoon `nginx` image](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docker-images/nginx/nginx.md).
+[Lagoon `nginx-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) optimized to work with Drupal, based on [Lagoon `nginx` image](nginx.md).
 
 ## Lagoon & OpenShift adaptions
 

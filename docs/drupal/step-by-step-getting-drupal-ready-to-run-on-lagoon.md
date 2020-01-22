@@ -101,9 +101,9 @@ Site path            :  sites/default
 ```
 
 {% hint style="warning" %}
-You may have to tell pygmy about your public key before the next step.
+You may have to tell pygmy about your public key before the next step. 
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
+If you get an error like `Permission denied (publickey)`,  check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
 {% endhint %}
 
 Now it is time to install Drupal \(if instead you would like to import an existing SQL File, please skip to step 6, but we suggest you install a clean Drupal in the beginning to be sure everything works.\)
@@ -165,5 +165,5 @@ A Drupal site also consists of the files directory. As the whole folder is mount
 
 You are done with your local setup. The Lagoon Team wishes Happy Drupalling!
 
-If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docs/setup_project.md).
+If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](../setup_project.md).
 

@@ -4,6 +4,8 @@ description: There are several services available for our Drupal Lagoon images.
 
 # Services
 
+
+
 {% tabs %}
 {% tab title="MariaDB" %}
 About MariaDB
@@ -24,7 +26,7 @@ About Solr images
 {% tab title="Varnish" %}
 About Varnish
 
-[About Varnish in Drupal](./)
+[About Varnish in Drupal]()
 
 About Varnish images
 {% endtab %}
@@ -37,4 +39,6 @@ About Redis in Drupal
 About Redis images
 {% endtab %}
 {% endtabs %}
+
+
 

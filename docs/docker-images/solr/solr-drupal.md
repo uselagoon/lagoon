@@ -1,6 +1,6 @@
 # solr-drupal
 
-[Lagoon `solr-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile), is a customized [`solr` image](https://github.com/AlannaBurke/lagoon/tree/3f1ab2ee09facee10abd8009345e30ef31e20189/docker-images/solr/solr.md) to use within Drupal projects in Lagoon.
+[Lagoon `solr-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile), is a customized [`solr` image](solr.md) to use within Drupal projects in Lagoon.
 
 The initial core is `drupal` and it is created and configured starting from a Drupal customized and optimized configuration.
 
