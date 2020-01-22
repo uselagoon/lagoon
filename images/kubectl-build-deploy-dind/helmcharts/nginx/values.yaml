@@ -69,8 +69,8 @@ cronjobs: {}
 
 nativeCronjobs:
   drush-cron:
-    schedule: * * * * *
-    command: drush cron
+    schedule: '* * * * *'
+    command: 'drush cron'
   drush-updb:
-    schedule: * * * * *
-    command: drush updb
+    schedule: '* * * * *'
+    command: 'drush updb'

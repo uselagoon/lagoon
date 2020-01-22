@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: CRONJOBS
-              value: {{ .Values.cronjobs }}
+              value: {{ .Values.cronjobs | quote }}
           ports:
             - name: http
               containerPort: 8080
