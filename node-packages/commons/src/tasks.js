@@ -826,15 +826,3 @@ async function consumeTaskMonitor(
     },
   });
 }
-
-module.exports = {
-  initSendToLagoonTasks,
-  createTaskMonitor,
-  createDeployTask,
-  createPromoteTask,
-  createRemoveTask,
-  createTaskTask,
-  createMiscTask,
-  consumeTasks,
-  createTaskMonitor
-}
