@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.SERVICE_NAME | quote }}
+  labels:
+    service: {{ .Values.SERVICE_NAME | quote }}
+    branch: {{ .Values.SAFE_BRANCH | quote }}
+    project: {{ .Values.SAFE_PROJECT | quote }}
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  type: ClusterIP
+  selector:
+    service: {{ .Values.SERVICE_NAME | quote }}
+status:
+  loadBalancer: {}
