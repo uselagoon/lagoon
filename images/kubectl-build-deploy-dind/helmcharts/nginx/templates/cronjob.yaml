@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: cronjob-{{ $cronjobConfig.name }}
+  name: cronjob-{{ $cronjobName }}
   labels:
     {{- include "nginx.labels" $ | nindent 4 }}
 spec:
