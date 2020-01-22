@@ -1,5 +1,3 @@
-// @flow
-
 const Promise = require("bluebird");
 const KubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
