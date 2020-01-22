@@ -89,7 +89,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
-    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer &> /dev/null
+    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer &> /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
