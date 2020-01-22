@@ -1,6 +1,6 @@
 version: 0.1
 log:
-  level: error
+  level: debug
   fields:
     service: registry
 storage:
@@ -37,7 +37,7 @@ auth:
   token:
     issuer: harbor-token-issuer
     #realm: "$HARBOR_NGINX_ENDPOINT/service/token"
-    realm: "harbor-nginx/service/token"
+    realm: "harbor-nginx:8080/service/token"
     rootcertbundle: /etc/registry/root.crt
     service: harbor-registry
 validation:
@@ -46,7 +46,7 @@ notifications:
   endpoints:
     - name: harbor
       disabled: false
-      url: http://harbor-core/service/notifications
+      url: http://harbor-core:8080/service/notifications
       timeout: 3000ms
       threshold: 5
       backoff: 1s

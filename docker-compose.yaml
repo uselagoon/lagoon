@@ -481,6 +481,7 @@ services:
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
       - SCANNER_LOG_LEVEL=error
+    restart: on-failure
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclair/harborclair.yml
@@ -517,6 +518,7 @@ services:
       - POSTGRESQL_HOST=harbor-database
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=test123
       - POSTGRESQL_DATABASE=registry
       - POSTGRESQL_SSLMODE=disable
       - POSTGRESQL_MAX_IDLE_CONNS=50
@@ -544,19 +546,18 @@ services:
       - CHART_CACHE_DRIVER=redis
       - _REDIS_URL=harbor-redis:6379,100,
       - _REDIS_URL_REG=redis://harbor-redis:6379/2
-      - PORTAL_URL=http://harbor-portal
+      - PORTAL_URL=http://harbor-portal:8080
       - REGISTRYCTL_URL=http://harborregistry:8080
       - CLAIR_HEALTH_CHECK_SERVER_URL=http://harborclair:6061
       - HTTP_PROXY=
       - HTTPS_PROXY=
       - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
-      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx
+      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
       - REGISTRY_HTTP_SECRET=secret123
       - HARBOR_ADMIN_PASSWORD=test123
       - CLAIR_DB_PASSWORD=test123
-      - POSTGRESQL_PASSWORD=test123
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-core/harbor-core.yml
@@ -566,10 +567,8 @@ services:
     hostname: harbor-database
     ports:
       - '5432:5432'
-    volumes:
-      - /var/lib/postgresql/data
     environment:
-      - POSTGRESQL_PASSWORD=test123
+      - POSTGRES_PASSWORD=test123
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
     labels:
@@ -587,7 +586,7 @@ services:
     environment:
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
-      - CORE_URL=http://harbor-core
+      - CORE_URL=http://harbor-core:8080
       - REGISTRY_CONTROLLER_URL=http://harborregistry:8080
       - LOG_LEVEL=error
       - HTTP_PROXY=
@@ -605,6 +604,8 @@ services:
     hostname: harbor-nginx
     ports:
       - '8084:8080'
+    volumes:
+      - ${PWD}/services/harbor-nginx/ci.nginx.conf:/etc/nginx/nginx.conf
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
@@ -634,14 +635,18 @@ services:
     hostname: harborregistry
     volumes:
       - ${PWD}/services/harborregistry/registry_ci.cfg.yaml:/etc/registry/config.yml
+      - ${PWD}/services/harbor-core/ci_tls.crt:/etc/registry/root.crt
     ports:
       - '4999:5000'
       - '5001:5001'
     environment:
+      - HARBOR_NGINX_ENDPOINT=
       - REGISTRY_REDIS_PASSWORD=
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
       - REGISTRY_HTTP_SECRET=secret123
+    restart: always
+    command: ["serve", "/etc/registry/config.yml"]
     labels:
       lagoon.type: custom
       lagoon.template: services/harborregistry/harborregistry.yml
