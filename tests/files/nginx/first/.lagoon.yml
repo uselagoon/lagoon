@@ -3,8 +3,8 @@ docker-compose-yaml: docker-compose.yml
 environment_variables:
   git_sha: 'true'
 
-# environments:
-#   nginx:
+environments:
+  nginx:
 #     routes:
 #     - nginx:
 #       - insecure-allow.com:
@@ -19,3 +19,12 @@ environment_variables:
 #       - hsts-header-null.com
 #     - nginx-basic-auth:
 #       - nginx-basic-auth.com
+    cronjobs:
+        - name: date-hourly
+          schedule: "1 * * * *"
+          command: date
+          service: nginx
+        - name: date-minutely
+          schedule: "* * * * *"
+          command: date
+          service: nginx

@@ -508,7 +508,7 @@ else
   done
 fi
 
-# If restic backups are supported by this cluster we create the schedule definition
+# If k8up is supported by this cluster we create the schedule definition
 if kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedules.backup.appuio.ch -q > /dev/null; then
 
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
@@ -533,7 +533,11 @@ if kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedule
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
-  .  /kubectl-build-deploy/scripts/exec-kubernetes-resources.sh
+  helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-backup-schedule \
+    -f /kubectl-build-deploy/values.yaml \
+    --set backup.schedule="${BACKUP_SCHEDULE}" \
+    --set check.schedule="${CHECK_SCHEDULE}" \
+    --set prune.schedule="${PRUNE_SCHEDULE}" | outputToYaml
 fi
 
 if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
@@ -793,65 +797,62 @@ do
   #   TEMPLATE_PARAMETERS+=(-p DEPLOYMENT_STRATEGY="${DEPLOYMENT_STRATEGY}")
   # fi
 
+  echo -e "\
+nativeCronjobs:\n\
+" >> /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml
 
-  # CRONJOB_COUNTER=0
-  # CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
-  # while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
-  # do
+  CRONJOB_COUNTER=0
+  CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
+  while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
+  do
 
-  #   CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
+    CRONJOB_SERVICE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.service)
 
-  #   # Only implement the cronjob for the services we are currently handling
-  #   if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
+    # Only implement the cronjob for the services we are currently handling
+    if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
-  #     CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
 
-  #     CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
 
-  #     # Convert the Cronjob Schedule for additional features and better spread
-  #     CRONJOB_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "$CRONJOB_SCHEDULE_RAW")
-  #     CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
+      # Convert the Cronjob Schedule for additional features and better spread
+      CRONJOB_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "$CRONJOB_SCHEDULE_RAW")
+      CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-  #     if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
-  #       # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
-  #       CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
-  #     else
-  #       # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
-  #       OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
+      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+        # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
+        CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      else
+        # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
 
-  #       # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-  #       NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
-  #       # kubectl stores this cronjob name lowercased
+        # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
+        # kubectl stores this cronjob name lowercased
 
-  #       if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #         echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
-  #       else
+        # if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+        #   echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
+        # else
 
-  #         # Create a copy of TEMPLATE_PARAMETERS so we can restore it
-  #         NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+          echo -e "\
+  ${CRONJOB_NAME,,}:\n\
+    schedule: ${CRONJOB_SCHEDULE}\n\
+    command: ${CRONJOB_COMMAND}\n\
+" >> /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml
 
-  #         TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
-  #         TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
-  #         TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+        # fi
+      fi
+    fi
 
-  #         . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-
-  #         # restore template parameters without any cronjobs in them (allows to create a secondary cronjob, plus also any other templates)
-  #         TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
-
-  #       fi
-  #     fi
-  #   fi
-
-  #   let CRONJOB_COUNTER=CRONJOB_COUNTER+1
-  # done
+    let CRONJOB_COUNTER=CRONJOB_COUNTER+1
+  done
 
 
-  # # if there are cronjobs running inside pods, add them to the deploymentconfig.
-  # if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
-  #   CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_INSIDE_POD[@]}")
-  #   TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
-  # fi
+  # if there are cronjobs running inside pods, add them to the deploymentconfig.
+  if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_INSIDE_POD[@]}")
+  else
+    CRONJOBS_ONELINE=""
+  fi
 
   # OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
   # ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.templates.$SERVICE_NAME false)
@@ -890,7 +891,7 @@ do
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
 
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml --set image="${SERVICE_NAME_IMAGE_HASH}"  --set cronjobs="${CRONJOBS_ONELINE}" | outputToYaml
 
 done
 
