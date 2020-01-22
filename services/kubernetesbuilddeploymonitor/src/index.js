@@ -51,7 +51,7 @@ const messageConsumer = async msg => {
     sha
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received BuildDeploykubernetes monitoring task for project: ${projectName}, jobName: ${jobName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
+  logger.verbose(`Received builddeploy-kubernetes monitoring task for project: ${projectName}, jobName: ${jobName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
   
   const projectResult = await getOpenShiftInfoForProject(projectName);
   const project = projectResult.project
@@ -61,8 +61,8 @@ const messageConsumer = async msg => {
 
   try {
     var gitSha = sha
-    var kubernetesConsole = project.kubernetes.consoleUrl.replace(/\/$/, "");
-    var kubernetesToken = project.kubernetes.token || ""
+    var kubernetesConsole = project.openshift.consoleUrl.replace(/\/$/, "");
+    var kubernetesToken = project.openshift.token || ""
   } catch(error) {
     logger.warn(`Error while loading information for project ${projectName}: ${error}`)
     throw(error)
@@ -88,13 +88,13 @@ const messageConsumer = async msg => {
   });
 
   const kubernetesBatchApi = new kubernetesClient.Batch({
-    url: openshiftConsole,
+    url: kubernetesConsole,
     insecureSkipTlsVerify: true,
     auth: {
       bearer: kubernetesToken
     }
   });
-
+  
   try {
     const namespacesSearch = promisify(kubernetesCore.namespaces.get);
     const namespacesResult = await namespacesSearch({
@@ -123,22 +123,21 @@ const messageConsumer = async msg => {
   try {
     const jobsGet = promisify(
       kubernetesBatchApi.namespaces(openshiftProject).jobs(jobName).get
-    );
-    jobInfo = await jobsGet();
-  } catch (err) {
-    if (err.code == 404) {
-      logger.error(`Job ${jobName} does not exist, bailing`);
-      failTask(taskId);
-      return;
-    } else {
-      logger.error(err);
-      throw new Error();
+      );
+      jobInfo = await jobsGet();
+    } catch (err) {
+      if (err.code == 404) {
+        logger.error(`Job ${jobName} does not exist, bailing`);
+        failTask(taskId);
+        return;
+      } else {
+        logger.error(err);
+        throw new Error();
+      }
     }
-  }
-
-  const buildPhase = project.status.phase.toLowerCase();
-
-
+    
+  const buildPhase = jobInfo.status.conditions[0].type.toLowerCase();
+  
   const jobsLogGet = async () => {
     // First fetch the pod(s) used to run this job
     const podsGet = promisify(kubernetesCore.ns(openshiftProject).pods.get);
@@ -173,19 +172,22 @@ ${podLog}`;
   // const routesGet = Promise.promisify(kubernetes.ns(openshiftProject).routes.get, { context: kubernetes.ns(openshiftProject).routes })
 
   try {
-    const deployment = await getDeploymentByRemoteId(buildstatus.metadata.uid);
+    const deployment = await getDeploymentByRemoteId(jobInfo.metadata.uid);
+
     if (!deployment.deploymentByRemoteId) {
-      throw new Error(`No deployment found with remote id ${buildstatus.metadata.uid}`);
+      throw new Error(`No deployment found with remote id ${jobInfo.metadata.uid}`);
     }
 
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
+    const status = jobInfo.status.conditions[0];
+
     await updateDeployment(deployment.deploymentByRemoteId.id, {
-      status: buildstatus.status.phase.toUpperCase(),
-      created: convertDateFormat(buildstatus.metadata.creationTimestamp),
-      started: dateOrNull(buildstatus.status.startTimestamp),
-      completed: dateOrNull(buildstatus.status.completionTimestamp),
+      status: jobInfo.status.conditions[0].type.toUpperCase(),
+      created: convertDateFormat(jobInfo.metadata.creationTimestamp),
+      started: dateOrNull(jobInfo.status.startTime),
+      completed: dateOrNull(jobInfo.metadata.completionTimestamp),
     });
   } catch (error) {
     logger.error(`Could not update deployment ${projectName} ${jobName}. Message: ${error}`);
@@ -200,6 +202,7 @@ ${podLog}`;
   } else {
     logMessage = `\`${branchName}\``
   }
+
   switch (buildPhase) {
     case "new":
     case "pending":
@@ -298,10 +301,11 @@ ${podLog}`;
             routes: "${configMap.data.LAGOON_ROUTES}",
             monitoringUrls: "${configMap.data.LAGOON_MONITORING_URLS}",
             project: ${project.id}
-          }`)
-        } catch (err) {
-          logger.warn(`${openshiftProject} ${jobName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
-        }
+          }`
+        );
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${jobName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+      }
 
       // Tell api what services are running in this environment
       try {
@@ -351,7 +355,6 @@ ${podLog}`;
           ],
           []
         );
-
         await setEnvironmentServices(environment.id, serviceNames);
       } catch (err) {
         logger.error(`${openshiftProject} ${jobName}: Error while updating environment services in API, Error: ${err}`)
@@ -365,7 +368,6 @@ ${podLog}`;
       throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${buildPhase}`)
       break;
   }
-
 }
 
 const saveBuildLog = async(jobName, projectName, branchName, buildLog, buildStatus) => {

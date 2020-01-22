@@ -441,6 +441,8 @@ const messageConsumer = async msg => {
     sha: sha
   }
 
+  console.log(monitorPayload);
+
   const taskMonitorLogs = await createTaskMonitor('builddeploy-kubernetes', monitorPayload)
 
   let logMessage = ''
