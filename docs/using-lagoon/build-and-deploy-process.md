@@ -1,6 +1,6 @@
 # Build and Deploy Process
 
-## 1. Setup OpenShift Project/Kubernetes Namespace for Environment
+## 1. Set up OpenShift Project/Kubernetes Namespace for Environment
 
 First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given environment exists and correctly set up. It will make sure that we have the needed service accounts, create secrets and will configure environment variables into a ConfigMap `lagoon-env` which is filled with information like the environment type and name, the Lagoon project name, and so on.
 
@@ -12,11 +12,11 @@ Based on how the deployment has been triggered different things will happen:
 
 ### **Branch Webhook Push**
 
-If the deployment is triggered via a Webhook and is for a single branch, Lagoon will checkout the Git SHA which is included in the Webhook. This means even if you push code to the Git branch twice, there will be two deployments with exactly the code that was pushed, not just the newest code in the Git branch.
+If the deployment is triggered via a webhook and is for a single branch, Lagoon will checkout the Git SHA which is included in the Webhook. This means even if you push code to the Git branch twice, there will be two deployments with exactly the code that was pushed, not just the newest code in the Git branch.
 
 ### **Branch REST trigger**
 
-If you trigger a deployment via the REST API and do NOT define a `sha` in the POST payload, Lagoon will just checkout the branch with the newest code without a specific given Git Sha.
+If you trigger a deployment via the REST API and do NOT define a `SHA` in the POST payload, Lagoon will just checkout the branch with the newest code without a specific given Git Sha.
 
 ### **Pull Requests**
 

@@ -31,12 +31,12 @@ For hosts other than GNU/Linux, we are using VirtualBox to run the Openshift Min
    Also make sure that you give your Docker host minimum 4 CPUs and 4GB Ram.
 
 {% hint style="warning" %}
-Lagoon consists of a lot of services and Docker images. Building and running them locally might not even be necessary. 
+Lagoon consists of a lot of services and Docker images. Building and running them locally might not even be necessary.
 
 We're using `make` \(see the [Makefile](https://github.com/amazeeio/lagoon/blob/master/Makefile)\) in order to only build the needed Docker images specifically for a part of Lagoon.
 {% endhint %}
 
-All of it is based around tests. So if you want to only build the part that is needed to work on the Node.js deployment, for example, you can run the tests with `make tests/node`, and this will then setup all the needed stuff for the Node.js deployment part \(OpenShift, building images, services\).
+All of it is based around tests. So if you want to only build the part that is needed to work on the Node.js deployment, for example, you can run the tests with `make tests/node`, and this will then set up all the needed stuff for the Node.js deployment part \(OpenShift, building images, services\).
 
 If you still want to build and start all services, go ahead:
 
@@ -46,13 +46,13 @@ If you still want to build and start all services, go ahead:
 make build
 ```
 
-3. Start Lagoon Services:
+3. Start Lagoon services:
 
 ```bash
 make up
 ```
 
-4. Follow the Services logs:
+4. Follow the services logs:
 
 ```bash
 make logs
@@ -64,7 +64,7 @@ make logs
 make tests
 ```
 
-6. Look what happens in OpenShift \(credentials: developer/developer\):
+6. Look what happens in OpenShift \(credentials: `developer`/`developer`\):
 
 ```bash
 echo "visit https://$(minishift --profile lagoon ip):8443/console"
@@ -72,17 +72,17 @@ echo "visit https://$(minishift --profile lagoon ip):8443/console"
 
 ## Local Development
 
-Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node code and Node packages, we're using a new feature of [Yarn](https://yarnpkg.com/en/docs), called [`Yarn workspaces`](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces needs a package.json in the projects root directory that defines the workspaces.
+Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a new feature of [Yarn](https://yarnpkg.com/en/docs), called [`Yarn workspaces`](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces needs a `package.json` in the projects root directory that defines the workspaces.
 
-The development of the services can happen directly within Docker. Each container for each service is setup in a way that its source code is mounted into the running container \(see [`docker-compose.yml`](../using-lagoon/docker-compose-yml.md). Node itself is watching the code via `nodemon` and restarts the Node process automatically on a change.
+The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \(see [`docker-compose.yml`](../using-lagoon/docker-compose-yml.md). Node itself is watching the code via `nodemon` and restarts the Node.js process automatically on a change.
 
 ### lagoon-commons
 
-The services not only share many Node packages, but also share actual custom code. This code is within `node-packages/lagoon-commons`. It will be automatically symlinked by Yarn workspaces, plus the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is setup in a way that it also checks for changes in `node-packages` and will restart the node process automatically.
+The services not only share many Node.js packages, but also share actual custom code. This code is within `node-packages/lagoon-commons`. It will be automatically symlinked by Yarn workspaces, plus the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is set up in a way that it also checks for changes in `node-packages` and will restart the node process automatically.
 
 ### Hiera
 
-The API uses a [Puppet](https://puppet.com/docs/puppet/latest/puppet_index.html)-compatible YAML format to store its data. On production, this [Hiera](https://puppet.com/docs/puppet/latest/hiera.html) is in another git repository. For local development, there is a folder called `local-hiera` which contains test data that is used during development and testing, plus has no client related data in them. For easier development, there is `local-hiera-watcher-pusher`, which watches the `local-hiera` folder. On every change, it pushes the changes into `local-git-server`, which emulates a git server just like it is on production. The API service is connecting to this local git server and updates its data from the server.
+The API uses a [Puppet](https://puppet.com/docs/puppet/latest/puppet_index.html)-compatible YAML format to store its data. On production, this [Hiera](https://puppet.com/docs/puppet/latest/hiera.html) is in another Git repository. For local development, there is a folder called `local-hiera` which contains test data that is used during development and testing, plus has no client related data in them. For easier development, there is `local-hiera-watcher-pusher`, which watches the `local-hiera` folder. On every change, it pushes the changes into `local-git-server`, which emulates a Git server just like it is on production. The API service is connecting to this local Git server and updates its data from the server.
 
 ## Troubleshooting
 
@@ -95,9 +95,9 @@ make clean
 make build
 ```
 
-⚠ **I get errors about missing node\_modules content when I try to build / run a NodeJS based image**
+⚠ **I get errors about missing node\_modules content when I try to build / run a Node.js based image**
 
-Make sure to run `yarn` in lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
+Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 
 ⚠ **My builds can't resolve domains**
 

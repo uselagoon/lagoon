@@ -1,10 +1,10 @@
 # Role-Based Access Control \(RBAC\)
 
-Version 1.0 of Lagoon changed how you access your projects! Access to your project is handled via groups, with projects assigned to one or multiple groups. Users are added to groups with a role. Groups can also be nested within subgroups. This change provides a lot more flexibility and the possibility to recreate real world teams within Lagoon.
+Version 1.0 of Lagoon changed how you access your projects! Access to your project is handled via groups, with projects assigned to one or multiple groups. Users are added to groups with a role. Groups can also be nested within sub-groups. This change provides a lot more flexibility and the possibility to recreate real world teams within Lagoon.
 
 ## Roles
 
-When assigning a user to a group, you need to provide a group role for that user inside this group. Each one of the 5 current existing group roles gives the user different permissions to the group and projects assigned to the group. Here are the Platform Wide Roles and the Group Roles that are currently found in Lagoon:
+When assigning a user to a group, you need to provide a group role for that user inside this group. Each one of the 5 current existing group roles gives the user different permissions to the group and projects assigned to the group. Here are the platform-wide roles and the group roles that are currently found in Lagoon:
 
 ### Platform-Wide Roles
 
@@ -14,33 +14,33 @@ The platform-wide admin has access to everything across all of Lagoon. That incl
 
 #### Platform-Wide Owner
 
-The platform-wide owner has access to every Lagoon Group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every Group.
+The platform-wide owner has access to every Lagoon group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every group.
 
 ### Group Roles
 
 #### Owner
 
-The owner role can do everything within a Group and its associated Projects. They can add manage users of group. Be careful with this role, it can delete projects and production environments!
+The owner role can do everything within a group and its associated Projects. They can add manage users of group. Be careful with this role, it can delete projects and production environments!
 
 #### Maintainer
 
-The maintainer role can do everything within a Group and its associated Projects except deleting the project itself or the production environment. They can add manage users of group.
+The maintainer role can do everything within a group and its associated Projects except deleting the project itself or the production environment. They can add manage users of group.
 
 #### Developer
 
-The developer role has ssh access only to development environments. This role cannot access, update or delete the production environment. They can run a sync task with the production environment as a source, but not as the destination. Cannot manage users of Group.
+The developer role has SSH access only to development environments. This role cannot access, update or delete the production environment. They can run a sync task with the production environment as a source, but not as the destination. Cannot manage users of a group.
 
 {% hint style="danger" %}
-IMPORTANT: This role does not prevent the deployment of the production environment as a deployment is triggered via a Git Push! You need to make sure that your Git server prevents these users to push into the branch defined as production environment.
+IMPORTANT: This role does not prevent the deployment of the production environment as a deployment is triggered via a Git push! You need to make sure that your Git server prevents these users to push into the branch defined as production environment.
 {% endhint %}
 
 #### Reporter
 
-The reporter role has view access only. They cannot access any environments via SSH or make modifications to them. They can run Cache Clear Task. This role is mostly used for Stakeholders to have access to Lagoon UI and Logging.
+The reporter role has view access only. They cannot access any environments via SSH or make modifications to them. They can run cache-clear tasks. This role is mostly used for stakeholders to have access to Lagoon UI and logging.
 
 #### Guest
 
-The guest role has the same privileges as the Reporter role listed above.
+The guest role has the same privileges as the reporter role listed above.
 
 Here is a table that lists the roles and the access they have:
 

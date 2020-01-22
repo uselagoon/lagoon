@@ -142,7 +142,7 @@ The syntax in the environment files is as following:
 ```bash
 MYVARIABLENAME="MyVariableValue"
 MVARIABLENUMBER=4242
-DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if your applications expects another variable name for the lagoon provided variables.
+DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if your applications expects another variable name for the Lagoon-provided variables.
 ```
 
 ### `.lagoon.env.$BRANCHNAME`

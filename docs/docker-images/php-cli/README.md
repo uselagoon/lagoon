@@ -17,7 +17,7 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions)so this image will work with a random user, and therefore also on OpenShift.
 * `COMPOSER_ALLOW_SUPERUSER=1` removes warning about use of Composer as root.
 * `80-shell-timeout.sh` script checks if containers are running in a Kubernetes environment and then set a 10 minutes timeout to idle `cli` pods.
-* `cli` containers use an ssh key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.
+* `cli` containers use an SSH key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.
 
 ## Included cli tools
 

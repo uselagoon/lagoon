@@ -1,6 +1,6 @@
 # Remote Shell
 
-Lagoon allows you to connect into your running containers via SSH. The containers themselves actually don't have SSH Server installed, instead you connect via SSH to a Lagoon Service, which then itself creates a remote shell connection via the Kubernetes API for you.
+Lagoon allows you to connect into your running containers via SSH. The containers themselves actually don't have an SSH server installed, instead you connect via SSH to a Lagoons, which then itself creates a remote shell connection via the Kubernetes API for you.
 
 ## Endpoint
 

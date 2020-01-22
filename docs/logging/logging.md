@@ -2,34 +2,34 @@
 
 Lagoon provides access to the following logs via Kibana:
 
-* Logs from the OpenShift Routers, including every single HTTP and HTTPs Request with:
+* Logs from the OpenShift Routers, including every single HTTP and HTTPS request with:
   * Source IP
   * URL
   * Path
-  * HTTP Verb
+  * HTTP verb
   * Cookies
   * Headers
-  * User Agent
+  * User agent
   * Project
   * Container name
-  * Response Size
-  * Response Time
-* Logs from Containers
+  * Response size
+  * Response time
+* Logs from containers
   * `stdout` and `stderr` messages
   * Container name
   * Project
-* Lagoon Logs
+* Lagoon logs
   * Webhooks parsing
-  * Build Logs
-  * Build Errors
-  * Any other Lagoon related Logs
-* Application Logs
-  * Any Logs sent by the running application
-  * For Drupal: Install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive Logs from Drupal Watchdog
+  * Build logs
+  * Build errors
+  * Any other Lagoon relatedlLogs
+* Application logs
+  * Any logs sent by the running application
+  * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
 
-To access the logs, please check with your Lagoon Administrator to get the URL for the Kibana Route \(for amazee.io this is [https://logs-db-ui-lagoon-master.ch.amazee.io/](https://logs-db-ui-lagoon-master.ch.amazee.io/)\).
+To access the logs, please check with your Lagoon administrator to get the URL for the Kibana route \(for amazee.io this is [https://logs-db-ui-lagoon-master.ch.amazee.io/](https://logs-db-ui-lagoon-master.ch.amazee.io/)\).
 
-Each Lagoon Account has their own login and will see the logs only for the projects that they have access to.
+Each Lagoon account has their own login and will see the logs only for the projects that they have access to.
 
 Also each account has their own **Kibana Tenant**, which means no saved searches or visualizations are shared with another account.
 

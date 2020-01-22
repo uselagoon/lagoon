@@ -2,7 +2,7 @@
 
 [Lagoon `Redis` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile), based on [offical `redis:alpine` image](https://hub.docker.com/_/redis/).
 
-This Dockerfile is intended to be used to setup a standalone Redis _ephemeral_ server by default.
+This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ server by default.
 
 ## Version
 
