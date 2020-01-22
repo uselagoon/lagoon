@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: {{ .Values.SERVICE_NAME | quote }}
+    branch: {{ .Values.SAFE_BRANCH | quote }}
+    project: {{ .Values.SAFE_PROJECT | quote }}
+  name: {{ .Values.SERVICE_NAME | quote }}
+spec:
+  replicas: 1
+  selector:
+    service: {{ .Values.SERVICE_NAME | quote }}
+  strategy:
+    type: {{ .Values.DEPLOYMENT_STRATEGY | quote }}
+    matchLabels:
+      {{- include "nginx-php.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: {{ .Values.SERVICE_NAME | quote }}
+        branch: {{ .Values.SAFE_BRANCH | quote }}
+        project: {{ .Values.SAFE_PROJECT | quote }}
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          key: autoscaled
+          operator: Equal
+          value: 'true'
+        - effect: NoSchedule
+          key: appuio.ch/autoscaled
+          operator: Equal
+          value: 'true'
+      priorityClassName:
+        {{- include "nginx-php.lagoon-priority" . | nindent 8 }}
+      containers:
+        - image: {{ .Values.NGINX_SERVICE_IMAGE | quote }}
+          name: {{ .Values.NGINX_SERVICE_NAME | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /nginx_status
+              port: 50000
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /nginx_status
+              port: 50000
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            failureThreshold: 5
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.LAGOON_GIT_SHA | quote }}
+            - name: NGINX_FASTCGI_PASS
+              value: '127.0.0.1'
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+
+        - image: {{ .Values.PHP_SERVICE_IMAGE | quote }}
+          name: {{ .Values.PHP_SERVICE_NAME | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: 9000
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.LAGOON_GIT_SHA | quote }}
+            - name: NGINX_FASTCGI_PASS
+              value: '127.0.0.1'
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
