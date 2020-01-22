@@ -299,6 +299,7 @@ services:
       - API_PROTOCOL=http
       - API_PORT=3000
       - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=404
     volumes:
       - ./tests:/ansible
     labels:
@@ -321,6 +322,7 @@ services:
       - API_PROTOCOL=http
       - API_PORT=3000
       - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=503
     volumes:
       - ./tests:/ansible
     labels:
