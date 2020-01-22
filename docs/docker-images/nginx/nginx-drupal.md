@@ -1,6 +1,6 @@
 # nginxdrupal
 
-[Lagoon `nginx-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) optimized to work with Drupal, based on [Lagoon `nginx` image](nginx.md).
+[Lagoon `nginx-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) optimized to work with Drupal, based on [Lagoon `nginx` image](README.md).
 
 ## Lagoon & OpenShift adaptions
 
@@ -20,7 +20,7 @@ The image includes a full Drupal 7 and 8 Nginx working configuration. It include
 
 ## Drupal.conf customization
 
-The `drupal.conf` file is a customized version of `nginx` configuration file, optimized for `Drupal`. Customers have different ways of customizing it:
+The `drupal.conf` file is a customized version of `Nginx` configuration file, optimized for `Drupal`. Customers have different ways of customizing it:
 
 * _modifying it_ \(hard to support in case of errors\)
 * using _built-in_ customization through `*.conf` files.
@@ -54,7 +54,7 @@ location @drupal {
 
 This configuration allows customers to create files called `location_drupal_prepend.conf` and `location_drupal_append.conf`, where they can put all the configurations they want to insert before and after the other statements.
 
-Those files, once created, **MUST** exist in the `nginx` container, so add them to `Dockerfile.nginx` like so:
+Those files, once created, **MUST** exist in the `Nginx` container, so add them to `Dockerfile.nginx` like so:
 
 ```bash
 COPY location_drupal_prepend.conf /etc/nginx/conf.d/drupal/location_drupal_prepend.conf

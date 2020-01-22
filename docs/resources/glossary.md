@@ -54,7 +54,7 @@ description: >-
 | mongoDB | MongoDB is a cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with schema. |  |
 | Multi-Tenant | A single instance of software runs on a server and serves multiple tenants - a tenant is a group of users who share common access with privileges to access the software instance. The software is designed to provide each tenant a share of the resources. |  |
 | MVC | Model-view-controller - an architectural pattern that separates an application into three main logical components: the model, the view, and the controller. Each of these components are built to handle specific development aspects of an application. |  |
-| nginx | Nginx is a web server which can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache. |  |
+| Nginx | Nginx is a web server which can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache. |  |
 | Node | Single EC2 instance \(AWS virtual machine\) |  |
 | Node.js | An open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside of a browser. |  |
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |  |
@@ -82,6 +82,4 @@ description: >-
 | VM | Virtual Machine |  |
 | WAF | Web Application Firewall |  |
 | Webhook | A webhook is a way for an app like GitHub, GitLab, Bitbucket, etc, to provide other applications with immediate data and act upon something, like a pull request. |  |
-
-
 

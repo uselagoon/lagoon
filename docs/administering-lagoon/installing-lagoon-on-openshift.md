@@ -4,7 +4,7 @@ Lagoon is not only capable of deploying into OpenShift, it actually runs in Open
 
 Luckily we can use the local development environment to kickstart another Lagoon in any OpenShift, running somewhere in the world.
 
-Check the [Requirements for OpenShift by Lagoon](/administering_lagoon/openshift_requirements.md) before continuing.
+Check the [Requirements for OpenShift by Lagoon](openshift_requirements.md) before continuing.
 
 This process consists of 4 main stages, which are in short:
 
@@ -23,7 +23,7 @@ In order to create resources inside OpenShift and push into the OpenShift Regist
 
 Technically Lagoon can use any Service Account and also needs no admin permissions, the only requirement is that the `self-provisioner` role is given to the Service Account.
 
-In this example we create the Service Account `lagoon` in the OpenShift Project `default`.
+In this example ,we create the Service Account `lagoon` in the OpenShift Project `default`.
 
 1. Make sure you have the `oc` `cli` tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
 2. Log in to OpenShift as an admin:
@@ -80,5 +80,5 @@ Once your Lagoon install is operational, you need to initialize OpendistroSecuri
 
 ## Configure Installed Lagoon
 
-We have now a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](untitled-1.md).
+We have now a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
 

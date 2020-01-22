@@ -25,7 +25,7 @@ Environment variables defined in Varnish base image
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
-| `VARNISH_BACKEND_HOST` | nginx | Default backend host. |
+| `VARNISH_BACKEND_HOST` | Nginx | Default backend host. |
 | `VARNISH_BACKEND_PORT` | 8080 | Default listening varnish port. |
 | `VARNISH_SECRET` | lagoon\_default\_secret | Varnish secret used to connect to management. |
 | `LIBVMOD_DYNAMIC_VERSION` | 5.2 | Default version of `vmod-dynamic` module. |

@@ -44,7 +44,7 @@ With full Drush site alias support in Lagoon it is super easy to synchronize a l
 {% hint style="warning" %}
 You may have to tell pygmy about your public keys before the next step.
 
-If you get an error like `Permission denied (publickey)`,  check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
 {% endhint %}
 
 First let's make sure that you can see the Drush Site Aliases:
@@ -116,7 +116,7 @@ Do you really want to continue? (y/n): y
 
 In some cases, though, it might not look correct, like here:
 
- 💡 _Tip: Scroll to the right to see the whole command!_
+💡 _Tip: Scroll to the right to see the whole command!_
 
 ```text
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files

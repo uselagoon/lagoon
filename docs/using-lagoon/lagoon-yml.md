@@ -1,4 +1,4 @@
-# .lagoon.yml
+# lagoon.yml
 
 The `.lagoon.yml` file is the central file to set up your project:
 
