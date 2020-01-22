@@ -2,7 +2,7 @@
 
 ## 1. Set up OpenShift Project/Kubernetes Namespace for Environment
 
-First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given environment exists and correctly set up. It will make sure that we have the needed service accounts, create secrets and will configure environment variables into a ConfigMap `lagoon-env` which is filled with information like the environment type and name, the Lagoon project name, and so on.
+First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given environment exists and is correctly set up. It will make sure that we have the needed service accounts, create secrets and will configure environment variables into a ConfigMap `lagoon-env` which is filled with information like the environment type and name, the Lagoon project name, and so on.
 
 ## 2. Git Checkout & Merge
 
@@ -86,7 +86,7 @@ Creation of these objects will also automatically cause OpenShift/Kubernetes to 
 
 ## 9. Wait for all rollouts to be done
 
-Now Lagoon waits, it waits for all just triggered deployments of the new pods to be finished, as well as for  their healthchecks to be successful.
+Now Lagoon waits, it waits for all just triggered deployments of the new pods to be finished, as well as for their healthchecks to be successful.
 
 If any of the deployments or healthchecks fail, the deployment will be stopped here and you will be informed via the defined notification systems \(like Slack\) that the deployment has failed.
 
