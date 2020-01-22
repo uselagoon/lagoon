@@ -66,7 +66,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
     4. So the local running Lagoon service `openshiftBuildDeploy` connects to this OpenShift and creates a new project, some needed configurations (ServiceAccounts, BuildConfigs, etc.) and triggers a new Build.
     5. This Build will run and deploy another Lagoon within the OpenShift it runs.
 
-6.  As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` (for a local OpenShift this will be <http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/>), if you get `welcome to rest2tasks` as result, you did everything correct, bravo!
+6.  As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project and you should see all the Lagoon Deployment Configs deployed and running. Also go to `Application > Routes` and click on the generated route for `ui` (for a local OpenShift this will be <http://ui-lagoon-develop.192.168.42.100.xip.io/>), if you get the Lagoon UI as result, you did everything correct, bravo!
 
 ### OpendistroSecurity
 
