@@ -130,6 +130,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploy/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:v1-2-0
+  kubernetesdeployqueue:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesdeployqueue
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesdeployqueue/src:/app/services/kubernetesdeployqueue/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesdeployqueue/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesdeployqueue:v1-2-0
   kubernetesbuilddeploymonitor:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploymonitor
     command: yarn run dev

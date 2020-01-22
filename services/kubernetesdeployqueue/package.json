@@ -1,5 +1,5 @@
 {
-  "name": "kubernetesbuilddeploy",
+  "name": "kubernetesdeployqueue",
   "version": "0.9.0",
   "description": "Git Push 2 Ansible Deployment",
   "main": "src/index.js",
@@ -16,7 +16,6 @@
     "@lagoon/commons": "4.0.0",
     "es7-sleep": "^1.0.0",
     "kubernetes-client": "^3.15.0",
-    "moment": "^2.24.0",
     "ramda": "^0.25.0",
     "sha1": "1.1.1"
   },
