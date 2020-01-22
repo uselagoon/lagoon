@@ -973,7 +973,14 @@ k3d: local-dev/k3d local-dev/kubectl build/docker-host
 ifeq ($(ARCH), darwin)
 	if ! ifconfig lo0 | grep $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}') -q; then sudo ifconfig lo0 alias $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}'); fi
 endif
-	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME) --image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 --volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml
+	./local-dev/k3d create --wait 0 --publish 18080:80 \
+		--publish 18443:443 \
+		--api-port 16643 \
+		--name $(K3D_NAME) \
+		--image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 \
+		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
+		-x --no-deploy=traefik \
+		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
 	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/docker-host; \
