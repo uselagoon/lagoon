@@ -1,4 +1,4 @@
-const Promise = require("bluebird");
+const promisify = require('util').promisify;
 const KubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
 const R = require('ramda');
@@ -277,7 +277,7 @@ const messageConsumer = async msg => {
   // // If we should promote, first check if the source project does exist
   // if (type == "promote") {
   //   try {
-  //     const promotionSourceProjectsGet = Promise.promisify(openshift.projects(openshiftPromoteSourceProject).get, { context: openshift.projects(openshiftPromoteSourceProject) })
+  //     const promotionSourceProjectsGet = promisify(openshift.projects(openshiftPromoteSourceProject).get)
   //     await promotionSourceProjectsGet()
   //     logger.info(`${openshiftProject}: Promotion Source Project ${openshiftPromoteSourceProject} exists, continuing`)
   //   } catch (err) {
@@ -291,7 +291,7 @@ const messageConsumer = async msg => {
   // Create a new Namespace if it does not exist
   let namespaceStatus = {}
   try {
-    const namespacePost = Promise.promisify(kubernetes.namespace.post, { context: kubernetes.namespace })
+    const namespacePost = promisify(kubernetes.namespace.post)
     namespaceStatus = await namespacePost({ body: {"apiVersion":"v1","kind":"Namespace","metadata":{"name":openshiftProject}} })
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
@@ -319,17 +319,17 @@ const messageConsumer = async msg => {
   // Create ServiceAccount if it does not exist yet.
   try {
     logger.info(`${openshiftProject}: Check if ServiceAccount lagoon-deployer already exists`)
-    const serviceaccountsGet = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer').get, { context: kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer') })
+    const serviceaccountsGet = promisify(kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer').get)
     projectStatus = await serviceaccountsGet()
     logger.info(`${openshiftProject}: ServiceAccount lagoon-deployer already exists, continuing`)
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: ServiceAccount lagoon-deployer does not exists, creating`)
-      const serviceaccountsPost = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts.post, { context: kubernetes.ns(openshiftProject).serviceaccounts })
+      const serviceaccountsPost = promisify(kubernetes.ns(openshiftProject).serviceaccounts.post)
       await serviceaccountsPost({ body: {"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"lagoon-deployer"} }})
       await sleep(2000); // sleep a bit after creating the ServiceAccount for Kubernetes to create all the secrets
       const serviceaccountsRolebindingsBody = {"kind":"RoleBinding","apiVersion":"rbac.authorization.k8s.io/v1","metadata":{"name":"lagoon-deployer-admin","namespace":openshiftProject},"roleRef":{"name":"admin","kind":"ClusterRole","apiGroup":"rbac.authorization.k8s.io"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]};
-      const serviceaccountsRolebindingsPost = Promise.promisify(kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings.post, { context: kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings })
+      const serviceaccountsRolebindingsPost = promisify(kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings.post)
       await serviceaccountsRolebindingsPost({ body: serviceaccountsRolebindingsBody })
     } else {
       logger.error(err)
@@ -340,13 +340,13 @@ const messageConsumer = async msg => {
   // // Give the ServiceAccount access to the Promotion Source Project, it needs two roles: 'view' and 'system:image-puller'
   // if (type == "promote") {
   //   try {
-  //     const promotionSourcRolebindingsGet = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`).get, { context: openshift.ns(openshiftProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`) })
+  //     const promotionSourcRolebindingsGet = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`).get)
   //     await promotionSourcRolebindingsGet()
   //     logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does already exist, continuing`)
   //   } catch (err) {
   //     if (err.code == 404) {
   //       logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does not exists, creating`)
-  //       const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
+  //       const promotionSourceRolebindingsPost = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post)
   //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-view`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"view"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
   //     } else {
   //       logger.error(err)
@@ -354,13 +354,13 @@ const messageConsumer = async msg => {
   //     }
   //   }
   //   try {
-  //     const promotionSourceRolebindingsGet = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-image-puller`).get, { context: openshift.ns(openshiftProject).rolebindings(`${openshiftProject}-lagoon-deployer-image-puller`) })
+  //     const promotionSourceRolebindingsGet = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-image-puller`).get)
   //     await promotionSourceRolebindingsGet()
   //     logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does already exist, continuing`)
   //   } catch (err) {
   //     if (err.code == 404) {
   //       logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does not exists, creating`)
-  //       const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
+  //       const promotionSourceRolebindingsPost = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post)
   //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
   //     } else {
   //       logger.error(err)
@@ -374,15 +374,15 @@ const messageConsumer = async msg => {
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   try {
     logger.info(`${openshiftProject}: Check if secret lagoon-sshkey exists`)
-    const secretsGet = Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').get, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
+    const secretsGet = promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').get)
     sshKey = await secretsGet()
     logger.info(`${openshiftProject}: Secret lagoon-sshkey already exists, updating`)
-    const secretsPut = Promise.promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put, { context: kubernetes.ns(openshiftProject).secrets('lagoon-sshkey') })
+    const secretsPut = promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put)
     await secretsPut({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: Secret lagoon-sshkey does not exists, creating`)
-      const secretsPost = Promise.promisify(kubernetes.ns(openshiftProject).secrets.post, { context: kubernetes.ns(openshiftProject).secrets })
+      const secretsPost = promisify(kubernetes.ns(openshiftProject).secrets.post)
       await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
     } else {
       logger.error(err)
@@ -391,7 +391,7 @@ const messageConsumer = async msg => {
   }
 
   // Load the Token Secret Name for our created ServiceAccount
-  const serviceaccountsGet = Promise.promisify(kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer").get, { context: kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer") })
+  const serviceaccountsGet = promisify(kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer").get)
   serviceaccount = await serviceaccountsGet()
   // a ServiceAccount can have multiple secrets, we are interested in one that has starts with 'lagoon-deployer-token'
   let serviceaccountTokenSecret = '';
@@ -411,7 +411,7 @@ const messageConsumer = async msg => {
     // @TODO: generate names with incremential numbers from the previous build number
     const buildName = `lagoon-build-${Math.random().toString(36).substring(7)}`;
     const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment)
-    const jobPost = Promise.promisify(kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post, { context: kubernetesApi.group(jobConfig).ns(openshiftProject).jobs })
+    const jobPost = promisify(kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post)
     job = await jobPost({ body: jobConfig })
     logger.info(`${openshiftProject}: Created job`)
   } catch (err) {
