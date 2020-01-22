@@ -468,9 +468,9 @@ services:
   harborclair:
     image: ${IMAGE_REPO:-lagoon}/harborclair
     hostname: harborclair
-    ports:
-      - '6060:6060'
-      - '6061:6061'
+    #ports:
+    #  - '6060:6060'
+    #  - '6061:6061'
     volumes:
       - ${PWD}/services/harborclair/ci-config.yaml:/etc/clair/config.yaml
     environment:
@@ -512,7 +512,7 @@ services:
       - ${PWD}/services/harbor-core/ci_tls.key:/etc/core/private_key.pem
       - /etc/core/token
     ports:
-      - '8081:80'
+      - '8081:8080'
     environment:
       - DATABASE_TYPE=postgresql
       - POSTGRESQL_HOST=harbor-database
@@ -526,7 +526,7 @@ services:
       - CORE_URL:http://harbor-core
       - JOBSERVICE_URL=http://harbor-jobservice
       - REGISTRY_URL=http://harborregistry:5000
-      - TOKEN_SERVICE_URL=http://harbor-core/service/token
+      - TOKEN_SERVICE_URL=http://harbor-core:8080/service/token
       - WITH_NOTARY=false
       - CFG_EXPIRATION=5
       - ADMIRAL_URL=NA
@@ -537,7 +537,7 @@ services:
       - CLAIR_DB=postgres
       - CLAIR_DB_SSLMODE=disable
       - CLAIR_URL=http://harborclair:6060
-      - CLAIR_ADAPTER_URL=http://harborclair:6060
+      - CLAIR_ADAPTER_URL=http://harborclairadapter:8080
       - REGISTRY_STORAGE_PROVIDER_NAME=s3
       - WITH_CHARTMUSEUM=false
       - LOG_LEVEL=debug
@@ -547,7 +547,7 @@ services:
       - _REDIS_URL=harbor-redis:6379,100,
       - _REDIS_URL_REG=redis://harbor-redis:6379/2
       - PORTAL_URL=http://harbor-portal:8080
-      - REGISTRYCTL_URL=http://harborregistry:8080
+      - REGISTRYCTL_URL=http://harborregistryctl:8080
       - CLAIR_HEALTH_CHECK_SERVER_URL=http://harborclair:6061
       - HTTP_PROXY=
       - HTTPS_PROXY=
