@@ -553,10 +553,11 @@ services:
       - HTTPS_PROXY=
       - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
       - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
+      - ROBOT_TOKEN_DURATION=999
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
       - REGISTRY_HTTP_SECRET=secret123
-      - HARBOR_ADMIN_PASSWORD=test123
+      - HARBOR_ADMIN_PASSWORD=admin
       - CLAIR_DB_PASSWORD=test123
     labels:
       lagoon.type: custom
@@ -579,7 +580,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/harbor-jobservice
     hostname: harbor-jobservice
     ports:
-      - '8083:80'
+      - '8083:8080'
     volumes:
       - /var/log/jobs
       - ${PWD}/services/harbor-jobservice/ci-config.yaml:/etc/jobservice/config.yml
@@ -587,7 +588,7 @@ services:
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
       - CORE_URL=http://harbor-core:8080
-      - REGISTRY_CONTROLLER_URL=http://harborregistry:8080
+      - REGISTRY_CONTROLLER_URL=http://harborregistryctl:8080
       - LOG_LEVEL=error
       - HTTP_PROXY=
       - HTTPS_PROXY=
@@ -614,7 +615,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/harbor-portal
     hostname: harbor-portal
     ports:
-      - '8085:80'
+      - '8085:8080'
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-portal/harbor-portal.yml
