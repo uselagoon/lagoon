@@ -87,11 +87,11 @@ const messageConsumer = async msg => {
     },
   });
 
-  const kubernetesBatchApi = new OpenShiftClient.Batch({
+  const kubernetesBatchApi = new kubernetesClient.Batch({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
-      bearer: openshiftToken
+      bearer: kubernetesToken
     }
   });
 
@@ -306,27 +306,42 @@ ${podLog}`;
       // Tell api what services are running in this environment
       try {
         // Get pod template from existing service
-        // TODO: This should work but does not
-
-
-        const deploymentConfigsGet = promisify(kubernetesCore.namespaces(openshiftProject).deployments.get);
-        const qs = {
-          fieldSelector: `metadata.name=${openshiftProject}`
-        };
-        const deploymentConfigs = await deployments({});
-
 
         // const deploymentConfigsGet = Promise.promisify(
         //   kubernetes.ns(openshiftProject).deploymentconfigs.get, { context: kubernetes.ns(openshiftProject).deploymentconfigs }
         // );
+        // const deploymentConfigs = await deploymentConfigsGet();
 
 
-        const deploymentConfigs = await deploymentConfigsGet();
+        // TODO: Using Deployments may be better
+        /*
+
+        const deploymentConfigsGet = promisify(kubernetesApi.namespaces(openshiftProject).deployments.get);
+        const deploymentConfigs = await deployments({});
 
         const serviceNames = deploymentConfigs.items.reduce(
           (names, deploymentConfig) => [
             ...names,
             ...deploymentConfig.spec.template.spec.containers.reduce(
+              (names, container) => [
+                ...names,
+                container.name
+              ],
+              []
+            )
+          ],
+          []
+        );
+
+        */
+
+        const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
+        const pods = await podsGet()
+
+        const serviceNames = pods.items.reduce(
+          (names, pod) => [
+            ...names,
+            ...pod.spec.containers.reduce(
               (names, container) => [
                 ...names,
                 container.name
