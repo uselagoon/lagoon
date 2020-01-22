@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Home](README.md)
+* [Lagoon](README.md)
 
 ## Using Lagoon
 
@@ -67,6 +67,9 @@
 * [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
 * [Code of Conduct](contributing-to-lagoon/code-of-conduct.md)
 * [API Debugging](contributing-to-lagoon/api-debugging.md)
+
+## Resources
+
 * [FAQ](faq.md)
 * [Glossary](glossary.md)
 

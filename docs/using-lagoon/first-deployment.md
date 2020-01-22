@@ -41,10 +41,10 @@ As soon as Lagoon is done building and deploying it will send a second notificat
 
 It tells you:
 
-* Which project has been deployed
-* Which branch and Git SHA has been deployed
-* A link to the full logs of the build and deployment
-* Links to all routes \(URLs\) where the environment can be reached at.
+* Which project has been deployed.
+* Which branch and Git SHA have been deployed.
+* A link to the full logs of the build and deployment.
+* Links to all routes \(URLs\) where the environment can be reached.
 
 That's it! We hope that wasn't too hard - making devops accessible is what we are striving for.
 
@@ -58,5 +58,5 @@ Did the deployment fail? Oh no! But we're here to help:
 
 1. If you deployed a Drupal site, make sure to read the [Drupal-specific First Deployment Documentation](drupal/first_deployment.md) which explains why this happens.
 2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
-3. If you can't figure it out, just ask your Lagoon Support, they are definitely here to help!
+3. If you can't figure it out, just ask your Lagoon support, they are definitely here to help!
 
