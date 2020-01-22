@@ -4,6 +4,7 @@ const sleep = require("es7-sleep");
 const R = require('ramda');
 const sha1 = require('sha1');
 const crypto = require('crypto');
+const moment = require('moment');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
 
@@ -405,41 +406,33 @@ const messageConsumer = async msg => {
     throw new Error(`${openshiftProject}: Could not find token secret for ServiceAccount lagoon-deployer`)
   }
 
-  // Create Job
-  let job = {};
-  try {
-    // @TODO: generate names with incremential numbers from the previous build number
-    const buildName = `lagoon-build-${Math.random().toString(36).substring(7)}`;
-    const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment)
-    const jobPost = promisify(kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post)
-    job = await jobPost({ body: jobConfig })
-    logger.info(`${openshiftProject}: Created job`)
-  } catch (err) {
-    logger.error(err)
-    throw new Error
-  }
+  // @TODO: generate names with incremential numbers from the previous build number
+  const randBuildId = Math.random().toString(36).substring(7);
+  const buildName = `lagoon-build-${randBuildId}`;
+  const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment)
 
-  const jobName = job.metadata.name
-
+  let deployment;
   try {
-    const convertDateFormat = R.init;
+    const now = moment.utc();
     const apiEnvironment = await getEnvironmentByName(branchName, projectId);
-    await addDeployment(jobName, "RUNNING", convertDateFormat(job.metadata.creationTimestamp), apiEnvironment.environmentByName.id, job.metadata.uid);
+    deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {
-    logger.error(`Could not save deployment for project ${projectId}, job ${jobName}. Message: ${error}`);
+    logger.error(`Could not save deployment for project ${projectId}. Message: ${error}`);
   }
 
-  logger.verbose(`${openshiftProject}: Running build: ${jobName}`)
+  logger.verbose(`${openshiftProject}: Queued build: ${buildName}`)
 
   const monitorPayload = {
-    buildName: jobName,
-    projectName: projectName,
-    openshiftProject: openshiftProject,
-    branchName: branchName,
-    sha: sha
+    buildName,
+    projectName,
+    openshiftProject,
+    branchName,
+    sha,
+    jobConfig,
+    deployment: deployment.addDeployment,
   }
 
-  const taskMonitorLogs = await createTaskMonitor('builddeploy-kubernetes', monitorPayload)
+  const taskMonitorLogs = await createTaskMonitor('queuedeploy-kubernetes', monitorPayload)
 
   let logMessage = ''
   if (gitSha) {

@@ -16,6 +16,7 @@
     "@lagoon/commons": "4.0.0",
     "es7-sleep": "^1.0.0",
     "kubernetes-client": "^3.15.0",
+    "moment": "^2.24.0",
     "ramda": "^0.25.0",
     "sha1": "1.1.1"
   },
