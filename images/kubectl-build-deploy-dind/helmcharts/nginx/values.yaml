@@ -4,7 +4,8 @@
 
 replicaCount: 1
 
-image: nginx
+nginx_service_image: ""
+environment_type: production
 
 imagePullPolicy: Always
 

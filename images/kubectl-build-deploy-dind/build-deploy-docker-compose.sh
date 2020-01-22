@@ -732,6 +732,9 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
+  SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+  SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+
   SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
 
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
@@ -824,15 +827,14 @@ do
   #   TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
   # fi
 
-  # OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
-  # ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.templates.$SERVICE_NAME false)
-  # if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
-  #   # Generate deployment if service type defines it
-  #   OPENSHIFT_DEPLOYMENT_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/deployment.yml"
-  #   if [ -f $OPENSHIFT_DEPLOYMENT_TEMPLATE ]; then
-  #     OPENSHIFT_TEMPLATE=$OPENSHIFT_DEPLOYMENT_TEMPLATE
-  #     . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
-  #   fi
+  OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
+  ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.templates.$SERVICE_NAME false)
+  if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
+    # Generate deployment if service type defines it
+    KUBECTL_DEPLOYMENT_CHART="/kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/templates/deployment.yaml"
+    if [ -f $KUBECTL_DEPLOYMENT_CHART ]; then
+      . /kubectl-build-deploy/scripts/exec-kubectl-resources-with-images.sh
+    fi
 
   #   # Generate statefulset if service type defines it
   #   OPENSHIFT_STATEFULSET_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
@@ -856,12 +858,7 @@ do
   #   else
   #     . /kubectl-build-deploy/scripts/exec-openshift-resources-with-images.sh
   #   fi
-  # fi
-
-  SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
-  SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
-
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
+  fi
 
 done
 
@@ -879,6 +876,7 @@ if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 
+# just exit here as we do work
 exit 1
 
 ##############################################
