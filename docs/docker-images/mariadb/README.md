@@ -29,19 +29,19 @@ Environment variables defined in MariaDB base image:
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
-| `MARIADB_DATABASE` | lagoon | Database name created at startup |
-| `MARIADB_USER` | lagoon | Default user created at startup |
-| `MARIADB_PASSWORD` | lagoon | Password of default user created at startup |
-| `MARIADB_ROOT_PASSWORD` | Lag00n | MariaDB root user's password |
-| `MARIADB_CHARSET` | utf8mb4 | Set the server charset |
-| `MARIADB_COLLATION` | utf8mb4\_bin | Set server collation |
-| `MARIADB_MAX_ALLOWED_PACKET` | 64M | Set the max\_allowed\_packet size |
-| `MARIADB_INNODB_BUFFER_POOL_SIZE` | 256M | Set the MariaDB InnoDB Buffer Pool Size |
-| `MARIADB_INNODB_BUFFER_POOL_INSTANCES` | 1 | Number of InnoDB Buffer Pool instances |
-| `MARIADB_INNODB_LOG_FILE_SIZE` | 64M | Size of InnoDB log file |
-| `MARIADB_LOG_SLOW` | empty | Variable to control the save of slow queries |
-| `MARIADB_LOG_QUERIES` | empty | Variable to control the save of ALL queries |
-| `BACKUPS_DIR` | /var/lib/mysql/backup | Default path for databases' backups |
+| `MARIADB_DATABASE` | lagoon | Database name created at startup. |
+| `MARIADB_USER` | lagoon | Default user created at startup. |
+| `MARIADB_PASSWORD` | lagoon | Password of default user created at startup. |
+| `MARIADB_ROOT_PASSWORD` | Lag00n | MariaDB root user's password. |
+| `MARIADB_CHARSET` | utf8mb4 | Set the server charset. |
+| `MARIADB_COLLATION` | utf8mb4\_bin | Set server collatio.n |
+| `MARIADB_MAX_ALLOWED_PACKET` | 64M | Set the max\_allowed\_packet size. |
+| `MARIADB_INNODB_BUFFER_POOL_SIZE` | 256M | Set the MariaDB InnoDB buffer pool size. |
+| `MARIADB_INNODB_BUFFER_POOL_INSTANCES` | 1 | Number of InnoDB buffer pool instances. |
+| `MARIADB_INNODB_LOG_FILE_SIZE` | 64M | Size of InnoDB log file. |
+| `MARIADB_LOG_SLOW` | empty | Variable to control the save of slow queries. |
+| `MARIADB_LOG_QUERIES` | empty | Variable to control the save of ALL queries. |
+| `BACKUPS_DIR` | /var/lib/mysql/backup | Default path for databases' backups. |
 
 If the `LAGOON_ENVIRONMENT_TYPE` variable is set to `production`, performances are set accordingly by using `MARIADB_INNODB_BUFFER_POOL_SIZE=1024` and `MARIADB_INNODB_LOG_FILE_SIZE=256`.
 

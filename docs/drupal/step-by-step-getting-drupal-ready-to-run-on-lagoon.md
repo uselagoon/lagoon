@@ -165,5 +165,5 @@ A Drupal site also consists of the files directory. As the whole folder is mount
 
 You are done with your local setup. The Lagoon team wishes happy Drupalling!
 
-If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](https://github.com/AlannaBurke/lagoon/tree/3099c4aeaf2a67cc1e084cb7b8b01ef0fbf90bed/docs/setup_project.md).
+If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](./setup_project.md).
 

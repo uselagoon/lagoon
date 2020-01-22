@@ -9,7 +9,7 @@ description: >-
 ![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
 
 {% hint style="info" %}
-If you are deploying a Drupal Project, skip this and read the [Drupal specific First Deployment Documentation](https://github.com/AlannaBurke/lagoon/tree/260d386492bc4068d9618856e4c15cc9f2b71709/docs/using-lagoon/drupal/first_deployment.md).
+If you are deploying a Drupal Project, skip this and read the [Drupal specific First Deployment Documentation](../drupal/first-deployment-of-drupal.md).
 {% endhint %}
 
 ## 1. Make sure you are all set
@@ -56,7 +56,7 @@ That's the beauty of Lagoon: it's exactly the same! Just push the branch name yo
 
 Did the deployment fail? Oh no! But we're here to help:
 
-1. If you deployed a Drupal site, make sure to read the [Drupal-specific First Deployment Documentation](https://github.com/AlannaBurke/lagoon/tree/260d386492bc4068d9618856e4c15cc9f2b71709/docs/using-lagoon/drupal/first_deployment.md) which explains why this happens.
+1. If you deployed a Drupal site, make sure to read the [Drupal-specific First Deployment Documentation](../using-lagoon/drupal/first-deployment-of-drupal.md)which explains why this happens.
 2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
 3. If you can't figure it out, just ask your Lagoon support, they are definitely here to help!
 

@@ -12,7 +12,7 @@
 
 ## Known issues
 
-On Linux based systems the start of the elasticsearch container may fail due to a low `vm.max_map_count` setting.
+On Linux-based systems the start of the elasticsearch container may fail due to a low `vm.max_map_count` setting.
 
 ```bash
 elasticsearch_1  | ERROR: [1] bootstrap checks failed

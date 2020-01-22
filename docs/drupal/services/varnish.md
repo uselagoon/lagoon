@@ -29,11 +29,11 @@ drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_proc
 
 ### Configure Varnish Purge
 
-1. Visit `Configuration > Development > Performance > Purge`
-2. Add a purger via `Add purger`
-3. Select `Varnish Bundled Purger` \(not the `Varnish Purger`, see the \#Behind the Scenes section, for more information.\)
-4. Click the dropdown beside the just added purger and click `Configure`
-5. Give it a nice name, `Lagoon Varnish` sounds very good
+1. Visit `Configuration > Development > Performance > Purge`.
+2. Add a purger via `Add purger`.
+3. Select `Varnish Bundled Purger` \(not the `Varnish Purger`, see the \#Behind the Scenes section, for more information.\).
+4. Click the dropdown beside the just added purger and click `Configure`.
+5. Give it a nice name, `Lagoon Varnish` sounds very good.
 6. Configure it with:
 
    ```text
@@ -52,7 +52,7 @@ drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_proc
     Value: [invalidations:separated_pipe]
    ```
 
-7. `Save configuration`
+7. `Save configuration`.
 
 That's it! If you'd like to test this locally, make sure you read the next section.
 
@@ -78,7 +78,7 @@ To test Varnish locally, change the following in `docker-compose.yml`
 
 Now you should be able to test Varnish, here a short example assuming there is a node with the ID `1` and has the URL `drupal-example.docker.amazee.io/node/1`
 
-1. Run `curl -I drupal-example.docker.amazee.io/node/1` and look for these Headers:
+1. Run `curl -I drupal-example.docker.amazee.io/node/1` and look for these headers:
    * `X-LAGOON` should include `varnish` which tells you that the request actually went through `varnish`
    * `Age:` will be still `0` as Varnish probably never saw this site before and the first request will warm the varnish cache.
    * `X-Varnish-Cache` will be `MISS` telling you as well that Varnish didn't find a previously cached version of this request.
@@ -96,13 +96,13 @@ If you come from other Drupal hosts or have done a Drupal 8 & Varnish tutorial b
 
 #### Usage of `Varnish Bundled Purger` instead of `Varnish Purger`
 
-The `Varnish Purger` purger sends a `BAN` request for each single Cache-Tag that should be invalidated. Drupal has a lot of Cache-Tags and therefore this could lead into quite an amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe \(`|`\) which fits perfectly to the varnish regular expression system of bans. This causes less requests and a smaller ban list table inside Varnish.
+The `Varnish Purger` purger sends a `BAN` request for each single cache-tag that should be invalidated. Drupal has a lot of cache-tags and therefore this could lead into quite an amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe \(`|`\) which fits perfectly to the varnish regular expression system of bans. This causes less requests and a smaller ban list table inside Varnish.
 
 #### Usage of `Purge Late runtime processor`
 
-Contradictory to the Varnish module in Drupal 7, the Drupal 8 Purge module has a slightly different approach to purging caches: It adds them to a queue which is then processed by different processors. Purge suggests to use the `Cron processor` which means that the varnish cache is only purged during a Cron run. This can lead into old data begin cached by Varnish, as your cron is probably not configured to run every minute or so, and can result in onfused editors and clients.
+Contradictory to the Varnish module in Drupal 7, the Drupal 8 Purge module has a slightly different approach to purging caches: It adds them to a queue which is then processed by different processors. Purge suggests to use the `Cron processor` which means that the varnish cache is only purged during a cron run. This can lead into old data begin cached by Varnish, as your cron is probably not configured to run every minute or so, and can result in onfused editors and clients.
 
-Instead we suggest using the `Purge Late runtime processor`, which processes the queue at the end of each Drupal request. This has the advantage that if a Cache-Tag is added to the purge queue \(because an editor edited a Drupal node, for example\) the Cache-Tags for this node are directly purged. Together with the `Varnish Bundled Purger`, this means just a single additional request to Varnish at the very end of a Drupal request, which causes no noticeable processing time on the request.
+Instead we suggest using the `Purge Late runtime processor`, which processes the queue at the end of each Drupal request. This has the advantage that if a cache-tag is added to the purge queue \(because an editor edited a Drupal node, for example\) the cache-tags for this node are directly purged. Together with the `Varnish Bundled Purger`, this means just a single additional request to Varnish at the very end of a Drupal request, which causes no noticeable processing time on the request.
 
 #### Full support for Varnish Ban Lurker
 
@@ -115,5 +115,5 @@ Varnish doesn't cache? Or something else not working? Here a couple of ways to d
 * Run `drush p-debug-en` to enable debug logging of the purge module, this should show you debugging in the Drupal log under `admin/reports/dblog`
 * Make sure that Drupal sends proper cache headers. To test this best use the URL that Lagoon generates for bypassing the Varnish cache, \(locally in Drupal example this is [http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)\). Check for `Cache-Control: max-age=900, public` header, where the `900` is what you configured in `$config['system.performance']['cache']['page']['max_age']`
 * Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` \(see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly\).
-* If all fails and before you flip your table, talk to the Lagoon Team, we're happy to help.
+* If all fails and before you flip your table (╯°□°）╯︵ ┻━┻, talk to the Lagoon team, we're happy to help.
 

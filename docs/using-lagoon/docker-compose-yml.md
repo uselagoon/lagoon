@@ -69,7 +69,7 @@ If you don't need to build a Dockerfile and just want to use an existing Dockerf
 
 Lagoon needs to know what type of service you are deploying in order to configure the correct Kubernetes and OpenShift objects.
 
-This is done via the `lagoon.type` label. There are many different types to choose from, check [Service Types](https://lagoon.readthedocs.io/en/latest/using_lagoon/service_types/) to see all of them and their additional configuration possibilities.
+This is done via the `lagoon.type` label. There are many different types to choose from, check [Service Types](service_types.md) to see all of them and their additional configuration possibilities.
 
 ## **Skip/Ignore containers**
 
@@ -84,16 +84,16 @@ Some containers need persistent storage. In many cases, Lagoon knows where that 
 * `lagoon.persistent.size` - the size of persistent storage you require \(Lagoon usually gives you minimum `5G` of persistent storage, if you need more define it here\).
 * `lagoon.persistent.class` - by default Lagoon automatically assigns the right storage class for your service \(like SSDs for mysql, bulk storage for Nginx, etc.\). If you need to overwrite this, you can do so here. - This is highly depending on the underlining Kubernetes/OpenShift that Lagoon runs on. Ask your Lagoon Administrator about this.
 
-## Multi Container Pods
+## Multi-Container Pods
 
-Kubernetes and OpenShift don't deploy plain containers, instead they deploy pods, which each include a single or multiple containers. Usually Lagoon creates for each defined docker-compose service a single pod with a container inside. For some cases though, we need to put two containers inside a single pod, as these containers are so dependent on each other, that they should always stay together. An example for such a situation is the PHP and Nginx container that both contain PHP code of a web application like Drupal.
+Kubernetes and OpenShift don't deploy plain containers, instead they deploy pods, which each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined `docker-compose` service. For some cases though, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and nginx container that both contain PHP code of a web application like Drupal.
 
-For these cases it is possible to tell Lagoon which services should stay together, which is done the following way:
+For these cases, it is possible to tell Lagoon which services should stay together, which is done the following way:
 
 1. Define both services with a `lagoon.type` that expects two containers \(in the example this is `nginx-php-persistent` defined on the `nginx` and `php` services\).
 2. Link the second service/container with the first one, defining the label `lagoon.name` of the second one with the first one. \(in the example this is done with defining `lagoon.name: nginx`\).
 
-This will cause Lagoon to realise that the `nginx` and `php` containers are combined in a pod that will be called `nginx`.
+This will cause Lagoon to realize that the `nginx` and `php` containers are combined in a pod that will be called `nginx`.
 
 Lagoon still needs to understand which of the two services are the actual individual service type \(`nginx` and `php` in this case\). It does this with searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects a service with the name `nginx` and one with `php` in the docker-compose.yml. If for any reason you want to use different names for the services or you maybe need two pods with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
 
@@ -130,22 +130,24 @@ Additionally, the `lagoon.name: nginx` is defined twice, which will cause Lagoon
 
 If you need some changes on the OpenShift templates, you can define your own template via `lagoon.template`. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). Important: The template is called with `oc process`, so you should define the same parameters as seen in the default templates.
 
-You can also overwrite the templates only for a specific environment, this is done in [`.lagoon.yml`](https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#environmentsnametypes)
+You can also overwrite the templates only for a specific environment, this is done in [`.lagoon.yml`](lagoon-yml.md/#environmentsnametypes)
 
 ### **Custom Rollout Monitor Types**
 
 By default Lagoon expects that the way services from custom templates are rolled out is done via a `DeploymentConfig` object within Openshift/Kubernetes and monitors the rollout based on this object. In some cases the services that are defined via custom deployment need a different way of monitoring, this can be defined via `lagoon.rollout`:
 
-* `deploymentconfig` \(this is the default\) - expects a `DeplomentConfig` object in the template for the service.
+* `deploymentconfig` \(this is the default\) - expects a `DeploymentConfig` object in the template for the service.
 * `statefulset` - expects a `Statefulset` object in the template for the service.
 * `daemonset` - expects a `Daemonset` object in the template for the service.
 * `false` - will not monitor any rollouts and just be happy of the template applies and does not throw any errors.
 
-You can also overwrite the rollout only for a specific environment, this is done in [`.lagoon.yml`](https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#environmentsnamerollouts)
+You can also overwrite the rollout for just one specific environment, this is done in [`.lagoon.yml`](lagoon-yml.md/#environmentsnamerollouts)
 
 ### **Custom Type**
 
 Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
+
+![Welcome to the Danger Zone](../.gitbook/assets/topgun.gif)
 
 With defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
 
