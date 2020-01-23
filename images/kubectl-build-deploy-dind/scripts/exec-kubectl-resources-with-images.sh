@@ -32,11 +32,6 @@ elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | gr
   helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
 fi
 
-if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep environment_type ) ]]; then
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set environment_type="${ENVIRONMENT_TYPE}" | outputToYaml
-fi
-
-
 # oc process  --local -o yaml --insecure-skip-tls-verify \
 #   -n ${NAMESPACE} \
 #   -f ${OPENSHIFT_TEMPLATE} \
