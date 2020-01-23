@@ -1,4 +1,4 @@
-# rabbitmq
+# RabbitMQ
 
 [Lagoon RabbitMQ Dockerfile](https://github.com/amazeeio/lagoon/tree/master/images/rabbitmq) with management plugin installed, based on the official rabbitmq:3-management image at [docker-hub](https://hub.docker.com/_/rabbitmq).
 
@@ -24,7 +24,7 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 
   UI, `permissions` and `policies`.
 
-By default a policy called `lagoon-ha` is created at startup but it is not active because it doesn't match any queue's name pattern \(see default [Environment Variables](../using-lagoon/environment-variables.md)\).
+By default a policy called `lagoon-ha` is created at startup but it is not active because it doesn't match any queue's name pattern \(see default [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
 
 ```yaml
 "policies":[

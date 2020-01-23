@@ -1,4 +1,4 @@
-# mongodb
+# MongoDB
 
 > _MongoDB is a general purpose, document-based, distributed database built for modern application developers and for the cloud era . MongoDB is a document database, which means it stores data in JSON-like documents._
 >

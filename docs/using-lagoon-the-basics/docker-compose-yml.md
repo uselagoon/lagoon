@@ -69,7 +69,7 @@ If you don't need to build a Dockerfile and just want to use an existing Dockerf
 
 Lagoon needs to know what type of service you are deploying in order to configure the correct Kubernetes and OpenShift objects.
 
-This is done via the `lagoon.type` label. There are many different types to choose from, check [Service Types](service_types.md) to see all of them and their additional configuration possibilities.
+This is done via the `lagoon.type` label. There are many different types to choose from, check [Service Types](https://github.com/AlannaBurke/lagoon/tree/9331f688073fb0d34541bf3fb5fe65d2a2c665aa/docs/using-lagoon/service_types.md) to see all of them and their additional configuration possibilities.
 
 ## **Skip/Ignore containers**
 
@@ -130,7 +130,7 @@ Additionally, the `lagoon.name: nginx` is defined twice, which will cause Lagoon
 
 If you need some changes on the OpenShift templates, you can define your own template via `lagoon.template`. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). Important: The template is called with `oc process`, so you should define the same parameters as seen in the default templates.
 
-You can also overwrite the templates only for a specific environment, this is done in [`.lagoon.yml`](lagoon-yml.md/#environmentsnametypes)
+You can also overwrite the templates only for a specific environment, this is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
 
 ### **Custom Rollout Monitor Types**
 
@@ -141,7 +141,7 @@ By default Lagoon expects that the way services from custom templates are rolled
 * `daemonset` - expects a `Daemonset` object in the template for the service.
 * `false` - will not monitor any rollouts and just be happy of the template applies and does not throw any errors.
 
-You can also overwrite the rollout for just one specific environment, this is done in [`.lagoon.yml`](lagoon-yml.md/#environmentsnamerollouts)
+You can also overwrite the rollout for just one specific environment, this is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnamerollouts)
 
 ### **Custom Type**
 

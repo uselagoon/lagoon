@@ -6,32 +6,39 @@ Your Lagoon administrator will also give you the route to the webhook-handler. Y
 If you are an amazee.io customer, the route to the webhook-handler is: [`https://hooks.lagoon.amazeeio.cloud`](https://hooks.lagoon.amazeeio.cloud).
 {% endhint %}
 
+{% hint style="warning" %}
+Managing the following settings will require you to have a high level of access to these repositories, which will be controlled by your organization. If you cannot access these settings, please contact your systems administrator or the appropriate person within your organization .
+{% endhint %}
+
 ## GitHub
 
-* Proceed to Settings -&gt; Webhooks -&gt; `Add webhook` in your repository.
+* Proceed to Settings -&gt; Webhooks -&gt; `Add webhook` in your GitHub repository.
 
-
+![Adding webhook in GitHub.](../.gitbook/assets/webhooks-2020-01-23-12-40-16.png)
 
 * The `Payload URL` is the route to the webhook-handler of your Lagoon instance.
 * Set `Content type` to `application/json`.
 
 ![Add the Payload URL and set the Content type.](../.gitbook/assets/gh_webhook_1.png)
 
-* Choose which events will trigger your webhook. It is our suggestion that you send `push` and `Pull request` events, and then filter further in the Lagoon configuration of your project.
+* Choose which events will trigger your webhook. We suggest that you send `Push` and `Pull request` events, and then filter further in the Lagoon configuration of your project.
 
 ![Select the webhook event triggers in GitHub.](../.gitbook/assets/gh_webhook_2.png)
 
-* `Add webhook`.
+* Click `Add webhook` to save your configuration.
 
 ## GitLab
 
-* Navigate to Settings -&gt; Integrations for your repository.
+* Navigate to Settings -&gt; Integrations in your GitLab repository.
+
+![Go to Settings &amp;gt; Integrations in your GitLab repository.](../.gitbook/assets/screen-shot-2020-01-23-at-1.04.06-pm.png)
+
 * The `URL` is the route to the webhook-handler of your Lagoon instance.
-* Set the `Trigger` for which events will send a notification to Lagoon. It is our suggestion that you send `Push events` and `Merge request events` events, and then filter further in the Lagoon configuration of your project.
+* Select the `Trigger` events which will send a notification to Lagoon. We suggest that you send `Push events` and `Merge request events` events, and then filter further in the Lagoon configuration of your project.
 
-![Select the Trigger events for your Webhook in GitLab.](../.gitbook/assets/gl_webhook_1.png)
+![](../.gitbook/assets/gitlab_webhook.png)
 
-* `Add webhook`.
+* Click `Add webhook`to save your configuration. 
 
 ## Bitbucket
 
@@ -39,16 +46,16 @@ If you are an amazee.io customer, the route to the webhook-handler is: [`https:/
 * `Title` is for your reference, `URL` is the route to the webhook-handler of your Lagoon instance.
 * `Choose from a full list of triggers` and select the following:
   * Repository
-    * push
-  * Pull request
+    * Push
+  * Pull Request
     * Created
     * Updated
     * Approved
-    * Approval Removed
+    * Approval removed
     * Merged
     * Declined
 
 ![Select the Bitbucket Triggers for your webhook. ](../.gitbook/assets/bb_webhook_1.png)
 
-* `Save`.
+* Click `Save` to save the webhook configurations for Bitbucket.
 

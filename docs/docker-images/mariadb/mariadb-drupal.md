@@ -1,8 +1,8 @@
-# mariadbdrupal
+# MariaDB-Drupal
 
 MariaDB is the open source successor to MySQL.
 
-Lagoon `mariadb-drupal` Docker image, is a customized [`mariadb` image](README.md) to use within Drupal projects in Lagoon. It differs from `mariadb` only for initial database setup, made by some environment variables:
+Lagoon `mariadb-drupal` Docker image, is a customized [`mariadb` image](./) to use within Drupal projects in Lagoon. It differs from `mariadb` only for initial database setup, made by some environment variables:
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |

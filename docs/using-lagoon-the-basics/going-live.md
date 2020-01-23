@@ -44,11 +44,11 @@ As checking every page of your website might be a bit a tedious job, you can mak
 
 ### Redirects
 
-If you need non-www to www redirects make sure you have them set up in the `redirects-map.conf` - [see Documentation](./docker_images/nginx/README.md#redirects-mapconf)
+If you need non-www to www redirects make sure you have them set up in the `redirects-map.conf` - [see Documentation](https://github.com/AlannaBurke/lagoon/tree/9331f688073fb0d34541bf3fb5fe65d2a2c665aa/docs/using-lagoon/docker_images/nginx/README.md#redirects-mapconf)
 
 ### Cronjobs
 
-Check if your cronjobs have been set up for your production environment - see [.lagoon.yml](./using-lagoon/lagoon_yml.md#environmentsnamecronjobs)
+Check if your cronjobs have been set up for your production environment - see [.lagoon.yml](https://github.com/AlannaBurke/lagoon/tree/9331f688073fb0d34541bf3fb5fe65d2a2c665aa/docs/using-lagoon/using-lagoon/lagoon_yml.md#environmentsnamecronjobs)
 
 ## DNS
 

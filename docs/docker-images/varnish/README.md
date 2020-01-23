@@ -17,7 +17,7 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 
 ## Included `default.vcl` configuration file
 
-The image ships a _default_ vcl configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../../using-lagoon/environment-variables.md)\).
+The image ships a _default_ vcl configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../../using-lagoon-advanced/environment-variables.md)\).
 
 ## Environment Variables
 

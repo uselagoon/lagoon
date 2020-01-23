@@ -47,7 +47,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 ### Basic Authentication
 
-If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../../using-lagoon/environment-variables.md).
+If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../../using-lagoon-advanced/environment-variables.md).
 
 ## Environment Variables
 

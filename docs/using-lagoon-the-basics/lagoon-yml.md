@@ -288,7 +288,7 @@ The `container-registries` block allows you to define your own private container
 
 There are 2 ways to define the password used for your registry user.
 
-* Create an environment variable in the Lagoon API [Environment Variables \(Lagoon API\) » Container Registry Environment Variables \(Lagoon API\)](environment-variables.md#container-registry-environment-variables-lagoon-api). The name of the variable you create can then be set as the password.
+* Create an environment variable in the Lagoon API [Environment Variables \(Lagoon API\) » Container Registry Environment Variables \(Lagoon API\)](../using-lagoon-advanced/environment-variables.md#container-registry-environment-variables-lagoon-api). The name of the variable you create can then be set as the password.
 
   ```text
   container-registries:

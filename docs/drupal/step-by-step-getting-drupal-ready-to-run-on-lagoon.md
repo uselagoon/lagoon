@@ -6,8 +6,8 @@ In order for Drupal to work with Lagoon, we need to teach Drupal about Lagoon an
 
 You find [these Files in our GitHub repository](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal); the easiest way is to [download these files as a ZIP file](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git repository. For each Drupal version and database type you will find an individual folder. A short overview of what they are:
 
-* `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults, if you would like to edit or modify, please check the specific [Documentation for .lagoon.yml](../using-lagoon/lagoon-yml.md)
-* `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. iWe hope that it's well-commented enough to be self-describing. If you would like to find out more, see [Documentation for docker-compose.yml](../using-lagoon/docker-compose-yml.md)
+* `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults, if you would like to edit or modify, please check the specific [Documentation for .lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md)
+* `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. iWe hope that it's well-commented enough to be self-describing. If you would like to find out more, see [Documentation for docker-compose.yml](../using-lagoon-the-basics/docker-compose-yml.md)
 * `sites/default/*` - These .php and .yml files teach Drupal how to communicate with Lagoon containers both locally and in production. It also provides an easy system for specific overrides in development and production environments. Unlike other Drupal hosting systems, Lagoon never ever injects Drupal settings files into your Drupal. Therefore you can edit them however you like. Like all other files, they contain sensible defaults and some commented parts.
 * `drush/aliases.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all Site Aliases there are.
 * `drush/drushrc.php` - Some sensible defaults for Drush commands.
@@ -165,5 +165,5 @@ A Drupal site also consists of the files directory. As the whole folder is mount
 
 You are done with your local setup. The Lagoon team wishes happy Drupalling!
 
-If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](./setup_project.md).
+If you'd like to deploy your local Drupal into Lagoon, follow the next step to get set up before you deploy: [Setting up a new project in Lagoon](https://github.com/AlannaBurke/lagoon/tree/9331f688073fb0d34541bf3fb5fe65d2a2c665aa/docs/drupal/setup_project.md).
 

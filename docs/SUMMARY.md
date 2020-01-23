@@ -4,27 +4,27 @@
 
 ## Using Lagoon - The Basics
 
-* [Overview](using-lagoon/index.md)
+* [Overview](using-lagoon-the-basics/index.md)
 * [Local Development Environments](using-lagoon-the-basics/local-development-environments.md)
 * [Set Up a New Project](using-lagoon-the-basics/setup_project.md)
 * [Configure Webhooks](using-lagoon-the-basics/configure-webhooks.md)
-* [First Deployment](using-lagoon/first-deployment.md)
-* [lagoon.yml](using-lagoon/lagoon-yml.md)
-* [docker-compose.yml](using-lagoon/docker-compose-yml.md)
-* [Build and Deploy Process](using-lagoon/build-and-deploy-process.md)
-* [Going Live](using-lagoon/going-live.md)
+* [First Deployment](using-lagoon-the-basics/first-deployment.md)
+* [lagoon.yml](using-lagoon-the-basics/lagoon-yml.md)
+* [docker-compose.yml](using-lagoon-the-basics/docker-compose-yml.md)
+* [Build and Deploy Process](using-lagoon-the-basics/build-and-deploy-process.md)
+* [Going Live](using-lagoon-the-basics/going-live.md)
 
 ## Using Lagoon - Advanced
 
-* [Service Types](using-lagoon/service-types.md)
-* [Environment Types](using-lagoon/environment-types.md)
-* [Environment Variables](using-lagoon/environment-variables.md)
-* [Workflows](using-lagoon/workflows.md)
-* [Backups](using-lagoon/backups.md)
-* [Remote Shell](using-lagoon/remote-shell.md)
-* [GraphQL](using-lagoon/graphql.md)
-* [Node.js Graceful Shutdown](using-lagoon/nodejs.md)
-* [Migrations from Amazee.io](using-lagoon/migration.md)
+* [Service Types](using-lagoon-advanced/service-types.md)
+* [Environment Types](using-lagoon-advanced/environment-types.md)
+* [Environment Variables](using-lagoon-advanced/environment-variables.md)
+* [Workflows](using-lagoon-advanced/workflows.md)
+* [Backups](using-lagoon-advanced/backups.md)
+* [Remote Shell](using-lagoon-advanced/remote-shell.md)
+* [GraphQL](using-lagoon-advanced/graphql.md)
+* [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
+* [Migrations from Amazee.io](using-lagoon-advanced/migration.md)
 
 ## Drupal
 

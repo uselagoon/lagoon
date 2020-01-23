@@ -1,4 +1,4 @@
-# postgres
+# Postgres
 
 [Lagoon Postgres Docker image](https://github.com/amazeeio/lagoon/blob/master/images/postgres/Dockerfile), based on [the official Postgres Alpine images](https://hub.docker.com/_/postgres).
 

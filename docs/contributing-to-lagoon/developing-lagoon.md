@@ -74,7 +74,7 @@ echo "visit https://$(minishift --profile lagoon ip):8443/console"
 
 Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a new feature of [Yarn](https://yarnpkg.com/en/docs), called [`Yarn workspaces`](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces needs a `package.json` in the projects root directory that defines the workspaces.
 
-The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \(see [`docker-compose.yml`](../using-lagoon/docker-compose-yml.md). Node itself is watching the code via `nodemon` and restarts the Node.js process automatically on a change.
+The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \(see [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md). Node itself is watching the code via `nodemon` and restarts the Node.js process automatically on a change.
 
 ### lagoon-commons
 

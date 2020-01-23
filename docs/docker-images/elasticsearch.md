@@ -1,4 +1,4 @@
-# elasticsearch
+# Elasticsearch
 
 > [_Elasticsearch_](https://www.elastic.co/) _is a distributed, open source search and analytics engine for all types of data, including textual, numerical, geospatial, structured, and unstructured._
 >
