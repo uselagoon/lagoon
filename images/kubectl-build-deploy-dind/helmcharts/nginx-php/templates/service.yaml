@@ -1,19 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.SERVICE_NAME | quote }}
+  name: {{ include "nginx-php.fullname" . }}
   labels:
-    service: {{ .Values.SERVICE_NAME | quote }}
-    branch: {{ .Values.SAFE_BRANCH | quote }}
-    project: {{ .Values.SAFE_PROJECT | quote }}
+    {{- include "nginx-php.labels" . | nindent 4 }}
 spec:
+  type: {{ .Values.service.type }}
   ports:
-    - name: http
-      port: 8080
+    - port: {{ .Values.service.port }}
+      targetPort: http
       protocol: TCP
-      targetPort: 8080
-  type: ClusterIP
+      name: http
   selector:
-    service: {{ .Values.SERVICE_NAME | quote }}
-status:
-  loadBalancer: {}
+    {{- include "nginx-php.selectorLabels" . | nindent 4 }}

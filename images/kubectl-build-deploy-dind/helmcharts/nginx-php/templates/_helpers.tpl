@@ -53,5 +53,5 @@ Create a PriorityClassName.
 (this is based on the Lagoon Environment Type)).
 */}}
 {{- define "nginx-php.lagoon-priority" -}}
-{{- printf "lagoon-priority-%s" .Values.ENVIRONMENT_TYPE }}
+{{- printf "lagoon-priority-%s" .Values.environmentType }}
 {{- end -}}
