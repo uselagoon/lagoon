@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+annotations:
+    appuio.ch/backup: "true"
+name: {{ include "nginx-php-persistent.fullname" . }}
+spec:
+accessModes:
+- ReadWriteOnce
+storageClassName: {{ .Values.PERSISTENT_STORAGE_CLASS | quote }}
+resources:
+    requests:
+    storage: {{ .Values.PERSISTENT_STORAGE_SIZE | quote }}
