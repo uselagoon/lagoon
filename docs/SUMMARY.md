@@ -4,9 +4,9 @@
 
 ## Using Lagoon - The Basics
 
-* [Overview](using-lagoon-the-basics/index.md)
-* [Local Development Environments](using-lagoon/local-development-environments.md)
-* [Set Up a New Project](using-lagoon/setup_project.md)
+* [Overview](using-lagoon/index.md)
+* [Local Development Environments](using-lagoon-the-basics/local-development-environments.md)
+* [Set Up a New Project](using-lagoon-the-basics/setup_project.md)
 * [Configure Webhooks](using-lagoon/configure-webhooks.md)
 * [First Deployment](using-lagoon/first-deployment.md)
 * [lagoon.yml](using-lagoon/lagoon-yml.md)
