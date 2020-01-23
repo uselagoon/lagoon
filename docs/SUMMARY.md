@@ -3,7 +3,8 @@
 * [Lagoon](README.md)
 
 ## Using Lagoon - The Basics
-* [Overview](using-lagoon/index.md)
+
+* [Overview](using-lagoon-the-basics/index.md)
 * [Local Development Environments](using-lagoon/local-development-environments.md)
 * [Set Up a New Project](using-lagoon/setup_project.md)
 * [Configure Webhooks](using-lagoon/configure-webhooks.md)
@@ -14,6 +15,7 @@
 * [Going Live](using-lagoon/going-live.md)
 
 ## Using Lagoon - Advanced
+
 * [Service Types](using-lagoon/service-types.md)
 * [Environment Types](using-lagoon/environment-types.md)
 * [Environment Variables](using-lagoon/environment-variables.md)
