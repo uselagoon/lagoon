@@ -3,9 +3,15 @@ set -x
 set -eo pipefail
 set -o noglob
 
-REGISTRY=172.17.0.1:5000
+REGISTRY=172.17.0.1:8084 # This points to Harbor's nginx pod when running via docker-compose, which handles access to Harbor's registry
 NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
+
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  INTERNAL_REGISTRY_URL=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .url')
+  INTERNAL_REGISTRY_USERNAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .username')
+  INTERNAL_REGISTRY_PASSWORD=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .password')
+fi
 
 if [ "$CI" == "true" ]; then
   CI_OVERRIDE_IMAGE_REPO=${REGISTRY}/lagoon
@@ -36,9 +42,16 @@ else
 fi
 
 set +x
-# DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
-# docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${REGISTRY}
+if [ ! -z ${INTERNAL_REGISTRY_URL} && ! -z ${INTERNAL_REGISTRY_USERNAME} && ! -z ${INTERNAL_REGISTRY_PASSWORD} ]; then
+  docker login -u=${INTERNAL_REGISTRY_USERNAME} -p="${INTERNAL_REGISTRY_USERNAME}" ${INTERNAL_REGISTRY_URL}
+  REGISTRY=$INTERNAL_REGISTRY_USERNAME # This will handle pointing Lagoon at the correct registry for non local builds
+  #REGISTRY_REPOSITORY=$NAMESPACE
+  # If we go with a different naming scheme, we can inject that here?
+#else
+#  DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+#  docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${REGISTRY}
+fi
 
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
