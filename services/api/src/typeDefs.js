@@ -1,5 +1,3 @@
-// @flow
-
 const gql = require('./util/gql');
 
 // TODO: Split up this file
@@ -102,6 +100,11 @@ const typeDefs = gql`
     ZAR
   }
 
+  enum DeploymentTargets {
+    KUBERNETES
+    OPENSHIFT
+  }
+
   type File {
     id: Int
     filename: String
@@ -163,7 +166,7 @@ const typeDefs = gql`
     billingSoftware: String
   }
 
-  type Openshift {
+  type DeploymentTarget {
     id: Int
     name: String
     consoleUrl: String
@@ -251,22 +254,22 @@ const typeDefs = gql`
     notifications(type: NotificationType): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
     """
     activeSystemsDeploy: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
     """
     activeSystemsPromote: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftRemove' exists
+    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
     """
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_openshiftJob' exists
+    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
     """
     activeSystemsTask: String
     """
@@ -297,13 +300,13 @@ const typeDefs = gql`
     """
     storageCalc: Int
     """
-    Reference to OpenShift Object this Project should be deployed to
+    Reference to the Deployment Target (Kubernetes|OpenShift) Object this Project should be deployed to
     """
-    openshift: Openshift
+    deploymentTarget: DeploymentTarget
     """
-    Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
+    Namespace-Environment pattern for Kubernetes (OpenShift Project) that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    openshiftProjectPattern: String
+    namespaceEnvironment: String
     """
     How many environments can be deployed at one timeout
     """
@@ -376,9 +379,9 @@ const typeDefs = gql`
     """
     environmentType: String
     """
-    Name of the OpenShift Project/Namespace this environment is deployed into
+    Deployment target name to deployed into (Kubernetes Namespace | Openshift Project Name)
     """
-    openshiftProjectName: String
+    targetName: String
     """
     Unix Timestamp of the last time this environment has been updated
     """
@@ -524,14 +527,10 @@ const typeDefs = gql`
     projectByGitUrl(gitUrl: String!): Project
     environmentByName(name: String!, project: Int!): Environment
     """
-    Returns Environment Object by a given openshiftProjectName
+    Returns Environment Object by a given namespace
     """
-    environmentByOpenshiftProjectName(
-      openshiftProjectName: String!
-    ): Environment
-    userCanSshToEnvironment(
-      openshiftProjectName: String
-    ): Environment
+    environmentByDeploymentTargetName(name: String!): Environment
+    userCanSshToEnvironment(deploymentTargetName: String): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
     """
@@ -541,7 +540,7 @@ const typeDefs = gql`
     """
     Returns all OpenShift Objects
     """
-    allOpenshifts: [Openshift]
+    allDeploymentTargets: [Openshift | Kubernetes]
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
@@ -605,8 +604,8 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
-    openshift: Int!
-    openshiftProjectPattern: String
+    deploymentTarget: DeploymentTarget
+    namespaceEnvironment: String
     activeSystemsDeploy: String
     activeSystemsPromote: String
     activeSystemsRemove: String
@@ -630,7 +629,7 @@ const typeDefs = gql`
     deployHeadRef: String
     deployTitle: String
     environmentType: EnvType!
-    openshiftProjectName: String!
+    deploymentTargetName: String!
   }
 
   input AddOrUpdateEnvironmentStorageInput {
@@ -741,7 +740,7 @@ const typeDefs = gql`
     patch: UpdateTaskPatchInput!
   }
 
-  input AddOpenshiftInput {
+  input AddDeploymentTargetInput {
     id: Int
     name: String!
     consoleUrl: String!
@@ -752,7 +751,7 @@ const typeDefs = gql`
     sshPort: String
   }
 
-  input DeleteOpenshiftInput {
+  input DeleteDeploymentTargetInput {
     name: String!
   }
 
@@ -847,8 +846,8 @@ const typeDefs = gql`
     autoIdle: Int
     storageCalc: Int
     pullrequests: String
-    openshift: Int
-    openshiftProjectPattern: String
+    deploymentTarget: DeploymentTarget
+    namespaceEnvironment: String
     developmentEnvironmentsLimit: Int
   }
 
@@ -857,7 +856,7 @@ const typeDefs = gql`
     patch: UpdateProjectPatchInput!
   }
 
-  input UpdateOpenshiftPatchInput {
+  input UpdateDeploymentTargetPatchInput {
     name: String
     consoleUrl: String
     token: String
@@ -867,9 +866,9 @@ const typeDefs = gql`
     sshPort: String
   }
 
-  input UpdateOpenshiftInput {
+  input UpdateDeploymentTargetInput {
     id: Int!
-    patch: UpdateOpenshiftPatchInput!
+    patch: UpdateDeploymentTargetPatchInput!
   }
 
   input UpdateNotificationMicrosoftTeamsPatchInput {
@@ -931,7 +930,7 @@ const typeDefs = gql`
     deployHeadRef: String
     deployTitle: String
     environmentType: EnvType
-    openshiftProjectName: String
+    deploymentTargetName: String
     route: String
     routes: String
     monitoringUrls: String
@@ -1120,10 +1119,10 @@ const typeDefs = gql`
       input: RemoveNotificationFromProjectInput!
     ): Project
     removeAllNotificationsFromAllProjects: String
-    addOpenshift(input: AddOpenshiftInput!): Openshift
-    updateOpenshift(input: UpdateOpenshiftInput!): Openshift
-    deleteOpenshift(input: DeleteOpenshiftInput!): String
-    deleteAllOpenshifts: String
+    addDeploymentTarget(input: AddDeploymentTargetInput!): DeploymentTarget
+    updateDeploymentTarget(input: UpdateDeploymentTargetInput!): DeploymentTarget
+    deleteDeploymentTarget(input: DeleteDeploymentTargetInput!): String
+    deleteAllDeploymentTargets: String
     addProject(input: AddProjectInput!): Project
     updateProject(input: UpdateProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
