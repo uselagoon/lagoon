@@ -22,7 +22,7 @@ spec:
         - name: {{ .Values.persistentStorageName }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorageName }}
-      priorityClassName: {{ include "nginx-php.lagoon-priority" . }}
+      priorityClassName: {{ include "nginx-php-persistent.lagoon-priority" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
