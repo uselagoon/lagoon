@@ -2,8 +2,25 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: mariadb-operator-role
+  name: mariadbconsumer-role
+  labels:
+    # Add these permissions to the "admin" and "edit" default roles.
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
 rules:
 - apiGroups: ["mariadb.amazee.io"]
-  resources: ["*"]
+  resources: ["mariadbconsumers"]
+  verbs: ["*"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mariadbprovider-role
+  labels:
+    # Add these permissions to the "admin" and "edit" default roles.
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+- apiGroups: ["mariadb.amazee.io"]
+  resources: ["mariadbproviders"]
   verbs: ["*"]
