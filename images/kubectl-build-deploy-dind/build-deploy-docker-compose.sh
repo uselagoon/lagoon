@@ -525,7 +525,7 @@ if kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedule
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
-  helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-backup-schedule \
+  helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \

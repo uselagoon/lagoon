@@ -1,4 +1,4 @@
-# Default values for k8up-backup-schedule.
+# Default values for k8up-schedule.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 

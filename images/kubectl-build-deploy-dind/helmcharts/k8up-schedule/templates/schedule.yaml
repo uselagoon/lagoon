@@ -1,9 +1,9 @@
 apiVersion: backup.appuio.ch/v1alpha1
 kind: Schedule
 metadata:
-  name: {{ include "k8up-backup-schedule.fullname" . }}
+  name: {{ include "k8up-schedule.fullname" . }}
   labels:
-    {{- include "k8up-backup-schedule.labels" . | nindent 4 }}
+    {{- include "k8up-schedule.labels" . | nindent 4 }}
 spec:
   backend:
     repoPasswordSecretRef:
