@@ -89,7 +89,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
-    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer &> /dev/null; then
+    elif $(kubectl api-resources --no-headers --api-group=mariadb.amazee.io | grep mariadbconsumer -q); then
       SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
@@ -108,7 +108,7 @@ do
     fi
 
     # check if the defined operator class exists
-    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer &> /dev/null; then
+    if $(kubectl api-resources --no-headers --api-group=mariadb.amazee.io | grep mariadbconsumer -q); then
       SERVICE_TYPE="mariadb-shared"
       MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
     else
@@ -392,14 +392,16 @@ do
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
   fi
 
-
-  KUBERNETES_SERVICES_TEMPLATE="/kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/crd.yml"
-  if [ -f $KUBERNETES_SERVICES_TEMPLATE ]; then
+  HELM_CRD_TEMPLATE="templates/crd.yaml"
+  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_CRD_TEMPLATE ]; then
     # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
     SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
     SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
-    . /kubectl-build-deploy/scripts/exec-kubernetes-create-crd.sh
+    echo -e "\
+mariaDBConsumerEnvironment: ${SERVICEBROKER_PLAN}\n\
+" >> /kubectl-build-deploy/values.yaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_CRD_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -864,9 +866,7 @@ do
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
 
-  if [ "${SERVICE_TYPE}" != "mariadb-shared" ]; then
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
-  fi
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
 
 done
 
