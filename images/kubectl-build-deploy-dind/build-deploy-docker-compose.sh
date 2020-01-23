@@ -487,7 +487,7 @@ else
 
       helm template ${ROUTE_SERVICE} \
         /kubectl-build-deploy/helmcharts/customroutes \
-        -s templates/ingress.yaml  \
+        -s templates/ingress.yaml \
         --set route_domain="${ROUTE_DOMAIN}" \
         --set route_service="${ROUTE_SERVICE}" \
         --set route_tls_acme="${ROUTE_TLS_ACME}" \
