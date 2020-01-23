@@ -7,7 +7,7 @@ fi
 
 
 # First check if we need multiple Images in this Template (check for `_SERVICE_IMAGE` - see underline)
-if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep images) ]]; then
+if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep "images:") ]]; then
   # Inject Pullable Images into Template
   HELM_IMAGE_VALUES=()
   while read line
