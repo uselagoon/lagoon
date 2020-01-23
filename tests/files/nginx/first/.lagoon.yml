@@ -28,3 +28,11 @@ environments:
           schedule: "* * * * *"
           command: date
           service: nginx
+
+
+tasks:
+  post-rollout:
+    - run:
+        name: date
+        command: date
+        service: nginx
