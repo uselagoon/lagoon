@@ -1,2 +1,2 @@
-# OpenShift Remove
+# Kubernetes deployqueue
 
