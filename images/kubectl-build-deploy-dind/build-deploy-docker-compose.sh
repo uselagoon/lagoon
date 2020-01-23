@@ -442,13 +442,12 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       helm template ${ROUTE_SERVICE} \
-        /kubectl-build-deploy/helmcharts/customroutes \
-        -s templates/ingress.yaml \
-        --set route_domain="${ROUTE_DOMAIN}" \
-        --set route_service="${ROUTE_SERVICE}" \
-        --set route_tls_acme="${ROUTE_TLS_ACME}" \
-        --set route_insecure="${ROUTE_INSECURE}" \
-        --set route_hsts="${ROUTE_HSTS}" \
+        /kubectl-build-deploy/helmcharts/custom-ingress \
+        --set domain="${ROUTE_DOMAIN}" \
+        --set service="${ROUTE_SERVICE}" \
+        --set tls_acme="${ROUTE_TLS_ACME}" \
+        --set insecure="${ROUTE_INSECURE}" \
+        --set hsts="${ROUTE_HSTS}" \
         -f /kubectl-build-deploy/values.yaml | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -486,13 +485,12 @@ else
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       helm template ${ROUTE_SERVICE} \
-        /kubectl-build-deploy/helmcharts/customroutes \
-        -s templates/ingress.yaml \
-        --set route_domain="${ROUTE_DOMAIN}" \
-        --set route_service="${ROUTE_SERVICE}" \
-        --set route_tls_acme="${ROUTE_TLS_ACME}" \
-        --set route_insecure="${ROUTE_INSECURE}" \
-        --set route_hsts="${ROUTE_HSTS}" \
+        /kubectl-build-deploy/helmcharts/custom-ingress \
+        --set route.domain="${ROUTE_DOMAIN}" \
+        --set route.service="${ROUTE_SERVICE}" \
+        --set route.tls_acme="${ROUTE_TLS_ACME}" \
+        --set route.insecure="${ROUTE_INSECURE}" \
+        --set route.hsts="${ROUTE_HSTS}" \
         -f /kubectl-build-deploy/values.yaml | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
