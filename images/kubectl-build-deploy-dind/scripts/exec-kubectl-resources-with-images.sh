@@ -31,19 +31,3 @@ elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | gr
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
   helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" | outputToYaml
 fi
-
-# oc process  --local -o yaml --insecure-skip-tls-verify \
-#   -n ${NAMESPACE} \
-#   -f ${OPENSHIFT_TEMPLATE} \
-#   -p SERVICE_NAME="${SERVICE_NAME}" \
-#   -p SAFE_BRANCH="${SAFE_BRANCH}" \
-#   -p SAFE_PROJECT="${SAFE_PROJECT}" \
-#   -p BRANCH="${BRANCH}" \
-#   -p PROJECT="${PROJECT}" \
-#   -p LAGOON_GIT_SHA="${LAGOON_GIT_SHA}" \
-#   -p SERVICE_ROUTER_URL="${SERVICE_ROUTER_URL}" \
-#   -p REGISTRY="${REGISTRY}" \
-#   -p NAMESPACE=${NAMESPACE} \
-#   "${TEMPLATE_PARAMETERS[@]}" \
-#   "${TEMPLATE_ADDITIONAL_PARAMETERS[@]}" \
-#   | outputToYaml
