@@ -6,17 +6,17 @@
 stream_logs_deployment() {
   set +x
   # load the version of the new pods
-  LATEST_VERSION=$(oc -n ${NAMESPACE} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}')
-  mkdir -p /tmp/oc-build-deploy/logs/container/${SERVICE_NAME}
+  LATEST_POD_TEMPLATE_HASH=$(kubectl get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r '.items[-1].metadata.labels."pod-template-hash"')
+  mkdir -p /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}
 
   # this runs in a loop forever (until killed)
   while [ 1 ]
   do
     # Gatter all pods and their containers for the current rollout and stream their logs into files
-    oc -n ${NAMESPACE} get --insecure-skip-tls-verify pods -l deployment=${SERVICE_NAME}-${LATEST_VERSION} -o json | jq -r '.items[] | .metadata.name + " " + .spec.containers[].name' |
+    kubectl -n ${NAMESPACE} get --insecure-skip-tls-verify pods -l pod-template-hash=${LATEST_POD_TEMPLATE_HASH} -o json | jq -r '.items[] | .metadata.name + " " + .spec.containers[].name' |
     {
       while read -r POD CONTAINER ; do
-          oc -n ${NAMESPACE} logs --insecure-skip-tls-verify --timestamps -f $POD -c $CONTAINER $SINCE_TIME 2> /dev/null > /tmp/oc-build-deploy/logs/container/${SERVICE_NAME}/$POD-$CONTAINER.log &
+          kubectl -n ${NAMESPACE} logs --insecure-skip-tls-verify --timestamps -f $POD -c $CONTAINER $SINCE_TIME 2> /dev/null > /tmp/oc-build-deploy/logs/container/${SERVICE_NAME}/$POD-$CONTAINER.log &
       done
 
       # this will wait for all log streaming we started to finish
@@ -32,18 +32,18 @@ stream_logs_deployment &
 STREAM_LOGS_PID=$!
 
 ret=0
-oc rollout --insecure-skip-tls-verify -n ${NAMESPACE} status ${SERVICE_ROLLOUT_TYPE} ${SERVICE_NAME} --watch || ret=$?
+kubectl rollout --insecure-skip-tls-verify -n ${NAMESPACE} status deployment ${SERVICE_NAME} --watch || ret=$?
 
 if [[ $ret -ne 0 ]]; then
   # stop all running stream logs
   pkill -P $STREAM_LOGS_PID || true
 
   # shows all logs we collected for the new containers
-  if [ -z "$(ls -A /tmp/oc-build-deploy/logs/container/${SERVICE_NAME})" ]; then
+  if [ -z "$(ls -A /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME})" ]; then
     echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, but unfortunately there were none created, sorry."
   else
     echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, hope this helps debugging:"
-    find /tmp/oc-build-deploy/logs/container/${SERVICE_NAME}/ -type f -print0 2>/dev/null | xargs -0 -I % sh -c 'echo ======== % =========; cat %; echo'
+    find /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}/ -type f -print0 2>/dev/null | xargs -0 -I % sh -c 'echo ======== % =========; cat %; echo'
   fi
 
   exit 1

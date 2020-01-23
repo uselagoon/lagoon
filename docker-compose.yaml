@@ -130,6 +130,40 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploy/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:v1-2-0
+  kubernetesdeployqueue:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesdeployqueue
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesdeployqueue/src:/app/services/kubernetesdeployqueue/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesdeployqueue/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesdeployqueue:v1-2-0
+  kubernetesbuilddeploymonitor:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploymonitor
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesbuilddeploymonitor/src:/app/services/kubernetesbuilddeploymonitor/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-XXXXXXXXXXXXXXXXXXXX}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-xxxxxxxxxxxxxxxxxxxx}
+      - AWS_BUCKET=${AWS_BUCKET:-aws-bucket}
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesbuilddeploymonitor/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesbuilddeploymonitor:v1-2-0
+  kubernetesremove:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesremove
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesremove/src:/app/services/kubernetesremove/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesremove/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesremove:v1-2-0
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -289,6 +323,7 @@ services:
       - API_PROTOCOL=http
       - API_PORT=3000
       - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=404
     volumes:
       - ./tests:/ansible
     labels:
@@ -311,6 +346,7 @@ services:
       - API_PROTOCOL=http
       - API_PORT=3000
       - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=503
     volumes:
       - ./tests:/ansible
     labels:

@@ -26,6 +26,4 @@ ENV NODE_ENV production
 
 RUN ls -lisa; pwd
 
-RUN yarn run build
-
 CMD ["yarn", "start"]

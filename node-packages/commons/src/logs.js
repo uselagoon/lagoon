@@ -1,5 +1,3 @@
-// @flow
-
 const amqp = require('amqp-connection-manager');
 const { logger } = require('./local-logging');
 
@@ -39,13 +37,13 @@ function initSendToLagoonLogs() {
 }
 
 async function sendToLagoonLogs(
-  severity: string,
-  project: string,
-  uuid: string,
-  event: string,
-  meta: Object,
-  message: string,
-): Promise<void> {
+  severity,
+  project,
+  uuid,
+  event,
+  meta,
+  message,
+) {
   const payload = {
     severity,
     project,
@@ -70,4 +68,9 @@ async function sendToLagoonLogs(
       `lagoon-logs: Error send to rabbitmq lagoon-logs exchange, error: ${error}`,
     );
   }
+}
+
+module.exports = {
+  sendToLagoonLogs,
+  initSendToLagoonLogs
 }
