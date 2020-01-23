@@ -906,6 +906,8 @@ if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
     sed -i s/podAntiAffinity/podAffinity/g /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
   fi
 
+  cat /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 

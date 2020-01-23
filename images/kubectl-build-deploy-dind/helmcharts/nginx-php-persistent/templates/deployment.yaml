@@ -19,10 +19,10 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ include "nginx-php-persistent.fullname" . }}
+        - name: {{ .Values.persistentStorageName }}
           persistentVolumeClaim:
-            claimName: {{ include "nginx-php-persistent.fullname" . }}
-      priorityClassName: {{ include "nginx-php.lagoon-priority" . }}
+            claimName: {{ .Values.persistentStorageName }}
+      priorityClassName: {{ include "nginx-php-persistent.lagoon-priority" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -53,11 +53,13 @@ spec:
               value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
           envFrom:
             - configMapRef:
                 name: lagoon-env
           volumeMounts:
-            - name: {{ include "nginx-php-persistent.fullname" . }}
+            - name: {{ .Values.persistentStorageName }}
               mountPath: {{ .Values.persistentStoragePath | quote }}
           resources:
             requests:
@@ -91,7 +93,7 @@ spec:
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           volumeMounts:
-            - name: {{ include "nginx-php-persistent.fullname" . }}
+            - name: {{ .Values.persistentStorageName }}
               mountPath: {{ .Values.persistentStoragePath | quote }}
           resources:
             requests:
