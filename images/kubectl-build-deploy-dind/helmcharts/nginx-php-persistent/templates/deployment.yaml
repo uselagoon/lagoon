@@ -55,8 +55,8 @@ spec:
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           volumeMounts:
-            - name: { include "nginx-php-persistent.fullname" . }}
-              mountPath: {{ .Values.PERSISTENT_STORAGE_PATH | quote }}
+            - name: {{ include "nginx-php-persistent.fullname" . }}
+              mountPath: {{ .Values.persistentStoragePath | quote }}
           resources:
             requests:
               cpu: 10m
@@ -89,8 +89,8 @@ spec:
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           volumeMounts:
-            - name: { include "nginx-php-persistent.fullname" . }}
-              mountPath: {{ .Values.PERSISTENT_STORAGE_PATH | quote }}
+            - name: {{ include "nginx-php-persistent.fullname" . }}
+              mountPath: {{ .Values.persistentStoragePath | quote }}
           resources:
             requests:
               cpu: 10m

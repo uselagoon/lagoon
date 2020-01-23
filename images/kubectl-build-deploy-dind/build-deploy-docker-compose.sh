@@ -764,27 +764,29 @@ do
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
-  TEMPLATE_PARAMETERS=()
+  HELM_SET_VALUES=()
 
   # PERSISTENT_STORAGE_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.class false)
   # if [ ! $PERSISTENT_STORAGE_CLASS == "false" ]; then
   #     TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_CLASS="${PERSISTENT_STORAGE_CLASS}")
   # fi
 
-  # PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
-  # if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
-  #     TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_SIZE="${PERSISTENT_STORAGE_SIZE}")
-  # fi
+  PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
+  if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
+    HELM_SET_VALUES+=(--set "persistentStorageSize=${PERSISTENT_STORAGE_SIZE}")
+  fi
 
-  # PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
-  # if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
-  #   TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_PATH="${PERSISTENT_STORAGE_PATH}")
+  PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
+  if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
+    HELM_SET_VALUES+=(--set "persistentStoragePath=${PERSISTENT_STORAGE_PATH}")
 
-  #   PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.name false)
-  #   if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
-  #     TEMPLATE_PARAMETERS+=(-p PERSISTENT_STORAGE_NAME="${PERSISTENT_STORAGE_NAME}")
-  #   fi
-  # fi
+    PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.name false)
+    if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
+      HELM_SET_VALUES+=(--set "persistentStorageName=${PERSISTENT_STORAGE_NAME}")
+    else
+      HELM_SET_VALUES+=(--set "persistentStorageName=${SERVICE_NAME}")
+    fi
+  fi
 
 # TODO: we don't need this anymore
   # DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)

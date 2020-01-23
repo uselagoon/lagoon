@@ -8,6 +8,7 @@ images:
   nginx: ""
   php: ""
 environment_type: production
+persistentStorageSize: 5Gi
 
 imagePullPolicy: Always
 

@@ -9,7 +9,6 @@ fi
 # First check if we need multiple Images in this Template (check for `_SERVICE_IMAGE` - see underline)
 if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep images) ]]; then
   # Inject Pullable Images into Template
-  HELM_IMAGE_VALUES=()
   while read line
   do
     # SERVICE_IMAGE Parameters are configured like "[SERVICETYPE]_SERVICE_IMAGE", we split the servicetype away and lowercase it
@@ -21,9 +20,9 @@ if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep
     DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH="${IMAGE_HASHES[${DEPLOYMENT_SERVICETYPE_IMAGE_NAME}]}"
 
     # Add the Image Hash as Parameter of "[SERVICETYPE]_SERVICE_IMAGE"
-    HELM_IMAGE_VALUES+=(--set "images.${line}=${DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH}")
+    HELM_SET_VALUES+=(--set "images.${line}=${DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH}")
   done < <(cat /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/values.yaml | shyaml keys images)
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set service_name="${SERVICE_NAME}"  "${HELM_IMAGE_VALUES[@]}" -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml --set cronjobs="${CRONJOBS_ONELINE}" | outputToYaml
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set service_name="${SERVICE_NAME}"  "${HELM_SET_VALUES[@]}" -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml --set cronjobs="${CRONJOBS_ONELINE}" | outputToYaml
 
 # check if we need a single image to inject
 elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep image) ]]; then
