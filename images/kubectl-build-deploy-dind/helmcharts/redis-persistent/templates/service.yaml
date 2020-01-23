@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis-persistant.fullname" . }}
+  labels:
+    {{- include "redis-persistant.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 6379
+      protocol: TCP
+      name: 6379-tcp
+  selector:
+    {{- include "redis-persistant.selectorLabels" . | nindent 4 }}
