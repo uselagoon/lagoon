@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "redis-persistant.fullname" . }}
+  name: {{ include "redis-persistent.fullname" . }}
   labels:
-    {{- include "redis-persistant.labels" . | nindent 4 }}
+    {{- include "redis-persistent.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: 6379-tcp
   selector:
-    {{- include "redis-persistant.selectorLabels" . | nindent 4 }}
+    {{- include "redis-persistent.selectorLabels" . | nindent 4 }}

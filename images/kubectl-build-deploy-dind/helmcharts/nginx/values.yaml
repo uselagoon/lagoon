@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image: ""
-environment_type: production
+environmentType: production
 
 imagePullPolicy: Always
 
