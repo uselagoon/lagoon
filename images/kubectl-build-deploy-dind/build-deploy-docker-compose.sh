@@ -441,9 +441,9 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
-      helm template ${ROUTE_SERVICE} \
+      helm template ${ROUTE_DOMAIN} \
         /kubectl-build-deploy/helmcharts/custom-ingress \
-        --set domain="${ROUTE_DOMAIN}" \
+        --set host="${ROUTE_DOMAIN}" \
         --set service="${ROUTE_SERVICE}" \
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
@@ -484,13 +484,13 @@ else
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
-      helm template ${ROUTE_SERVICE} \
+      helm template ${ROUTE_DOMAIN} \
         /kubectl-build-deploy/helmcharts/custom-ingress \
-        --set route.domain="${ROUTE_DOMAIN}" \
-        --set route.service="${ROUTE_SERVICE}" \
-        --set route.tls_acme="${ROUTE_TLS_ACME}" \
-        --set route.insecure="${ROUTE_INSECURE}" \
-        --set route.hsts="${ROUTE_HSTS}" \
+        --set host="${ROUTE_DOMAIN}" \
+        --set service="${ROUTE_SERVICE}" \
+        --set tls_acme="${ROUTE_TLS_ACME}" \
+        --set insecure="${ROUTE_INSECURE}" \
+        --set hsts="${ROUTE_HSTS}" \
         -f /kubectl-build-deploy/values.yaml | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -531,6 +531,8 @@ if kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedule
     --set check.schedule="${CHECK_SCHEDULE}" \
     --set prune.schedule="${PRUNE_SCHEDULE}" | outputToYaml
 fi
+
+cat /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 
 if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml

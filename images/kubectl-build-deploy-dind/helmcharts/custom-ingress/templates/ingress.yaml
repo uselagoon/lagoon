@@ -27,10 +27,10 @@ spec:
   {{if ne .Values.insecure "None"}}
   tls:
     - hosts:
-        -  {{ .Values.domain }}
+        -  {{ .Values.host }}
   {{ end}}
   rules:
-    - host: {{ .Values.domain }}
+    - host: {{ .Values.host }}
       http:
         paths:
           - backend:

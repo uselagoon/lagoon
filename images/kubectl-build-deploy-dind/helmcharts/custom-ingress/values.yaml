@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-domain: ''
+host: ''
 hsts: 'null'
 tls_acme: true
 insecure: Allow
