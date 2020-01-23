@@ -6,7 +6,7 @@ services:
       - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
-      - '3306:3306'
+      - '3366:3306'
     labels:
       lagoon.type: mariadb-single
       lagoon.image: amazeeiolagoon/api-db:v1-2-0
@@ -562,4 +562,4 @@ services:
       MYSQL_PASSWORD: 'password'
       MYSQL_ROOT_PASSWORD: 'password'
     ports:
-      - '3396:3306'
+      - '3306:3306'
