@@ -29,6 +29,8 @@ spec:
           env:
             - name: CRONJOBS
               value: {{ .Values.cronjobs | quote }}
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
           envFrom:
             - configMapRef:
                 name: lagoon-env
