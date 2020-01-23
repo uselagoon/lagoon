@@ -89,7 +89,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
-    elif $(kubectl api-resources --no-headers --api-group=mariadb.amazee.io | grep mariadbconsumer -q); then
+    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
@@ -98,8 +98,6 @@ do
   fi
 
   if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
-    echo "TODO: mariadb-shared needs to be implemented"
-    exit 1
     # Load a possible defined mariadb-shared
     MARIADB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
 
@@ -110,7 +108,7 @@ do
     fi
 
     # check if the defined operator class exists
-    if $(kubectl api-resources --no-headers --api-group=mariadb.amazee.io | grep mariadbconsumer -q); then
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
       SERVICE_TYPE="mariadb-shared"
       MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
     else
