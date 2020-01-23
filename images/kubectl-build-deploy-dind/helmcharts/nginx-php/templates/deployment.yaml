@@ -82,7 +82,7 @@ spec:
             # LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
             # This will cause the cli to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
-              value: {{ .Values.LAGOON_GIT_SHA | quote }}
+              value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           resources:

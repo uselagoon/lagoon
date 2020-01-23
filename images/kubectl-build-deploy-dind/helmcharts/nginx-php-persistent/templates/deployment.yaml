@@ -53,6 +53,8 @@ spec:
               value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
           envFrom:
             - configMapRef:
                 name: lagoon-env

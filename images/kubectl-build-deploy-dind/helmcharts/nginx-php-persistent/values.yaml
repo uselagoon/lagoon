@@ -7,7 +7,8 @@ replicaCount:
 images:
   nginx: ""
   php: ""
-environment_type: production
+
+environmentType: production
 persistentStorageSize: 5Gi
 
 imagePullPolicy: Always
@@ -68,3 +69,5 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+cronjobs: {}
