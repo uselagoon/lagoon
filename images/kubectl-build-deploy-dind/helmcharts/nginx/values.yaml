@@ -64,3 +64,5 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+cronjobs: {}
