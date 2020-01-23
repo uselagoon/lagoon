@@ -45,7 +45,7 @@ DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.d
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Default shared mariadb service broker
-MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
+MARIADB_SHARED_DEFAULT_CLASS="mariadbconsumer"
 MONGODB_SHARED_DEFAULT_CLASS="lagoon-maas-mongodb-apb"
 
 # Figure out which services should we handle
@@ -88,7 +88,8 @@ do
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
-    elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
+    # real basic check to see if the mariadbconsumer exists as a kind
+    elif $(kubectl api-resources --no-headers --api-group=mariadb.amazee.io | grep mariadbconsumer -q); then
       SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
@@ -108,12 +109,12 @@ do
       MARIADB_SHARED_CLASS=$ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE
     fi
 
-    # check if the defined service broker class exists
-    if svcat --scope cluster get class $MARIADB_SHARED_CLASS > /dev/null; then
+    # check if the defined operator class exists
+    if $(kubectl api-resources --no-headers --api-group=mariadb.amazee.io | grep mariadbconsumer -q); then
       SERVICE_TYPE="mariadb-shared"
       MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
     else
-      echo "defined mariadb-shared service broker class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
+      echo "defined mariadb-shared operator class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
       exit 1
     fi
 
@@ -127,12 +128,13 @@ do
     fi
 
     # Check if the defined service broker plan  exists
-    if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
+    # @TODO: how to check if the operator has any supported plans/environments or not. might not even be required as the build job will fail if the credentials aren't created in tim
+    # if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
         MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
-    else
-        echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
-        exit 1
-    fi
+    # else
+    #     echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
+    #     exit 1
+    # fi
   fi
 
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
@@ -397,12 +399,16 @@ do
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
   fi
 
-  OPENSHIFT_SERVICES_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/servicebroker.yml"
-  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+  HELM_CRD_TEMPLATE="templates/crd.yaml"
+  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_CRD_TEMPLATE ]; then
+    # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
     SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
     SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
-    . /kubectl-build-deploy/scripts/exec-kubernetes-create-servicebroker.sh
+    echo -e "\
+mariaDBConsumerEnvironment: ${SERVICEBROKER_PLAN}\n\
+" >> /kubectl-build-deploy/values.yaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_CRD_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -649,25 +655,25 @@ do
 	# We added a timeout of 10 minutes (120 retries) before exit
 	SERVICE_BROKER_COUNTER=1
 	SERVICE_BROKER_TIMEOUT=180
-        until kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-servicebroker-credentials
+        until kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials
         do
 	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
 		  let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
-		  echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
+		  echo "Secret ${SERVICE_NAME}-operator-credentials not available yet, waiting for 5 secs"
 		  sleep 5
 	  else
-		  echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-servicebroker-credentials reached"
+		  echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-operator-credentials reached"
 		  exit 1
 	  fi
         done
         # Load credentials out of secret
-        kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-servicebroker-credentials -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml
+        kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml
         set +x
-        DB_HOST=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_HOST | base64 -d)
-        DB_USER=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_USER | base64 -d)
-        DB_PASSWORD=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_PASSWORD | base64 -d)
-        DB_NAME=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_NAME | base64 -d)
-        DB_PORT=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml | shyaml get-value data.DB_PORT | base64 -d)
+        DB_HOST=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_HOST | base64 -d)
+        DB_USER=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_USER | base64 -d)
+        DB_PASSWORD=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_PASSWORD | base64 -d)
+        DB_NAME=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_NAME | base64 -d)
+        DB_PORT=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_PORT | base64 -d)
 
         # Add credentials to our configmap, prefixed with the name of the servicename of this servicebroker
         kubectl patch --insecure-skip-tls-verify \
