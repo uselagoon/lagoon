@@ -34,9 +34,6 @@ Common labels
 {{- define "nginx-php.labels" -}}
 helm.sh/chart: {{ include "nginx-php.chart" . }}
 {{ include "nginx-php.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
