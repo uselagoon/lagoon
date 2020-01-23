@@ -22,8 +22,7 @@ spec:
         - name: {{ include "nginx-php-persistent.fullname" . }}
           persistentVolumeClaim:
             claimName: {{ include "nginx-php-persistent.fullname" . }}
-      priorityClassName:
-        {{- include "nginx-php-persistent.lagoon-priority" . | nindent 8 }}
+      priorityClassName: {{ include "nginx-php.lagoon-priority" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
