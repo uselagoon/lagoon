@@ -49,6 +49,8 @@ spec:
               value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
           resources:
             requests:
               cpu: 10m
