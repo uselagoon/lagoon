@@ -15,7 +15,7 @@ services:
       - ./web:/app/web:delegated
     depends_on:
       - builder
-  varnish-myname:
+  varnish:
     networks:
       - amazeeio-network
       - default
@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: varnish.dockerfile
     labels:
-      lagoon.type: none
+      lagoon.type: varnish
       lagoon.name: varnish
     depends_on:
       - nginx
@@ -71,7 +71,7 @@ services:
       context: .
       dockerfile: redis.dockerfile
     labels:
-      lagoon.type: none
+      lagoon.type: redis
   solr:
     networks:
       - amazeeio-network
