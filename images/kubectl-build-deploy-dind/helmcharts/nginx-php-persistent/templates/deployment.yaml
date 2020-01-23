@@ -54,6 +54,9 @@ spec:
               value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
           volumeMounts:
             - name: {{ include "nginx-php-persistent.fullname" . }}
               mountPath: {{ .Values.persistentStoragePath | quote }}
@@ -78,14 +81,14 @@ spec:
               port: 9000
             initialDelaySeconds: 60
             periodSeconds: 10
-          # envFrom:
-          #   - configMapRef:
-          #       name: lagoon-env
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
           env:
-          #   # LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-          #   # This will cause the cli to redeploy on every deployment, even the files have not changed
-          #   - name: LAGOON_GIT_SHA
-          #     value: {{ .Values.LAGOON_GIT_SHA | quote }}
+            # LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            # This will cause the cli to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           volumeMounts:
