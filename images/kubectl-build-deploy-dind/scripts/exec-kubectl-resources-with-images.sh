@@ -28,5 +28,5 @@ if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep
 elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep image) ]]; then
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml --set cronjobs="${CRONJOBS_ONELINE}" | outputToYaml
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" "${HELM_SET_VALUES[@]}" -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml --set cronjobs="${CRONJOBS_ONELINE}" | outputToYaml
 fi
