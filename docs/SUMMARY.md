@@ -7,7 +7,7 @@
 * [Overview](using-lagoon/index.md)
 * [Local Development Environments](using-lagoon-the-basics/local-development-environments.md)
 * [Set Up a New Project](using-lagoon-the-basics/setup_project.md)
-* [Configure Webhooks](using-lagoon/configure-webhooks.md)
+* [Configure Webhooks](using-lagoon-the-basics/configure-webhooks.md)
 * [First Deployment](using-lagoon/first-deployment.md)
 * [lagoon.yml](using-lagoon/lagoon-yml.md)
 * [docker-compose.yml](using-lagoon/docker-compose-yml.md)
