@@ -9,7 +9,7 @@
 * [Set Up a New Project](using-lagoon-the-basics/setup_project.md)
 * [Configure Webhooks](using-lagoon-the-basics/configure-webhooks.md)
 * [First Deployment](using-lagoon-the-basics/first-deployment.md)
-* [lagoon.yml](using-lagoon-the-basics/lagoon-yml.md)
+* [.lagoon.yml](using-lagoon-the-basics/lagoon-yml.md)
 * [docker-compose.yml](using-lagoon-the-basics/docker-compose-yml.md)
 * [Build and Deploy Process](using-lagoon-the-basics/build-and-deploy-process.md)
 * [Going Live](using-lagoon-the-basics/going-live.md)

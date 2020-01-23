@@ -1,5 +1,7 @@
 # Build and Deploy Process
 
+This document describes what actually happens during a Lagoon build and deployment. It is heavily simplified from what actually happens, but it will help you to understand what is happening under the hood every time that Lagoon deploys new code for you.
+
 ## 1. Set up OpenShift Project/Kubernetes Namespace for Environment
 
 First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given environment exists and is correctly set up. It will make sure that we have the needed service accounts, create secrets, and will configure environment variables into a ConfigMap `lagoon-env` which is filled with information like the environment type and name, the Lagoon project name, and so on.
