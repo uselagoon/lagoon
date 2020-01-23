@@ -10,11 +10,11 @@ First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given
 
 Next, Lagoon will checkout your code from Git. It needs that to have access to read the `.lagoon.yml` and `docker-compose.yml` but also to build the Docker images.
 
-Based on how the deployment has been triggered different things will happen:
+Based on how the deployment has been triggered, different things will happen:
 
 ### **Branch Webhook Push**
 
-If the deployment is triggered via a webhook and is for a single branch, Lagoon will checkout the Git SHA which is included in the webhook. This means that even if you push code to the Git branch twice, there will be two deployments with exactly the code that was pushed, not just the newest code in the Git branch.
+If the deployment is triggered via a webhook and is for a single branch, Lagoon will check out the Git SHA which is included in the webhook. This means that even if you push code to the Git branch twice, there will be two deployments with exactly the code that was pushed, not just the newest code in the Git branch.
 
 ### **Branch REST trigger**
 
@@ -22,27 +22,27 @@ If you trigger a deployment via the REST API and do NOT define a `SHA` in the PO
 
 ### **Pull Requests**
 
-If the deployment is a pull request deployment, Lagoon will load the base and the head branch and SHAs for the pull request and will:
+If the deployment is a pull request deployment, Lagoon will load the base and the HEAD branch and SHAs for the pull request and will:
 
 * Checkout the base branch \(the branch the pull request points to\).
-* Merge the head branch \(the branch that the pull request originates from\) on top of the base branch.
+* Merge the HEAD branch \(the branch that the pull request originates from\) on top of the base branch.
 * **More specifically:**
-  * Lagoon will checkout and merge particular SHAs which were sent in the webhook. Those SHAs may or _may not_ point to the branch HEADs. For example, if you make a new push to a GitHub PR, it can happen that SHA of the base branch will _not_ point to the current base branch HEAD.
+  * Lagoon will checkout and merge particular SHAs which were sent in the webhook. Those SHAs may or _may not_ point to the branch HEADs. For example, if you make a new push to a GitHub pull request, it can happen that SHA of the base branch will _not_ point to the current base branch HEAD.
 
 If the merge fails, Lagoon will also stop and inform you about this.
 
 ## 3. Build Image
 
-For each service defined in the `docker-compose.yml` Lagoon will check if images need to be built or not. If they need to be built, this will happen now. The order of building is based on the order they are configured in `docker-compose.yml` and some build arguments are injected:
+For each service defined in the `docker-compose.yml` Lagoon will check if images need to be built or not. If they need to be built, this will happen now. The order of building is based on the order they are configured in `docker-compose.yml` , and some build arguments are injected:
 
 * `LAGOON_GIT_SHA`
 * `LAGOON_GIT_BRANCH`
 * `LAGOON_PROJECT`
 * `LAGOON_BUILD_TYPE` \(either `pullrequest`, `branch` or `promote`\)
-* `LAGOON_SSH_PRIVATE_KEY` - the SSH private key that is used to clone the source repository, use `RUN /lagoon/entrypoints/05-ssh-key.sh` to convert the build argument into an actual key at `/home/.ssh/key` which will be used by SSH and Git automatically. For safety, remove the key again via `RUN rm /home/.ssh/key`
-* `LAGOON_GIT_SOURCE_REPOSITORY` - the full Git URL of the source repository
+* `LAGOON_SSH_PRIVATE_KEY` - The SSH private key that is used to clone the source repository. Use `RUN /lagoon/entrypoints/05-ssh-key.sh` to convert the build argument into an actual key at `/home/.ssh/key` which will be used by SSH and Git automatically. For safety, remove the key again via `RUN rm /home/.ssh/key`.
+* `LAGOON_GIT_SOURCE_REPOSITORY` - The full Git URL of the source repository.
 
-Plus if this is a pull **r**equest build:
+Also, if this is a pull request build:
 
 * `LAGOON_PR_HEAD_BRANCH`
 * `LAGOON_PR_HEAD_SHA`
@@ -74,15 +74,15 @@ For services that didn't specify a Dockerfile to be built in `docker-compose.yml
 
 Lagoon will now create persistent storage \(PVC\) for each service that needs and requested persistent storage.
 
-## 7. Cronjobs
+## 7. Cron jobs
 
-For each service that requests a cronjob \(like the MariaDB\), plus for each custom cronjob defined in `.lagoon.yml,` Lagoon will now generate the cronjob environment variables which are later injected into the DeploymentConfigs.
+For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the DeploymentConfigs.
 
 ## 8. DeploymentConfigs, Statefulsets, Deamonsets
 
 This is probably the most important step. Based on the defined service type, Lagoon will create the DeploymentConfigs, Statefulset or Daemonsets for the service.
 
-It will include all previously gathered information like the cronjobs, the location of persistent storage, the pushed images and so on.
+It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 
 Creation of these objects will also automatically cause OpenShift/Kubernetes to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you just update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
 
@@ -100,5 +100,5 @@ If any of them fail, Lagoon will immediately stop and notify you.
 
 ## 11. Success
 
-If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications.
+If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅ 
 
