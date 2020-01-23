@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redis-persistant.fullname" . }}
+  name: {{ include "redis-persistent.fullname" . }}
   labels:
-    {{- include "redis-persistant.labels" . | nindent 4 }}
+    {{- include "redis-persistent.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "redis-persistant.selectorLabels" . | nindent 6 }}
+      {{- include "redis-persistent.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "redis-persistant.selectorLabels" . | nindent 8 }}
+        {{- include "redis-persistent.selectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
