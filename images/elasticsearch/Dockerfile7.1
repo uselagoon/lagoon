@@ -42,6 +42,7 @@ xpack.ml.enabled: "${XPACK_ML_ENABLED}"\n\
 xpack.watcher.enabled: "${XPACK_WATCHER_ENABLED}"\n\
 xpack.security.enabled: "${XPACK_SECURITY_ENABLED}"\n\
 processors: "${PROCESSORS}"\n\
+cluster.routing.allocation.disk.threshold_enabled: "true"\n\
 cluster.remote.connect: "${CLUSTER_REMOTE_CONNECT}"' >> config/elasticsearch.yml
 
 RUN fix-permissions config
