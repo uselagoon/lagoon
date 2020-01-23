@@ -179,7 +179,7 @@
   serial: 1
   vars:
     url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
-    expected_returncode: 503
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -188,7 +188,7 @@
   serial: 1
   vars:
     url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
-    expected_returncode: 503
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -245,6 +245,6 @@
   serial: 1
   vars:
     url: "http://nginx-{{ project | regex_replace('_', '-') }}.foo-bar.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
-    expected_returncode: 503
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

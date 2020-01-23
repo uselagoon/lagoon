@@ -26,6 +26,9 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
           ports:
             - name: http
               containerPort: 8080

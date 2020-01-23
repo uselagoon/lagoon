@@ -432,6 +432,9 @@ services :=       api \
 									openshiftmisc \
 									openshiftremove \
 									kubernetesbuilddeploy \
+									kubernetesdeployqueue \
+									kubernetesbuilddeploymonitor \
+									kubernetesremove \
 									webhook-handler \
 									webhooks2tasks \
 									broker \
@@ -481,7 +484,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -563,7 +566,8 @@ all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 .PHONY: k8s-tests
 k8s-tests: $(all-k8s-tests)
 
-$(all-k8s-tests): build/kubectl-build-deploy-dind kubernetes-test-services-up k3d
+.PHONY: $(all-k8s-tests)
+$(all-k8s-tests): k3d kubernetes-test-services-up
 		$(eval testname = $(subst k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
@@ -600,7 +604,7 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy tests-kubernetes local-registry
+kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesremove tests-kubernetes local-registry
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks
@@ -966,17 +970,23 @@ else
 	chmod a+x local-dev/kubectl
 endif
 
-k3d: local-dev/k3d local-dev/kubectl build/docker-host build/kubectl-build-deploy-dind
+k3d: local-dev/k3d local-dev/kubectl build/docker-host
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
 	if ! ifconfig lo0 | grep $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}') -q; then sudo ifconfig lo0 alias $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}'); fi
 endif
-	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME) --image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 --volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml
+	./local-dev/k3d create --wait 0 --publish 18080:80 \
+		--publish 18443:443 \
+		--api-port 16643 \
+		--name $(K3D_NAME) \
+		--image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 \
+		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
+		-x --no-deploy=traefik \
+		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind; \
 	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind,lagoon/docker-host; \
+	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/docker-host; \
 	local-dev/kubectl create namespace lagoon; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
@@ -1000,13 +1010,17 @@ else
 	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
 endif
 	touch $@
+	$(MAKE) push-kubectl-build-deploy-dind
+
+.PHONY: push-kubectl-build-deploy-dind
+push-kubectl-build-deploy-dind: build/kubectl-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
+	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
 
 .PHONY: rebuild-push-kubectl-build-deploy-dind
 rebuild-push-kubectl-build-deploy-dind:
 	rm -rf build/kubectl-build-deploy-dind
-	$(MAKE) build/kubectl-build-deploy-dind
-	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+	$(MAKE) push-kubectl-build-deploy-dind
 
 k3d-kubeconfig:
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"
