@@ -115,13 +115,13 @@ const messageConsumer = async msg => {
     let buildImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
     if (CI == "true") {
-      buildImage = "oc-build-deploy-dind:latest"
+      buildImage = "lagoon/kubectl-build-deploy-dind:latest"
     } else if (overwriteKubectlBuildDeployDindImage) {
       // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
       buildImage = overwriteKubectlBuildDeployDindImage
     } else if (lagoonEnvironmentType == 'production') {
       // we are a production environment, use the amazeeio/ image with our current lagoon version
-      buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
+      buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
     } else {
       // we are a development enviornment, use the amazeeiolagoon image with the same branch name
       buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
