@@ -494,7 +494,7 @@ build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
-build/broker: build/rabbitmq-cluster
+build/broker: build/rabbitmq-cluster build/broker-single
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
