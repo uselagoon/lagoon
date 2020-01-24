@@ -1,5 +1,6 @@
 // @flow
 const got = require('got');
+const R = require('ramda');
 
 const { HARBOR_ADMIN_PASSWORD } = process.env;
 

@@ -9,6 +9,8 @@ const Helpers = require('./helpers');
 const Sql = require('./sql');
 const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
+const harborClient = require('../../clients/harborClient');
+const createHarborOperations = require('./harborSetup');
 
 /* ::
 
@@ -472,6 +474,10 @@ const addOrUpdateEnvironment = async (
 
   const rows = await query(sqlClient, prep(input));
   const environment = R.path([0, 0], rows);
+
+  const harborOperations = createHarborOperations(sqlClient);
+
+  const harborResults = await harborOperations.addEnvironment(environment.openshiftProjectName, environment.id)
 
   return environment;
 };
