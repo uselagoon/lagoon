@@ -100,7 +100,7 @@ const typeDefs = gql`
     ZAR
   }
 
-  enum DeploymentTargets {
+  enum ClusterType {
     KUBERNETES
     OPENSHIFT
   }
@@ -166,9 +166,32 @@ const typeDefs = gql`
     billingSoftware: String
   }
 
-  type DeploymentTarget {
+  interface ClusterInterface {
     id: Int
-    name: String
+    name: String # Must be unique
+    type: ClusterType
+  }
+
+  type OpenShift implements ClusterInterface {
+    id: Int
+    name: String # Must be unique
+    type: ClusterType
+    projects: [Project] #openshift calls these namespaces?
+    consoleUrl: String
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    created: String
+  }
+
+  # Alpha - Kubernetes may have different fields - Just for discussion
+  type Kubernetes implements ClusterInterface {
+    id: Int
+    name: String # Must be unique
+    type: ClusterType
+    projects: [Project] #namespaces based on project name?
     consoleUrl: String
     token: String
     routerPattern: String
@@ -221,9 +244,14 @@ const typeDefs = gql`
     """
     id: Int
     """
-    Name of project
+    Name of project - Must be globally unique
     """
+    # Internal Note - Change to require globally unique to be used for Openshift project & Kubernetes namespace
     name: String
+    """
+    Display Name of project
+    """
+    displayName: String
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@192.168.42.1/project1.git
@@ -252,26 +280,33 @@ const typeDefs = gql`
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType): [Notification]
-    """
-    Which internal Lagoon System is responsible for deploying
-    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
-    """
-    activeSystemsDeploy: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
-    """
-    activeSystemsPromote: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
-    """
-    activeSystemsRemove: String
-    """
-    Which internal Lagoon System is responsible for tasks
-    'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
-    """
-    activeSystemsTask: String
+
+
+        # Can we derive these based on the Cluster Type, branch, name?
+        
+        # """
+        # Which internal Lagoon System is responsible for deploying
+        # 'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
+        # """
+        # activeSystemsDeploy: String
+        # """
+        # Which internal Lagoon System is responsible for promoting
+        # 'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
+        # """
+        # activeSystemsPromote: String
+        # """
+        # Which internal Lagoon System is responsible for promoting
+        # 'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
+        # """
+        # activeSystemsRemove: String
+        # """
+        # Which internal Lagoon System is responsible for tasks
+        # 'lagoon_kubernetesBuildDeploy' | 'lagoon_openshiftBuildDeploy'
+        # """
+        # activeSystemsTask: String
+
+
+
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -302,11 +337,16 @@ const typeDefs = gql`
     """
     Reference to the Deployment Target (Kubernetes|OpenShift) Object this Project should be deployed to
     """
-    deploymentTarget: DeploymentTarget
-    """
-    Namespace-Environment pattern for Kubernetes (OpenShift Project) that should be generated, default: \`$\{project}-$\{environmentname}\`
-    """
-    namespaceEnvironment: String
+    cluster: Cluster
+
+    # Is this needed anymore? Feels a bit confusing and not super DX friendly. Can we derive this in code?
+
+    # """
+    # Namespace-Environment pattern for Kubernetes (OpenShift Project) that should be generated, default: \`$\{project}-$\{environmentname}\`
+    # """
+    # namespaceEnvironment: String
+
+
     """
     How many environments can be deployed at one timeout
     """
@@ -333,7 +373,7 @@ const typeDefs = gql`
     """
     envVariables: [EnvKeyValue]
     """
-    Which groups are directly linked to project
+    Which groups are directly linked to a project
     """
     groups: [GroupInterface]
   }
@@ -354,6 +394,10 @@ const typeDefs = gql`
     Reference to the Project Object
     """
     project: Project
+    """
+    Reference to the Project Object
+    """
+    cluster: ClusterInterface
     """
     Which Deployment Type this environment is, can be \`branch\`, \`pullrequest\`, \`promote\`
     """
@@ -518,6 +562,10 @@ const typeDefs = gql`
     """
     projectByName(name: String!): Project
     """
+    Returns Project Object by a display name
+    """
+    projectByDisplayName(name: String!): Project
+    """
     Returns Group Object by a given name
     """
     groupByName(name: String!): Group
@@ -525,11 +573,15 @@ const typeDefs = gql`
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
+    environmentById(name: String!, project: Int!): Environment
+    """
+    Returns Environment Object by a given names
+    """
     environmentByName(name: String!, project: Int!): Environment
     """
-    Returns Environment Object by a given namespace
+    Returns Environment Object by a Cluster Name
     """
-    environmentByDeploymentTargetName(name: String!): Environment
+    environmentsByClusterName(name: String!): [Environment]
     userCanSshToEnvironment(deploymentTargetName: String): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
