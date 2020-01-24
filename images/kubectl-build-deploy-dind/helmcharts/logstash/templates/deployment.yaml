@@ -27,8 +27,6 @@ spec:
           image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
-            - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
           envFrom:
