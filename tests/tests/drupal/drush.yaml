@@ -122,7 +122,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -151,7 +151,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -178,7 +178,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
@@ -187,7 +187,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
@@ -244,7 +244,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.foo-bar.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.foo-bar.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
