@@ -6,35 +6,47 @@ description: There are several services available for our Drupal Lagoon images.
 
 {% tabs %}
 {% tab title="MariaDB" %}
-About MariaDB
+MariaDB is the open-source successor to MySQL.
 
-About MariaDB in Drupal
+[Learn about MariaDB with Drupal](mariadb.md)
 
-About MariaDB images
+[Documentation on the MariaDB-Drupal image.](../../docker-images/mariadb/mariadb-drupal.md)
+
+[Documentation on the plain MariaDB image](../../docker-images/mariadb/) \(the MariaDB-Drupal image is built on this\).
 {% endtab %}
 
 {% tab title="Solr" %}
-About Solr
+ Solr is an open-source search platform.
 
-About Solr in Drupal
+Learn about Solr with Drupal.
 
-About Solr images
+[Documentation on the Solr-Drupal image.](../../docker-images/solr/solr-drupal.md)
+
+[Documentation on the plain Solr image](../../docker-images/solr/) \(the Solr-Drupal image is built on this\).
 {% endtab %}
 
 {% tab title="Varnish" %}
-About Varnish
+Varnish is a powerful, open-source HTTP engine and reverse HTTP proxy that helps to speed up your website. 
 
-[About Varnish in Drupal](./)
+[Learn about Varnish with Drupal](varnish.md)
 
-About Varnish images
+[Documentation on the Varnish-Drupal image.](../../docker-images/varnish/varnish-drupal.md)
+
+[Documentation on the plain Varnish image](../../docker-images/varnish/) \(the Varnish-Drupal image is built on this\).
 {% endtab %}
 
 {% tab title="Redis" %}
-About Redis
+Redis is a fast, open-source, in-memory key-value data store for use as a database, cache, message broker, and queue.
 
-About Redis in Drupal
+Learn about Redis with Drupal.
 
-About Redis images
+Documentation on the Redis-Drupal image.
+
+[Documentation on the plain Redis image](../../docker-images/varnish/) \(the Redis-Drupal image is built on this\).
+
+[Documentation on the Redis-persistent image.](../../docker-images/redis/redis-persistent.md)
 {% endtab %}
 {% endtabs %}
+
+
 
