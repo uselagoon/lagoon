@@ -18,6 +18,10 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+      volumes:
+        - name: {{ .Values.persistentStorage.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentStorage.name }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -44,6 +48,9 @@ spec:
           readinessProbe:
             tcpSocket:
               port: http
+          volumeMounts:
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
