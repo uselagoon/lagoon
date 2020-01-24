@@ -4,7 +4,9 @@ const { logger } = require('./local-logging');
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
+
 let channelWrapperLogs;
+
 exports.initSendToLagoonLogs = initSendToLagoonLogs;
 exports.sendToLagoonLogs = sendToLagoonLogs;
 
@@ -68,9 +70,4 @@ async function sendToLagoonLogs(
       `lagoon-logs: Error send to rabbitmq lagoon-logs exchange, error: ${error}`,
     );
   }
-}
-
-module.exports = {
-  sendToLagoonLogs,
-  initSendToLagoonLogs
 }
