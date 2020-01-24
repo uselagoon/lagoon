@@ -16,7 +16,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-
 podSecurityContext: {}
   # fsGroup: 2000
 
