@@ -14,24 +14,24 @@ Lagoon provides access to the following logs via Kibana:
   * Container name
   * Response size
   * Response time
-* Logs from containers
+* Logs from containers:
   * `stdout` and `stderr` messages
   * Container name
   * Project
-* Lagoon logs
+* Lagoon logs:
   * Webhooks parsing
   * Build logs
   * Build errors
-  * Any other Lagoon relatedlLogs
-* Application logs
+  * Any other Lagoon related logs
+* Application logs:
   * Any logs sent by the running application
   * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
 
 To access the logs, please check with your Lagoon administrator to get the URL for the Kibana route \(for amazee.io this is [https://logs-db-ui-lagoon-master.ch.amazee.io/](https://logs-db-ui-lagoon-master.ch.amazee.io/)\).
 
-Each Lagoon account has their own login and will see the logs only for the projects that they have access to.
+Each Lagoon account has their own login and will see the logs only for the projects to which they have access.
 
-Also each account has their own **Kibana Tenant**, which means no saved searches or visualizations are shared with another account.
+Each account also has their own **Kibana Tenant**, which means no saved searches or visualizations are shared with another account.
 
-If you would like to know more on how to use Kibana: [https://www.elastic.co/webinars/getting-started-kibana](https://www.elastic.co/webinars/getting-started-kibana)
+If you would like to know more about how to use Kibana: [https://www.elastic.co/webinars/getting-started-kibana](https://www.elastic.co/webinars/getting-started-kibana).
 

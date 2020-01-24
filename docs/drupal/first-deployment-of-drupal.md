@@ -10,11 +10,11 @@ description: >-
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) and you have set up the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guides](../) which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../using-lagoon-the-basics/setup_project.md) and you have set up the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guide](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
 
 ## 2. Push!
 
-With Lagoon you create a new deployment with just pushing into a branch that is configured to be deployed.
+With Lagoon, you create a new deployment by just pushing into a branch that is configured to be deployed.
 
 If you don't have any new code to push, don't worry, just run
 
@@ -23,23 +23,23 @@ git commit --allow-empty -m "go, go! Power Rangers!"
 git push
 ```
 
-This will trigger a push and the Git hosting should inform Lagoon about this push via the configured webhook.
+This will trigger a push, and the Git hosting will inform Lagoon about this push via the configured webhook.
 
-If all is correct, you should see a notification in your configured chat system \(this is configured by your friendly Lagoon Administrator\):
+If all is correct, you will see a notification in your configured chat system \(this is configured by your friendly Lagoon administrator\):
 
 ![Slack notification of a deployment starting.](../.gitbook/assets/first_deployment_slack_start.jpg)
 
-This tells you that Lagoon just started to deploy your code. Depending on the size of the code and amount of containers this will take a couple of seconds. Just relax. If you'd like to know whats happening now, check out the [Deployment & Build Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md)
+This tells you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the[ Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 
 ## 4. A fail
 
-Depending of your post-rollout tasks inside `.lagoon.yml` you might have run some tasks like `drush updb` or `drush cr`. These Drush tasks depend on a database existing within the environment, which obviously does not exist yet. Let's fix that! Keep reading.
+Depending on the post-rollout tasks defined in `.lagoon.yml` , you might have run some tasks like `drush updb` or `drush cr`. These Drush tasks depend on a database existing within the environment, which obviously does not exist yet. Let's fix that! Keep reading.
 
 ## 5. Synchronize local database to the remote Lagoon environment
 
-With full Drush site alias support in Lagoon it is super easy to synchronize a local database with the remote Lagoon environment.
+With full Drush site alias support in Lagoon, it is super easy to synchronize a local database with the remote Lagoon environment.
 
 {% hint style="warning" %}
 You may have to tell pygmy about your public keys before the next step.
@@ -47,7 +47,7 @@ You may have to tell pygmy about your public keys before the next step.
 If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
 {% endhint %}
 
-First let's make sure that you can see the Drush Site Aliases:
+First let's make sure that you can see the Drush site aliases:
 
 ```bash
 drush sa
@@ -62,7 +62,7 @@ This should return your just deployed environment \(let's assume you just pushed
 default
 ```
 
-With this we can now synchronize the local database \(which is represented in drush via the site alias `@self`\) with the remote one \(`@develop`\):
+With this we can now synchronize the local database \(which is represented in Drush via the site alias `@self`\) with the remote one \(`@develop`\):
 
 ```bash
 drush sql-sync @self @develop
@@ -94,9 +94,9 @@ This time all should be green:
 
 ![Deployment Success!](../.gitbook/assets/first_deployment_slack_success.jpg)
 
-Click on the links and you should see your Drupal site loaded in all its beauty, just most probably without iamge, which we will handle in Step 6.
+Click on the links in the notification, and you should see your Drupal site loaded in all its beauty! It will   probably not have images yet, which we will handle in [Step 6](first-deployment-of-drupal.md#6-synchronize-local-files-to-the-remote-lagoon-environment).
 
-If it is still failing, check the `Logs` link for more information.
+If it is still failing, check the logs link for more information.
 
 ## 6. Synchronize local files to the remote Lagoon environment
 
@@ -115,8 +115,6 @@ Do you really want to continue? (y/n): y
 ```
 
 In some cases, though, it might not look correct, like here:
-
-💡 _Tip: Scroll to the right to see the whole command!_
 
 ```text
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
@@ -149,6 +147,6 @@ That's the beauty of Lagoon: it's exactly the same: Just push the branch name yo
 
 Did the deployment fail? Oh no! But we're here to help:
 
-1. Click on the `Logs` Link in the error notification, it will tell you where in the deployment process the failure happened.
-2. If you can't figure it out, just ask your Lagoon support, they are definitely here to help!
+1. Click on the `logs` link in the error notification. It will tell you where in the deployment process the failure happened.
+2. If you can't figure it out, just ask your Lagoon support, they are here to help!
 

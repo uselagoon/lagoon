@@ -1,10 +1,9 @@
 # Redis
 
-We recommend using [Redis](https://redis.io/) for internal caching. Add the Redis service to `docker-compose.yaml`.
+We recommend using [Redis](https://redis.io/) for internal caching. Add the redis
+service to `docker-compose.yaml`.
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```
   redis:
     image: amazeeio/redis
     labels:
@@ -13,16 +12,12 @@ We recommend using [Redis](https://redis.io/) for internal caching. Add the Redi
     environment:
       << : *default-environment
 ```
-{% endtab %}
-{% endtabs %}
 
 Also, to configure Redis, add the following to your `settings.php`.
 
-### Drupal 7
 
-{% tabs %}
-{% tab title="settings.php" %}
-```php
+### Drupal 7
+```
 if(getenv('LAGOON')){
   $conf['redis_client_interface'] = 'PhpRedis';
   $conf['redis_client_host'] = 'redis';
@@ -34,18 +29,14 @@ if(getenv('LAGOON')){
   $conf['cache_class_cache_field'] = 'DrupalDatabaseCache';
 }
 ```
-{% endtab %}
-{% endtabs %}
 
 Depending on file system structure, the module paths may need to be updated.
 
 ### Drupal 8
 
-The Drupal 8 config is largely stock. Notably, Redis is disabled while Drupal is being installed.
+The Drupal 8 config is largely stock. Notably, Redis is disabled while drupal is being installed.
 
-{% tabs %}
-{% tab title="settings.php" %}
-```php
+```
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
@@ -56,7 +47,7 @@ if (getenv('LAGOON')){
   if (!drupal_installation_attempted() && extension_loaded('redis')) {
     $settings['cache']['default'] = 'cache.backend.redis';
 
-    // And allows to use it without the Redis module being enabled.
+    // And allows to use it without the redis module being enabled.
     $class_loader->addPsr4('Drupal\\redis\\', 'modules/contrib/redis/src');
 
     $settings['bootstrap_container_definition'] = [
@@ -86,16 +77,12 @@ if (getenv('LAGOON')){
   }
 }
 ```
-{% endtab %}
-{% endtabs %}
 
 ### Persistent
 
 Redis can also be configured as a persistent backend.
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```
 redis:
   image: amazeeio/redis-persistent
   labels:
@@ -103,16 +90,12 @@ redis:
   environment:
     << : *default-environment
 ```
-{% endtab %}
-{% endtabs %}
 
 ## Environment Variables
-
 Environment variables are meant to store some common information about Redis.
 
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `LOGLEVEL` | `notice` | Redis loglevel |
-| `DATABASES` | `1` | Number of databases |
-| `MAXMEMORY` | `100mb` | Maximum memory usage of Redis |
-
+| Environment Variable   | Default   | Description                                    |
+| -----------------------| --------- | ---------------------------------------------- |
+| `LOGLEVEL`             | `notice`  | Redis loglevel                                 |
+| `DATABASES`            | `1`       | Number of databases                            |
+| `MAXMEMORY`            | `100mb`   | Maximum memory usage of Redis                  |

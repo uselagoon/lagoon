@@ -10,14 +10,17 @@ Make sure that you have selected your tenant before starting! You can do that by
 
 ## Router Logs
 
-Below you'll find examples for two common log requests: Viewing the total number of hits/requests to your site and viewing the number of hits/requests from a specific IP address. Let's start with the first one, viewing the total number of hits/requests to your site.
+Below you'll find examples for two common log requests: 
+
+* Viewing the total number of hits/requests to your site.
+* Viewing the number of hits/requests from a specific IP address. 
 
 ### Total Number of hits/requests to your site
 
 * Let's start Kibana up and select `Discovery` \(\#1 in screen shot below\)
-* Then the Router logs for your project\(\#2\).
-* From there, we will filter some of this information down a bit. Let's focus on our main production environment. I
-* In the search bar \(\#3\), let's enter:
+* Then the router logs for your project\(\#2\).
+* From there, we will filter some of this information down a bit. Let's focus on our main production environment.
+* In the search bar \(\#3\), enter:
 
   `openshift_project: "name of your production project"`
 
@@ -57,10 +60,7 @@ Want to see the logs for a specific container \(php, nginx, etc\)? This section 
 
 * We start by opening up Kibana and selecting Discover \(\#1 in the screen shot below\).
 * From there, we select the container logs for our project \(\#2\).
-* Let's go to the search bar \(\#3\) and enter:
-
-  `kubernetes.container_name: "nginx"`
-
+* Let's go to the search bar \(\#3\) and enter: `kubernetes.container_name: "nginx"`
 * This will display all Nginx logs for our project.
 * Clicking on the arrow next to an entry \(\#4\) will expand that entry and show you all of the information it gathered.
 * Let's add the message field and the level field to the view. You can do that by clicking on "Add" on the left hand side \(\#5\).
@@ -70,7 +70,7 @@ Want to see the logs for a specific container \(php, nginx, etc\)? This section 
 
 ### Specific errors in logs
 
-Want to see how many 500 Internal Server errors you've had in your Nginx container? You can easily do that by changing the search query. If you search:
+Want to see how many 500 Internal Server errors you've had in your Nginx container? You can do that by changing the search query. If you search:
 
 `kubernetes.container_name: "nginx" AND message: "500"`
 

@@ -15,22 +15,10 @@ MariaDB is the open-source successor to MySQL.
 [Documentation on the plain MariaDB image](../../docker-images/mariadb/) \(the MariaDB-Drupal image is built on this\).
 {% endtab %}
 
-{% tab title="Redis" %}
-Redis is a fast, open-source, in-memory key-value data store for use as a database, cache, message broker, and queue.
-
-[Learn about Redis with Drupal.](redis.md)
-
-Documentation on the Redis-Drupal image.
-
-[Documentation on the plain Redis image](../../docker-images/varnish/) \(the Redis-Drupal image is built on this\).
-
-[Documentation on the Redis-persistent image.](../../docker-images/redis/redis-persistent.md)
-{% endtab %}
-
 {% tab title="Solr" %}
  Solr is an open-source search platform.
 
-[Learn about Solr with Drupal.](solr.md)
+Learn about Solr with Drupal.
 
 [Documentation on the Solr-Drupal image.](../../docker-images/solr/solr-drupal.md)
 
@@ -45,6 +33,18 @@ Varnish is a powerful, open-source HTTP engine and reverse HTTP proxy that helps
 [Documentation on the Varnish-Drupal image.](../../docker-images/varnish/varnish-drupal.md)
 
 [Documentation on the plain Varnish image](../../docker-images/varnish/) \(the Varnish-Drupal image is built on this\).
+{% endtab %}
+
+{% tab title="Redis" %}
+Redis is a fast, open-source, in-memory key-value data store for use as a database, cache, message broker, and queue.
+
+Learn about Redis with Drupal.
+
+Documentation on the Redis-Drupal image.
+
+[Documentation on the plain Redis image](../../docker-images/varnish/) \(the Redis-Drupal image is built on this\).
+
+[Documentation on the Redis-persistent image.](../../docker-images/redis/redis-persistent.md)
 {% endtab %}
 {% endtabs %}
 
