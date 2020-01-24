@@ -46,12 +46,6 @@ services:
       - "8080"
     environment:
       - AMAZEEIO_URL=nginx-basic-auth-disable.docker.amazee.io
-  cli:
-    build:
-      context: .
-      dockerfile: basic-auth-disable.dockerfile
-    labels:
-      lagoon.type: cli
 networks:
   amazeeio-network:
     external: true
