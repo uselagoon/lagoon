@@ -7,7 +7,7 @@ replicaCount: 1
 image: ""
 environmentType: production
 persistentStorage:
-  # name: "mariadb-data" #don't use this, use the fullname and append -data to it in pvc.yaml so that if one or more are deployed there is no clash
+  # name: "mariadb" #don't use this, use the fullname and append -data to it in pvc.yaml so that if one or more are deployed there is no clash
   size: 5Gi
   path: "/var/lib/mysql"
 
