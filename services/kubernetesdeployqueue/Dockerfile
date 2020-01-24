@@ -24,6 +24,4 @@ RUN yarn check --verify-tree
 # Making sure we run in production
 ENV NODE_ENV production
 
-RUN ls -lisa; pwd
-
 CMD ["yarn", "start"]

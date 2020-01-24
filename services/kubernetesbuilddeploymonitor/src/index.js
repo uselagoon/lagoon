@@ -1,5 +1,3 @@
-// @flow
-
 const promisify = require('util').promisify;
 const kubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
@@ -109,14 +107,44 @@ const messageConsumer = async msg => {
       throw new Error
     }
   } catch (err) {
-    // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
-    if (err.code == 404) {
-      logger.error(`Project ${openshiftProject} does not exist, bailing`)
-      return
-    } else {
-      logger.error(err)
-      throw new Error
+
+    // Check if project exists
+    try {
+      const namespacesSearch = promisify(kubernetes.namespaces.get);
+      const namespacesResult = await namespacesSearch({
+        qs: {
+          fieldSelector: `metadata.name=${openshiftProject}`
+        }
+      });
+      const namespaces = R.propOr([], 'items', namespacesResult);
+
+      // An empty list means the namespace does not exist and we assume it's already removed
+      if (R.isEmpty(namespaces)) {
+        logger.info(
+          `${openshiftProject} does not exist, assuming it was removed`
+        );
+        sendToLagoonLogs(
+          'success',
+          projectName,
+          '',
+          'task:remove-kubernetes:finished',
+          meta,
+          `*[${projectName}]* remove \`${openshiftProject}\``
+        );
+
+        // Update GraphQL API that the Environment has been deleted
+        await deleteEnvironment(environmentName, projectName, false);
+        logger.info(
+          `${openshiftProject}: Deleted Environment '${environmentName}' in API`
+        );
+
+        return; // we are done here
+      }
+    } catch (err) {
+      logger.error(err);
+      throw new Error();
     }
+
   }
 
   let jobInfo;
@@ -204,35 +232,11 @@ ${podLog}`;
   }
 
   switch (buildPhase) {
-    case "new":
-    case "pending":
-      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` not yet started`
-      )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` not yet started`)
-      break;
-
-    case "running":
+    case "active":
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${jobName}\` running`
       )
       throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` running`)
-      break;
-
-    case "cancelled":
-    case "error":
-      try {
-        const buildLog = await jobsLogGet()
-        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
-      } catch (err) {
-        logger.warn(`${openshiftProject} ${jobName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
-      }
-      sendToLagoonLogs('warn', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` cancelled. <${logLink}|Logs>`
-      )
       break;
 
     case "failed":
@@ -251,7 +255,7 @@ ${podLog}`;
       )
       break;
 
-    case "complete":
+    case "succeeded":
       try {
         const buildLog = await jobsLogGet()
         const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
