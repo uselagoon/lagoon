@@ -21,14 +21,16 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name | quote }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image }}"
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          image: {{ .Values.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | quote }}
           env:
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
+            - name: SERVICE_NAME
+              value: {{ .Release.Name | quote }}
           envFrom:
             - configMapRef:
                 name: lagoon-env
@@ -41,10 +43,12 @@ spec:
               port: 9600
             initialDelaySeconds: 15
             timeoutSeconds: 1
+            periodSeconds: 10
           readinessProbe:
             tcpSocket:
               port: 9600
             initialDelaySeconds: 120
+            timeoutSeconds: 1
             periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
