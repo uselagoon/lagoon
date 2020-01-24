@@ -95,7 +95,7 @@ const messageConsumer = async msg => {
   
   // Check if project exists
   try {
-    const namespacesSearch = promisify(kubernetes.namespaces.get);
+    const namespacesSearch = promisify(kubernetesCore.namespaces.get);
     const namespacesResult = await namespacesSearch({
       qs: {
         fieldSelector: `metadata.name=${openshiftProject}`
