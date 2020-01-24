@@ -52,6 +52,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create a PriorityClassName.
 (this is based on the Lagoon Environment Type)).
 */}}
-{{- define "nginx-php.lagoon-priority" -}}
+{{- define "logstash.lagoon-priority" -}}
 {{- printf "lagoon-priority-%s" .Values.environmentType }}
 {{- end -}}
