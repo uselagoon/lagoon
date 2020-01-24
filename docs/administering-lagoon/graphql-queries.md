@@ -2,7 +2,7 @@
 
 ## Running GraphQL queries
 
-Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
+Direct API interactions in Lagoon are done via GraphQL.
 
 In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI or `oc rsh` on the command line and run the following command:
 
@@ -10,7 +10,7 @@ In order to authenticate with the API, we need a JWT \(JSON Web Token\) that all
 ./create_jwt.sh
 ```
 
-This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
+This will return a long string which is the JWT token. Make a note of this as we will need it to send queries.
 
 We also need the URL of the API endpoint, which can be found under "Routes" in the OpenShift UI or `oc get route api` on the command line. Make a note of this endpoint URL, which we will also need.
 
@@ -33,7 +33,7 @@ query allProjects{
 }
 ```
 
-And press the ▶️button \(or press CTRL+ENTER\).
+And press the ▶️ button \(or press CTRL+ENTER\).
 
 If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
 
@@ -43,15 +43,15 @@ Let's create the first project for Lagoon to deploy! For this we'll use the quer
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `openshift` : The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
-2. `project` : The Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
+1. `openshift` The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift but also to any OpenShift anywhere in the world.
+2. `project` The project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
 
-In Lagoon, each developer authenticates via their SSH key\(s\). This determines their access to:
+In Lagoon each developer authenticates via their SSH key\(s\). This determines their access to:
 
-1. The Lagoon API, where they can see and edit projects they have access to.
-2. Remote shell access to containers that are running in projects they have access to.
+1. The Lagoon API, where they can see and edit projects they have access to
+2. Remote shell access to containers that are running in projects they have access to
 3. The Lagoon logging system, where a developer can find request logs, container logs, Lagoon logs and more.
 
 To allow access to the project, we first need to add a new group to the API:
@@ -60,7 +60,7 @@ To allow access to the project, we first need to add a new group to the API:
 mutation {
   addGroup (
     input: {
-      # TODO: Enter the name for your new group.
+      # TODO: Enter the name for your new group
       name: ""
     }
   )     {
@@ -70,7 +70,7 @@ mutation {
 }
 ```
 
-Then we need to add a new user to the API:
+Then, we need to add a new user to the API:
 
 ```graphql
 mutation {
@@ -147,12 +147,12 @@ After running one or more of these kinds of queries, the user will be granted ac
 
 If you want to know what is going on during a deployment, we suggest configuring notifications for your project, which provide:
 
-* Push notifications
+* Push messages
 * Build start information
 * Build success or failure messages
-* And many more!
+* Many more
 
-As notifications can be quite different in terms of the information they need, each notification type has its own mutation.
+As notifications can be quite different of their information they need, each notification type has its own mutation.
 
 As with users, we first add the notification:
 
@@ -235,7 +235,7 @@ mutation {
     addGroupsToProject (
       input: {
         project: {
-          #TODO: Enter the name of the project.
+          #TODO: enter the name of the project.
           name: ""
         }
         groups: {
@@ -251,9 +251,9 @@ mutation {
 
 ### Adding a new project
 
-This query adds a new Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
+This query adds a new project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
-If you omit the `privateKey` field, a new SSH key for the project will be generated automatically.
+If you omit the `privateKey` field, a new SSH Key will for the project will be generated automatically.
 
 If you would like to reuse a key from another project. you will need to supply the key in the `addProject` mutation.
 
@@ -265,9 +265,9 @@ mutation {
       # This is the project name.
       name: ""
       # TODO: Fill in the private key field (replace newlines with '\n').
-      # This is the private key for a project, which is used to access the Git code.
+      # This is the private key for a project, which is used to access the git code.
       privateKey: ""
-      # TODO: Fill in the OpenShift field.
+      # TODO: Fill in the openshift field.
       # This is the id of the OpenShift to assign to the project.
       openshift: 0
       # TODO: Fill in the name field.
@@ -364,7 +364,7 @@ query {
 
 ### Querying a project by its Git URL
 
-Don't remember the name of a project, but know the Git URL? Search no longer, there is a GraphQL query for that:
+Don't remember the name of a project, but know the Git URL? Search no longer, there is an GraphQL query for that:
 
 ```graphql
 query {
@@ -376,7 +376,7 @@ query {
 
 ### Updating objects
 
-The Lagoon GraphQL API can not only disply objects and create objects, it also has the capability to update existing objects, using [a patch object](https://blog.apollographql.com/designing-graphql-mutations-e09de826ed97).
+The Lagoon GraphQL API cannot only display objects and create objects, it also has the capability to update existing objects, using [a patch object](https://blog.apollographql.com/designing-graphql-mutations-e09de826ed97).
 
 Update the branches to deploy within a project:
 
@@ -390,7 +390,7 @@ mutation {
 }
 ```
 
-Update the production environment within a project:
+Update the production environment within a project.
 
 {% hint style="warning" %}
 This needs a redeploy in order for the changes to be reflected in the containers.

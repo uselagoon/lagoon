@@ -1,6 +1,6 @@
-# php-cli
+# PHP-CLI
 
-[Lagoon `php-cli` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile), based on [Lagoon `php-fpm` image](../php-fpm.md), with all the needed command line tools for daily operations.
+The [Lagoon `php-cli` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile), based on [Lagoon `php-fpm` image](../php-fpm.md), has all the needed command line tools for daily operations.
 
 Containers \(or pods\) started from `cli` images are responsible for building code for Composer or Node.js based projects.
 
@@ -12,9 +12,9 @@ This Dockerfile is intended to be used as a base for any `cli` needs within Lago
 
 ## Lagoon & OpenShift adaptions
 
-This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon, which leverages OpenShift. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions)so this image will work with a random user, and therefore also on OpenShift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
 * `COMPOSER_ALLOW_SUPERUSER=1` removes warning about use of Composer as root.
 * `80-shell-timeout.sh` script checks if containers are running in a Kubernetes environment and then set a 10 minutes timeout to idle `cli` pods.
 * `cli` containers use an SSH key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.

@@ -20,11 +20,11 @@ The platform-wide owner has access to every Lagoon group, like the group owner r
 
 #### Owner
 
-The owner role can do everything within a group and its associated projects. They can add manage users of group. Be careful with this role, as it can delete projects and production environments!
+The owner role can do everything within a group and its associated Projects. They can add manage users of group. Be careful with this role, it can delete projects and production environments!
 
 #### Maintainer
 
-The maintainer role can do everything within a group and its associated projects except deleting the project itself or the production environment. They can add manage users of group.
+The maintainer role can do everything within a group and its associated Projects except deleting the project itself or the production environment. They can add manage users of group.
 
 #### Developer
 
@@ -41,8 +41,6 @@ The reporter role has view access only. They cannot access any environments via 
 #### Guest
 
 The guest role has the same privileges as the reporter role listed above.
-
-
 
 Here is a table that lists the roles and the access they have:
 

@@ -1,10 +1,6 @@
----
-description: >-
-  Lagoon tries to run on as standard installation of OpenShift as possible, but
-  it expects some things:
----
-
 # OpenShift Requirements
+
+Lagoon tries to run on a standard installation of OpenShift as possible, but it expects some things:
 
 ## OpenShift Version
 
@@ -20,14 +16,14 @@ For deployment projects by Lagoon the following StorageClasses will be needed:
 
 | Name | Used for | Description |
 | :--- | :--- | :--- |
-| default | Single pod mounts \(MariaDB, Solr\) | The default StorageClass will be used for any single pod mounts like MariaDB, Solr, etc. We suggest using SSD based storage. |
-| `bulk` | Multi-pod mounts \(Drupal files\) | `bulk` StorageClass will be used whenever a project requests storage that needs to be mounted into multiple pods at the same time. Like `nginx-php-persistent`, which will mount the same PVC in all `nginx-php` pods. We suggest putting these on SSD, but it's not required. |
+| default | Single pod mounts \(mariadb, solr\) | The default StorageClass will be used for any single pod mounts like mariadb, solr, etc. Suggested to use SSD based storage |
+| `bulk` | multi pod mounts \(Drupal files\) | `bulk` StorageClass will be used whenever a project requests storage that needs to be mounted into multiple pods at the same time. Like nginx-php-persistent, which will mount the same PVC in all nginx-php pods. Suggested to be on SSD but not required. |
 
 Lagoon itself will create PVCs with the following StorageClasses:
 
 | Name | Used for | Description |
 | :--- | :--- | :--- |
-| `lagoon-elasticsearch` | `logs-db` | `logs-db` will create PVCs with the StorageClass name `lagoon-elasticsearch` for persistent storage of Elasticsearch. Standard deployments of `logs-db` create an Elasticsearch cluster with 3 `live` nodes. Strongly putting these on SSD. |
-| `lagoon-logs-db-archive` | `logs-db` | Beside the `live` nodes, `logs-db` also creates 3 `archive` nodes. These are used for Elasticsearch data which is older than 1 month. Therefore it should be much bigger than `lagoon-elasticsearch` , but can run on regular HDD. |
-| `lagoon-logs-forwarder` | `logs-forwarder` | Used by `logs-forwarder` fluentd to provide a persistent buffer. Default configurations of Lagoon create 3 `logs-forwarder` pods. We prefer to put these on SSD, but it's not needed. |
+| `lagoon-elasticsearch` | `logs-db` | `logs-db` will create PVCs with the StorageClass name `lagoon-elasticsearch` for persistent storage of the elasticsearch. Standard deployments of `logs-db` create an Elasticsearch cluster with 3 `live` nodes. Strongly suggested to be on SSD. |
+| `lagoon-logs-db-archive` | `logs-db` | Beside the `live` nodes, `logs-db` also creates 3 `archive` nodes. These are used for Elasticsearch data which is older than 1 month. Therefore it should be much bigger than `lagoon-elasticsearch` but can run on regular HDD. |
+| `lagoon-logs-forwarder` | `logs-forwarder` | Used by `logs-forwarder` fluentd to provide a persistent buffer. Default configurations of Lagoon create 3 `logs-forwarder` pods. Preferred to be on SSD, but not needed. |
 
