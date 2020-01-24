@@ -68,8 +68,9 @@ MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
+K3S_VERSION := v1.17.0-k3s.1
+KUBECTL_VERSION := v1.17.0
 MINIKUBE_VERSION := 1.5.2
-KUBERNETES_VERSION := v1.17.0
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := 6
 MINIKUBE_MEMORY := 2048
@@ -979,12 +980,12 @@ endif
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
 local-dev/kubectl:
-ifeq ($(KUBERNETES_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(K3D_VERSION))
 	ln -s $(shell command -v kubectl) ./local-dev/kubectl
 else
-	$(info downloading kubectl version $(KUBERNETES_VERSION) for $(ARCH))
-	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBERNETES_VERSION)/bin/$(ARCH)/amd64/kubectl
+	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
+	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
 endif
 
@@ -998,7 +999,7 @@ endif
 		--publish 18443:443 \
 		--api-port 16643 \
 		--name $(K3D_NAME) \
-		--image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 \
+		--image docker.io/rancher/k3s:$(K3S_VERSION) \
 		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
 		-x --no-deploy=traefik \
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
