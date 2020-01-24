@@ -33,7 +33,6 @@
   * [Redis](drupal/services/redis.md)
   * [Solr](drupal/services/solr.md)
   * [Varnish](drupal/services/varnish.md)
-
 * [Step by Step: Getting Drupal ready to run on Lagoon](drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md)
 * [Drush 9](drupal/drush-9.md)
 * [First Deployment of Drupal](drupal/first-deployment-of-drupal.md)
@@ -46,10 +45,10 @@
 
 ## Administering Lagoon
 
-* [GraphQL API](administering-lagoon/graphql-queries.md)
-* [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
 * [Install Lagoon on OpenShift](administering-lagoon/install.md)
 * [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
+* [GraphQL API](administering-lagoon/graphql-queries.md)
+* [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
 
 ## Docker Images
 
