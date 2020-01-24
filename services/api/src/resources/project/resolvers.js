@@ -299,8 +299,6 @@ const addProject = async (
 
   OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(`project-${project.name}`, project.id);
 
-  //#TODO: Add call to create project in Harbor here
-
   // Find or create a user that has the public key linked to them
   const userRows = await query(
     sqlClient,

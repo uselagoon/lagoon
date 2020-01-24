@@ -9,6 +9,7 @@ const Helpers = require('./helpers');
 const Sql = require('./sql');
 const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
+const harborClient = require('../../clients/harborClient');
 
 /* ::
 
@@ -452,6 +453,9 @@ const addOrUpdateEnvironment = async (
   await hasPermission('environment', `addOrUpdate:${input.environmentType}`, {
     project: pid,
   });
+
+
+  //#TODO: Add call to create project in Harbor here
 
   const prep = prepare(
     sqlClient,

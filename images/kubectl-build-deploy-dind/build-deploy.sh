@@ -45,7 +45,7 @@ set +x
 
 if [ ! -z ${INTERNAL_REGISTRY_URL} && ! -z ${INTERNAL_REGISTRY_USERNAME} && ! -z ${INTERNAL_REGISTRY_PASSWORD} ]; then
   docker login -u=${INTERNAL_REGISTRY_USERNAME} -p="${INTERNAL_REGISTRY_USERNAME}" ${INTERNAL_REGISTRY_URL}
-  REGISTRY=$INTERNAL_REGISTRY_USERNAME # This will handle pointing Lagoon at the correct registry for non local builds
+  REGISTRY=$INTERNAL_REGISTRY_URL # This will handle pointing Lagoon at the correct registry for non local builds
   #REGISTRY_REPOSITORY=$NAMESPACE
   # If we go with a different naming scheme, we can inject that here?
 #else
