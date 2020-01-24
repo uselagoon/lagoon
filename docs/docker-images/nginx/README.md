@@ -1,6 +1,6 @@
 # Nginx
 
-The [Lagoon `Nginx` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile), based on the official [`openresty/openresty` images](https://hub.docker.com/r/openresty/openresty/).
+The [Lagoon `Nginx` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile). Based on the official [`openresty/openresty` images](https://hub.docker.com/r/openresty/openresty/).
 
 This Dockerfile is intended to be used as a base for any web servers within Lagoon.
 

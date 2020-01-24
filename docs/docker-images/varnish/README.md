@@ -1,14 +1,14 @@
 # Varnish
 
-[Lagoon `Varnish` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile), based on [offical `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
+The [Lagoon `Varnish` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
 
-By default `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
+By default, `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
 
 ## Lagoon & OpenShift adaptions
 
-This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon, which leverages OpenShift. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions)so this image will work with a random user, and therefore also on OpenShift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
 
 ## Included varnish modules
 
@@ -17,7 +17,7 @@ This image is prepared to be used on Lagoon which leverages OpenShift. There are
 
 ## Included `default.vcl` configuration file
 
-The image ships a _default_ vcl configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../../using-lagoon-advanced/environment-variables.md)\).
+The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](./#environment-variables)\).
 
 ## Environment Variables
 

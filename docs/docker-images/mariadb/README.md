@@ -2,7 +2,7 @@
 
 MariaDB is the open source successor to MySQL.
 
-The [Lagoon `MariaDB` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile), based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
+The [Lagoon `MariaDB` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile). Based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 

@@ -1,6 +1,6 @@
 # PHP-FPM
 
-The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) is based on [the official PHP Alpine images](https://hub.docker.com/_/php/). 
+The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/). 
 
 > _PHP-FPM \(FastCGI Process Manager\) is an alternative PHP FastCGI implementation with some additional features useful for sites of any size, especially busier sites._
 >
