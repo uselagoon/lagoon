@@ -93,58 +93,24 @@ const messageConsumer = async msg => {
     }
   });
   
+  // Check if project exists
   try {
-    const namespacesSearch = promisify(kubernetesCore.namespaces.get);
+    const namespacesSearch = promisify(kubernetes.namespaces.get);
     const namespacesResult = await namespacesSearch({
       qs: {
         fieldSelector: `metadata.name=${openshiftProject}`
       }
     });
-  
     const namespaces = R.propOr([], 'items', namespacesResult);
+
+    // An empty list means the namespace does not exist
     if (R.isEmpty(namespaces)) {
-      logger.error(`Namespaces are empty for ${openshiftProject}`);
-      throw new Error
+      logger.error(`Project ${openshiftProject} does not exist, bailing`)
+      return; // we are done here
     }
   } catch (err) {
-
-    // Check if project exists
-    try {
-      const namespacesSearch = promisify(kubernetes.namespaces.get);
-      const namespacesResult = await namespacesSearch({
-        qs: {
-          fieldSelector: `metadata.name=${openshiftProject}`
-        }
-      });
-      const namespaces = R.propOr([], 'items', namespacesResult);
-
-      // An empty list means the namespace does not exist and we assume it's already removed
-      if (R.isEmpty(namespaces)) {
-        logger.info(
-          `${openshiftProject} does not exist, assuming it was removed`
-        );
-        sendToLagoonLogs(
-          'success',
-          projectName,
-          '',
-          'task:remove-kubernetes:finished',
-          meta,
-          `*[${projectName}]* remove \`${openshiftProject}\``
-        );
-
-        // Update GraphQL API that the Environment has been deleted
-        await deleteEnvironment(environmentName, projectName, false);
-        logger.info(
-          `${openshiftProject}: Deleted Environment '${environmentName}' in API`
-        );
-
-        return; // we are done here
-      }
-    } catch (err) {
-      logger.error(err);
-      throw new Error();
-    }
-
+    logger.error(err);
+    throw new Error();
   }
 
   let jobInfo;
@@ -209,10 +175,21 @@ ${podLog}`;
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
-    const status = jobInfo.status.conditions[0];
+    // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete) 
+    const status = (status) = {
+      switch (status) {
+        case 'active':
+          return 'running';
+        case 'succeeded':
+          return 'complete';
+        case 'failed':
+        default:
+          return 'failed';
+      }
+    }(jobInfo.status.conditions[0]);
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
-      status: jobInfo.status.conditions[0].type.toUpperCase(),
+      status: status.toUpperCase(),
       created: convertDateFormat(jobInfo.metadata.creationTimestamp),
       started: dateOrNull(jobInfo.status.startTime),
       completed: dateOrNull(jobInfo.metadata.completionTimestamp),
@@ -234,9 +211,9 @@ ${podLog}`;
   switch (buildPhase) {
     case "active":
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` running`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` active`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` running`)
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` active`)
       break;
 
     case "failed":
