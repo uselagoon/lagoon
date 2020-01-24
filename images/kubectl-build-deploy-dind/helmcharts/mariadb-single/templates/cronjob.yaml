@@ -1,0 +1,50 @@
+{{- range $cronjobName, $cronjobConfig := .Values.nativeCronjobs }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
+  labels:
+    {{- include "mariadb-single.labels" $ | nindent 4 }}
+spec:
+  schedule: "{{ $cronjobConfig.schedule }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "mariadb-single.labels" $ | nindent 8 }}
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            {{- include "mariadb-single.labels" $ | nindent 12 }}
+        spec:
+          tolerations:
+            - effect: NoSchedule
+              key: autoscaled
+              operator: Equal
+              value: 'true'
+            - effect: NoSchedule
+              key: appuio.ch/autoscaled
+              operator: Equal
+              value: 'true'
+            - effect: NoSchedule
+              key: lagoon/build
+              operator: Exists
+          containers:
+            - image: "{{ $.Values.image }}"
+              command:
+                - /lagoon/cronjob.sh
+                - "{{ $cronjobConfig.command }}"
+              name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
+              envFrom:
+                - configMapRef:
+                    name: lagoon-env
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 10Mi
+          restartPolicy: Never
+{{- end }}
