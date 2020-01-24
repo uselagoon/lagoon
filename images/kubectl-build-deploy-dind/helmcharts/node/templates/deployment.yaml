@@ -19,12 +19,13 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       priorityClassName: {{ include "node.lagoon-priority" . }}
-      enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - image: {{ .Values.images | quote }}
-          name: "node"
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           ports:
             - name: http
@@ -42,7 +43,7 @@ spec:
             periodSeconds: 10
           env:
             ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
             - name: CRONJOBS
@@ -51,9 +52,7 @@ spec:
             - configMapRef:
                 name: lagoon-env
           resources:
-            requests:
-              cpu: 10m
-              memory: 10Mi
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
