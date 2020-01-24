@@ -15,7 +15,7 @@ services:
       - ./web:/app/web:delegated
     depends_on:
       - builder
-  varnish-myname:
+  varnish:
     networks:
       - amazeeio-network
       - default
@@ -27,7 +27,7 @@ services:
       lagoon.name: varnish
     depends_on:
       - nginx
-  nginx-myname:
+  nginx:
     networks:
       - amazeeio-network
       - default
@@ -47,7 +47,7 @@ services:
       - "8080"
     environment:
       - AMAZEEIO_URL=drupal.docker.amazee.io
-  php-myname:
+  php:
     build:
       context: .
       dockerfile: php.dockerfile
@@ -80,7 +80,7 @@ services:
       context: .
       dockerfile: solr.dockerfile
     labels:
-      lagoon.type: solr
+      lagoon.type: none
 networks:
   amazeeio-network:
     external: true

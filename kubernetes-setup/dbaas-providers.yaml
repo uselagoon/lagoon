@@ -4,10 +4,10 @@ metadata:
   name: mariadbprovider-development
 spec:
   environment: development
-  mariadb_hostname: 172.17.0.1
-  mariadb_readreplica_hostname: 172.17.0.1
+  mariadb_hostname: 172.17.0.1.xip.io
+  mariadb_readreplica_hostname: 172.17.0.1.xip.io
   mariadb_password: password
-  mariadb_port: '3396'
+  mariadb_port: '3306'
   mariadb_user: root
 ---
 apiVersion: mariadb.amazee.io/v1
@@ -16,8 +16,8 @@ metadata:
   name: mariadbprovider-production
 spec:
   environment: production
-  mariadb_hostname: 172.17.0.1
-  mariadb_readreplica_hostname: 172.17.0.1
+  mariadb_hostname: 172.17.0.1.xip.io
+  mariadb_readreplica_hostname: 172.17.0.1.xip.io
   mariadb_password: password
-  mariadb_port: '3396'
+  mariadb_port: '3306'
   mariadb_user: root

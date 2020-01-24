@@ -68,8 +68,9 @@ MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
+K3S_VERSION := v1.17.0-k3s.1
+KUBECTL_VERSION := v1.17.0
 MINIKUBE_VERSION := 1.5.2
-KUBERNETES_VERSION := v1.17.0
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := 6
 MINIKUBE_MEMORY := 2048
@@ -515,7 +516,8 @@ service-images += ssh
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
 									local-api-data-watcher-pusher \
-									local-registry
+									local-registry\
+									local-dbaas-provider
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -559,7 +561,8 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx
+all-k8s-tests-list:=				nginx \
+														drupal
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests
@@ -567,9 +570,25 @@ all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 k8s-tests: $(all-k8s-tests)
 
 .PHONY: $(all-k8s-tests)
-$(all-k8s-tests): k3d kubernetes-test-services-up
+$(all-k8s-tests): k3d kubernetes-test-services-up push-local-registry
 		$(eval testname = $(subst k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+
+# push command of our base images into minishift
+push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
+# tag and push all images
+.PHONY: push-local-registry
+push-local-registry: $(push-local-registry-images)
+# tag and push of each image
+.PHONY: $(push-local-registry-images)
+$(push-local-registry-images):
+	$(eval image = $(subst [push-local-registry]-,,$@))
+	$(eval image = $(subst __,:,$(image)))
+	$(info pushing $(image) to local local-registry)
+	if docker inspect $(CI_BUILD_TAG)/$(image) > /dev/null 2>&1; then \
+		docker tag $(CI_BUILD_TAG)/$(image) localhost:5000/lagoon/$(image) && \
+		docker push localhost:5000/lagoon/$(image) | cat; \
+	fi
 
 # Define list of all tests
 all-openshift-tests-list:=	features \
@@ -604,7 +623,7 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesremove tests-kubernetes local-registry
+kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesremove tests-kubernetes local-registry local-dbaas-provider
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks
@@ -961,12 +980,12 @@ endif
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
 local-dev/kubectl:
-ifeq ($(KUBERNETES_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(K3D_VERSION))
 	ln -s $(shell command -v kubectl) ./local-dev/kubectl
 else
-	$(info downloading kubectl version $(KUBERNETES_VERSION) for $(ARCH))
-	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBERNETES_VERSION)/bin/$(ARCH)/amd64/kubectl
+	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
+	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
 endif
 
@@ -980,7 +999,7 @@ endif
 		--publish 18443:443 \
 		--api-port 16643 \
 		--name $(K3D_NAME) \
-		--image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 \
+		--image docker.io/rancher/k3s:$(K3S_VERSION) \
 		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
 		-x --no-deploy=traefik \
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml

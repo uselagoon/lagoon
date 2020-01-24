@@ -6,7 +6,7 @@ services:
       - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
-      - '3306:3306'
+      - '3366:3306'
     labels:
       lagoon.type: mariadb-single
       lagoon.image: amazeeiolagoon/api-db:v1-2-0
@@ -121,7 +121,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploy
     command: yarn run dev
     environment:
-      #- CI=${CI:-true}
+      - CI=${CI:-true}
       - OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE=lagoon/kubectl-build-deploy-dind
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
@@ -395,6 +395,18 @@ services:
       - '5000:5000'
     labels:
       lagoon.type: none
+  local-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:
@@ -553,13 +565,4 @@ services:
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:v1-2-0
-  dbaas-provider:
-    image: mariadb
-    restart: always
-    environment:
-      MYSQL_DATABASE: 'db'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'password'
-      MYSQL_ROOT_PASSWORD: 'password'
-    ports:
-      - '3396:3306'
+
