@@ -650,19 +650,19 @@ do
 
     mariadb-shared)
         # ServiceBrokers take a bit, wait until the credentials secret is available
-	# We added a timeout of 10 minutes (120 retries) before exit
-	SERVICE_BROKER_COUNTER=1
-	SERVICE_BROKER_TIMEOUT=180
+        # We added a timeout of 10 minutes (120 retries) before exit
+        SERVICE_BROKER_COUNTER=1
+        SERVICE_BROKER_TIMEOUT=180
         until kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials
         do
-	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
-		  let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
-		  echo "Secret ${SERVICE_NAME}-operator-credentials not available yet, waiting for 5 secs"
-		  sleep 5
-	  else
-		  echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-operator-credentials reached"
-		  exit 1
-	  fi
+        if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
+          let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
+          echo "Secret ${SERVICE_NAME}-operator-credentials not available yet, waiting for 5 secs"
+          sleep 5
+        else
+          echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-operator-credentials reached"
+          exit 1
+        fi
         done
         # Load credentials out of secret
         kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml
