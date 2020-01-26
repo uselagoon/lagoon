@@ -34,9 +34,6 @@ Common labels
 {{- define "mariadb-shared.labels" -}}
 helm.sh/chart: {{ include "mariadb-shared.chart" . }}
 {{ include "mariadb-shared.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 

@@ -34,9 +34,6 @@ Common labels
 {{- define "varnish-persistent.labels" -}}
 helm.sh/chart: {{ include "varnish-persistent.chart" . }}
 {{ include "varnish-persistent.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
@@ -52,6 +49,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create a PriorityClassName.
 (this is based on the Lagoon Environment Type)).
 */}}
-{{- define "nginx-php.lagoon-priority" -}}
+{{- define "varnish-persistent.lagoon-priority" -}}
 {{- printf "lagoon-priority-%s" .Values.environmentType }}
 {{- end -}}

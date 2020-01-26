@@ -19,9 +19,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ .Values.persistentStorageName }}
+        - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorageName }}
+            claimName: {{ .Values.persistentStorage.name }}
       priorityClassName: {{ include "nginx-php-persistent.lagoon-priority" . }}
       enableServiceLinks: false
       securityContext:
@@ -49,7 +49,7 @@ spec:
             failureThreshold: 5
           env:
             ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
@@ -60,12 +60,10 @@ spec:
             - configMapRef:
                 name: lagoon-env
           volumeMounts:
-            - name: {{ .Values.persistentStorageName }}
-              mountPath: {{ .Values.persistentStoragePath | quote }}
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
-            requests:
-              cpu: 10m
-              memory: 10Mi
+            {{- toYaml .Values.resources.nginx | nindent 12 }}
 
         - image: {{ .Values.images.php | quote }}
           name: "php"
@@ -88,15 +86,25 @@ spec:
                 name: lagoon-env
           env:
             # LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            # This will cause the cli to redeploy on every deployment, even the files have not changed
+            # This will cause the pod to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           volumeMounts:
-            - name: {{ .Values.persistentStorageName }}
-              mountPath: {{ .Values.persistentStoragePath | quote }}
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
-            requests:
-              cpu: 10m
-              memory: 10Mi
+            {{- toYaml .Values.resources.php | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

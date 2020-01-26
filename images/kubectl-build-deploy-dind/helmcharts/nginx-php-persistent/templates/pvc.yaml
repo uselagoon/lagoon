@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.persistentStorageName | quote }}
+  name: {{ .Values.persistentStorage.name | quote }}
   annotations:
     appuio.ch/backup: "true"
 spec:
   accessModes:
     - ReadWriteOnce
-    # storageClassName: {{ .Values.persistentStorageClass | quote }}
+    # storageClassName: {{ .Values.persistentStorage.class | quote }}
   resources:
     requests:
-      storage: {{ .Values.persistentStorageSize | quote }}
+      storage: {{ .Values.persistentStorage.size | quote }}

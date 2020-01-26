@@ -5,7 +5,9 @@
 replicaCount: 1
 
 image: ""
+
 environmentType: production
+
 persistentStorage:
   name: "redis"
   size: 5Gi
