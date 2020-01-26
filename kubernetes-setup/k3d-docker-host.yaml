@@ -15,8 +15,8 @@ spec:
         service: docker-host
     spec:
       containers:
-      - image: lagoon/docker-host
-        imagePullPolicy: IfNotPresent
+      - image: 172.17.0.1:5000/lagoon/docker-host
+        imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
           periodSeconds: 10

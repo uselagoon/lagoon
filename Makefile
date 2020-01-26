@@ -1004,8 +1004,8 @@ endif
 		-x --no-deploy=traefik \
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/docker-host; \
+	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
+	docker push localhost:5000/lagoon/docker-host; \
 	local-dev/kubectl create namespace lagoon; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
@@ -1033,8 +1033,8 @@ endif
 
 .PHONY: push-kubectl-build-deploy-dind
 push-kubectl-build-deploy-dind: build/kubectl-build-deploy-dind
-	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind localhost:5000/lagoon/kubectl-build-deploy-dind
+	docker push localhost:5000/lagoon/kubectl-build-deploy-dind
 
 .PHONY: rebuild-push-kubectl-build-deploy-dind
 rebuild-push-kubectl-build-deploy-dind:

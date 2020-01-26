@@ -122,7 +122,6 @@ services:
     command: yarn run dev
     environment:
       - CI=${CI:-true}
-      - OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE=lagoon/kubectl-build-deploy-dind
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
