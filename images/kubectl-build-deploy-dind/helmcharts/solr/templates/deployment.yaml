@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "solr.fullname" . }}
+  labels:
+    {{- include "solr.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "solr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "solr.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ .Values.persistentStorage.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentStorage.name }}
+      priorityClassName: {{ include "solr.lagoon-priority" . }}
+      enableServiceLinks: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: 8983
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 8983
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: 8983
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            failureThreshold: 5
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
+          volumeMounts:
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
