@@ -1053,6 +1053,14 @@ k3d-dashboard:
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
 	local-dev/kubectl proxy
 
+k8s-dashboard:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
+	kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
+	echo -e "\nUse this token:"; \
+	kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
+	kubectl proxy
+
 # Stop k3d
 .PHONY: k3d/stop
 k3d/stop: local-dev/k3d
