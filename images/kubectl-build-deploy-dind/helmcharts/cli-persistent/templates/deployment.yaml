@@ -27,6 +27,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
       priorityClassName: {{ include "cli-persistent.lagoon-priority" . }}
+      enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

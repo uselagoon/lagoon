@@ -19,6 +19,7 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       priorityClassName: {{ include "nginx-php.lagoon-priority" . }}
+      enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
