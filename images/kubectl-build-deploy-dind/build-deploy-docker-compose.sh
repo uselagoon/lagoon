@@ -653,7 +653,8 @@ do
 	# We added a timeout of 10 minutes (120 retries) before exit
 	SERVICE_BROKER_COUNTER=1
 	SERVICE_BROKER_TIMEOUT=180
-        until kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials
+        SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get  mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml spec.secret)
+        until kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME}
         do
 	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
 		  let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
