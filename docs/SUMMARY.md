@@ -73,9 +73,9 @@
 
 ## Contributing to Lagoon
 
-* [Tests](contributing-to-lagoon/tests.md)
-* [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
 * [Code of Conduct](contributing-to-lagoon/code-of-conduct.md)
+* [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
+* [Tests](contributing-to-lagoon/tests.md)
 * [API Debugging](contributing-to-lagoon/api-debugging.md)
 
 ## Resources

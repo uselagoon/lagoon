@@ -28,13 +28,13 @@ description: How to debug Lagoon in VSCode.
       - '9229:9229'
 ```
 
-3 . Add the following `.vscode/launch.json`:
+3 . Add the following to  `.vscode/launch.json`:
 
 ```javascript
 {
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387.
   "version": "0.2.0",
   "configurations": [
     {

@@ -19,7 +19,7 @@ During local development, the best and easiest way is to test locally. All tests
 make tests
 ```
 
-This will run all tests defined. If you only want to run a subset of the tests, run `make tests-list` to see all tests that exist and run them individually.
+This will run all defined tests. If you only want to run a subset of the tests, run `make tests-list` to see all existing tests and run them individually.
 
 For example, `make tests/node` will run the Node.js Docker images tests.
 
@@ -35,11 +35,13 @@ Or only for a specific service:
 make logs service=webhook-handler
 ```
 
-Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here: [http://localhost:8888/](http://localhost:8888/) \(`admin`:`admin`\)
+Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here:
 
-Sometimes you just want to create another push webhook, without having to wait for the Git repository to be initialized and pushed.
+[http://localhost:8888/](http://localhost:8888/)       \(`admin`:`admin`\)
 
-For this case, there is a small helper script, `tests/playbooks/helpers/just-push.yaml,` that will get the current head of the Git repository and push a webhook push. It needs to know which Git repository and branch you would like to check and push:
+Sometimes you just want to create another push webhook without having to wait for the Git repository to be initialized and pushed.
+
+In this case, there is a small helper script, `tests/playbooks/helpers/just-push.yaml,` that will get the current HEAD of the Git repository and push a webhook push. It needs to know which Git repository and branch you would like to check and push:
 
 ```text
 docker-compose -p lagoon exec tests ansible-playbook /ansible/tests/tests/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
@@ -47,15 +49,15 @@ docker-compose -p lagoon exec tests ansible-playbook /ansible/tests/tests/helper
 
 ## 2. Automated integration testing
 
-In order to test pull requests that are created against Lagoon, we have a full automatic integration test running on [`TravisCI`](https://docs.travis-ci.com/): [https://travis-ci.org/amazeeio/lagoon](https://travis-ci.org/amazeeio/lagoon). It is defined inside the `.travis.yml` and runs automatically for every pull request that is opened.
+In order to test pull requests that are created against Lagoon, we have a fully automatic integration test running on [`TravisCI`](https://docs.travis-ci.com/): [https://travis-ci.org/amazeeio/lagoon](https://travis-ci.org/amazeeio/lagoon). It is defined inside the `.travis.yml` file, and runs automatically for every pull request that is opened.
 
 This will build all images, start an OpenShift and run all tests.
 
 ## 3. Real World Testing
 
-To make sure that our services also work in the real world \(for example, deployed on OpenShift with real URLs, real Git repositories and stuff\), we also have tests for this. Currently we only deploy the `develop` and `master` branches to a real OpenShift infrastructure.
+To make sure that our services also work in the real world \(for example, deployed on OpenShift with real URLs, real Git repositories, etc.\), we also have tests for this. Currently we only deploy the `develop` and `master` branches to a real OpenShift infrastructure.
 
-For these tests, we use the exact same Ansible scripts, and just like the local or the automated testing, we just push to an actual GitHub repository \([https://github.com/amazeeio-ci-testing](https://github.com/amazeeio-ci-testing)\), and send webhooks to webhook handlers that are running OpenShift.
+For these tests, we use the exact same Ansible scripts, and just like the local and automated testing, we  push to an actual GitHub repository \([https://github.com/amazeeio-ci-testing](https://github.com/amazeeio-ci-testing)\), and send webhooks to webhook handlers that are running OpenShift.
 
 These tests are defined in `Jenkinsfile.testing-develop` and `Jenkinsfile.testing-master`. They get their testing infrastructure \(endpoints, etc.\) from a `docker-compose.yml` file within the `tests` folder.
 

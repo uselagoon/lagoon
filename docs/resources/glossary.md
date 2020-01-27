@@ -8,46 +8,31 @@ description: >-
 
 | Term | Definition |  |
 | :--- | :--- | :--- |
-| ABI | Application Binary Interface - the machine language version of an API that tells the operating system and a program how to talk to each other. |  |
-| AES-256 | The Advanced Encryption Standard with a block size of 256 bits. |  |
-| Akamai | Content delivery network, cybersecurity, and cloud service provider. |  |
 | AWS | Amazon Web Services |  |
 | AWS Glacier | A secure and inexpensive S3 storage for long-term backup. |  |
-| Bastion Host | A special-purpose computer on a network specifically designed and configured to withstand attacks. The computer generally hosts a single application, for example a proxy server, and all other services are removed or limited to reduce the threat to the computer.CDN |  |
-| CDN | Content Delivery Network |  |
 | CI | Continuous Integration |  |
 | CLI | Command Line Interface |  |
-| ClamAV | An open-source antivirus engine for detecting trojans, viruses, malware & other malicious threats. |  |
 | Cluster | A unified group of servers or VMs, distributed and managed together, which serves one entity to ensure high availability, load balancing, and scalability. |  |
-| CMK | Customer Master Key within Amazon Key Management System. When doing key management in AWS, CWK is the key object with all its metadata and material for encryption and decryption. |  |
 | CMS | Content Management System |  |
 | Composer | A package manager |  |
 | DDoS | Distributed Denial of Service |  |
 | DNS | Domain Name System |  |
 | Docker | A container engine using Linux features and automating application deployment. |  |
-| DR | Disaster Recovery |  |
 | Drupal | Open-source Content Management System |  |
 | EC2 | Amazon Elastic Compute Cloud |  |
 | Elasticsearch | An open-source search engine. It provides a distributed, multi-tenant-capable full-text search engine with a web interface and schema-free JSON documents. |  |
-| ETCD | A distributed key value store that provides a reliable way to store system configuration and state data across a cluster of machines. |  |
-| Fluentd | A cross-platform open-source data collection. |  |
 | Galera | A generic synchronous multi-master replication library for transactional databases. |  |
 | Git | A free and open-source distributed version control system. |  |
 | GitHub | A proprietary version control hosting company using Git. A subsidiary of Microsoft, it offers all of the distributed version control and source code management functionality of Git as well as additional features. |  |
 | GitLab | A web-based Git repository manager with CI capabilities. |  |
-| Grafana | An open-source analytics and monitoring solution databases. |  |
 | GraphQL | An open-source data query and manipulation language for APIs, and a runtime for fulfilling queries with existing data. |  |
-| HSM | Hardware Security Module |  |
 | HTTP | HyperText Transfer Protocol. HTTP is the underlying protocol used by the World Wide Web and this protocol defines how messages are formatted and transmitted, and what actions Web servers and browsers should take in response to various commands. |  |
 | IPTables | A command line utility for configuring Linux kernel firewall. |  |
 | Jenkins | An open-source automation server. |  |
-| Keycloak | An open-source identity and access management system. |  |
 | Kibana | An open-source data visualization plugin for Elasticsearch. It provides visualization capabilities on top of the content indexed on an Elasticsearch cluster. |  |
-| KMS | Amazon encryption Key Management System |  |
 | Kubernetes | An open-source system for automating deployment, scaling, and management of containerised applications. |  |
 | Lagoon | An open-source continuous delivery system for OpenShift and Kubernetes. |  |
 | Laravel | A free, open-source PHP web framework, following the model–view–controller \(MVC\) architectural pattern and based on Symfony. |  |
-| Logstash | A cross-platform open-source data collection. |  |
 | mariaDB | A community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU General Public License. |  |
 | Master node | A single node in the cluster on which a collection of processes which manage the cluster state are running. |  |
 | Microservice | The practice of breaking up an application into a series of smaller, more specialized parts, each of which communicate with one another across common interfaces such as APIs and REST interfaces like HTTP |  |
@@ -58,7 +43,6 @@ description: >-
 | Node | Single EC2 instance \(AWS virtual machine\) |  |
 | Node.js | An open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside of a browser. |  |
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |  |
-| OpenShift Online | Red Hat's container platform. |  |
 | PHP | PHP \(Personal Home Page\) is a general-purpose programming language originally designed for web development. |  |
 | Pod | A group of containers that are deployed together on the same host. The basic unit that Kubernetes works with. |  |
 | Postgres | A free and open-source relational database management system emphasizing extensibility and technical standards compliance. |  |
@@ -68,10 +52,6 @@ description: >-
 | RabbitMQ | An open-source message-broker software. |  |
 | RBAC | Role-Based Access Control |  |
 | RDS | Relational Database Service |  |
-| Restic | An open-source backup program. |  |
-| RHEL | Red Hat Enterprise Linux |  |
-| Satis | A simple static Composer repository generator. |  |
-| Service Broker | A go-between for customers to gather needed information about services from a service provider's catalog. The broker carries out the details of ordering, provisioning, and connecting these services to the application. |  |
 | Solr | An open-source enterprise-search platform, written in Java. |  |
 | SSH | Secure Socket Shell, a network protocol that provides administrators with a secure way to access a remote computer. |  |
 | SSL | Secure Socket Layer |  |
@@ -80,6 +60,5 @@ description: >-
 | TTL | Time to live or hop limit is a mechanism that limits the lifespan or lifetime of data in a computer or network. |  |
 | Varnish | A powerful, open-source HTTP engine/reverse HTTP proxy that can speed up a website by caching \(or storing\) a copy of a webpage the first time a user visits. |  |
 | VM | Virtual Machine |  |
-| WAF | Web Application Firewall |  |
 | Webhook | A webhook is a way for an app like GitHub, GitLab, Bitbucket, etc, to provide other applications with immediate data and act upon something, like a pull request. |  |
 
