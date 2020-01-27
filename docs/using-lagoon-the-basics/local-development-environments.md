@@ -2,10 +2,10 @@
 
 Even though Lagoon has only a hard dependency on Docker and [Docker Compose](https://docs.docker.com/compose/) \(which is mostly shipped with Docker\) there are some things which are nice for local development that are not included in Docker:
 
-* a HTTP reverse proxy for nice URLs and HTTPS offloading
-* DNS system so we don't have to remember IP sddresses
-* SSH agents to use SSH keys within containers
-* a system that receives and displays mail locally
+*  AHTTP reverse proxy for nice URLs and HTTPS offloading.
+* A DNS system so we don't have to remember IP addresses.
+* SSH agents to use SSH keys within containers.
+* A system that receives and displays mail locally.
 
 {% hint style="warning" %}
 You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself.
