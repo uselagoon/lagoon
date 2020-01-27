@@ -18,11 +18,9 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     {{ end }}
 spec:
-  {{if ne .Values.routesAutogenerateInsecure "None"}}
   tls:
     - hosts:
         -   {{ $host | quote }}
-  {{ end}}
   rules:
     - host: {{ $host | quote }}
       http:

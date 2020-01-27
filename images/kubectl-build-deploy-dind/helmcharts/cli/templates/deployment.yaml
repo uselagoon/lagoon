@@ -28,16 +28,16 @@ spec:
             defaultMode: 420
             secretName: lagoon-sshkey
       containers:
-        - name: {{ .Chart.Name }}
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: CRONJOBS
               value: {{ .Values.cronjobs | quote }}
             ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli to redeploy on every deployment, even the files have not changed
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
             - name: SERVICE_NAME

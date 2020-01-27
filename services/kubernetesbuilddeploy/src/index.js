@@ -115,7 +115,7 @@ const messageConsumer = async msg => {
     let buildImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
     if (CI == "true") {
-      buildImage = "lagoon/kubectl-build-deploy-dind:latest"
+      buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
     } else if (overwriteKubectlBuildDeployDindImage) {
       // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
       buildImage = overwriteKubectlBuildDeployDindImage
@@ -159,7 +159,7 @@ const messageConsumer = async msg => {
               {
                 "name": "lagoon-build",
                 "image": buildImage,
-                "imagePullPolicy": "IfNotPresent",
+                "imagePullPolicy": "Always",
                 "env": [
                   {
                       "name": "TYPE",

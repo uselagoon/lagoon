@@ -1,5 +1,3 @@
-// @flow
-
 const promisify = require('util').promisify;
 const kubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
@@ -95,6 +93,7 @@ const messageConsumer = async msg => {
     }
   });
   
+  // Check if project exists
   try {
     const namespacesSearch = promisify(kubernetesCore.namespaces.get);
     const namespacesResult = await namespacesSearch({
@@ -102,21 +101,16 @@ const messageConsumer = async msg => {
         fieldSelector: `metadata.name=${openshiftProject}`
       }
     });
-  
     const namespaces = R.propOr([], 'items', namespacesResult);
+
+    // An empty list means the namespace does not exist
     if (R.isEmpty(namespaces)) {
-      logger.error(`Namespaces are empty for ${openshiftProject}`);
-      throw new Error
+      logger.error(`Project ${openshiftProject} does not exist, bailing`)
+      return; // we are done here
     }
   } catch (err) {
-    // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
-    if (err.code == 404) {
-      logger.error(`Project ${openshiftProject} does not exist, bailing`)
-      return
-    } else {
-      logger.error(err)
-      throw new Error
-    }
+    logger.error(err);
+    throw new Error();
   }
 
   let jobInfo;
@@ -181,10 +175,21 @@ ${podLog}`;
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
-    const status = jobInfo.status.conditions[0];
+    // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete) 
+    const status = (status) = {
+      switch (status) {
+        case 'active':
+          return 'running';
+        case 'succeeded':
+          return 'complete';
+        case 'failed':
+        default:
+          return 'failed';
+      }
+    }(jobInfo.status.conditions[0]);
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
-      status: jobInfo.status.conditions[0].type.toUpperCase(),
+      status: status.toUpperCase(),
       created: convertDateFormat(jobInfo.metadata.creationTimestamp),
       started: dateOrNull(jobInfo.status.startTime),
       completed: dateOrNull(jobInfo.metadata.completionTimestamp),
@@ -204,35 +209,11 @@ ${podLog}`;
   }
 
   switch (buildPhase) {
-    case "new":
-    case "pending":
+    case "active":
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` not yet started`
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` active`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` not yet started`)
-      break;
-
-    case "running":
-      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` running`
-      )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` running`)
-      break;
-
-    case "cancelled":
-    case "error":
-      try {
-        const buildLog = await jobsLogGet()
-        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
-      } catch (err) {
-        logger.warn(`${openshiftProject} ${jobName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
-      }
-      sendToLagoonLogs('warn', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` cancelled. <${logLink}|Logs>`
-      )
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` active`)
       break;
 
     case "failed":
@@ -251,7 +232,7 @@ ${podLog}`;
       )
       break;
 
-    case "complete":
+    case "succeeded":
       try {
         const buildLog = await jobsLogGet()
         const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)

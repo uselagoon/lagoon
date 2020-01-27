@@ -2,26 +2,27 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_redirect_location: "https://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
   tasks:
   - include: ../../checks/check-url-redirect.yaml
 
-- name: "{{ testname }} - SECOND TEST: check if auto generated domain allows insecure traffic"
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain redirects insecure traffic"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
-    host: "nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
-    expected_content: "Hello World!"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    host: "nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    expected_redirect_location: "https://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
   tasks:
-  - include: ../../checks/check-url-content-host.yaml
+  - include: ../../checks/check-url-redirect.yaml
 
 - name: "{{ testname }} - SECOND TEST: check if custom domain 'insecure-allow.com' now does not allow insecure anymore"
   hosts: localhost
+  tags: skip-on-kubernetes
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     host: "insecure-allow.com"
     expected_returncode: 503
   tasks:
@@ -31,7 +32,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     host: "insecure-redirect.com"
     expected_redirect_location: "https://insecure-redirect.com/$"
   tasks:
@@ -41,7 +42,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     host: "insecure-none.com"
     expected_content: "Hello World!"
   tasks:
@@ -51,7 +52,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx-basic-auth-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
+    url: "https://nginx-basic-auth-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
     host: "moving-route.com"
     expected_returncode: 401
   tasks:
@@ -60,8 +61,9 @@
 - name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header-null.com' now has HSTS header set"
   hosts: localhost
   serial: 1
+  tags: skip-on-kubernetes
   vars:
-    url: "https://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
+    url: "https://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
     host: "hsts-header-null.com"
     expected_returncode: 200
     expected_header: "strict_transport_security"
@@ -72,8 +74,9 @@
 - name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header.com' is created and does not have HSTS header set"
   hosts: localhost
   serial: 1
+  tags: skip-on-kubernetes
   vars:
-    url: "https://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
+    url: "https://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
     host: "hsts-header.com"
     expected_returncode: 200
     expected_header: "strict_transport_security"

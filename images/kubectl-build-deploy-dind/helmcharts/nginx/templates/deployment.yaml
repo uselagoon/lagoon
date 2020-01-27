@@ -21,19 +21,11 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          env:
-            - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
-            - name: LAGOON_GIT_SHA
-              value: {{ .Values.gitSha | quote }}
-          envFrom:
-            - configMapRef:
-                name: lagoon-env
           ports:
             - name: http
               containerPort: 8080
@@ -44,6 +36,16 @@ spec:
           readinessProbe:
             tcpSocket:
               port: http
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

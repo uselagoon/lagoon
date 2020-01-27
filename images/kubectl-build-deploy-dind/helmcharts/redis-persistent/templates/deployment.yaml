@@ -22,39 +22,43 @@ spec:
         - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
+      priorityClassName: {{ include "redis-persistent.lagoon-priority" . }}
+      enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          env:
-            - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
-            - name: LAGOON_GIT_SHA
-              value: {{ .Values.gitSha | quote }}
-          envFrom:
-            - configMapRef:
-                name: lagoon-env
           ports:
             - name: 6379-tcp
               containerPort: 6379
               protocol: TCP
-          volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
-              mountPath: {{ .Values.persistentStorage.path | quote }}
-          livenessProbe:
-            tcpSocket:
-              port: 6379
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
           readinessProbe:
             tcpSocket:
               port: 6379
             initialDelaySeconds: 120
-            periodSeconds: 10
+            timeoutSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 15
+            periodSeconds: 1
+          env:
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          volumeMounts:
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

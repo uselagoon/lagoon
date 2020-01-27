@@ -561,8 +561,7 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx \
-														drupal
+all-k8s-tests-list:=				nginx
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests
@@ -572,7 +571,7 @@ k8s-tests: $(all-k8s-tests)
 .PHONY: $(all-k8s-tests)
 $(all-k8s-tests): k3d kubernetes-test-services-up push-local-registry
 		$(eval testname = $(subst k8s-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" /ansible/tests/$(testname).yaml $(testparameter)
 
 # push command of our base images into minishift
 push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
@@ -1004,8 +1003,8 @@ endif
 		-x --no-deploy=traefik \
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/docker-host; \
+	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
+	docker push localhost:5000/lagoon/docker-host; \
 	local-dev/kubectl create namespace lagoon; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
@@ -1033,8 +1032,8 @@ endif
 
 .PHONY: push-kubectl-build-deploy-dind
 push-kubectl-build-deploy-dind: build/kubectl-build-deploy-dind
-	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind localhost:5000/lagoon/kubectl-build-deploy-dind
+	docker push localhost:5000/lagoon/kubectl-build-deploy-dind
 
 .PHONY: rebuild-push-kubectl-build-deploy-dind
 rebuild-push-kubectl-build-deploy-dind:
@@ -1052,6 +1051,14 @@ k3d-dashboard:
 	local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
 	local-dev/kubectl proxy
+
+k8s-dashboard:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
+	kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
+	echo -e "\nUse this token:"; \
+	kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
+	kubectl proxy
 
 # Stop k3d
 .PHONY: k3d/stop

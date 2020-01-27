@@ -6,7 +6,7 @@
     git_repo_name: github.git
     project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
     branch: github/slash/branch
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: github/pullrequest.yaml
   vars:
@@ -14,7 +14,7 @@
     node_version: 8
     git_repo_name: github.git
     project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    check_url: "http://node-{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: github/skip-deployment.yaml
   vars:
@@ -23,4 +23,4 @@
     node_version: 8
     git_repo_name: github.git
     project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}"
+    check_url: "http://node-{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

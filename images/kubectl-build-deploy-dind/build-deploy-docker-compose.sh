@@ -650,20 +650,21 @@ do
 
     mariadb-shared)
         # ServiceBrokers take a bit, wait until the credentials secret is available
-	# We added a timeout of 10 minutes (120 retries) before exit
-	SERVICE_BROKER_COUNTER=1
-	SERVICE_BROKER_TIMEOUT=180
+        # We added a timeout of 10 minutes (120 retries) before exit
+        SERVICE_BROKER_COUNTER=1
+        SERVICE_BROKER_TIMEOUT=180
+        # use the secret name from the consumer to prevent credential clash
         SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get  mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml spec.secret)
         until kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME}
         do
-	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
-		  let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
-		  echo "Secret ${SERVICE_NAME}-operator-credentials not available yet, waiting for 5 secs"
-		  sleep 5
-	  else
-		  echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-operator-credentials reached"
-		  exit 1
-	  fi
+        if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
+          let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
+          echo "Secret ${SERVICE_NAME}-operator-credentials not available yet, waiting for 5 secs"
+          sleep 5
+        else
+          echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-operator-credentials reached"
+          exit 1
+        fi
         done
         # Load credentials out of secret
         kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml
@@ -783,18 +784,18 @@ do
 
   PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
   if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
-    HELM_SET_VALUES+=(--set "persistentStorageSize=${PERSISTENT_STORAGE_SIZE}")
+    HELM_SET_VALUES+=(--set "persistentStorage.size=${PERSISTENT_STORAGE_SIZE}")
   fi
 
   PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
-    HELM_SET_VALUES+=(--set "persistentStoragePath=${PERSISTENT_STORAGE_PATH}")
+    HELM_SET_VALUES+=(--set "persistentStorage.path=${PERSISTENT_STORAGE_PATH}")
 
     PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.name false)
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
-      HELM_SET_VALUES+=(--set "persistentStorageName=${PERSISTENT_STORAGE_NAME}")
+      HELM_SET_VALUES+=(--set "persistentStorage.name=${PERSISTENT_STORAGE_NAME}")
     else
-      HELM_SET_VALUES+=(--set "persistentStorageName=${SERVICE_NAME}")
+      HELM_SET_VALUES+=(--set "persistentStorage.name=${SERVICE_NAME}")
     fi
   fi
 

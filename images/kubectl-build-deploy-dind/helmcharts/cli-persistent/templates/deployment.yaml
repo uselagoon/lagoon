@@ -18,29 +18,29 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      priorityClassName: {{ include "cli-persistent.lagoon-priority" . }}
-      enableServiceLinks: false
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
         - name: lagoon-sshkey
           secret:
             defaultMode: 420
             secretName: lagoon-sshkey
-        - name: {{ .Values.persistentStorageName }}
+        - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorageName }}
+            claimName: {{ .Values.persistentStorage.name }}
+      priorityClassName: {{ include "cli-persistent.lagoon-priority" . }}
+      enableServiceLinks: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: CRONJOBS
               value: {{ .Values.cronjobs | quote }}
             ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
-            ## This will cause the cli-persistent.to redeploy on every deployment, even the files have not changed
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
             - name: SERVICE_NAME
@@ -48,14 +48,14 @@ spec:
           envFrom:
             - configMapRef:
                 name: lagoon-env
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - mountPath: /var/run/secrets/lagoon/sshkey/
               name: lagoon-sshkey
               readOnly: true
-            - name: {{ .Values.persistentStorageName }}
-              mountPath: {{ .Values.persistentStoragePath | quote }}
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

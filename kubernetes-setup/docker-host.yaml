@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - image: amazeeio/docker-host
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
           periodSeconds: 10
