@@ -89,7 +89,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
-    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
+    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     else
       SERVICE_TYPE="mariadb-single"
@@ -108,7 +108,7 @@ do
     fi
 
     # check if the defined operator class exists
-    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
       MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
     else
@@ -654,26 +654,26 @@ do
         SERVICE_BROKER_COUNTER=1
         SERVICE_BROKER_TIMEOUT=180
         # use the secret name from the consumer to prevent credential clash
-        SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get  mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml spec.secret)
+        SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.secret)
         until kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME}
         do
         if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
           let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
-          echo "Secret ${SERVICE_NAME}-operator-credentials not available yet, waiting for 5 secs"
+          echo "Secret ${SECRET_NAME} not available yet, waiting for 5 secs"
           sleep 5
         else
-          echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-operator-credentials reached"
+          echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SECRET_NAME} reached"
           exit 1
         fi
         done
         # Load credentials out of secret
-        kubectl get --insecure-skip-tls-verify -n ${NAMESPACE} secret ${SERVICE_NAME}-operator-credentials -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml
+        kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME} -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml
         set +x
-        DB_HOST=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_HOST | base64 -d)
-        DB_USER=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_USER | base64 -d)
-        DB_PASSWORD=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_PASSWORD | base64 -d)
-        DB_NAME=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_NAME | base64 -d)
-        DB_PORT=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-operator-credentials.yml | shyaml get-value data.DB_PORT | base64 -d)
+        DB_HOST=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_HOST | base64 -d)
+        DB_USER=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_USER | base64 -d)
+        DB_PASSWORD=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_PASSWORD | base64 -d)
+        DB_NAME=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_NAME | base64 -d)
+        DB_PORT=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_PORT | base64 -d)
 
         # Add credentials to our configmap, prefixed with the name of the servicename of this servicebroker
         kubectl patch --insecure-skip-tls-verify \
