@@ -176,7 +176,7 @@ ${podLog}`;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
     // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete) 
-    const status = (status) = {
+    const status = ((status) => {
       switch (status) {
         case 'active':
           return 'running';
@@ -186,7 +186,7 @@ ${podLog}`;
         default:
           return 'failed';
       }
-    }(jobInfo.status.conditions[0]);
+    })(jobInfo.status.conditions[0]);
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
       status: status.toUpperCase(),
