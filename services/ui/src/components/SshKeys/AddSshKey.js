@@ -51,12 +51,10 @@ const AddSshKey = ({me: { id, email }}) => {
               { error ? <div className="error">{error.message.replace('GraphQL error:', '').trim()}</div> : "" } 
 
               <div>
-                <label>SSH Key Name</label>
+                <label htmlFor="sshKeyName">SSH Key Name</label>
                 <input
-                  aria-labelledby="addSshKeyName"
                   id="sshKeyName"
                   name="sshKeyName"
-                  label='SSH Key Name'
                   className="addSshKeyInput"
                   type="text"
                   value={values.sshKeyName}
@@ -70,8 +68,6 @@ const AddSshKey = ({me: { id, email }}) => {
                   id="sshKeyType"
                   name="sshKeyType"
                   onChange={handleChange}
-                  aria-labelledby="addSshKeyType"
-                  label='SSH Key Type'
                   className="addSshKeyInput"
                 >
                   {['SSH_RSA', 'SSH_ED25519'].map(value => (
@@ -83,12 +79,10 @@ const AddSshKey = ({me: { id, email }}) => {
               </div>
 
               <div>
-                <label>SSH Key</label>
+                <label htmlFor="sshKey">SSH Key</label>
                 <textarea
-                  aria-labelledby="addSshKey"
                   id='sshKey'
                   name='sshKey'
-                  label='SSH Key'
                   className="addSshKeyInput"
                   type="text"
                   onChange={handleChange}
@@ -97,9 +91,7 @@ const AddSshKey = ({me: { id, email }}) => {
               </div>
 
               <Button disabled={!isFormValid} action={addSshKeyHandler}>Add</Button>
-
             </div>
-
           );
         }}
       </Mutation>
