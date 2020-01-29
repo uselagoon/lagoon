@@ -26,6 +26,8 @@ async function gitlabBranchDeleted(webhook: WebhookRequestData, project: Project
     const data: removeData = {
       projectName: project.name,
       branch: meta.branch,
+      branchName: meta.branchName,
+      forceDeleteProductionEnvironment: false,
       type: 'branch'
     }
 
