@@ -1,6 +1,6 @@
 # Install Lagoon on OpenShift
 
-Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the just tiny chicken-egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣 
+Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the just tiny chicken-egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
 
 Luckily, we can use the local development environment to kickstart another Lagoon in any OpenShift, running somewhere in the world.
 

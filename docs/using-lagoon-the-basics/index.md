@@ -17,7 +17,7 @@ pygmy up
 
 [Pygmy](https://pygmy.readthedocs.io/en/master/) is an amazee.io flavored local development system.
 
-Learn more about Lagoon, pygmy, and [Local Development Environments](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/local_development_environments.md)
+Learn more about Lagoon, pygmy, and [Local Development Environments](local-development-environments.md)
 
 ## Step by Step Guides
 
