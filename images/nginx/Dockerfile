@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-# alpine 3.9 per https://github.com/openresty/docker-openresty/blob/master/alpine/Dockerfile
+# alpine 3.11 per https://github.com/openresty/docker-openresty/blob/master/alpine/Dockerfile
 FROM openresty/openresty:1.15.8.2-alpine
 
 LABEL maintainer="amazee.io"
