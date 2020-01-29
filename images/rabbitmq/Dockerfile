@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-# alpine 3.10 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
+# alpine 3.11 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
 FROM rabbitmq:3.8-management-alpine
 
 ARG LAGOON_VERSION
