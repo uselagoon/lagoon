@@ -62,11 +62,7 @@ RUN apk add --no-cache fcgi \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && yes '' | pecl install -f apcu \
     && yes '' | pecl install -f xdebug \
-<<<<<<< HEAD
-    && yes '' | pecl install -f redis-4.3.0; \
-=======
     && yes '' | pecl install -f redis-4.3.0 \
->>>>>>> 1781a923365adf34058635c2cbf3ee3e2950e10a
     && docker-php-ext-enable apcu redis xdebug \
     && case ${PHP_VERSION} in \
       7.4*) \
