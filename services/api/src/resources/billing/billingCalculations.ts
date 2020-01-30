@@ -1,4 +1,5 @@
 import { HIT_TIERS, CURRENCY_PRICING, AVAILABILITY } from './pricing';
+import { BillingModifier } from '../../models/billing';
 
 /* IProjectData
  * availability - Standard or High
@@ -25,6 +26,15 @@ export interface IBillingGroup {
   currency: string;
   billingSoftware?: string;
   projects: IProjectData[];
+}
+
+export interface BillingGroupCosts {
+  hitCost?: number;
+  storageCost?: number;
+  environmentCost?: { prod: number; dev: number; };
+  total?: number;
+  modifiers?: [BillingModifier];
+  projects?: [any];
 }
 
 export const projectsDataReducer = (projects: any, objKey: string) =>
@@ -75,7 +85,7 @@ export const calculateProjectEnvironmentsTotalsToBill = environments => {
   };
 };
 
-export const getProjectsCosts = (currency, projects) => {
+export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[] = []) => {
   const billingGroup = { projects, currency };
   const hitCost = hitsCost(billingGroup);
   const storage = storageCost(billingGroup);
@@ -83,14 +93,29 @@ export const getProjectsCosts = (currency, projects) => {
   const dev = devCost(billingGroup);
 
   const environmentCost = { prod, dev };
-  const total = hitCost + storage + prod + dev;
-  return {
+
+  // Apply Modifiers
+  const modifiersSortFn = (a:BillingModifier, b:BillingModifier) => a.weight < b.weight? -1 : 1
+  const reducerFn: (previousValue: number, currentValue: BillingModifier) => number =
+  (total, modifier) => {
+    const { discountFixed, extraFixed, discountPercentage, extraPercentage } = modifier;
+    total = discountFixed ? total - discountFixed : total;
+    total = extraFixed ? total + extraFixed : total;
+    total = discountPercentage ? total - (total * (discountPercentage / 100)) : total;
+    total = extraPercentage ? total + (total * (extraPercentage / 100)) : total;
+    return total;
+  }
+  const subTotal = hitCost + storage + prod + dev;
+  const total = Math.max(0, modifiers.sort(modifiersSortFn).reduce(reducerFn, subTotal));
+
+  return ({
     hitCost,
     storageCost: storage,
     environmentCost,
     total,
+    modifiers,
     projects,
-  };
+  }) as BillingGroupCosts;
 };
 
 /**

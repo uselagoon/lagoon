@@ -7,14 +7,15 @@ import { User } from './user';
 import { projectsByGroup, Project } from './project';
 import {
   getProjectsData,
-  availabiltyProjectsCosts,
-  extractMonthYear,
+  availabilityProjectsCosts,
+  extractMonthYear
 } from '../resources/billing/helpers';
+import billingModel from './billing'
 
 interface IGroupAttributes {
-  "lagoon-projects"?: [string];
+  'lagoon-projects'?: [string];
   comment?: [string];
-  [propName: string]: any
+  [propName: string]: any;
 }
 
 export interface Group {
@@ -43,6 +44,11 @@ interface GroupMembership {
   roleSubgroupId: string;
 }
 
+export interface GroupInput {
+  id?: string;
+  name?: string;
+}
+
 interface GroupEdit {
   id: string;
   name: string;
@@ -57,7 +63,7 @@ interface GroupModel {
   loadAllGroups: () => Promise<Group[] | BillingGroup[]>;
   loadGroupById: (id: string) => Promise<Group | BillingGroup>;
   loadGroupByName: (name: string) => Promise<Group | BillingGroup>;
-  loadGroupByIdOrName: (groupInput: GroupEdit) => Promise<Group | BillingGroup>;
+  loadGroupByIdOrName: (groupInput: GroupInput) => Promise<Group | BillingGroup>;
   loadParentGroup: (groupInput: Group) => Promise<Group | BillingGroup>;
   loadGroupsByAttribute: (
     filterFn: AttributeFilterFn,
@@ -627,52 +633,71 @@ export const Group = (clients): GroupModel => {
     const { id, currency, name } = group;
     const { month, year } = extractMonthYear(yearMonth);
 
+    // Get all projects in the group
     const groupProjects = await projectsByGroup(group);
 
-    const initialProjects = groupProjects.map(({ id, name, availability }) => ({
+    // Map a subset of project fields to the initial projects array
+    const initialProjects: [{id: string, name: string, availability: string, month: string, year:string}] = 
+    groupProjects.map(({ id, name, availability }) => ({
       id, name, availability, month, year
     }));
 
+    // Check that all projects have availability set
+    const availabilityCheck = initialProjects.reduce((acc, project) => [...acc, ...(project.availability === '' ? [project.name] : [])], []);
+    if(availabilityCheck.length > 0){
+      throw new Error(`Project(s): [${availabilityCheck.join(', ')}] must have availability set.`);
+    }
+
+    // Get the hit, storage, environment data for each project and month
     const projects = await getProjectsData(initialProjects, yearMonth);
 
-    const high = availabiltyProjectsCosts(
+    // Get any modifiers for the month
+    const modifiers = await billingModel.getBillingModifiers(groupInput, yearMonth);
+
+    // Calculate costs based on Availability - All projects in the billing group should have the same availability
+    const high = availabilityProjectsCosts(
       projects,
       'HIGH',
       currency,
-    ) as availabilityProjectCostsType;
-    const standard = availabiltyProjectsCosts(
+      modifiers
+    );
+    const standard = availabilityProjectsCosts(
       projects,
       'STANDARD',
       currency,
-    ) as availabilityProjectCostsType;
+      modifiers
+    );
 
-    const availability = high.projects ? 'HIGH' : 'STANDARD';
+    // Mark the returned BillingGroupCosts as 'HIGH' | 'STANDARD'
+    const availability = (high as availabilityProjectCostsType).projects
+      ? 'HIGH'
+      : 'STANDARD';
 
-    return { id, name, currency, availability, ...high, ...standard };
+    // Return the JSON
+    return { id, name, yearMonth, currency, availability, ...high, ...standard };
   };
 
   const allBillingGroupCosts = async yearMonth => {
-    const allGroups = await loadAllGroups();
-    const filterFn = (key, val) => group => group[key].includes(val);
-    const billingGroups = allGroups.filter(filterFn('type', 'billing'));
-
+    const allGroups: Group[] = await loadAllGroups();
+    const billingGroups = allGroups.filter(({ type }) => type === 'billing');
     const billingGroupCosts = [];
     for (let i = 0; i < billingGroups.length; i++) {
-      const group = billingGroups[i];
-      billingGroupCosts.push(
-        await billingGroupCost({ id: group.id }, yearMonth),
+      const costs = await billingGroupCost(
+        { id: billingGroups[i].id },
+        yearMonth
       );
+      billingGroupCosts.push(costs);
     }
 
     return billingGroupCosts
       .map(billingGroup => {
-        if (billingGroup.availability === 'STANDARD') {
+        if (billingGroup.availability === 'STANDARD' && billingGroup.projects) {
           billingGroup.projects.map(project => {
             project.environments = undefined;
           });
         }
 
-        if (billingGroup.availability === 'HIGH') {
+        if (billingGroup.availability === 'HIGH' && billingGroup.projects) {
           billingGroup.projects.map(project => {
             project.environments = undefined;
           });

@@ -1,9 +1,11 @@
-import { Project } from '../../models/project';
 import { projectEnvironmentsWithData } from '../../models/environment';
+import { BillingModifier } from '../../models/billing';
 import {
   calculateProjectEnvironmentsTotalsToBill,
   getProjectsCosts,
+  BillingGroupCosts
 } from './billingCalculations';
+
 
 // helper function to split the input string
 export const extractMonthYear = yearMonth => {
@@ -45,7 +47,7 @@ export const getProjectsData = async (projects, yearMonth: string) => {
   return Promise.all(projectsWithData);
 };
 
-// helper function to filter projects by availability
+// Helper function to filter projects by availability
 const availabilityFilterFn = filterKey => ({ availability }) =>
   availability === filterKey;
 
@@ -56,11 +58,23 @@ const availabilityFilterFn = filterKey => ({ availability }) =>
  * @param {string} availability High or Standard
  * @param {string} currency the currency
  *
- * @return {object} An object includeing all availability costs
+ * @return {BillingGroupCosts} An object includeing all availability costs
  */
-export const availabiltyProjectsCosts = (projects, availability, currency) => {
+export const availabilityProjectsCosts = (
+  projects,
+  availability,
+  currency,
+  modifiers: BillingModifier[]
+) => {
   const filteredProjects = projects.filter(availabilityFilterFn(availability));
-  return filteredProjects.length > 0
-    ? getProjectsCosts(currency, filteredProjects)
-    : {};
+  return (filteredProjects.length > 0
+    ? getProjectsCosts(currency, filteredProjects, modifiers)
+    : {}) as BillingGroupCosts;
+};
+
+export default {
+  extractMonthYear,
+  projectWithBillingDataFn,
+  getProjectsData,
+  availabilityProjectsCosts,
 };

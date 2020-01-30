@@ -13,22 +13,9 @@
 
 import * as R from 'ramda';
 import projectHelpers from '../resources/project/helpers';
-//import { logger } from '@lagoon/commons/src/local-logging';
 import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';
-// import { keycloakAdminClient } from '../clients/keycloakClient';
-
-const keycloakAuth = {
-  username: 'admin',
-  password: R.pathOr(
-    '<password not set>',
-    ['env', 'KEYCLOAK_ADMIN_PASSWORD'],
-    process,
-  ) as string,
-  grantType: 'password',
-  clientId: 'admin-cli',
-};
 
 interface IGroup {
   name: string;
