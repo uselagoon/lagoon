@@ -16,7 +16,20 @@ import {
   IBillingGroup,
   projectsDataReducer,
   calculateProjectEnvironmentsTotalsToBill,
+  getProjectsCosts,
+  BillingGroupCosts
 } from './billingCalculations';
+import { availabilityProjectsCosts } from './helpers';
+import { defaultModifier } from './resolvers.test';
+import {
+  initializeGraphQL,
+  allBillingModifiers,
+  addBillingModifier,
+  deleteBillingModifier,
+  deleteAllBillingModifiers
+} from './graphql';
+import moment = require('moment');
+import { deleteGroup } from '../project/keycloak';
 
 interface ITestBillingGroup extends IBillingGroup {
   expectations?: {
@@ -511,17 +524,524 @@ describe('Billing Calculations', () => {
     });
   });
 
-  describe('Calculate Totals from Environments #CalculateProjectEnvironmentTotals', () => {
-    it('When the above ProjectEnvironmentsMockData is provided, the totals should match the expected result.', () => {
+  describe('Project Environment Totals #CalculateProjectEnvironmentTotals', () => {
+    it('When the following Project Environments Mock Data is provided, the totals should match the expected result.', () => {
       // Arrange
-      const environments = {};
+      const environments = [
+        {
+          name: 'dev',
+          type: 'development',
+          hits: {
+            total: 0
+          },
+          storage: {
+            bytesUsed: '537192',
+            month: '2019-11'
+          },
+          hours: {
+            month: '2019-11',
+            hours: 389
+          }
+        },
+        {
+          name: 'master',
+          type: 'production',
+          hits: {
+            total: 0
+          },
+          storage: {
+            bytesUsed: '340448',
+            month: '2019-11'
+          },
+          hours: {
+            month: '2019-11',
+            hours: 389
+          }
+        },
+        {
+          name: 'stage',
+          type: 'development',
+          hits: {
+            total: 0
+          },
+          storage: {
+            bytesUsed: '299612',
+            month: '2019-11'
+          },
+          hours: {
+            month: '2019-11',
+            hours: 388
+          }
+        }
+      ];
+
       // Act
       const result = calculateProjectEnvironmentsTotalsToBill(environments);
       // Assert
       const expected = {
-        hmmm: '',
+        hits: 0,
+        storageDays: 1.177252,
+        prodHours: 389,
+        devHours: 777
       };
       expect(result).toMatchObject(expected);
     });
+  });
+
+  describe('Billing Cost Modifiers', () => {
+    beforeAll(async () => {
+      await initializeGraphQL();
+    });
+
+    afterEach(async () => {
+      await deleteAllBillingModifiers({ name: defaultModifier.group.name })
+  }, 50000);
+
+    it('Total Costs with single `discountFixed` modifier. #modifiers, #discountFixed', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'HIGH',
+          month: '11',
+          year: '2019',
+          hits: 5_742_733,
+          storageDays: 4.6473,
+          prodHours: 720,
+          devHours: 2160
+        },
+        {
+          availability: 'HIGH',
+          month: '11',
+          year: '2019',
+          hits: 2_491_865,
+          storageDays: 1196.266357,
+          prodHours: 720,
+          devHours: 1461
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('CHF', projects, [
+        { discountFixed: 761.26 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 1662.84,
+        storageCost: 30,
+        environmentCost: {
+          prod: 200.02,
+          dev: 10.3
+        },
+        total: 1141.8999999999999
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `discountPercentage` modifier (50% discount). #modifiers, #discountPercentage', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { discountPercentage: 50 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 520.865 // 1041.73 before discount
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `extraFixed` modifier. ($100 extra). #modifiers, #extraFixed', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [{ extraFixed: 100 }]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 1141.73 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `extraPercentage` modifier. (100% extra - 2x original). #modifiers, #extraPercentage', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { extraPercentage: 100 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 2083.46 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with Multiple modifiers. (100% + $100 with lower weight used first). #modifiers, #multiple', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { extraFixed: 100, weight: 100 },
+        { extraPercentage: 100, weight: 0 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 2183.46 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Given a modifier for a specific month, check that month before, & after, are not effected. #modifiers, #specific-month', async () => {
+      // Note - whatver modifiers are passed to the billing calculations will be utilized in calculating the totals.
+      // Therefore, we implicitily test for the above assertion by testing that that billing calculations are correct
+      // in normal situations, and that they are correct with modifiers. We also can test for
+      // the above assertion by checking that the correct modifiers are returned given a specific month.
+
+      // The call graph starts with the function below
+      // src/models/group.ts > billingGroupCost calls `availabilityProjectCosts(projects, 'HIGH|STANDARD', currency, modifiers)`
+
+      // Arrange
+
+      const startDate = moment()
+        .startOf('month')
+        .format('MM-DD-YYYY');
+      const endDate = moment()
+        .endOf('month')
+        .format('MM-DD-YYYY');
+      const modifier = {
+        ...defaultModifier,
+        startDate,
+        endDate,
+        discountFixed: 0,
+        extraFixed: 1000
+      };
+      // Create modifier for current month/year with an end date 1 month in the future
+      const { data: addedModifier } = await addBillingModifier(modifier);
+
+      if (!addedModifier.data.addBillingModifier) {
+        throw new Error(addedModifier.errors[0].message);
+      }
+
+      const {
+        data: {
+          addBillingModifier: { id }
+        }
+      } = addedModifier;
+
+      const mockProjects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      const lastMonth = moment()
+        .subtract(1, 'M')
+        .format('YYYY-MM')
+        .toString();
+      const nextMonth = moment()
+        .add(1, 'M')
+        .format('YYYY-MM')
+        .toString();
+      const currMonth = moment()
+        .format('YYYY-MM')
+        .toString();
+
+      // Act
+
+      // Get all modifiers for the billingGroup for last month
+      const { data: lastMonthData } = await allBillingModifiers(
+        defaultModifier.group,
+        lastMonth
+      );
+      if (!lastMonthData.data.allBillingModifiers) {
+        throw new Error(lastMonthData.errors[0].message);
+      }
+      const {
+        data: { allBillingModifiers: lastMonthBillingGroupModifiers }
+      } = lastMonthData;
+
+      // Get all modifiers for the billing group for next month
+      const { data: nextMonthData } = await allBillingModifiers(
+        defaultModifier.group,
+        nextMonth
+      );
+      if (!nextMonthData.data.allBillingModifiers) {
+        throw new Error(nextMonthData.errors[0].message);
+      }
+      const {
+        data: { allBillingModifiers: nextMonthBillingGroupModifiers }
+      } = nextMonthData;
+
+      // Get all modifiers for the current month
+      const { data: currMonthData } = await allBillingModifiers(
+        defaultModifier.group,
+        currMonth
+      );
+      if (!currMonthData.data.allBillingModifiers) {
+        throw new Error(currMonthData.errors[0].message);
+      }
+      const {
+        data: { allBillingModifiers: currMonthBillingGroupModifiers }
+      } = currMonthData;
+
+      // Request costs for last month
+      const lastMonthCosts = availabilityProjectsCosts(
+        mockProjects,
+        AVAILABILITY.STANDARD,
+        CURRENCIES.CHF,
+        lastMonthBillingGroupModifiers
+      ) as BillingGroupCosts;
+
+      // Request costs for next month
+      const nextMonthCosts = availabilityProjectsCosts(
+        mockProjects,
+        AVAILABILITY.STANDARD,
+        CURRENCIES.CHF,
+        nextMonthBillingGroupModifiers
+      );
+
+      // Request costs for current month
+      const currMonthCosts = availabilityProjectsCosts(
+        mockProjects,
+        AVAILABILITY.STANDARD,
+        CURRENCIES.CHF,
+        currMonthBillingGroupModifiers
+      );
+
+      // Assert
+
+      // There should only be a single modifier for the current month
+      expect(lastMonthBillingGroupModifiers.length).toBe(0);
+      expect(nextMonthBillingGroupModifiers.length).toBe(0);
+      expect(currMonthBillingGroupModifiers.length).toBe(1);
+
+      // The billing costs should only be different for the last and next month
+      expect(lastMonthCosts.total).toBeLessThan(currMonthCosts.total);
+      expect(nextMonthCosts.total).toBeLessThan(currMonthCosts.total);
+
+      expect(currMonthCosts.modifiers.length).toBe(1);
+    });
+
+    it('Given a Billing modifier that expires far in the future, and another modifier for a single month, ensure that both modifiers are applied for the single month, and that only the long running modifier is applied outside of the single modifier month. #modifiers, #future', async () => {
+
+      // Arrange
+      const foreverStartDate = moment().startOf('month').format('MM-DD-YYYY');
+      const foreverEndDate = moment().add(100, 'years').format('MM-DD-YYYY');
+      const foreverModifierData = { ...defaultModifier, startDate: foreverStartDate, endDate: foreverEndDate };
+      const { data: foreverModifier } = await addBillingModifier(foreverModifierData);
+
+      if (!foreverModifier.data.addBillingModifier) {
+        throw new Error(foreverModifier.errors[0].message);
+      }
+
+      const singleMonthStartDate = moment().startOf('month').format('MM-DD-YYYY');
+      const singleMonthEndDate = moment().endOf('month').format('MM-DD-YYYY');
+      const singleMonthModifierData = { ...defaultModifier, startDate: singleMonthStartDate, endDate: singleMonthEndDate };
+      const { data: singleMonthModifier } = await addBillingModifier(singleMonthModifierData);
+
+      if (!singleMonthModifier.data.addBillingModifier) {
+        throw new Error(singleMonthModifier.errors[0].message);
+      }
+
+      const lastMonth = moment().subtract(1, 'M').format('YYYY-MM').toString();
+      const nextMonth = moment().add(1, 'M').format('YYYY-MM').toString();
+      const nextYear = moment().add(1, "year").format('YYYY-MM').toString();
+      const currMonth = moment().format('YYYY-MM').toString();
+
+      // Act
+
+      // Get all modifiers for the billingGroup for last month
+      const { data: { data: { allBillingModifiers: lastMonthBillingGroupModifiers } } }
+        = await allBillingModifiers( defaultModifier.group, lastMonth);
+
+      // Get all modifiers for the billing group for next month
+      const { data: { data: { allBillingModifiers: nextMonthBillingGroupModifiers } } }
+        = await allBillingModifiers(defaultModifier.group, nextMonth);
+
+      // Get all modifiers for the billing group for next year
+      const { data: { data: { allBillingModifiers: nextYearBillingGroupModifiers } } }
+        = await allBillingModifiers(defaultModifier.group, nextYear);
+
+      // Get all modifiers for the current month
+      const { data: { data: { allBillingModifiers: currMonthBillingGroupModifiers } } }
+        = await allBillingModifiers(defaultModifier.group, currMonth);
+
+      // Assert
+
+      expect(lastMonthBillingGroupModifiers.length).toBe(0);
+      expect(nextMonthBillingGroupModifiers.length).toBe(1);
+      expect(currMonthBillingGroupModifiers.length).toBe(2);
+      expect(nextYearBillingGroupModifiers.length).toBe(1);
+    });
+
+
+
+
+    it('Given a single, or multiple, Billing modifiers that would generage a negative total, ensure it does not go below 0 (zero). #belowZero', async() => {
+
+      // Arrange
+      const startDate = moment().startOf('month').format('MM-DD-YYYY');
+      const endDate = moment().endOf('month').format('MM-DD-YYYY');
+      const modifier = { ...defaultModifier, startDate, endDate, discountFixed: 100_000};
+      await addBillingModifier(modifier);
+
+      const mockProjects = [
+        {
+          availability: 'STANDARD',
+          month: moment().month() + 1,
+          year: moment().year(),
+          hits: 0,
+          storageDays: 0,
+          prodHours: 0,
+          devHours: 0
+        },
+      ];
+
+      // Get all modifiers for the current month
+      const currMonth = moment().format('YYYY-MM').toString();
+      const { data: { data: { allBillingModifiers: modifiers } } } = await allBillingModifiers( defaultModifier.group, currMonth);
+
+      // Act
+
+      // Costs for current month
+      const currMonthCosts = availabilityProjectsCosts( mockProjects, AVAILABILITY.STANDARD, CURRENCIES.CHF, modifiers );
+
+      // Assert
+      expect(currMonthCosts.modifiers.length).toBe(1);
+      expect(currMonthCosts.modifiers[0].discountFixed).toBe(modifier.discountFixed)
+      expect(currMonthCosts.total).toBe(0);
+    });
+
+
   });
 }); // End Billing Calculations
