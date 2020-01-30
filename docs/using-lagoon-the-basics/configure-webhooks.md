@@ -36,7 +36,7 @@ Managing the following settings will require you to have a high level of access 
 * The `URL` is the route to the webhook-handler of your Lagoon instance.
 * Select the `Trigger` events which will send a notification to Lagoon. We suggest that you send `Push events` and `Merge request events` events, and then filter further in the Lagoon configuration of your project.
 
-![](../.gitbook/assets/gitlab_webhook.png)
+![Selecting Trigger events in GitLab.](../.gitbook/assets/gitlab_webhook.png)
 
 * Click `Add webhook`to save your configuration. 
 
