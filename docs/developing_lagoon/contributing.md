@@ -14,12 +14,12 @@ Security reports are greatly appreciated and will receive public Karma and Swag!
 
 We're always interested in fixing issues, therefore issue reports are very welcome. Please make sure to check that your issue does not already exist in the [issue list](https://github.com/amazeeio/lagoon/issues)
 
-## I got a feature request or idea
+## I have a feature request or idea
 
-Cool! Just create an [issue](https://github.com/amazeeio/lagoon/issues) and we're happy to look over it. We can't guarantee though that it will be implemented. But we are always interested in hearing ideas where we can bring Lagoon to.
+Cool! Just create an [issue](https://github.com/amazeeio/lagoon/issues) and we're happy to look over it. We can't guarantee that it will be implemented. But we are always interested in hearing ideas of what we could bring to Lagoon.
 
 Another good way is also to talk to us via RocketChat about your idea. [Join today](https://amazeeio.rocket.chat/) in the channel #lagoon.
 
 ## I wrote some code
 
-Epic! Please send us a Pull Request for it, we will do our best to review it and merge it if possible.
+Epic! Please send us a pull request for it, we will do our best to review it and merge it if possible.

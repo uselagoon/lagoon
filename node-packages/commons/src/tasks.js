@@ -56,6 +56,13 @@ class NoNeedToDeployBranch extends Error {
   }
 }
 
+class NoNeedToRemoveBranch extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NoNeedToRemoveBranch';
+  }
+}
+
 class CannotDeleteProductionEnvironment extends Error {
   constructor(message: string) {
     super(message);
@@ -370,13 +377,24 @@ async function createPromoteTask(promoteData: Object) {
 }
 
 async function createRemoveTask(removeData: Object) {
-  const { projectName, branch, forceDeleteProductionEnvironment } = removeData;
+  const {
+    projectName,
+    branch,
+    branchName,
+    pullrequestNumber,
+    pullrequestTitle,
+    forceDeleteProductionEnvironment,
+    type,
+  } = removeData;
 
-  const productionEnvironment = await getProductionEnvironmentForProject(
+  // Load all environments that currently exist (and are not deleted).
+  const allEnvironments = await getEnvironmentsForProject(
     projectName,
   );
 
-  if (branch === productionEnvironment.project.productionEnvironment) {
+  // Check to see if we are deleting the production environment, and if so,
+  // ensure the flag is set to allow this.
+  if (branch === allEnvironments.project.productionEnvironment) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
@@ -394,7 +412,56 @@ async function createRemoveTask(removeData: Object) {
 
   switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
-      return sendToLagoonTasks('remove-openshift', removeData);
+      if (type === 'branch') {
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`,
+          );
+          throw new NoNeedToRemoveBranch('Branch environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`,
+        );
+        return sendToLagoonTasks('remove-openshift', removeData);
+
+      } else if (type === 'pullrequest') {
+        // Work out the branch name from the PR number.
+        let branchName = 'pr-' + pullrequestNumber;
+        removeData.branchName = 'pr-' + pullrequestNumber;
+
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branchName) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`,
+          );
+          throw new NoNeedToRemoveBranch('Pull Request environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`,
+        );
+        return sendToLagoonTasks('remove-openshift', removeData);
+
+      } else if (type === 'promote') {
+        return sendToLagoonTasks('remove-openshift', removeData);
+      }
+      break;
 
     default:
       throw new UnknownActiveSystem(

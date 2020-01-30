@@ -25,6 +25,8 @@ RUN yarn check --verify-tree
 ENV NODE_ENV=production \
     LOGSDB_ADMIN_PASSWORD=admin \
     KEYCLOAK_ADMIN_PASSWORD=admin \
+    ELASTICSEARCH_HOST=logs-db-service:9200 \
+    ELASTICSEARCH_URL=http://logs-db-service:9200 \
     KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a
 
 # The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting

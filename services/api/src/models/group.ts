@@ -11,6 +11,12 @@ import {
   extractMonthYear,
 } from '../resources/billing/helpers';
 
+interface IGroupAttributes {
+  "lagoon-projects"?: [string];
+  comment?: [string];
+  [propName: string]: any
+}
+
 export interface Group {
   name: string;
   id?: string;
@@ -23,7 +29,7 @@ export interface Group {
   members?: GroupMembership[];
   // All subgroups according to keycloak.
   subGroups?: GroupRepresentation[];
-  attributes?: object;
+  attributes?: IGroupAttributes;
 }
 
 export interface BillingGroup extends Group {
@@ -278,9 +284,11 @@ export const Group = (clients): GroupModel => {
     group: Group,
   ): Promise<number[]> => {
     const projectIds = R.pipe(
-      R.pathOr('', ['attributes', 'lagoon-projects', 0]),
+      R.view(attrLagoonProjectsLens),
+      R.defaultTo(''),
       R.split(','),
       R.reject(R.isEmpty),
+      R.map(id => parseInt(id, 10)),
     )(group);
 
     const parentGroup = await loadParentGroup(group);
@@ -300,9 +308,11 @@ export const Group = (clients): GroupModel => {
     group: Group,
   ): Promise<number[]> => {
     const groupProjectIds = R.pipe(
-      R.pathOr('', ['attributes', 'lagoon-projects', 0]),
+      R.view(attrLagoonProjectsLens),
+      R.defaultTo(''),
       R.split(','),
       R.reject(R.isEmpty),
+      R.map(id => parseInt(id, 10)),
     )(group);
 
     let subGroupProjectIds = [];

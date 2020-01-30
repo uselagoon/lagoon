@@ -60,7 +60,7 @@ objects:
       service: ${SERVICE_NAME}
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
-- apiVersion: extensions/v1beta1
+- apiVersion: apps/v1
   kind: Deployment
   metadata:
     name: ${SERVICE_NAME} # harbor-nginx

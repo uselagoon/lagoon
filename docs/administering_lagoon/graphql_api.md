@@ -188,7 +188,7 @@ mutation {
       # This is the notification name
       notificationName: ""
     }
-  ) 
+  ) {
     id
   }
 }
@@ -251,6 +251,9 @@ mutation {
 
 This query adds a new project to be deployed, which is a git repository with a `.lagoon.yml` configuration file committed in the root.
 
+If you omit the `privateKey` field a new SSH Key will for the project will be generated automatically. If you would like to reuse a key from another project you
+will need to supply the key in the `addProject` mutation.
+
 ```graphql
 mutation {
   addProject(
@@ -273,7 +276,7 @@ mutation {
       productionEnvironment: ""
     }
   ) {
-    name  
+    name
     openshift {
       name
       id

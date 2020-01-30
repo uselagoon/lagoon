@@ -35,8 +35,11 @@ COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
-# Defining Versions - https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/ / https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.3.0.248
+# New Relic PHP Agent.
+# Support for PHP 7.4 added in 9.4.
+# @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
+# @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
+ENV NEWRELIC_VERSION=9.6.0.255
 
 RUN apk add --no-cache fcgi \
         ssmtp \
@@ -57,26 +60,43 @@ RUN apk add --no-cache fcgi \
         libwebp-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
-    && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
+    && case ${PHP_VERSION} in \
+      7.3*) \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug-2.7.0 \
         && yes '' | pecl install -f redis-4.3.0; \
-       elif [ ${PHP_VERSION%.*.*} == "7" ]; then \
+        ;; \
+      7.0*) \
+        yes '' | pecl install -f apcu \
+        && yes '' | pecl install -f xdebug-2.6.0 \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
+      7*) \
         yes '' | pecl install -f apcu \
         && yes '' | pecl install -f xdebug \
         && yes '' | pecl install -f redis-4.3.0; \
-       fi \
-    && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
+        ;; \
+      5*) \
         yes '' | pecl install -f apcu-4.0.11 \
         && yes '' | pecl install -f xdebug-2.5.5 \
         && yes '' | pecl install -f redis-4.3.0; \
-       fi \
+        ;; \
+      esac \
     && docker-php-ext-enable apcu redis xdebug \
-    && docker-php-ext-configure gd --with-webp-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && case ${PHP_VERSION} in \
+      7.4*) \
+        docker-php-ext-configure gd --with-webp --with-jpeg \
+        ;; \
+      *) \
+        docker-php-ext-configure gd --with-webp-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+        ;; \
+      esac \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
-    && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
+    && case ${PHP_VERSION} in \
+      7.1*|7.0*|5*) \
         docker-php-ext-install mcrypt; \
-       fi \
+        ;; \
+      esac \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \

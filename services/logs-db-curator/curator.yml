@@ -1,8 +1,8 @@
 ---
 client:
   hosts:
-    - logs-db-service
-  port: 9200
+    - ${ELASTICSEARCH_HOST}
+  port: ${ELASTICSEARCH_HOST_PORT}
   http_auth: ${LOGSDB_HTTP_AUTH}
 
 logging:
