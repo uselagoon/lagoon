@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Lagoon UI Next: Chrome",
+      "url": "http://localhost:3003",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${workspaceFolder}/src/*"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Lagoon UI Next: Node",
+      "program": "${workspaceFolder}/server.js",
+      "runtimeArgs": [
+          "--inspect"
+      ],
+      "port": 9229,
+      "sourceMaps": true,
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Lagoon UI Next: Full",
+      "configurations": ["Lagoon UI Next: Node", "Lagoon UI Next: Chrome"]
+    }
+  ]
+}
