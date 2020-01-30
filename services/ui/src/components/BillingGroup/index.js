@@ -4,7 +4,7 @@ import { bp, color, fontSize } from 'lib/variables';
 
 const BillingGroup = ({ billingGroupCosts }) => {
 
-  const { id, name, currency, availability, hitCost, storageCost, environmentCost, total, modifiers, projects } = billingGroupCosts;
+  const { id, name, currency, availability, hitCost, hitCostFormula, storageCost, storageCostFormula, environmentCost, environmentCostFormula, total, modifiers, projects } = billingGroupCosts;
   return(
     <div className="billingGroup">
       <div className="data-table">
@@ -20,19 +20,21 @@ const BillingGroup = ({ billingGroupCosts }) => {
         </div>
 
         <div className="data-row">
-          <div>Hits:</div><div className="value"> ${hitCost}</div>
+          <div>
+            Hits:<br/><span className="formula">{hitCostFormula}</span>
+          </div><div className="value"> ${hitCost}</div>
         </div>
 
         <div className="data-row">
-          <div>Storage:</div><div className="value"> ${storageCost}</div>
+          <div>Storage:<br/><span className="formula">{storageCostFormula}</span></div><div className="value"> ${storageCost}</div>
         </div>
 
         <div className="data-row">
-          <div>Dev:</div><div className="value"> ${environmentCost.dev}</div>
+          <div>Dev:<br/><span className="formula">{environmentCostFormula.dev}</span></div><div className="value"> ${environmentCost.dev}</div>
         </div>
 
         <div className="data-row">
-          <div>Prod:</div><div className="value"> ${environmentCost.prod}</div><br/>
+          <div>Prod:<br/><span className="formula">{environmentCostFormula.prod}</span></div><div className="value"> ${environmentCost.prod}</div><br/>
         </div>
         { 
           modifiers.map(
@@ -55,6 +57,11 @@ const BillingGroup = ({ billingGroupCosts }) => {
       </div>
 
       <style jsx>{`
+        .formula {
+          font-size: 0.85rem;
+          font-style: italic;
+          color: darkgrey;
+        }
         .data-table {
           background-color: ${color.white};
           border: 1px solid ${color.lightestGrey};
@@ -90,7 +97,7 @@ const BillingGroup = ({ billingGroupCosts }) => {
             }
 
             .value {
-              width: 100%;
+              width: 60%;
               text-align: right;
             }
 
@@ -101,30 +108,6 @@ const BillingGroup = ({ billingGroupCosts }) => {
               }
               @media ${bp.wideUp} {
 
-
-                &.created {
-                  width: 20%;
-                }
-
-                &.download {
-                  align-self: center;
-                  width: 25%;
-                  @media ${bp.extraWideUp} {
-                    width: 20%;
-                  }
-                }
-              }
-
-              &.backupid {
-                word-break: break-word;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                @media ${bp.wideUp} {
-                  width: 45%;
-                }
-                @media ${bp.extraWideUp} {
-                  width: 50%;
-                }
               }
             }
 

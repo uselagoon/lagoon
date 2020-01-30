@@ -3,6 +3,12 @@ import * as R from 'ramda';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
 import MainLayout from '../../layouts/MainLayout';
+import GlobalStlyes from '../../layouts/GlobalStyles';
+
+import { StatusLayoutNoHeader } from "../../layouts/StatusLayout";
+import renderWhile from '../../lib/renderWhile';
+
+
 import AllBillingGroupsQuery from '../../lib/query/AllBillingGroups';
 import BillingGroups from '../../components/BillingGroups';
 
@@ -12,6 +18,7 @@ import withQueryError from '../../lib/withQueryError';
 import { AuthContext, adminAuthChecker } from '../../lib/Authenticator';
 
 import { bp, color } from '../../lib/variables';
+import { LoadingPageNoHeader } from '../_loading';
 
 /**
  * Displays the backups page, given the name of an openshift project.
@@ -33,7 +40,10 @@ export const PageAdmin = () => {
                   return (
                     <Query query={AllBillingGroupsQuery}>
                       {R.compose(
-                        withQueryLoading,
+                        renderWhile(
+                          ({ loading }) => loading,
+                          LoadingPageNoHeader
+                        ),
                         withQueryError
                       )(({ data: { allGroups: billingGroups } }) => (
                         <BillingGroups billingGroups={billingGroups} />

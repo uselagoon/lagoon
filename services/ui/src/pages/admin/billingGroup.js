@@ -12,6 +12,7 @@ import AllBillingModifiersQuery from 'lib/query/AllBillingModifiers';
 
 import BarChart from "components/BillingGroup/BarChart";
 import BillingGroup from "components/BillingGroup";
+import Projects from "components/BillingGroup/Projects";
 import AllBillingModifiers from "components/BillingModifiers/AllBillingModifiers";
 import AddBillingModifier from "components/BillingModifiers/AddBillingModifier";
 
@@ -155,14 +156,20 @@ export const PageBillingGroup = ({ router }) => {
                     <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
                       {R.compose(withQueryLoading, withQueryError)(
                         ({ data: { costs } }) => {
-                          return(<BillingGroup billingGroupCosts={costs} />);
+                          return(
+                            <div>
+                              <BillingGroup billingGroupCosts={costs} />
+                              <div className="btnWrapper">
+                                <Button action={prevSubmitHandler}>Previous Month</Button>
+                                <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
+                              </div>
+                              <Projects projects={costs.projects} />
+                            </div>
+                          );
                         }
                       )}
                     </Query>
-                    <div className="btnWrapper">
-                      <Button action={prevSubmitHandler}>Previous Month</Button>
-                      <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
-                    </div>
+
                   </div>
                   <div className="rightColumn">
                     {<Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >

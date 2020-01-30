@@ -76,7 +76,7 @@ function BarChart({ data }) {
           .data([value])
           .join(enter => enter.append("text").attr("y", yScale(value) - 4))
           .attr("class", "tooltip")
-          .text(value)
+          .text(`$ ${value.toFixed(2)}`)
           .attr("x", xScale(index) + xScale.bandwidth() / 2)
           .attr("text-anchor", "middle")
           .transition()
