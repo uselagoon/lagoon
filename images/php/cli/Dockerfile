@@ -56,6 +56,11 @@ RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
 COPY 61-php-xdebug-cli-env.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 
+# Copy mariadb-client configuration.
+COPY 90-mariadb-envplate.sh /lagoon/entrypoints/
+COPY mariadb-client.cnf /etc/my.cnf.d/
+RUN fix-permissions /etc/my.cnf.d/
+
 # helper functions
 COPY 55-cli-helpers.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
