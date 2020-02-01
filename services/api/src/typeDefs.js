@@ -507,6 +507,10 @@ const typeDefs = gql`
 
   type Query {
     """
+    Returns the current user
+    """
+    me: User
+    """
     Returns User Object by a given sshKey
     """
     userBySshKey(sshKey: String!): User
