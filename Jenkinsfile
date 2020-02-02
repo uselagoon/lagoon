@@ -3,8 +3,8 @@ node {
   openshift_version = 'v3.11.0'
   minishift_version = '1.34.1'
   kubernetes_versions = [
-    ["kubernetes": "v1.15", "k3s": "v0.9.1", "kubectl": "v1.15.4"],
-    ["kubernetes": "v1.16", "k3s": "v1.0.1", "kubectl": "v1.16.3"],
+    // ["kubernetes": "v1.15", "k3s": "v0.9.1", "kubectl": "v1.15.4"],
+    // ["kubernetes": "v1.16", "k3s": "v1.0.1", "kubectl": "v1.16.3"],
     ["kubernetes": "v1.17", "k3s": "v1.17.0-k3s.1", "kubectl": "v1.17.0"]
   ]
 
