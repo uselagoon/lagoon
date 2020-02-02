@@ -42,7 +42,6 @@ node {
         }
 
         try {
-          failFast true
           parallel (
             '1 tests': {
               kubernetes_versions.each { kubernetes_version ->
