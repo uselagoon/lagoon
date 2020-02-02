@@ -48,7 +48,7 @@ node {
                 stage ("kubernetes ${kubernetes_version['kubernetes']} tests") {
                   try {
                     sh "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
-                    sh "make k3d K3S_VERSION=${kubernetes_version['k3s']}${kubernetes_version['kubectl']}"
+                    sh "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
                     sh "make k8s-tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
@@ -133,6 +133,8 @@ node {
 
 def cleanup() {
   try {
+    sh "make down || true"
+    sh "make kill"
     sh "make down"
     sh "make minishift/cleanall"
     sh "make k3d/cleanall"
