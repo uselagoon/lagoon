@@ -15,8 +15,8 @@ exports[`handler should list details for multiple projects 1`] = `
 Array [
   Array [
     "[38;2;132;132;132mProject[39m                   [38;2;132;132;132mGit URL[39m                                       [38;2;132;132;132mBranches[39m  [38;2;132;132;132mPull Requests[39m  [38;2;132;132;132mCreated[39m
-credentialstest-project1  ssh://git@192.168.42.1:2222/git/project1.git  true      null           2018-01-15 11:09:35
-credentialstest-project2  ssh://git@192.168.42.1:2222/git/project2.git  true      null           2018-01-15 11:09:35",
+credentialstest-project1  ssh://git@172.17.0.1:2222/git/project1.git  true      null           2018-01-15 11:09:35
+credentialstest-project2  ssh://git@172.17.0.1:2222/git/project2.git  true      null           2018-01-15 11:09:35",
   ],
 ]
 `;
@@ -25,8 +25,8 @@ exports[`handler should list details for multiple projects in csv format 1`] = `
 Array [
   Array [
     "Project,Git URL,Branches,Pull Requests,Created
-credentialstest-project1,ssh://git@192.168.42.1:2222/git/project1.git,true,null,2018-01-15 11:09:35
-credentialstest-project2,ssh://git@192.168.42.1:2222/git/project2.git,true,null,2018-01-15 11:09:35
+credentialstest-project1,ssh://git@172.17.0.1:2222/git/project1.git,true,null,2018-01-15 11:09:35
+credentialstest-project2,ssh://git@172.17.0.1:2222/git/project2.git,true,null,2018-01-15 11:09:35
 ",
   ],
 ]
@@ -45,14 +45,14 @@ Array [
       ],
       Array [
         "credentialstest-project1",
-        "ssh://git@192.168.42.1:2222/git/project1.git",
+        "ssh://git@172.17.0.1:2222/git/project1.git",
         "true",
         "null",
         "2018-01-15 11:09:35",
       ],
       Array [
         "credentialstest-project2",
-        "ssh://git@192.168.42.1:2222/git/project2.git",
+        "ssh://git@172.17.0.1:2222/git/project2.git",
         "true",
         "null",
         "2018-01-15 11:09:35",
@@ -66,13 +66,13 @@ exports[`handler should list details for multiple projects in simple format 1`] 
 Array [
   Array [
     "Project: credentialstest-project1
-Git URL: ssh://git@192.168.42.1:2222/git/project1.git
+Git URL: ssh://git@172.17.0.1:2222/git/project1.git
 Branches: true
 Pull Requests: null
 Created: 2018-01-15 11:09:35
 
 Project: credentialstest-project2
-Git URL: ssh://git@192.168.42.1:2222/git/project2.git
+Git URL: ssh://git@172.17.0.1:2222/git/project2.git
 Branches: true
 Pull Requests: null
 Created: 2018-01-15 11:09:35",
