@@ -11,18 +11,19 @@ metadata:
     {{- include "custom-ingress.labels" . | nindent 4 }}
   annotations:
     # force-ssl-redirect handling
-    {{ if eq .Values.insecure "Allow"}}
+    {{- if eq .Values.insecure "Allow"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    {{ else if eq .Values.insecure "Redirect"}}
+    {{- else if eq .Values.insecure "Redirect"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    {{ else if eq .Values.insecure "None"}}
+    {{- else if eq .Values.insecure "None"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    {{ end }}
+    {{- end }}
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
     {{ end -}}
     kubernetes.io/tls-acme: {{ .Values.tls_acme | quote }}
+    {{- include "custom-ingress.annotations" . | nindent 4 }}
 spec:
   {{if ne .Values.insecure "None"}}
   tls:

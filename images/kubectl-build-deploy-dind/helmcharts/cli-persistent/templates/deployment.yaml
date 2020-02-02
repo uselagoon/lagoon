@@ -4,6 +4,8 @@ metadata:
   name: {{ include "cli-persistent.fullname" . }}
   labels:
     {{- include "cli-persistent.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cli-persistent.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -13,6 +15,8 @@ spec:
     metadata:
       labels:
         {{- include "cli-persistent.labels" . | nindent 8 }}
+      annotations:
+        {{- include "cli-persistent.annotations" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

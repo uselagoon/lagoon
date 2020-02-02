@@ -4,6 +4,8 @@ metadata:
   name: {{ include "nginx-php-persistent.fullname" . }}
   labels:
     {{- include "nginx-php-persistent.labels" . | nindent 4 }}
+  annotations:
+    {{- include "nginx-php-persistent.annotations" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

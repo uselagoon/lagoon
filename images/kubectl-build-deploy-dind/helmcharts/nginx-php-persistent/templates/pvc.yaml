@@ -5,6 +5,8 @@ metadata:
   labels:
     {{- include "nginx-php-persistent.labels" . | nindent 4 }}
   annotations:
+    {{- include "nginx-php-persistent.annotations" . | nindent 4 }}
+  annotations:
     appuio.ch/backup: "true"
 spec:
   accessModes:

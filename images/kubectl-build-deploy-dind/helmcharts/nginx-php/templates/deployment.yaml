@@ -4,6 +4,8 @@ metadata:
   name: {{ include "nginx-php.fullname" . }}
   labels:
     {{- include "nginx-php.labels" . | nindent 4 }}
+  annotations:
+    {{- include "nginx-php.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -13,6 +15,8 @@ spec:
     metadata:
       labels:
         {{- include "nginx-php.labels" . | nindent 8 }}
+      annotations:
+        {{- include "nginx-php.annotations" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -34,7 +38,7 @@ spec:
             httpGet:
               path: /nginx_status
               port: 50000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 1
             timeoutSeconds: 3
           livenessProbe:
             httpGet:

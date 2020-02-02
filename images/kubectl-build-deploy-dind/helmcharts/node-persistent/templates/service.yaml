@@ -4,6 +4,8 @@ metadata:
   name: {{ include "node-persistent.fullname" . }}
   labels:
     {{- include "node-persistent.labels" . | nindent 4 }}
+  annotations:
+    {{- include "node-persistent.annotations" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

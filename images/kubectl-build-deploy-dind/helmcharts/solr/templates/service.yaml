@@ -4,6 +4,8 @@ metadata:
   name: {{ include "solr.fullname" . }}
   labels:
     {{- include "solr.labels" . | nindent 4 }}
+  annotations:
+    {{- include "solr.annotations" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

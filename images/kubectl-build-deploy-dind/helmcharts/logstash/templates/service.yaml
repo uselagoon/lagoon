@@ -4,6 +4,8 @@ metadata:
   name: {{ include "logstash.fullname" . }}
   labels:
     {{- include "logstash.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mariadb-shared.annotations" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

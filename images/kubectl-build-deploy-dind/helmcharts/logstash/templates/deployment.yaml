@@ -4,6 +4,8 @@ metadata:
   name: {{ include "logstash.fullname" . }}
   labels:
     {{- include "logstash.labels" . | nindent 4 }}
+  annotations:
+    {{- include "logstash.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -13,6 +15,8 @@ spec:
     metadata:
       labels:
         {{- include "logstash.labels" . | nindent 8 }}
+      annotations:
+        {{- include "logstash.annotations" . | nindent 4 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -38,13 +42,13 @@ spec:
             - name: 9600-tcp
               containerPort: 9600
               protocol: TCP
-          livenessProbe:
+          readinessProbe:
             tcpSocket:
               port: 9600
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10
             timeoutSeconds: 1
             periodSeconds: 10
-          readinessProbe:
+          livenessProbe:
             tcpSocket:
               port: 9600
             initialDelaySeconds: 120

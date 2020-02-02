@@ -4,6 +4,8 @@ metadata:
   name: {{ include "k8up-schedule.fullname" . }}
   labels:
     {{- include "k8up-schedule.labels" . | nindent 4 }}
+  annotations:
+    {{- include "k8up-schedule.annotations" . | nindent 4 }}
 spec:
   backend:
     repoPasswordSecretRef:

@@ -5,6 +5,8 @@ metadata:
   labels:
     {{- include "mariadb-single.labels" . | nindent 4 }}
   annotations:
+    {{- include "mariadb-single.annotations" . | nindent 4 }}
+  annotations:
     appuio.ch/backup: "false"
 spec:
   accessModes:

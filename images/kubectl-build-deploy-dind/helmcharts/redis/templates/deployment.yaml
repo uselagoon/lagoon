@@ -4,6 +4,8 @@ metadata:
   name: {{ include "redis.fullname" . }}
   labels:
     {{- include "redis.labels" . | nindent 4 }}
+  annotations:
+    {{- include "redis.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -13,6 +15,8 @@ spec:
     metadata:
       labels:
         {{- include "redis.labels" . | nindent 8 }}
+      annotations:
+        {{- include "redis.annotations" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -38,12 +42,12 @@ spec:
             - name: 6379-tcp
               containerPort: 6379
               protocol: TCP
-          livenessProbe:
+          readinessProbe:
             tcpSocket:
               port: 6379
-            initialDelaySeconds: 15
+            initialDelaySeconds: 1
             timeoutSeconds: 1
-          readinessProbe:
+          livenessProbe:
             tcpSocket:
               port: 6379
             initialDelaySeconds: 120

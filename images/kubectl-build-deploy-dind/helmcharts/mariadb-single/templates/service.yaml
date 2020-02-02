@@ -4,6 +4,8 @@ metadata:
   name: {{ include "mariadb-single.fullname" . }}
   labels:
     {{- include "mariadb-single.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mariadb-single.annotations" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

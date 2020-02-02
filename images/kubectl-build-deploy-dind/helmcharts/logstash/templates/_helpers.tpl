@@ -64,8 +64,15 @@ lagoon/project: {{ .Values.project }}
 lagoon/environment: {{ .Values.environment }}
 lagoon/environmentType: {{ .Values.environmentType }}
 lagoon/buildType: {{ .Values.buildType }}
+{{- end -}}
+
+{{/*
+Annotations
+*/}}
+{{- define "cli.annotations" -}}
+lagoon/version: {{ .Values.lagoonVersion | quote }}
 {{- if .Values.branch }}
-lagoon/branch: {{ .Values.branch }}
+lagoon/branch: {{ .Values.branch | quote }}
 {{- end }}
 {{- if .Values.prNumber }}
 lagoon/prNumber: {{ .Values.prNumber | quote }}

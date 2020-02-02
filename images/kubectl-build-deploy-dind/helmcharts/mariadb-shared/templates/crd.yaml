@@ -4,5 +4,7 @@ metadata:
   name: {{ include "mariadb-shared.fullname" . }}
   labels:
     {{- include "mariadb-shared.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mariadb-shared.annotations" . | nindent 4 }}
 spec:
   environment: {{ .Values.mariaDBConsumerEnvironment}}

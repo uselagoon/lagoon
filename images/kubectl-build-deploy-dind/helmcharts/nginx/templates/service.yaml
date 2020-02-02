@@ -4,6 +4,8 @@ metadata:
   name: {{ include "nginx.fullname" . }}
   labels:
     {{- include "nginx.labels" . | nindent 4 }}
+  annotations:
+    {{- include "nginx.annotations" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

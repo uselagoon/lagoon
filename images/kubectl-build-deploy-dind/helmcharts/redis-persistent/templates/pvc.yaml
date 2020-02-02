@@ -6,6 +6,7 @@ metadata:
     {{- include "redis-persistent.labels" . | nindent 4 }}
   annotations:
     appuio.ch/backup: "false"
+    {{- include "redis-persistent.annotations" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
