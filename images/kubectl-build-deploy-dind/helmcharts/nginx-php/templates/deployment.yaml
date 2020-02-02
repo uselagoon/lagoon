@@ -12,13 +12,13 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "nginx-php.selectorLabels" . | nindent 8 }}
+        {{- include "nginx-php.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      priorityClassName: {{ include "nginx-php.lagoon-priority" . }}
+      priorityClassName: {{ include "nginx-php.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

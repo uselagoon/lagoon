@@ -28,6 +28,8 @@ Common labels
 helm.sh/chart: {{ include "k8up-schedule.chart" . }}
 {{ include "k8up-schedule.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "k8up-schedule.lagoonLabels" . }}
+
 {{- end -}}
 
 {{/*
@@ -36,4 +38,24 @@ Selector labels
 {{- define "k8up-schedule.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "k8up-schedule.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Lagoon Labels
+*/}}
+{{- define "k8up-schedule.lagoonLabels" -}}
+lagoon/service: {{ .Release.Name }}
+lagoon/service-type: {{ .Chart.Name }}
+lagoon/project: {{ .Values.project }}
+lagoon/environment: {{ .Values.environment }}
+lagoon/environmentType: {{ .Values.environmentType }}
+lagoon/buildType: {{ .Values.buildType }}
+{{- if .Values.branch }}
+lagoon/branch: {{ .Values.branch }}
+{{- end }}
+{{- if .Values.prNumber }}
+lagoon/prNumber: {{ .Values.prNumber | quote }}
+lagoon/prHeadBranch: {{ .Values.prHeadBranch | quote }}
+lagoon/prBaseBranch: {{ .Values.prBaseBranch | quote }}
+{{- end }}
 {{- end -}}

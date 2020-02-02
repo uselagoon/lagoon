@@ -34,10 +34,8 @@ Common labels
 {{- define "mariadb-single.labels" -}}
 helm.sh/chart: {{ include "mariadb-single.chart" . }}
 {{ include "mariadb-single.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "mariadb-single.lagoonLabels" . }}
 {{- end -}}
 
 {{/*
@@ -61,6 +59,26 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create a PriorityClassName.
 (this is based on the Lagoon Environment Type)).
 */}}
-{{- define "mariadb-single.lagoon-priority" -}}
+{{- define "mariadb-single.lagoonPriority" -}}
 {{- printf "lagoon-priority-%s" .Values.environmentType }}
+{{- end -}}
+
+{{/*
+Lagoon Labels
+*/}}
+{{- define "mariadb-single.lagoonLabels" -}}
+lagoon/service: {{ .Release.Name }}
+lagoon/service-type: {{ .Chart.Name }}
+lagoon/project: {{ .Values.project }}
+lagoon/environment: {{ .Values.environment }}
+lagoon/environmentType: {{ .Values.environmentType }}
+lagoon/buildType: {{ .Values.buildType }}
+{{- if .Values.branch }}
+lagoon/branch: {{ .Values.branch }}
+{{- end }}
+{{- if .Values.prNumber }}
+lagoon/prNumber: {{ .Values.prNumber | quote }}
+lagoon/prHeadBranch: {{ .Values.prHeadBranch | quote }}
+lagoon/prBaseBranch: {{ .Values.prBaseBranch | quote }}
+{{- end }}
 {{- end -}}

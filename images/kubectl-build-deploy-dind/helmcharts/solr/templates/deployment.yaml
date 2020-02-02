@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "solr.selectorLabels" . | nindent 8 }}
+        {{- include "solr.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -22,7 +22,7 @@ spec:
         - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
-      priorityClassName: {{ include "solr.lagoon-priority" . }}
+      priorityClassName: {{ include "solr.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

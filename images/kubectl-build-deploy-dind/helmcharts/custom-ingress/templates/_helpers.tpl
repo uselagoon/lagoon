@@ -29,6 +29,8 @@ Common labels
 helm.sh/chart: {{ include "custom-ingress.chart" . }}
 {{ include "custom-ingress.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "custom-ingress.lagoonLabels" . }}
+
 {{- end -}}
 
 {{/*
@@ -37,4 +39,24 @@ Selector labels
 {{- define "custom-ingress.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "custom-ingress.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Lagoon Labels
+*/}}
+{{- define "custom-ingress.lagoonLabels" -}}
+lagoon/service: {{ .Release.Name }}
+lagoon/service-type: {{ .Chart.Name }}
+lagoon/project: {{ .Values.project }}
+lagoon/environment: {{ .Values.environment }}
+lagoon/environmentType: {{ .Values.environmentType }}
+lagoon/buildType: {{ .Values.buildType }}
+{{- if .Values.branch }}
+lagoon/branch: {{ .Values.branch }}
+{{- end }}
+{{- if .Values.prNumber }}
+lagoon/prNumber: {{ .Values.prNumber | quote }}
+lagoon/prHeadBranch: {{ .Values.prHeadBranch | quote }}
+lagoon/prBaseBranch: {{ .Values.prBaseBranch | quote }}
+{{- end }}
 {{- end -}}

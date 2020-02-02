@@ -12,13 +12,13 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "node.selectorLabels" . | nindent 8 }}
+        {{- include "node.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      priorityClassName: {{ include "node.lagoon-priority" . }}
+      priorityClassName: {{ include "node.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

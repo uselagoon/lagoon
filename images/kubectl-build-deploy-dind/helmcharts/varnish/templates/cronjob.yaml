@@ -4,7 +4,7 @@ kind: CronJob
 metadata:
   name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
   labels:
-    {{- include "nginx.labels" $ | nindent 4 }}
+    {{- include "varnish.labels" $ | nindent 4 }}
 spec:
   schedule: "{{ $cronjobConfig.schedule }}"
   concurrencyPolicy: Forbid
@@ -13,19 +13,19 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        {{- include "nginx.labels" $ | nindent 8 }}
+        {{- include "varnish.labels" $ | nindent 8 }}
     spec:
       backoffLimit: 0
       template:
         metadata:
           labels:
-            {{- include "nginx.labels" $ | nindent 12 }}
+            {{- include "varnish.labels" $ | nindent 12 }}
         spec:
         {{- with $.Values.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
         {{- end }}
-          priorityClassName: {{ include "nginx.lagoonPriority" . }}
+          priorityClassName: {{ include "varnish.lagoonPriority" . }}
           enableServiceLinks: false
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}

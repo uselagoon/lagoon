@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "node-persistent.selectorLabels" . | nindent 8 }}
+        {{- include "node-persistent.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -22,7 +22,7 @@ spec:
         - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
-      priorityClassName: {{ include "node-persistent.lagoon-priority" . }}
+      priorityClassName: {{ include "node-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

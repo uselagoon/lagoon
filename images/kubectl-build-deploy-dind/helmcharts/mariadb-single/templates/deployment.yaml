@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "mariadb-single.selectorLabels" . | nindent 8 }}
+        {{- include "mariadb-single.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

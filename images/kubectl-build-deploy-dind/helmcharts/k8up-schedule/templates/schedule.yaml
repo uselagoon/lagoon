@@ -10,7 +10,7 @@ spec:
       key: repo-pw
       name: baas-repo-pw
     s3:
-      bucket: baas-{{ .Values.safeProject }}
+      bucket: baas-{{ .Values.project }}
   backup:
     schedule: '{{ .Values.backup.schedule }}'
   check:

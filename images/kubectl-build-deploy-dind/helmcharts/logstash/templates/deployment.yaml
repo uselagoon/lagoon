@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "logstash.selectorLabels" . | nindent 8 }}
+        {{- include "logstash.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

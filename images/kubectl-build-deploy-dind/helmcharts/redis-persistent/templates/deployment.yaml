@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "redis-persistent.selectorLabels" . | nindent 8 }}
+        {{- include "redis-persistent.labels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -22,7 +22,7 @@ spec:
         - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
-      priorityClassName: {{ include "redis-persistent.lagoon-priority" . }}
+      priorityClassName: {{ include "redis-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

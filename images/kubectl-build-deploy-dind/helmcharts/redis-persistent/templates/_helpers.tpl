@@ -35,6 +35,7 @@ Common labels
 helm.sh/chart: {{ include "redis-persistent.chart" . }}
 {{ include "redis-persistent.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "redis-persistent.lagoonLabels" . }}
 {{- end -}}
 
 {{/*
@@ -49,6 +50,26 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create a PriorityClassName.
 (this is based on the Lagoon Environment Type)).
 */}}
-{{- define "redis-persistent.lagoon-priority" -}}
+{{- define "redis-persistent.lagoonPriority" -}}
 {{- printf "lagoon-priority-%s" .Values.environmentType }}
+{{- end -}}
+
+{{/*
+Lagoon Labels
+*/}}
+{{- define "redis-persistent.lagoonLabels" -}}
+lagoon/service: {{ .Release.Name }}
+lagoon/service-type: {{ .Chart.Name }}
+lagoon/project: {{ .Values.project }}
+lagoon/environment: {{ .Values.environment }}
+lagoon/environmentType: {{ .Values.environmentType }}
+lagoon/buildType: {{ .Values.buildType }}
+{{- if .Values.branch }}
+lagoon/branch: {{ .Values.branch }}
+{{- end }}
+{{- if .Values.prNumber }}
+lagoon/prNumber: {{ .Values.prNumber | quote }}
+lagoon/prHeadBranch: {{ .Values.prHeadBranch | quote }}
+lagoon/prBaseBranch: {{ .Values.prBaseBranch | quote }}
+{{- end }}
 {{- end -}}
