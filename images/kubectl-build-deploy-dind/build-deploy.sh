@@ -6,6 +6,7 @@ set -o noglob
 REGISTRY=172.17.0.1:5000
 NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
+LAGOON_VERSION=$(cat /lagoon/version)
 
 if [ "$CI" == "true" ]; then
   CI_OVERRIDE_IMAGE_REPO=${REGISTRY}/lagoon

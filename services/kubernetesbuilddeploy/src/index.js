@@ -24,57 +24,57 @@ const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 const messageConsumer = async msg => {
   const {
     projectName,
-    branchName,
+    branchName: branch,
     sha,
-    type,
-    headBranchName,
+    type: buildType,
+    headBranchName: headBranch,
     headSha,
-    baseBranchName,
+    baseBranchName: baseBranch,
     baseSha,
     pullrequestTitle,
     promoteSourceEnvironment,
   } = JSON.parse(msg.content.toString())
 
-  logger.verbose(`Received DeployKubernetes task for project: ${projectName}, branch: ${branchName}, sha: ${sha}`);
+  // @TODO: Actually inject the environment name into the message
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = ocsafety(branch)
+
+  logger.verbose(`Received DeployKubernetes task for project: ${projectName}, environment: ${environmentName}, sha: ${sha}`);
 
   const result = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project
 
-  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
-
   try {
-    var safeBranchName = ocsafety(branchName)
-    var safeProjectName = ocsafety(projectName)
 
+    var overlength = 58 - projectName.length;
+    if ( environmentName.length > overlength ) {
+      var hash = sha1(environmentName).substring(0,4)
 
-    var overlength = 58 - safeProjectName.length;
-    if ( safeBranchName.length > overlength ) {
-      var hash = sha1(safeBranchName).substring(0,4)
-
-      safeBranchName = safeBranchName.substring(0, overlength-5)
-      safeBranchName = safeBranchName.concat('-' + hash)
+      environmentName = environmentName.substring(0, overlength-5)
+      environmentName = environmentName.concat('-' + hash)
     }
 
-    var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
+    var environmentType = branch === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
-    var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : `${safeProjectName}-${safeBranchName}`
+    var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
     var openshiftName = projectOpenShift.openshift.name
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
     var subfolder = projectOpenShift.subfolder || ""
-    var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
-    var prHeadBranchName = headBranchName || ""
+    var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${environment}',environmentName).replace('${project}', projectName) : ""
+    var prHeadBranch = headBranch || ""
     var prHeadSha = headSha || ""
-    var prBaseBranchName = baseBranchName || ""
+    var prBaseBranch = baseBranch || ""
     var prBaseSha = baseSha || ""
     var prPullrequestTitle = pullrequestTitle || ""
+    var prPullrequestNumber = branch.replace('pr-','')
     var graphqlEnvironmentType = environmentType.toUpperCase()
-    var graphqlGitType = type.toUpperCase()
-    var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
+    var graphqlGitType = buildType.toUpperCase()
+    var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${ocsafety(promoteSourceEnvironment)}` : ""
     // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   } catch(error) {
@@ -84,19 +84,19 @@ const messageConsumer = async msg => {
   }
 
   // Deciding which git REF we would like deployed
-  switch (type) {
+  switch (buildType) {
     case "branch":
       // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
-      var gitRef = gitSha ? gitSha : `origin/${branchName}`
-      var deployBaseRef = branchName
+      var gitRef = gitSha ? gitSha : `origin/${branch}`
+      var deployBaseRef = branch
       var deployHeadRef = null
       var deployTitle = null
       break;
 
     case "pullrequest":
       var gitRef = gitSha
-      var deployBaseRef = prBaseBranchName
-      var deployHeadRef = prHeadBranchName
+      var deployBaseRef = prBaseBranch
+      var deployHeadRef = prHeadBranch
       var deployTitle = prPullrequestTitle
       break;
 
@@ -110,7 +110,7 @@ const messageConsumer = async msg => {
 
 
   // Generates a jobconfig object
-  const generateJobConfig = (buildName, secret, type, environment = {}) => {
+  const generateJobConfig = (buildName, secret, buildType, environment = {}) => {
 
     let buildImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
@@ -162,8 +162,8 @@ const messageConsumer = async msg => {
                 "imagePullPolicy": "Always",
                 "env": [
                   {
-                      "name": "TYPE",
-                      "value": type
+                      "name": "BUILD_TYPE",
+                      "value": buildType
                   },
                   {
                       "name": "SOURCE_REPOSITORY",
@@ -178,16 +178,12 @@ const messageConsumer = async msg => {
                       "value": subfolder
                   },
                   {
-                      "name": "SAFE_BRANCH",
-                      "value": safeBranchName
+                      "name": "ENVIRONMENT",
+                      "value": environmentName
                   },
                   {
                       "name": "BRANCH",
-                      "value": branchName
-                  },
-                  {
-                      "name": "SAFE_PROJECT",
-                      "value": safeProjectName
+                      "value": branch
                   },
                   {
                       "name": "PROJECT",
@@ -202,7 +198,7 @@ const messageConsumer = async msg => {
                       "value": environmentType
                   },
                   {
-                      "name": "OPENSHIFT_NAME",
+                      "name": "KUBERNETES",
                       "value": openshiftName
                   },
                   {
@@ -231,14 +227,15 @@ const messageConsumer = async msg => {
     if (CI == "true") {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "CI","value": CI})
     }
-    if (type == "pullrequest") {
-      jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_HEAD_BRANCH","value": prHeadBranchName})
+    if (buildType == "pullrequest") {
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_HEAD_BRANCH","value": prHeadBranch})
       jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_HEAD_SHA","value": prHeadSha})
-      jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_BASE_BRANCH","value": prBaseBranchName})
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_BASE_BRANCH","value": prBaseBranch})
       jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_BASE_SHA","value": prBaseSha})
       jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_TITLE","value": prPullrequestTitle})
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "PR_NUMBER","value": prPullrequestNumber})
     }
-    if (type == "promote") {
+    if (buildType == "promote") {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "PROMOTION_SOURCE_ENVIRONMENT","value": promoteSourceEnvironment})
       jobconfig.spec.template.spec.containers[0].env.push({"name": "PROMOTION_SOURCE_NAMESPACE","value": openshiftPromoteSourceProject})
     }
@@ -276,7 +273,7 @@ const messageConsumer = async msg => {
   kubernetes.ns.addResource('rolebindings');
 
   // // If we should promote, first check if the source project does exist
-  // if (type == "promote") {
+  // if (buildType == "promote") {
   //   try {
   //     const promotionSourceProjectsGet = promisify(openshift.projects(openshiftPromoteSourceProject).get)
   //     await promotionSourceProjectsGet()
@@ -309,7 +306,7 @@ const messageConsumer = async msg => {
   // Update GraphQL API with information about this environment
   let environment;
   try {
-    environment = await addOrUpdateEnvironment(branchName, projectId, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef, deployTitle)
+    environment = await addOrUpdateEnvironment(branch, projectId, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef, deployTitle)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(err)
@@ -339,7 +336,7 @@ const messageConsumer = async msg => {
   }
 
   // // Give the ServiceAccount access to the Promotion Source Project, it needs two roles: 'view' and 'system:image-puller'
-  // if (type == "promote") {
+  // if (buildType == "promote") {
   //   try {
   //     const promotionSourcRolebindingsGet = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`).get)
   //     await promotionSourcRolebindingsGet()
@@ -379,12 +376,12 @@ const messageConsumer = async msg => {
     sshKey = await secretsGet()
     logger.info(`${openshiftProject}: Secret lagoon-sshkey already exists, updating`)
     const secretsPut = promisify(kubernetes.ns(openshiftProject).secrets('lagoon-sshkey').put)
-    await secretsPut({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+    await secretsPut({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey", "resourceVersion": sshKey.metadata.resourceVersion },"buildType":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
   } catch (err) {
     if (err.code == 404) {
       logger.info(`${openshiftProject}: Secret lagoon-sshkey does not exists, creating`)
       const secretsPost = promisify(kubernetes.ns(openshiftProject).secrets.post)
-      await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"type":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
+      await secretsPost({ body: {"apiVersion":"v1","kind":"Secret","metadata":{"name":"lagoon-sshkey"},"buildType":"kubernetes.io/ssh-auth","data":{"ssh-privatekey":sshKeyBase64}}})
     } else {
       logger.error(err)
       throw new Error
@@ -409,12 +406,12 @@ const messageConsumer = async msg => {
   // @TODO: generate names with incremential numbers from the previous build number
   const randBuildId = Math.random().toString(36).substring(7);
   const buildName = `lagoon-build-${randBuildId}`;
-  const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, type, environment.addOrUpdateEnvironment)
+  const jobConfig = generateJobConfig(buildName, serviceaccountTokenSecret, buildType, environment.addOrUpdateEnvironment)
 
   let deployment;
   try {
     const now = moment.utc();
-    const apiEnvironment = await getEnvironmentByName(branchName, projectId);
+    const apiEnvironment = await getEnvironmentByName(branch, projectId);
     deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {
     logger.error(`Could not save deployment for project ${projectId}. Message: ${error}`);
@@ -426,7 +423,7 @@ const messageConsumer = async msg => {
     buildName,
     projectName,
     openshiftProject,
-    branchName,
+    branchName: branch,
     sha,
     jobConfig,
     deployment: deployment.addDeployment,
@@ -436,9 +433,9 @@ const messageConsumer = async msg => {
 
   let logMessage = ''
   if (gitSha) {
-    logMessage = `\`${branchName}\` (${buildName})`
+    logMessage = `\`${branch}\` (${buildName})`
   } else {
-    logMessage = `\`${branchName}\``
+    logMessage = `\`${branch}\``
   }
 
   sendToLagoonLogs('start', projectName, "", "task:builddeploy-kubernetes:start", {},
@@ -450,15 +447,15 @@ const messageConsumer = async msg => {
 const deathHandler = async (msg, lastError) => {
   const {
     projectName,
-    branchName,
+    branchName: branch,
     sha
   } = JSON.parse(msg.content.toString())
 
   let logMessage = ''
   if (sha) {
-    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+    logMessage = `\`${branch}\` (${sha.substring(0, 7)})`
   } else {
-    logMessage = `\`${branchName}\``
+    logMessage = `\`${branch}\``
   }
 
   sendToLagoonLogs('error', projectName, "", "task:builddeploy-kubernetes:error",  {},
@@ -473,15 +470,15 @@ ${lastError}
 const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
   const {
     projectName,
-    branchName,
+    branch,
     sha
   } = JSON.parse(msg.content.toString())
 
   let logMessage = ''
   if (sha) {
-    logMessage = `\`${branchName}\` (${sha.substring(0, 7)})`
+    logMessage = `\`${branch}\` (${sha.substring(0, 7)})`
   } else {
-    logMessage = `\`${branchName}\``
+    logMessage = `\`${branch}\``
   }
 
   sendToLagoonLogs('warn', projectName, "", "task:builddeploy-kubernetes:retry", {error: error.message, msg: JSON.parse(msg.content.toString()), retryCount: retryCount},
