@@ -561,7 +561,8 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx
+all-k8s-tests-list:=				nginx \
+														drupal
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests
@@ -661,6 +662,10 @@ drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-serv
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(webhooks-test-services)
+
+.PHONY: local-registry-up
+local-registry-up: build/local-registry
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-registry
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
@@ -989,6 +994,7 @@ else
 endif
 
 k3d: local-dev/k3d local-dev/kubectl build/docker-host
+	$(MAKE) local-registry-up
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
