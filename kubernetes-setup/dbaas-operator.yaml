@@ -349,7 +349,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: shreddedbacon/dbaas-controller:latest
+        image: shreddedbacon/dbaas-controller:testingv1
         name: manager
         resources:
           limits:
