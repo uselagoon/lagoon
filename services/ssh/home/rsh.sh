@@ -116,7 +116,7 @@ if [[ $($OC get deploymentconfigs -l service=${SERVICE} &> /dev/null) ]]; then
 fi
 
 # If there is a deployment for the given service
-if [[ $($OC get deployment -l lagoon/service=${SERVICE} ) ]]; then
+if [[ $($OC get deployment -l lagoon/service=${SERVICE}  &> /dev/null) ]]; then
   DEPLOYMENT=$($OC get deployment -l lagoon/service=${SERVICE} -o name)
   # If the deployment is scaled to 0, scale to 1
   if [[ $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
