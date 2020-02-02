@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.11
 
 RUN apk add --no-cache mysql-client tini openssl bash wget curl nodejs nodejs-npm \
     && npm config set unsafe-perm true \
