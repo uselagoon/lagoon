@@ -145,13 +145,13 @@ export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   const hitBaseTiers = calculateHitBaseTiers(hitBase, hitCosts);
 
   return tier > 0
-    ? { 
-        cost: Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2)), 
-        formula: `tier(${hitBaseTiers[tier]}) + hitsInTier(${hitsInTier}) * hitCosts(${hitCosts[tier]})`
+    ? {
+        cost: Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2)),
+        formula: `(${hitBaseTiers[tier]} + ${hitsInTier}) X ${hitCosts[tier]}  ( (Hit Tier Base + Hits in Tier) X Hit Costs in Tier)`
       }
-    : { 
+    : {
       cost: hitBaseTiers[0],
-      formula: `hitBase(${hitBaseTiers[0]})`
+      formula: `${hitBaseTiers[0]} Base Hit Costs`
       };
 };
 
@@ -173,11 +173,11 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
   return storageDays > freeGBDays
     ? {
         cost: Number((storageToBill * storagePerDay).toFixed(2)),
-        formula: `storageToBill(${storageToBill}) * storagePerDay(${storagePerDay})`
+        formula: `${storageToBill}) X ${storagePerDay} (Average Storage Per Day X Storage Cost Per Day)`
       }
     : {
       cost: 0,
-      formula: 0
+      formula: `No storage costs`
     };
 };
 
@@ -200,14 +200,16 @@ export const prodCost = ({ currency, projects }: IBillingGroup) => {
     projectProdCosts.push(prodHours * prodSitePerHour);
   });
 
+  const calculationBreakdown = projects.map(project => {
+    const { prodHours, availability } = project;
+    const { prodSitePerHour } = currencyPricingAvailability[availability];
+    return (`(${prodHours} X ${prodSitePerHour})`);
+  }).join(' + ');
+
   // TODO - HANDLE MORE THAN 1 PROD ENV FOR A PROJECT
   return {
     cost: Number(projectProdCosts.reduce((acc, obj) => acc + obj, 0).toFixed(2)),
-    formula: projects.map(project => {
-      const { prodHours, availability } = project;
-      const { prodSitePerHour } = currencyPricingAvailability[availability];
-      return (`${project.name}: ${prodHours} * ${prodSitePerHour}`);
-    }).join(' + ')
+    formula: `${calculationBreakdown} (Sum of Project Production Hours X Production Environment Cost Per Hour)`
   };
 };
 
@@ -233,9 +235,9 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   // const { devSitePerHour } = currencyPricingAvailability[availability];
   const { devSitePerHour } = currencyPricingAvailability[AVAILABILITY.STANDARD];
   const devToBill = Math.max(devHours - freeDevHours, 0);
-  return { 
-    cost: Number((devToBill * devSitePerHour).toFixed(2)), 
-    formula: `devToBill(${devToBill}) * devSitePerHour(${devSitePerHour})`
+  return {
+    cost: Number((devToBill * devSitePerHour).toFixed(2)),
+    formula: `${devToBill} X ${devSitePerHour} ( Max(Total Project Dev Hours - Free Hours Per Month ${freeDevHours}, 0) X Dev Cost Per Hour))`
   };
 };
 
