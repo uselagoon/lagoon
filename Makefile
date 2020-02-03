@@ -1034,7 +1034,7 @@ else
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
 	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
 endif
-	touch $@
+	echo "$(K3D_NAME)" > $@
 	$(MAKE) push-kubectl-build-deploy-dind
 
 .PHONY: push-kubectl-build-deploy-dind
@@ -1048,10 +1048,10 @@ rebuild-push-kubectl-build-deploy-dind:
 	$(MAKE) push-kubectl-build-deploy-dind
 
 k3d-kubeconfig:
-	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name=$$(cat k3d))"
 
 k3d-dashboard:
-	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name=$$(cat k3d))"; \
 	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
 	local-dev/kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
 	echo -e "\nUse this token:"; \
@@ -1070,7 +1070,7 @@ k8s-dashboard:
 # Stop k3d
 .PHONY: k3d/stop
 k3d/stop: local-dev/k3d
-	./local-dev/k3d delete --name $(K3D_NAME) || true
+	./local-dev/k3d delete --name=$$(cat k3d) || true
 	rm -f k3d
 
 # Stop All k3d
