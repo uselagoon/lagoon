@@ -6,7 +6,8 @@
 API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
-CUTOFF_DATE=$(date +'%Y-%m-%d %H:%M:%S' --date '-90 days')
+CUTOFF="${CUTOFF:--90 days}"
+CUTOFF_DATE="$(date +'%Y-%m-%d %H:%M:%S' --date "$CUTOFF")"
 
 # Load all the projects.
 GRAPHQL='query environments {
@@ -44,13 +45,13 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|l
 
       echo "$OPENSHIFT_URL - $PROJECT_NAME: handling environment $ENVIRONMENT_NAME"
 
-      if [ "$ENVIRONMENT_NAME" = "$PRODUCTION_BRANCH" ]; then
+      if [[ "$ENVIRONMENT_NAME" == "$PRODUCTION_BRANCH" ]]; then
         # This should only ever remove non-prods.
         echo "$PROJECT_NAME: $ENVIRONMENT_NAME is the production environment"
         continue;
       fi
 
-      Skip if no openshift project exists.
+      # Skip if no openshift project exists.
       if ! oc --insecure-skip-tls-verify --token="$OPENSHIFT_TOKEN" --server="$OPENSHIFT_URL" get project "$ENVIRONMENT_OPENSHIFT_PROJECTNAME" > /dev/null; then
         echo "$OPENSHIFT_URL - $PROJECT_NAME: $ENVIRONMENT_NAME: OpenShift Project not found"
         continue;

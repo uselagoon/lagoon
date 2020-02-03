@@ -110,8 +110,8 @@ objects:
   metadata:
     name: cronjob-remote
   spec:
-    schedule: "*/15 * * * *"
-    suspend: true # we're running cronjobs now via the lagoon cronjob system
+    schedule: "0 0 * * *"
+    suspend: false
     concurrencyPolicy: Forbid
     jobTemplate:
       spec:
