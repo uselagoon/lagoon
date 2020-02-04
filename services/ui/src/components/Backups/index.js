@@ -4,20 +4,6 @@ import moment from 'moment';
 import RestoreButton from 'components/RestoreButton';
 import { bp, color, fontSize } from 'lib/variables';
 
-const { className: buttonClassName, styles: buttonStyles } = css.resolve`
-  .restore-button {
-    background-color: ${color.lightestGrey};
-    border: none;
-    border-radius: 20px;
-    color: ${color.darkGrey};
-    font-family: 'source-code-pro', sans-serif;
-    ${fontSize(13)};
-    padding: 3px 20px 2px;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-`;
-
 const Backups = ({ backups }) => (
   <div className="backups">
     <div className="header">
@@ -34,12 +20,12 @@ const Backups = ({ backups }) => (
             {moment
               .utc(backup.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (Z)')}
           </div>
 
           <div className="backupid">{backup.backupId}</div>
           <div className="download">
-            <RestoreButton backup={backup} className={buttonClassName} />
+            <RestoreButton backup={backup} />
           </div>
         </div>
       ))}
@@ -168,7 +154,6 @@ const Backups = ({ backups }) => (
         }
       }
     `}</style>
-    {buttonStyles}
   </div>
 );
 

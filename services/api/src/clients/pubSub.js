@@ -41,27 +41,29 @@ const pubSub = new AmqpPubSub({
   logger: new LoggerConverter(),
 });
 
-const createEnvironmentFilteredSubscriber = (events: string[]) => ({
+const createEnvironmentFilteredSubscriber = (events) => ({
   // Allow publish functions to pass data without knowledge of query schema.
-  resolve: (payload: Object) => payload,
-  subscribe: async (rootValue: any, args: any, context: any, info: any) => {
+  resolve: (payload) => payload,
+  subscribe: async (rootValue, args, context, info) => {
     const { environment } = args;
     const {
-      credentials: {
-        role,
-        permissions: { projects },
-      },
       sqlClient,
+      hasPermission,
     } = context;
 
     const rows = await query(
       sqlClient,
       environmentSql.selectEnvironmentById(environment),
     );
+    sqlClient.end();
     const project = R.path([0, 'project'], rows);
 
-    if (role !== 'admin' && !R.contains(String(project), projects)) {
-      throw new ForbiddenError(`No access to project ${project}.`);
+    try {
+      await hasPermission('environment', 'view', {
+        project,
+      });
+    } catch (err) {
+      throw new ForbiddenError(err.message);
     }
 
     const filtered = withFilter(

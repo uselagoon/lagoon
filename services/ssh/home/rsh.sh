@@ -34,8 +34,8 @@ fi
 ##
 TOKEN=$(./token.sh "$API_ADMIN_TOKEN" "$USER_SSH_KEY")
 BEARER="Authorization: bearer $TOKEN"
-GRAPHQL="query getEnvironmentByOpenshiftProjectName {
-  environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
+GRAPHQL="query userCanSshToEnvironment {
+  userCanSshToEnvironment(openshiftProjectName: \"$PROJECT\") {
     openshiftProjectName
   }
 }"
@@ -44,7 +44,7 @@ QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(
 ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$QUERY\"}")
 
 # Check if the returned OpenShift projectname is the same as the one being requested. This will only be true if the user actually has access to this environment
-if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshiftProjectName')" == "$PROJECT" ]]; then
+if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.userCanSshToEnvironment.openshiftProjectName')" == "$PROJECT" ]]; then
   echo "no access to $PROJECT"
   exit
 fi
@@ -100,7 +100,7 @@ fi
 OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${OPENSHIFT_TOKEN} --server=${OPENSHIFT_CONSOLE} "
 
 # If there is a deploymentconfig for the given service
-if [[ "$OC get deploymentconfigs -l service=${SERVICE}" ]]; then
+if [[ $($OC get deploymentconfigs -l service=${SERVICE}) ]]; then
   DEPLOYMENTCONFIG=$($OC get deploymentconfigs -l service=${SERVICE} -o name)
   # If the deploymentconfig is scaled to 0, scale to 1
   if [[ $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then

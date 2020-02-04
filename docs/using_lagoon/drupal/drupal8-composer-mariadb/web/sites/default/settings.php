@@ -15,13 +15,13 @@
  * - production.services.yml
  *   For services only for the production environment.
  * - development.settings.php
- *   For settings only for the development environment (devevlopment sites, docker).
+ *   For settings only for the development environment (development sites, docker).
  * - development.services.yml
- *   For services only for the development environment (devevlopment sites, docker).
+ *   For services only for the development environment (development sites, docker).
  * - settings.local.php
- *   For settings only for the local environment, this file will not be commited in GIT!
+ *   For settings only for the local environment, this file will not be committed in GIT!
  * - services.local.yml
- *   For services only for the local environment, this file will not be commited in GIT!
+ *   For services only for the local environment, this file will not be committed in GIT!
  */
 
 // Lagoon Database connection.
@@ -56,7 +56,7 @@ if (getenv('LAGOON') && (file_exists($app_root . '/modules/contrib/search_api_so
 if (getenv('LAGOON') && (file_exists($app_root . '/modules/contrib/redis') || file_exists($app_root . 'modules/redis')) && extension_loaded('redis')) {
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
-  $settings['redis.connection']['port'] = 6379;
+  $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
 
   $settings['cache_prefix']['default'] = getenv('LAGOON_PROJECT') . '_' . getenv('LAGOON_GIT_SAFE_BRANCH');
 

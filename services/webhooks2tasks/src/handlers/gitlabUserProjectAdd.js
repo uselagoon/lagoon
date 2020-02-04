@@ -1,22 +1,26 @@
 // @flow
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { addUserToProject } = require('@lagoon/commons/src/api');
+const { addUserToGroup } = require('@lagoon/commons/src/api');
 
 import type { WebhookRequestData } from '../types';
 
 async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
+  const { project_path: projectName, user_id: userId, user_email: userEmail, access_level: role } = body;
 
   try {
-    const { project_path: project, user_id: user } = body;
-
     const meta = {
       data: body,
-      user,
-      project,
+      userId,
+      userEmail,
+      projectName,
+      role,
     };
 
-    await addUserToProject(user, project);
+    // In Gitlab you can add Users to Projects, in Lagoon this is not directly possible, but instead
+    // Lagoon automatically creates a group for each project in this form: `project-$projectname`
+    // So if a User is added to a Project in Gitlab, we add the user to this group
+    await addUserToGroup(userEmail, `project-${projectName}`, role.toUpperCase());
 
     sendToLagoonLogs(
       'info',
@@ -24,7 +28,7 @@ async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:handled`,
       meta,
-      `Added user ${user} to project ${project}`
+      `Added user ${userEmail} ${userId} to group project-${projectName}`
     );
 
     return;
@@ -35,7 +39,7 @@ async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
       uuid,
       `${webhooktype}:${event}:unhandled`,
       { data: body },
-      `Could not add user to project, reason: ${error}`
+      `Could not add user to group project, reason: ${error}`
     );
 
     return;

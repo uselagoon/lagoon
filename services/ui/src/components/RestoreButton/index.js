@@ -1,17 +1,21 @@
 import React from 'react';
+import Button from 'components/Button';
 import Prepare from 'components/RestoreButton/Prepare';
 
-const RestoreButton = ({ backup: { backupId, restore }, className }) => {
+/**
+ * A button to restore a backup.
+ */
+const RestoreButton = ({ backup: { backupId, restore } }) => {
   if (!restore)
-    return <Prepare className={`restore-button ${className}`} backupId={backupId} />;
+    return <Prepare backupId={backupId} />;
 
   if (restore.status === 'pending')
-    return <button className={`restore-button ${className}`} disabled>Preparing ...</button>;
+    return <Button disabled>Retrieving ...</Button>;
 
   if (restore.status === 'failed')
-    return <button className={`restore-button ${className}`} disabled>Download error</button>;
+    return <Button disabled>Retrieve failed</Button>;
 
-  return <a className={`restore-button ${className}`} href={restore.restoreLocation}>Download</a>;
+  return <Button href={restore.restoreLocation}>Download</Button>;
 };
 
 export default RestoreButton;

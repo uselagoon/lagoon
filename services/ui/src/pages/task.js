@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from 'layouts/main';
+import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithTaskQuery from 'lib/query/EnvironmentWithTask';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
@@ -18,7 +18,10 @@ import {
 } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageTask = ({ router }) => (
+/**
+ * Displays a task page, given the openshift project and task ID.
+ */
+export const PageTask = ({ router }) => (
   <>
     <Head>
       <title>{`${router.query.taskId} | Task`}</title>
@@ -27,7 +30,7 @@ const PageTask = ({ router }) => (
       query={EnvironmentWithTaskQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName,
-        taskId: router.query.taskId
+        taskId: parseInt(router.query.taskId, 10)
       }}
     >
       {R.compose(

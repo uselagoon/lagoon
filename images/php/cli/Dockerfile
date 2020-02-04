@@ -1,13 +1,14 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
+ARG PHP_IMAGE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
 # Defining Versions - https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.8.4 \
-    COMPOSER_HASH_SHA256=1722826c8fbeaf2d6cdd31c9c9af38694d6383a0f2bf476fe6bbd30939de058a
+ENV COMPOSER_VERSION=1.9.1 \
+  COMPOSER_HASH_SHA256=1f210b9037fcf82670d75892dfc44400f13fe9ada7af9e787f93e50e3b764111
 
 RUN apk add --no-cache git \
         unzip \
@@ -19,11 +20,13 @@ RUN apk add --no-cache git \
         patch \
         procps \
         coreutils \
+        mariadb-client \
         postgresql-client \
         openssh-sftp-server \
         findutils \
-    && apk add --no-cache "mariadb-client=10.2.22-r0" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
-    && apk add --no-cache nodejs-current nodejs-npm yarn --force-overwrite --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ \
+        nodejs-current \
+        nodejs-npm \
+        yarn \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
     && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
@@ -53,11 +56,16 @@ RUN echo "source /lagoon/entrypoints/80-shell-timeout.sh" >> /home/.bashrc
 COPY 61-php-xdebug-cli-env.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/61-php-xdebug-cli-env.sh" >> /home/.bashrc
 
+# Copy mariadb-client configuration.
+COPY 90-mariadb-envplate.sh /lagoon/entrypoints/
+COPY mariadb-client.cnf /etc/my.cnf.d/
+RUN fix-permissions /etc/my.cnf.d/
+
 # helper functions
 COPY 55-cli-helpers.sh /lagoon/entrypoints/
 RUN echo "source /lagoon/entrypoints/55-cli-helpers.sh" >> /home/.bashrc
 
-RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] ; then \
+RUN if [ ${PHP_VERSION%.*} == "5.6" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*} == "7.1" ] ; then \
   echo echo \"PHP ${PHP_VERSION} is end of life and should no longer be used. For more information, visit https://secure.php.net/eol.php\" \> /dev/stderr >> /home/.bashrc ; fi
 
 # SSH Key and Agent Setup

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -x
 set -eo pipefail
+set -o noglob
 
 OPENSHIFT_REGISTRY=docker-registry.default.svc:5000
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
@@ -43,6 +44,8 @@ DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 oc login --insecure-skip-tls-verify --token="${DEPLOYER_TOKEN}" https://kubernetes.default.svc
 set -x
+
+oc project --insecure-skip-tls-verify $OPENSHIFT_PROJECT
 
 ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
 

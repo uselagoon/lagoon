@@ -3,6 +3,9 @@ import moment from 'moment';
 import LogViewer from 'components/LogViewer';
 import { bp } from 'lib/variables';
 
+/**
+ * Displays information about an environment task.
+ */
 const Task = ({ task }) => (
   <div className="task">
     <div className="details">
@@ -14,7 +17,7 @@ const Task = ({ task }) => (
             {moment
               .utc(task.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (Z)')}
           </div>
         </div>
       </div>

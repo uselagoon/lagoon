@@ -32,28 +32,21 @@ const Sql /* : SqlObj */ = {
       .select('nt.*', 'pn.*', knex.raw('? as type', [type]))
       .toString();
   },
-  deleteProjectNotification: (
-    { role, permissions: { projects } } /* : Cred */,
-    input /* : Object */,
-  ) => {
-    const { project, notificationType, notificationName } = input;
+  deleteProjectNotification: (input /* : Object */) => {
+    const deleteQuery = knex.raw(
+      `DELETE pn
+      FROM project_notification as pn
+      LEFT JOIN :notificationTable: AS nt ON pn.nid = nt.id AND pn.type = :notificationType
+      LEFT JOIN project as p on pn.pid = p.id
+      WHERE p.name = :project
+      AND nt.name = :notificationName`,
+      {
+        ...input,
+        notificationTable: `notification_${input.notificationType}`,
+      },
+    );
 
-    const deleteQuery = knex('project_notification AS pn')
-      .joinRaw(
-        `LEFT JOIN notification_${notificationType} AS nt ON pn.nid = nt.id AND pn.type = ?`,
-        [notificationType],
-      )
-      .leftJoin('project AS p', 'pn.pid', '=', 'p.id');
-
-    if (role !== 'admin') {
-      deleteQuery.whereIn('pn.pid', projects);
-    }
-
-    return deleteQuery
-      .where('p.name', project)
-      .andWhere('nt.name', notificationName)
-      .del()
-      .toString();
+    return deleteQuery.toString();
   },
   selectProjectById: (input /* : Object */) =>
     knex('project')
@@ -80,6 +73,14 @@ const Sql /* : SqlObj */ = {
       .select({ pid: 'p.id', nid: 'nt.id' })
       .toString();
   },
+  updateNotificationMicrosoftTeams: (input /* : Object */) => {
+    const { name, patch } = input;
+
+    return knex('notification_microsoftteams')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
   updateNotificationRocketChat: (input /* : Object */) => {
     const { name, patch } = input;
 
@@ -88,39 +89,48 @@ const Sql /* : SqlObj */ = {
       .update(patch)
       .toString();
   },
-  selectNotificationsByTypeByProjectId: (
-    { credentials: { role, permissions: { projects } } /* : Cred */ },
-    input /* : Object */,
-  ) => {
+  updateNotificationEmail: (input /* : Object */) => {
+    const { name, patch } = input;
+
+    return knex('notification_email')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
+  updateNotificationSlack: (input /* : Object */) => {
+    const { name, patch } = input;
+
+    return knex('notification_email')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
+  selectNotificationsByTypeByProjectId: (input /* : Object */) => {
     const { type, pid } = input;
     const selectQuery = knex('project_notification AS pn').joinRaw(
       `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
       [type],
     );
 
-    if (role !== 'admin') {
-      selectQuery.whereIn('pn.pid', projects);
-    }
-
     return selectQuery
       .where('pn.pid', '=', pid)
       .select('nt.*', 'pn.type')
       .toString();
   },
+  selectNotificationMicrosoftTeamsByName:  (name /* : string */) =>
+    knex('notification_microsoftteams')
+      .where('name', '=', name)
+      .toString(),
   selectNotificationRocketChatByName: (name /* : string */) =>
     knex('notification_rocketchat')
       .where('name', '=', name)
       .toString(),
-  updateNotificationSlack: (input /* : Object */) => {
-    const { name, patch } = input;
-
-    return knex('notification_slack')
-      .where('name', '=', name)
-      .update(patch)
-      .toString();
-  },
   selectNotificationSlackByName: (name /* : string */) =>
     knex('notification_slack')
+      .where('name', '=', name)
+      .toString(),
+  selectNotificationEmailByName: (name /* : string */) =>
+    knex('notification_email')
       .where('name', '=', name)
       .toString(),
   selectUnassignedNotificationsByType: (notificationType /* : string */) =>
@@ -148,8 +158,16 @@ const Sql /* : SqlObj */ = {
     knex('notification_slack')
       .truncate()
       .toString(),
+  truncateNotificationEmail: () =>
+    knex('notification_email')
+      .truncate()
+      .toString(),
   truncateNotificationRocketchat: () =>
     knex('notification_rocketchat')
+      .truncate()
+      .toString(),
+  truncateNotificationMicrosoftTeams: () =>
+    knex('notification_microsoftteams')
       .truncate()
       .toString(),
   truncateProjectNotification: () =>

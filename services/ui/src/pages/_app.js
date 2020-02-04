@@ -4,6 +4,7 @@ import React from 'react';
 import Head from 'next/head';
 import getConfig from 'next/config';
 import Typekit from 'react-typekit';
+import Favicon from 'components/Favicon';
 import Authenticator, { AuthContext } from 'lib/Authenticator';
 import ApiConnection from 'lib/ApiConnection';
 
@@ -24,6 +25,7 @@ class MyApp extends App {
             <Typekit kitId="ggo2pml" />
           </Head>
           <Component {...pageProps} errorMessage={err.toString()} url={url} />
+          <Favicon />
         </Container>
       );
     }
@@ -43,6 +45,7 @@ class MyApp extends App {
             <Component {...pageProps} url={url} />
           </ApiConnection>
         </Authenticator>
+        <Favicon />
       </Container>
     );
   }

@@ -7,6 +7,9 @@ import DeleteEnvironmentMutation from 'lib/mutation/DeleteEnvironment';
 import DeleteConfirm from 'components/DeleteConfirm';
 import { bp, color } from 'lib/variables';
 
+/**
+ * Displays the environment information.
+ */
 const Environment = ({ environment }) => {
   const gitUrlParsed = giturlparse(environment.project.gitUrl);
   const gitBranchLink = `${gitUrlParsed.resource}/${
@@ -34,7 +37,7 @@ const Environment = ({ environment }) => {
             {moment
               .utc(environment.created)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (Z)')}
           </div>
         </div>
       </div>
@@ -45,7 +48,7 @@ const Environment = ({ environment }) => {
             {moment
               .utc(environment.updated)
               .local()
-              .format('DD MMM YYYY, HH:mm:ss')}
+              .format('DD MMM YYYY, HH:mm:ss (Z)')}
           </div>
         </div>
       </div>

@@ -11,6 +11,28 @@ function outputToYaml() {
   set -x
 }
 
+function cronScheduleMoreOftenThanXMinutes() {
+  # Takes a unexpanded cron schedule, returns 0 if it's more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
+  # NATIVE_CRON_POD_MINIMUM_FREQUENCY defaults to 15 minutes
+  MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
+  if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
+    # Match found for M/xx, H/xx or */xx
+    # Check if xx is smaller than x, which means this cronjob runs more often than every NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes.
+    STEP=${BASH_REMATCH[2]}
+    if [ $STEP -lt $NATIVE_CRON_POD_MINIMUM_FREQUENCY ]; then
+      return 0
+    else
+      return 1
+    fi
+  elif [[ $MINUTE =~ ^\*$ ]]; then
+    # We are running every minute
+    return 0
+  else
+    # all other cases are more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
+    return 1
+  fi
+}
+
 ##############################################
 ### PREPARATION
 ##############################################
@@ -164,6 +186,54 @@ do
 done
 
 ##############################################
+### PRIVATE REGISTRY LOGINS
+##############################################
+# we want to be able to support private container registries
+set +x
+# grab all the container-registries that are defined in the `.lagoon.yml` file
+PRIVATE_CONTAINER_REGISTRIES=($(cat .lagoon.yml | shyaml keys container-registries || echo ""))
+for PRIVATE_CONTAINER_REGISTRY in "${PRIVATE_CONTAINER_REGISTRIES[@]}"
+do
+  # check if a url is set, if none set proceed against docker hub
+  PRIVATE_CONTAINER_REGISTRY_URL=$(cat .lagoon.yml | shyaml get-value container-registries.$PRIVATE_CONTAINER_REGISTRY.url false)
+  if [ $PRIVATE_CONTAINER_REGISTRY_URL == "false" ]; then
+    echo "No 'url' defined for registry $PRIVATE_CONTAINER_REGISTRY, will proceed against docker hub";
+  fi
+  # check the username and passwords are defined in yaml
+  PRIVATE_CONTAINER_REGISTRY_USERNAME=$(cat .lagoon.yml | shyaml get-value container-registries.$PRIVATE_CONTAINER_REGISTRY.username false)
+  if [ $PRIVATE_CONTAINER_REGISTRY_USERNAME == "false" ]; then
+    echo "No 'username' defined for registry $PRIVATE_CONTAINER_REGISTRY"; exit 1;
+  fi
+  PRIVATE_CONTAINER_REGISTRY_PASSWORD=$(cat .lagoon.yml | shyaml get-value container-registries.$PRIVATE_CONTAINER_REGISTRY.password false)
+  if [[ $PRIVATE_CONTAINER_REGISTRY_PASSWORD == "false" ]]; then
+    echo "No 'password' defined for registry $PRIVATE_CONTAINER_REGISTRY"; exit 1;
+  fi
+  # if we have everything we need, we can proceed to logging in
+  if [ $PRIVATE_CONTAINER_REGISTRY_PASSWORD != "false" ]; then
+    PRIVATE_REGISTRY_CREDENTIAL=""
+    # check if we have a password defined anywhere in the api first
+    if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+      PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
+    fi
+    if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+      PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
+    fi
+    if [ -z $PRIVATE_REGISTRY_CREDENTIAL ]; then
+      #if no password defined in the lagoon api, pass the one in `.lagoon.yml` as a password
+      PRIVATE_REGISTRY_CREDENTIAL=$PRIVATE_CONTAINER_REGISTRY_PASSWORD
+    fi
+    if [ $PRIVATE_CONTAINER_REGISTRY_URL != "false" ]; then
+      echo "Attempting to log in to $PRIVATE_CONTAINER_REGISTRY_URL with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
+      docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL $PRIVATE_CONTAINER_REGISTRY_URL
+    else
+      echo "Attempting to log in to docker hub with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
+      docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL
+    fi
+  fi
+done
+set -x
+
+##############################################
 ### BUILD IMAGES
 ##############################################
 
@@ -183,7 +253,9 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_SAFE_BRANCH="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+  BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
   set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
@@ -439,7 +511,7 @@ else
 fi
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc auth --insecure-skip-tls-verify can-i create schedules.backup.appuio.ch -q > /dev/null; then
+if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create schedules.backup.appuio.ch -q > /dev/null; then
 
   if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -508,7 +580,7 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "ac
 AUTOGENERATED_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "lagoon/autogenerated=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
 # If no MONITORING_URLS were specified, fall back to the ROUTE of the project
-if [ -z "$MONITORING_URLS"]; then
+if [ -z "$MONITORING_URLS" ]; then
   echo "No monitoring_urls provided, using ROUTE"
   MONITORING_URLS="${ROUTE}"
 fi
@@ -573,10 +645,19 @@ do
 
     mariadb-shared)
         # ServiceBrokers take a bit, wait until the credentials secret is available
+	# We added a timeout of 10 minutes (120 retries) before exit
+	SERVICE_BROKER_COUNTER=1
+	SERVICE_BROKER_TIMEOUT=180
         until oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials
         do
-          echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
-          sleep 5
+	  if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
+		  let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
+		  echo "Secret ${SERVICE_NAME}-servicebroker-credentials not available yet, waiting for 5 secs"
+		  sleep 5
+	  else
+		  echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME}-servicebroker-credentials reached"
+		  exit 1
+	  fi
         done
         # Load credentials out of secret
         oc get --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secret ${SERVICE_NAME}-servicebroker-credentials -o yaml > /oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml
@@ -592,6 +673,15 @@ do
           -n ${OPENSHIFT_PROJECT} \
           configmap lagoon-env \
           -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
+
+        # only add the DB_READREPLICA_HOSTS variable if it exists in the servicebroker credentials yaml
+        if DB_READREPLICA_HOSTS=$(shyaml get-value data.DB_READREPLICA_HOSTS < "/oc-build-deploy/lagoon/${SERVICE_NAME}-servicebroker-credentials.yml" | base64 -d); then
+          oc patch --insecure-skip-tls-verify \
+            -n "$OPENSHIFT_PROJECT" \
+            configmap lagoon-env \
+            -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_READREPLICA_HOSTS\":\"${DB_READREPLICA_HOSTS}\"}}"
+        fi
+
         set -x
         ;;
 
@@ -674,6 +764,9 @@ do
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
   # Some Templates need additonal Parameters, like where persistent storage can be found.
@@ -717,16 +810,26 @@ do
   fi
 
   # Generate Backup Definitions are supported and if service type defines one
-  if oc auth --insecure-skip-tls-verify can-i create prebackuppod.backup.appuio.ch -q > /dev/null; then
+  if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create prebackuppod.backup.appuio.ch -q > /dev/null; then
     OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
     if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
       OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+
+      # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+      NO_SERVICE_NAME_UPPERCASE_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+
+      # prebackuppod templates need SERVICE_NAME_UPPERCASE
+      TEMPLATE_PARAMETERS+=(-p SERVICE_NAME_UPPERCASE="${SERVICE_NAME_UPPERCASE}")
+
       . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+
+      # restore TEMPLATE_PARAMETERS
+      TEMPLATE_PARAMETERS=(${NO_SERVICE_NAME_UPPERCASE_PARAMETERS[@]})
     fi
   fi
 
   CRONJOB_COUNTER=0
-  CRONJOBS_ARRAY=()
+  CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
   while [ -n "$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER 2> /dev/null)" ]
   do
 
@@ -736,44 +839,51 @@ do
     if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
       CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
 
-      CRONJOB_SCHEDULE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+      CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
+
       # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
+      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      if cronScheduleMoreOftenThanXMinutes "$CRONJOB_SCHEDULE_RAW" ; then
+        # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
+        CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+      else
+        # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
+        OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/custom-cronjob.yml"
 
+        # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
+        # oc stores this cronjob name lowercased
+
+        if [ ! -f $OPENSHIFT_TEMPLATE ]; then
+          echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
+        else
+
+          # Create a copy of TEMPLATE_PARAMETERS so we can restore it
+          NO_CRON_PARAMETERS=(${TEMPLATE_PARAMETERS[@]})
+
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_NAME="${CRONJOB_NAME,,}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_SCHEDULE="${CRONJOB_SCHEDULE}")
+          TEMPLATE_PARAMETERS+=(-p CRONJOB_COMMAND="${CRONJOB_COMMAND}")
+
+          . /oc-build-deploy/scripts/exec-openshift-resources-with-images.sh
+
+          # restore template parameters without any cronjobs in them (allows to create a secondary cronjob, plus also any other templates)
+          TEMPLATE_PARAMETERS=(${NO_CRON_PARAMETERS[@]})
+
+        fi
+      fi
     fi
 
     let CRONJOB_COUNTER=CRONJOB_COUNTER+1
   done
 
-  # Generate cronjobs if service type defines them
-  SERVICE_CRONJOB_FILE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/cronjobs.yml"
-  if [ -f $SERVICE_CRONJOB_FILE ]; then
-    CRONJOB_COUNTER=0
-    while [ -n "$(cat ${SERVICE_CRONJOB_FILE} | shyaml keys $CRONJOB_COUNTER 2> /dev/null)" ]
-    do
 
-      CRONJOB_NAME=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
-      # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-      NATIVE_CRONJOB_CLEANUP_ARRAY+=("cronjob-${SERVICE_NAME}-${CRONJOB_NAME}")
-
-      CRONJOB_SCHEDULE=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.schedule)
-      # Convert the Cronjob Schedule for additional features and better spread
-      CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE")
-      CRONJOB_COMMAND=$(cat ${SERVICE_CRONJOB_FILE} | shyaml get-value $CRONJOB_COUNTER.command)
-
-      CRONJOBS_ARRAY+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
-      let CRONJOB_COUNTER=CRONJOB_COUNTER+1
-    done
-  fi
-
-  if [[ ${#CRONJOBS_ARRAY[@]} -ge 1 ]]; then
-    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY[@]}")
+  # if there are cronjobs running inside pods, add them to the deploymentconfig.
+  if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
+    CRONJOBS_ONELINE=$(printf "%s\\n" "${CRONJOBS_ARRAY_INSIDE_POD[@]}")
     TEMPLATE_PARAMETERS+=(-p CRONJOBS="${CRONJOBS_ONELINE}")
   fi
 
@@ -822,6 +932,11 @@ if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
   # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
   if [ "$CI" == "true" ]; then
     sed -i s/podAntiAffinity/podAffinity/g /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+  fi
+
+  # If this is openshift 3.9, remove all occurences of priorityClassName
+  if oc version | grep openshift | awk '{print $2}' | grep -q "v3\.9.*"; then
+    sed -i /priorityClassName/d /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
   fi
 
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
@@ -885,14 +1000,25 @@ do
   fi
 done
 
+
 ##############################################
-### CLEANUP NATIVE CRONJOBS NOW RUNNING WITHIN CONTAINERS DIRECTLY
+### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
 ##############################################
 
-for CRONJOB in "${NATIVE_CRONJOB_CLEANUP_ARRAY[@]}"
+CURRENT_CRONJOBS=$(oc -n ${OPENSHIFT_PROJECT} get cronjobs --no-headers | cut -d " " -f 1 | xargs)
+
+IFS=' ' read -a SPLIT_CURRENT_CRONJOBS <<< $CURRENT_CRONJOBS
+
+for SINGLE_NATIVE_CRONJOB in ${SPLIT_CURRENT_CRONJOBS[@]}
 do
-  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get cronjob ${CRONJOB}; then
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${CRONJOB}
+  re="\<$SINGLE_NATIVE_CRONJOB\>"
+  text=$( IFS=' '; echo "${NATIVE_CRONJOB_CLEANUP_ARRAY[*]}")
+  if [[ "$text" =~ $re ]]; then
+    #echo "Single cron found: ${SINGLE_NATIVE_CRONJOB}"
+    continue
+  else
+    #echo "Single cron missing: ${SINGLE_NATIVE_CRONJOB}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
 

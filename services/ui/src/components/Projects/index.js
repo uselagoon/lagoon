@@ -3,7 +3,7 @@ import Link from 'next/link';
 import css from 'styled-jsx/css';
 import Highlighter from 'react-highlight-words';
 import ProjectLink from 'components/link/Project';
-import Box from 'components/style/Box';
+import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
@@ -19,14 +19,14 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
   }
 `;
 
+/**
+ * The primary list of projects.
+ */
 const Projects = ({ projects = [] }) => {
   const [searchInput, setSearchInput] = useState('');
 
   const filteredProjects = projects.filter(key => {
     const sortByName = key.name
-      .toLowerCase()
-      .includes(searchInput.toLowerCase());
-    const sortByCustomer = key.customer.name
       .toLowerCase()
       .includes(searchInput.toLowerCase());
     let sortByUrl = '';
@@ -39,14 +39,14 @@ const Projects = ({ projects = [] }) => {
     }
     return ['name', 'environments', '__typename'].includes(key)
       ? false
-      : (true && sortByName) || sortByCustomer || sortByUrl;
+      : (true && sortByName) || sortByUrl;
   });
 
   return (
     <>
       <div className="header">
         <label>Project</label>
-        <label>Customer</label>
+        <label></label>
         <input
           aria-labelledby="search"
           className="searchInput"
@@ -98,11 +98,7 @@ const Projects = ({ projects = [] }) => {
               </div>
             </div>
             <div className="customer">
-              <Highlighter
-                searchWords={[searchInput]}
-                autoEscape={true}
-                textToHighlight={project.customer.name}
-              />
+
             </div>
           </Box>
         </ProjectLink>

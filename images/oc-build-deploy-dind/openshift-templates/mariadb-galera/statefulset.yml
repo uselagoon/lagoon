@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ""
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
 - apiVersion: apps/v1beta1
   kind: StatefulSet
@@ -68,6 +71,7 @@ objects:
                       values:
                         - ${SERVICE_NAME}-galera
                 topologyKey: kubernetes.io/hostname
+        priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
         containers:
         - name: ${SERVICE_NAME}-galera
           image: ${SERVICE_IMAGE}

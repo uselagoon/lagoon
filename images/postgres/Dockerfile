@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM postgres:alpine
+FROM postgres:11-alpine
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -24,7 +24,6 @@ RUN chmod g+w /etc/passwd \
 
 ENV LAGOON=postgres
 
-RUN cp /usr/local/bin/docker-entrypoint.sh /lagoon/entrypoints/90-postgres-entrypoint
 COPY postgres-backup.sh /lagoon/
 
 RUN echo -e "local all all md5\nhost  all  all 0.0.0.0/0 md5" >> /usr/local/share/postgresql/pg_hba.conf
@@ -37,4 +36,4 @@ ENV PGUSER=postgres \
 
 # Postgresql entrypoint file needs bash, so start the entrypoints with bash
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
-CMD ["postgres"]
+CMD ["/usr/local/bin/docker-entrypoint.sh", "postgres"]

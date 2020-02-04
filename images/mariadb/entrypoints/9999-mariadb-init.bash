@@ -87,6 +87,12 @@ EOF
     cat $tfile | mysql -v -u root
     rm -v -f $tfile
 
+    echo "[client]" >> /var/lib/mysql/.my.cnf
+    echo "user=root" >> /var/lib/mysql/.my.cnf
+    echo "password=${MARIADB_ROOT_PASSWORD}"  >> /var/lib/mysql/.my.cnf
+    echo "[mysql]" >> /var/lib/mysql/.my.cnf
+    echo "database=${MARIADB_DATABASE}" >> /var/lib/mysql/.my.cnf
+
     for f in `ls /docker-entrypoint-initdb.d/*`; do
       case "$f" in
         *.sh)     echo "$0: running $f"; . "$f" ;;
@@ -95,12 +101,6 @@ EOF
       esac
     echo
     done
-
-    echo "[client]" >> /var/lib/mysql/.my.cnf
-    echo "user=root" >> /var/lib/mysql/.my.cnf
-    echo "password=${MARIADB_ROOT_PASSWORD}"  >> /var/lib/mysql/.my.cnf
-    echo "[mysql]" >> /var/lib/mysql/.my.cnf
-    echo "database=${MARIADB_DATABASE}" >> /var/lib/mysql/.my.cnf
 
     if ! kill -s TERM "$pid" || ! wait "$pid"; then
       echo >&2 'MySQL init process failed.'

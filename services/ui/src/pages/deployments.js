@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from 'layouts/main';
+import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
 import DeploymentsSubscription from 'lib/subscription/Deployments';
 import Breadcrumbs from 'components/Breadcrumbs';
@@ -17,7 +17,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
-const PageDeployments = ({ router }) => {
+/**
+ * Displays the deployments page, given the openshift project name.
+ */
+export const PageDeployments = ({ router }) => {
   return (
     <>
       <Head>

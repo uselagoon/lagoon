@@ -8,6 +8,9 @@ export const getLinkData = (environmentSlug, projectSlug) => ({
   asPath: `/projects/${projectSlug}/${environmentSlug}/deployments`
 });
 
+/**
+ * Links to the deployments page given the project name and the openshift project name.
+ */
 const DeploymentsLink = ({
   environmentSlug,
   projectSlug,

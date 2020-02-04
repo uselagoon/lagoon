@@ -33,9 +33,9 @@ ENV TMPDIR=/tmp \
     BASH_ENV=/home/.bashrc
 
 # Defining Versions
-ENV OC_VERSION=v3.7.2 \
-    OC_HASH=282e43f \
-    OC_SHA256=abc89f025524eb205e433622e59843b09d2304cc913534c4ed8af627da238624 \
+ENV OC_VERSION=v3.11.0 \
+    OC_HASH=0cbc58b \
+    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3 \
     GLIBC_VERSION=2.28-r0
 
 # To run the openshift client library `oc` we need glibc, install that first. Copied from https://github.com/jeanblanchard/docker-alpine-glibc/blob/master/Dockerfile
@@ -57,7 +57,7 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     mkdir /tmp/openshift-origin-client-tools && \
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar && \
-    curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest/linux/amd64/svcat && \
+    curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest-v0.2/linux/amd64/svcat && \
     chmod +x /usr/bin/svcat
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]

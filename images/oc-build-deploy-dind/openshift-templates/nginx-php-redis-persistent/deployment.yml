@@ -64,6 +64,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ''
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    value: 'production'
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -101,6 +104,7 @@ objects:
             - name: ${SERVICE_NAME}
               persistentVolumeClaim:
                 claimName: ${SERVICE_NAME}
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${NGINX_SERVICE_IMAGE}
               name: ${NGINX_SERVICE_NAME}
@@ -148,12 +152,12 @@ objects:
                 tcpSocket:
                   port: 9000
                 initialDelaySeconds: 2
-                periodSeconds: 5
+                periodSeconds: 10
               livenessProbe:
                 tcpSocket:
                   port: 9000
                 initialDelaySeconds: 60
-                periodSeconds: 5
+                periodSeconds: 10
               envFrom:
                 - configMapRef:
                     name: lagoon-env
@@ -189,7 +193,7 @@ objects:
                 tcpSocket:
                   port: 6379
                 initialDelaySeconds: 120
-                periodSeconds: 5
+                periodSeconds: 10
               envFrom:
               - configMapRef:
                   name: lagoon-env

@@ -5,6 +5,128 @@ USE infrastructure;
 DELIMITER $$
 
 CREATE OR REPLACE PROCEDURE
+  CreateProject
+  (
+    IN id                              int,
+    IN name                            varchar(100),
+    IN git_url                         varchar(300),
+    IN availability                      varchar(50),
+    IN private_key                     varchar(5000),
+    IN subfolder                       varchar(300),
+    IN openshift                       int,
+    IN openshift_project_pattern       varchar(300),
+    IN active_systems_deploy           varchar(300),
+    IN active_systems_promote          varchar(300),
+    IN active_systems_remove           varchar(300),
+    IN active_systems_task             varchar(300),
+    IN branches                        varchar(300),
+    IN pullrequests                    varchar(300),
+    IN production_environment          varchar(100),
+    IN auto_idle                       int(1),
+    IN storage_calc                    int(1),
+    IN development_environments_limit  int
+  )
+  BEGIN
+    DECLARE new_pid int;
+    DECLARE v_oid int;
+
+
+    SELECT o.id INTO v_oid FROM openshift o WHERE o.id = openshift;
+
+
+    IF (v_oid IS NULL) THEN
+      SET @message_text = concat('Openshift ID: "', openshift, '" does not exist');
+      SIGNAL SQLSTATE '02000'
+      SET MESSAGE_TEXT = @message_text;
+    END IF;
+
+
+    IF (id IS NULL) THEN
+      SET id = 0;
+    END IF;
+
+
+    INSERT INTO project (
+        id,
+        name,
+        git_url,
+        availability,
+        private_key,
+        subfolder,
+        active_systems_deploy,
+        active_systems_promote,
+        active_systems_remove,
+        active_systems_task,
+        branches,
+        production_environment,
+        auto_idle,
+        storage_calc,
+        pullrequests,
+        openshift,
+        openshift_project_pattern,
+        development_environments_limit
+    )
+    SELECT
+        id,
+        name,
+        git_url,
+        availability,
+        private_key,
+        subfolder,
+        active_systems_deploy,
+        active_systems_promote,
+        active_systems_remove,
+        active_systems_task,
+        branches,
+        production_environment,
+        auto_idle,
+        storage_calc,
+        pullrequests,
+        os.id,
+        openshift_project_pattern,
+        development_environments_limit
+    FROM
+        openshift AS os
+    WHERE
+        os.id = openshift;
+
+
+    -- id = 0 explicitly tells auto-increment field
+    -- to auto-generate a value
+    IF (id = 0) THEN
+      SET new_pid = LAST_INSERT_ID();
+    ELSE
+      SET new_pid = id;
+    END IF;
+
+
+    -- Return the constructed project
+    SELECT
+      p.*
+    FROM project p
+    WHERE p.id = new_pid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_availability_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'availability'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `availability` varchar(50);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_production_environment_to_project()
 
   BEGIN
@@ -144,7 +266,7 @@ CREATE OR REPLACE PROCEDURE
   add_enum_rocketchat_to_type_in_project_notification()
 
   BEGIN
-    DECLARE column_type_project_notification_type varchar(50);
+    DECLARE column_type_project_notification_type varchar(74);
 
     SELECT COLUMN_TYPE INTO column_type_project_notification_type
     FROM INFORMATION_SCHEMA.COLUMNS
@@ -541,7 +663,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'scope'
     ) THEN
       ALTER TABLE `env_vars`
-      ADD `scope` ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global';
+      ADD `scope` ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
       UPDATE env_vars
       SET scope = 'global';
     END IF;
@@ -645,8 +767,107 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  convert_env_vars_from_varchar_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(300);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'env_vars'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'value';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE `env_vars`
+      MODIFY `value` text NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_user_ssh_key_usid_to_char()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'user_ssh_key'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'usid';
+
+    IF (column_type = 'int') THEN
+      ALTER TABLE user_ssh_key
+      MODIFY usid char(36) NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_private_key_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'private_key'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `private_key` varchar(5000);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_environment_backup_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'environment_backup'
+        AND table_schema = 'infrastructure'
+        AND index_name='backup_environment'
+    ) THEN
+      ALTER TABLE `environment_backup`
+      ADD INDEX `backup_environment` (`environment`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_enum_email_microsoftteams_to_type_in_project_notification()
+
+  BEGIN
+    DECLARE column_type_project_notification_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_project_notification_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project_notification'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_project_notification_type = "enum('slack','rocketchat')"
+    ) THEN
+      ALTER TABLE project_notification
+      MODIFY type ENUM('slack','rocketchat','microsoftteams','email');
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
+CALL add_availability_to_project();
 CALL add_production_environment_to_project();
 CALL add_ssh_to_openshift();
 CALL convert_project_pullrequest_to_varchar();
@@ -678,6 +899,11 @@ CALL convert_task_command_to_text();
 CALL add_key_fingerprint_to_ssh_key();
 CALL add_autoidle_to_environment();
 CALL add_deploy_base_head_ref_title_to_environment();
+CALL convert_env_vars_from_varchar_to_text();
+CALL convert_user_ssh_key_usid_to_char();
+CALL add_private_key_to_project();
+CALL add_index_for_environment_backup_environment();
+CALL add_enum_email_microsoftteams_to_type_in_project_notification();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

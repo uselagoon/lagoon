@@ -1,15 +1,27 @@
 node {
 
-  // MINISHIFT_HOME will be used by minishift to define where to put the docker machines
-  // We want them all in a unified place to be able to know how many machines there are, etc. So we put them in the
-  // Jenkins HOME Folder
-  env.MINISHIFT_HOME = "${env.JENKINS_HOME}/.minishift"
+  openshift_versions = ['v3.11.0']
+
+  env.MINISHIFT_HOME = "/data/jenkins/.minishift"
 
   withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
     withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
       try {
         env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
         env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
+        env.SYNC_MAKE_OUTPUT = 'target'
+        // make/tests will synchronise (buffer) output by default to avoid interspersed
+        // lines from multiple jobs run in parallel. However this means that output for
+        // each make target is not written until the command completes.
+        //
+        // See `man -P 'less +/-O' make` for more information about this option.
+        //
+        // Uncomment the line below to disable output synchronisation.
+        //env.SYNC_MAKE_OUTPUT = 'none'
+
+        stage ('env') {
+          sh "env"
+        }
 
         deleteDir()
 
@@ -20,18 +32,15 @@ node {
         }
 
         stage ('build images') {
-          sh "make build"
+          sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
         }
 
-        stage ('push images to amazeeiolagoon/*') {
-          withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-            sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-            sh "make publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME} -j4"
-          }
-        }
-
-        lock('minishift') {
+        openshift_versions.each { openshift_version ->
           notifySlack()
+
+          if (openshift_version == 'v3.11.0') {
+            minishift_version = '1.34.1'
+          }
 
           try {
             parallel (
@@ -39,12 +48,20 @@ node {
                 stage ('start services') {
                   sh "make kill"
                   sh "make up"
-                  sh "sleep 60"
                 }
               },
               'start minishift': {
                 stage ('start minishift') {
-                  sh 'make minishift MINISHIFT_CPUS=8 MINISHIFT_MEMORY=12GB MINISHIFT_DISK_SIZE=50GB'
+                  sh 'make minishift/cleanall || echo'
+                  sh "make minishift MINISHIFT_CPUS=12 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                }
+              },
+              'push images to amazeeiolagoon': {
+                stage ('push images to amazeeiolagoon/*') {
+                  withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
+                    sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                  }
                 }
               }
             )
@@ -55,11 +72,12 @@ node {
           }
 
           parallel (
-            '_tests': {
+            "_tests_${openshift_version}": {
                 stage ('run tests') {
                   try {
-                    sh "make push-minishift"
-                    sh "make tests -j2"
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j5 push-minishift"
+                    sh "make up"
+                    sh "make -O${SYNC_MAKE_OUTPUT} -j2 tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -68,7 +86,7 @@ node {
                   cleanup()
                 }
             },
-            'logs': {
+            "logs_${openshift_version}": {
                 stage ('all') {
                   sh "make logs"
                 }
@@ -80,14 +98,14 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make publish-amazeeio-baseimages -j4"
+              sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeio-baseimages"
             }
           }
         }
 
         if (env.BRANCH_NAME == 'master') {
           stage ('save-images-s3') {
-            sh "make s3-save -j8"
+            sh "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save"
           }
         }
 
@@ -105,7 +123,7 @@ node {
 def cleanup() {
   try {
     sh "make down"
-    sh "make minishift/clean"
+    sh "make minishift/cleanall"
     sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."

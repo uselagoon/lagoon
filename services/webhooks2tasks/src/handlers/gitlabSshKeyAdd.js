@@ -45,7 +45,7 @@ async function gitlabSshKeyAdd(webhook: WebhookRequestData) {
         throw new Error(`Unknown algorithm: ${algorithm}`);
     }
 
-    await addSshKey(id, name, keyValue, keyType, userId);
+    await addSshKey(null, name, keyValue, keyType, user_email);
 
     sendToLagoonLogs(
       'info',

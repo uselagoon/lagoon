@@ -1,7 +1,8 @@
 ARG PHP_VERSION
+ARG PHP_IMAGE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_VERSION}-fpm-alpine
+FROM php:${PHP_IMAGE_VERSION}-fpm-alpine
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
@@ -34,11 +35,13 @@ COPY 00-lagoon-php.ini.tpl /usr/local/etc/php/conf.d/
 COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
-ENV NEWRELIC_VERSION=8.6.0.238
+# New Relic PHP Agent.
+# Support for PHP 7.4 added in 9.4.
+# @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
+# @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
+ENV NEWRELIC_VERSION=9.6.0.255
 
-RUN apk del --no-cache curl libcurl \
-    && apk add --no-cache "curl=7.61.1-r2" "libcurl=7.61.1-r2" --repository http://dl-cdn.alpinelinux.org/alpine/v3.8/main/ \
-    && apk add --no-cache fcgi \
+RUN apk add --no-cache fcgi \
         ssmtp \
         libzip libzip-dev \
         # for gd
@@ -52,44 +55,66 @@ RUN apk del --no-cache curl libcurl \
         libxml2-dev \
         # for xsl
         libxslt-dev \
+        libgcrypt-dev \
         # for webp
         libwebp-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
-    && if [ ${PHP_VERSION%.*} == "7.3" ]; then \
+    && case ${PHP_VERSION} in \
+      7.3*) \
         yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug-2.7.0; \
-       elif [ ${PHP_VERSION%.*.*} == "7" ]; then \
+        && yes '' | pecl install -f xdebug-2.7.0 \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
+      7.0*) \
         yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug; \
-       fi \
-    && if [ ${PHP_VERSION%.*.*} == "5" ]; then \
+        && yes '' | pecl install -f xdebug-2.6.0 \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
+      7*) \
+        yes '' | pecl install -f apcu \
+        && yes '' | pecl install -f xdebug \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
+      5*) \
         yes '' | pecl install -f apcu-4.0.11 \
-        && yes '' | pecl install -f xdebug-2.5.5; \
-       fi \
-    && yes '' | pecl install -f redis \
+        && yes '' | pecl install -f xdebug-2.5.5 \
+        && yes '' | pecl install -f redis-4.3.0; \
+        ;; \
+      esac \
     && docker-php-ext-enable apcu redis xdebug \
-    && docker-php-ext-configure gd --with-webp-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && case ${PHP_VERSION} in \
+      7.4*) \
+        docker-php-ext-configure gd --with-webp --with-jpeg \
+        ;; \
+      *) \
+        docker-php-ext-configure gd --with-webp-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+        ;; \
+      esac \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
-    && if [ ${PHP_VERSION%.*} == "7.1" ] || [ ${PHP_VERSION%.*} == "7.0" ] || [ ${PHP_VERSION%.*.*} == "5" ]; then \
+    && case ${PHP_VERSION} in \
+      7.1*|7.0*|5*) \
         docker-php-ext-install mcrypt; \
-       fi \
+        ;; \
+      esac \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
-    && mkdir -p /tmp/newrelic && cd /tmp/newrelic \
+    && if [ ${PHP_VERSION%.*} != "7.4" ]; then \
+    mkdir -p /tmp/newrelic && cd /tmp/newrelic \
     && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
-	&& gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
-	&& NR_INSTALL_USE_CP_NOT_LN=1 ./newrelic-install install \
+    && gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
+    && NR_INSTALL_USE_CP_NOT_LN=1 NR_INSTALL_SILENT=1 ./newrelic-install install \
     && sed -i -e "s/newrelic.appname = .*/newrelic.appname = \"\${LAGOON_PROJECT:-noproject}-\${LAGOON_GIT_SAFE_BRANCH:-nobranch}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& sed -i -e "s/;newrelic.enabled = .*/newrelic.enabled = \${NEWRELIC_ENABLED:-false}/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& sed -i -e "s/newrelic.license = .*/newrelic.license = \"\${NEWRELIC_LICENSE:-}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& sed -i -e "s/;newrelic.loglevel = .*/newrelic.loglevel = \"\${NEWRELIC_LOG_LEVEL:-warning}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& sed -i -e "s/;newrelic.daemon.loglevel = .*/newrelic.daemon.loglevel = \"\${NEWRELIC_DAEMON_LOG_LEVEL:-warning}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& sed -i -e "s/newrelic.logfile = .*/newrelic.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& sed -i -e "s/newrelic.daemon.logfile = .*/newrelic.daemon.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
-	&& mv /usr/local/etc/php/conf.d/newrelic.ini /usr/local/etc/php/conf.d/newrelic.disable \
-    && cd / && rm -rf /tmp/newrelic \
+    && sed -i -e "s/;newrelic.enabled = .*/newrelic.enabled = \${NEWRELIC_ENABLED:-false}/" /usr/local/etc/php/conf.d/newrelic.ini \
+    && sed -i -e "s/newrelic.license = .*/newrelic.license = \"\${NEWRELIC_LICENSE:-}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
+    && sed -i -e "s/;newrelic.loglevel = .*/newrelic.loglevel = \"\${NEWRELIC_LOG_LEVEL:-warning}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
+    && sed -i -e "s/;newrelic.daemon.loglevel = .*/newrelic.daemon.loglevel = \"\${NEWRELIC_DAEMON_LOG_LEVEL:-warning}\"/" /usr/local/etc/php/conf.d/newrelic.ini \
+    && sed -i -e "s/newrelic.logfile = .*/newrelic.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
+    && sed -i -e "s/newrelic.daemon.logfile = .*/newrelic.daemon.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
+    && mv /usr/local/etc/php/conf.d/newrelic.ini /usr/local/etc/php/conf.d/newrelic.disable \
+    && cd / && rm -rf /tmp/newrelic; \
+    fi \
     && mkdir -p /app \
     && fix-permissions /usr/local/etc/ \
     && fix-permissions /app \

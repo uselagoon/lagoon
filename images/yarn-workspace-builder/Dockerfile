@@ -1,11 +1,11 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/node:8-builder
+FROM ${IMAGE_REPO:-lagoon}/node:10-builder
 
 RUN apk add --no-cache \
         libexecinfo-dev \
         python
 
-COPY package.json yarn.lock .env.defaults /app/
+COPY package.json yarn.lock .env.defaults tsconfig.json /app/
 COPY node-packages /app/node-packages
 
 # We need to copy all services, so we have all
@@ -15,6 +15,7 @@ COPY services/api/package.json /app/services/api/
 COPY services/auth-server/package.json /app/services/auth-server/
 COPY services/logs2rocketchat/package.json /app/services/logs2rocketchat/
 COPY services/logs2slack/package.json /app/services/logs2slack/
+COPY services/logs2email/package.json /app/services/logs2email/
 COPY services/openshiftbuilddeploy/package.json /app/services/openshiftbuilddeploy/
 COPY services/openshiftbuilddeploymonitor/package.json /app/services/openshiftbuilddeploymonitor/
 COPY services/openshiftremove/package.json /app/services/openshiftremove/

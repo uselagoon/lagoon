@@ -7,7 +7,7 @@ else
 fi
 
 # Inject Pullable Images into Template
-TEMPLATE_IMAGES_PARAMETERS=()
+TEMPLATE_ADDITIONAL_PARAMETERS=()
 # First check if we need multiple Images in this Template (check for `_SERVICE_IMAGE` - see underline)
 if [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep _SERVICE_IMAGE) ]]; then
   while read line
@@ -20,13 +20,17 @@ if [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep _SERVICE
     # Load the Image Hash of the loaded Image
     DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH="${IMAGE_HASHES[${DEPLOYMENT_SERVICETYPE_IMAGE_NAME}]}"
     # Add the Image Hash as Parameter of "[SERVICETYPE]_SERVICE_IMAGE"
-    TEMPLATE_IMAGES_PARAMETERS+=(-p "${line}=${DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH}")
+    TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "${line}=${DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH}")
   done < <(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep _SERVICE_IMAGE | awk '{ print $1 }')
 # check if we need a single image to inject
 elif [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep SERVICE_IMAGE) ]]; then
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
-  TEMPLATE_IMAGES_PARAMETERS+=(-p "SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}")
+  TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}")
+fi
+
+if [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep ENVIRONMENT_TYPE) ]]; then
+  TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}")
 fi
 
 oc process  --local -o yaml --insecure-skip-tls-verify \
@@ -42,5 +46,5 @@ oc process  --local -o yaml --insecure-skip-tls-verify \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
   -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
   "${TEMPLATE_PARAMETERS[@]}" \
-  "${TEMPLATE_IMAGES_PARAMETERS[@]}" \
+  "${TEMPLATE_ADDITIONAL_PARAMETERS[@]}" \
   | outputToYaml

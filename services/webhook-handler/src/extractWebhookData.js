@@ -50,6 +50,14 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       event = bodyObj.object_kind || bodyObj.event_name;
       uuid = uuid4();
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
+
+      // This is a system webhook
+      if (!giturl) {
+        // Ensure the system hook came from gitlab
+        if (!('x-gitlab-token' in req.headers) || req.headers['x-gitlab-token'] !== process.env.GITLAB_SYSTEM_HOOK_TOKEN) {
+          throw new Error('Gitlab system hook secret verification failed');
+        }
+      }
     } else if ('x-event-key' in req.headers) {
       webhooktype = 'bitbucket'
       event = req.headers['x-event-key']
@@ -70,29 +78,14 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
         const port = regexmatch[2]
         giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
       }
-    } else if (bodyObj.backup_metrics) {
+    // TODO: Use when single snapshot data is fixed
+    // } else if (bodyObj.backup_metrics) {
+    //   webhooktype = 'resticbackup';
+    //   event = 'snapshot:finished'
+    //   uuid = uuid4();
+    } else if (bodyObj.snapshots) {
       webhooktype = 'resticbackup';
-      event = 'snapshot:finished'
-      uuid = uuid4();
-    } else if (R.allPass([ R.is(Array), R.compose(R.not(), R.isEmpty()), R.compose(R.has('hostname'), R.prop(0)) ])(bodyObj)) {
-      // Check for a body that matches
-      // [
-      //   {
-      //       "id": "80b698920f97e36616f638cb59c379787967ff45416c9ba23c1807e4e0703414",
-      //       "time": "2018-11-12T04:16:28.320904074Z",
-      //       "tree": "e100116d5477c1746402649fde5219ae506a8d6605ed2600f6ada5dd340b5c23",
-      //       "paths": [
-      //           "/data/solr"
-      //       ],
-      //       "hostname": "ci-local",
-      //       "username": "",
-      //       "uid": 0,
-      //       "gid": 0,
-      //       "tags": null
-      //   }
-      // ]
-      webhooktype = 'resticbackup';
-      event = 'snapshot:pruned'
+      event = 'snapshot:sync'
       uuid = uuid4();
     } else if (bodyObj.restore_location) {
       webhooktype = 'resticbackup';

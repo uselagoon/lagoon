@@ -3,20 +3,31 @@ import Link from 'next/link';
 import getConfig from 'next/config';
 import { AuthContext } from 'lib/Authenticator';
 import { color } from 'lib/variables';
+import lagoonLogo from '!svg-inline-loader?classPrefix!./lagoon.svg';
 
-const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
+const { publicRuntimeConfig } = getConfig();
 
-const Header = () => (
+/**
+ * Displays the header using the provided logo.
+ */
+const Header = ({ logo }) => (
   <div className='header'>
     <Link href="/">
       <a className="home">
-        <img src={`data:image/svg+xml;utf8,${publicRuntimeConfig.LAGOON_UI_ICON}`} />
+        <img
+          alt="Home"
+          src={logo ? logo : `data:image/svg+xml;utf8,${
+            publicRuntimeConfig.LAGOON_UI_ICON
+              ? publicRuntimeConfig.LAGOON_UI_ICON
+              : encodeURIComponent(lagoonLogo)
+          }`}
+        />
       </a>
     </Link>
     <AuthContext.Consumer>
       {auth => {
         if (auth.authenticated) {
-          return <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a>;
+          return (<div className="authContainer"><a className="settings" href="/settings">settings</a> <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a></div>);
         }
 
         return null;
@@ -32,6 +43,11 @@ const Header = () => (
         filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='${color.brightBlue}', endColorstr='${color.lightBlue}',GradientType=1 );
         display: flex;
         justify-content: space-between;
+
+        .authContainer {
+          display: flex;
+        }
+
         a {
           color: ${color.almostWhite};
           padding: 10px 20px;
@@ -55,15 +71,31 @@ const Header = () => (
               width: 14px;
             }
           }
-          &.logout {
+          &.settings {
             align-items: center;
             border-left: 1px solid ${color.blue};
+            cursor: pointer;
+            display: flex;
+            &::before {
+              background-position: center center;
+              background-repeat: no-repeat;
+              content: '';
+              display: block;
+              height: 35px;
+              transition: all 0.3s ease-in-out;
+              width: 35px;
+              background-image: url('/static/images/cog.svg');
+              background-size: 18px;
+            }
+          }
+          &.logout {
+            align-items: center;
             cursor: pointer;
             display: flex;
           }
         }
       }
-  `}</style>
+    `}</style>
   </div>
 );
 

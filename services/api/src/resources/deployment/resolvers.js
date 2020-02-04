@@ -6,6 +6,7 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   createDeployTask,
   createPromoteTask,
+  createMiscTask,
 } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const {
@@ -14,16 +15,14 @@ const {
 } = require('../../clients/pubSub');
 const {
   knex,
-  ifNotAdmin,
-  inClauseOr,
   prepare,
   query,
   isPatchEmpty,
 } = require('../../util/db');
 const Sql = require('./sql');
+const Helpers = require('./helpers');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
-const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
 
 /* ::
@@ -90,14 +89,16 @@ const getDeploymentsByEnvironmentId = async (
   { id: eid },
   { name },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
   info,
 ) => {
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  await hasPermission('deployment', 'view', {
+    project: environment.project,
+  });
+
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -106,10 +107,6 @@ const getDeploymentsByEnvironmentId = async (
       JOIN deployment d on e.id = d.environment
       JOIN project p ON e.project = p.id
       WHERE e.id = :eid
-      ${ifNotAdmin(
-    role,
-    `AND (${inClauseOr([['p.customer', customers], ['p.id', projects]])})`,
-  )}
     `,
   );
 
@@ -142,11 +139,8 @@ const getDeploymentByRemoteId = async (
   root,
   { id },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const queryString = knex('deployment')
@@ -160,19 +154,14 @@ const getDeploymentByRemoteId = async (
     return null;
   }
 
-  if (role !== 'admin') {
-    const rowsPerms = await query(
-      sqlClient,
-      Sql.selectPermsForDeployment(deployment.id),
-    );
+  const perms = await query(
+    sqlClient,
+    Sql.selectPermsForDeployment(deployment.id),
+  );
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsPerms), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsPerms), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('deployment', 'view', {
+    project: R.path(['0', 'pid'], perms),
+  });
 
   return injectBuildLog(deployment);
 };
@@ -187,33 +176,21 @@ const addDeployment = async (
       created,
       started,
       completed,
-      environment,
+      environment: environmentId,
       remoteId,
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(environment),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('environment', `deploy:${environment.environmentType}`, {
+    project: environment.project,
+  });
 
   const {
     info: { insertId },
@@ -226,7 +203,7 @@ const addDeployment = async (
       created,
       started,
       completed,
-      environment,
+      environment: environmentId,
       remoteId,
     }),
   );
@@ -242,23 +219,15 @@ const deleteDeployment = async (
   root,
   { input: { id } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
-  if (role !== 'admin') {
-    const rows = await query(sqlClient, Sql.selectPermsForDeployment(id));
+  const perms = await query(sqlClient, Sql.selectPermsForDeployment(id));
 
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('deployment', 'delete', {
+    project: R.path(['0', 'pid'], perms),
+  });
 
   await query(sqlClient, Sql.deleteDeployment(id));
 
@@ -283,45 +252,29 @@ const updateDeployment = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
 
-  if (role !== 'admin') {
-    // Check access to modify deployment as it currently stands
-    const rowsCurrent = await query(
-      sqlClient,
-      Sql.selectPermsForDeployment(id),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsCurrent), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsCurrent), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-
-    // Check access to modify deployment as it will be updated
-    const rowsNew = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(environment),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rowsNew), projects) &&
-      !R.contains(R.path(['0', 'cid'], rowsNew), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
-
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
+  }
+
+  const permsDeployment = await query(sqlClient, Sql.selectPermsForDeployment(id));
+
+  // Check access to modify deployment as it currently stands
+  await hasPermission('deployment', 'update', {
+    project: R.path(['0', 'pid'], permsDeployment),
+  });
+
+  if (environment) {
+    const permsEnv = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    // Check access to modify deployment as it will be updated
+    await hasPermission('environment', 'view', {
+      project: permsEnv.project,
+    });
   }
 
   await query(
@@ -348,15 +301,52 @@ const updateDeployment = async (
   return deployment;
 };
 
+const cancelDeployment = async (
+  root,
+  { input: { deployment: deploymentInput } },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(deployment.environment);
+  const project = await projectHelpers(sqlClient).getProjectById(
+    environment.project,
+  );
+
+  await hasPermission('deployment', 'cancel', {
+    project: project.id,
+  });
+
+  const data = {
+    build: deployment,
+    environment,
+    project,
+  };
+
+  try {
+    await createMiscTask({ key: 'openshift:build:cancel', data });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:cancelDeployment',
+      { deploymentId: deployment.id },
+      `Deployment not cancelled, reason: ${error}`,
+    );
+    return `Error: ${error.message}`;
+  }
+};
+
 const deployEnvironmentLatest = async (
   root,
   { input: { environment: environmentInput } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const environments = await environmentHelpers(
@@ -376,19 +366,9 @@ const deployEnvironmentLatest = async (
     environment.project,
   );
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(environment.id),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('environment', `deploy:${environment.environmentType}`, {
+    project: project.id,
+  });
 
   if (
     environment.deployType === 'branch' ||
@@ -516,30 +496,18 @@ const deployEnvironmentBranch = async (
   root,
   { input: { project: projectInput, branchName, branchRef } },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      projectSql.selectPermsForProject(project.id),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('environment', `deploy:${envType}`, {
+    project: project.id,
+  });
 
   const deployData = {
     type: 'branch',
@@ -613,30 +581,19 @@ const deployEnvironmentPullrequest = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
+  const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      projectSql.selectPermsForProject(project.id),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('environment', `deploy:${envType}`, {
+    project: project.id,
+  });
 
   const deployData = {
     type: 'pullrequest',
@@ -647,7 +604,7 @@ const deployEnvironmentPullrequest = async (
     headSha: headBranchRef,
     baseBranchName,
     baseSha: baseBranchRef,
-    branchName: `pr-${number}`,
+    branchName,
   };
 
   const meta = {
@@ -711,30 +668,18 @@ const deployEnvironmentPromote = async (
     },
   },
   {
-    credentials: {
-      role,
-      permissions: { customers, projects },
-    },
     sqlClient,
+    hasPermission,
   },
 ) => {
   const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
+  const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      projectSql.selectPermsForProject(destProject.id),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('environment', `deploy:${envType}`, {
+    project: destProject.id,
+  });
 
   const sourceEnvironments = await environmentHelpers(
     sqlClient,
@@ -750,19 +695,9 @@ const deployEnvironmentPromote = async (
 
   const sourceEnvironment = R.prop(0, activeEnvironments);
 
-  if (role !== 'admin') {
-    const rows = await query(
-      sqlClient,
-      Sql.selectPermsForEnvironment(sourceEnvironment.id),
-    );
-
-    if (
-      !R.contains(R.path(['0', 'pid'], rows), projects) &&
-      !R.contains(R.path(['0', 'cid'], rows), customers)
-    ) {
-      throw new Error('Unauthorized.');
-    }
-  }
+  await hasPermission('environment', 'view', {
+    project: sourceEnvironment.project,
+  });
 
   const deployData = {
     type: 'promote',
@@ -834,6 +769,7 @@ const Resolvers /* : ResolversObj */ = {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  cancelDeployment,
   deployEnvironmentLatest,
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,

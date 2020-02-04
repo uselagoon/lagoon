@@ -40,6 +40,9 @@ parameters:
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ''
+  - name: ENVIRONMENT_TYPE
+    description: production level of this environment
+    required: true
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -78,6 +81,7 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: lagoon-sshkey
+          priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
               name: ${SERVICE_NAME}
@@ -101,6 +105,8 @@ objects:
                 requests:
                   cpu: 10m
                   memory: 10Mi
+                limits:
+                  memory: 8Gi
       test: false
       triggers:
         - type: ConfigChange

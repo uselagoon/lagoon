@@ -3,6 +3,9 @@ import moment from 'moment';
 import TaskLink from 'components/link/Task';
 import { bp, color } from 'lib/variables';
 
+/**
+ * Displays an environment's list of tasks.
+ */
 const Tasks = ({ tasks }) => (
   <div className="tasks">
     <div className="header">
@@ -26,7 +29,7 @@ const Tasks = ({ tasks }) => (
               {moment
                 .utc(task.created)
                 .local()
-                .format('DD MMM YYYY, HH:mm:ss')}
+                .format('DD MMM YYYY, HH:mm:ss (Z)')}
             </div>
             <div className="service">{task.service}</div>
             <div className={`status ${task.status}`}>

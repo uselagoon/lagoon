@@ -1,17 +1,7 @@
 // @flow
 
 const GraphQLDate = require('graphql-iso-date');
-
-const {
-  addCustomer,
-  deleteCustomer,
-  getAllCustomers,
-  getCustomerByProjectId,
-  updateCustomer,
-  getCustomerByName,
-  deleteAllCustomers,
-  resyncCustomersWithSearchguard,
-} = require('./resources/customer/resolvers');
+const GraphQLJSON = require('graphql-type-json');
 
 const {
   getDeploymentsByEnvironmentId,
@@ -19,6 +9,7 @@ const {
   addDeployment,
   deleteDeployment,
   updateDeployment,
+  cancelDeployment,
   deployEnvironmentLatest,
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
@@ -35,6 +26,7 @@ const {
   taskDrushArchiveDump,
   taskDrushSqlDump,
   taskDrushCacheClear,
+  taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
   taskSubscriber,
@@ -57,6 +49,7 @@ const {
   getEnvironmentHitsMonthByEnvironmentId,
   getEnvironmentByDeploymentId,
   getEnvironmentByTaskId,
+  getEnvironmentByBackupId,
   getEnvironmentServicesByEnvironmentId,
   setEnvironmentServices,
   deleteEnvironment,
@@ -64,19 +57,28 @@ const {
   updateEnvironment,
   getAllEnvironments,
   deleteAllEnvironments,
+  userCanSshToEnvironment,
 } = require('./resources/environment/resolvers');
 
 const {
+  addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
   addNotificationToProject,
+  deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
   getNotificationsByProjectId,
   removeNotificationFromProject,
+  updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  addNotificationEmail,
+  updateNotificationEmail,
+  deleteNotificationEmail,
+  deleteAllNotificationEmails,
   deleteAllNotificationSlacks,
+  deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
@@ -99,8 +101,6 @@ const {
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  createAllProjectsInKeycloak,
-  createAllProjectsInSearchguard,
 } = require('./resources/project/resolvers');
 
 const {
@@ -108,27 +108,43 @@ const {
   addSshKey,
   updateSshKey,
   deleteSshKey,
+  deleteSshKeyById,
   deleteAllSshKeys,
   removeAllSshKeysFromAllUsers,
 } = require('./resources/sshKey/resolvers');
 
 const {
-  getUsersByProjectId,
+  getMe,
   getUserBySshKey,
   addUser,
   updateUser,
   deleteUser,
-  addUserToCustomer,
-  removeUserFromCustomer,
-  getUsersByCustomerId,
-  getProjectsByCustomerId,
-  addUserToProject,
-  removeUserFromProject,
   deleteAllUsers,
-  removeAllUsersFromAllCustomers,
-  removeAllUsersFromAllProjects,
-  createAllUsersInKeycloak,
 } = require('./resources/user/resolvers');
+
+const {
+  getAllGroups,
+  getGroupsByProjectId,
+  getGroupsByUserId,
+  getGroupByName,
+  addGroup,
+  addBillingGroup,
+  updateBillingGroup,
+  addProjectToBillingGroup,
+  updateProjectBillingGroup,
+  removeProjectFromBillingGroup,
+  getAllProjectsInGroup,
+  getBillingGroupCost,
+  getAllBillingGroupsCost,
+  getAllProjectsByGroupId,
+  updateGroup,
+  deleteGroup,
+  deleteAllGroups,
+  addUserToGroup,
+  removeUserFromGroup,
+  addGroupsToProject,
+  removeGroupsFromProject,
+} = require('./resources/group/resolvers');
 
 const {
   addBackup,
@@ -155,13 +171,35 @@ import type {ResolversObj} from './resources';
 */
 
 const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
+  GroupRole: {
+    GUEST: 'guest',
+    REPORTER: 'reporter',
+    DEVELOPER: 'developer',
+    MAINTAINER: 'maintainer',
+    OWNER: 'owner',
+  },
   Project: {
-    customer: getCustomerByProjectId,
-    users: getUsersByProjectId,
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
+    groups: getGroupsByProjectId,
+  },
+  GroupInterface: {
+    __resolveType(group) {
+      switch (group.type) {
+        case 'billing':
+          return 'BillingGroup';
+        default:
+          return 'Group';
+      }
+    },
+  },
+  Group: {
+    projects: getAllProjectsByGroupId,
+  },
+  BillingGroup: {
+    projects: getAllProjectsByGroupId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -190,40 +228,43 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
           return 'NotificationSlack';
         case 'rocketchat':
           return 'NotificationRocketChat';
+        case 'microsoftteams':
+          return 'NotificationMicrosoftTeams';
+        case 'email':
+          return 'NotificationEmail';
         default:
           return null;
       }
     },
   },
-  Customer: {
-    users: getUsersByCustomerId,
-    projects: getProjectsByCustomerId,
-  },
   User: {
     sshKeys: getUserSshKeys,
+    groups: getGroupsByUserId,
   },
   Backup: {
     restore: getRestoreByBackupId,
+    environment: getEnvironmentByBackupId,
   },
   Query: {
+    me: getMe,
     userBySshKey: getUserBySshKey,
-    customerByName: getCustomerByName,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
+    groupByName: getGroupByName,
     environmentByName: getEnvironmentByName,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
+    userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     allProjects: getAllProjects,
-    allCustomers: getAllCustomers,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
+    allGroups: getAllGroups,
+    allProjectsInGroup: getAllProjectsInGroup,
+    billingGroupCost: getBillingGroupCost,
+    allBillingGroupsCost: getAllBillingGroupsCost,
   },
   Mutation: {
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    deleteAllCustomers,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -237,6 +278,14 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateNotificationRocketChat,
     deleteNotificationRocketChat,
     deleteAllNotificationRocketChats,
+    addNotificationMicrosoftTeams,
+    updateNotificationMicrosoftTeams,
+    deleteNotificationMicrosoftTeams,
+    deleteAllNotificationMicrosoftTeams,
+    addNotificationEmail,
+    updateNotificationEmail,
+    deleteNotificationEmail,
+    deleteAllNotificationEmails,
     addNotificationToProject,
     removeNotificationFromProject,
     removeAllNotificationsFromAllProjects,
@@ -251,36 +300,29 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     addSshKey,
     updateSshKey,
     deleteSshKey,
+    deleteSshKeyById,
     deleteAllSshKeys,
     removeAllSshKeysFromAllUsers,
     addUser,
     updateUser,
     deleteUser,
     deleteAllUsers,
-    addUserToCustomer,
-    removeUserFromCustomer,
-    removeAllUsersFromAllCustomers,
-    addUserToProject,
-    removeUserFromProject,
-    removeAllUsersFromAllProjects,
     addDeployment,
     deleteDeployment,
     updateDeployment,
+    cancelDeployment,
     addBackup,
     deleteBackup,
     deleteAllBackups,
     addRestore,
     updateRestore,
-    createAllProjectsInKeycloak,
-    createAllProjectsInSearchguard,
-    resyncCustomersWithSearchguard,
-    createAllUsersInKeycloak,
     addEnvVariable,
     deleteEnvVariable,
     addTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,
     taskDrushCacheClear,
+    taskDrushCron,
     taskDrushSqlSync,
     taskDrushRsyncFiles,
     deleteTask,
@@ -292,6 +334,20 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
+    addGroup,
+    addBillingGroup,
+    updateBillingGroup,
+    deleteBillingGroup: deleteGroup,
+    addProjectToBillingGroup,
+    updateProjectBillingGroup,
+    removeProjectFromBillingGroup,
+    updateGroup,
+    deleteGroup,
+    deleteAllGroups,
+    addUserToGroup,
+    removeUserFromGroup,
+    addGroupsToProject,
+    removeGroupsFromProject,
   },
   Subscription: {
     backupChanged: backupSubscriber,
@@ -299,6 +355,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskChanged: taskSubscriber,
   },
   Date: GraphQLDate,
+  JSON: GraphQLJSON,
 };
 
 module.exports = resolvers;

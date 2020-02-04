@@ -11,6 +11,7 @@ const gql = require('./util/gql');
 const typeDefs = gql`
   scalar Upload
   scalar Date
+  scalar JSON
 
   enum SshKeyType {
     SSH_RSA
@@ -31,6 +32,8 @@ const typeDefs = gql`
   enum NotificationType {
     SLACK
     ROCKETCHAT
+    MICROSOFTTEAMS
+    EMAIL
   }
 
   enum DeploymentStatusType {
@@ -52,6 +55,7 @@ const typeDefs = gql`
     BUILD
     RUNTIME
     GLOBAL
+    CONTAINER_REGISTRY
   }
 
   enum TaskStatusType {
@@ -64,6 +68,38 @@ const typeDefs = gql`
     PENDING
     SUCCESSFUL
     FAILED
+  }
+
+  enum EnvOrderType {
+    NAME
+    UPDATED
+  }
+
+  enum ProjectOrderType {
+    NAME
+    CREATED
+  }
+
+  enum ProjectAvailability {
+    STANDARD
+    HIGH
+  }
+
+  enum GroupRole {
+    GUEST
+    REPORTER
+    DEVELOPER
+    MAINTAINER
+    OWNER
+  }
+
+  enum Currency {
+    AUD
+    EUR
+    GBP
+    USD
+    CHF
+    ZAR
   }
 
   type File {
@@ -83,43 +119,48 @@ const typeDefs = gql`
   }
 
   type User {
-    id: Int
+    id: String
     email: String
     firstName: String
     lastName: String
     comment: String
     gitlabId: Int
     sshKeys: [SshKey]
+    groups: [GroupInterface]
   }
 
-  """
-  Lagoon Customer (used for grouping multiple Projects)
-  """
-  type Customer {
-    """
-    Internal ID of this customer
-    """
-    id: Int
-    """
-    Name of customer
-    """
+  type GroupMembership {
+    user: User
+    role: GroupRole
+  }
+
+  interface GroupInterface {
+    id: String
     name: String
-    """
-    Arbitrary String for some comment
-    """
-    comment: String
-    """
-    SSH Private Key of Customer
-    Will be used to authenticate against the Git Repos of the Project that are assigned to this project
-    Needs to be in single string separated by \`\n\`, example:
-    \`\`\`
-    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
-    \`\`\`
-    """
-    privateKey: String
-    users: [User]
-    created: String
+    type: String
+    groups: [GroupInterface]
+    members: [GroupMembership]
     projects: [Project]
+  }
+
+  type Group implements GroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [GroupInterface]
+    members: [GroupMembership]
+    projects: [Project]
+  }
+
+  type BillingGroup implements GroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [GroupInterface]
+    members: [GroupMembership]
+    projects: [Project]
+    currency: String
+    billingSoftware: String
   }
 
   type Openshift {
@@ -132,6 +173,12 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     created: String
+  }
+
+  type NotificationMicrosoftTeams {
+    id: Int
+    name: String
+    webhook: String
   }
 
   type NotificationRocketChat {
@@ -148,13 +195,19 @@ const typeDefs = gql`
     channel: String
   }
 
+  type NotificationEmail {
+    id: Int
+    name: String
+    emailAddress: String
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
     type: String
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
 
   """
   Lagoon Project (like a git repository)
@@ -169,15 +222,24 @@ const typeDefs = gql`
     """
     name: String
     """
-    Reference to customer object
-    """
-    customer: Customer
-    """
     Git URL, needs to be SSH Git URL in one of these two formats
-    - git@192.168.99.1/project1.git
-    - ssh://git@192.168.99.1:2222/project1.git
+    - git@192.168.42.1/project1.git
+    - ssh://git@192.168.42.1:2222/project1.git
     """
     gitUrl: String
+    """
+    Project Availability STANDARD|HIGH
+    """
+    availability: ProjectAvailability
+    """
+    SSH Private Key for Project
+    Will be used to authenticate against the Git Repo of the Project
+    Needs to be in single string separated by \`\n\`, example:
+    \`\`\`
+    -----BEGIN RSA PRIVATE KEY-----\nMIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q\n-----END RSA PRIVATE KEY-----
+    \`\`\`
+    """
+    privateKey: String
     """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
@@ -243,10 +305,6 @@ const typeDefs = gql`
     """
     openshiftProjectPattern: String
     """
-    Which Developer SSH keys should have access to this project
-    """
-    users: [User]
-    """
     How many environments can be deployed at one timeout
     """
     developmentEnvironmentsLimit: Int
@@ -271,6 +329,10 @@ const typeDefs = gql`
     Environment variables available during build-time and run-time
     """
     envVariables: [EnvKeyValue]
+    """
+    Which groups are directly linked to project
+    """
+    groups: [GroupInterface]
   }
 
   """
@@ -445,17 +507,21 @@ const typeDefs = gql`
 
   type Query {
     """
+    Returns the current user
+    """
+    me: User
+    """
     Returns User Object by a given sshKey
     """
     userBySshKey(sshKey: String!): User
     """
-    Returns Customer Object by a given name
-    """
-    customerByName(name: String!): Customer
-    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    """
+    Returns Group Object by a given name
+    """
+    groupByName(name: String!): Group
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
@@ -467,16 +533,15 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    userCanSshToEnvironment(
+      openshiftProjectName: String
+    ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
-    allProjects(createdAfter: String, gitUrl: String): [Project]
-    """
-    Returns all Customer Objects matching given filter (all if no filter defined)
-    """
-    allCustomers(createdAfter: String): [Customer]
+    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
     """
     Returns all OpenShift Objects
     """
@@ -484,7 +549,23 @@ const typeDefs = gql`
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
-    allEnvironments(createdAfter: String, type: EnvType): [Environment]
+    allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Groups matching given filter (all if no filter defined)
+    """
+    allGroups(name: String, type: String): [GroupInterface]
+    """
+    Returns all projects in a given group
+    """
+    allProjectsInGroup(input: GroupInput): [Project]
+    """
+    Returns the costs for a given billing group
+    """
+    billingGroupCost(input: GroupInput, month: String!): JSON
+    """
+    Returns the costs for all billing groups
+    """
+    allBillingGroupsCost(month: String!): JSON
   }
 
   # Must provide id OR name
@@ -500,22 +581,32 @@ const typeDefs = gql`
     project: ProjectInput
   }
 
+  # Must provide id OR name and environment
+  input DeploymentInput {
+    id: Int
+    name: String
+    environment: EnvironmentInput
+  }
+
   input AddSshKeyInput {
     id: Int
     name: String!
     keyValue: String!
     keyType: SshKeyType!
-    userId: Int!
+    user: UserInput!
   }
 
   input DeleteSshKeyInput {
     name: String!
   }
 
+  input DeleteSshKeyByIdInput {
+    id: Int!
+  }
+
   input AddProjectInput {
     id: Int
     name: String!
-    customer: Int!
     gitUrl: String!
     subfolder: String
     openshift: Int!
@@ -527,10 +618,11 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int
-
+    privateKey: String
   }
 
   input AddEnvironmentInput {
@@ -583,14 +675,8 @@ const typeDefs = gql`
     restoreLocation: String
   }
 
-  input AddCustomerInput {
-    id: Int
-    name: String!
-    comment: String
-    privateKey: String
-  }
 
-  input DeploymentInput {
+  input AddDeploymentInput {
     id: Int
     name: String!
     status: DeploymentStatusType!
@@ -618,6 +704,10 @@ const typeDefs = gql`
   input UpdateDeploymentInput {
     id: Int!
     patch: UpdateDeploymentPatchInput!
+  }
+
+  input CancelDeploymentInput {
+    deployment: DeploymentInput!
   }
 
   input TaskInput {
@@ -670,8 +760,13 @@ const typeDefs = gql`
     name: String!
   }
 
-  input DeleteCustomerInput {
+  input AddNotificationMicrosoftTeamsInput {
     name: String!
+    webhook: String!
+  }
+  input AddNotificationEmailInput {
+    name: String!
+    emailAddress: String!
   }
 
   input AddNotificationRocketChatInput {
@@ -684,6 +779,13 @@ const typeDefs = gql`
     name: String!
     webhook: String!
     channel: String!
+  }
+
+  input DeleteNotificationMicrosoftTeamsInput {
+    name: String!
+  }
+  input DeleteNotificationEmailInput {
+    name: String!
   }
 
   input DeleteNotificationRocketChatInput {
@@ -707,7 +809,6 @@ const typeDefs = gql`
   }
 
   input AddUserInput {
-    id: Int
     email: String!
     firstName: String
     lastName: String
@@ -724,32 +825,12 @@ const typeDefs = gql`
   }
 
   input UpdateUserInput {
-    id: Int!
+    user: UserInput!
     patch: UpdateUserPatchInput!
   }
 
   input DeleteUserInput {
-    id: Int!
-  }
-
-  input AddUserToProjectInput {
-    project: String!
-    userId: Int!
-  }
-
-  input RemoveUserFromProjectInput {
-    project: String!
-    userId: Int!
-  }
-
-  input AddUserToCustomerInput {
-    customer: String!
-    userId: Int!
-  }
-
-  input RemoveUserFromCustomerInput {
-    customer: String!
-    userId: Int!
+    user: UserInput!
   }
 
   input DeleteProjectInput {
@@ -758,8 +839,9 @@ const typeDefs = gql`
 
   input UpdateProjectPatchInput {
     name: String
-    customer: Int
     gitUrl: String
+    availability: ProjectAvailability
+    privateKey: String
     subfolder: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
@@ -779,18 +861,6 @@ const typeDefs = gql`
     patch: UpdateProjectPatchInput!
   }
 
-  input UpdateCustomerPatchInput {
-    name: String
-    comment: String
-    privateKey: String
-    created: String
-  }
-
-  input UpdateCustomerInput {
-    id: Int!
-    patch: UpdateCustomerPatchInput!
-  }
-
   input UpdateOpenshiftPatchInput {
     name: String
     consoleUrl: String
@@ -806,6 +876,16 @@ const typeDefs = gql`
     patch: UpdateOpenshiftPatchInput!
   }
 
+  input UpdateNotificationMicrosoftTeamsPatchInput {
+    name: String
+    webhook: String
+    channel: String
+  }
+  input UpdateNotificationEmailPatchInput {
+    name: String
+    emailAddress: String
+  }
+
   input UpdateNotificationRocketChatPatchInput {
     name: String
     webhook: String
@@ -816,6 +896,15 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+  }
+
+  input UpdateNotificationMicrosoftTeamsInput {
+    name: String!
+    patch: UpdateNotificationMicrosoftTeamsPatchInput
+  }
+  input UpdateNotificationEmailInput {
+    name: String!
+    patch: UpdateNotificationEmailPatchInput
   }
 
   input UpdateNotificationRocketChatInput {
@@ -911,11 +1000,73 @@ const typeDefs = gql`
     destinationEnvironment: String!
   }
 
+  input GroupInput {
+    id: String
+    name: String
+  }
+
+  input AddGroupInput {
+    name: String!
+    parentGroup: GroupInput
+  }
+
+  input UpdateGroupPatchInput {
+    name: String
+  }
+
+  input UpdateGroupInput {
+    group: GroupInput!
+    patch: UpdateGroupPatchInput!
+  }
+
+  input DeleteGroupInput {
+    group: GroupInput!
+  }
+
+  input UserInput {
+    id: String
+    email: String
+  }
+
+  input UserGroupInput {
+    user: UserInput!
+    group: GroupInput!
+  }
+
+  input UserGroupRoleInput {
+    user: UserInput!
+    group: GroupInput!
+    role: GroupRole!
+  }
+
+  input ProjectGroupsInput {
+    project: ProjectInput!
+    groups: [GroupInput!]!
+  }
+
+  input BillingGroupInput {
+    name: String!
+    currency: Currency!
+    billingSoftware: String
+  }
+
+  input ProjectBillingGroupInput {
+    group: GroupInput!
+    project: ProjectInput!
+  }
+
+  input UpdateBillingGroupPatchInput {
+    name: String!
+    currency: Currency
+    billingSoftware: String
+  }
+
+  input UpdateBillingGroupInput {
+    group: GroupInput!
+    patch: UpdateBillingGroupPatchInput!
+  }
+
   type Mutation {
-    addCustomer(input: AddCustomerInput!): Customer
-    updateCustomer(input: UpdateCustomerInput!): Customer
-    deleteCustomer(input: DeleteCustomerInput!): String
-    deleteAllCustomers: String
     """
     Add Environment or update if it is already existing
     """
@@ -945,6 +1096,26 @@ const typeDefs = gql`
       input: DeleteNotificationRocketChatInput!
     ): String
     deleteAllNotificationRocketChats: String
+    addNotificationMicrosoftTeams(
+      input: AddNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    updateNotificationMicrosoftTeams(
+      input: UpdateNotificationMicrosoftTeamsInput!
+    ): NotificationMicrosoftTeams
+    deleteNotificationMicrosoftTeams(
+      input: DeleteNotificationMicrosoftTeamsInput!
+    ): String
+    deleteAllNotificationMicrosoftTeams: String
+    addNotificationEmail(
+      input: AddNotificationEmailInput!
+    ): NotificationEmail
+    updateNotificationEmail(
+      input: UpdateNotificationEmailInput!
+    ): NotificationEmail
+    deleteNotificationEmail(
+      input: DeleteNotificationEmailInput!
+    ): String
+    deleteAllNotificationEmails: String
     """
     Connect previous created Notification to a Project
     """
@@ -964,36 +1135,29 @@ const typeDefs = gql`
     addSshKey(input: AddSshKeyInput!): SshKey
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
+    deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
     deleteAllSshKeys: String
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
-    addUserToCustomer(input: AddUserToCustomerInput!): Customer
-    removeUserFromCustomer(input: RemoveUserFromCustomerInput!): Customer
-    removeAllUsersFromAllCustomers: String
-    addUserToProject(input: AddUserToProjectInput!): Project
-    removeUserFromProject(input: RemoveUserFromProjectInput!): Project
-    removeAllUsersFromAllProjects: String
-    addDeployment(input: DeploymentInput!): Deployment
+    addDeployment(input: AddDeploymentInput!): Deployment
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
+    cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
-    createAllProjectsInKeycloak: String
-    createAllProjectsInSearchguard: String
-    resyncCustomersWithSearchguard: String
-    createAllUsersInKeycloak: String
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
+    taskDrushCron(environment: Int!): Task
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!
@@ -1011,6 +1175,20 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    addGroup(input: AddGroupInput!): Group
+    updateGroup(input: UpdateGroupInput!): Group
+    deleteGroup(input: DeleteGroupInput!): String
+    deleteAllGroups: String
+    addUserToGroup(input: UserGroupRoleInput!): Group
+    removeUserFromGroup(input: UserGroupInput!): Group
+    addGroupsToProject(input: ProjectGroupsInput): Project
+    addBillingGroup(input: BillingGroupInput!): BillingGroup
+    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
+    deleteBillingGroup(input: DeleteGroupInput!): String
+    addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
+    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
+    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
+    removeGroupsFromProject(input: ProjectGroupsInput!): Project
   }
 
   type Subscription {

@@ -3,7 +3,6 @@
 const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
 const R = require('ramda');
-const { createJWTWithoutUserId } = require('@lagoon/commons/src/jwt');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   getOpenShiftInfoForProject,
@@ -28,17 +27,20 @@ const lagoonApiRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES')
 )(process.env);
 
+const lagoonSshHost = R.propOr('ssh.lagoon.svc', 'LAGOON_SSH_HOST', process.env);
+const lagoonSshPort = R.propOr('2020', 'LAGOON_SSH_PORT', process.env);
+
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
-const failTask = async task => {
+const failTask = async taskId => {
   try {
-    await updateTask(task.id, {
+    await updateTask(taskId, {
       status: 'FAILED',
     });
   } catch (error) {
     logger.error(
-      `Could not fail task ${task.id}. Message: ${error}`
+      `Could not fail task ${taskId}. Message: ${error}`
     );
   }
 }
@@ -50,6 +52,7 @@ const messageConsumer = async msg => {
     `Received JobOpenshift task for project: ${project.name}, task: ${task.id}`
   );
 
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
   const result = await getOpenShiftInfoForProject(project.name);
   const projectOpenShift = result.project;
 
@@ -126,7 +129,7 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Project ${openshiftProject} does not exist, bailing`);
-      failTask(task);
+      failTask(taskId);
       return;
     } else {
       logger.error(err);
@@ -159,26 +162,9 @@ const messageConsumer = async msg => {
 
     if (!oneContainerPerSpec[task.service]) {
       logger.error(`No spec for service ${task.service}, bailing`);
-      failTask(task);
+      failTask(taskId);
       return;
     }
-
-    // Create an API token that this task pod can use. It only has permissions
-    // for the tasks project, and only has access for 1 day.
-    const apiToken = createJWTWithoutUserId ({
-      payload: {
-        role: 'none',
-        permissions: {
-          projects: [project.id],
-          customers: [],
-        },
-        aud: process.env.JWTAUDIENCE,
-        iss: 'openshiftjobs',
-        sub: 'openshiftjobs',
-      },
-      expiresIn: '1d',
-      jwtSecret: process.env.JWTSECRET,
-    });
 
     const cronjobEnvVars = env => env.name === 'CRONJOBS';
     const containerEnvLens = R.lensPath(['containers', 0, 'env']);
@@ -189,12 +175,16 @@ const messageConsumer = async msg => {
         value: lagoonApiRoute,
       },
       {
-        name: 'TASK_API_AUTH',
-        value: apiToken,
+        name: 'TASK_SSH_HOST',
+        value: lagoonSshHost,
+      },
+      {
+        name: 'TASK_SSH_PORT',
+        value: lagoonSshPort,
       },
       {
         name: 'TASK_DATA_ID',
-        value: task.id,
+        value: `${taskId}`,
       },
     ]));
 
@@ -239,7 +229,7 @@ const messageConsumer = async msg => {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
-    updatedTask = await updateTask(task.id, {
+    updatedTask = await updateTask(taskId, {
       remoteId: openshiftJob.metadata.uid,
       created: convertDateFormat(openshiftJob.metadata.creationTimestamp),
       started: dateOrNull(openshiftJob.status.startTime)
@@ -276,7 +266,7 @@ const messageConsumer = async msg => {
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
-  failTask(task);
+  failTask(taskId);
 
   sendToLagoonLogs(
     'error',

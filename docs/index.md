@@ -1,3 +1,6 @@
+![The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut](/images/lagoon-logo.png)
+<br />
+
 # Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
 
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same Docker images, the same service configurations and the same code.
@@ -35,7 +38,7 @@ In order to understand the Lagoon infrastructure and how the services work toget
 ## History of Lagoon
 As described, Lagoon is a dream come true. At amazee.io we've been hosting Drupal for more than 8 years and this is the fourth major iteration of our hosting platform. The third iteration was built around Puppet and Ansible, where every single piece of the platform was done with configuration management. This allowed very fast setup of new servers, but at the same time was also lacking customizability for developers. We implemented some customizability (some already with Docker in production), but we've never been completely happy with it. With the rise of decoupled Drupal and the need to run Node.js on the server side, plus the requests for Elasticsearch or different Solr versions, we realized that our existing platform wasn't enough.
 
-At the same time, we've been using Docker already for multiple years for local development and it was always an idea to use Docker for everything in production.
+At the same time, we've been using Docker for multiple years for local development and it was always an idea to use Docker for everything in production.
 The only problem was the connection between local development and production environments. There are other systems that allow you to run Drupal in Docker in production but nothing allowed you to test the exact same images and services locally and in production.
 
 Lagoon was born and has been developed since 2017 into a system that runs Docker in production and will replace our third generation hosting platform with a cutting edge all Docker based system.
