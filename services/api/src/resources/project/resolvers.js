@@ -19,6 +19,8 @@ const { OpendistroSecurityOperations } = require('../group/opendistroSecurity');
 const Sql = require('./sql');
 const { generatePrivateKey, getSshKeyFingerprint } = require('../sshKey');
 const sshKeySql = require('../sshKey/sql');
+const harborClient = require('../../clients/harborClient');
+const createHarborOperations = require('./harborSetup');
 
 /* ::
 
@@ -343,6 +345,10 @@ const addProject = async (
   } catch (err) {
     logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
   }
+
+  const harborOperations = createHarborOperations(sqlClient);
+
+  const harborResults = await harborOperations.addEnvironment(project.name, project.id)
 
   return project;
 };

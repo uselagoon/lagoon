@@ -1009,6 +1009,7 @@ endif
 		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
 		-x --no-deploy=traefik \
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
+	echo "$(K3D_NAME)" > $@
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
 	docker push localhost:5000/lagoon/docker-host; \
@@ -1034,7 +1035,6 @@ else
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
 	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
 endif
-	echo "$(K3D_NAME)" > $@
 	$(MAKE) push-kubectl-build-deploy-dind
 
 .PHONY: push-kubectl-build-deploy-dind

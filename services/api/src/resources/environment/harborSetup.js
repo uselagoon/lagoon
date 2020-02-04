@@ -18,13 +18,13 @@ const lagoonHarborRoute = R.compose(
 )(process.env);
 
 const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
-  addEnvironment: async (openshiftProjectName, environmentID) => {
+  addEnvironment: async (lagoonProjectName, projectID) => {
     // Create harbor project
     try {
       var res = await harborClient.post(`projects`, {
         body: {
           count_limit: -1,
-          project_name: openshiftProjectName,
+          project_name: lagoonProjectName,
           storage_limit: -1,
           metadata: {
             auto_scan: "true",
@@ -33,30 +33,30 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
           }
         }
       });
-      logger.debug(`Harbor project ${openshiftProjectName} created!`)
+      logger.debug(`Harbor project ${lagoonProjectName} created!`)
     } catch (err) {
       // 409 means project already exists
       // 201 means project created successfully
       if (err.statusCode == 409) {
-        logger.info(`Unable to create the harbor project "${openshiftProjectName}", as it already exists in harbor!`)
+        logger.info(`Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor!`)
       } else {
         console.log(res)
-        logger.error(`Unable to create the harbor project "${openshiftProjectName}" !!`, err)
+        logger.error(`Unable to create the harbor project "${lagoonProjectName}" !!`, err)
       }
     }
 
     // Get new harbor project's id
     try {
-      const res = await harborClient.get(`projects?name=${openshiftProjectName}`)
+      const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
       var harborProjectID = res.body[0].project_id
-      logger.debug(`Got the harbor project id for project ${openshiftProjectName} successfully!`)
+      logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
     } catch (err) {
       // 409 means project already exists
       // 201 means project created successfully
       if (err.statusCode == 404) {
-        logger.error(`Unable to get the harbor project id of "${openshiftProjectName}", as it does not exist in harbor!`)
+        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
       } else {
-        logger.error(`Unable to get the harbor project id of "${openshiftProjectName}" !!`)
+        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}" !!`)
       }
     }
 
@@ -77,14 +77,14 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       console.log(res)
       var harborTokenInfo = res.body
       console.log(harborTokenInfo)
-      logger.debug(`Robot was created for Harbor project ${openshiftProjectName} !`)
+      logger.debug(`Robot was created for Harbor project ${lagoonProjectName} !`)
     } catch (err) {
       // 409 means project already exists
       // 201 means project created successfully
       if (err.statusCode == 409) {
-        logger.error(`Unable to create a robot account for harbor project "${openshiftProjectName}", as a robot account of the same name already exists!`)
+        logger.error(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
       } else {
-        logger.error(`Unable to create a robot account for harbor project "${openshiftProjectName}" !!`)
+        logger.error(`Unable to create a robot account for harbor project "${lagoonProjectName}" !!`)
       }
     }
 
@@ -96,10 +96,10 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
           "name": "INTERNAL_REGISTRY_URL",
           "value": lagoonHarborRoute,
           "scope": "INTERNAL_CONTAINER_REGISTRY",
-          "environment": environmentID,
+          "project": projectID,
         }),
       );
-      logger.debug(`Environment variable INTERNAL_REGISTRY_URL for ${openshiftProjectName} created!`)
+      logger.debug(`Environment variable INTERNAL_REGISTRY_URL for ${lagoonProjectName} created!`)
 
     } catch (err) {
       logger.error("Initial var already set!!")
@@ -112,10 +112,10 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
           "name": "INTERNAL_REGISTRY_USERNAME",
           "value": harborTokenInfo.name,
           "scope": "INTERNAL_CONTAINER_REGISTRY",
-          "environment": environmentID,
+          "project": projectID,
         }),
       );
-      logger.debug(`Environment variable INTERNAL_REGISTRY_USERNAME for ${openshiftProjectName} created!`)
+      logger.debug(`Environment variable INTERNAL_REGISTRY_USERNAME for ${lagoonProjectName} created!`)
 
       await query(
         sqlClient,
@@ -123,10 +123,10 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
           "name": "INTERNAL_REGISTRY_PASSWORD",
           "value": harborTokenInfo.token,
           "scope": "INTERNAL_CONTAINER_REGISTRY",
-          "environment": environmentID,
+          "project": projectID,
         }),
       );
-      logger.debug(`Environment variable INTERNAL_REGISTRY_PASSWORD for ${openshiftProjectName} created!`)
+      logger.debug(`Environment variable INTERNAL_REGISTRY_PASSWORD for ${lagoonProjectName} created!`)
     } catch (err) {
       logger.error("Something went wrong setting env vars!", err)
     }
