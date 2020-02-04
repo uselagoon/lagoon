@@ -90,6 +90,20 @@ CREATE TABLE IF NOT EXISTS project (
   private_key                      varchar(5000)
 );
 
+CREATE TABLE IF NOT EXISTS billing_modifier (
+  id                              int NOT NULL auto_increment PRIMARY KEY,
+  group_id                             varchar(36),
+  weight                          int NOT NULL DEFAULT 0,
+  start_date                      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  end_date                        datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  discount_fixed                  DECIMAL NULL DEFAULT 0.0,
+  discount_percentage             FLOAT NULL DEFAULT 0.0,
+  extra_fixed                     DECIMAL NULL DEFAULT 0.0,
+  extra_percentage                FLOAT NULL DEFAULT 0.0,
+  customer_comments               text,
+  admin_comments                  text
+);
+
 CREATE TABLE IF NOT EXISTS environment (
   id                     int NOT NULL auto_increment PRIMARY KEY,
   name                   varchar(100),
@@ -169,16 +183,16 @@ CREATE TABLE IF NOT EXISTS environment_service (
 );
 
 CREATE TABLE IF NOT EXISTS task (
-       id           int NOT NULL auto_increment PRIMARY KEY,
-       name         varchar(100) NOT NULL,
-       environment  int NOT NULL REFERENCES environment (id),
-       service      varchar(100) NOT NULL,
-       command      varchar(300) NOT NULL,
-       status       ENUM('active', 'succeeded', 'failed') NOT NULL,
-       created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-       started      datetime NULL,
-       completed    datetime NULL,
-       remote_id    varchar(50) NULL
+  id           int NOT NULL auto_increment PRIMARY KEY,
+  name         varchar(100) NOT NULL,
+  environment  int NOT NULL REFERENCES environment (id),
+  service      varchar(100) NOT NULL,
+  command      varchar(300) NOT NULL,
+  status       ENUM('active', 'succeeded', 'failed') NOT NULL,
+  created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  started      datetime NULL,
+  completed    datetime NULL,
+  remote_id    varchar(50) NULL
 );
 
 CREATE TABLE IF NOT EXISTS s3_file (
