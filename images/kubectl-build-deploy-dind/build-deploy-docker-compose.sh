@@ -682,15 +682,14 @@ do
         SERVICE_BROKER_COUNTER=1
         SERVICE_BROKER_TIMEOUT=180
         # use the secret name from the consumer to prevent credential clash
-        SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.secret)
-        until kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME}
+        until SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.secret 2> /dev/null) && kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret/${SECRET_NAME}
         do
         if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
           let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
-          echo "Secret ${SECRET_NAME} not available yet, waiting for 5 secs"
+          echo "Secret for mariadbconsumer/${SERVICE_NAME}  not available yet, waiting for 5 secs"
           sleep 5
         else
-          echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SECRET_NAME} reached"
+          echo "Timeout of $SERVICE_BROKER_TIMEOUT for secret mariadbconsumer/${SERVICE_NAME} reached"
           exit 1
         fi
         done
