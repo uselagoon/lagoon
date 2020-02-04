@@ -8,6 +8,16 @@
     branch: github/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
 
+# This project has a branch regex that does not match `banana`.
+- include: github/branch-picky.yaml
+  vars:
+    testname: "GITHUB - picky branch"
+    node_version: 8
+    git_repo_name: github.git
+    project: ci-github
+    branch: github/slash/banana
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+
 - include: github/pullrequest.yaml
   vars:
     testname: "GITHUB - PULLREQUEST"
