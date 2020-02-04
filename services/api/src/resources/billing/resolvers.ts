@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import * as logger from '../../logger';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
-import billingModel, { BillingModifier, getBillingModifier, BillingModifierBase } from '../../models/billing';
+import { BillingModifier, BillingModifierBase } from '../../models/billing';
 import { BillingGroup, GroupInput } from '../../models/group';
 export interface BillingModifierInput extends BillingModifierBase {
   group: GroupInput;
@@ -80,7 +80,7 @@ export const addBillingModifier: AddBillingModifierAlias = async (
   const endDate = convertDateToMYSQLDateTimeFormat(rest.endDate);
 
   const modifier = { ...rest, groupId: group.id, startDate, endDate };
-  const result = await billingModel.addBillingModifier(modifier);
+  const result = await models.BillingModel.addBillingModifier(modifier);
   // Action
   return ({ ...result, group })
 };
@@ -107,7 +107,7 @@ export const updateBillingModifier = async (
     throw new Error('You must provide a patch');
   }
 
-  const existingModifier = await getBillingModifier(id);
+  const existingModifier = await models.BillingModel.getBillingModifier(id);
 
   // Permissions
   await hasPermission('billing_modifier', 'update', {group: existingModifier.group.id});
@@ -122,7 +122,7 @@ export const updateBillingModifier = async (
       : {};
 
   const modifier = { id, ...rest, groupId: existingModifier.group.id, ...startDate, ...endDate };
-  return billingModel.updateBillingModifier(modifier);
+  return models.BillingModel.updateBillingModifier(modifier);
 };
 
 /**
@@ -140,18 +140,18 @@ export const deleteBillingModifier = async (
   args: DeleteBillingModifierInput,
   context: { models: any; hasPermission: any }
 ) => {
-  const { hasPermission } = context;
+  const { hasPermission, models } = context;
   const {
     input: { id }
   } = args;
 
-  const { group } = await getBillingModifier(id);
+  const { group } = await models.BillingModel.getBillingModifier(id);
 
   // Permissions
   await hasPermission('billing_modifier', 'delete', { group: group.id });
 
   // Action
-  return billingModel.deleteBillingModifier(id);
+  return models.BillingModel.deleteBillingModifier(id);
 };
 
 /**
@@ -178,7 +178,7 @@ export const deleteAllBillingModifiersByBillingGroup = async (
   await hasPermission('billing_modifier', 'delete', {group: group.id});
 
   // Action
-  return billingModel.deleteAllBillingGroupModifiers(groupInput);
+  return models.BillingModel.deleteAllBillingGroupModifiers(groupInput);
 };
 
 /**
@@ -204,7 +204,7 @@ export const getBillingModifiers = async (
     await hasPermission('group', 'viewAll');
 
     // Action
-    return billingModel.getBillingModifiers(groupInput, month);
+    return models.BillingModel.getBillingModifiers(groupInput, month);
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getBillingModifiers');

@@ -4,13 +4,16 @@ import pickNonNil from '../util/pickNonNil';
 import * as logger from '../logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { projectsByGroup, Project } from './project';
+
 import {
   getProjectsData,
   availabilityProjectsCosts,
   extractMonthYear
 } from '../resources/billing/helpers';
-import billingModel from './billing'
+
+import ProjectModel, { Project } from './project';
+import BillingModel from './billing'
+import EnvironmentModel from './environment';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
@@ -59,38 +62,6 @@ interface AttributeFilterFn {
   (attribute: { name: string; value: string[] }, group: Group): boolean;
 }
 
-interface GroupModel {
-  loadAllGroups: () => Promise<Group[] | BillingGroup[]>;
-  loadGroupById: (id: string) => Promise<Group | BillingGroup>;
-  loadGroupByName: (name: string) => Promise<Group | BillingGroup>;
-  loadGroupByIdOrName: (groupInput: GroupInput) => Promise<Group | BillingGroup>;
-  loadParentGroup: (groupInput: Group) => Promise<Group | BillingGroup>;
-  loadGroupsByAttribute: (
-    filterFn: AttributeFilterFn,
-  ) => Promise<Group[] | BillingGroup[]>;
-  loadGroupsByProjectId: (
-    projectId: number,
-  ) => Promise<Group[] | BillingGroup[]>;
-  getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>;
-  getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>;
-  addGroup: (groupInput: Group) => Promise<Group | BillingGroup>;
-  updateGroup: (groupInput: GroupEdit) => Promise<Group | BillingGroup>;
-  deleteGroup: (id: string) => Promise<void>;
-  addUserToGroup: (
-    user: User,
-    group: Group,
-    role: string,
-  ) => Promise<Group | BillingGroup>;
-  removeUserFromGroup: (
-    user: User,
-    group: Group,
-  ) => Promise<Group | BillingGroup>;
-  addProjectToGroup: (projectId: number, group: Group) => Promise<void>;
-  removeProjectFromGroup: (projectId: number, group: Group) => Promise<void>;
-  billingGroupCost: (groupInput: any, yearMonth: any) => Promise<any>;
-  allBillingGroupCosts: (yearMonth: string) => Promise<any>;
-}
-
 export class GroupExistsError extends Error {
   constructor(message: string) {
     super(message);
@@ -123,7 +94,7 @@ export const isRoleSubgroup = R.pathEq(
 const attributeKVOrNull = (key: string, group: GroupRepresentation) =>
   String(R.pathOr(null, ['attributes', key], group));
 
-export const Group = (clients): GroupModel => {
+export const Group = (clients) => {
   const { keycloakAdminClient } = clients;
 
   const transformKeycloakGroups = async (
@@ -205,7 +176,7 @@ export const Group = (clients): GroupModel => {
   };
 
   const loadGroupByIdOrName = async (
-    groupInput: GroupEdit,
+    groupInput: GroupInput,
   ): Promise<Group | BillingGroup> => {
     if (R.prop('id', groupInput)) {
       return loadGroupById(R.prop('id', groupInput));
@@ -629,12 +600,13 @@ export const Group = (clients): GroupModel => {
   };
 
   const billingGroupCost = async (groupInput, yearMonth) => {
+
     const group = (await loadGroupByIdOrName(groupInput)) as BillingGroup;
     const { id, currency, name } = group;
     const { month, year } = extractMonthYear(yearMonth);
 
     // Get all projects in the group
-    const groupProjects = await projectsByGroup(group);
+    const groupProjects = await ProjectModel(clients).projectsByGroup(group);
 
     // Map a subset of project fields to the initial projects array
     const initialProjects: [{id: string, name: string, availability: string, month: string, year:string}] = 
@@ -648,11 +620,13 @@ export const Group = (clients): GroupModel => {
       throw new Error(`Project(s): [${availabilityCheck.join(', ')}] must have availability set.`);
     }
 
+    const environment = EnvironmentModel(clients);
+    
     // Get the hit, storage, environment data for each project and month
-    const projects = await getProjectsData(initialProjects, yearMonth);
+    const projects = await getProjectsData(initialProjects, yearMonth, environment);
 
     // Get any modifiers for the month
-    const modifiers = await billingModel.getBillingModifiers(groupInput, yearMonth);
+    const modifiers = await BillingModel(clients).getBillingModifiers(groupInput, yearMonth);
 
     // Calculate costs based on Availability - All projects in the billing group should have the same availability
     const high = availabilityProjectsCosts(

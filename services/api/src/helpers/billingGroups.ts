@@ -13,7 +13,7 @@
 
 import * as R from 'ramda';
 import projectHelpers from '../resources/project/helpers';
-import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
+import { getSqlClient } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';
 
@@ -29,7 +29,7 @@ interface IGroup {
 
 export const getAllProjectsNotInBillingGroup = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const sqlClient = getSqlClient(USE_SINGLETON);
+  const sqlClient = getSqlClient();
   const GroupModel = Group({keycloakAdminClient });
 
   // GET ALL GROUPS

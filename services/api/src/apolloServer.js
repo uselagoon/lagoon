@@ -21,6 +21,9 @@ const resolvers = require('./resolvers');
 
 const User = require('./models/user');
 const Group = require('./models/group');
+const BillingModel = require('./models/billing');
+const ProjectModel = require('./models/project');
+const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -68,9 +71,11 @@ const apolloServer = new ApolloServer({
         checkperiod: 0,
       });
 
+      const sqlClient = getSqlClient();
+
       return {
         keycloakAdminClient,
-        sqlClient: getSqlClient(),
+        sqlClient,
         hasPermission: grant
           ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
           : legacyHasPermission(legacyCredentials),
@@ -79,6 +84,9 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User({ keycloakAdminClient }),
           GroupModel: Group.Group({ keycloakAdminClient }),
+          BillingModel: BillingModel.BillingModel({ keycloakAdminClient, sqlClient }),
+          ProjectModel: ProjectModel.ProjectModel({ keycloakAdmModelinClient, sqlClient }),
+          EnvironmentModel: EnvironmentModel.EnvironmentMode({ sqlClient })
         },
       };
     },
@@ -108,9 +116,11 @@ const apolloServer = new ApolloServer({
         checkperiod: 0,
       });
 
+      const sqlClient = getSqlClient()
+
       return {
         keycloakAdminClient,
-        sqlClient: getSqlClient(),
+        sqlClient,
         hasPermission: req.kauth
           ? keycloakHasPermission(
               req.kauth.grant,
@@ -123,6 +133,9 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User({ keycloakAdminClient }),
           GroupModel: Group.Group({ keycloakAdminClient }),
+          BillingModel: BillingModel.BillingModel({ keycloakAdminClient, sqlClient }),
+          ProjectModel: ProjectModel.ProjectModel({ keycloakAdminClient, sqlClient }),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel({ sqlClient })
         },
       };
     }

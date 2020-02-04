@@ -433,7 +433,7 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
       it(hitsCostTestString(group), () => {
         // Act
-        const cost = hitsCost(group);
+        const { cost } = hitsCost(group);
         // Assert
         expect(cost).toBe(group.expectations.hits);
       });
@@ -445,7 +445,7 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
       it(hitsCostTestString(group), () => {
         // Act
-        const cost = hitsCost(group);
+        const { cost } = hitsCost(group);
         // Assert
         expect(cost).toBe(group.expectations.hits);
       });
@@ -457,7 +457,7 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
       it(storageCostTestString(group), () => {
         // Act
-        const cost = storageCost(group);
+        const { cost } = storageCost(group);
         // Assert
         expect(cost).toBe(group.expectations.storage);
       });
@@ -469,7 +469,7 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
       it(storageCostTestString(group), () => {
         // Act
-        const cost = storageCost(group);
+        const { cost } = storageCost(group);
         // Assert
         expect(cost).toBe(group.expectations.storage);
       });
@@ -481,7 +481,7 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
       it(prodEnvironmentCostTestString(group), () => {
         // Act
-        const cost = prodCost(group);
+        const { cost } = prodCost(group);
         // Assert
         expect(cost).toBe(group.expectations.prod);
       });
@@ -493,12 +493,12 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
       it(devEnvironmentCostTestString(group), () => {
         // Act
-        const cost = devCost(group);
+        const { cost } = devCost(group);
         // Assert
         try {
           expect(cost).toBe(group.expectations.dev);
         } catch (exception) {
-          console.log(group);
+          console.log(exception);
           throw exception;
         }
       });
@@ -510,14 +510,14 @@ describe('Billing Calculations', () => {
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
       it(prodEnvironmentCostTestString(group), () => {
         // Act
-        const cost = prodCost(group);
+        const { cost } = prodCost(group);
         // Assert
         expect(cost).toBe(group.expectations.prod);
       });
 
       it(devEnvironmentCostTestString(group), () => {
         // Act
-        const cost = devCost(group);
+        const { cost } = devCost(group);
         // Assert
         expect(cost).toBe(group.expectations.dev);
       });
