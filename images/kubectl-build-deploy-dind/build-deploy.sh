@@ -6,6 +6,7 @@ set -o noglob
 REGISTRY=172.17.0.1:8084 # This points to Harbor's nginx pod when running via docker-compose, which handles access to Harbor's registry
 NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
+LAGOON_VERSION=$(cat /lagoon/version)
 
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   INTERNAL_REGISTRY_URL=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .url')

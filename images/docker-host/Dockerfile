@@ -25,7 +25,7 @@ ENV TMPDIR=/tmp \
 RUN apk add --no-cache bash
 
 ENV DOCKER_HOST=docker-host \
-    OPENSHIFT_REGISTRY=docker-registry.default.svc:5000 \
+    REGISTRY=docker-registry.default.svc:5000 \
     REPOSITORY_TO_UPDATE=amazeeio \
     BIP=172.16.0.1/16
 

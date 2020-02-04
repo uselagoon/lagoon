@@ -1,7 +1,7 @@
 docker-compose-yaml: docker-compose.yml
 
-endpoint: 192.168.42.1:2020
-api: 192.168.42.1:3000
+endpoint: 172.17.0.1:2020
+api: 172.17.0.1:3000
 
 environment_variables:
   git_sha: 'true'

@@ -68,8 +68,9 @@ MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
+K3S_VERSION := v1.17.0-k3s.1
+KUBECTL_VERSION := v1.17.0
 MINIKUBE_VERSION := 1.5.2
-KUBERNETES_VERSION := v1.17.0
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := 6
 MINIKUBE_MEMORY := 2048
@@ -432,6 +433,9 @@ services :=       api \
 									openshiftmisc \
 									openshiftremove \
 									kubernetesbuilddeploy \
+									kubernetesdeployqueue \
+									kubernetesbuilddeploymonitor \
+									kubernetesremove \
 									webhook-handler \
 									webhooks2tasks \
 									broker \
@@ -481,7 +485,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -490,7 +494,7 @@ build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
 build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
-build/broker: build/rabbitmq-cluster
+build/broker: build/rabbitmq-cluster build/broker-single
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
@@ -512,7 +516,8 @@ service-images += ssh
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
 									local-api-data-watcher-pusher \
-									local-registry
+									local-registry\
+									local-dbaas-provider
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -556,16 +561,35 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx
+all-k8s-tests-list:=				nginx \
+														drupal
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests
 .PHONY: k8s-tests
 k8s-tests: $(all-k8s-tests)
 
-$(all-k8s-tests): build/kubectl-build-deploy-dind kubernetes-test-services-up k3d
+.PHONY: $(all-k8s-tests)
+$(all-k8s-tests): k3d kubernetes-test-services-up
+		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst k8s-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" /ansible/tests/$(testname).yaml $(testparameter)
+
+# push command of our base images into minishift
+push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
+# tag and push all images
+.PHONY: push-local-registry
+push-local-registry: $(push-local-registry-images)
+# tag and push of each image
+.PHONY: $(push-local-registry-images)
+$(push-local-registry-images):
+	$(eval image = $(subst [push-local-registry]-,,$@))
+	$(eval image = $(subst __,:,$(image)))
+	$(info pushing $(image) to local local-registry)
+	if docker inspect $(CI_BUILD_TAG)/$(image) > /dev/null 2>&1; then \
+		docker tag $(CI_BUILD_TAG)/$(image) localhost:5000/lagoon/$(image) && \
+		docker push localhost:5000/lagoon/$(image) | cat; \
+	fi
 
 # Define list of all tests
 all-openshift-tests-list:=	features \
@@ -600,7 +624,7 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy tests-kubernetes local-registry
+kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesremove tests-kubernetes local-registry local-dbaas-provider
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks
@@ -639,6 +663,10 @@ drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-serv
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(webhooks-test-services)
+
+.PHONY: local-registry-up
+local-registry-up: build/local-registry
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-registry
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
@@ -822,7 +850,7 @@ up:
 	$(MAKE) wait-for-keycloak
 
 down:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v --remove-orphans
 
 # kill all containers containing the name "lagoon"
 kill:
@@ -906,7 +934,7 @@ openshift-lagoon-setup:
 minishift/configure-lagoon-local: openshift-lagoon-setup
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
 	bash -c "oc process -n lagoon -p SERVICE_IMAGE=172.30.1.1:5000/lagoon/docker-host:latest -p REPOSITORY_TO_UPDATE=lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=192.168.42.1:5140;
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=172.17.0.1:5140;
 
 # Stop MiniShift
 .PHONY: minishift/stop
@@ -957,31 +985,41 @@ endif
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
 local-dev/kubectl:
-ifeq ($(KUBERNETES_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(K3D_VERSION))
 	ln -s $(shell command -v kubectl) ./local-dev/kubectl
 else
-	$(info downloading kubectl version $(KUBERNETES_VERSION) for $(ARCH))
-	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBERNETES_VERSION)/bin/$(ARCH)/amd64/kubectl
+	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
+	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
 endif
 
-k3d: local-dev/k3d local-dev/kubectl build/docker-host build/kubectl-build-deploy-dind
+k3d: local-dev/k3d local-dev/kubectl build/docker-host
+	$(MAKE) local-registry-up
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
 	if ! ifconfig lo0 | grep $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}') -q; then sudo ifconfig lo0 alias $$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}'); fi
 endif
-	./local-dev/k3d create --wait 0 --publish 18080:80 --publish 18443:443 --api-port 16643 --name $(K3D_NAME) --image docker.io/rancher/k3s:$(KUBERNETES_VERSION)-k3s.1 --volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml
+	./local-dev/k3d create --wait 0 --publish 18080:80 \
+		--publish 18443:443 \
+		--api-port 16643 \
+		--name $(K3D_NAME) \
+		--image docker.io/rancher/k3s:$(K3S_VERSION) \
+		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
+		-x --no-deploy=traefik \
+		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind; \
-	docker tag $(CI_BUILD_TAG)/docker-host lagoon/docker-host; \
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind,lagoon/docker-host; \
+	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
+	docker push localhost:5000/lagoon/docker-host; \
 	local-dev/kubectl create namespace lagoon; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/k3d-docker-host.yaml; \
 	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/role-mariadb-operator.yaml; \
+	local-dev/kubectl -n dbaas-operator-system create -f kubernetes-setup/dbaas-operator.yaml; \
+	local-dev/kubectl -n lagoon create -f kubernetes-setup/dbaas-providers.yaml; \
 	local-dev/kubectl -n lagoon rollout status deployment docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
@@ -996,20 +1034,24 @@ else
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
 	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
 endif
-	touch $@
+	echo "$(K3D_NAME)" > $@
+	$(MAKE) push-kubectl-build-deploy-dind
+
+.PHONY: push-kubectl-build-deploy-dind
+push-kubectl-build-deploy-dind: build/kubectl-build-deploy-dind
+	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind localhost:5000/lagoon/kubectl-build-deploy-dind
+	docker push localhost:5000/lagoon/kubectl-build-deploy-dind
 
 .PHONY: rebuild-push-kubectl-build-deploy-dind
 rebuild-push-kubectl-build-deploy-dind:
 	rm -rf build/kubectl-build-deploy-dind
-	$(MAKE) build/kubectl-build-deploy-dind
-	docker tag $(CI_BUILD_TAG)/kubectl-build-deploy-dind lagoon/kubectl-build-deploy-dind
-	./local-dev/k3d import-images -n $(K3D_NAME) lagoon/kubectl-build-deploy-dind
+	$(MAKE) push-kubectl-build-deploy-dind
 
 k3d-kubeconfig:
-	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name=$$(cat k3d))"
 
 k3d-dashboard:
-	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name=$$(cat k3d))"; \
 	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
 	local-dev/kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
 	echo -e "\nUse this token:"; \
@@ -1017,10 +1059,18 @@ k3d-dashboard:
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
 	local-dev/kubectl proxy
 
+k8s-dashboard:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
+	kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
+	echo -e "\nUse this token:"; \
+	kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
+	kubectl proxy
+
 # Stop k3d
 .PHONY: k3d/stop
 k3d/stop: local-dev/k3d
-	./local-dev/k3d delete --name $(K3D_NAME) || true
+	./local-dev/k3d delete --name=$$(cat k3d) || true
 	rm -f k3d
 
 # Stop All k3d

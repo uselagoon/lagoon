@@ -15,8 +15,8 @@ spec:
         service: docker-host
     spec:
       containers:
-      - image: lagoon/docker-host
-        imagePullPolicy: IfNotPresent
+      - image: 172.17.0.1:5000/lagoon/docker-host
+        imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
           periodSeconds: 10
@@ -28,10 +28,10 @@ spec:
         env:
           - name: DOCKER_HOST
             value: localhost
-          - name: OPENSHIFT_REGISTRY
+          - name: REGISTRY
             value: '172.17.0.1:5000'
           - name: REPOSITORY_TO_UPDATE
-            value: ${REPOSITORY_TO_UPDATE}
+            value: lagoon
           - name: CRONJOBS
             value: |
               22 1 * * * /lagoon/cronjob.sh "/prune-images.sh"

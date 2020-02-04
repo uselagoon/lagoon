@@ -5,9 +5,9 @@ FROM ${IMAGE_REPO:-lagoon}/kubectl
 RUN rm -rf /root && ln -s /home /root
 ENV LAGOON=kubectl-build-deploy-dind
 
-RUN	mkdir -p /kubectl-build-deploy/git
-RUN	mkdir -p /kubectl-build-deploy/tug
-RUN	mkdir -p /kubectl-build-deploy/lagoon
+RUN  mkdir -p /kubectl-build-deploy/git
+RUN  mkdir -p /kubectl-build-deploy/tug
+RUN  mkdir -p /kubectl-build-deploy/lagoon
 
 WORKDIR /kubectl-build-deploy/git
 
