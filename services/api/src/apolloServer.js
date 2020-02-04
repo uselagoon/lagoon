@@ -132,10 +132,10 @@ const apolloServer = new ApolloServer({
         requestCache,
         models: {
           UserModel: User.User({ keycloakAdminClient }),
-          GroupModel: Group.Group({ keycloakAdminClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, sqlClient }),
           BillingModel: BillingModel.BillingModel({ keycloakAdminClient, sqlClient }),
           ProjectModel: ProjectModel.ProjectModel({ keycloakAdminClient, sqlClient }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({ sqlClient })
+          EnvironmentModel: EnvironmentModel.EnvironmentModel({ keycloakAdminClient, sqlClient })
         },
       };
     }
