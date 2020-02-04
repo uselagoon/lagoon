@@ -12,7 +12,7 @@
 - include: github/branch-picky.yaml
   vars:
     testname: "GITHUB - picky branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github
     branch: github/slash/banana
