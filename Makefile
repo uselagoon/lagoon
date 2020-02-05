@@ -474,7 +474,9 @@ service-images += ssh
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher
+									local-api-data-watcher-pusher \
+									local-dbaas-provider
+
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -544,7 +546,7 @@ tests-list:
 #### Definition of tests
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests
+deployment-test-services-main = broker openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher tests local-dbaas-provider
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: test-services-main
@@ -825,6 +827,9 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	oc -n lagoon create -f openshift-setup/dbaas-roles.yaml; \
+	oc -n dbaas-operator-system create -f openshift-setup/dbaas-operator.yaml; \
+	oc -n lagoon create -f openshift-setup/dbaas-providers.yaml; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
