@@ -18,7 +18,7 @@ const lagoonHarborRoute = R.compose(
 )(process.env);
 
 const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
-  addEnvironment: async (lagoonProjectName, projectID) => {
+  addProject: async (lagoonProjectName, projectID) => {
     // Create harbor project
     try {
       var res = await harborClient.post(`projects`, {
