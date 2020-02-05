@@ -1,0 +1,10 @@
+apiVersion: mariadb.amazee.io/v1
+kind: MariaDBConsumer
+metadata:
+  name: {{ include "dbaas-shared.fullname" . }}
+  labels:
+    {{- include "dbaas-shared.labels" . | nindent 4 }}
+  annotations:
+    {{- include "dbaas-shared.annotations" . | nindent 4 }}
+spec:
+  environment: {{ .Values.mariaDBConsumerEnvironment}}

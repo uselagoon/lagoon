@@ -3,7 +3,7 @@ set -x
 set -eo pipefail
 set -o noglob
 
-REGISTRY=172.17.0.1:8084 # This points to Harbor's nginx pod when running via docker-compose, which handles access to Harbor's registry
+REGISTRY=$REGISTRY
 NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
 LAGOON_VERSION=$(cat /lagoon/version)
