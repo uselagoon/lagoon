@@ -10,12 +10,6 @@ const Sql = require('./sql');
 const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
 
-import {
-  environmentHitsMonthByEnvironmentId,
-  environmentHoursMonthByEnvironmentId,
-  environmentStorageMonthByEnvironmentId
-} from "../../models/environment";
-
 /* ::
 
 import type {ResolversObj} from '../';
@@ -220,31 +214,31 @@ const getEnvironmentStorageByEnvironmentId = async (
 const getEnvironmentStorageMonthByEnvironmentId = async (
   { id: eid },
   args,
-  { sqlClient, hasPermission },
+  { models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  return environmentStorageMonthByEnvironmentId(eid, args.month);
+  return models.EnvironmentModel.environmentStorageMonthByEnvironmentId(eid, args.month);
 };
 
 const getEnvironmentHoursMonthByEnvironmentId = async (
   { id: eid },
   args,
-  { sqlClient, hasPermission },
+  { models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  return environmentHoursMonthByEnvironmentId(eid, args.month);
+  return models.EnvironmentModel.environmentHoursMonthByEnvironmentId(eid, args.month);
 };
 
 const getEnvironmentHitsMonthByEnvironmentId = async (
   { openshiftProjectName },
   args,
-  { hasPermission },
+  { models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  return environmentHitsMonthByEnvironmentId(openshiftProjectName, args.month);
+  return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(openshiftProjectName, args.month);
 };
 
 const getEnvironmentServicesByEnvironmentId = async (
