@@ -2,7 +2,7 @@
 - include: github/branch.yaml
   vars:
     testname: "GITHUB - slash branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github
     branch: github/slash/branch
@@ -12,7 +12,7 @@
 - include: github/branch-picky.yaml
   vars:
     testname: "GITHUB - picky branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github
     branch: github/slash/banana
@@ -21,7 +21,7 @@
 - include: github/pullrequest.yaml
   vars:
     testname: "GITHUB - PULLREQUEST"
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
@@ -30,7 +30,7 @@
   vars:
     testname: "GITHUB - skip deployment"
     branch: skip
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

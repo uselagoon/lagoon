@@ -2,7 +2,7 @@
 - include: gitlab/skip-deployment.yaml
   vars:
     testname: "GITLAB - skip deployment"
-    node_version: 8
+    node_version: 10
     git_repo_name: gitlab.git
     project: ci-gitlab
     branch: skip
@@ -11,7 +11,7 @@
 - include: gitlab/branch.yaml
   vars:
     testname: "GITLAB - slash branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: gitlab.git
     project: ci-gitlab
     branch: gitlab/slash/branch
@@ -20,7 +20,7 @@
 - include: gitlab/pullrequest.yaml
   vars:
     testname: "GITLAB - PULLREQUEST"
-    node_version: 8
+    node_version: 10
     git_repo_name: gitlab.git
     project: ci-gitlab
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"

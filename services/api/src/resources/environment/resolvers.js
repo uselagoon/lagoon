@@ -10,6 +10,12 @@ const Sql = require('./sql');
 const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
 
+import {
+  environmentHitsMonthByEnvironmentId,
+  environmentHoursMonthByEnvironmentId,
+  environmentStorageMonthByEnvironmentId
+} from "../../models/environment";
+
 /* ::
 
 import type {ResolversObj} from '../';
@@ -218,22 +224,7 @@ const getEnvironmentStorageMonthByEnvironmentId = async (
 ) => {
   await hasPermission('environment', 'storage');
 
-  const str = `
-    SELECT
-      SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
-    FROM
-      environment_storage
-    WHERE
-      environment = :eid
-      AND YEAR(updated) = YEAR(STR_TO_DATE(:month, '%Y-%m'))
-      AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
-  `;
-
-  const prep = prepare(sqlClient, str);
-
-  const rows = await query(sqlClient, prep({ eid, month: args.month }));
-
-  return rows[0];
+  return environmentStorageMonthByEnvironmentId(eid, args.month);
 };
 
 const getEnvironmentHoursMonthByEnvironmentId = async (
@@ -243,91 +234,7 @@ const getEnvironmentHoursMonthByEnvironmentId = async (
 ) => {
   await hasPermission('environment', 'storage');
 
-  const str = `
-    SELECT
-      e.created, e.deleted
-    FROM
-      environment e
-    WHERE
-      e.id = :eid
-  `;
-
-  const prep = prepare(sqlClient, str);
-
-  const rows = await query(sqlClient, prep({ eid }));
-
-  const { created, deleted } = rows[0];
-
-  const created_date = new Date(created);
-  const deleted_date = new Date(deleted);
-
-  const now = new Date();
-
-  // Generate date object of the requested month, but with the first day, hour, minute, seconds and milliseconds
-  const interested_month_start = new Date(args.month) || new Date();
-  interested_month_start.setDate(1);
-  interested_month_start.setHours(0);
-  interested_month_start.setMinutes(0);
-  interested_month_start.setSeconds(0);
-  interested_month_start.setMilliseconds(0);
-
-  if (interested_month_start > now) {
-    throw new Error("Can't predict the future, yet.");
-  }
-
-  // Generate Date Variable with the month we are interested in plus one month
-  let interested_month_end = new Date(interested_month_start);
-  interested_month_end.setMonth(interested_month_start.getMonth() + 1);
-
-  // If the the the interested month end is in the future, we use the current time for real time cost calculations
-  if (interested_month_end > now) {
-    interested_month_end = now;
-  }
-
-  // calculate the month in format `YYYY-MM`. getMonth() does not return with a leading zero and starts its index at 0 as well.
-  const month_leading_zero =
-    interested_month_start.getMonth() + 1 < 10
-      ? `0${interested_month_start.getMonth() + 1}`
-      : interested_month_start.getMonth() + 1;
-  const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
-
-  // Created Date is created after the interested month: Ran for 0 hours in the requested month
-  if (created_date > interested_month_end) {
-    return { month, hours: 0 };
-  }
-
-  // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
-  if (
-    deleted_date < interested_month_start &&
-    deleted_date !== '0000-00-00 00:00:00'
-  ) {
-    return { month, hours: 0 };
-  }
-
-  let date_from;
-  let date_to;
-
-  if (created_date >= interested_month_start) {
-    // Environment was created within the interested month
-    date_from = created_date;
-  } else {
-    // Environment was created before the interested month
-    date_from = interested_month_start;
-  }
-
-  if (
-    deleted === '0000-00-00 00:00:00' ||
-    deleted_date > interested_month_end
-  ) {
-    // Environment is not deleted yet or was deleted after the interested month
-    date_to = interested_month_end;
-  } else {
-    // Environment was deleted in the interested month
-    date_to = deleted_date;
-  }
-
-  const hours = Math.ceil(Math.abs(date_to - date_from) / 36e5);
-  return { month, hours };
+  return environmentHoursMonthByEnvironmentId(eid, args.month);
 };
 
 const getEnvironmentHitsMonthByEnvironmentId = async (
@@ -337,56 +244,7 @@ const getEnvironmentHitsMonthByEnvironmentId = async (
 ) => {
   await hasPermission('environment', 'storage');
 
-  const interested_date = args.month ? new Date(args.month) : new Date();
-  const year = interested_date.getFullYear();
-  const month = interested_date.getMonth() + 1;
-  // This generates YYYY-MM
-  const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
-  try {
-    const result = await esClient.count({
-      index: `router-logs-${openshiftProjectName}-*`,
-      body: {
-        query: {
-          bool: {
-            must: [
-              {
-                range: {
-                  '@timestamp': {
-                    gte: `${interested_year_month}||/M`,
-                    lte: `${interested_year_month}||/M`,
-                    format: 'strict_year_month',
-                  },
-                },
-              },
-            ],
-            must_not: [
-              {
-                match_phrase: {
-                  request_header_useragent: {
-                    query: 'StatusCake',
-                  },
-                },
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    const response = {
-      total: result.count,
-    };
-    return response;
-  } catch (e) {
-    if (
-      e.body.error.type &&
-      (e.body.error.type === 'index_not_found_exception' ||
-        e.body.error.type === 'security_exception')
-    ) {
-      return { total: 0 };
-    }
-    throw e;
-  }
+  return environmentHitsMonthByEnvironmentId(openshiftProjectName, args.month);
 };
 
 const getEnvironmentServicesByEnvironmentId = async (
