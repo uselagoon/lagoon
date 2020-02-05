@@ -122,6 +122,7 @@ services:
     command: yarn run dev
     environment:
       - CI=${CI:-true}
+      - REGISTRY=172.17.0.1:5000
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
