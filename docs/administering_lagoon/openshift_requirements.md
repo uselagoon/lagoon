@@ -1,10 +1,5 @@
----
-description: >-
-  Lagoon tries to run on as standard installation of OpenShift as possible, but
-  it expects some things:
----
-
 # OpenShift Requirements
+Lagoon tries to run on as standard installation of OpenShift as possible, but it expects some things.
 
 ## OpenShift Version
 
