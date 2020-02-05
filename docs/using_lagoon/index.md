@@ -54,7 +54,7 @@ Some Docker images and containers need additional customizations from the provid
 | [MongoDB](docker_images/mongo.md) | 3.6 | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile) |
 | [Nginx](docker_images/nginx.md) | openresty/1.15.8.2 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
 | [Nginx-Drupal](docker_images/nginx-drupal.md) |  | [nginx-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) |
-| [php-fpm-Drupal](docker_images/php-cli-drupal.md) | 7.2, 7.3 | [php/cli-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) |
+| [php-fpm-Drupal](docker_images/php-cli-drupal.md) | 7.2, 7.3, 7.4 | [php/cli-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) |
 | [php-cli](docker_images/php-cli/) | 7.2, 7.3 | [php/cli/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile) |
 | [php-fpm](docker_images/php-fpm.md) | 7.2, 7.3 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
 | [Postgres](docker_images/postgres.md) | 11.x | [postgres/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/postgres/Dockerfile) |
@@ -67,4 +67,3 @@ Some Docker images and containers need additional customizations from the provid
 | [Varnish](docker_images/varnish.md) | 5 | [varnish/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile) |
 
 All images are pushed to [https://hub.docker.com/u/amazeeio](https://hub.docker.com/u/amazeeio). We suggest always using the latest tag \(like `amazeeio/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:10`\), as they are kept up to date in terms of features and security. If you choose to use a specific Lagoon version of an image like `amazeeio/nginx:v0.21.0` or `amazeeio/node:10-v0.21.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
-
