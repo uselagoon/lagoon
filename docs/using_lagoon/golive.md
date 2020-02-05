@@ -10,7 +10,7 @@ Check to be sure that all routes have been set up in your `.lagoon.yml`. Be awar
 
 If you use Certificate Authority \(CA\) signed certificates you can set `tls-acme` to `false` , but leave the `insecure` flag set to `Allow` or `Redirect`. In the case of CA certificates, let your Lagoon administrator know the routes and the SSL certificate that needs to be put in place.
 
-```yaml
+```
 environments:
   master:
     routes:
@@ -25,7 +25,7 @@ environments:
 
 As soon as the DNS entries point towards your Lagoon installation, you can switch the flags: `tls-acme` to `true` and `insecure` to `Redirect`
 
-```yaml
+```
 environments:
   master:
     routes:

@@ -2,11 +2,11 @@
 
 The `.lagoon.yml` file is the central file to set up your project. It contains configuration in order to do the following:
 
-* [Define routes for accessing your sites](lagoon-yml.md#routes).
-* [Define pre-rollout tasks](lagoon-yml.md#pre-rollout-tasks-pre_rollout-i-run).
-* [Define post-rollout tasks](lagoon-yml.md#post-rollout-tasks-post_rollout-i-run).
-* [Set up SSL certificates](lagoon-yml.md#ssl-configuration-tls-acme).
-* [Add cron jobs for environments](lagoon-yml.md#cronjobs-environments-name-cronjobs)
+* [Define routes for accessing your sites](#routes).
+* [Define pre-rollout tasks](#pre-rollout-tasks-pre_rolloutirun).
+* [Define post-rollout tasks](#post-rollout-tasks-post_rollout-i-run).
+* [Set up SSL certificates](#ssl-configuration-tls-acme).
+* [Add cron jobs for environments](#cronjobs-environments-name-cronjobs)
 
 The `.lagoon.yml` file must be placed at the root of your Git repository.
 
@@ -15,7 +15,7 @@ The `.lagoon.yml` file must be placed at the root of your Git repository.
 This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your needs.
 
 
-```yaml
+```
 docker-compose-yaml: docker-compose.yml
 
 environment_variables:
@@ -156,12 +156,12 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
   * `None` will mean a route for HTTP will _not_ be created, and no redirect will take place.
 * `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
-{% hint style="info" %}
-If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
-{% endhint %}
+!!!hint
+    If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 
 
-```yaml
+
+```
      - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
@@ -171,7 +171,7 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 
 #### `environments.[name].types`
 
-The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\).
+The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md)\).
 
 Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
 
@@ -182,7 +182,7 @@ Sometimes you might want to override the **type** just for a single environment,
 
 Example:
 
-```yaml
+```
 environments:
   master:
     types:
@@ -192,7 +192,7 @@ environments:
 
 #### `environments.[name].templates`
 
-The Lagoon build process checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\).
+The Lagoon build process checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file \(read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md)\).
 
 Sometimes you might want to override the **template** just for a single environment, and not for all of them:
 
@@ -203,7 +203,7 @@ Sometimes you might want to override the **template** just for a single environm
 
 Example:
 
-```yaml
+```
 environments:
   master:
     templates:
@@ -213,18 +213,18 @@ environments:
 
 #### `environments.[name].rollouts`
 
-The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\)
+The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md)\).
 
 Sometimes you might want to override the **rollout type** just for a single environment, especially if you also overwrote the template type for the environment:
 
 `service-name: rollout-type`
 
 * `service-name` is the name of the service from `docker-compose.yml` you would like to override.
-* `rollout-type` is the type of rollout. See [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-rollout-monitor-types)\) for possible values.
+* `rollout-type` is the type of rollout. See [documentation of `docker-compose.yml`](docker-compose_yml.md#custom-rollout-monitor-types)\) for possible values.
 
 Example:
 
-```yaml
+```
 environments:
   master:
     rollouts:
@@ -253,7 +253,7 @@ In Lagoon, the same Git repository can be added to multiple projects, creating w
 
 Example:
 
-```yaml
+```
 example-project-name:
   environments:
     master:
@@ -285,7 +285,7 @@ The `additional-yaml` has some super powers. Basically, it allows you to define 
 
 Example:
 
-```yaml
+```
 additional-yaml:
   secrets:
     path: .lagoon.secrets.yml
@@ -310,9 +310,9 @@ The `container-registries` block allows you to define your own private container
 
 There are 2 ways to define the password used for your registry user.
 
-* Create an environment variable in the Lagoon API \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\). The name of the variable you create can then be set as the password:
+* Create an environment variable in the Lagoon API \(see more on [Environment Variables](environment_variables.md)\). The name of the variable you create can then be set as the password:
 
-  ```yaml
+```
   container-registries:
   my-custom-registry:
     username: myownregistryuser
@@ -322,7 +322,7 @@ There are 2 ways to define the password used for your registry user.
 
 * Define it directly in the `.lagoon.yml` file in plain text:
 
-  ```yaml
+```
   container-registries:
   docker-hub:
     username: dockerhubuser
@@ -334,7 +334,7 @@ There are 2 ways to define the password used for your registry user.
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
 
 
-```yaml
+```
 services:
   mariadb:
     build:

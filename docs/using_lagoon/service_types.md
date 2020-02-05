@@ -1,6 +1,6 @@
 # Service Types
 
-This table lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](../using-lagoon-the-basics/docker-compose-yml.md).
+This table lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](docker-compose_yml.md).
 
 💡 _Tip: Scroll right to see the whole table!_
 
@@ -8,7 +8,7 @@ This table lists all service types that can be defined via `lagoon.type` within 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `cli` | Use for any kind of CLI container \(like PHP, Node.js, etc.\). Automatically gets the customer SSH private key that is mounted in `/var/run/secrets/lagoon/sshkey/ssh-privatekey`. | - | - | - |  |
 | `cli-persistent` | Like `cli`, expects `lagoon.persistent.name` to be given the name of a service that has persistent storage, which will be mounted under defined `lagoon.persistent` label. Does NOT generate its own persistent storage, only used to mount another service's persistent storage. | - | - | `lagoon.persistent.name`, `lagoon.persistent` |  |
-| `custom` | Full custom definition, see [documentation](../using-lagoon-the-basics/docker-compose-yml.md#custom-type) | - | - | - | - |
+| `custom` | Full custom definition, see [documentation](../using-lagoon-the-basics/docker-compose_yml.md#custom-type) | - | - | - | - |
 | `elasticsearch` | Elasticsearch container, will auto-generate persistent storage under `/usr/share/elasticsearch/data`. | HTTP on `localhost:9200/_cluster/health?local=true` | `9200` | - | `lagoon.persistent.size` |
 | `elasticsearch-cluster` | Elasticsearch cluster with 3 nodes, uses `Statefulset`, will auto-generate persistent storage for each cluster node under `/usr/share/elasticsearch/data`. | HTTP on `localhost:9200/_cluster/health?local=true` | `9200`, `9300` | - | - |
 | `kibana` | Kibana container. | TCP connection on `5601` | `5601` | yes | - |

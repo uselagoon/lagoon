@@ -49,7 +49,7 @@ Automatic pull request environments are a fantastic thing. But it would also be 
 The following example will sync the staging database on the first rollout of the pull request environment:
 
 
-```yaml
+```
 tasks:
   post-rollout:
     - run:

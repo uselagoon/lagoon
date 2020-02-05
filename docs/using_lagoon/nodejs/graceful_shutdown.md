@@ -79,13 +79,13 @@ With these script functionalities, we simplify the start of our application. We 
 
 and with the defined `scripts` section we can run our application just with:
 
-```bash
+```text
 yarn start
 ```
 
 or
 
-```bash
+```text
 npm start
 ```
 

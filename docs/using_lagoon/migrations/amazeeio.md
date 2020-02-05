@@ -19,7 +19,7 @@ If you are already using `pygmy`, then you can skip this. Here's how to migrate 
 1. Remove cachalot VM: `cachalot destroy`.
 2. Uninstall cachalot: `gem uninstall cachalot` \(might need `sudo`\).
 3. Remove `eval $(cachalot env)` from `~/.bash_profile`, `~/.zshrc` or `~/.config/fish/config.fish`.
-4. [Follow the `pygmy` installation process.](../using-lagoon-the-basics/local-development-environments.md)
+4. [Follow the `pygmy` installation process.](../local_development_environments.md)
 
 ## New services/containers in `docker-compose.yml`
 
@@ -34,7 +34,7 @@ Instead of an `.amazeeio.yml` file, Lagoon projects now are mostly configured vi
 * Custom routes.
 * and many more!
 
-See [.lagoon.yml ](../using-lagoon-the-basics/lagoon-yml.md)for more!
+See [.lagoon.yml ](../lagoon_yml.md)for more!
 
 ## Renaming of `before_deploy` and `after_deploy` - plus their location has moved
 
