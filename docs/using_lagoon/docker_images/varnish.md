@@ -1,21 +1,23 @@
-# Varnish Image
-Lagoon `Varnish` image Dockerfile, based on offical `varnish` package provided by `alpine:3.7` image.
+# Varnish
 
-By default `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
+The [Lagoon `Varnish` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
+
+By default, `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
 
 ## Lagoon & OpenShift adaptions
-This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
 
-- Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions) so this image will work with a random user and therefore also on OpenShift.
+This image is prepared to be used on Lagoon, which leverages OpenShift. There are therefore some things already done:
+
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
 
 ## Included varnish modules
 
-- `vbox-dynamic` - Dynamic Backends from DNS lookups and service discovery from SRV records https://github.com/nigoroll/libvmod-dynamic.
-- `vbox-bodyaccess` - Varnish vmod that lets you access the request body https://github.com/aondio/libvmod-bodyaccess.
+* [`vbox-dynamic`](https://github.com/nigoroll/libvmod-dynamic) - Dynamic backends from DNS lookups and service discovery from SRV records.
+* [`vbox-bodyaccess`](https://github.com/aondio/libvmod-bodyaccess) - Varnish `vmod` that lets you access the request body.
 
 ## Included `default.vcl` configuration file
-The image ships a *default* vcl configuration file, optimized to work on Lagoon.
-Some options are configurable via environments variables (see [Environment Variables](#environment-variables)).
+
+The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](./#environment-variables)\).
 
 ## Environment Variables
 Environment variables defined in Varnish base image
