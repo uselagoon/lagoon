@@ -33,7 +33,7 @@ nav:
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Node.js:
-    - Gracefull Shutdown: using_lagoon/nodejs/gracefull_shutdown.md
+    - Graceful Shutdown: using_lagoon/nodejs/graceful_shutdown.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
 - Administration:

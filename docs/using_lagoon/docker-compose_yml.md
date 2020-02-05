@@ -156,7 +156,7 @@ When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use
 
 This also expects the label `lagoon.template` to be defined with the path to the YAML file where you define all the needed Kubernetes objects to be executed. In here you can define your own OpenShift templates like the ones in the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates).
 
-{% hint style="info" %}
-The template is called with `oc process`, so you should define the same parameters as in the default templates.
-{% endhint %}
+!!!hint
+    The template is called with `oc process`, so you should define the same parameters as in the default templates.
+
 
