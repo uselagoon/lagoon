@@ -55,16 +55,29 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
     case "bitbucket:pullrequest:updated:handled":
     case "bitbucket:pullrequest:fulfilled:handled":
     case "bitbucket:pullrequest:rejected:handled":
+    case "bitbucket:pullrequest:created:opened:handled":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
     case "gitlab:push:handled":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
     case "gitlab:merge_request:opened:handled":
     case "gitlab:merge_request:updated:handled":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
     case "gitlab:merge_request:closed:handled":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
     case "rest:deploy:receive":
     case "rest:remove:receive":
     case "rest:promote:receive":
     case "api:deployEnvironmentLatest":
     case "api:deployEnvironmentBranch":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
     case "api:deleteEnvironment":
+      sendToSlack(project, message, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
+      break;
     case "github:push:skipped":
     case "gitlab:push:skipped":
     case "bitbucket:push:skipped":
@@ -73,6 +86,8 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:finished":
     case "task:remove-openshift:finished":
+      sendToSlack(project, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
+      break;
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
       sendToSlack(project, message, 'good', ':white_check_mark:', channelWrapperLogs, msg, appId)
