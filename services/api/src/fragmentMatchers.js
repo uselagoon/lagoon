@@ -4,12 +4,12 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
 
-const token = 'FILL_ME_IN_BEFORE_RUNNING';
+const TOKEN = ''; // set this prior to running
 
 fetch(`http://localhost:3000/graphql`, {
   method: 'POST',
   headers: {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${TOKEN}`,
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
