@@ -41,6 +41,7 @@ nav:
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
   - GraphQL API: administering_lagoon/graphql_api.md
   - Role Based Access Control: administering_lagoon/rbac.md
+  - SSL Ciphers: administering_lagoon/ssl_ciphers.md
 - Docker Images:
   - Elasticsearch: using_lagoon/docker_images/elasticsearch.md
   - MariaDB Drupal: using_lagoon/docker_images/mariadb-drupal.md
