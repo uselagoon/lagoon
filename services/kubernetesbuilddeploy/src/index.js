@@ -18,6 +18,7 @@ const CI = process.env.CI || "false"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
+const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
@@ -204,6 +205,10 @@ const messageConsumer = async msg => {
                   {
                       "name": "PROJECT_SECRET",
                       "value": projectSecret
+                  },
+                  {
+                      "name": "REGISTRY",
+                      "value": registry
                   }
                 ],
                 "volumeMounts": [

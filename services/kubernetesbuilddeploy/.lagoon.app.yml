@@ -25,7 +25,7 @@ parameters:
   - name: SERVICE_ROUTER_URL
     description: URL of the Router for this service
     value: ""
-  - name: NAMESPACE
+  - name: OPENSHIFT_PROJECT
     description: Name of the Project that this service is in
     required: true
   - name: REGISTRY

@@ -9,7 +9,7 @@ services:
       - '3366:3306'
     labels:
       lagoon.type: mariadb-single
-      lagoon.image: amazeeiolagoon/api-db:v1-2-0
+      lagoon.image: amazeeiolagoon/api-db:kubernetes
   cli:
     image: ${IMAGE_REPO:-lagoon}/cli
     volumes:
@@ -37,7 +37,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhook-handler:v1-2-0
+      lagoon.image: amazeeiolagoon/webhook-handler:kubernetes
   broker:
     image: ${IMAGE_REPO:-lagoon}/broker-single
     ports:
@@ -46,7 +46,7 @@ services:
     labels:
       lagoon.type: rabbitmq-cluster
       lagoon.template: services/broker/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/broker:v1-2-0
+      lagoon.image: amazeeiolagoon/broker:kubernetes
   openshiftremove:
     image: ${IMAGE_REPO:-lagoon}/openshiftremove
     command: yarn run dev
@@ -56,7 +56,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftremove/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftremove:v1-2-0
+      lagoon.image: amazeeiolagoon/openshiftremove:kubernetes
   openshiftbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploy
     command: yarn run dev
@@ -68,7 +68,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploy/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:v1-2-0
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploy:kubernetes
   openshiftbuilddeploymonitor:
     image: ${IMAGE_REPO:-lagoon}/openshiftbuilddeploymonitor
     command: yarn run dev
@@ -82,7 +82,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:v1-2-0
+      lagoon.image: amazeeiolagoon/openshiftbuilddeploymonitor:kubernetes
   openshiftjobs:
     image: ${IMAGE_REPO:-lagoon}/openshiftjobs
     command: yarn run dev
@@ -96,7 +96,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftjobs/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftjobs:v1-2-0
+      lagoon.image: amazeeiolagoon/openshiftjobs:kubernetes
   openshiftjobsmonitor:
     image: ${IMAGE_REPO:-lagoon}/openshiftjobsmonitor
     command: yarn run dev
@@ -106,7 +106,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftjobsmonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftjobsmonitor:v1-2-0
+      lagoon.image: amazeeiolagoon/openshiftjobsmonitor:kubernetes
   openshiftmisc:
     image: ${IMAGE_REPO:-lagoon}/openshiftmisc
     command: yarn run dev
@@ -116,19 +116,20 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/openshiftmisc/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/openshiftmisc:v1-2-0
+      lagoon.image: amazeeiolagoon/openshiftmisc:kubernetes
   kubernetesbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploy
     command: yarn run dev
     environment:
       - CI=${CI:-true}
+      - REGISTRY=172.17.0.1:5000
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
     labels:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploy/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:v1-2-0
+      lagoon.image: amazeeiolagoon/kubernetesbuilddeploy:kubernetes
   kubernetesdeployqueue:
     image: ${IMAGE_REPO:-lagoon}/kubernetesdeployqueue
     command: yarn run dev
@@ -138,7 +139,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/kubernetesdeployqueue/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/kubernetesdeployqueue:v1-2-0
+      lagoon.image: amazeeiolagoon/kubernetesdeployqueue:kubernetes
   kubernetesbuilddeploymonitor:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploymonitor
     command: yarn run dev
@@ -152,7 +153,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploymonitor/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/kubernetesbuilddeploymonitor:v1-2-0
+      lagoon.image: amazeeiolagoon/kubernetesbuilddeploymonitor:kubernetes
   kubernetesremove:
     image: ${IMAGE_REPO:-lagoon}/kubernetesremove
     command: yarn run dev
@@ -162,7 +163,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/kubernetesremove/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/kubernetesremove:v1-2-0
+      lagoon.image: amazeeiolagoon/kubernetesremove:kubernetes
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -172,7 +173,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2rocketchat/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2rocketchat:v1-2-0
+      lagoon.image: amazeeiolagoon/logs2rocketchat:kubernetes
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
@@ -182,7 +183,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2slack:v1-2-0
+      lagoon.image: amazeeiolagoon/logs2slack:kubernetes
   logs2microsoftteams:
     image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
     command: yarn run dev
@@ -192,7 +193,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/logs2microsoftteams/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2microsoftteams:v1-2-0
+      lagoon.image: amazeeiolagoon/logs2microsoftteams:kubernetes
   logs2email:
     image: ${IMAGE_REPO:-lagoon}/logs2email
     command: yarn run dev
@@ -220,7 +221,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhooks2tasks:v1-2-0
+      lagoon.image: amazeeiolagoon/webhooks2tasks:kubernetes
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
@@ -235,7 +236,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:v1-2-0
+      lagoon.image: amazeeiolagoon/api:kubernetes
   ui:
     image: ${IMAGE_REPO:-lagoon}/ui
     command: yarn run dev
@@ -249,7 +250,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/ui/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ui:v1-2-0
+      lagoon.image: amazeeiolagoon/ui:kubernetes
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
@@ -270,7 +271,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ssh:v1-2-0
+      lagoon.image: amazeeiolagoon/ssh:kubernetes
   auth-server:
     image: ${IMAGE_REPO:-lagoon}/auth-server
     command: yarn run dev
@@ -285,7 +286,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auth-server/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-server:v1-2-0
+      lagoon.image: amazeeiolagoon/auth-server:kubernetes
   keycloak:
     image: ${IMAGE_REPO:-lagoon}/keycloak
     user: '111111111'
@@ -296,14 +297,14 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/keycloak/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/keycloak:v1-2-0
+      lagoon.image: amazeeiolagoon/keycloak:kubernetes
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
       - '3336:3306'
     labels:
       lagoon.type: mariadb-single
-      lagoon.image: amazeeiolagoon/keycloak-db:v1-2-0
+      lagoon.image: amazeeiolagoon/keycloak-db:kubernetes
   tests-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -419,7 +420,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/drush-alias/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/drush-alias:v1-2-0
+      lagoon.image: amazeeiolagoon/drush-alias:kubernetes
       version: '2'
   logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs-db
@@ -435,14 +436,14 @@ services:
     labels:
       lagoon.type: elasticsearch
       lagoon.template: services/logs-db/.lagoon.single.yml
-      lagoon.image: amazeeiolagoon/logs-db:v1-2-0
+      lagoon.image: amazeeiolagoon/logs-db:kubernetes
   logs-forwarder:
     image: ${IMAGE_REPO:-lagoon}/logs-forwarder
     user: '111111111'
     labels:
       lagoon.type: custom
       lagoon.template: services/logs-forwarder/.lagoon.single.yml
-      lagoon.image: amazeeiolagoon/logs-forwarder:v1-2-0
+      lagoon.image: amazeeiolagoon/logs-forwarder:kubernetes
   logs-db-ui:
     image: ${IMAGE_REPO:-lagoon}/logs-db-ui
     user: '111111111'
@@ -454,14 +455,14 @@ services:
     labels:
       lagoon.type: kibana
       lagoon.template: services/logs-db-ui/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs-db-ui:v1-2-0
+      lagoon.image: amazeeiolagoon/logs-db-ui:kubernetes
   logs-db-curator:
     image: ${IMAGE_REPO:-lagoon}/logs-db-curator
     user: '111111111'
     labels:
       lagoon.type: cli
       lagoon.template: services/logs-db-curator/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs-db-curator:v1-2-0
+      lagoon.image: amazeeiolagoon/logs-db-curator:kubernetes
   logs2logs-db:
     image: ${IMAGE_REPO:-lagoon}/logs2logs-db
     user: '111111111'
@@ -477,7 +478,7 @@ services:
     labels:
       lagoon.type: logstash
       lagoon.template: services/logs2logs-db/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs2logs-db:v1-2-0
+      lagoon.image: amazeeiolagoon/logs2logs-db:kubernetes
   auto-idler:
     image: ${IMAGE_REPO:-lagoon}/auto-idler
     user: '111111111'
@@ -488,7 +489,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/auto-idler/.lagoon.yml
-      lagoon.image: amazeeiolagoon/auto-idler:v1-2-0
+      lagoon.image: amazeeiolagoon/auto-idler:kubernetes
   storage-calculator:
     image: ${IMAGE_REPO:-lagoon}/storage-calculator
     user: '111111111'
@@ -497,7 +498,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/storage-calculator/.lagoon.yml
-      lagoon.image: amazeeiolagoon/storage-calculator:v1-2-0
+      lagoon.image: amazeeiolagoon/storage-calculator:kubernetes
   logs-collector:
     image: openshift/origin-logging-fluentd:v3.6.1
     labels:
@@ -510,62 +511,62 @@ services:
       lagoon.type: custom
       lagoon.template: services/harborclair/harborclair.yml
       lagoon.name: harborclair
-      lagoon.image: amazeeiolagoon/harborclair:v1-2-0
+      lagoon.image: amazeeiolagoon/harborclair:kubernetes
   harborclairadapter:
     image: ${IMAGE_REPO:-lagoon}/harborclairadapter
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclairadapter/harborclair.yml
       lagoon.name: harborclair
-      lagoon.image: amazeeiolagoon/harborclairadapter:v1-2-0
+      lagoon.image: amazeeiolagoon/harborclairadapter:kubernetes
   harbor-core:
     image: ${IMAGE_REPO:-lagoon}/harbor-core
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-core/harbor-core.yml
-      lagoon.image: amazeeiolagoon/harbor-core:v1-2-0
+      lagoon.image: amazeeiolagoon/harbor-core:kubernetes
   harbor-database:
     image: ${IMAGE_REPO:-lagoon}/harbor-database
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-database/harbor-database.yml
-      lagoon.image: amazeeiolagoon/harbor-database:v1-2-0
+      lagoon.image: amazeeiolagoon/harbor-database:kubernetes
   harbor-jobservice:
     image: ${IMAGE_REPO:-lagoon}/harbor-jobservice
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-jobservice/harbor-jobservice.yml
-      lagoon.image: amazeeiolagoon/harbor-jobservice:v1-2-0
+      lagoon.image: amazeeiolagoon/harbor-jobservice:kubernetes
   harbor-nginx:
     image: ${IMAGE_REPO:-lagoon}/harbor-nginx
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
-      lagoon.image: amazeeiolagoon/harbor-nginx:v1-2-0
+      lagoon.image: amazeeiolagoon/harbor-nginx:kubernetes
   harbor-portal:
     image: ${IMAGE_REPO:-lagoon}/harbor-portal
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-portal/harbor-portal.yml
-      lagoon.image: amazeeiolagoon/harbor-portal:v1-2-0
+      lagoon.image: amazeeiolagoon/harbor-portal:kubernetes
   harbor-redis:
     image: ${IMAGE_REPO:-lagoon}/harbor-redis
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-redis/harbor-redis.yml
-      lagoon.image: amazeeiolagoon/harbor-redis:v1-2-0
+      lagoon.image: amazeeiolagoon/harbor-redis:kubernetes
   harborregistry:
     image: ${IMAGE_REPO:-lagoon}/harborregistry
     labels:
       lagoon.type: custom
       lagoon.template: services/harborregistry/harborregistry.yml
       lagoon.name: harborregistry
-      lagoon.image: amazeeiolagoon/harborregistry:v1-2-0
+      lagoon.image: amazeeiolagoon/harborregistry:kubernetes
   harborregistryctl:
     image: ${IMAGE_REPO:-lagoon}/harborregistryctl
     labels:
       lagoon.type: custom
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
-      lagoon.image: amazeeiolagoon/harborregistryctl:v1-2-0
+      lagoon.image: amazeeiolagoon/harborregistryctl:kubernetes
 

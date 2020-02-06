@@ -181,18 +181,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - services
   verbs:
   - create
@@ -349,7 +337,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: shreddedbacon/dbaas-controller:testingv1
+        image: amazeeio/dbaas-operator:testingv1
         name: manager
         resources:
           limits:

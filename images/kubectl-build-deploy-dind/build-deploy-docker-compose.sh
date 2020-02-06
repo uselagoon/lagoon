@@ -11,14 +11,14 @@ function outputToYaml() {
   set -x
 }
 
-function cronScheduleMoreOftenThan15Minutes() {
-  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+function cronScheduleMoreOftenThan30Minutes() {
+  #takes a unexpanded cron schedule, returns 0 if it's more often that 30 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     # Match found for M/xx, H/xx or */xx
-    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    # Check if xx is smaller than 30, which means this cronjob runs more often than every 30 minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -lt 15 ]; then
+    if [ $STEP -lt 30 ]; then
       return 0
     else
       return 1
@@ -27,7 +27,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # We are running every minute
     return 0
   else
-    # all other cases are more often than 15 minutes
+    # all other cases are more often than 30 minutes
     return 1
   fi
 }
@@ -82,57 +82,52 @@ do
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
   # - mariadb-single (a single mariadb pod)
   # - mariadb-shared (use a mariadb shared service broker)
+  # - dbaas-shared (use a dbaas shared operator) # in kubernetes, mariadb-shared is the same as dbaas-shared
   if [ "$SERVICE_TYPE" == "mariadb" ]; then
     # if there is already a service existing with the service_name we assume that for this project there has been a
-    # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
+    # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or dbaas-shared) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
     elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="mariadb-shared"
+      SERVICE_TYPE="dbaas-shared"
     else
       SERVICE_TYPE="mariadb-single"
     fi
 
   fi
 
-  if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
-    # Load a possible defined mariadb-shared
-    MARIADB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
+  ## in kubernetes, we want to use dbaas-shared as no service broker exists, but capture anyone that is hardcoding mariadb-shared in their environments
+  if [[ "$SERVICE_TYPE" == "dbaas-shared" || "$SERVICE_TYPE" == "mariadb-shared" ]]; then
+    # Load a possible defined dbaas-shared
+    DBAAS_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.dbaas-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
 
-    # Allow the mariadb shared servicebroker to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.class false)
-    if [ ! $ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE == "false" ]; then
-      MARIADB_SHARED_CLASS=$ENVIRONMENT_MARIADB_SHARED_CLASS_OVERRIDE
+    # Allow the dbaas shared servicebroker to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.dbaas-shared\\.class false)
+    if [ ! $ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE == "false" ]; then
+      DBAAS_SHARED_CLASS=$ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE
     fi
 
     # check if the defined operator class exists
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="mariadb-shared"
-      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${MARIADB_SHARED_CLASS}"
+      SERVICE_TYPE="dbaas-shared"
+      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${DBAAS_SHARED_CLASS}"
     else
-      echo "defined mariadb-shared operator class '$MARIADB_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
+      echo "defined dbaas-shared operator class '$DBAAS_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
       exit 1
     fi
 
     # Default plan is the enviroment type
-    MARIADB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-shared\\.plan "${ENVIRONMENT_TYPE}")
+    DBAAS_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.dbaas-shared\\.plan "${ENVIRONMENT_TYPE}")
 
-    # Allow the mariadb shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_MARIADB_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-shared\\.plan false)
-    if [ ! $MARIADB_SHARED_PLAN_OVERRIDE == "false" ]; then
-      MARIADB_SHARED_PLAN=$ENVIRONMENT_MARIADB_SHARED_PLAN_OVERRIDE
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.dbaas-shared\\.plan false)
+    if [ ! $DBAAS_SHARED_PLAN_OVERRIDE == "false" ]; then
+      DBAAS_SHARED_PLAN=$ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE
     fi
 
-    # Check if the defined service broker plan  exists
-    # @TODO: how to check if the operator has any supported plans/environments or not. might not even be required as the build job will fail if the credentials aren't created in tim
-    # if svcat --scope cluster get plan --class "${MARIADB_SHARED_CLASS}" "${MARIADB_SHARED_PLAN}" > /dev/null; then
-        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MARIADB_SHARED_PLAN}"
-    # else
-    #     echo "defined service broker plan '${MARIADB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MARIADB_SHARED_CLASS' not found in cluster";
-    #     exit 1
-    # fi
+    MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${DBAAS_SHARED_PLAN}"
   fi
 
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
@@ -676,39 +671,8 @@ do
 
   case "$SERVICE_TYPE" in
 
-    mariadb-shared)
-        # ServiceBrokers take a bit, wait until the credentials secret is available
-        # We added a timeout of 10 minutes (120 retries) before exit
-        SERVICE_BROKER_COUNTER=1
-        SERVICE_BROKER_TIMEOUT=180
-        # use the secret name from the consumer to prevent credential clash
-        SECRET_NAME=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.secret)
-        until kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME}
-        do
-        if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
-          let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
-          echo "Secret ${SECRET_NAME} not available yet, waiting for 5 secs"
-          sleep 5
-        else
-          echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SECRET_NAME} reached"
-          exit 1
-        fi
-        done
-        # Load credentials out of secret
-        kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret ${SECRET_NAME} -o yaml > /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml
-        set +x
-        DB_HOST=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_HOST | base64 -d)
-        DB_USER=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_USER | base64 -d)
-        DB_PASSWORD=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_PASSWORD | base64 -d)
-        DB_NAME=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_NAME | base64 -d)
-        DB_PORT=$(cat /kubectl-build-deploy/lagoon/${SERVICE_NAME}-credentials.yml | shyaml get-value data.DB_PORT | base64 -d)
-
-        # Add credentials to our configmap, prefixed with the name of the servicename of this servicebroker
-        kubectl patch --insecure-skip-tls-verify \
-          -n ${NAMESPACE} \
-          configmap lagoon-env \
-          -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\"}}"
-        set -x
+    dbaas-shared)
+        . /kubectl-build-deploy/scripts/exec-kubectl-dbaas-shared.sh
         ;;
 
     *)
@@ -855,11 +819,11 @@ nativeCronjobs:\n\
       CRONJOB_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
-        # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
+      if cronScheduleMoreOftenThan30Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+        # If this cronjob is more often than 30 minutes, we run the cronjob inside the pod itself
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
-        # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
+        # This cronjob runs less ofen than every 30 minutes, we create a kubernetes native cronjob for it.
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
         NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
@@ -987,6 +951,10 @@ do
 
     DAEMONSET="${SERVICE_NAME}"
     . /kubectl-build-deploy/scripts/exec-monitor-deamonset.sh
+
+  elif [ $SERVICE_TYPE == "dbaas-shared" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
 

@@ -11,10 +11,13 @@ metadata:
   annotations:
     {{- if eq .Values.routesAutogenerateInsecure "Allow"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "false"
     {{- else if eq .Values.routesAutogenerateInsecure "Redirect"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
     {{- else if eq .Values.routesAutogenerateInsecure "None"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "false"
     {{- end }}
     {{- include "nginx.annotations" . | nindent 4 }}
 spec:

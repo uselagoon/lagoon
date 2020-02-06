@@ -29,6 +29,7 @@ spec:
       priorityClassName: {{ include "solr.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
+        fsGroup: 0
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: {{ .Values.image | quote }}
@@ -48,6 +49,9 @@ spec:
             initialDelaySeconds: 90
             timeoutSeconds: 3
             failureThreshold: 5
+          securityContext:
+            runAsGroup: 0
+            runAsUser: 8983
           envFrom:
             - configMapRef:
                 name: lagoon-env
