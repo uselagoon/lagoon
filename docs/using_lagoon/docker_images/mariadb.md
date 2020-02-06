@@ -21,7 +21,7 @@ This image is prepared to be used on Lagoon, which leverages OpenShift. There ar
 
 ## Included `my.cnf` configuration file
 
-The image ships a _default_ MariaDB configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../../using-lagoon-advanced/environment-variables.md)\).
+The image ships a _default_ MariaDB configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../environment_variables.md)\).
 
 ## Environment Variables
 

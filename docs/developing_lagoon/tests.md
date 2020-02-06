@@ -65,6 +65,6 @@ Besides that, it's exactly the same as the automated integration testing.
 
 The tests can be found here:
 
-* `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity?branch=develop](hhttps://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity?branch=develop)
+* `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity?branch=develop](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity?branch=develop)
 * `master` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=master](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=master)
 
