@@ -3,6 +3,7 @@
 
 const fetch = require('node-fetch');
 const fs = require('fs');
+
 const TOKEN = ''; // set this prior to running
 
 fetch(`http://localhost:3000/graphql`, {
