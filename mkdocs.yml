@@ -54,7 +54,7 @@ pages:
   - PHP-FPM: using_lagoon/docker_images/php-fpm.md
   - Postgres: using_lagoon/docker_images/postgres.md
   - RabbitMQ: using_lagoon/docker_images/rabbitmq.md
-  - Redis Permanent: using_lagoon/docker_images/redis-permanent.md
+  - Redis Persistent: using_lagoon/docker_images/redis-persistent.md
   - Redis: using_lagoon/docker_images/redis.md
   - Solr Drupal: using_lagoon/docker_images/solr-drupal.md
   - Solr: using_lagoon/docker_images/solr.md
