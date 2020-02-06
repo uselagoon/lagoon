@@ -112,11 +112,20 @@ const messageConsumer = async msg => {
     logger.info(`${openshiftProject}: Build ${buildName} already exists`);
   } catch (err) {
     if (err.code == 404) {
+      try {
       const jobPost = promisify(
         kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post
       );
+        console.log(JSON.stringify(jobConfig, null, 4));
+
       jobInfo = await jobPost({ body: jobConfig });
       logger.info(`${openshiftProject}: Created build ${buildName}`);
+      } catch (error) {
+        logger.error(
+          `${openshiftProject}: Unexpected error creating job ${buildName}: ${err}`
+        );
+        throw new Error('requeue');
+      }
     } else {
       logger.error(
         `${openshiftProject}: Unexpected error loading job, unable to build ${buildName}: ${err}`

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.persistentStorage.name | quote }}
+  labels:
+    {{- include "node-persistent.labels" . | nindent 4 }}
+  annotations:
+    appuio.ch/backup: "true"
+    {{- include "node-persistent.annotations" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+    # storageClassName: {{ .Values.persistentStorage.class | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentStorage.size | quote }}

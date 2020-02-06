@@ -34,10 +34,8 @@ Common labels
 {{- define "nginx.labels" -}}
 helm.sh/chart: {{ include "nginx.chart" . }}
 {{ include "nginx.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "nginx.lagoonLabels" . }}
 {{- end -}}
 
 {{/*
@@ -48,3 +46,37 @@ app.kubernetes.io/name: {{ include "nginx.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
+{{/*
+Create a PriorityClassName.
+(this is based on the Lagoon Environment Type)).
+*/}}
+{{- define "nginx.lagoonPriority" -}}
+{{- printf "lagoon-priority-%s" .Values.environmentType }}
+{{- end -}}
+
+{{/*
+Lagoon Labels
+*/}}
+{{- define "nginx.lagoonLabels" -}}
+lagoon/service: {{ .Release.Name }}
+lagoon/service-type: {{ .Chart.Name }}
+lagoon/project: {{ .Values.project }}
+lagoon/environment: {{ .Values.environment }}
+lagoon/environmentType: {{ .Values.environmentType }}
+lagoon/buildType: {{ .Values.buildType }}
+{{- end -}}
+
+{{/*
+Annotations
+*/}}
+{{- define "nginx.annotations" -}}
+lagoon/version: {{ .Values.lagoonVersion | quote }}
+{{- if .Values.branch }}
+lagoon/branch: {{ .Values.branch | quote }}
+{{- end }}
+{{- if .Values.prNumber }}
+lagoon/prNumber: {{ .Values.prNumber | quote }}
+lagoon/prHeadBranch: {{ .Values.prHeadBranch | quote }}
+lagoon/prBaseBranch: {{ .Values.prBaseBranch | quote }}
+{{- end }}
+{{- end -}}

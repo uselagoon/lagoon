@@ -80,7 +80,7 @@ services:
       context: .
       dockerfile: solr.dockerfile
     labels:
-      lagoon.type: solr
+      lagoon.type: none
 networks:
   amazeeio-network:
     external: true

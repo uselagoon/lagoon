@@ -4,7 +4,9 @@
 
 replicaCount: 1
 
-image: nginx
+image: ""
+
+environmentType: production
 
 imagePullPolicy: Always
 
@@ -64,3 +66,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+cronjobs: {}
+
+tls_acme: false
+routesAutogenerateInsecure: Allow
