@@ -13,10 +13,13 @@ metadata:
     # force-ssl-redirect handling
     {{- if eq .Values.insecure "Allow"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "false"
     {{- else if eq .Values.insecure "Redirect"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
     {{- else if eq .Values.insecure "None"}}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "false"
     {{- end }}
     # HSTS Handling
     {{- if .Values.hsts}}
