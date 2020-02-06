@@ -11,6 +11,9 @@ metadata:
   annotations:
     {{- include "nginx-php.annotations" . | nindent 4 }}
 spec:
+  tls:
+    - hosts:
+        -   {{ $host | quote }}
   rules:
     - host: {{ $host | quote }}
       http:
