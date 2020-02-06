@@ -11,14 +11,14 @@ function outputToYaml() {
   set -x
 }
 
-function cronScheduleMoreOftenThan15Minutes() {
-  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+function cronScheduleMoreOftenThan30Minutes() {
+  #takes a unexpanded cron schedule, returns 0 if it's more often that 30 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     # Match found for M/xx, H/xx or */xx
-    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    # Check if xx is smaller than 30, which means this cronjob runs more often than every 30 minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -lt 15 ]; then
+    if [ $STEP -lt 30 ]; then
       return 0
     else
       return 1
@@ -27,7 +27,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # We are running every minute
     return 0
   else
-    # all other cases are more often than 15 minutes
+    # all other cases are more often than 30 minutes
     return 1
   fi
 }
@@ -819,11 +819,11 @@ nativeCronjobs:\n\
       CRONJOB_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
-        # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
+      if cronScheduleMoreOftenThan30Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+        # If this cronjob is more often than 30 minutes, we run the cronjob inside the pod itself
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
-        # This cronjob runs less ofen than every 15 minutes, we create a kubernetes native cronjob for it.
+        # This cronjob runs less ofen than every 30 minutes, we create a kubernetes native cronjob for it.
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
         NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
