@@ -115,26 +115,24 @@ const messageConsumer = async msg => {
 
   let jobInfo;
   try {
-    const jobsGet = promisify(
-      kubernetesBatchApi.namespaces(openshiftProject).jobs(jobName).get
-      );
-      jobInfo = await jobsGet();
-    } catch (err) {
-      if (err.code == 404) {
-        logger.error(`Job ${jobName} does not exist, bailing`);
-        failTask(taskId);
-        return;
-      } else {
-        logger.error(err);
-        throw new Error();
-      }
+    const jobsGet = promisify(kubernetesBatchApi.namespaces(openshiftProject).jobs(jobName).get);
+    jobInfo = await jobsGet();
+  } catch (err) {
+    if (err.code == 404) {
+      logger.error(`Job ${jobName} does not exist, bailing`);
+      failTask(taskId);
+      return;
+    } else {
+      logger.error(err);
+      throw new Error();
     }
+  }
     
   const buildPhase = jobInfo.status.conditions[0].type.toLowerCase();
   
   const jobsLogGet = async () => {
     // First fetch the pod(s) used to run this job
-    const podsGet = promisify(kubernetesCore.ns(openshiftProject).pods.get);
+    const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get);
     const pods = await podsGet({
       qs: {
         labelSelector: `job-name=${jobName}`
@@ -145,9 +143,7 @@ const messageConsumer = async msg => {
     // Combine all logs from all pod(s)
     let finalLog = '';
     for (const podName of podNames) {
-      const podLogGet = promisify(
-        kubernetesCore.ns(openshiftProject).pods(podName).log.get
-      );
+      const podLogGet = promisify(kubernetesCore.namespaces(openshiftProject).pods(podName).log.get)
       const podLog = await podLogGet();
 
       finalLog =
@@ -219,7 +215,7 @@ ${podLog}`;
     case "failed":
       try {
         const buildLog = await jobsLogGet()
-        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, jobInfo.status)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
@@ -232,10 +228,10 @@ ${podLog}`;
       )
       break;
 
-    case "succeeded":
+    case "complete":
       try {
         const buildLog = await jobsLogGet()
-        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, buildstatus)
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, jobInfo.status)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
@@ -267,8 +263,8 @@ ${podLog}`;
         }
       }
 
-      const route = configMap.data.ROUTE
-      const routes = configMap.data.ROUTES.split(',').filter(e => e !== route);
+      const route = configMap.items[0].data.LAGOON_ROUTE
+      const routes = configMap.items[0].data.LAGOON_ROUTES.split(',').filter(e => e !== route);
       meta.route = route
       meta.routes = routes
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
@@ -278,9 +274,9 @@ ${podLog}`;
         const updateEnvironmentResult = await updateEnvironment(
           environment.id,
           `{
-            route: "${configMap.data.LAGOON_ROUTE}",
-            routes: "${configMap.data.LAGOON_ROUTES}",
-            monitoringUrls: "${configMap.data.LAGOON_MONITORING_URLS}",
+            route: "${route}",
+            routes: "${routes}",
+            monitoringUrls: "${configMap.items[0].data.LAGOON_MONITORING_URLS}",
             project: ${project.id}
           }`
         );
@@ -320,7 +316,8 @@ ${podLog}`;
 
         */
 
-        const podsGet = promisify(kubernetes.ns(openshiftProject).pods.get);
+        
+        const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get)
         const pods = await podsGet()
 
         const serviceNames = pods.items.reduce(
@@ -351,12 +348,12 @@ ${podLog}`;
   }
 }
 
-const saveBuildLog = async(jobName, projectName, branchName, buildLog, buildStatus) => {
+const saveBuildLog = async(jobName, projectName, branchName, buildLog, jobInfo) => {
   const meta = {
     jobName,
     branchName,
-    buildPhase: buildStatus.status.phase.toLowerCase(),
-    remoteId: buildStatus.metadata.uid
+    buildPhase: jobInfo.status.conditions[0].type.toLowerCase(),
+    remoteId: jobInfo.metadata.uid
   };
 
   sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-kubernetes:${jobName}`, meta,
