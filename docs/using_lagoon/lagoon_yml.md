@@ -4,9 +4,9 @@ The `.lagoon.yml` file is the central file to set up your project. It contains c
 
 * [Define routes for accessing your sites](#routes).
 * [Define pre-rollout tasks](#pre-rollout-tasks-pre_rolloutirun).
-* [Define post-rollout tasks](#post-rollout-tasks-post_rollout-i-run).
+* [Define post-rollout tasks](#post-rollout-tasks-post_rolloutirun).
 * [Set up SSL certificates](#ssl-configuration-tls-acme).
-* [Add cron jobs for environments](#cronjobs-environments-name-cronjobs)
+* [Add cron jobs for environments](#cron-jobs-environmentsnamecronjobs)
 
 The `.lagoon.yml` file must be placed at the root of your Git repository.
 
