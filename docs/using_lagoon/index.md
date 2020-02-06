@@ -58,7 +58,7 @@ Some Docker images and containers need additional customizations from the provid
 | [php-cli](docker_images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile) |
 | [php-fpm](docker_images/php-fpm.md) | 7.2, 7.3 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
 | [Postgres](docker_images/postgres.md) | 11.6 | [postgres/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/postgres/Dockerfile) |
-| [RabbitMQ](docker_images/rabbitmq.md) |  |  |
+| [RabbitMQ](docker_images/rabbitmq.md) | 3.8  |  |
 | [Redis-persistent](docker_images/redis-permanent.md) | 5.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
 | [Redis](docker_images/redis.md) | 5.0 | [redis/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile) |
 | [Solr-Drupal](docker_images/solr-drupal.md) | 5.5, 6.6, 7.5 | [solr-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile) |
