@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon --watch . --watch ../../node-packages --exec 'node src/index.js'"
+    "dev": "nodemon --watch . --watch ../../node-packages --exec 'node --inspect=0.0.0.0:9229 src/index.js'"
   },
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
