@@ -18,9 +18,10 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- else if eq .Values.insecure "None"}}
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
+    kubernetes.io/tls-acme: "true"
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
@@ -31,6 +32,7 @@ spec:
   tls:
     - hosts:
         -  {{ .Values.host }}
+      secretName: {{ include "custom-ingress.fullname" . }}-tls
   rules:
     - host: {{ .Values.host }}
       http:

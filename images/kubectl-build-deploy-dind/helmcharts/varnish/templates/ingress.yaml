@@ -16,14 +16,16 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- else if eq .Values.routesAutogenerateInsecure "None"}}
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
+    kubernetes.io/tls-acme: "true"
     {{- include "varnish.annotations" . | nindent 4 }}
 spec:
   tls:
     - hosts:
         -   {{ $host | quote }}
+      secretname: {{ $fullname }}-tls
   rules:
     - host: {{ $host | quote }}
       http:
