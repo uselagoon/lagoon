@@ -128,7 +128,6 @@ const messageConsumer = async msg => {
     }
   }
     
-  const buildPhase = jobInfo.status.conditions[0].type.toLowerCase();
   
   const jobsLogGet = async () => {
     // First fetch the pod(s) used to run this job
@@ -158,9 +157,7 @@ ${podLog}`;
     return finalLog;
   };
 
-  // const buildsLogGet = Promise.promisify(kubernetes.ns(openshiftProject).builds(`${jobName}/log`).get, { context: kubernetes.ns(openshiftProject).builds(`${jobName}/log`) })
-  // const routesGet = Promise.promisify(kubernetes.ns(openshiftProject).routes.get, { context: kubernetes.ns(openshiftProject).routes })
-
+  let status;
   try {
     const deployment = await getDeploymentByRemoteId(jobInfo.metadata.uid);
 
@@ -172,17 +169,17 @@ ${podLog}`;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
     // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete) 
-    const status = ((status) => {
+    status = ((status) => {
       switch (status) {
         case 'active':
           return 'running';
-        case 'succeeded':
+        case 'complete':
           return 'complete';
         case 'failed':
         default:
           return 'failed';
       }
-    })(jobInfo.status.conditions[0]);
+    })(jobInfo.status.active ? 'active' : jobInfo.status.conditions[0].type.toLowerCase());
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
       status: status.toUpperCase(),
@@ -204,18 +201,18 @@ ${podLog}`;
     logMessage = `\`${branchName}\``
   }
 
-  switch (buildPhase) {
-    case "active":
-      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` active`
+  switch (status) {
+    case "running":
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${status}`, meta,
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` running`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` active`)
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` running`)
       break;
 
     case "failed":
       try {
         const buildLog = await jobsLogGet()
-        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, jobInfo.status)
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, status, jobInfo.metadata.uid)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
@@ -223,7 +220,7 @@ ${podLog}`;
         meta.logLink = ''
       }
 
-      sendToLagoonLogs('error', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
+      sendToLagoonLogs('error', projectName, "", `task:builddeploy-kubernetes:${status}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${jobName}\` failed. <${logLink}|Logs>`
       )
       break;
@@ -231,7 +228,7 @@ ${podLog}`;
     case "complete":
       try {
         const buildLog = await jobsLogGet()
-        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, jobInfo.status)
+        const s3UploadResult = await saveBuildLog(jobName, projectName, branchName, buildLog, status, jobInfo.metadata.uid)
         logLink = s3UploadResult.Location
         meta.logLink = logLink
       } catch (err) {
@@ -251,9 +248,6 @@ ${podLog}`;
         if (!R.isNil(configMapSearchResult)) {
           configMap = configMapSearchResult
         }
-
-        // const configMapGet = Promise.promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get, { context: kubernetes.ns(openshiftProject).configmaps('lagoon-env') })
-        // configMap = await configMapGet()
       } catch (err) {
         if (err.code == 404) {
           logger.error(`configmap lagoon-env does not exist, continuing without routes information`)
@@ -267,7 +261,7 @@ ${podLog}`;
       const routes = configMap.items[0].data.LAGOON_ROUTES.split(',').filter(e => e !== route);
       meta.route = route
       meta.routes = routes
-      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${status}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${jobName}\` complete. <${logLink}|Logs> \n ${route}\n ${routes.join("\n")}`
       )
       try {
@@ -286,37 +280,28 @@ ${podLog}`;
 
       // Tell api what services are running in this environment
       try {
-        // Get pod template from existing service
-
-        // const deploymentConfigsGet = Promise.promisify(
-        //   kubernetes.ns(openshiftProject).deploymentconfigs.get, { context: kubernetes.ns(openshiftProject).deploymentconfigs }
-        // );
-        // const deploymentConfigs = await deploymentConfigsGet();
-
-
+      
         // TODO: Using Deployments may be better
+
         /*
+          const deploymentConfigsGet = promisify(kubernetesApi.namespaces(openshiftProject).deployments.get);
+          const deploymentConfigs = await deployments({});
 
-        const deploymentConfigsGet = promisify(kubernetesApi.namespaces(openshiftProject).deployments.get);
-        const deploymentConfigs = await deployments({});
-
-        const serviceNames = deploymentConfigs.items.reduce(
-          (names, deploymentConfig) => [
-            ...names,
-            ...deploymentConfig.spec.template.spec.containers.reduce(
-              (names, container) => [
-                ...names,
-                container.name
-              ],
-              []
-            )
-          ],
-          []
-        );
-
+          const serviceNames = deploymentConfigs.items.reduce(
+            (names, deploymentConfig) => [
+              ...names,
+              ...deploymentConfig.spec.template.spec.containers.reduce(
+                (names, container) => [
+                  ...names,
+                  container.name
+                ],
+                []
+              )
+            ],
+            []
+          );
         */
 
-        
         const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get)
         const pods = await podsGet()
 
@@ -340,20 +325,20 @@ ${podLog}`;
       break;
 
     default:
-      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${buildPhase}`, meta,
-        `*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${buildPhase}`
+      sendToLagoonLogs('info', projectName, "", `task:builddeploy-kubernetes:${status}`, meta,
+        `*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${status}`
       )
-      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${buildPhase}`)
+      throw new BuildNotCompletedYet(`*[${projectName}]* ${logMessage} Build \`${jobName}\` phase ${status}`)
       break;
   }
 }
 
-const saveBuildLog = async(jobName, projectName, branchName, buildLog, jobInfo) => {
+const saveBuildLog = async(jobName, projectName, branchName, buildLog, status, remoteId) => {
   const meta = {
     jobName,
     branchName,
-    buildPhase: jobInfo.status.conditions[0].type.toLowerCase(),
-    remoteId: jobInfo.metadata.uid
+    status,
+    remoteId
   };
 
   sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-kubernetes:${jobName}`, meta,
@@ -373,7 +358,7 @@ const uploadLogToS3 = async (jobName, projectName, branchName, buildLog) => {
     ACL:    'public-read',
     ContentType: 'text/plain',
   };
-  const s3Upload = Promise.promisify(s3.upload, { context: s3 })
+  const s3Upload = promisify(s3.upload, { context: s3 })
   return s3Upload(params);
 };
 
