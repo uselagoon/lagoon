@@ -53,7 +53,7 @@ Some Docker images and containers need additional customizations from the provid
 | [MariaDB](docker_images/mariadb.md) | 10 | [mariadb/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile) |
 | [MongoDB](docker_images/mongo.md) | 3.6 | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile) |
 | [Nginx](docker_images/nginx.md) | openresty/1.15.8.2 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
-| [Nginx-Drupal](docker_images/nginx-drupal.md) |  | [nginx-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) |
+| [Nginx-Drupal](docker_images/nginx-drupal.md) | openresty/1.15.8.2 | [nginx-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx-drupal/Dockerfile) |
 | [php-fpm-Drupal](docker_images/php-cli-drupal.md) | 7.2, 7.3, 7.4 | [php/cli-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) |
 | [php-cli](docker_images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile) |
 | [php-fpm](docker_images/php-fpm.md) | 7.2, 7.3 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
