@@ -2,12 +2,12 @@
 
 # if there is a deployment for the given service
 if [[ $(kubectl -n ${NAMESPACE} get deploy --no-headers=true -o name -l lagoon/service=${SERVICE_NAME}| wc -l) -gt 0 ]]; then
-  DEPLOYMENTCONFIG=$(oc -n ${NAMESPACE} get deploy -l lagoon/service=${SERVICE_NAME} -o name)
+  DEPLOYMENTCONFIG=$(kubectl -n ${NAMESPACE} get deploy -l lagoon/service=${SERVICE_NAME} -o name)
   # check if deploymenconfig has at least 1 ready pod, if not, scale and check again in 3 secounds.
   while [[ $(kubectl -n ${NAMESPACE} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') = "<no value>" ]] || [[ $(kubectl -n ${NAMESPACE} get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') = "0" ]]
   do
     # Sending the scaling command while it already scaling is no problem for the Kubernetes API
-    oc -n ${NAMESPACE} scale --replicas=1 ${DEPLOYMENTCONFIG}
+    kubectl -n ${NAMESPACE} scale --replicas=1 ${DEPLOYMENTCONFIG}
     sleep 3
   done
 fi
