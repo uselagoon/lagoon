@@ -122,8 +122,8 @@ services:
     command: yarn run dev
     environment:
       - CI=${CI:-true}
-      - REGISTRY=harbor-nginx:8080
-      #- REGISTRY=172.17.0.1:8084
+      #- REGISTRY=harbor-nginx:8080
+      - REGISTRY=172.17.0.1:8084
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
