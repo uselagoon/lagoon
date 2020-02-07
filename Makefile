@@ -464,6 +464,7 @@ build/harborclair: build/harbor-database services/harbor-redis/Dockerfile servic
 build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
+build/toolbox: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
