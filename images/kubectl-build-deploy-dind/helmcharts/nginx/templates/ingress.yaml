@@ -25,7 +25,7 @@ spec:
   tls:
     - hosts:
         -   {{ $host | quote }}
-      secretName: {{ $fullName }}-tls
+      secretName: {{ $fullname }}-tls
   rules:
     - host: {{ $host | quote }}
       http:
