@@ -1,5 +1,5 @@
 CREATE USER IF NOT EXISTS 'maxscale'@'%';
-UPDATE mysql.user SET PASSWORD=PASSWORD("maxscale") WHERE user="maxscale";
+ALTER USER maxscale IDENTIFIED VIA mysql_native_password USING PASSWORD("maxscale");
 
 GRANT SELECT ON mysql.user to 'maxscale'@'%';
 GRANT SELECT ON mysql.db TO 'maxscale'@'%';
