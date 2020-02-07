@@ -349,6 +349,17 @@ lagoonVersion: ${LAGOON_VERSION}\n\
 " >> /kubectl-build-deploy/values.yaml
 
 echo -e "\
+imagePullSecrets:\n\
+" >> /kubectl-build-deploy/values.yaml
+
+for REGISTRY_SECRET in "${REGISTRY_SECRETS[@]}"
+do
+  echo -e "\
+- ${REGISTRY_SECRET}\n\
+" >> /kubectl-build-deploy/values.yaml
+done
+
+echo -e "\
 LAGOON_PROJECT=${PROJECT}\n\
 LAGOON_ENVIRONMENT=${ENVIRONMENT}\n\
 LAGOON_ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}\n\

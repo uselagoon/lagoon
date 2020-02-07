@@ -42,10 +42,14 @@ else
   LAGOON_GIT_SHA="0000000000000000000000000000000000000000"
 fi
 
+REGISTRY_SECRETS=()
+
 set +x
 
 if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] && [ ! -z ${INTERNAL_REGISTRY_PASSWORD} ] ; then
   echo "docker login -u '${INTERNAL_REGISTRY_USERNAME}' -p '${INTERNAL_REGISTRY_PASSWORD}' ${INTERNAL_REGISTRY_URL}" | /bin/bash
+  kubectl create secret docker-registry lagoon-internal-registry-secret --docker-server=35.180.127.175 --docker-username=admin                       --docker-password=Harbor12345  --docker-email=oktayesgul@blabla.com
+  REGISTRY_SECRETS+=("lagoon-internal-registry-secret")
   #docker login "-u '{$INTERNAL_REGISTRY_USERNAME}' -p '{$INTERNAL_REGISTRY_PASSWORD}' '{$INTERNAL_REGISTRY_URL}'"
   REGISTRY=$INTERNAL_REGISTRY_URL # This will handle pointing Lagoon at the correct registry for non local builds
   #REGISTRY_REPOSITORY=$NAMESPACE
