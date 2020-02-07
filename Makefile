@@ -496,6 +496,7 @@ build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
+build/toolbox: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
