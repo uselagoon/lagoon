@@ -169,6 +169,7 @@ const {
 const {
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
+  getEnvVarsByGroupId,
   addEnvVariable,
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
@@ -206,6 +207,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Group: {
     projects: getAllProjectsByGroupId,
+    envVariables: getEnvVarsByGroupId,
   },
   BillingGroup: {
     projects: getAllProjectsByGroupId,

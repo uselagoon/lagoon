@@ -101,6 +101,31 @@ const getEnvVarsByEnvironmentId = async (
   return rows;
 };
 
+const getEnvVarsByGroupId = async (
+  { id: gid },
+  args,
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  await hasPermission('env_var', 'group:view', {
+    group: gid,
+  });
+
+  const prep = prepare(
+    sqlClient,
+    `SELECT
+        ev.*
+      FROM env_vars ev
+      WHERE ev.group_id = :gid
+    `,
+  );
+
+  const results = await query(sqlClient, prep({ gid }))
+  return results;
+};
+
 const addEnvVariable = async (obj, args, context) => {
   const {
     input: { type },
@@ -209,6 +234,7 @@ const deleteEnvVariable = async (
 const Resolvers /* : ResolversObj */ = {
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
+  getEnvVarsByGroupId,
   addEnvVariable,
   deleteEnvVariable,
 };
