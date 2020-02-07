@@ -203,6 +203,43 @@ const addEnvVariableToEnvironment = async (
   return R.prop(0, rows);
 };
 
+// Stub/Example that implements add permission check
+const addEnvVariableToGroup = async (
+  root,
+  {
+    input: {
+      id, type, typeId, name, value, scope: unformattedScope,
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  await hasPermission('env_var', 'group:add', {
+    group: `${typeId}`,
+  });
+
+  const scope = envVarScopeToString(unformattedScope);
+
+  const {
+    info: { insertId },
+  } = await query(
+    sqlClient,
+    Sql.insertEnvVariable({
+      id,
+      name,
+      value,
+      scope,
+      group: typeId,
+    }),
+  );
+
+  const rows = await query(sqlClient, Sql.selectEnvVariable(insertId));
+
+  return R.prop(0, rows);
+};
+
 export const deleteEnvVariable = async (
   root,
   { input: { id } },

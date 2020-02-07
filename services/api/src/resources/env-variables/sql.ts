@@ -14,6 +14,7 @@ const Sql = {
       scope,
       project,
       environment,
+      group,
     }: {
     id: number,
     name: string,
@@ -21,6 +22,7 @@ const Sql = {
     scope: string,
     project?: number,
     environment?: number,
+    group?: number,
   },
   ) =>
     knex('env_vars')
@@ -31,6 +33,7 @@ const Sql = {
         scope,
         project,
         environment,
+        group_id: group,
       })
       .toString(),
   deleteEnvVariable: (id: number) =>
