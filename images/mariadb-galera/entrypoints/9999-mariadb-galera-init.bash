@@ -53,7 +53,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
   else
     echo "MySQL data directory not found, creating initial DBs"
 
-    mysql_install_db --skip-name-resolve --skip-test-db
+    mysql_install_db --skip-name-resolve --skip-test-db --auth-root-authentication-method=normal --datadir=/var/lib/mysql --basedir=/usr
 
     echo "starting mysql for initdb.d import."
     /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
@@ -85,7 +85,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     cat << EOF > $tfile
 DROP DATABASE IF EXISTS test;
 USE mysql;
-UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
+ALTER USER root@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD("$MARIADB_ROOT_PASSWORD");
 FLUSH PRIVILEGES;
 
 EOF

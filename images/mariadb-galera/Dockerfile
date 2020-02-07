@@ -1,6 +1,7 @@
+ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:latest
+FROM alpine:${ALPINE_VERSION}
 
 MAINTAINER amazee.io
 
